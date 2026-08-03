@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GAME_REVISION: 0
+  GAME_LANGUAGE: ENGLISH
+  COMPARE: 0
+  UNUSED_ERROR: 1
+  DEPRECATED_ERROR: 1
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run actionlint
+        # rhysd/actionlint:1.7.12
+        uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+
+      - name: Lint pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._/-]+\))?(!)?: .+'
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "::error::PR title must follow Conventional Commits, for example: feat(battle): add a new encounter"
+            exit 1
+          fi
+
+  build:
+    name: Build (${{ matrix.game }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [emerald, firered, leafgreen]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build dependencies
+        uses: ./.github/actions/setup-build
+
+      - name: Build ${{ matrix.game }}
+        env:
+          BUILD: ${{ matrix.game }}
+        run: make -j"$(nproc)" -O "$BUILD" syms
+
+      - name: Check for modified tracked files
+        run: |
+          if ! git diff-index --quiet HEAD --; then
+            echo 'Uncommitted changes detected:'
+            git diff-index HEAD --
+            exit 1
+          fi
+
+      - name: Stage build files
+        env:
+          BUILD: ${{ matrix.game }}
+        run: |
+          mkdir release
+          cp "poke${BUILD}.gba" "release/poke${BUILD}.gba"
+          cp "poke${BUILD}.map" "release/poke${BUILD}.map"
+          cp "poke${BUILD}.sym" "release/poke${BUILD}.sym"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: pokemon-openworld-${{ matrix.game }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 3
+
+  docs-validation:
+    name: Docs Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check documentation index
+        run: .github/docs_validate/inclusive_summary.py
+
+  package:
+    name: Package Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build dependencies
+        uses: ./.github/actions/setup-build
+
+      - name: Build release
+        run: make -j"$(nproc)" -O release syms
+
+      - name: Check for modified tracked files
+        run: |
+          if ! git diff-index --quiet HEAD --; then
+            echo 'Uncommitted changes detected:'
+            git diff-index HEAD --
+            exit 1
+          fi
+
+      - name: Stage release files
+        run: |
+          mkdir release
+          cp pokeemerald-release.gba release/pokeemerald-release.gba
+          cp pokeemerald-release.map release/pokeemerald-release.map
+          cp pokeemerald-release.sym release/pokeemerald-release.sym
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pokemon-openworld-build
+          path: release/
+          if-no-files-found: error
+          retention-days: 3

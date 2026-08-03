@@ -1,0 +1,43 @@
+name: Set up build dependencies
+description: Install and cache the toolchain used to build Pokemon Openworld.
+
+runs:
+  using: composite
+  steps:
+    - name: Install GBA build dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          binutils-arm-none-eabi \
+          gcc-arm-none-eabi \
+          libnewlib-arm-none-eabi \
+          libpng-dev \
+          pkg-config \
+          python3
+
+    - name: Restore build tools
+      uses: actions/cache@v5
+      with:
+        path: |
+          tools/bin2c/bin2c
+          tools/gbafix/gbafix
+          tools/gbagfx/gbagfx
+          tools/jsonproc/jsonproc
+          tools/mapjson/mapjson
+          tools/mid2agb/mid2agb
+          tools/preproc/preproc
+          tools/ramscrgen/ramscrgen
+          tools/rsfont/rsfont
+          tools/scaninc/scaninc
+          tools/trainerproc/trainerproc
+          tools/compresSmol/compresSmol
+          tools/compresSmol/compresSmolTilemap
+          tools/wav2agb/wav2agb
+        key: gba-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/actions/setup-build/action.yml', 'tools/*/Makefile', 'tools/**/*.c', 'tools/**/*.cpp', 'tools/**/*.h') }}
+
+    - name: Verify build toolchain
+      shell: bash
+      run: |
+        arm-none-eabi-gcc --version
+        python3 --version
