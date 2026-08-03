@@ -1,5 +1,5 @@
 name: Set up build dependencies
-description: Install and cache the toolchain used to build Pokemon Openworld.
+description: Install and cache the toolchain used to build Pokemon OpenWorld.
 
 runs:
   using: composite
