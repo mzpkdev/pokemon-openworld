@@ -48,6 +48,7 @@ jobs:
 
   build:
     name: Build (${{ matrix.game }})
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -94,6 +95,7 @@ jobs:
 
   docs-validation:
     name: Docs Validation
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -106,6 +108,7 @@ jobs:
 
   package:
     name: Package Release
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
