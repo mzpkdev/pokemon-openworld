@@ -7,9 +7,8 @@ The project uses the expansion engine as its technical foundation while developi
 its own world, content, and gameplay direction.
 
 This repository contains the source code and tooling needed to build the ROM
-locally. Successful builds from the `main` branch are also published as
-downloadable ROM artifacts through [GitHub Releases](../../releases). You may
-only use ROM images in accordance with the laws that apply to you.
+locally. You may only use ROM images in accordance with the laws that apply to
+you.
 
 ## Build and setup
 
