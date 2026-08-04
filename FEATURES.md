@@ -1,6 +1,12 @@
-# What features are included?
+# Inherited engine capabilities
+
+Pokémon OpenWorld is built on `pokeemerald-expansion`. The inventory below
+describes capabilities inherited from that engine, not a promise that every
+capability is enabled, configured, complete, or used by Pokémon OpenWorld.
+Links to original feature branches are retained as source attribution.
+
 ## Table of Contents
-- [What features are included?](#what-features-are-included)
+- [Inherited engine capabilities](#inherited-engine-capabilities)
   - [Table of Contents](#table-of-contents)
   - [Configuration files](#configuration-files)
   - [Upgraded Battle Engine](#upgraded-battle-engine)
@@ -12,21 +18,23 @@
   - [Developer tools](#developer-tools)
 
 ## Configuration files
-A lot of features listed below can be turned off as desired. Check which ones in these files
-- [AI config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/ai.h)
-- [Battle config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/battle.h)
-- [Caps config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/caps.h)
-- [Debug config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/debug.h)
-- [DexNav config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/dexnav.h)
-- [General config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/general.h)
-- [HGSS Pokédex config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/pokedex_plus_hgss.h)
-- [Item config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/item.h)
-- [NPC Follower config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/follower_npc.h)
-- [Overworld config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/overworld.h)
-- [Pokémon config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/pokemon.h)
-- [Save config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/save.h)
-- [Species enabled](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/species_enabled.h)
-- [Summary screen config](https://github.com/rh-hideout/pokeemerald-expansion/blob/master/include/config/summary_screen.h)
+Many inherited capabilities are configurable. The local configuration files are
+the authority for what this project actually enables:
+
+- [AI config](include/config/ai.h)
+- [Battle config](include/config/battle.h)
+- [Caps config](include/config/caps.h)
+- [Debug config](include/config/debug.h)
+- [DexNav config](include/config/dexnav.h)
+- [General config](include/config/general.h)
+- [HGSS Pokédex config](include/config/pokedex_plus_hgss.h)
+- [Item config](include/config/item.h)
+- [NPC Follower config](include/config/follower_npc.h)
+- [Overworld config](include/config/overworld.h)
+- [Pokémon config](include/config/pokemon.h)
+- [Save config](include/config/save.h)
+- [Species enabled](include/config/species_enabled.h)
+- [Summary screen config](include/config/summary_screen.h)
 
 ## Upgraded Battle Engine
 - ***Battle gimmicks:*** Mega Evolution, Primal Reversion, Ultra Burst, Z-Moves, Dynamax, Gigantamax and Terastallization.

@@ -1,24 +1,8 @@
-GAME_VERSION ?= EMERALD
-TITLE        ?= POKEMON EMER
-GAME_CODE    ?= BPEE
-BUILD_NAME   ?= emerald
-MAP_VERSION  ?= emerald
-
-ifeq (firered, $(or $(BUILD), $(MAKECMDGOALS)))
-  	GAME_VERSION 	:= FIRERED
-	TITLE       	:= POKEMON FIRE
-	GAME_CODE   	:= BPRE
-	BUILD_NAME  	:= firered
-	MAP_VERSION 	:= firered
-else
-ifeq (leafgreen, $(or $(BUILD), $(MAKECMDGOALS)))
-	GAME_VERSION 	:= LEAFGREEN
-	TITLE       	:= POKEMON LEAF
-	GAME_CODE   	:= BPGE
-	BUILD_NAME  	:= leafgreen
-	MAP_VERSION 	:= firered
-endif
-endif
+override GAME_VERSION := EMERALD
+override TITLE        := POKEMON EMER
+override GAME_CODE    := BPEE
+override BUILD_NAME   := emerald
+override MAP_VERSION  := emerald
 
 # GBA rom header
 MAKER_CODE  := 01
@@ -26,7 +10,7 @@ REVISION    := 0
 KEEP_TEMPS  ?= 0
 
 # `File name`.gba
-FILE_NAME := poke$(BUILD_NAME)
+override FILE_NAME := pokemon-openworld
 BUILD_DIR := build
 
 # Compares the ROM to a checksum of the original - only makes sense using when non-modern
@@ -93,23 +77,25 @@ endif
 CPP := $(PREFIX)cpp
 
 ifeq ($(RELEASE),1)
-	FILE_NAME := $(FILE_NAME)-release
+override OUTPUT_NAME := $(FILE_NAME)-release
+else
+override OUTPUT_NAME := $(FILE_NAME)
 endif
 
-ROM_NAME := $(FILE_NAME).gba
+override ROM_NAME := $(OUTPUT_NAME).gba
 OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)
 OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)-test
 OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)-debug
 OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)-release
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
-ELF_NAME := $(ROM_NAME:.gba=.elf)
-MAP_NAME := $(ROM_NAME:.gba=.map)
-TESTELF := $(ROM_NAME:.gba=-test.elf)
-HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
+override ELF_NAME := $(ROM_NAME:.gba=.elf)
+override MAP_NAME := $(ROM_NAME:.gba=.map)
+override TESTELF := $(ROM_NAME:.gba=-test.elf)
+override HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
 
 # Pick our active variables
-ROM := $(ROM_NAME)
+override ROM := $(ROM_NAME)
 ifeq ($(TESTELF),$(MAKECMDGOALS))
   TEST := 1
 endif
@@ -124,9 +110,9 @@ endif
 ifeq ($(RELEASE),1)
   OBJ_DIR := $(OBJ_DIR_NAME_RELEASE)
 endif
-ELF := $(ROM:.gba=.elf)
-MAP := $(ROM:.gba=.map)
-SYM := $(ROM:.gba=.sym)
+override ELF := $(ROM:.gba=.elf)
+override MAP := $(ROM:.gba=.map)
+override SYM := $(ROM:.gba=.sym)
 
 # Commonly used directories
 C_SUBDIR = src
@@ -388,7 +374,7 @@ clean-assets:
 tidy: tidymodern tidycheck tidydebug tidyrelease
 
 tidymodern:
-	rm -f poke*.gba poke*.elf poke*.map
+	rm -f pokemon-openworld.gba pokemon-openworld.elf pokemon-openworld.map pokemon-openworld.sym
 	rm -rf $(OBJ_DIR_NAME)
 
 tidycheck:
@@ -400,9 +386,9 @@ tidydebug:
 
 tidyrelease:
 ifeq ($(RELEASE),1)
-	rm -f $(ROM_NAME) $(ELF_NAME) $(MAP_NAME)
+	rm -f $(ROM_NAME) $(ELF_NAME) $(MAP_NAME) $(ROM_NAME:.gba=.sym)
 else # Manually remove the release files on clean/tidy
-	rm -f $(FILE_NAME)-release.gba $(FILE_NAME)-release.elf $(FILE_NAME)-release.map
+	rm -f $(FILE_NAME)-release.gba $(FILE_NAME)-release.elf $(FILE_NAME)-release.map $(FILE_NAME)-release.sym
 endif
 	rm -rf $(OBJ_DIR_NAME_RELEASE)
 
@@ -590,8 +576,6 @@ $(ROM): $(ELF)
 	$(FIX) $@ -p --silent
 
 emerald: all
-firered: all
-leafgreen: all
 # Symbol file (`make syms`)
 $(SYM): $(ELF)
 	$(OBJDUMP) -t $< | sort -u | grep -E "^0[2389]" | $(PERL) -p -e 's/^(\w{8}) (\w).{6} \S+\t(\w{8}) (\S+)$$/\1 \2 \3 \4/g' > $@

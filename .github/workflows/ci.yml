@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GAME_REVISION: 0
+  GAME_LANGUAGE: ENGLISH
+  COMPARE: 0
+  UNUSED_ERROR: 1
+  DEPRECATED_ERROR: 1
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up build dependencies
+        uses: ./.github/actions/setup-build
+
+      - name: Build Emerald
+        run: make -j"$(nproc)" -O emerald syms
+
+      - name: Check for modified tracked files
+        run: |
+          if ! git diff --quiet HEAD --; then
+            echo 'Uncommitted changes detected:'
+            git diff HEAD --
+            exit 1
+          fi
+
+      - name: Stage build files
+        run: |
+          mkdir release
+          cp pokemon-openworld.gba release/pokemon-openworld.gba
+          cp pokemon-openworld.map release/pokemon-openworld.map
+          cp pokemon-openworld.sym release/pokemon-openworld.sym
+
+      - name: Upload build artifacts
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pokemon-openworld
+          path: release/
+          if-no-files-found: error
+          retention-days: 3

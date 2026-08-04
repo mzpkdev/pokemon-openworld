@@ -12,17 +12,17 @@
 
 ## Quick Summary
 If you've done this before and just need a quick lookup, here's what files you need:
-1. Place graphics in [`graphics/trainers/back_pics`](./graphics/trainers/back_pics).
-2. Point game to where graphic files are found: [`src/data/graphics/trainers`](./src/data/graphics/trainers.h).
-3. Add trainer to [`include/constants/trainers.h`](./include/constants/trainers.h),
+1. Place graphics in [`graphics/trainers/back_pics`](../../graphics/trainers/back_pics).
+2. Point game to where graphic files are found: [`src/data/graphics/trainers`](../../src/data/graphics/trainers.h).
+3. Add trainer to [`include/constants/trainers.h`](../../include/constants/trainers.h),
 
 ## The Graphics
 
 ### 1. Add the sprites
-We will start with a graphic that we want to use for our new trainer pic. Unlike with adding Pokémon, the trainer sprites aren't sorted in individual folders, but rather in one folder: [`graphics/trainers/back_pics`](./graphics/trainers/back_pics). **Trainers sprites cannot be more than 16 - this includes the color that will be transparent, which is the first slot of the palette.**
+We will start with a graphic that we want to use for our new trainer pic. Unlike with adding Pokémon, the trainer sprites aren't sorted in individual folders, but rather in one folder: [`graphics/trainers/back_pics`](../../graphics/trainers/back_pics). **Trainers sprites cannot be more than 16 - this includes the color that will be transparent, which is the first slot of the palette.**
 
 ### 2. Register the sprites
-Sadly, just putting the image files into the graphics folder is not enough. To use the sprites we have to register them by linking the graphic files in [`src/data/graphics/trainers.h`](./src/data/graphics/trainers.h):
+Sadly, just putting the image files into the graphics folder is not enough. To use the sprites we have to register them by linking the graphic files in [`src/data/graphics/trainers.h`](../../src/data/graphics/trainers.h):
 ```diff
  const u8 gTrainerBackPic_Wally[] = INCGFX_U8("graphics/trainers/back_pics/wally.png", ".4bpp");
  const u8 gTrainerBackPic_Steven[] = INCGFX_U8("graphics/trainers/back_pics/steven.png", ".4bpp");
@@ -34,7 +34,7 @@ Sadly, just putting the image files into the graphics folder is not enough. To u
 ```
 
 ### 3. Connecting the Pictures to the Data
-The last few things we have to do is prepare the graphics for usage. In [`src/data/graphics/trainers.h`](./src/data/graphics/trainers.h) you'll find the `gTrainerBacksprites` struct, we need to add the trainer to this. You can just copy the last trainer type defined and edit it, but this is what it does: Connects the new trainer with the image we defined earlier.
+The last few things we have to do is prepare the graphics for usage. In [`src/data/graphics/trainers.h`](../../src/data/graphics/trainers.h) you'll find the `gTrainerBacksprites` struct, we need to add the trainer to this. You can just copy the last trainer type defined and edit it, but this is what it does: Connects the new trainer with the image we defined earlier.
 
 So, finally, it needs to look like this:
 ```diff
@@ -60,7 +60,7 @@ So, finally, it needs to look like this:
 
 ### The Data
 #### 4. Defining the trainer back pic
-Finally, let's bring it all together by defining our new trainer pic in [`include/constants/trainers.h`](./include/constants/trainers.h):
+Finally, let's bring it all together by defining our new trainer pic in [`include/constants/trainers.h`](../../include/constants/trainers.h):
 
 ```diff
     TRAINER_PIC_BACK_RUBY_SAPPHIRE_MAY,
@@ -73,7 +73,7 @@ Finally, let's bring it all together by defining our new trainer pic in [`includ
 Remember to add new back pics after `TRAINER_PIC_FRONT_COUNT` but before `TRAINER_PIC_COUNT`!
 
 ## Usage
-You can test your new trainer back pic by going to [`src/data/battle_partners.party`](./src/data/battle_partners.party) and change the `Pic` field. The syntax should match the constant (`TRAINER_PIC_BACK_NEW_ONE`) with the underscore replaced by spaces. For example:
+You can test your new trainer back pic by going to [`src/data/battle_partners.party`](../../src/data/battle_partners.party) and change the `Pic` field. The syntax should match the constant (`TRAINER_PIC_BACK_NEW_ONE`) with the underscore replaced by spaces. For example:
 ```diff
  === PARTNER_STEVEN ===
  Name: STEVEN
@@ -84,7 +84,7 @@ You can test your new trainer back pic by going to [`src/data/battle_partners.pa
  Music: Male
 ```
 
-Otherwise if you use [`src/data/battle_partners.h`](./src/data/battle_partners.h), change the `trainerPic` field instead. For example:
+Otherwise if you use [`src/data/battle_partners.h`](../../src/data/battle_partners.h), change the `trainerPic` field instead. For example:
 ```diff
      [DIFFICULTY_NORMAL][PARTNER_STEVEN] =
      {
