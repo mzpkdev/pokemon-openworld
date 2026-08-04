@@ -1,8 +1,5 @@
 import glob
-import re
-import json
 import os
-import subprocess
 
 # THIS IS A TEMPORARY SCRIPT MADE TO MOVE EXISTING FOLLOWER GRAPHICS FROM A SINGLE DIRECTORY.
 # IT TAKES FOLLOWER GRAPHICS FROM a 'followers' FOLDER IN THE ROOT FOLDER AND MOVES THEM BASED ON THEIR NAME.
@@ -11,13 +8,13 @@ import subprocess
 # I'M SAVING IT HERE IN CASE IT'S NEEDED SOMEWHERE IN THE FUTURE, THOUGH TWEAKING MIGHT BE NEEDED.
 # - AsparagusEduardo
 
+
 def rellocate_follower_graphics():
-    dict_out = {}
     count = 0
-    for pth in sorted(glob.glob('followers/*.png')):
+    for pth in sorted(glob.glob("followers/*.png")):
         name = pth.replace(".png", "").replace("followers/", "")
-        count+=1
-        #if (count == 2):
+        count += 1
+        # if (count == 2):
         #    break
         print(name)
         newname = name
@@ -53,12 +50,15 @@ def rellocate_follower_graphics():
         newname = newname.replace("vivillon_", "vivillon/")
         newname = newname.replace("wormadam_", "wormadam/")
 
-        if (os.path.exists('followers/' + newname) == False):
-            os.mkdir('followers/' + newname)
-        os.rename('followers/' + name + '.png', 'followers/' + newname + '/follower.png')
-        #os.popen('cp followers/' + name + '.png followers/' + name + '/follower.png')
-        #os.remove('followers/' + name + '.png')
-        #print(pth)
-        #subprocess.run(["tools/gbagfx/gbagfx " + name +".png " + name + "_normal.pal'" + str(count) + "'"])
+        if not os.path.exists("followers/" + newname):
+            os.mkdir("followers/" + newname)
+        os.rename(
+            "followers/" + name + ".png", "followers/" + newname + "/follower.png"
+        )
+        # os.popen('cp followers/' + name + '.png followers/' + name + '/follower.png')
+        # os.remove('followers/' + name + '.png')
+        # print(pth)
+        # subprocess.run(["tools/gbagfx/gbagfx " + name +".png " + name + "_normal.pal'" + str(count) + "'"])
+
 
 rellocate_follower_graphics()

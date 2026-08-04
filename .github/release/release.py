@@ -116,7 +116,9 @@ def stable_title(version: str) -> str:
     return f"Pokémon OpenWorld ({validate_version(version)})"
 
 
-def run(*args: str, cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
+def run(
+    *args: str, cwd: Path | None = None, check: bool = True
+) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
         args,
         cwd=cwd,
@@ -126,7 +128,11 @@ def run(*args: str, cwd: Path | None = None, check: bool = True) -> subprocess.C
         stderr=subprocess.PIPE,
     )
     if check and result.returncode:
-        detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
+        detail = (
+            result.stderr.strip()
+            or result.stdout.strip()
+            or f"exit {result.returncode}"
+        )
         fail(f"command failed ({args[0]}): {detail}")
     return result
 
@@ -210,7 +216,11 @@ def release_assets(release: dict[str, Any]) -> dict[str, dict[str, Any]]:
             fail(f"release contains duplicate asset {name}")
         if name not in ASSET_NAMES:
             fail(f"release contains unexpected asset {name}")
-        if asset.get("state") != "uploaded" or type(asset.get("size")) is not int or asset["size"] <= 0:
+        if (
+            asset.get("state") != "uploaded"
+            or type(asset.get("size")) is not int
+            or asset["size"] <= 0
+        ):
             fail(f"release asset is not a completed nonempty upload: {name}")
         digest = asset.get("digest")
         if not isinstance(digest, str) or not DIGEST_RE.fullmatch(digest):
@@ -281,7 +291,11 @@ def published_stable_releases(pages: Iterable[Iterable[Any]]) -> list[StableRele
             tag = release.get("tag_name")
             draft = release.get("draft")
             prerelease = release.get("prerelease")
-            if not isinstance(tag, str) or type(draft) is not bool or type(prerelease) is not bool:
+            if (
+                not isinstance(tag, str)
+                or type(draft) is not bool
+                or type(prerelease) is not bool
+            ):
                 fail("release listing contains malformed metadata")
             if draft or prerelease or not VERSION_RE.fullmatch(tag):
                 continue
@@ -292,7 +306,9 @@ def published_stable_releases(pages: Iterable[Iterable[Any]]) -> list[StableRele
 
 
 def all_published_stables(repo: str) -> list[StableRelease]:
-    return published_stable_releases(gh_api_pages(f"repos/{repo}/releases?per_page=100"))
+    return published_stable_releases(
+        gh_api_pages(f"repos/{repo}/releases?per_page=100")
+    )
 
 
 def canonical_semver_tags(pages: Iterable[Iterable[Any]]) -> list[str]:
@@ -313,7 +329,7 @@ def canonical_semver_tags(pages: Iterable[Iterable[Any]]) -> list[str]:
             ref = entry["ref"]
             if not ref.startswith(prefix):
                 fail("tag listing contains an unexpected ref")
-            tag = ref[len(prefix):]
+            tag = ref[len(prefix) :]
             if not VERSION_RE.fullmatch(tag):
                 continue
             if tag in found:
@@ -353,12 +369,16 @@ def validate_stable_tag_inventory(
 
 def is_ancestor_via_api(repo: str, ancestor: str, source_sha: str) -> bool:
     comparison = gh_api(f"repos/{repo}/compare/{ancestor}...{source_sha}")
-    if not isinstance(comparison, dict) or not isinstance(comparison.get("status"), str):
+    if not isinstance(comparison, dict) or not isinstance(
+        comparison.get("status"), str
+    ):
         fail("commit comparison response has an unexpected form")
     return comparison["status"] in ("ahead", "identical")
 
 
-def bump_stable_version(previous: tuple[int, int, int], changes: Iterable[Change]) -> str:
+def bump_stable_version(
+    previous: tuple[int, int, int], changes: Iterable[Change]
+) -> str:
     major, minor, patch = previous
     changes = list(changes)
     if any(change.breaking for change in changes):
@@ -377,7 +397,9 @@ def stable_version_for_source(
     reachable: Callable[[str, str, str], bool] | None = None,
     changes_between: Callable[[str, str], list[Change]] | None = None,
 ) -> tuple[str, tuple[str, str] | None]:
-    resolver = resolver or (lambda selected_repo, tag: resolve_tag_commit(selected_repo, tag, optional=True))
+    resolver = resolver or (
+        lambda selected_repo, tag: resolve_tag_commit(selected_repo, tag, optional=True)
+    )
     reachable = reachable or is_ancestor_via_api
     changes_between = changes_between or conventional_changes_between
     resolved: list[ResolvedStable] = []
@@ -387,7 +409,11 @@ def stable_version_for_source(
         if tag_sha is None:
             fail(f"published stable release {item.tag} has no tag")
         validate_release_metadata(
-            item.release, item.tag, tag_sha, prerelease=False, title=stable_title(item.tag),
+            item.release,
+            item.tag,
+            tag_sha,
+            prerelease=False,
+            title=stable_title(item.tag),
         )
         resolved_item = ResolvedStable(item, tag_sha)
         resolved.append(resolved_item)
@@ -406,8 +432,12 @@ def stable_version_for_source(
         ):
             fail("published stable version history is not strictly monotonic")
         earlier = [item for item in candidates if item != selected]
-        boundary = max(earlier, key=lambda item: item.stable.version) if earlier else None
-        return selected.stable.tag, ((boundary.stable.tag, boundary.sha) if boundary else None)
+        boundary = (
+            max(earlier, key=lambda item: item.stable.version) if earlier else None
+        )
+        return selected.stable.tag, (
+            (boundary.stable.tag, boundary.sha) if boundary else None
+        )
 
     if not resolved:
         return "v0.0.0", None
@@ -416,10 +446,13 @@ def stable_version_for_source(
 
     boundary = max(candidates, key=lambda item: item.stable.version)
     version = bump_stable_version(
-        boundary.stable.version, changes_between(boundary.sha, source_sha),
+        boundary.stable.version,
+        changes_between(boundary.sha, source_sha),
     )
     if any(version_tuple(version) <= item.stable.version for item in resolved):
-        fail("calculated stable version is not greater than every published stable version")
+        fail(
+            "calculated stable version is not greater than every published stable version"
+        )
     return version, (boundary.stable.tag, boundary.sha)
 
 
@@ -503,18 +536,26 @@ def resolve_stable_source() -> str:
     release = release_for_tag(repo, source)
     if release is None:
         fail("snapshot tag has no published release")
-    validate_release_metadata(release, source, source_sha, prerelease=True, title=snapshot_title(source_sha))
+    validate_release_metadata(
+        release, source, source_sha, prerelease=True, title=snapshot_title(source_sha)
+    )
     ci_run_id = find_successful_ci_run(repo, source_sha)
     snapshot_change = parse_conventional_commit(
         source_sha,
         git("show", "-s", "--format=%s", source_sha),
         git("show", "-s", "--format=%b", source_sha),
     )
-    snapshot_changelog = render_changes([snapshot_change] if snapshot_change else []).strip()
+    snapshot_changelog = render_changes(
+        [snapshot_change] if snapshot_change else []
+    ).strip()
     validate_release_body(
         release,
         release_notes_text(
-            "snapshot", snapshot_changelog, source_sha, repo, ci_run_id,
+            "snapshot",
+            snapshot_changelog,
+            source_sha,
+            repo,
+            ci_run_id,
         ),
     )
     if set(release_assets(release)) != set(ASSET_NAMES):
@@ -527,7 +568,9 @@ def resolve_stable_source() -> str:
     validate_stable_tag_inventory(
         repo, source_sha, version, stables, all_canonical_semver_tags(repo)
     )
-    existing_release = next((item.release for item in stables if item.tag == version), None)
+    existing_release = next(
+        (item.release for item in stables if item.tag == version), None
+    )
     existing_tag_sha = resolve_tag_commit(repo, version, optional=True)
     if existing_release is not None:
         if existing_tag_sha is None:
@@ -535,7 +578,10 @@ def resolve_stable_source() -> str:
         if existing_tag_sha != source_sha:
             fail("existing stable tag points at a different commit")
         validate_release_metadata(
-            existing_release, version, source_sha, prerelease=False,
+            existing_release,
+            version,
+            source_sha,
+            prerelease=False,
             title=stable_title(version),
         )
     elif existing_tag_sha is not None and existing_tag_sha != source_sha:
@@ -556,7 +602,9 @@ def fetch_stable_source() -> None:
     run("git", "fetch", "--no-tags", "origin", source_sha)
     if git("rev-parse", f"{source_sha}^{{commit}}") != source_sha:
         fail("resolved snapshot source is not a commit")
-    result = run("git", "merge-base", "--is-ancestor", source_sha, policy_sha, check=False)
+    result = run(
+        "git", "merge-base", "--is-ancestor", source_sha, policy_sha, check=False
+    )
     if result.returncode != 0:
         fail("snapshot source is not an ancestor of the current main policy commit")
     if git("rev-parse", "HEAD") != policy_sha:
@@ -568,7 +616,17 @@ def download_snapshot(directory: Path) -> None:
     source = validate_source_tag(env("SNAPSHOT_TAG"))
     directory.mkdir(mode=0o700, parents=False, exist_ok=False)
     for name in ASSET_NAMES:
-        gh("release", "download", source, "--repo", repo, "--dir", str(directory), "--pattern", name)
+        gh(
+            "release",
+            "download",
+            source,
+            "--repo",
+            repo,
+            "--dir",
+            str(directory),
+            "--pattern",
+            name,
+        )
 
 
 def verify_snapshot_assets(directory: Path) -> None:
@@ -580,7 +638,9 @@ def verify_snapshot_assets(directory: Path) -> None:
     release = release_for_tag(repo, source)
     if release is None:
         fail("snapshot release disappeared while assets were downloaded")
-    validate_release_metadata(release, source, source_sha, prerelease=True, title=snapshot_title(source_sha))
+    validate_release_metadata(
+        release, source, source_sha, prerelease=True, title=snapshot_title(source_sha)
+    )
     digests = validate_asset_dir(directory)
     validate_release_asset_bytes(release, digests, allow_missing=False)
 
@@ -593,7 +653,9 @@ def parse_conventional_commit(sha: str, subject: str, body: str) -> Change | Non
     if not match:
         return None
     type_, scope, marker, description = match.groups()
-    return Change(sha, type_, scope, description, bool(marker) or bool(BREAKING_RE.search(body)))
+    return Change(
+        sha, type_, scope, description, bool(marker) or bool(BREAKING_RE.search(body))
+    )
 
 
 def markdown_escape(value: str) -> str:
@@ -609,7 +671,9 @@ def render_changes(changes: Iterable[Change]) -> str:
     sections: list[tuple[str, list[Change]]] = []
     if breaking:
         sections.append(("Breaking Changes", breaking))
-    sections.extend((heading, grouped[type_]) for type_, heading in TYPE_HEADINGS if grouped[type_])
+    sections.extend(
+        (heading, grouped[type_]) for type_, heading in TYPE_HEADINGS if grouped[type_]
+    )
     if not sections:
         return "No Conventional Commit entries in this range.\n"
     output: list[str] = []
@@ -617,7 +681,9 @@ def render_changes(changes: Iterable[Change]) -> str:
         output.append(f"### {heading}\n")
         for change in entries:
             scope = f"**{markdown_escape(change.scope)}:** " if change.scope else ""
-            output.append(f"- {scope}{markdown_escape(change.description)} (`{change.sha[:7]}`)")
+            output.append(
+                f"- {scope}{markdown_escape(change.description)} (`{change.sha[:7]}`)"
+            )
         output.append("")
     return "\n".join(output).rstrip() + "\n"
 
@@ -629,7 +695,11 @@ def revision_range(kind: str, source_sha: str, previous_sha: str | None) -> str:
             fail("snapshot changelog cannot have a previous stable boundary")
         return f"{source_sha}^!"
     if kind == "stable":
-        return f"{validate_sha(previous_sha)}..{source_sha}" if previous_sha else source_sha
+        return (
+            f"{validate_sha(previous_sha)}..{source_sha}"
+            if previous_sha
+            else source_sha
+        )
     fail("changelog kind must be snapshot or stable")
 
 
@@ -699,7 +769,9 @@ def compose_notes(kind: str, changelog_path: Path, output: Path) -> None:
     repo = repository()
     changes = changelog_path.read_text(encoding="utf-8").strip()
     if kind == "snapshot":
-        rendered = release_notes_text(kind, changes, source_sha, repo, env("SOURCE_RUN_ID"))
+        rendered = release_notes_text(
+            kind, changes, source_sha, repo, env("SOURCE_RUN_ID")
+        )
     elif kind == "stable":
         rendered = release_notes_text(
             kind,
@@ -743,10 +815,14 @@ def release_create_args(
     args.extend(str(directory / name) for name in ASSET_NAMES)
     args.extend(
         [
-            "--repo", repo,
-            "--target", source_sha,
-            "--title", title,
-            "--notes-file", str(notes),
+            "--repo",
+            repo,
+            "--target",
+            source_sha,
+            "--title",
+            title,
+            "--notes-file",
+            str(notes),
         ]
     )
     args.extend(["--prerelease", "--latest=false"] if prerelease else ["--latest"])
@@ -755,7 +831,9 @@ def release_create_args(
     return args
 
 
-def stable_repair_actions(tag_sha: str | None, release: dict[str, Any] | None, source_sha: str) -> tuple[bool, bool]:
+def stable_repair_actions(
+    tag_sha: str | None, release: dict[str, Any] | None, source_sha: str
+) -> tuple[bool, bool]:
     if tag_sha is not None and tag_sha != source_sha:
         fail("existing stable tag points at a different commit")
     if release is not None and tag_sha is None:
@@ -793,10 +871,18 @@ def publish_snapshot(directory: Path, notes: Path) -> None:
         fail("snapshot release exists without its immutable tag")
     existing_release = release is not None
     if not existing_release:
-        gh(*release_create_args(
-            tag, repo, source_sha, title, notes, directory,
-            prerelease=True, verify_tag=tag_sha is not None,
-        ))
+        gh(
+            *release_create_args(
+                tag,
+                repo,
+                source_sha,
+                title,
+                notes,
+                directory,
+                prerelease=True,
+                verify_tag=tag_sha is not None,
+            )
+        )
         release = release_for_tag(repo, tag)
         if release is None:
             fail("snapshot release was not visible after creation")
@@ -806,7 +892,9 @@ def publish_snapshot(directory: Path, notes: Path) -> None:
     validate_release_body(release, expected_body)
     if latest_release_tag(repo) == tag:
         fail("snapshot release unexpectedly became latest")
-    missing = validate_release_asset_bytes(release, digests, allow_missing=existing_release)
+    missing = validate_release_asset_bytes(
+        release, digests, allow_missing=existing_release
+    )
     if missing:
         # Legacy releases created before immutable releases were enabled may be
         # repairable. A published immutable release will reject this upload,
@@ -815,7 +903,9 @@ def publish_snapshot(directory: Path, notes: Path) -> None:
         release = release_for_tag(repo, tag)
         if release is None:
             fail("snapshot release disappeared after asset upload")
-        validate_release_metadata(release, tag, source_sha, prerelease=True, title=title)
+        validate_release_metadata(
+            release, tag, source_sha, prerelease=True, title=title
+        )
         validate_release_body(release, expected_body)
         validate_release_asset_bytes(release, digests, allow_missing=False)
 
@@ -834,27 +924,43 @@ def publish_stable(directory: Path, notes: Path) -> None:
     create_release, verify_tag = stable_repair_actions(tag_sha, release, source_sha)
     existing_release = not create_release
     if release is not None:
-        validate_release_metadata(release, version, source_sha, prerelease=False, title=title)
+        validate_release_metadata(
+            release, version, source_sha, prerelease=False, title=title
+        )
         validate_release_body(release, expected_body)
         validate_release_asset_bytes(release, digests, allow_missing=True)
     if create_release:
-        gh(*release_create_args(
-            version, repo, source_sha, title, notes, directory,
-            prerelease=False, verify_tag=verify_tag,
-        ))
+        gh(
+            *release_create_args(
+                version,
+                repo,
+                source_sha,
+                title,
+                notes,
+                directory,
+                prerelease=False,
+                verify_tag=verify_tag,
+            )
+        )
 
     release = release_for_tag(repo, version)
     if release is None or resolve_tag_commit(repo, version) != source_sha:
         fail("stable release/tag was not visible at the expected commit")
-    validate_release_metadata(release, version, source_sha, prerelease=False, title=title)
+    validate_release_metadata(
+        release, version, source_sha, prerelease=False, title=title
+    )
     validate_release_body(release, expected_body)
-    missing = validate_release_asset_bytes(release, digests, allow_missing=existing_release)
+    missing = validate_release_asset_bytes(
+        release, digests, allow_missing=existing_release
+    )
     if missing:
         upload_assets(repo, version, directory, missing)
         release = release_for_tag(repo, version)
         if release is None or resolve_tag_commit(repo, version) != source_sha:
             fail("stable release/tag changed during asset repair")
-        validate_release_metadata(release, version, source_sha, prerelease=False, title=title)
+        validate_release_metadata(
+            release, version, source_sha, prerelease=False, title=title
+        )
         validate_release_body(release, expected_body)
         validate_release_asset_bytes(release, digests, allow_missing=False)
 
@@ -864,7 +970,9 @@ def publish_stable(directory: Path, notes: Path) -> None:
     if latest_release_tag(repo) != expected_latest:
         if not may_reassert_latest:
             if not existing_release:
-                fail("new stable release was not marked latest during atomic publication")
+                fail(
+                    "new stable release was not marked latest during atomic publication"
+                )
             fail("historical stable rerun found an unexpected latest release")
         if not existing_release:
             fail("new stable release was not marked latest during atomic publication")
@@ -940,12 +1048,15 @@ def self_test() -> None:
 
     scoped = parse_conventional_commit(sha, "feat(world-map)!: add Johto", "")
     assert scoped == Change(sha, "feat", "world-map", "add Johto", True)
-    assert parse_conventional_commit(sha, "fix: stop crash", "BREAKING CHANGE: save format") == Change(
-        sha, "fix", None, "stop crash", True
-    )
+    assert parse_conventional_commit(
+        sha, "fix: stop crash", "BREAKING CHANGE: save format"
+    ) == Change(sha, "fix", None, "stop crash", True)
     assert parse_conventional_commit(sha, "not conventional", "") is None
     assert parse_conventional_commit(sha, "feat(Bad): rejected scope", "") is None
-    expect_failure(lambda: parse_conventional_commit(sha, "feat: injected\n### Pwn", ""), "subject newline")
+    expect_failure(
+        lambda: parse_conventional_commit(sha, "feat: injected\n### Pwn", ""),
+        "subject newline",
+    )
     rendered = render_changes(
         [
             Change(sha, "fix", None, "escape [link](javascript:bad)", False),
@@ -953,7 +1064,11 @@ def self_test() -> None:
             Change(sha, "ci", None, "change release", True),
         ]
     )
-    assert rendered.index("### Breaking Changes") < rendered.index("### Features") < rendered.index("### Bug Fixes")
+    assert (
+        rendered.index("### Breaking Changes")
+        < rendered.index("### Features")
+        < rendered.index("### Bug Fixes")
+    )
     assert "**map:** add region" in rendered
     assert "[link](javascript:bad)" not in rendered
 
@@ -966,11 +1081,17 @@ def self_test() -> None:
     ]
     stables = published_stable_releases([release_rows[:2], release_rows[2:]])
     assert [item.tag for item in stables] == ["v1.0.0", "v1.5.0"]
-    expect_failure(lambda: published_stable_releases([[{"tag_name": "v1.0.0"}]]), "malformed release")
+    expect_failure(
+        lambda: published_stable_releases([[{"tag_name": "v1.0.0"}]]),
+        "malformed release",
+    )
     tag_rows = [
         {"ref": "refs/tags/v1.0.0", "object": {"type": "commit", "sha": sha}},
         {"ref": "refs/tags/v1.5.0", "object": {"type": "tag", "sha": other_sha}},
-        {"ref": "refs/tags/version-not-semver", "object": {"type": "commit", "sha": sha}},
+        {
+            "ref": "refs/tags/version-not-semver",
+            "object": {"type": "commit", "sha": sha},
+        },
     ]
     assert canonical_semver_tags([tag_rows[:1], tag_rows[1:]]) == ["v1.0.0", "v1.5.0"]
     expect_failure(
@@ -992,58 +1113,109 @@ def self_test() -> None:
         )
 
     assert stable_version_for_source(
-        "owner/repo", sha, [],
-        changes_between=lambda _previous, _source: fail("first stable must ignore commit types"),
+        "owner/repo",
+        sha,
+        [],
+        changes_between=lambda _previous, _source: fail(
+            "first stable must ignore commit types"
+        ),
     ) == ("v0.0.0", None)
     base = stable_fixture("v1.2.3", other_sha)
-    resolver = lambda _repo, _tag: other_sha
-    reachable = lambda _repo, _candidate, _source: True
+
+    def resolver(_repo: str, _tag: str) -> str:
+        return other_sha
+
+    def reachable(_repo: str, _candidate: str, _source: str) -> bool:
+        return True
+
     assert stable_version_for_source(
-        "owner/repo", sha, [base], resolver=resolver, reachable=reachable,
+        "owner/repo",
+        sha,
+        [base],
+        resolver=resolver,
+        reachable=reachable,
         changes_between=lambda _previous, _source: [],
     ) == ("v1.2.4", ("v1.2.3", other_sha))
-    assert stable_version_for_source(
-        "owner/repo", sha, [base], resolver=resolver, reachable=reachable,
-        changes_between=lambda _previous, _source: [Change(sha, "feat", None, "feature", False)],
-    )[0] == "v1.3.0"
-    assert stable_version_for_source(
-        "owner/repo", sha, [base], resolver=resolver, reachable=reachable,
-        changes_between=lambda _previous, _source: [
-            Change(sha, "feat", None, "feature", False),
-            Change(sha, "fix", None, "break", True),
-        ],
-    )[0] == "v2.0.0"
+    assert (
+        stable_version_for_source(
+            "owner/repo",
+            sha,
+            [base],
+            resolver=resolver,
+            reachable=reachable,
+            changes_between=lambda _previous, _source: [
+                Change(sha, "feat", None, "feature", False)
+            ],
+        )[0]
+        == "v1.3.0"
+    )
+    assert (
+        stable_version_for_source(
+            "owner/repo",
+            sha,
+            [base],
+            resolver=resolver,
+            reachable=reachable,
+            changes_between=lambda _previous, _source: [
+                Change(sha, "feat", None, "feature", False),
+                Change(sha, "fix", None, "break", True),
+            ],
+        )[0]
+        == "v2.0.0"
+    )
 
     first = stable_fixture("v1.0.0", other_sha)
     current = stable_fixture("v1.1.0", sha)
-    exact_resolver = lambda _repo, tag: {"v1.0.0": other_sha, "v1.1.0": sha}[tag]
+
+    def exact_resolver(_repo: str, tag: str) -> str:
+        return {"v1.0.0": other_sha, "v1.1.0": sha}[tag]
+
     assert stable_version_for_source(
-        "owner/repo", sha, [first, current], resolver=exact_resolver,
+        "owner/repo",
+        sha,
+        [first, current],
+        resolver=exact_resolver,
         reachable=reachable,
-        changes_between=lambda _previous, _source: fail("idempotent reuse must not calculate a bump"),
+        changes_between=lambda _previous, _source: fail(
+            "idempotent reuse must not calculate a bump"
+        ),
     ) == ("v1.1.0", ("v1.0.0", other_sha))
     later_sha = "c" * 40
     later = stable_fixture("v1.2.0", later_sha)
-    historical_resolver = lambda _repo, tag: {
-        "v1.0.0": other_sha,
-        "v1.1.0": sha,
-        "v1.2.0": later_sha,
-    }[tag]
+
+    def historical_resolver(_repo: str, tag: str) -> str:
+        return {
+            "v1.0.0": other_sha,
+            "v1.1.0": sha,
+            "v1.2.0": later_sha,
+        }[tag]
+
     assert stable_version_for_source(
-        "owner/repo", sha, [first, current, later], resolver=historical_resolver,
+        "owner/repo",
+        sha,
+        [first, current, later],
+        resolver=historical_resolver,
         reachable=lambda _repo, candidate, _source: candidate != later_sha,
-        changes_between=lambda _previous, _source: fail("historical reuse must not calculate a bump"),
+        changes_between=lambda _previous, _source: fail(
+            "historical reuse must not calculate a bump"
+        ),
     ) == ("v1.1.0", ("v1.0.0", other_sha))
     expect_failure(
         lambda: stable_version_for_source(
-            "owner/repo", sha, [base], resolver=lambda _repo, _tag: None,
+            "owner/repo",
+            sha,
+            [base],
+            resolver=lambda _repo, _tag: None,
             reachable=reachable,
         ),
         "published release without a tag",
     )
     expect_failure(
         lambda: stable_version_for_source(
-            "owner/repo", sha, [base], resolver=resolver,
+            "owner/repo",
+            sha,
+            [base],
+            resolver=resolver,
             reachable=lambda _repo, _candidate, _source: False,
         ),
         "unreachable stable history",
@@ -1052,22 +1224,36 @@ def self_test() -> None:
     assert stable_repair_actions(None, None, sha) == (True, False)
     assert stable_repair_actions(sha, None, sha) == (True, True)
     assert stable_repair_actions(sha, {}, sha) == (False, True)
-    expect_failure(lambda: stable_repair_actions(other_sha, None, sha), "retarget refusal")
+    expect_failure(
+        lambda: stable_repair_actions(other_sha, None, sha), "retarget refusal"
+    )
     expect_failure(lambda: stable_repair_actions(None, {}, sha), "release without tag")
     validate_stable_tag_inventory(
-        "owner/repo", sha, "v1.1.0", [first], ["v1.0.0", "v1.1.0"],
+        "owner/repo",
+        sha,
+        "v1.1.0",
+        [first],
+        ["v1.0.0", "v1.1.0"],
         resolver=lambda _repo, _tag: sha,
     )
     expect_failure(
         lambda: validate_stable_tag_inventory(
-            "owner/repo", sha, "v1.1.0", [first], ["v1.0.0", "v1.2.0"],
+            "owner/repo",
+            sha,
+            "v1.1.0",
+            [first],
+            ["v1.0.0", "v1.2.0"],
             resolver=lambda _repo, _tag: sha,
         ),
         "same-source dangling tag at another version",
     )
     expect_failure(
         lambda: validate_stable_tag_inventory(
-            "owner/repo", sha, "v1.1.0", [first], ["v1.0.0", "v1.1.0"],
+            "owner/repo",
+            sha,
+            "v1.1.0",
+            [first],
+            ["v1.0.0", "v1.1.0"],
             resolver=lambda _repo, _tag: other_sha,
         ),
         "unrelated dangling calculated tag",
@@ -1089,27 +1275,51 @@ def self_test() -> None:
     )
 
     create_args = release_create_args(
-        "build-" + sha[:12], "owner/repo", sha, "Snapshot", Path("notes.md"),
-        Path("release"), prerelease=True, verify_tag=True,
+        "build-" + sha[:12],
+        "owner/repo",
+        sha,
+        "Snapshot",
+        Path("notes.md"),
+        Path("release"),
+        prerelease=True,
+        verify_tag=True,
     )
     assert create_args[:3] == ["release", "create", "build-" + sha[:12]]
     assert create_args[3:6] == [str(Path("release") / name) for name in ASSET_NAMES]
     assert "--prerelease" in create_args and "--latest=false" in create_args
     assert create_args[-1] == "--verify-tag"
     stable_create_args = release_create_args(
-        "v1.2.3", "owner/repo", sha, "Stable", Path("notes.md"),
-        Path("release"), prerelease=False, verify_tag=False,
+        "v1.2.3",
+        "owner/repo",
+        sha,
+        "Stable",
+        Path("notes.md"),
+        Path("release"),
+        prerelease=False,
+        verify_tag=False,
     )
-    assert stable_create_args[3:6] == [str(Path("release") / name) for name in ASSET_NAMES]
+    assert stable_create_args[3:6] == [
+        str(Path("release") / name) for name in ASSET_NAMES
+    ]
     assert "--latest" in stable_create_args and "--prerelease" not in stable_create_args
 
-    workflow = (Path(__file__).parents[1] / "workflows" / "release.yml").read_text(encoding="utf-8")
-    if "ref: refs/heads/main" not in workflow or "ref: ${{ steps.source.outputs.sha }}" in workflow:
+    workflow = (Path(__file__).parents[1] / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+    if (
+        "ref: refs/heads/main" not in workflow
+        or "ref: ${{ steps.source.outputs.sha }}" in workflow
+    ):
         fail("stable workflow must keep current main policy checked out")
-    if "      version:" in workflow or "RELEASE_VERSION: ${{ inputs.version }}" in workflow:
+    if (
+        "      version:" in workflow
+        or "RELEASE_VERSION: ${{ inputs.version }}" in workflow
+    ):
         fail("stable workflow must calculate its release version")
     uses = re.findall(r"^\s*uses:\s*([^\s]+)$", workflow, re.MULTILINE)
-    if not uses or any(not re.fullmatch(r"actions/[A-Za-z0-9_.-]+@[0-9a-f]{40}", use) for use in uses):
+    if not uses or any(
+        not re.fullmatch(r"actions/[A-Za-z0-9_.-]+@[0-9a-f]{40}", use) for use in uses
+    ):
         fail("release workflow actions must use immutable official commit SHAs")
 
     with tempfile.TemporaryDirectory() as temporary:
@@ -1120,22 +1330,50 @@ def self_test() -> None:
             (assets / name).write_bytes(name.encode())
         digests = validate_asset_dir(assets)
         full = fixture_release("build-" + sha[:12], sha, digests, ASSET_NAMES)
-        validate_release_metadata(full, "build-" + sha[:12], sha, prerelease=True, title=snapshot_title(sha))
+        validate_release_metadata(
+            full, "build-" + sha[:12], sha, prerelease=True, title=snapshot_title(sha)
+        )
         validate_release_body(full, "generated notes\n")
-        expect_failure(lambda: validate_release_body(full, "generated notes"), "final newline mismatch")
-        expect_failure(lambda: validate_release_body(dict(full, body="altered notes\n"), "generated notes\n"), "notes mismatch")
+        expect_failure(
+            lambda: validate_release_body(full, "generated notes"),
+            "final newline mismatch",
+        )
+        expect_failure(
+            lambda: validate_release_body(
+                dict(full, body="altered notes\n"), "generated notes\n"
+            ),
+            "notes mismatch",
+        )
         assert validate_release_asset_bytes(full, digests, allow_missing=True) == []
         partial = fixture_release("build-" + sha[:12], sha, digests, ASSET_NAMES[:2])
-        assert validate_release_asset_bytes(partial, digests, allow_missing=True) == [ASSET_NAMES[2]]
-        expect_failure(lambda: validate_release_asset_bytes(partial, digests, allow_missing=False), "partial assets")
+        assert validate_release_asset_bytes(partial, digests, allow_missing=True) == [
+            ASSET_NAMES[2]
+        ]
+        expect_failure(
+            lambda: validate_release_asset_bytes(partial, digests, allow_missing=False),
+            "partial assets",
+        )
         stable = fixture_release("v1.2.3", sha, digests, ASSET_NAMES, prerelease=False)
-        validate_release_metadata(stable, "v1.2.3", sha, prerelease=False, title=stable_title("v1.2.3"))
+        validate_release_metadata(
+            stable, "v1.2.3", sha, prerelease=False, title=stable_title("v1.2.3")
+        )
         wrong_digest = json.loads(json.dumps(stable))
         wrong_digest["assets"][0]["digest"] = "sha256:" + "0" * 64
-        expect_failure(lambda: validate_release_asset_bytes(wrong_digest, digests, allow_missing=True), "digest mismatch")
+        expect_failure(
+            lambda: validate_release_asset_bytes(
+                wrong_digest, digests, allow_missing=True
+            ),
+            "digest mismatch",
+        )
         wrong_title = dict(stable, name="malicious")
         expect_failure(
-            lambda: validate_release_metadata(wrong_title, "v1.2.3", sha, prerelease=False, title=stable_title("v1.2.3")),
+            lambda: validate_release_metadata(
+                wrong_title,
+                "v1.2.3",
+                sha,
+                prerelease=False,
+                title=stable_title("v1.2.3"),
+            ),
             "title mismatch",
         )
         extra = assets / "unexpected.txt"
@@ -1151,14 +1389,30 @@ def self_test() -> None:
         git("init", "-q", cwd=fixture)
         git("config", "user.email", "release-test@example.invalid", cwd=fixture)
         git("config", "user.name", "Release Test", cwd=fixture)
-        for index, subject in enumerate(("feat: first", "fix(core): second", "ci!: third"), start=1):
+        for index, subject in enumerate(
+            ("feat: first", "fix(core): second", "ci!: third"), start=1
+        ):
             (fixture / "file").write_text(str(index))
             git("add", "file", cwd=fixture)
             git("commit", "-q", "-m", subject, cwd=fixture)
         head = git("rev-parse", "HEAD", cwd=fixture)
-        assert len(git("rev-list", revision_range("snapshot", head, None), cwd=fixture).splitlines()) == 1
+        assert (
+            len(
+                git(
+                    "rev-list", revision_range("snapshot", head, None), cwd=fixture
+                ).splitlines()
+            )
+            == 1
+        )
         root_sha = git("rev-list", "--max-parents=0", "HEAD", cwd=fixture)
-        assert len(git("rev-list", revision_range("stable", head, root_sha), cwd=fixture).splitlines()) == 2
+        assert (
+            len(
+                git(
+                    "rev-list", revision_range("stable", head, root_sha), cwd=fixture
+                ).splitlines()
+            )
+            == 2
+        )
     print("release helper self-tests passed")
 
 

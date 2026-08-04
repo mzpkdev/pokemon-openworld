@@ -1,9 +1,7 @@
 from itertools import chain
 
 import glob
-import os
 import re
-import shutil
 
 item_to_ball = {
     "ITEM_STRANGE_BALL": "BALL_STRANGE",
@@ -40,6 +38,7 @@ INCFILE_CREATEMON_PAT = re.compile(r"\s*(createmon|givemon)")
 BALL_ARG_PAT = re.compile(r"ball=(\w+)")
 ARG_PAT = re.compile(r"[A-Z_]+")
 
+
 def parse_createmon(line, command):
     ball_arg = BALL_ARG_PAT.search(line)
     if ball_arg:
@@ -48,7 +47,7 @@ def parse_createmon(line, command):
             print("unrecognized item:" + item)
             quit()
         return line.replace(item, item_to_ball[item])
-    args = line.split(',')
+    args = line.split(",")
     if command == "createmon":
         arg_num = 5
     else:
@@ -65,18 +64,20 @@ def parse_createmon(line, command):
     return line
 
 
-for inc_fname in chain(glob.glob("./data/scripts/*.inc"), glob.glob("./data/maps/*/scripts.inc")):
+for inc_fname in chain(
+    glob.glob("./data/scripts/*.inc"), glob.glob("./data/maps/*/scripts.inc")
+):
     new_lines = []
     with open(inc_fname, "r") as inc_fp:
         lines = inc_fp.readlines()
         for line in lines:
             command = INCFILE_CREATEMON_PAT.search(line)
             if command:
-                #print(inc_fname, line)
+                # print(inc_fname, line)
                 new_line = parse_createmon(line, command.group(0))
                 new_lines.append(new_line)
             else:
                 new_lines.append(line)
-    with open(inc_fname, 'w+') as file:
+    with open(inc_fname, "w+") as file:
         for line in new_lines:
             file.write(line)

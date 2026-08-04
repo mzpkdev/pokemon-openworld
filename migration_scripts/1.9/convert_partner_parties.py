@@ -7,26 +7,30 @@
 import re
 import sys
 
-is_blank = re.compile(r'^[ \t]*(//.*)?$')
+is_blank = re.compile(r"^[ \t]*(//.*)?$")
 
-begin_party_definition   = re.compile(r'struct TrainerMon (\w+)\[\] =')
-end_party_definition     = re.compile(r'^};')
-begin_pokemon_definition = re.compile(r'^    { *$')
-end_pokemon_definition   = re.compile(r'^    },? *$')
-level_definition         = re.compile(r'\.lvl = (\d+)')
-species_definition       = re.compile(r'\.species = SPECIES_(\w+)')
-gender_definition        = re.compile(r'\.gender = TRAINER_MON_(\w+)')
-nickname_definition      = re.compile(r'\.nickname = COMPOUND_STRING\("([^"]+)"\)')
-item_definition          = re.compile(r'\.heldItem = ITEM_(\w+)')
-ball_definition          = re.compile(r'\.ball = ITEM_(\w+)')
-ability_definition       = re.compile(r'\.ability = ABILITY_(\w+)')
-friendship_definition    = re.compile(r'\.friendship = (\d+)')
-shiny_definition         = re.compile(r'\.isShiny = (\w+)')
-ivs_definition           = re.compile(r'\.iv = TRAINER_PARTY_IVS\(([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+)\)')
-evs_definition           = re.compile(r'\.ev = TRAINER_PARTY_EVS\(([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+)\)')
-moves_definition         = re.compile(r'\.moves = \{([^}]+)\}')
-move_definition          = re.compile(r'MOVE_(\w+)')
-nature_definition        = re.compile(r'\.nature = NATURE_(\w+)')
+begin_party_definition = re.compile(r"struct TrainerMon (\w+)\[\] =")
+end_party_definition = re.compile(r"^};")
+begin_pokemon_definition = re.compile(r"^    { *$")
+end_pokemon_definition = re.compile(r"^    },? *$")
+level_definition = re.compile(r"\.lvl = (\d+)")
+species_definition = re.compile(r"\.species = SPECIES_(\w+)")
+gender_definition = re.compile(r"\.gender = TRAINER_MON_(\w+)")
+nickname_definition = re.compile(r'\.nickname = COMPOUND_STRING\("([^"]+)"\)')
+item_definition = re.compile(r"\.heldItem = ITEM_(\w+)")
+ball_definition = re.compile(r"\.ball = ITEM_(\w+)")
+ability_definition = re.compile(r"\.ability = ABILITY_(\w+)")
+friendship_definition = re.compile(r"\.friendship = (\d+)")
+shiny_definition = re.compile(r"\.isShiny = (\w+)")
+ivs_definition = re.compile(
+    r"\.iv = TRAINER_PARTY_IVS\(([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+)\)"
+)
+evs_definition = re.compile(
+    r"\.ev = TRAINER_PARTY_EVS\(([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+),([0-9 ]+)\)"
+)
+moves_definition = re.compile(r"\.moves = \{([^}]+)\}")
+move_definition = re.compile(r"MOVE_(\w+)")
+nature_definition = re.compile(r"\.nature = NATURE_(\w+)")
 
 # NOTE: These are just for aesthetics, the Pokemon would still compile
 # without them.
@@ -42,7 +46,6 @@ species_replacements = {
     "TING_LU": "Ting-Lu",
     "TYPE_NULL": "Type: Null",
     "WO_CHIEN": "Wo-Chien",
-
     "_ALOLAN": "-Alola",
     "_AQUA_BREED": "-Aqua",
     "_BATTLE_BOND": "-Bond",
@@ -73,7 +76,16 @@ species_replacements = {
     "_ZEN_MODE": "-Zen",
 }
 
-pokemon_attribute_order = ['Level', 'Ability', 'IVs', 'EVs', 'Happiness', 'Shiny', 'Ball']
+pokemon_attribute_order = [
+    "Level",
+    "Ability",
+    "IVs",
+    "EVs",
+    "Happiness",
+    "Shiny",
+    "Ball",
+]
+
 
 class Pokemon:
     def __init__(self):
@@ -83,8 +95,9 @@ class Pokemon:
         self.item = None
         self.nature = None
         self.attributes = {}
-        self.attributes['IVs'] = "0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe"
+        self.attributes["IVs"] = "0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe"
         self.moves = []
+
 
 def convert_parties(in_path, in_h):
     party_identifier = None
@@ -97,28 +110,28 @@ def convert_parties(in_path, in_h):
             line = line[:-1]
             if m := begin_party_definition.search(line):
                 if party:
-                    raise Exception(f"unexpected start of party")
+                    raise Exception("unexpected start of party")
                 [identifier] = m.groups()
                 party_identifier = identifier
                 party = []
             elif end_party_definition.search(line):
                 if not party:
-                    raise Exception(f"unexpected end of party")
+                    raise Exception("unexpected end of party")
                 parties[party_identifier] = party
                 party = None
             elif begin_pokemon_definition.search(line):
                 if pokemon:
-                    raise Exception(f"unexpected start of Pokemon")
+                    raise Exception("unexpected start of Pokemon")
                 pokemon = Pokemon()
             elif end_pokemon_definition.search(line):
                 if not pokemon:
-                    raise Exception(f"unexpected end of Pokemon")
+                    raise Exception("unexpected end of Pokemon")
                 else:
                     party.append(pokemon)
                     pokemon = None
             elif m := level_definition.search(line):
                 [level] = m.groups()
-                pokemon.attributes['Level'] = level
+                pokemon.attributes["Level"] = level
             elif m := species_definition.search(line):
                 [species_] = m.groups()
                 for match, replacement in species_replacements.items():
@@ -126,10 +139,10 @@ def convert_parties(in_path, in_h):
                 pokemon.species = species_.replace("_", " ").title()
             elif m := gender_definition.search(line):
                 [gender_] = m.groups()
-                if gender_ == 'MALE':
-                    pokemon.gender = 'M'
-                elif gender_ == 'FEMALE':
-                    pokemon.gender = 'F'
+                if gender_ == "MALE":
+                    pokemon.gender = "M"
+                elif gender_ == "FEMALE":
+                    pokemon.gender = "F"
                 else:
                     raise Exception(f"unknown gender: '{gender_}'")
             elif m := nickname_definition.search(line):
@@ -140,32 +153,58 @@ def convert_parties(in_path, in_h):
                 pokemon.item = item_.replace("_", " ").title()
             elif m := ball_definition.search(line):
                 [ball] = m.groups()
-                pokemon.attributes['Ball'] = ball.replace("_", " ").title()
+                pokemon.attributes["Ball"] = ball.replace("_", " ").title()
             elif m := ability_definition.search(line):
                 [ability] = m.groups()
-                pokemon.attributes['Ability'] = ability.replace("_", " ").title()
+                pokemon.attributes["Ability"] = ability.replace("_", " ").title()
             elif m := friendship_definition.search(line):
                 [friendship] = m.groups()
-                pokemon.attributes['Happiness'] = friendship
+                pokemon.attributes["Happiness"] = friendship
             elif m := shiny_definition.search(line):
                 [shiny] = m.groups()
-                if shiny == 'TRUE':
-                    pokemon.attributes['Shiny'] = 'Yes'
-                elif shiny == 'FALSE':
-                    pokemon.attributes['Shiny'] = 'No'
+                if shiny == "TRUE":
+                    pokemon.attributes["Shiny"] = "Yes"
+                elif shiny == "FALSE":
+                    pokemon.attributes["Shiny"] = "No"
                 else:
                     raise Exception(f"unknown isShiny: '{shiny}'")
             elif m := ivs_definition.search(line):
-                [hp, attack, defense, speed, special_attack, special_defense] = [stat.strip() for stat in m.groups()]
-                stats = {"HP": hp, "Atk": attack, "Def": defense, "SpA": special_attack, "SpD": special_defense, "Spe": speed}
-                pokemon.attributes['IVs'] = ' / '.join(f"{value} {key}" for key, value in stats.items())
+                [hp, attack, defense, speed, special_attack, special_defense] = [
+                    stat.strip() for stat in m.groups()
+                ]
+                stats = {
+                    "HP": hp,
+                    "Atk": attack,
+                    "Def": defense,
+                    "SpA": special_attack,
+                    "SpD": special_defense,
+                    "Spe": speed,
+                }
+                pokemon.attributes["IVs"] = " / ".join(
+                    f"{value} {key}" for key, value in stats.items()
+                )
             elif m := evs_definition.search(line):
-                [hp, attack, defense, speed, special_attack, special_defense] = [stat.strip() for stat in m.groups()]
-                stats = {"HP": hp, "Atk": attack, "Def": defense, "SpA": special_attack, "SpD": special_defense, "Spe": speed}
-                pokemon.attributes['EVs'] = ' / '.join(f"{value} {key}" for key, value in stats.items() if value != '0')
+                [hp, attack, defense, speed, special_attack, special_defense] = [
+                    stat.strip() for stat in m.groups()
+                ]
+                stats = {
+                    "HP": hp,
+                    "Atk": attack,
+                    "Def": defense,
+                    "SpA": special_attack,
+                    "SpD": special_defense,
+                    "Spe": speed,
+                }
+                pokemon.attributes["EVs"] = " / ".join(
+                    f"{value} {key}" for key, value in stats.items() if value != "0"
+                )
             elif m := moves_definition.search(line):
                 [moves_] = m.groups()
-                pokemon.moves = [move.replace("_", " ").title() for move in move_definition.findall(moves_) if move != "NONE"]
+                pokemon.moves = [
+                    move.replace("_", " ").title()
+                    for move in move_definition.findall(moves_)
+                    if move != "NONE"
+                ]
             elif m := nature_definition.search(line):
                 [nature_] = m.groups()
                 pokemon.nature = nature_.replace("_", " ").title()
@@ -177,21 +216,28 @@ def convert_parties(in_path, in_h):
             print(f"{in_path}:{line_no}: {e}")
     return parties
 
-is_trainer_skip = re.compile(r'(const struct Trainer gBattlePartners\[\] = \{)|(^    \{$)|(\.partySize =)|(\.party = NULL)|(\.mugshotEnabled = TRUE)|(\};)')
 
-begin_trainer_definition           = re.compile(r'    \[(PARTNER_\w+)\] =')
-end_trainer_definition             = re.compile(r'    }')
-trainer_class_definition           = re.compile(r'\.trainerClass = TRAINER_CLASS_(\w+)')
-encounter_music_gender_definition  = re.compile(r'\.encounterMusic_gender = (F_TRAINER_FEMALE \| )?TRAINER_ENCOUNTER_MUSIC_(\w+)')
-trainer_pic_definition             = re.compile(r'\.trainerPic = TRAINER_PIC_(\w+)')
-trainer_name_definition            = re.compile(r'\.trainerName = _\("([^"]*)"\)')
-trainer_items_definition           = re.compile(r'\.items = \{([^}]*)\}')
-trainer_item_definition            = re.compile(r'ITEM_(\w+)')
-trainer_ai_flags_definition        = re.compile(r'\.aiFlags = (.*)')
-trainer_ai_flag_definition         = re.compile(r'AI_FLAG_(\w+)')
-trainer_party_definition           = re.compile(r'\.party = TRAINER_PARTY\((\w+)\)')
-trainer_mugshot_definition         = re.compile(r'\.mugshotColor = MUGSHOT_COLOR_(\w+)')
-trainer_starting_status_definition = re.compile(r'\.startingStatus = STARTING_STATUS_(\w+)')
+is_trainer_skip = re.compile(
+    r"(const struct Trainer gBattlePartners\[\] = \{)|(^    \{$)|(\.partySize =)|(\.party = NULL)|(\.mugshotEnabled = TRUE)|(\};)"
+)
+
+begin_trainer_definition = re.compile(r"    \[(PARTNER_\w+)\] =")
+end_trainer_definition = re.compile(r"    }")
+trainer_class_definition = re.compile(r"\.trainerClass = TRAINER_CLASS_(\w+)")
+encounter_music_gender_definition = re.compile(
+    r"\.encounterMusic_gender = (F_TRAINER_FEMALE \| )?TRAINER_ENCOUNTER_MUSIC_(\w+)"
+)
+trainer_pic_definition = re.compile(r"\.trainerPic = TRAINER_PIC_(\w+)")
+trainer_name_definition = re.compile(r'\.trainerName = _\("([^"]*)"\)')
+trainer_items_definition = re.compile(r"\.items = \{([^}]*)\}")
+trainer_item_definition = re.compile(r"ITEM_(\w+)")
+trainer_ai_flags_definition = re.compile(r"\.aiFlags = (.*)")
+trainer_ai_flag_definition = re.compile(r"AI_FLAG_(\w+)")
+trainer_party_definition = re.compile(r"\.party = TRAINER_PARTY\((\w+)\)")
+trainer_mugshot_definition = re.compile(r"\.mugshotColor = MUGSHOT_COLOR_(\w+)")
+trainer_starting_status_definition = re.compile(
+    r"\.startingStatus = STARTING_STATUS_(\w+)"
+)
 
 class_fixups = {
     "Rs": "RS",
@@ -200,6 +246,7 @@ class_fixups = {
 pic_fixups = {
     "Rs": "RS",
 }
+
 
 class Trainer:
     def __init__(self, id_):
@@ -215,6 +262,7 @@ class Trainer:
         self.starting_status = None
         self.party = None
 
+
 def convert_trainers(in_path, in_h, parties, out_party):
     newlines = 0
     trainer = None
@@ -223,7 +271,7 @@ def convert_trainers(in_path, in_h, parties, out_party):
             line = line[:-1]
             if m := begin_trainer_definition.search(line):
                 if trainer:
-                    raise Exception(f"unexpected start of trainer")
+                    raise Exception("unexpected start of trainer")
                 [id_] = m.groups()
                 trainer = Trainer(id_)
             elif m := trainer_class_definition.search(line):
@@ -234,7 +282,7 @@ def convert_trainers(in_path, in_h, parties, out_party):
                 trainer.class_ = class_
             elif m := encounter_music_gender_definition.search(line):
                 [is_female, music] = m.groups()
-                trainer.gender = 'Female' if is_female else 'Male'
+                trainer.gender = "Female" if is_female else "Male"
                 trainer.encounter_music = music.replace("_", " ").title()
             elif m := trainer_pic_definition.search(line):
                 [pic] = m.groups()
@@ -247,10 +295,17 @@ def convert_trainers(in_path, in_h, parties, out_party):
                 trainer.name = name
             elif m := trainer_items_definition.search(line):
                 [items] = m.groups()
-                trainer.items = " / ".join(item.replace("_", " ").title() for item in trainer_item_definition.findall(items) if item != "NONE")
+                trainer.items = " / ".join(
+                    item.replace("_", " ").title()
+                    for item in trainer_item_definition.findall(items)
+                    if item != "NONE"
+                )
             elif m := trainer_ai_flags_definition.search(line):
                 [ai_flags] = m.groups()
-                trainer.ai_flags = " / ".join(ai_flag.replace("_", " ").title() for ai_flag in trainer_ai_flag_definition.findall(ai_flags))
+                trainer.ai_flags = " / ".join(
+                    ai_flag.replace("_", " ").title()
+                    for ai_flag in trainer_ai_flag_definition.findall(ai_flags)
+                )
             elif m := trainer_mugshot_definition.search(line):
                 [color] = m.groups()
                 trainer.mugshot = color.title()
@@ -262,9 +317,9 @@ def convert_trainers(in_path, in_h, parties, out_party):
                 trainer.party = parties[party]
             elif end_trainer_definition.search(line):
                 if not trainer:
-                    raise Exception(f"unexpected end of trainer")
+                    raise Exception("unexpected end of trainer")
                 while newlines > 0:
-                    out_party.write(f"\n")
+                    out_party.write("\n")
                     newlines -= 1
                 newlines = 1
                 out_party.write(f"=== {trainer.id} ===\n")
@@ -283,16 +338,16 @@ def convert_trainers(in_path, in_h, parties, out_party):
                     out_party.write(f"Starting Status: {trainer.starting_status}\n")
                 if trainer.party:
                     for i, pokemon in enumerate(trainer.party):
-                        out_party.write(f"\n")
+                        out_party.write("\n")
                         if pokemon.nickname:
                             out_party.write(f"{pokemon.nickname} ({pokemon.species})")
                         else:
                             out_party.write(f"{pokemon.species}")
                         if pokemon.gender:
                             out_party.write(f" ({pokemon.gender})")
-                        if pokemon.item and pokemon.item != 'None':
+                        if pokemon.item and pokemon.item != "None":
                             out_party.write(f" @ {pokemon.item}")
-                        out_party.write(f"\n")
+                        out_party.write("\n")
                         if pokemon.nature:
                             out_party.write(f"{pokemon.nature} Nature\n")
                         for key in pokemon_attribute_order:
@@ -308,12 +363,19 @@ def convert_trainers(in_path, in_h, parties, out_party):
         except Exception as e:
             print(f"{in_path}:{line_no}: {e}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     try:
         [argv0, trainers_in_path, parties_in_path, out_path] = sys.argv
-    except:
+    except ValueError:
         print(f"usage: python3 {sys.argv[0]} <trainers.h> <trainer_parties.h> <out>")
     else:
-        with open(trainers_in_path, "r") as trainers_in_h, open(parties_in_path, "r") as parties_in_h, open(out_path, "w") as out_party:
+        with (
+            open(trainers_in_path, "r") as trainers_in_h,
+            open(parties_in_path, "r") as parties_in_h,
+            open(out_path, "w") as out_party,
+        ):
             parties = convert_parties(parties_in_path, parties_in_h)
-            trainers = convert_trainers(trainers_in_path, trainers_in_h, parties, out_party)
+            trainers = convert_trainers(
+                trainers_in_path, trainers_in_h, parties, out_party
+            )

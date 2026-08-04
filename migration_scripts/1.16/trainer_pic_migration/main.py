@@ -33,38 +33,42 @@ def parse_trainer_entry(line):
     lst.pop(0)
 
     entries = ", ".join(entry.strip() for entry in lst)
-    pic_content = f'{entries}'
+    pic_content = f"{entries}"
 
     return enum, pic_content
 
 
 def generate_enums(lines):
     with open("migration_scripts/1.16/trainer_pic_migration/enums.h", "w") as output:
-        output.write(f"enum __attribute__((packed)) TrainerPicID\n")
-        output.write(f"{{\n")
+        output.write("enum __attribute__((packed)) TrainerPicID\n")
+        output.write("{\n")
 
         for line in lines:
             enum, pic_content = parse_trainer_entry(line)
             if enum is None:
-                output.write(f"    TRAINER_PIC_NONE,\n")
+                output.write("    TRAINER_PIC_NONE,\n")
                 continue
             output.write(f"    {enum},\n")
 
-        output.write(f"}};")
+        output.write("};")
 
 
 def generate_table(lines):
     with open("migration_scripts/1.16/trainer_pic_migration/table.h", "w") as output:
-        output.write(f'const struct TrainerPicInfo gTrainerPicInfo[TRAINER_PIC_COUNT] =\n')
-        output.write(f'{{\n')
+        output.write(
+            "const struct TrainerPicInfo gTrainerPicInfo[TRAINER_PIC_COUNT] =\n"
+        )
+        output.write("{\n")
 
         for line in lines:
             enum, pic_content = parse_trainer_entry(line)
 
             if enum is None:
-                output.write(f"    [TRAINER_PIC_NONE] =\n")
+                output.write("    [TRAINER_PIC_NONE] =\n")
                 output.write("    {\n")
-                output.write(f"        .frontPic = TRAINER_FRONT_PIC(gTrainerFrontPic_None, gTrainerPalette_None),\n")
+                output.write(
+                    "        .frontPic = TRAINER_FRONT_PIC(gTrainerFrontPic_None, gTrainerPalette_None),\n"
+                )
                 output.write("    },\n")
                 continue
 
@@ -73,7 +77,7 @@ def generate_table(lines):
             output.write(f"        .frontPic = TRAINER_FRONT_PIC({pic_content}),\n")
             output.write("    },\n")
 
-        output.write(f'}};')
+        output.write("};")
 
 
 def main():
@@ -82,9 +86,12 @@ def main():
     generate_enums(lines)
     generate_table(lines)
 
-    print("Generated files enums.h and table.h in the migration_scripts/1.16/trainer_pic_migration folder.")
+    print(
+        "Generated files enums.h and table.h in the migration_scripts/1.16/trainer_pic_migration folder."
+    )
     print("The script output requires to be manually added.")
     print("Inline (copy over) the content of the files to the right locations")
+
 
 if __name__ == "__main__":
     main()

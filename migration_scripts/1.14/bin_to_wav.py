@@ -14,8 +14,22 @@ from typing import Optional
 # Delta encoding table used for compression/decompression
 # Matches the table in tools/aif2pcm/main.c
 DELTA_ENCODING_TABLE = [
-    0, 1, 4, 9, 16, 25, 36, 49,
-    -64, -49, -36, -25, -16, -9, -4, -1,
+    0,
+    1,
+    4,
+    9,
+    16,
+    25,
+    36,
+    49,
+    -64,
+    -49,
+    -36,
+    -25,
+    -16,
+    -9,
+    -4,
+    -1,
 ]
 
 
@@ -55,9 +69,9 @@ def delta_decompress(compressed_data: bytes, expected_length: int) -> bytes:
             break
 
         # Read second sample using low nibble delta
-        lo = compressed_data[i] & 0xf
+        lo = compressed_data[i] & 0xF
         base_signed += DELTA_ENCODING_TABLE[lo]
-        pcm[j] = base_signed & 0xff
+        pcm[j] = base_signed & 0xFF
         i += 1
         j += 1
 
@@ -67,18 +81,18 @@ def delta_decompress(compressed_data: bytes, expected_length: int) -> bytes:
         # Process up to 31 pairs of samples (62 samples total)
         for k in range(31):
             # High nibble
-            hi = (compressed_data[i] >> 4) & 0xf
+            hi = (compressed_data[i] >> 4) & 0xF
             base_signed += DELTA_ENCODING_TABLE[hi]
-            pcm[j] = base_signed & 0xff
+            pcm[j] = base_signed & 0xFF
             j += 1
 
             if j >= expected_length:
                 break
 
             # Low nibble
-            lo = compressed_data[i] & 0xf
+            lo = compressed_data[i] & 0xF
             base_signed += DELTA_ENCODING_TABLE[lo]
-            pcm[j] = base_signed & 0xff
+            pcm[j] = base_signed & 0xFF
             j += 1
             i += 1
 
@@ -104,17 +118,17 @@ def read_bin(bin_path: str) -> tuple:
     - Bytes 12-15: loop end position (stored as actual_end - 1)
     - Remaining bytes: audio samples (8-bit signed)
     """
-    with open(bin_path, 'rb') as f:
+    with open(bin_path, "rb") as f:
         bin_data = f.read()
 
     if len(bin_data) < 16:
         raise ValueError(f"File too small: {len(bin_data)} bytes")
 
     # Read header
-    flags = struct.unpack('<I', bin_data[0:4])[0]
-    pitch_value = struct.unpack('<I', bin_data[4:8])[0]
-    loop_start = struct.unpack('<I', bin_data[8:12])[0]
-    loop_end_stored = struct.unpack('<I', bin_data[12:16])[0]
+    flags = struct.unpack("<I", bin_data[0:4])[0]
+    pitch_value = struct.unpack("<I", bin_data[4:8])[0]
+    loop_start = struct.unpack("<I", bin_data[8:12])[0]
+    loop_end_stored = struct.unpack("<I", bin_data[12:16])[0]
 
     # Extract flags
     is_compressed = (flags & 0x01) != 0
@@ -156,8 +170,14 @@ def read_bin(bin_path: str) -> tuple:
     return sample_rate, is_looped, loop_start, loop_end, samples
 
 
-def write_wav(wav_path: str, sample_rate: float, is_looped: bool,
-              loop_start: int, loop_end: int, samples: bytes):
+def write_wav(
+    wav_path: str,
+    sample_rate: float,
+    is_looped: bool,
+    loop_start: int,
+    loop_end: int,
+    samples: bytes,
+):
     """
     Write a .wav file with smpl chunk.
     """
@@ -174,13 +194,14 @@ def write_wav(wav_path: str, sample_rate: float, is_looped: bool,
     block_align = num_channels * bytes_per_sample
 
     # Build fmt chunk
-    fmt_chunk = struct.pack('<HHIIHH',
-        1,                  # Audio format (1 = PCM)
-        num_channels,       # Number of channels
-        sample_rate_int,    # Sample rate (integer)
-        byte_rate,          # Byte rate
-        block_align,        # Block align
-        bits_per_sample     # Bits per sample
+    fmt_chunk = struct.pack(
+        "<HHIIHH",
+        1,  # Audio format (1 = PCM)
+        num_channels,  # Number of channels
+        sample_rate_int,  # Sample rate (integer)
+        byte_rate,  # Byte rate
+        block_align,  # Block align
+        bits_per_sample,  # Bits per sample
     )
 
     # Build smpl chunk
@@ -189,36 +210,38 @@ def write_wav(wav_path: str, sample_rate: float, is_looped: bool,
     # MIDI note: default to 60 (C4) since we don't have this info in the bin
     midi_note = 60
 
-    smpl_chunk = struct.pack('<IIIIIIII',
-        0,                      # Manufacturer
-        0,                      # Product
-        sample_period,          # Sample period (nanoseconds)
-        midi_note,              # MIDI unity note
-        0,                      # MIDI pitch fraction
-        0,                      # SMPTE format
-        0,                      # SMPTE offset
-        1 if is_looped else 0   # Num sample loops
+    smpl_chunk = struct.pack(
+        "<IIIIIIII",
+        0,  # Manufacturer
+        0,  # Product
+        sample_period,  # Sample period (nanoseconds)
+        midi_note,  # MIDI unity note
+        0,  # MIDI pitch fraction
+        0,  # SMPTE format
+        0,  # SMPTE offset
+        1 if is_looped else 0,  # Num sample loops
     )
-    smpl_chunk += struct.pack('<I', 0)  # Sampler data
+    smpl_chunk += struct.pack("<I", 0)  # Sampler data
 
     # Add loop structure if loop exists
     if is_looped:
         # Loop end in binary is stored as (end - 1), so we already added 1 above
         loop_end_inclusive = loop_end - 1
-        smpl_chunk += struct.pack('<IIIIII',
-            0,                      # Cue point ID
-            0,                      # Type (0 = forward loop)
-            loop_start,             # Start
-            loop_end_inclusive,     # End (inclusive)
-            0,                      # Fraction
-            0                       # Play count (0 = infinite)
+        smpl_chunk += struct.pack(
+            "<IIIIII",
+            0,  # Cue point ID
+            0,  # Type (0 = forward loop)
+            loop_start,  # Start
+            loop_end_inclusive,  # End (inclusive)
+            0,  # Fraction
+            0,  # Play count (0 = infinite)
         )
 
     # Build custom 'agbp' (AGB Pitch) chunk to store exact pitch value
     # This avoids precision loss from period-based round-trip
     # pitch_value = sample_rate * 1024 (GBA format)
     pitch_value_int = int(sample_rate * 1024.0)
-    agbp_chunk = struct.pack('<I', pitch_value_int)
+    agbp_chunk = struct.pack("<I", pitch_value_int)
 
     # Calculate sizes
     data_chunk_size = len(samples_unsigned)
@@ -227,40 +250,50 @@ def write_wav(wav_path: str, sample_rate: float, is_looped: bool,
     agbp_chunk_size = len(agbp_chunk)
 
     # RIFF chunk size
-    riff_size = 4 + 8 + fmt_chunk_size + 8 + smpl_chunk_size + 8 + agbp_chunk_size + 8 + data_chunk_size
+    riff_size = (
+        4
+        + 8
+        + fmt_chunk_size
+        + 8
+        + smpl_chunk_size
+        + 8
+        + agbp_chunk_size
+        + 8
+        + data_chunk_size
+    )
 
     # Write WAV file
-    with open(wav_path, 'wb') as f:
+    with open(wav_path, "wb") as f:
         # RIFF header
-        f.write(b'RIFF')
-        f.write(struct.pack('<I', riff_size))
-        f.write(b'WAVE')
+        f.write(b"RIFF")
+        f.write(struct.pack("<I", riff_size))
+        f.write(b"WAVE")
 
         # fmt chunk
-        f.write(b'fmt ')
-        f.write(struct.pack('<I', fmt_chunk_size))
+        f.write(b"fmt ")
+        f.write(struct.pack("<I", fmt_chunk_size))
         f.write(fmt_chunk)
 
         # smpl chunk
-        f.write(b'smpl')
-        f.write(struct.pack('<I', smpl_chunk_size))
+        f.write(b"smpl")
+        f.write(struct.pack("<I", smpl_chunk_size))
         f.write(smpl_chunk)
 
         # agbp chunk (custom chunk for exact GBA pitch value)
-        f.write(b'agbp')
-        f.write(struct.pack('<I', agbp_chunk_size))
+        f.write(b"agbp")
+        f.write(struct.pack("<I", agbp_chunk_size))
         f.write(agbp_chunk)
 
         # data chunk
-        f.write(b'data')
-        f.write(struct.pack('<I', data_chunk_size))
+        f.write(b"data")
+        f.write(struct.pack("<I", data_chunk_size))
         f.write(samples_unsigned)
 
 
 def convert_bin_to_wav(bin_path: str, wav_path: Optional[str] = None):
     """Convert a single .bin file to .wav format"""
     if wav_path is None:
-        wav_path = os.path.splitext(bin_path)[0] + '.wav'
+        wav_path = os.path.splitext(bin_path)[0] + ".wav"
 
     print(f"Converting {bin_path} -> {wav_path}")
 
@@ -271,16 +304,18 @@ def convert_bin_to_wav(bin_path: str, wav_path: Optional[str] = None):
     if is_looped:
         print(f"  Loop: {loop_start} -> {loop_end}")
     else:
-        print(f"  Loop: None")
+        print("  Loop: None")
 
     write_wav(wav_path, sample_rate, is_looped, loop_start, loop_end, samples)
-    print(f"  Done!")
+    print("  Done!")
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: bin_to_wav.py <input.bin> [output.wav]")
-        print("   or: bin_to_wav.py <directory>  (converts all .bin files in directory)")
+        print(
+            "   or: bin_to_wav.py <directory>  (converts all .bin files in directory)"
+        )
         sys.exit(1)
 
     input_path = sys.argv[1]
@@ -288,7 +323,7 @@ def main():
     if os.path.isdir(input_path):
         # Convert all .bin files in directory
         for filename in sorted(os.listdir(input_path)):
-            if filename.lower().endswith('.bin'):
+            if filename.lower().endswith(".bin"):
                 bin_path = os.path.join(input_path, filename)
                 convert_bin_to_wav(bin_path)
     else:
@@ -297,5 +332,5 @@ def main():
         convert_bin_to_wav(input_path, output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
