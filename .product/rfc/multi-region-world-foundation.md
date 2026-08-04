@@ -160,13 +160,18 @@ The generator and build must enforce these invariants:
 - Clean-generate all unified map outputs.
 - Assert the current 935 grouped maps are emitted and the four known unused-house directories remain the only current exclusions.
 - Assert all 75 current group slots and 785 current layout slots are valid; update expected counts when Johto is imported.
-- Build the normal, debug, release, test, and headless variants of `pokemon-openworld`; all use the same Emerald engine and unified world. FireRed, LeafGreen, and Virtual Console ROM products are not supported targets.
+- Build the normal, debug, and release ROMs, the test-runner and headless-test ELFs, and the debug-only `pokemon-openworld-e2e` ROM; all use the same Emerald engine and unified world. FireRed, LeafGreen, and Virtual Console ROM products are not supported targets.
+- Preserve the protected `CI / Build` and `Metadata / Lint` check identities. Keep `Build` on `make emerald syms` and verify that its release-authority `pokemon-openworld` artifact contains exactly `pokemon-openworld.gba`, `.map`, and `.sym`.
+- Add a separate required `CI / Foundation` check and add that exact context to the repository ruleset. It runs generator/schema checks, collision-safe debug and optimized release-mode builds, `make check`, `make e2e-core`, `make e2e-foundation`, and per-ROM capacity validation. Copy each mode's outputs to separate evidence staging before another mode can overwrite a root-level filename.
+- Upload measurements, logs, test ELFs, and E2E failure evidence under a non-release artifact name from a step guarded by `if: ${{ always() }}` and an explicit missing-files policy. Never stage `-release`, `-test`, `-test-headless`, or `-e2e` outputs under `release/`.
 - Publish ROM, EWRAM, and IWRAM usage for each build.
 - Fail when the linked ROM exceeds 32 MiB.
 
 ### Runtime validation
 
-Use a test-only direct map-load hook rather than production travel warps. First sweep every registered map through header, layout, border, tileset, palette, metatile, and callback initialization with story scripts and events suppressed. Then fully load and settle representative maps from:
+Extend the existing `tools/e2e` SkyEmu fixture with a test-only direct map-load hook rather than adding production travel warps or a second emulator harness. Propagate `E2E=1` into C, and into assembly only if the hook needs it. Expose a symbol-addressable request/result structure with a monotonically increasing request ID and explicit idle, pending, running, success, and error states. The host writes the payload while paused, commits it by setting `pending` last, resumes, and accepts only a terminal result that echoes the request ID and requested map. The ROM validates map-group, map-number, and coordinate bounds before entering the ordinary warp and map-load path; reports the failing initialization phase and error code; and the host enforces a timeout. The hook and its symbols must be absent from normal, release, and published artifacts.
+
+Add an independently invocable `make e2e-foundation` suite. First sweep every registered map through header, layout, border, tileset, palette, metatile, and callback initialization with story scripts and events suppressed. Run the manifest-driven sweep in one SkyEmu process with per-map diagnostics, but reload a reviewed clean state and reset tasks, callbacks, scripts, suppression flags, request state, and transient save/RAM effects before every entry. A failed reset aborts the sweep. Restore ordinary script and event behavior before representative full loads. Then fully load and settle representative maps from:
 
 - Hoenn;
 - mainland Kanto;
@@ -189,6 +194,8 @@ Add focused tests for:
 - Pokémon save/load stability with unchanged record sizes;
 - title screen, new game, and Hoenn save/continue regression.
 
+The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their meanings. `e2e-core` runs in the required `CI / Foundation` check; `e2e-extended` remains a recommended local story regression and is not part of foundation acceptance because it is not direct-load proof. All three suites remain independently invocable; this RFC does not introduce an aggregate E2E target.
+
 ## Capacity policy
 
 The existing baseline uses 26,514,756 bytes, or 79.02% of a 32 MiB ROM, leaving 7,039,676 bytes before unified regional assets are enabled. Build and measure a current-byte-ABI Hoenn/Kanto/Sevii feasibility ROM before widening world IDs. Capacity failure stops the migration until residency or asset duplication is corrected.
@@ -197,14 +204,14 @@ If it exceeds capacity, remove duplicate or unreachable graphics, audio, and sto
 
 ## Delivery sequence
 
-1. Isolate build and generated outputs by mode; add deterministic generation and direct-load test infrastructure.
+1. Isolate build and generated outputs by mode; add deterministic generation and the `e2e-foundation` direct-load infrastructure.
 2. Build and measure a current-byte-ABI Hoenn/Kanto/Sevii `ALL_REGIONS` feasibility ROM with every guarded asset family resident.
 3. Atomically widen the C and generated map-header schemas while adding explicit IDs, the fixed sentinel, metadata, saved-location codecs, and provenance codecs.
 4. Add fail-closed generation, exhaustive structural map loads, representative full loads, and serialized-boundary regressions.
 5. Import Johto data against these contracts as a separate change.
 6. Add story, travel, Fly, and trade features independently after the world foundation is stable.
 
-Each step must leave the normal Emerald path buildable. No step may introduce production access to unfinished regions merely to test them.
+Each step must leave the default `make emerald syms` candidate path buildable. No step may introduce production access to unfinished regions merely to test them.
 
 ## Risks
 
