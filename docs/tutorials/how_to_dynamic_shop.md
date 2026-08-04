@@ -143,7 +143,7 @@ We want to allow the player to purchase the Light Ball, but only after they have
 +bool32 ShopCriteriaHasPikachu(enum Item item);
 ```
 
-#### [`src/data/items`](/src/data/items.c)
+#### [`src/data/items.h`](../../src/data/items.h)
 ```diff
      [ITEM_LIGHT_BALL] =
      {

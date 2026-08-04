@@ -441,23 +441,23 @@ static void UNUSED PadString(const u8 *src, u8 *dst)
 
 ### Config Philosophy
 
-If a branch can modifies saves, the functionality that does so must be gated behind a config, and off by default.
+If a feature can modify saves, gate that behavior behind a config and keep it off by default. This lets existing projects adopt the code without silently changing their save format.
 
-If a branch has a config that performs either of the following, it should be on by default:
-*  improves the backend / developer quality of life
-*  emulates present day, modern day Pokémon
+Configs may be on by default when they:
+* improve backend or developer quality of life without affecting save compatibility
+* emulate modern Pokémon behavior that the project intentionally adopts
 
-The sole excpetion to this is content who's sole source is Pokémon Champions. Champions content should use the `GEN_CHAMPIONS` config, but `GEN_LATEST` will remain `GEN_9` unless explicitly stated otherwise by a maintainer.
+Content whose sole source is Pokémon Champions should use the `GEN_CHAMPIONS` config. Keep `GEN_LATEST` at `GEN_9` unless the project deliberately changes that baseline.
 
-If a branch's behavior is one that Game Freak does not have a consistent stance on, the default behavior of the config should be disussed by the maintainers.
+When the official games do not provide a consistent precedent, document the chosen default next to the config so future changes preserve the project's intent.
 
 All other configs should be off.
 
 ### Save Philosophy
 
-Until [save migration](https://discord.com/channels/419213663107416084/1108733346864963746) is implemented, branches will only merged in if they do not forcefully break existing game saves.
+Avoid breaking existing game saves. Any change to serialized data must either preserve the previous layout or include a tested migration path.
 
-When `pokemeerald-expansion` gets to a point where new functionality will require that we break saves, we will merge as many [save-breaking features](https://discord.com/channels/419213663107416084/1202774957776441427) together as possible, and increment the major version number of the project.
+When an incompatible save-format change is unavoidable, group related changes into one deliberate migration, update the save version, and document the compatibility boundary. Test both new saves and migration from the previous supported format before release.
 
 # Attribution
 * The majority of the styleguide was written by [garakmon](https://github.com/garakmon) as part of their [PR to pokefirered](<https://github.com/pret/pokefirered/pull/63>).

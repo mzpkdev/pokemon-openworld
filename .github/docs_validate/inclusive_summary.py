@@ -42,8 +42,6 @@ if not errorLines:
         path = Path(pathName)
         if path == Path("SUMMARY.md"):
             pass
-        elif path == Path("changelogs/template.md"):
-            pass
         elif path in summaryContents:
             pass
         else:
