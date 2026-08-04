@@ -5,26 +5,9 @@ if not os.path.exists("Makefile"):
     print("Please run this script from your root folder.")
     quit()
 
-for easy_chat_file in [
-    "actions",
-    "adjectives",
-    "battle",
-    "conditions",
-    "endings",
-    "events",
-    "feelings",
-    "greetings",
-    "hobbies",
-    "lifestyle",
-    "misc",
-    "people",
-    "speech",
-    "status",
-    "time",
-    "trainer",
-    "trendy_saying",
-    "voices",
-]:
+for easy_chat_file in ["actions", "adjectives", "battle", "conditions", "endings", "events", "feelings", "greetings",
+                       "hobbies", "lifestyle", "misc", "people", "speech", "status", "time", "trainer",
+                       "trendy_saying", "voices"]:
     filePath = f"./src/data/easy_chat/easy_chat_group_{easy_chat_file}.h"
 
     # Read easy chat file
@@ -37,7 +20,7 @@ for easy_chat_file in [
     for match in source_pattern.findall(source_content):
         if len(match) == 2:
             var_name, easy_chat_text = match
-            source_data[var_name] = easy_chat_text
+            source_data[var_name] = (easy_chat_text)
 
     # Read easy chat file content
     with open(filePath, "r") as f:
@@ -49,11 +32,11 @@ for easy_chat_file in [
         if var_name in source_data:
             easy_chat_text = source_data[var_name]
             print(f"Updating {var_name}: adding {easy_chat_text}")
-            return f".text = COMPOUND_STRING{easy_chat_text},"
+            return f'.text = COMPOUND_STRING{easy_chat_text},'
         else:
             return match.group(0)
 
-    destination_pattern = re.compile(r".text = gEasyChatWord_(.*),")
+    destination_pattern = re.compile(r'.text = gEasyChatWord_(.*),')
     modified_content = destination_pattern.sub(add_filter_data, destination_content)
 
     # Write the modified content back to easy chat file

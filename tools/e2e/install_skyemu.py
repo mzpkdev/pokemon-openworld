@@ -16,10 +16,7 @@ BINARY_SHA256 = "d85797fe449bd97922a3b3f73060db7ebf49ab094ef8f0b0c882fe7357e3c9f
 
 def install(output: Path) -> None:
     output = output.resolve()
-    if (
-        output.is_file()
-        and hashlib.sha256(output.read_bytes()).hexdigest() == BINARY_SHA256
-    ):
+    if output.is_file() and hashlib.sha256(output.read_bytes()).hexdigest() == BINARY_SHA256:
         return
 
     with urllib.request.urlopen(URL, timeout=60) as response:

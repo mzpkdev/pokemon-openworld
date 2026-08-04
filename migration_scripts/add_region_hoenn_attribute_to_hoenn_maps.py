@@ -27,7 +27,7 @@ for root, dirs, files in os.walk(MAPS_DIR):
 
             if '"music"' in line and not inserted:
                 # Detect indentation from current line
-                indent = line[: len(line) - len(line.lstrip())]
+                indent = line[:len(line) - len(line.lstrip())]
 
                 region_line = f'{indent}"region": "REGION_HOENN",\n'
                 new_lines.append(region_line)

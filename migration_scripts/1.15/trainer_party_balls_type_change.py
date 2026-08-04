@@ -1,3 +1,4 @@
+import re
 import os
 import shutil
 
@@ -32,7 +33,6 @@ item_to_ball = {
     "ITEM_CHERISH_BALL": "Cherish",
 }
 
-
 def make_backup_files(files):
     for file in files:
         backup = os.path.basename(file) + ".backup"
@@ -40,16 +40,15 @@ def make_backup_files(files):
             print("Creating backup for " + file)
             shutil.copy2(file, backup, follow_symlinks=True)
 
-
 def parse_ball(line):
     line = line.removeprefix("Ball:").strip()
     item = "ITEM_"
     for c in line:
-        if ("A" <= c and c <= "Z") or ("0" <= c and c <= "9"):
+        if ('A' <= c and c <= 'Z') or ('0' <= c and c <= '9'):
             item += c
-        elif "a" <= c and c <= "z":
+        elif 'a' <= c and c <= 'z':
             item += c.upper()
-        elif c == "'":
+        elif c == '\'':
             pass
         else:
             item += "_"
@@ -57,23 +56,21 @@ def parse_ball(line):
     if item not in item_to_ball:
         print("unrecognized pattern:" + item)
         quit()
-    return "Ball: " + item_to_ball[item] + "\n"
-
+    return ("Ball: " + item_to_ball[item] + "\n")
 
 def parse_and_change(filepath):
     backup = os.path.basename(filepath) + ".backup"
     allLines = list()
-    with open(backup, "r", encoding="UTF-8") as file:
-        while line := file.readline():
+    with open(backup, 'r', encoding='UTF-8') as file:
+        while line:=file.readline():
             if "Ball:" in line:
                 allLines.append(parse_ball(line))
             else:
                 allLines.append(line)
 
-    with open(filepath, "w+", encoding="UTF-8") as file:
+    with open(filepath, 'w+', encoding='UTF-8') as file:
         for line in allLines:
             file.write(line)
-
 
 if not os.path.exists("Makefile"):
     print("Please run this script from your root folder.")
@@ -85,6 +82,4 @@ make_backup_files(files)
 for file in files:
     parse_and_change(file)
 
-print(
-    "Migration complete. You can delete battle_partners.party.backup and trainers.party.backup if things are working properly"
-)
+print("Migration complete. You can delete battle_partners.party.backup and trainers.party.backup if things are working properly")

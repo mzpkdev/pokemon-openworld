@@ -4,17 +4,13 @@ import re
 import shutil
 import subprocess
 
-ToDelete = collections.namedtuple("ToDelete", "path line_number")
-
+ToDelete = collections.namedtuple('ToDelete', 'path line_number')
 
 def await_warning(line):
-    if re.search(
-        r"Warning: explicit waitstate follows implicit waitstate, ignoring", line
-    ):
+    if re.search(r"Warning: explicit waitstate follows implicit waitstate, ignoring", line):
         return (await_info, None)
     else:
         return (await_warning, None)
-
 
 def await_info(line):
     if m := re.match(r"([^:]+):(\d+):  Info: macro invoked from here", line):
@@ -22,7 +18,6 @@ def await_info(line):
     else:
         # NOTE: Does not handle multiple stacked infos.
         return (await_warning, None)
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -33,18 +28,7 @@ def main():
     args = parser.parse_args()
 
     make = shutil.which("make")
-    p = subprocess.Popen(
-        [
-            make,
-            "BUILD={}".format(args.build),
-            "build/{}/data/event_scripts.o".format(args.build),
-            "-W",
-            "data/event_scripts.s",
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
+    p = subprocess.Popen([make, "BUILD={}".format(args.build), "build/{}/data/event_scripts.o".format(args.build), "-W", "data/event_scripts.s"], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
 
     to_deletes = collections.defaultdict(set)
     state = await_warning
@@ -61,9 +45,8 @@ def main():
                 # HINT: 'waitstate' not in line implies that this
                 # waitstate came from a macro. The user will have to
                 # sort that out for themselves.
-                if line_number not in line_numbers or "waitstate" not in line:
+                if line_number not in line_numbers or 'waitstate' not in line:
                     f.write(line)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

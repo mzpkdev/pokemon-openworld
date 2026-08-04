@@ -40,9 +40,7 @@ class Symbols:
             try:
                 value = int(fields[0], 16)
             except ValueError as error:
-                raise ValueError(
-                    f"{path}:{number}: malformed symbol address"
-                ) from error
+                raise ValueError(f"{path}:{number}: malformed symbol address") from error
             binding = fields[1]
             name = fields[-1]
             values = self._all_values.setdefault(name, [])
@@ -55,9 +53,7 @@ class Symbols:
                     self._globals.add(name)
             elif binding == "g":
                 if name in self._globals and previous != value:
-                    raise ValueError(
-                        f"{path}:{number}: conflicting global symbol {name}"
-                    )
+                    raise ValueError(f"{path}:{number}: conflicting global symbol {name}")
                 self._values[name] = value
                 self._globals.add(name)
                 self._ambiguous.discard(name)
@@ -134,9 +130,7 @@ class SkyEmuSession:
         query = "" if not params else "?" + urlencode(params)
         return f"http://127.0.0.1:{self.port}/{command}{query}"
 
-    def _bytes(
-        self, command: str, params: list[tuple[str, str]] | None = None
-    ) -> bytes:
+    def _bytes(self, command: str, params: list[tuple[str, str]] | None = None) -> bytes:
         with urlopen(self._url(command, params), timeout=10) as response:
             return response.read()
 
@@ -168,9 +162,7 @@ class SkyEmuSession:
         unknown = states.keys() - set(BUTTONS)
         if unknown:
             raise ValueError(f"unknown buttons: {sorted(unknown)}")
-        params = [
-            (button, "1" if pressed else "0") for button, pressed in states.items()
-        ]
+        params = [(button, "1" if pressed else "0") for button, pressed in states.items()]
         result = self._text("input", params)
         if result != "ok":
             raise RuntimeError(f"SkyEmu input failed: {result}")
@@ -250,9 +242,7 @@ class SkyEmuSession:
     def read_flag(self, flag_id: int) -> bool:
         if not 0 < flag_id < FLAGS_COUNT:
             raise ValueError(f"not a saved flag id: 0x{flag_id:x}")
-        byte = self.read_u8(
-            self.save_block1() + SAVE_BLOCK1_FLAGS_OFFSET + flag_id // 8
-        )
+        byte = self.read_u8(self.save_block1() + SAVE_BLOCK1_FLAGS_OFFSET + flag_id // 8)
         return bool(byte & (1 << (flag_id % 8)))
 
     def set_flag(self, flag_id: int, enabled: bool = True) -> None:
@@ -277,9 +267,7 @@ class SkyEmuSession:
 
     def facing_direction(self) -> int:
         object_id = self.read_u8(self.address("gPlayerAvatar") + 5)
-        return (
-            self.read_u8(self.address("gObjectEvents") + object_id * 0x24 + 0x18) & 0xF
-        )
+        return self.read_u8(self.address("gObjectEvents") + object_id * 0x24 + 0x18) & 0xF
 
     def task_active(self, symbol: str) -> bool:
         expected = self.address(symbol) | 1
@@ -357,9 +345,7 @@ class SkyEmuSession:
             if predicate():
                 return
             self.press(button, hold_frames=1, release_frames=pulse_frames)
-        raise AssertionError(
-            f"{description} not reached after {max_pulses} {button} pulses"
-        )
+        raise AssertionError(f"{description} not reached after {max_pulses} {button} pulses")
 
     def move_to(
         self,
@@ -376,10 +362,7 @@ class SkyEmuSession:
             at_y = y is None or current_y == y
             if at_x and at_y:
                 for _ in range(24):
-                    if self.movement_idle() and self.position() == (
-                        current_x,
-                        current_y,
-                    ):
+                    if self.movement_idle() and self.position() == (current_x, current_y):
                         return
                     self.step()
                     if self.position() != (current_x, current_y):

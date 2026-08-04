@@ -8,10 +8,10 @@ if not os.path.exists("Makefile"):
     quit()
 
 # scan incs
-incs_to_check = glob.glob("./data/scripts/*.inc")  # all .incs in the script folder
-incs_to_check += glob.glob("./data/maps/*/scripts.inc")  # all map scripts
-pories_to_check = glob.glob("./data/scripts/*.pory")  ## all .porys in the script folder
-pories_to_check += glob.glob("./data/maps/*/scripts.pory")  # all map scripts
+incs_to_check =    glob.glob('./data/scripts/*.inc') # all .incs in the script folder
+incs_to_check +=   glob.glob('./data/maps/*/scripts.inc') # all map scripts
+pories_to_check =  glob.glob('./data/scripts/*.pory') ## all .porys in the script folder
+pories_to_check += glob.glob('./data/maps/*/scripts.pory') # all map scripts
 
 array = []
 array_pories = []
@@ -26,25 +26,23 @@ for file in incs_to_check:
 for file in pories_to_check:
     with open(file, "r") as f2:
         raw = f2.read()
-    array_pories += re.findall(
-        "script ([\w]*)[	 \n]*\{[	 \n]*finditem\((.*)\)[	 \n]*\}", raw
-    )
+    array_pories += re.findall("script ([\w]*)[	 \n]*\{[	 \n]*finditem\((.*)\)[	 \n]*\}", raw)
 
 dict = {}
 # poryscript values are prioritised because they would overwrite inc files anyway if different
 for x in array_pories:
     dict[x[0]] = x[1]
 for x in array:
-    if x[0] not in dict:
+    if not x[0] in dict:
         dict[x[0]] = x[1]
 
 # apply changes to inc files
-for map in glob.glob("./data/maps/*/map.json"):
+for map in glob.glob('./data/maps/*/map.json'):
     with open(map, "r") as f2:
         data = json.load(f2)
-    if "object_events" not in data:
+    if not 'object_events' in data:
         continue
-    for objevent in data["object_events"]:
+    for objevent in data['object_events']:
         if objevent["script"] in dict:
             objevent["trainer_sight_or_berry_tree_id"] = dict[objevent["script"]]
             objevent["script"] = "Common_EventScript_FindItem"
@@ -53,13 +51,13 @@ for map in glob.glob("./data/maps/*/map.json"):
 
 # do another map search to find out which finditem scripts would somehow be still in use
 still_in_use = []
-for map in glob.glob("./data/maps/*/map.json"):
+for map in glob.glob('./data/maps/*/map.json'):
     with open(map, "r") as f2:
         data = json.load(f2)
-    if "object_events" not in data:
+    if not 'object_events' in data:
         continue
-    for objevent in data["object_events"]:
-        if objevent["script"] in dict and objevent["script"] not in still_in_use:
+    for objevent in data['object_events']:
+        if objevent["script"] in dict and not objevent["script"] in still_in_use:
             still_in_use.append(objevent["script"])
 
 for x in list(dict.keys()):
@@ -80,12 +78,7 @@ for file in pories_to_check:
     with open(file, "r") as f2:
         raw = f2.read()
     for unused in list(dict.keys()):
-        raw = re.sub(
-            "script %s[	 \n]*\{[	 \n]*finditem\((.*)\)[	 \n]*\}[	 \n]*"
-            % unused,
-            "",
-            raw,
-        )
+        raw = re.sub("script %s[	 \n]*\{[	 \n]*finditem\((.*)\)[	 \n]*\}[	 \n]*" % unused, "", raw)
     with open(file, "w") as f2:
         f2.write(raw)
 

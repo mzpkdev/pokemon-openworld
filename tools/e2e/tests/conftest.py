@@ -40,9 +40,7 @@ def game(request, tmp_path):
     try:
         if failed:
             safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.nodeid)
-            output = (
-                Path(os.environ["E2E_RESULTS"]) / os.environ["E2E_SUITE"] / safe_name
-            )
+            output = Path(os.environ["E2E_RESULTS"]) / os.environ["E2E_SUITE"] / safe_name
             output.mkdir(parents=True, exist_ok=True)
             session.screenshot(output / "screen.png")
             session.save_state(output / "state.png")

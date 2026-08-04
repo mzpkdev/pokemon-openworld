@@ -15,14 +15,11 @@ import re
 import sys
 import typing
 
-CONFIG_ENABLED_PAT = re.compile(
-    r"^#define P_LEARNSET_HELPER_TEACHABLE\s+(?P<cfg_val>[^ ]*)", flags=re.MULTILINE
-)
+CONFIG_ENABLED_PAT = re.compile(r"^#define P_LEARNSET_HELPER_TEACHABLE\s+(?P<cfg_val>[^ ]*)", flags=re.MULTILINE)
 INCFILE_HAS_TUTOR_PAT = re.compile(r"special ChooseMonForMoveTutor")
 INCFILE_HAS_TUTOR_PAT2 = re.compile(r"chooseboxmon SELECT_PC_MON_MOVE_TUTOR")
 INCFILE_MOVE_PAT = re.compile(r"setvar VAR_0x8005, (MOVE_[A-Z_]*)")
 INCFILE_MOVE_PAT2 = re.compile(r"move_tutor (MOVE_[A-Z_]*)")
-
 
 def enabled() -> bool:
     """
@@ -33,20 +30,15 @@ def enabled() -> bool:
         cfg_defined = CONFIG_ENABLED_PAT.search(cfg_pokemon)
         return cfg_defined is not None and cfg_defined.group("cfg_val") in ("TRUE", "1")
 
-
 def extract_repo_tutors() -> typing.Generator[str, None, None]:
     """
     Yield MOVE constants which are *likely* assigned to a move tutor. This isn't
     foolproof, but it's suitable.
     """
-    for inc_fname in chain(
-        glob.glob("./data/scripts/*.inc"), glob.glob("./data/maps/*/scripts.inc")
-    ):
+    for inc_fname in chain(glob.glob("./data/scripts/*.inc"), glob.glob("./data/maps/*/scripts.inc")):
         with open(inc_fname, "r") as inc_fp:
             incfile = inc_fp.read()
-            if not INCFILE_HAS_TUTOR_PAT.search(
-                incfile
-            ) and not INCFILE_HAS_TUTOR_PAT2.search(incfile):
+            if not INCFILE_HAS_TUTOR_PAT.search(incfile) and not INCFILE_HAS_TUTOR_PAT2.search(incfile):
                 continue
 
             for move in INCFILE_MOVE_PAT.finditer(incfile):
@@ -55,11 +47,9 @@ def extract_repo_tutors() -> typing.Generator[str, None, None]:
             for move in INCFILE_MOVE_PAT2.finditer(incfile):
                 yield move.group(1)
 
-
 def dump_output(file, data):
     with open(file, "w") as fp:
         fp.write(data)
-
 
 def main():
     if not enabled():
@@ -85,7 +75,6 @@ def main():
 
     if new_tutors != old_tutors:
         pathlib.Path("./tools/learnset_helpers/make_teachables.py").touch()
-
 
 if __name__ == "__main__":
     main()

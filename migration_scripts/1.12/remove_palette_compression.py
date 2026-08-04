@@ -1,4 +1,5 @@
 import glob
+import re
 import os
 from pathlib import Path
 
@@ -8,13 +9,12 @@ if not os.path.exists("Makefile"):
 
 allPals = list()
 
-
 def find_pals(fileInput):
     fileTest = Path(fileInput)
     if not fileTest.is_file():
         return False
-    with open(fileInput, "r", encoding="UTF-8") as file:
-        while line := file.readline():
+    with open(fileInput, 'r', encoding='UTF-8') as file:
+        while line:=file.readline():
             if ".gbapal.lz" in line and "u32" in line:
                 allPals.append(line)
                 line, sep, tail = line.partition("=")
@@ -22,26 +22,19 @@ def find_pals(fileInput):
                 head, sep, line = line.partition("u32 ")
                 allPals.append(line)
 
-
 def handle_file(fileInput):
     fileTest = Path(fileInput)
     if not fileTest.is_file():
         return False
     allLines = list()
-    with open(fileInput, "r", encoding="UTF-8") as file:
-        while line := file.readline():
+    with open(fileInput, 'r', encoding='UTF-8') as file:
+        while line:=file.readline():
             if "struct CompressedSpritePalette" in line:
-                line = line.replace(
-                    "struct CompressedSpritePalette", "struct SpritePalette"
-                )
+                line = line.replace("struct CompressedSpritePalette", "struct SpritePalette")
             elif "LoadCompressedSpritePaletteUsingHeap" in line:
-                line = line.replace(
-                    "LoadCompressedSpritePaletteUsingHeap", "LoadSpritePalette"
-                )
+                line = line.replace("LoadCompressedSpritePaletteUsingHeap", "LoadSpritePalette")
             elif "LoadCompressedSpritePaletteWithTag" in line:
-                line = line.replace(
-                    "LoadCompressedSpritePaletteWithTag", "LoadSpritePaletteWithTag"
-                )
+                line = line.replace("LoadCompressedSpritePaletteWithTag", "LoadSpritePaletteWithTag")
             elif "LoadCompressedSpritePalette" in line:
                 line = line.replace("LoadCompressedSpritePalette", "LoadSpritePalette")
             elif "LoadCompressedPalette" in line:
@@ -58,11 +51,10 @@ def handle_file(fileInput):
                 pass
             allLines.append(line)
 
-    with open(fileInput, "w", encoding="UTF-8") as file:
+    with open(fileInput, 'w', encoding='UTF-8') as file:
         for line in allLines:
             file.write(line)
     return True
-
 
 for path in glob.glob("src/**/*.c", recursive=True):
     find_pals(path)
