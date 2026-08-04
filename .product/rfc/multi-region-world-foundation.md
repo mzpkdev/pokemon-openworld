@@ -31,7 +31,7 @@ The foundation should remove the world limit without turning a map-loading proje
 
 ## Goals
 
-- Build Hoenn, Kanto, and Sevii into one standard `.gba` ROM and remain structurally ready for Johto.
+- Build Hoenn, Kanto, and Sevii into the sole product ROM, `pokemon-openworld.gba`, and remain structurally ready for Johto.
 - Make every registered map and layout structurally loadable, and make representative regional maps fully field-ready, even before player-facing travel exists.
 - Support more than 256 world map sections.
 - Preserve distinct region identity without deriving it only from numeric ranges.
@@ -51,18 +51,21 @@ The foundation should remove the world limit without turning a map-loading proje
 - Save migration for an expanded Pokémon binary format.
 - A nonstandard ROM larger than 32 MiB.
 
+These are sequencing exclusions, not permanent product prohibitions. Later work is expected to add the inter-region warps and travel behavior after this resident-world foundation is stable.
+
 ## Proposed architecture
 
-### Unified build mode
+### Unified product build
 
-Add an explicit `ALL_REGIONS` build mode while retaining Emerald as the engine base:
+Make the sole `pokemon-openworld` product an `ALL_REGIONS` build while retaining Emerald as the engine base:
 
 - `GAME_VERSION=EMERALD`
 - `IS_FRLG=0`
 - `ALL_REGIONS=1`
 - `MAP_VERSION=allregions`
+- `FILE_NAME=pokemon-openworld`
 
-Pass `ALL_REGIONS` through C and assembly. Keep ordinary `emerald` and `firered` generator modes available for upstream comparison and debugging.
+These values define the only supported ROM product and are not user-selectable game variants. Pass `ALL_REGIONS` through C and assembly. Do not expose FireRed or LeafGreen ROM targets. `mapjson` may retain its `emerald` and `firered` data dialects only as isolated generator fixtures for upstream comparison, format validation, and debugging; those fixtures must not link or publish retail ROM artifacts.
 
 `tools/mapjson` must treat `allregions` as Emerald-default data interpretation without filtering by region or layout version. It must emit every registered map header, event table, connection table, group pointer, and layout pointer.
 
@@ -157,7 +160,7 @@ The generator and build must enforce these invariants:
 - Clean-generate all unified map outputs.
 - Assert the current 935 grouped maps are emitted and the four known unused-house directories remain the only current exclusions.
 - Assert all 75 current group slots and 785 current layout slots are valid; update expected counts when Johto is imported.
-- Build the unified modern, debug, and release ROM variants plus ordinary Emerald, FireRed, and LeafGreen regressions. Virtual Console is not a current target.
+- Build the normal, debug, release, test, and headless variants of `pokemon-openworld`; all use the same Emerald engine and unified world. FireRed, LeafGreen, and Virtual Console ROM products are not supported targets.
 - Publish ROM, EWRAM, and IWRAM usage for each build.
 - Fail when the linked ROM exceeds 32 MiB.
 
@@ -235,4 +238,4 @@ Composite region/local IDs are scalable but force most geography APIs and script
 
 ## Decision
 
-Adopt a full-fidelity 16-bit world map-section architecture, explicit fixed IDs and section kinds, a fixed aligned map-header schema, per-tileset attribute formats, isolated Emerald-base `ALL_REGIONS` outputs, and generated region metadata. Preserve fixed byte-sized TV, record-mixing, and Pokémon layouts through explicit reviewed codecs. Keep story, travel, Fly, and original-game trading outside the foundation.
+Adopt a full-fidelity 16-bit world map-section architecture, explicit fixed IDs and section kinds, a fixed aligned map-header schema, per-tileset attribute formats, and generated region metadata in the sole Emerald-base `pokemon-openworld` product. Preserve fixed byte-sized TV, record-mixing, and Pokémon layouts through explicit reviewed codecs. Keep story, travel, Fly, and original-game trading outside the foundation.

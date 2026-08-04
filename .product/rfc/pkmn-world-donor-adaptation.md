@@ -29,7 +29,7 @@ Implement the approved multi-region foundation through donor-guided adaptation:
 - introduce clean `RegionId`, `MapSectionId`, `SavedLocationCode`, and `MetLocationCode` types;
 - generate region and provenance metadata from reviewed source data;
 - preserve fixed save and record-mixing layouts through explicit compact-location codecs;
-- preserve ordinary Emerald build modes and the existing Pokémon binary layout;
+- preserve the single Emerald-engine `pokemon-openworld` product identity and the existing Pokémon binary layout;
 - port changes in small, independently buildable slices rather than cherry-picking donor commits.
 
 This RFC is the implementation contract. When donor behavior conflicts with it, this RFC wins.
@@ -67,28 +67,17 @@ Do not cherry-pick broad donor commits. They mix infrastructure with product beh
 
 ## Build-mode contract
 
-The unified ROM remains an Emerald-engine build. `ALL_REGIONS` defaults to `0`; a named unified target sets the full tuple atomically:
+There is one ROM product and one legal product tuple:
 
 ```make
-ALL_REGIONS ?= 0
-
-allregions: GAME_VERSION := EMERALD
-allregions: IS_FRLG := 0
-allregions: ALL_REGIONS := 1
-allregions: MAP_VERSION := allregions
-allregions: BUILD_NAME := emerald-allregions
+override GAME_VERSION := EMERALD
+override IS_FRLG := 0
+override ALL_REGIONS := 1
+override MAP_VERSION := allregions
+override FILE_NAME := pokemon-openworld
 ```
 
-Only these build tuples are legal:
-
-| Target | `GAME_VERSION` | `IS_FRLG` | `ALL_REGIONS` | `MAP_VERSION` | `BUILD_NAME` |
-| --- | --- | ---: | ---: | --- | --- |
-| Emerald | `EMERALD` | `0` | `0` | `emerald` | `emerald` |
-| FireRed | `FIRERED` | `1` | `0` | `firered` | `firered` |
-| LeafGreen | `LEAFGREEN` | `1` | `0` | `firered` | `leafgreen` |
-| Unified | `EMERALD` | `0` | `1` | `allregions` | `emerald-allregions` |
-
-Make must reject every mixed tuple before generating or compiling. In particular, retail targets force `ALL_REGIONS=0`; command-line overrides cannot create FireRed or LeafGreen plus `ALL_REGIONS=1`, Emerald plus `MAP_VERSION=allregions` without the unified build identity, or unified objects under a retail output name.
+Normal, debug, release, test, and headless targets vary instrumentation or optimization only. They must not change the engine, resident world, map registry, or output basename. Make must reject attempts to select FireRed, LeafGreen, a retail map filter, `ALL_REGIONS=0`, or another product name. FireRed and LeafGreen engine/configuration source may remain for upstream compatibility, but no Makefile target, CI matrix entry, or published artifact may build those ROMs.
 
 `ALL_REGIONS` must be passed to the C preprocessor and assembler. It is a content-selection capability, not a fourth retail game version. Code that implements battle, save, script, or field behavior must continue to see Emerald unless this RFC explicitly introduces a narrower format property.
 
@@ -110,11 +99,11 @@ struct MapBuildPolicy {
 };
 ```
 
-`AllRegions` uses Emerald as the default dialect for data that omits an explicit region or layout format, but its region and layout filters include every registered entry. Helpers should answer questions such as `IncludesRegion`, `IncludesLayout`, and `DefaultRegion`; callers must not infer these policies by comparing strings.
+`AllRegions` is the only product-generation mode. It uses Emerald as the default dialect for data that omits an explicit region or layout format, but its region and layout filters include every registered entry. `Emerald`, `FireRed`, and `Ruby` remain tool-only dialect fixtures; they may generate isolated comparison data but cannot select a ROM build. Helpers should answer questions such as `IncludesRegion`, `IncludesLayout`, and `DefaultRegion`; callers must not infer these policies by comparing strings.
 
 Generation order remains deterministic. Existing IDs must not change merely because the build mode changes. New maps, layouts, regions, and sections append explicit identifiers.
 
-All mode-dependent outputs must have isolated identities. Objects and final ROMs use a distinct `BUILD_NAME`; generated maps, layouts, constants, manifests, and other filter-dependent files are written under a mode-specific generated root rather than back into shared reviewed source paths. Generation occurs in a temporary sibling tree and is promoted only after success. Switching between `emerald`, `firered`, and `allregions` must never reuse an object, generated include, or output whose mode stamp differs.
+The final ROM output is singular, but generator fixtures remain isolated. Product objects carry an `allregions` policy stamp and must never reuse objects produced before the unified policy. Generated maps, layouts, constants, manifests, and other filter-dependent files are written under a mode-specific generated root rather than back into shared reviewed source paths. Generation occurs in a temporary sibling tree and is promoted only after success. Switching diagnostic fixtures between `emerald`, `firered`, and `allregions` must never reuse generated output whose mode stamp differs.
 
 `map_data_rules.mk` must key every per-map and aggregate output on the selected mode. The current pattern hard-codes per-map header generation to Emerald and allows aggregate generation to rewrite reviewed `heal_locations.json`; both behaviors must be removed. Reviewed JSON is input-only. A generation test runs modes in alternating order and proves byte-for-byte deterministic output for each mode.
 
@@ -263,7 +252,7 @@ Adapt the donor's effective `IS_FRLG || ALL_REGIONS` asset guards in:
 - FRLG object-event graphics, picture tables, graphics info, and pointer tables;
 - callback and script translation units referenced by resident maps.
 
-Hoenn assets remain resident for Emerald and unified builds. FRLG assets become resident for FRLG and unified builds. Johto assets, when imported, are guarded by `ALL_REGIONS` or a dedicated content capability; they must not be unconditionally linked as in parts of the donor.
+Hoenn and FRLG asset families are both resident in every `pokemon-openworld` product build. Johto assets, when imported, are guarded by `ALL_REGIONS` or a dedicated content capability; they must not be unconditionally linked as in parts of the donor. Compatibility branches involving `IS_FRLG` may remain in source for upstream integration, but they are not separate product configurations.
 
 Prefer named capability macros at the data boundary:
 
@@ -371,7 +360,7 @@ The donor defect is stricter than overflow beyond `0xFF`: ordinary world section
 
 Expected implementation surfaces are:
 
-- `Makefile` and `map_data_rules.mk`: define and propagate `ALL_REGIONS`, isolate build and generated roots, select `MAP_VERSION=allregions`, retain ordinary modes;
+- `Makefile` and `map_data_rules.mk`: force the sole Emerald/all-regions product identity, isolate build and generated roots, reject retail ROM targets, and retain retail dialects only as generator fixtures;
 - `tools/mapjson/mapjson.cpp`: explicit build policy, input-only reviewed JSON, inclusive registry generation, fixed header schema, format emission, alignment, validation;
 - `include/gametypes.h`: clean region, map-section, and provenance types;
 - `include/global.fieldmap.h`: serialized `MapHeader`, `MapLayout`, and per-tileset attribute-format contracts;
@@ -395,9 +384,9 @@ Exact generated filenames may follow existing mapjson conventions. Generated dat
 - stop generation from mutating reviewed JSON or shared generated trees;
 - add deterministic alternating-mode generation tests;
 - add the test-only direct-load harness before making map-load claims;
-- record the existing modern, debug, and release ROM, EWRAM, and IWRAM baselines.
+- record artifact-size, EWRAM, and IWRAM baselines for normal, debug, release, test, and headless `pokemon-openworld` builds.
 
-Gate: alternating `emerald`, `firered`, and preflight `allregions` generation cannot contaminate one another, and the harness can report a controlled map initialization failure.
+Gate: alternating `emerald`, `firered`, and `allregions` generator fixtures cannot contaminate one another; only `allregions` can link the product ROM; and the harness can report a controlled map initialization failure.
 
 ### Slice A: current-ABI three-region feasibility
 
@@ -417,7 +406,7 @@ Gate: the unified ROM stays at or below 32 MiB and retains the approved Johto he
 - assert the complete `MapLayout` and `Tileset` C/assembly ABIs;
 - test Emerald, FRLG, and mixed-width donor fixtures.
 
-Gate: ordinary Emerald, FireRed, LeafGreen, and unified builds preserve current field behavior, while synthetic Johto traits and mixed tilesets select the exact expected paths.
+Gate: all `pokemon-openworld` build variants preserve current field behavior, while host-side retail-dialect fixtures, synthetic Johto traits, and mixed tilesets select the exact expected paths without linking retail ROMs.
 
 ### Slice C: atomic world-ID and serialized-boundary migration
 
@@ -433,7 +422,7 @@ This slice lands as one buildable change. The C `MapHeader` must never be widene
 - generate region metadata plus total saved-location and provenance mappings;
 - add synthetic section values above 255 and collision tests before Johto content exists.
 
-Gate: modern, debug, and release builds pass; all serialized size and offset assertions remain unchanged; no audited geography-to-byte assignment or cast remains; synthetic values above 255 survive world APIs and encode through reviewed compact mappings.
+Gate: normal, debug, release, test, and headless `pokemon-openworld` builds pass; all serialized size and offset assertions remain unchanged; no audited geography-to-byte assignment or cast remains; synthetic values above 255 survive world APIs and encode through reviewed compact mappings.
 
 ### Slice D: fail-closed generation and exhaustive hardening
 
@@ -473,8 +462,8 @@ Each validation layer proves a different claim. Passing one layer must not be re
 ### Linker and artifact validation
 
 - every callback and script reference links;
-- unified modern, debug, and release builds succeed;
-- ordinary Emerald, FireRed, and LeafGreen builds succeed after guard and ABI changes;
+- normal, debug, release, test, and headless `pokemon-openworld` builds succeed with the same Emerald/all-regions identity;
+- Makefile, CI, and release configuration expose no FireRed or LeafGreen ROM artifact;
 - linked ROM size does not exceed 32 MiB and retains the approved headroom floor;
 - ROM, EWRAM, and IWRAM reports are stored for comparison.
 
@@ -538,4 +527,4 @@ This uses PKMN-World to identify required behavior and proven failure points, th
 
 ## Completion criteria
 
-This RFC is complete when isolated modern, debug, and release unified builds fit within 32 MiB and retain the approved headroom floor; ordinary Emerald, FireRed, and LeafGreen builds still pass; every registered Hoenn, Kanto, and Sevii map passes the structural load sweep; representative maps reach field-ready state; frozen map-section values and `MAPSEC_INVALID = 0xFFFF` are enforced; world section IDs safely exceed 255; TV, Gabby/Ty, record-mixing, save, and Pokémon layouts remain unchanged behind explicit codecs; mixed tileset attribute widths decode correctly; and the code exposes a documented `MAP_LAYOUT_FORMAT_JOHTO` path ready for a later Johto content import.
+This RFC is complete when normal, debug, release, test, and headless `pokemon-openworld` builds share the forced Emerald/all-regions identity, fit within 32 MiB, and retain the approved headroom floor; no FireRed or LeafGreen ROM target or artifact is exposed; every registered Hoenn, Kanto, and Sevii map passes the structural load sweep; representative maps reach field-ready state; frozen map-section values and `MAPSEC_INVALID = 0xFFFF` are enforced; world section IDs safely exceed 255; TV, Gabby/Ty, record-mixing, save, and Pokémon layouts remain unchanged behind explicit codecs; mixed tileset attribute widths decode correctly; and the code exposes a documented `MAP_LAYOUT_FORMAT_JOHTO` path ready for a later Johto content import.
