@@ -2436,6 +2436,16 @@
 
 #endif
 
+#if defined(DEBUG) && !defined(RELEASE)
+// Persistent test controls shared by all supported game versions.
+// 0x8FE and 0x8FF are unused saved flags in both Emerald and FRLG.
+#define FLAG_DEBUG_NO_WILD_ENCOUNTERS  0x8FE
+#define FLAG_DEBUG_NO_TRAINER_SIGHT    0x8FF
+#else
+#define FLAG_DEBUG_NO_WILD_ENCOUNTERS  0
+#define FLAG_DEBUG_NO_TRAINER_SIGHT    0
+#endif
+
 #if TESTING
 #define TESTING_FLAGS_START                     0x5000
 #define TESTING_FLAG_SLEEP_CLAUSE               (TESTING_FLAGS_START + 0x0)

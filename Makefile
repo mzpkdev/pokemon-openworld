@@ -17,6 +17,8 @@ BUILD_DIR := build
 COMPARE     ?= 0
 # Executes the Test Runner System that checks that all mechanics work as expected
 TEST         ?= 0
+# Builds a separate ROM for host-driven end-to-end tests.
+E2E          ?= 0
 # Enables -fanalyzer C flag to analyze in depth potential UBs
 ANALYZE      ?= 0
 # Count unused warnings as errors. Used by RH-Hideout's repo
@@ -81,12 +83,16 @@ override OUTPUT_NAME := $(FILE_NAME)-release
 else
 override OUTPUT_NAME := $(FILE_NAME)
 endif
+ifeq ($(E2E),1)
+override OUTPUT_NAME := $(FILE_NAME)-e2e
+endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
 OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)
 OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)-test
 OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)-debug
 OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)-release
+OBJ_DIR_NAME_E2E := $(BUILD_DIR)/$(BUILD_NAME)-e2e
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
@@ -109,6 +115,9 @@ ifeq ($(DEBUG),1)
 endif
 ifeq ($(RELEASE),1)
   OBJ_DIR := $(OBJ_DIR_NAME_RELEASE)
+endif
+ifeq ($(E2E),1)
+  OBJ_DIR := $(OBJ_DIR_NAME_E2E)
 endif
 override ELF := $(ROM:.gba=.elf)
 override MAP := $(ROM:.gba=.map)
@@ -143,6 +152,9 @@ else
 O_LEVEL ?= 2
 endif
 CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -std=gnu17
+ifeq ($(DEBUG),1)
+	override CPPFLAGS += -DDEBUG
+endif
 ifeq ($(RELEASE),1)
 	override CPPFLAGS += -DRELEASE
 	ifeq ($(USE_LTO_ON_RELEASE),1)
@@ -254,8 +266,10 @@ MAKEFLAGS += --no-print-directory
 # Delete files that weren't built properly
 .DELETE_ON_ERROR:
 
-RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
+RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidye2e tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
+RULES_NO_SCAN += _e2e-build _e2e-skyemu e2e-core e2e-extended
 .PHONY: all rom agbcc modern compare check debug release
+.PHONY: _e2e-build _e2e-skyemu e2e-core e2e-extended
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -350,6 +364,38 @@ check: $(TESTELF)
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
 
+E2E_VENV := $(BUILD_DIR)/e2e-venv
+E2E_PYTHON := $(E2E_VENV)/bin/python
+E2E_REQUIREMENTS := tools/e2e/requirements.txt
+E2E_REQUIREMENTS_STAMP := $(E2E_VENV)/.requirements-v1
+E2E_TOOLS_DIR := $(BUILD_DIR)/e2e-tools
+E2E_ROM := $(FILE_NAME)-e2e.gba
+E2E_SYMS := $(FILE_NAME)-e2e.sym
+SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
+
+_e2e-build:
+	+$(MAKE) DEBUG=1 E2E=1 $(E2E_ROM) $(E2E_SYMS)
+
+$(E2E_PYTHON):
+	python3 -m venv $(E2E_VENV)
+
+$(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON)
+	$(E2E_PYTHON) -m pip install --disable-pip-version-check -r $(E2E_REQUIREMENTS)
+	@touch $@
+
+_e2e-skyemu: tools/e2e/install_skyemu.py
+	python3 tools/e2e/install_skyemu.py --output $(SKYEMU)
+
+e2e-core: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=core \
+	$(E2E_PYTHON) tools/e2e/run.py core
+
+e2e-extended: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
+	$(E2E_PYTHON) tools/e2e/run.py extended
+
 # Other rules
 rom: $(ROM)
 ifeq ($(COMPARE),1)
@@ -371,7 +417,7 @@ clean-assets:
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.smol' -o -iname '*.fastSmol' -o -iname '*.smolTM' -o -iname '*.rl' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
 	find $(DATA_ASM_SUBDIR)/maps \( -iname 'connections.inc' -o -iname 'events.inc' -o -iname 'header.inc' \) -exec rm {} +
 
-tidy: tidymodern tidycheck tidydebug tidyrelease
+tidy: tidymodern tidycheck tidydebug tidye2e tidyrelease
 
 tidymodern:
 	rm -f pokemon-openworld.gba pokemon-openworld.elf pokemon-openworld.map pokemon-openworld.sym
@@ -383,6 +429,10 @@ tidycheck:
 
 tidydebug:
 	rm -rf $(OBJ_DIR_NAME_DEBUG)
+
+tidye2e:
+	rm -f $(FILE_NAME)-e2e.gba $(FILE_NAME)-e2e.elf $(FILE_NAME)-e2e.map $(FILE_NAME)-e2e.sym
+	rm -rf $(OBJ_DIR_NAME_E2E)
 
 tidyrelease:
 ifeq ($(RELEASE),1)
