@@ -17,8 +17,6 @@ BUILD_DIR := build
 COMPARE     ?= 0
 # Executes the Test Runner System that checks that all mechanics work as expected
 TEST         ?= 0
-# Builds a separate ROM for host-driven end-to-end tests.
-E2E          ?= 0
 # Enables -fanalyzer C flag to analyze in depth potential UBs
 ANALYZE      ?= 0
 # Count unused warnings as errors. Used by RH-Hideout's repo
@@ -36,14 +34,25 @@ RELEASE      ?= 0
 ifeq (compare,$(MAKECMDGOALS))
   COMPARE := 1
 endif
-ifeq (check,$(MAKECMDGOALS))
+ifneq (,$(filter check,$(MAKECMDGOALS)))
+  ifneq (,$(filter-out check,$(MAKECMDGOALS)))
+    $(error check must be run as a standalone goal)
+  endif
   TEST := 1
 endif
-ifeq (debug,$(MAKECMDGOALS))
+ifneq (,$(filter debug,$(MAKECMDGOALS)))
   DEBUG := 1
 endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
+endif
+override _E2E_SUITE_GOALS := e2e-core e2e-extended
+override _E2E_ONLY := 0
+ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
+  ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
+    $(error E2E suite goals cannot be combined with non-E2E goals)
+  endif
+  override _E2E_ONLY := 1
 endif
 
 include config.mk
@@ -83,8 +92,8 @@ override OUTPUT_NAME := $(FILE_NAME)-release
 else
 override OUTPUT_NAME := $(FILE_NAME)
 endif
-ifeq ($(E2E),1)
-override OUTPUT_NAME := $(FILE_NAME)-e2e
+ifeq ($(DEBUG),1)
+override OUTPUT_NAME := $(FILE_NAME)-debug
 endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
@@ -92,7 +101,6 @@ OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)
 OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)-test
 OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)-debug
 OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)-release
-OBJ_DIR_NAME_E2E := $(BUILD_DIR)/$(BUILD_NAME)-e2e
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
@@ -102,8 +110,26 @@ override HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
 
 # Pick our active variables
 override ROM := $(ROM_NAME)
-ifeq ($(TESTELF),$(MAKECMDGOALS))
+ifneq (,$(filter $(TESTELF),$(MAKECMDGOALS)))
   TEST := 1
+endif
+ifeq ($(DEBUG),1)
+  ifeq ($(TEST),1)
+    $(error DEBUG=1 and TEST=1 are mutually exclusive)
+  endif
+  ifeq ($(RELEASE),1)
+    $(error DEBUG=1 and RELEASE=1 are mutually exclusive)
+  endif
+endif
+ifeq ($(RELEASE),1)
+  ifeq ($(TEST),1)
+    $(error RELEASE=1 and TEST=1 are mutually exclusive)
+  endif
+endif
+ifneq (,$(filter $(TESTELF),$(MAKECMDGOALS)))
+  ifneq (1,$(words $(MAKECMDGOALS)))
+    $(error $(TESTELF) must be run as a standalone goal)
+  endif
 endif
 ifeq ($(TEST), 0)
   OBJ_DIR := $(OBJ_DIR_NAME)
@@ -115,9 +141,6 @@ ifeq ($(DEBUG),1)
 endif
 ifeq ($(RELEASE),1)
   OBJ_DIR := $(OBJ_DIR_NAME_RELEASE)
-endif
-ifeq ($(E2E),1)
-  OBJ_DIR := $(OBJ_DIR_NAME_E2E)
 endif
 override ELF := $(ROM:.gba=.elf)
 override MAP := $(ROM:.gba=.map)
@@ -163,7 +186,9 @@ ifeq ($(RELEASE),1)
 endif
 ARMCC := $(PREFIX)gcc
 PATH_ARMCC := PATH="$(PATH)" $(ARMCC)
+ifeq ($(_E2E_ONLY),0)
 CC1 := $(shell $(PATH_ARMCC) --print-prog-name=cc1) -quiet
+endif
 
 override CFLAGS += -mthumb -mthumb-interwork -O$(O_LEVEL) -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -std=gnu17 -Werror -Wall -Wno-strict-aliasing -Wno-attribute-alias -Woverride-init -Wnonnull -Wenum-conversion
 
@@ -189,7 +214,9 @@ ifeq ($(DEPRECATED_ERROR),0)
   endif
 endif
 
+ifeq ($(_E2E_ONLY),0)
 LIBPATH := -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libc.a))"
+endif
 LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall
 # Enable debug info if set
 ifeq ($(DINFO),1)
@@ -266,10 +293,10 @@ MAKEFLAGS += --no-print-directory
 # Delete files that weren't built properly
 .DELETE_ON_ERROR:
 
-RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidye2e tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build _e2e-skyemu e2e-core e2e-extended
+RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
 .PHONY: all rom agbcc modern compare check debug release
-.PHONY: _e2e-build _e2e-skyemu e2e-core e2e-extended
+.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -369,12 +396,22 @@ E2E_PYTHON := $(E2E_VENV)/bin/python
 E2E_REQUIREMENTS := tools/e2e/requirements.txt
 E2E_REQUIREMENTS_STAMP := $(E2E_VENV)/.requirements-v1
 E2E_TOOLS_DIR := $(BUILD_DIR)/e2e-tools
-E2E_ROM := $(FILE_NAME)-e2e.gba
-E2E_SYMS := $(FILE_NAME)-e2e.sym
+E2E_ROM := $(FILE_NAME)-debug.gba
+E2E_SYMS := $(FILE_NAME)-debug.sym
 SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
 
-_e2e-build:
-	+$(MAKE) DEBUG=1 E2E=1 $(E2E_ROM) $(E2E_SYMS)
+_e2e-require-artifacts:
+	@missing=0; \
+	for artifact in "$(E2E_ROM)" "$(E2E_SYMS)"; do \
+		if [[ ! -f "$$artifact" ]]; then \
+			echo "Missing required E2E artifact: $$artifact" >&2; \
+			missing=1; \
+		fi; \
+	done; \
+	if (( missing )); then \
+		echo "Prepare the debug artifacts first with: make DEBUG=1 $(E2E_ROM) $(E2E_SYMS)" >&2; \
+		exit 1; \
+	fi
 
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)
@@ -386,12 +423,12 @@ $(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON)
 _e2e-skyemu: tools/e2e/install_skyemu.py
 	python3 tools/e2e/install_skyemu.py --output $(SKYEMU)
 
-e2e-core: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-core: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=core \
 	$(E2E_PYTHON) tools/e2e/run.py core
 
-e2e-extended: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
@@ -417,22 +454,22 @@ clean-assets:
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.smol' -o -iname '*.fastSmol' -o -iname '*.smolTM' -o -iname '*.rl' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
 	find $(DATA_ASM_SUBDIR)/maps \( -iname 'connections.inc' -o -iname 'events.inc' -o -iname 'header.inc' \) -exec rm {} +
 
-tidy: tidymodern tidycheck tidydebug tidye2e tidyrelease
+tidy: tidymodern tidycheck tidydebug tidyrelease
 
 tidymodern:
 	rm -f pokemon-openworld.gba pokemon-openworld.elf pokemon-openworld.map pokemon-openworld.sym
 	rm -rf $(OBJ_DIR_NAME)
 
 tidycheck:
-	rm -f $(TESTELF) $(HEADLESSELF)
+	rm -f $(FILE_NAME)-test.elf $(FILE_NAME)-test-headless.elf
 	rm -rf $(OBJ_DIR_NAME_TEST)
 
 tidydebug:
+	rm -f $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.elf $(FILE_NAME)-debug.map $(FILE_NAME)-debug.sym
 	rm -rf $(OBJ_DIR_NAME_DEBUG)
-
-tidye2e:
+	# Remove artifacts left by the legacy E2E compile mode.
 	rm -f $(FILE_NAME)-e2e.gba $(FILE_NAME)-e2e.elf $(FILE_NAME)-e2e.map $(FILE_NAME)-e2e.sym
-	rm -rf $(OBJ_DIR_NAME_E2E)
+	rm -rf $(BUILD_DIR)/$(BUILD_NAME)-e2e
 
 tidyrelease:
 ifeq ($(RELEASE),1)

@@ -11,6 +11,16 @@ sudo apt install build-essential binutils-arm-none-eabi gcc-arm-none-eabi \
   libnewlib-arm-none-eabi libpng-dev python3-venv
 ```
 
+Prepare the debug ROM and symbols separately before running either suite:
+
+```sh
+make -j"$(nproc)" -O DEBUG=1 \
+  pokemon-openworld-debug.gba pokemon-openworld-debug.sym
+```
+
+The E2E suite targets never compile the ROM. They require those two files in
+the repository root and fail with a preparation command if either is missing.
+
 Tests are pytest files under `tools/e2e/tests/<suite>/`. Each test receives a
 fresh `game` fixture with frame/input controls, memory and symbol access,
 story flag and variable helpers, and coordinate-aware overworld movement. The

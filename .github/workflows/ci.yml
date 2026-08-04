@@ -38,6 +38,18 @@ jobs:
       - name: Build Emerald
         run: make -j"$(nproc)" -O emerald syms
 
+      - name: Stage build files
+        run: |
+          mkdir release
+          cp pokemon-openworld.gba release/pokemon-openworld.gba
+          cp pokemon-openworld.map release/pokemon-openworld.map
+          cp pokemon-openworld.sym release/pokemon-openworld.sym
+
+      - name: Build debug ROM
+        run: >-
+          make -j"$(nproc)" -O DEBUG=1
+          pokemon-openworld-debug.gba pokemon-openworld-debug.sym
+
       - name: Check for modified tracked files
         run: |
           if ! git diff --quiet HEAD --; then
@@ -46,12 +58,11 @@ jobs:
             exit 1
           fi
 
-      - name: Stage build files
+      - name: Stage debug build files
         run: |
-          mkdir release
-          cp pokemon-openworld.gba release/pokemon-openworld.gba
-          cp pokemon-openworld.map release/pokemon-openworld.map
-          cp pokemon-openworld.sym release/pokemon-openworld.sym
+          mkdir debug-release
+          cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
+          cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
 
       - name: Upload build artifacts
         # actions/upload-artifact v7
@@ -60,4 +71,68 @@ jobs:
           name: pokemon-openworld
           path: release/
           if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload debug build artifact
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pokemon-openworld-debug
+          path: debug-release/
+          if-no-files-found: error
+          retention-days: 1
+
+  e2e:
+    name: E2E (${{ matrix.name }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Core
+            suite: core
+            target: e2e-core
+          - name: Extended
+            suite: extended
+            target: e2e-extended
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download debug build artifact
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: pokemon-openworld-debug
+          path: .
+
+      - name: Install E2E runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libasound2-dev \
+            libopengl0 \
+            libstdc++6 \
+            libx11-6 \
+            libxcursor1 \
+            libxi6 \
+            python3-venv \
+            zlib1g
+
+      - name: Run E2E suite
+        run: make ${{ matrix.target }}
+
+      - name: Upload failure evidence
+        if: failure()
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: e2e-${{ matrix.suite }}-failure-evidence
+          path: test-results/e2e/${{ matrix.suite }}/
+          if-no-files-found: warn
           retention-days: 3
