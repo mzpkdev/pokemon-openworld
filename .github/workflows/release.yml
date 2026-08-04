@@ -24,6 +24,76 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Verify metadata checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          max_attempts=24
+          poll_seconds=10
+          api_timeout_seconds=5
+
+          for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+            echo "Checking Metadata for commit $EXPECTED_SHA (attempt $attempt/$max_attempts)"
+
+            if response="$(timeout "${api_timeout_seconds}s" gh api --method GET \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/metadata.yml/runs" \
+              -f head_sha="$EXPECTED_SHA" \
+              -f event=push \
+              -f per_page=100)"; then
+              metadata_state="$(jq -r --arg sha "$EXPECTED_SHA" '
+                [.workflow_runs[] | select(
+                  .head_sha == $sha and
+                  .event == "push"
+                )]
+                | sort_by(.created_at, .id)
+                | last
+                | if . == null then
+                    "missing"
+                  elif .conclusion == "success" then
+                    "success|\(.id)"
+                  elif .conclusion != null then
+                    "failure|\(.id)|\(.status)|\(.conclusion)"
+                  else
+                    "waiting|\(.id)|\(.status)"
+                  end
+              ' <<< "$response")"
+
+              case "$metadata_state" in
+                success\|*)
+                  metadata_run_id="${metadata_state#success|}"
+                  echo "Verified Metadata run $metadata_run_id for commit $EXPECTED_SHA"
+                  exit 0
+                  ;;
+                failure\|*)
+                  IFS='|' read -r _ metadata_run_id metadata_status metadata_conclusion <<< "$metadata_state"
+                  echo "::error::Metadata run $metadata_run_id for commit $EXPECTED_SHA ended with status $metadata_status and conclusion $metadata_conclusion"
+                  exit 1
+                  ;;
+                waiting\|*)
+                  IFS='|' read -r _ metadata_run_id metadata_status <<< "$metadata_state"
+                  echo "Metadata run $metadata_run_id is $metadata_status; waiting"
+                  ;;
+                missing)
+                  echo "Metadata push run is not visible yet; waiting"
+                  ;;
+                *)
+                  echo "::error::Unexpected Metadata API state: $metadata_state"
+                  exit 1
+                  ;;
+              esac
+            else
+              echo "::warning::Metadata API request failed or exceeded ${api_timeout_seconds}s; waiting"
+            fi
+
+            if ((attempt < max_attempts)); then
+              sleep "$poll_seconds"
+            fi
+          done
+
+          echo "::error::Timed out waiting for Metadata for commit $EXPECTED_SHA after $max_attempts attempts (up to 350 seconds)"
+          exit 1
+
       - name: Download release artifact
         uses: actions/download-artifact@v8
         with:
