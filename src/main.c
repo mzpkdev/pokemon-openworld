@@ -26,6 +26,10 @@
 #include "test_runner.h"
 #include "constants/rgb.h"
 
+#if E2E_TESTING
+#include "e2e_test.h"
+#endif
+
 static void VBlankIntr(void);
 static void HBlankIntr(void);
 static void VCountIntr(void);
@@ -136,6 +140,9 @@ void AgbMainLoop(void)
     for (;;)
     {
         ReadKeys();
+#if E2E_TESTING
+        E2E_RunFrame();
+#endif
 
         if (gSoftResetDisabled == FALSE
          && JOY_HELD_RAW(A_BUTTON)
