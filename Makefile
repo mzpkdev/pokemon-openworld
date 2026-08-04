@@ -17,8 +17,6 @@ BUILD_DIR := build
 COMPARE     ?= 0
 # Executes the Test Runner System that checks that all mechanics work as expected
 TEST         ?= 0
-# Reuses an already-built debug ROM and symbol file instead of compiling them for E2E.
-E2E_PREBUILT ?= 0
 # Enables -fanalyzer C flag to analyze in depth potential UBs
 ANALYZE      ?= 0
 # Count unused warnings as errors. Used by RH-Hideout's repo
@@ -48,13 +46,13 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-ifeq ($(E2E_PREBUILT),1)
-  ifeq (,$(filter e2e-core e2e-extended,$(MAKECMDGOALS)))
-    $(error E2E_PREBUILT=1 is only valid with an E2E suite goal)
+override _E2E_SUITE_GOALS := e2e-core e2e-extended
+override _E2E_ONLY := 0
+ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
+  ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
+    $(error E2E suite goals cannot be combined with non-E2E goals)
   endif
-  ifneq (,$(filter-out e2e-core e2e-extended,$(MAKECMDGOALS)))
-    $(error E2E_PREBUILT=1 cannot be combined with non-E2E goals)
-  endif
+  override _E2E_ONLY := 1
 endif
 
 include config.mk
@@ -188,7 +186,7 @@ ifeq ($(RELEASE),1)
 endif
 ARMCC := $(PREFIX)gcc
 PATH_ARMCC := PATH="$(PATH)" $(ARMCC)
-ifneq ($(E2E_PREBUILT),1)
+ifeq ($(_E2E_ONLY),0)
 CC1 := $(shell $(PATH_ARMCC) --print-prog-name=cc1) -quiet
 endif
 
@@ -216,7 +214,7 @@ ifeq ($(DEPRECATED_ERROR),0)
   endif
 endif
 
-ifneq ($(E2E_PREBUILT),1)
+ifeq ($(_E2E_ONLY),0)
 LIBPATH := -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libc.a))"
 endif
 LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall
@@ -296,9 +294,9 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build _e2e-skyemu e2e-core e2e-extended
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
 .PHONY: all rom agbcc modern compare check debug release
-.PHONY: _e2e-build _e2e-skyemu e2e-core e2e-extended
+.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -402,13 +400,18 @@ E2E_ROM := $(FILE_NAME)-debug.gba
 E2E_SYMS := $(FILE_NAME)-debug.sym
 SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
 
-_e2e-build:
-ifeq ($(E2E_PREBUILT),1)
-	@test -f "$(E2E_ROM)" || { echo "Missing prebuilt debug ROM: $(E2E_ROM)" >&2; exit 1; }
-	@test -f "$(E2E_SYMS)" || { echo "Missing prebuilt debug symbols: $(E2E_SYMS)" >&2; exit 1; }
-else
-	+$(MAKE) DEBUG=1 $(E2E_ROM) $(E2E_SYMS)
-endif
+_e2e-require-artifacts:
+	@missing=0; \
+	for artifact in "$(E2E_ROM)" "$(E2E_SYMS)"; do \
+		if [[ ! -f "$$artifact" ]]; then \
+			echo "Missing required E2E artifact: $$artifact" >&2; \
+			missing=1; \
+		fi; \
+	done; \
+	if (( missing )); then \
+		echo "Prepare the debug artifacts first with: make DEBUG=1 $(E2E_ROM) $(E2E_SYMS)" >&2; \
+		exit 1; \
+	fi
 
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)
@@ -420,12 +423,12 @@ $(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON)
 _e2e-skyemu: tools/e2e/install_skyemu.py
 	python3 tools/e2e/install_skyemu.py --output $(SKYEMU)
 
-e2e-core: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-core: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=core \
 	$(E2E_PYTHON) tools/e2e/run.py core
 
-e2e-extended: _e2e-build _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
