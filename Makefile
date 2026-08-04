@@ -294,8 +294,8 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
-.PHONY: all rom agbcc modern compare check debug release
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended format format-check lint lint-check
+.PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
 .PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
 .PHONY: $(RULES_NO_SCAN)
 
@@ -390,6 +390,31 @@ check: $(TESTELF)
 	@cp $< $(HEADLESSELF)
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
+
+RUFF_VENV := $(BUILD_DIR)/ruff-venv
+RUFF_PYTHON := $(RUFF_VENV)/bin/python
+RUFF := $(RUFF_VENV)/bin/ruff
+RUFF_REQUIREMENTS := tools/ruff/requirements.txt
+RUFF_REQUIREMENTS_STAMP := $(RUFF_VENV)/.requirements-v1
+
+$(RUFF_PYTHON):
+	python3 -m venv $(RUFF_VENV)
+
+$(RUFF_REQUIREMENTS_STAMP): $(RUFF_REQUIREMENTS) $(RUFF_PYTHON)
+	$(RUFF_PYTHON) -m pip install --disable-pip-version-check -r $(RUFF_REQUIREMENTS)
+	@touch $@
+
+format: $(RUFF_REQUIREMENTS_STAMP)
+	$(RUFF) format .
+
+format-check: $(RUFF_REQUIREMENTS_STAMP)
+	$(RUFF) format --check .
+
+lint: $(RUFF_REQUIREMENTS_STAMP)
+	$(RUFF) check --fix .
+
+lint-check: $(RUFF_REQUIREMENTS_STAMP)
+	$(RUFF) check .
 
 E2E_VENV := $(BUILD_DIR)/e2e-venv
 E2E_PYTHON := $(E2E_VENV)/bin/python

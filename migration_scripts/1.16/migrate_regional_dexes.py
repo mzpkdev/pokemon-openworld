@@ -1,11 +1,10 @@
-import re
 import os
 
 if not os.path.exists("Makefile"):
     print("Please run this script from your root folder.")
     quit()
 
-#Hoenn
+# Hoenn
 ##include/constants/pokedex.h
 hoennMacro = """
 
@@ -29,10 +28,13 @@ with open("include/constants/pokedex.h", "r") as file:
     lines = file.readlines()
     for line in lines:
         if "HOENN_DEX_NONE" in line:
-            output += line + """    #define HOENN_DEX_ENUM(name) HOENN_DEX_ ##name,
+            output += (
+                line
+                + """    #define HOENN_DEX_ENUM(name) HOENN_DEX_ ##name,
     FOREACH_SPECIES_IN_HOENN_DEX_ORDER(HOENN_DEX_ENUM)
     #undef HOENN_DEX_ENUM
 """
+            )
         elif "    HOENN_DEX_" in line:
             macroedSpecies = line.replace("HOENN_DEX_", "F(")
             lastSpecies = macroedSpecies.strip().replace(",", "")
@@ -42,7 +44,9 @@ with open("include/constants/pokedex.h", "r") as file:
                 hoennMacro += macroedSpecies.replace(",", ") \\")
         elif "P_NEW_EVOS_IN_REGIONAL_DEX" in line and not hoennDone:
             crossEvo = True
-            config = line.replace("#if P_NEW_EVOS_IN_REGIONAL_DEX && ", "").replace("\n", "")
+            config = line.replace("#if P_NEW_EVOS_IN_REGIONAL_DEX && ", "").replace(
+                "\n", ""
+            )
             hoennMacro += f"    HOENN_DEX_IF({config}, "
         elif "#else" in line and crossEvo and not hoennDone:
             continue
@@ -82,19 +86,23 @@ with open("src/pokemon.c", "r") as file:
         elif "#endif" in line and ifStatement:
             ifStatement = False
         elif hoennToNational:
-            output += "    FOREACH_SPECIES_IN_HOENN_DEX_ORDER(HOENN_TO_NATIONAL)\n" + line
+            output += (
+                "    FOREACH_SPECIES_IN_HOENN_DEX_ORDER(HOENN_TO_NATIONAL)\n" + line
+            )
             hoennToNational = False
         else:
             output += line
 
-hoennToNationalDefine = "#define HOENN_TO_NATIONAL(name)     [HOENN_DEX_##name - 1] = NATIONAL_DEX_##name"
+hoennToNationalDefine = (
+    "#define HOENN_TO_NATIONAL(name)     [HOENN_DEX_##name - 1] = NATIONAL_DEX_##name"
+)
 output = output.replace(hoennToNationalDefine, hoennToNationalDefine + ",")
 
 with open("src/pokemon.c", "w") as f:
     f.write(output)
     print("src/pokemon.c has been updated")
 
-#Kanto
+# Kanto
 ##include/constants/pokedex.h
 kantoMacro = """
 
@@ -117,10 +125,13 @@ with open("include/constants/pokedex.h", "r") as file:
     lines = file.readlines()
     for line in lines:
         if "KANTO_DEX_NONE" in line:
-            output += line + """    #define KANTO_DEX_ENUM(name) KANTO_DEX_ ##name,
+            output += (
+                line
+                + """    #define KANTO_DEX_ENUM(name) KANTO_DEX_ ##name,
     FOREACH_SPECIES_IN_KANTO_DEX_ORDER(KANTO_DEX_ENUM)
     #undef KANTO_DEX_ENUM
 """
+            )
         elif "    KANTO_DEX_" in line:
             macroedSpecies = line.replace("KANTO_DEX_", "F(")
             lastSpecies = macroedSpecies.strip().replace(",", "")
@@ -128,9 +139,14 @@ with open("include/constants/pokedex.h", "r") as file:
                 kantoMacro += macroedSpecies.strip().replace(",", ")) \\")
             else:
                 kantoMacro += macroedSpecies.replace(",", ") \\")
-        elif "P_NEW_EVOS_IN_REGIONAL_DEX" in line and line != "#if P_NEW_EVOS_IN_REGIONAL_DEX\n":
+        elif (
+            "P_NEW_EVOS_IN_REGIONAL_DEX" in line
+            and line != "#if P_NEW_EVOS_IN_REGIONAL_DEX\n"
+        ):
             crossEvo = True
-            config = line.replace("#if P_NEW_EVOS_IN_REGIONAL_DEX && ", "").replace("\n", "")
+            config = line.replace("#if P_NEW_EVOS_IN_REGIONAL_DEX && ", "").replace(
+                "\n", ""
+            )
             kantoMacro += f"    KANTO_DEX_IF({config}, "
         elif "#else" in line and crossEvo:
             continue
@@ -168,12 +184,16 @@ with open("src/pokemon.c", "r") as file:
         elif "#endif" in line and ifStatement:
             ifStatement = False
         elif kantoToNational:
-            output += "    FOREACH_SPECIES_IN_KANTO_DEX_ORDER(KANTO_TO_NATIONAL)\n" + line
+            output += (
+                "    FOREACH_SPECIES_IN_KANTO_DEX_ORDER(KANTO_TO_NATIONAL)\n" + line
+            )
             kantoToNational = False
         else:
             output += line
 
-kantoToNationalDefine = "#define KANTO_TO_NATIONAL(name)     [KANTO_DEX_##name - 1] = NATIONAL_DEX_##name"
+kantoToNationalDefine = (
+    "#define KANTO_TO_NATIONAL(name)     [KANTO_DEX_##name - 1] = NATIONAL_DEX_##name"
+)
 output = output.replace(kantoToNationalDefine, kantoToNationalDefine + ",")
 
 with open("src/pokemon.c", "w") as f:
