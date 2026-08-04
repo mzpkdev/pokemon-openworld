@@ -13,12 +13,17 @@ import pathlib
 import re
 import sys
 
-CONFIG_ENABLED_PAT = re.compile(r"^#define P_LEARNSET_HELPER_TEACHABLE\s+(?P<cfg_val>[^ ]*)", flags=re.MULTILINE)
+CONFIG_ENABLED_PAT = re.compile(
+    r"^#define P_LEARNSET_HELPER_TEACHABLE\s+(?P<cfg_val>[^ ]*)", flags=re.MULTILINE
+)
 
-TEACHING_TYPE_PAT =  re.compile(r"\s*\.teachingType\s*=\s*(?P<teaching_type>[A-Z_]+),")
-LEARNSET_PAT = re.compile(r"\s*\.teachableLearnset\s*=\s*s(?P<name>\w+?)TeachableLearnset")
+TEACHING_TYPE_PAT = re.compile(r"\s*\.teachingType\s*=\s*(?P<teaching_type>[A-Z_]+),")
+LEARNSET_PAT = re.compile(
+    r"\s*\.teachableLearnset\s*=\s*s(?P<name>\w+?)TeachableLearnset"
+)
 PREPROC_START_PAT = re.compile(r"^#if(def)?\s+\w+", flags=re.MULTILINE)
 PREPROC_END_PAT = re.compile(r"^#endif\s*(//\s*\w+)?", flags=re.MULTILINE)
+
 
 def enabled() -> bool:
     """
@@ -29,6 +34,7 @@ def enabled() -> bool:
         cfg_defined = CONFIG_ENABLED_PAT.search(cfg_pokemon)
         return cfg_defined is not None and cfg_defined.group("cfg_val") in ("TRUE", "1")
 
+
 def is_valid_preprocessor(line: str) -> bool:
     match = re.match(PREPROC_START_PAT, line)
     if match:
@@ -37,6 +43,7 @@ def is_valid_preprocessor(line: str) -> bool:
     if match:
         return True
     return False
+
 
 def extract_repo_species_data() -> list:
     species_data = []
@@ -51,7 +58,10 @@ def extract_repo_species_data() -> list:
         for line in species_lines:
             if is_valid_preprocessor(line):
                 is_last_line_preprocessor = True
-                if line.startswith("#endif") and (isinstance(species_data[-1], str) and species_data[-1].startswith("#if")):
+                if line.startswith("#endif") and (
+                    isinstance(species_data[-1], str)
+                    and species_data[-1].startswith("#if")
+                ):
                     del species_data[-1]
                 else:
                     species_data.append(line)
@@ -65,7 +75,9 @@ def extract_repo_species_data() -> list:
                     if not is_last_line_preprocessor:
                         species_data.append("\n")
                     is_last_line_preprocessor = False
-                    species_data.append({"name": match.group("name"), "teaching_type": teaching_type})
+                    species_data.append(
+                        {"name": match.group("name"), "teaching_type": teaching_type}
+                    )
                     pokemon_list.append(match.group("name"))
                 teaching_type = "DEFAULT_LEARNING"
                 continue
@@ -73,6 +85,7 @@ def extract_repo_species_data() -> list:
             if match:
                 teaching_type = match.group("teaching_type")
     return species_data
+
 
 def add_whitesspaces(parsed_list) -> list:
     for i, item in enumerate(parsed_list):
@@ -91,6 +104,7 @@ def add_whitesspaces(parsed_list) -> list:
 def dump_output(file, data):
     with open(file, "w") as fp:
         fp.write(data)
+
 
 def main():
     if not enabled():

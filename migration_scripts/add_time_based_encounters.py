@@ -9,7 +9,9 @@ try:
     sys.path.append("./tools/wild_encounters/")
     from wild_encounters_to_header import Config
 except ImportError:
-    print("Could not import the file tools/wild_encounters/wild_encounters_to_header.py")
+    print(
+        "Could not import the file tools/wild_encounters/wild_encounters_to_header.py"
+    )
     quit()
 
 ARGS = [
@@ -27,9 +29,8 @@ def GetWildEncounterFile():
     wFile = open("src/data/wild_encounters.json")
     wData = json.load(wFile)
 
-    config = Config('include/config/overworld.h', 'include/constants/rtc.h', wData)
+    config = Config("include/config/overworld.h", "include/constants/rtc.h", wData)
     timeOfDay = config.times_of_day
-
 
     wBackupData = json.dumps(wData, indent=2)
     wBackupFile = open("src/data/wild_encounters.json.bak", mode="w", encoding="utf-8")
