@@ -23,13 +23,9 @@ env:
 
 jobs:
   build:
-    name: Build (${{ matrix.game }})
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        game: [emerald, firered, leafgreen]
 
     steps:
       - name: Checkout
@@ -38,10 +34,8 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
-      - name: Build ${{ matrix.game }}
-        env:
-          BUILD: ${{ matrix.game }}
-        run: make -j"$(nproc)" -O "$BUILD" syms
+      - name: Build Emerald
+        run: make -j"$(nproc)" -O emerald syms
 
       - name: Check for modified tracked files
         run: |
@@ -52,18 +46,16 @@ jobs:
           fi
 
       - name: Stage build files
-        env:
-          BUILD: ${{ matrix.game }}
         run: |
           mkdir release
-          cp "poke${BUILD}.gba" "release/poke${BUILD}.gba"
-          cp "poke${BUILD}.map" "release/poke${BUILD}.map"
-          cp "poke${BUILD}.sym" "release/poke${BUILD}.sym"
+          cp pokeemerald.gba release/pokeemerald.gba
+          cp pokeemerald.map release/pokeemerald.map
+          cp pokeemerald.sym release/pokeemerald.sym
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: pokemon-openworld-${{ matrix.game }}
+          name: pokemon-openworld-emerald
           path: release/
           if-no-files-found: error
           retention-days: 3
