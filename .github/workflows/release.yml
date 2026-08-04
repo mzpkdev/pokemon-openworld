@@ -1,0 +1,145 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable tag to publish (vX.Y.Z)
+        required: true
+        type: string
+      source:
+        description: Snapshot tag to promote (build- plus 12 lowercase hex digits)
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: release-publishing
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: Snapshot
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+
+    steps:
+      - name: Validate source identifiers
+        run: |
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::CI head SHA is not exactly 40 lowercase hexadecimal characters'
+            exit 1
+          fi
+          if [[ ! "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo '::error::CI run ID is not a positive integer'
+            exit 1
+          fi
+
+      - name: Checkout source
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate source run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/release/release.py validate-snapshot-source
+
+      - name: Download exact CI artifact
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: pokemon-openworld
+          path: release
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Validate artifact and generate changelog
+        run: |
+          .github/release/release.py validate-assets release
+          .github/release/release.py changelog snapshot snapshot-changelog.md
+
+      - name: Compose release notes
+        run: >-
+          .github/release/release.py notes snapshot snapshot-changelog.md
+          release-notes.md
+
+      - name: Publish immutable snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/release/release.py publish-snapshot release release-notes.md
+
+  stable:
+    name: Stable
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      SNAPSHOT_TAG: ${{ inputs.source }}
+
+    steps:
+      - name: Checkout current main release policy
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refs/heads/main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve and validate snapshot
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          source_sha="$(.github/release/release.py resolve-stable-source)"
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and inspect source without changing policy checkout
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: .github/release/release.py fetch-stable-source
+
+      - name: Download permanent snapshot assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/release/release.py download-snapshot release
+
+      - name: Verify snapshot asset digests and generate changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          .github/release/release.py verify-snapshot-assets release
+          .github/release/release.py changelog stable stable-changelog.md
+
+      - name: Compose release notes
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: >-
+          .github/release/release.py notes stable stable-changelog.md
+          release-notes.md
+
+      - name: Publish stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: .github/release/release.py publish-stable release release-notes.md

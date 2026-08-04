@@ -10,6 +10,25 @@ This repository contains the source code and tooling needed to build the ROM
 locally. You may only use ROM images in accordance with the laws that apply to
 you.
 
+## Releases
+
+Once this release workflow is present on `main`, GitHub Releases publish the
+complete `pokemon-openworld.gba` ROM together with its map and symbol files.
+Successful `main` builds then produce public prerelease snapshots tagged
+`build-<12-lowercase-hex>`, where the suffix is the start of the immutable
+source commit SHA.
+
+A maintainer can promote a snapshot to a stable release by manually running the
+`Release` workflow with a new `version` in `vX.Y.Z` form and the snapshot's
+`source` tag in `build-<12-lowercase-hex>` form. Promotion reuses the snapshot's
+verified files byte for byte and publishes the stable release as latest; it does
+not rebuild or retarget either tag.
+
+Snapshot notes cover the source commit, while stable notes cover the commits
+since the highest earlier published stable release whose SemVer tag is reachable
+from the promoted source. Both are generated from Conventional Commit messages
+and link the published files back to their source commit and CI origin.
+
 ## Build and setup
 
 See [INSTALL.md](INSTALL.md) for supported development environments and build
