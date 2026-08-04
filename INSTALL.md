@@ -66,17 +66,17 @@ Follow these steps to build Pokémon OpenWorld.
 5. If everything worked correctly, something very similar to this should be seen.
 
     ```console
-    arm-none-eabi-ld: warning: ../../pokeemerald.elf has a LOAD segment with RWX permissions
+    arm-none-eabi-ld: warning: ../../pokemon-openworld.elf has a LOAD segment with RWX permissions
     Memory region         Used Size  Region Size  %age Used
                EWRAM:      243354 B       256 KB     92.83%
                IWRAM:       30492 B        32 KB     93.05%
                  ROM:    26072244 B        32 MB     77.70%
-    cd build/modern && arm-none-eabi-ld  -T ../../ld_script_modern.ld --print-memory-usage -o ../../pokeemerald.elf <objs> <libs> | cat
-    tools/gbafix/gbafix pokeemerald.elf -t"POKEMON EMER" -cBPEE -m01 -r0 --silent
-    arm-none-eabi-objcopy -O binary pokeemerald.elf pokeemerald.gba
-    tools/gbafix/gbafix pokeemerald.gba -p --silent
+    cd build/modern && arm-none-eabi-ld  -T ../../ld_script_modern.ld --print-memory-usage -o ../../pokemon-openworld.elf <objs> <libs> | cat
+    tools/gbafix/gbafix pokemon-openworld.elf -t"POKEMON EMER" -cBPEE -m01 -r0 --silent
+    arm-none-eabi-objcopy -O binary pokemon-openworld.elf pokemon-openworld.gba
+    tools/gbafix/gbafix pokemon-openworld.gba -p --silent
     ```
-    And the build ROM will be in the directory as `pokeemerald.gba`.
+    And the build ROM will be in the directory as `pokemon-openworld.gba`.
 
 # Building guidance
 
@@ -110,7 +110,7 @@ To compile the `modern` target with this toolchain, the subdirectories `lib`, `i
 
 ### Building with debug info
 
-To build **pokeemerald.elf** with debug symbols and debug-compatible optimization under a modern toolchain:
+To build **pokemon-openworld.elf** with debug symbols and debug-compatible optimization under a modern toolchain:
 ```console
 make debug
 ```

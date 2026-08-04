@@ -9,9 +9,9 @@
  * second runs tests with names that include Spikes anywhere in them.
  * To run tests from a specific file, e.g. 'test/battle/move_effect/spikes.c', use:
  *     make check TESTS="test/battle/move_effect/spikes.c"
- * To build a ROM (pokemerald-test.elf) that can be opened in mgba to
+ * To build a ROM (pokemon-openworld-test.elf) that can be opened in mgba to
  * view specific tests, e.g. Spikes ones, use:
- *     make pokeemerald-test.elf TESTS="Spikes"
+ *     make pokemon-openworld-test.elf TESTS="Spikes"
  *
  * Manually testing a battle mechanic often follows this pattern:
  * 1. Create a party which can activate the mechanic.

@@ -5,8 +5,8 @@ To run all the tests use:
 `make check -j`
 To run specific tests, e.g. Spikes ones, use:
 `make check TESTS="Spikes"`
-To build a ROM (pokemerald-test.elf) that can be opened in mgba to view specific tests, e.g. Spikes ones, use:
-`make pokeemerald-test.elf TESTS="Spikes"`
+To build a ROM (pokemon-openworld-test.elf) that can be opened in mgba to view specific tests, e.g. Spikes ones, use:
+`make pokemon-openworld-test.elf TESTS="Spikes"`
 
 ## How to Write Tests
 Manually testing a battle mechanic often follows this pattern:

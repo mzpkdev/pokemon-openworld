@@ -13,7 +13,7 @@ you.
 ## Build and setup
 
 See [INSTALL.md](INSTALL.md) for supported development environments and build
-commands. A standard build produces `pokeemerald.gba`:
+commands. A standard build produces `pokemon-openworld.gba`:
 
 ```console
 make

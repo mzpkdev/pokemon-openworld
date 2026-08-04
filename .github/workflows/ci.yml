@@ -48,14 +48,14 @@ jobs:
       - name: Stage build files
         run: |
           mkdir release
-          cp pokeemerald.gba release/pokeemerald.gba
-          cp pokeemerald.map release/pokeemerald.map
-          cp pokeemerald.sym release/pokeemerald.sym
+          cp pokemon-openworld.gba release/pokemon-openworld.gba
+          cp pokemon-openworld.map release/pokemon-openworld.map
+          cp pokemon-openworld.sym release/pokemon-openworld.sym
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: pokemon-openworld-emerald
+          name: pokemon-openworld
           path: release/
           if-no-files-found: error
           retention-days: 3
