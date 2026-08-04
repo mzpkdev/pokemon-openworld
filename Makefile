@@ -48,6 +48,14 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
+ifeq ($(E2E_PREBUILT),1)
+  ifeq (,$(filter e2e-core e2e-extended,$(MAKECMDGOALS)))
+    $(error E2E_PREBUILT=1 is only valid with an E2E suite goal)
+  endif
+  ifneq (,$(filter-out e2e-core e2e-extended,$(MAKECMDGOALS)))
+    $(error E2E_PREBUILT=1 cannot be combined with non-E2E goals)
+  endif
+endif
 
 include config.mk
 
@@ -180,7 +188,9 @@ ifeq ($(RELEASE),1)
 endif
 ARMCC := $(PREFIX)gcc
 PATH_ARMCC := PATH="$(PATH)" $(ARMCC)
+ifneq ($(E2E_PREBUILT),1)
 CC1 := $(shell $(PATH_ARMCC) --print-prog-name=cc1) -quiet
+endif
 
 override CFLAGS += -mthumb -mthumb-interwork -O$(O_LEVEL) -mabi=apcs-gnu -mtune=arm7tdmi -march=armv4t -Wno-pointer-to-int-cast -std=gnu17 -Werror -Wall -Wno-strict-aliasing -Wno-attribute-alias -Woverride-init -Wnonnull -Wenum-conversion
 
@@ -206,7 +216,9 @@ ifeq ($(DEPRECATED_ERROR),0)
   endif
 endif
 
+ifneq ($(E2E_PREBUILT),1)
 LIBPATH := -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libgcc.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libnosys.a))" -L "$(dir $(shell $(PATH_ARMCC) -mthumb -print-file-name=libc.a))"
+endif
 LIB := $(LIBPATH) -lc -lnosys -lgcc -L../../libagbsyscall -lagbsyscall
 # Enable debug info if set
 ifeq ($(DINFO),1)
