@@ -152,6 +152,9 @@ else
 O_LEVEL ?= 2
 endif
 CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -std=gnu17
+ifeq ($(DEBUG),1)
+	override CPPFLAGS += -DDEBUG
+endif
 ifeq ($(RELEASE),1)
 	override CPPFLAGS += -DRELEASE
 	ifeq ($(USE_LTO_ON_RELEASE),1)
@@ -263,7 +266,7 @@ MAKEFLAGS += --no-print-directory
 # Delete files that weren't built properly
 .DELETE_ON_ERROR:
 
-RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
+RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidye2e tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
 RULES_NO_SCAN += _e2e-build _e2e-skyemu e2e-core e2e-extended
 .PHONY: all rom agbcc modern compare check debug release
 .PHONY: _e2e-build _e2e-skyemu e2e-core e2e-extended
@@ -414,7 +417,7 @@ clean-assets:
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.smol' -o -iname '*.fastSmol' -o -iname '*.smolTM' -o -iname '*.rl' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
 	find $(DATA_ASM_SUBDIR)/maps \( -iname 'connections.inc' -o -iname 'events.inc' -o -iname 'header.inc' \) -exec rm {} +
 
-tidy: tidymodern tidycheck tidydebug tidyrelease
+tidy: tidymodern tidycheck tidydebug tidye2e tidyrelease
 
 tidymodern:
 	rm -f pokemon-openworld.gba pokemon-openworld.elf pokemon-openworld.map pokemon-openworld.sym
@@ -426,6 +429,10 @@ tidycheck:
 
 tidydebug:
 	rm -rf $(OBJ_DIR_NAME_DEBUG)
+
+tidye2e:
+	rm -f $(FILE_NAME)-e2e.gba $(FILE_NAME)-e2e.elf $(FILE_NAME)-e2e.map $(FILE_NAME)-e2e.sym
+	rm -rf $(OBJ_DIR_NAME_E2E)
 
 tidyrelease:
 ifeq ($(RELEASE),1)
