@@ -19,10 +19,16 @@ Successful `main` builds then produce public prerelease snapshots tagged
 source commit SHA.
 
 A maintainer can promote a snapshot to a stable release by manually running the
-`Release` workflow with a new `version` in `vX.Y.Z` form and the snapshot's
-`source` tag in `build-<12-lowercase-hex>` form. Promotion reuses the snapshot's
-verified files byte for byte and publishes the stable release as latest; it does
-not rebuild or retarget either tag.
+`Release` workflow with the snapshot's required `source` tag in
+`build-<12-lowercase-hex>` form. Promotion reuses the snapshot's verified files
+byte for byte and publishes the stable release as latest; it does not rebuild or
+retarget either tag.
+
+The workflow assigns the first stable release `v0.0.0`. After that it calculates
+the next version from Conventional Commits since the highest reachable stable:
+a breaking change bumps the major version, otherwise a `feat` bumps the minor
+version, and all other changes bump the patch version. Rerunning promotion for a
+snapshot already released as stable reuses that stable version.
 
 Snapshot notes cover the source commit, while stable notes cover the commits
 since the highest earlier published stable release whose SemVer tag is reachable
