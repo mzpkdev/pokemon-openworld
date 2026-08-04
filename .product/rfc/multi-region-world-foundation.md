@@ -161,9 +161,10 @@ The generator and build must enforce these invariants:
 - Assert the current 935 grouped maps are emitted and the four known unused-house directories remain the only current exclusions.
 - Assert all 75 current group slots and 785 current layout slots are valid; update expected counts when Johto is imported.
 - Build the normal, debug, and release ROMs, the test-runner and headless-test ELFs, and the debug-only `pokemon-openworld-e2e` ROM; all use the same Emerald engine and unified world. FireRed, LeafGreen, and Virtual Console ROM products are not supported targets.
-- Preserve the protected `CI / Build` and `Metadata / Lint` check identities. Keep `Build` on `make emerald syms` and verify that its release-authority `pokemon-openworld` artifact contains exactly `pokemon-openworld.gba`, `.map`, and `.sym`.
-- Add a separate required `CI / Foundation` check and add that exact context to the repository ruleset. It runs generator/schema checks, collision-safe debug and optimized release-mode builds, `make check`, `make e2e-core`, `make e2e-foundation`, and per-ROM capacity validation. Copy each mode's outputs to separate evidence staging before another mode can overwrite a root-level filename.
-- Upload measurements, logs, test ELFs, and E2E failure evidence under a non-release artifact name from a step guarded by `if: ${{ always() }}` and an explicit missing-files policy. Never stage `-release`, `-test`, `-test-headless`, or `-e2e` outputs under `release/`.
+- Preserve the rendered `CI / Build`, `CI / E2E (Core)`, `CI / E2E (Extended)`, and `Metadata / Lint` check identities. Keep `Build` on `make emerald syms` and verify that its release-authority `pokemon-openworld` artifact contains exactly `pokemon-openworld.gba`, `.map`, and `.sym`.
+- Add `Foundation` as a third entry in the existing fail-fast-disabled E2E matrix, invoking `make e2e-foundation` and producing the required `CI / E2E (Foundation)` context. It follows the existing suite-scoped failure-evidence policy: upload `test-results/e2e/foundation/` under `if: failure()`, warn when no evidence files exist, retain them for three days, and publish no E2E ROM artifact.
+- Add a separate required `CI / Foundation` check for non-emulator gates. The repository ruleset stores job names rather than rendered workflow/job labels, so require the exact contexts `Build`, `E2E (Core)`, `E2E (Extended)`, `E2E (Foundation)`, `Foundation`, and `Lint`. The Foundation job runs generator/schema checks, collision-safe debug and optimized release-mode builds, `make check`, and per-ROM capacity validation. Copy each mode's outputs to separate evidence staging before another mode can overwrite a root-level filename.
+- Upload the non-emulator measurements, logs, and test ELFs under a non-release artifact name from a step guarded by `if: ${{ always() }}` and an explicit missing-files policy. Never stage `-release`, `-test`, `-test-headless`, or `-e2e` outputs under `release/`.
 - Publish ROM, EWRAM, and IWRAM usage for each build.
 - Fail when the linked ROM exceeds 32 MiB.
 
@@ -194,7 +195,7 @@ Add focused tests for:
 - Pokémon save/load stability with unchanged record sizes;
 - title screen, new game, and Hoenn save/continue regression.
 
-The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their meanings. `e2e-core` runs in the required `CI / Foundation` check; `e2e-extended` remains a recommended local story regression and is not part of foundation acceptance because it is not direct-load proof. All three suites remain independently invocable; this RFC does not introduce an aggregate E2E target.
+The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their meanings and required `CI / E2E (Core)` and `CI / E2E (Extended)` contexts. `e2e-foundation` supplies direct-load proof under `CI / E2E (Foundation)`. All three suites remain independently invocable matrix targets; this RFC does not introduce an aggregate E2E target.
 
 ## Capacity policy
 
