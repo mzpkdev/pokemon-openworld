@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import IntEnum
 import os
 from pathlib import Path
 import shutil
@@ -25,6 +27,87 @@ SETTINGS_THEME_OFFSET = 8
 SETTINGS_VERSION_OFFSET = 12
 CUSTOM_THEME = 3
 SETTINGS_VERSION = 3
+
+INTEGRITY_REQUEST_STATUS_OFFSET = 14
+INTEGRITY_REQUEST_SIZE = 16
+INTEGRITY_RESULT_SIZE = 12
+
+
+class IntegrityLoadStatus(IntEnum):
+    IDLE = 0
+    PENDING = 1
+    RUNNING = 2
+    SUCCESS = 3
+    ERROR = 4
+
+
+class IntegrityLoadPhase(IntEnum):
+    NONE = 0
+    VALIDATE = 1
+    PREPARE = 2
+    WARP = 3
+    MAP_DATA = 4
+    RESET = 5
+    RESUME = 6
+    EVENTS = 7
+    GRAPHICS = 8
+    CALLBACK = 9
+    FIELD_READY = 10
+
+
+class IntegrityLoadError(IntEnum):
+    NONE = 0
+    MAP_GROUP = 1
+    MAP_GROUP_UNAVAILABLE = 2
+    MAP_NUM = 3
+    MAP_HEADER = 4
+    MAP_LAYOUT = 5
+    COORDINATES = 6
+    FLAGS = 7
+    NOT_READY = 8
+
+
+@dataclass(frozen=True)
+class IntegrityMapLoadRequest:
+    request_id: int
+    map_group: int
+    map_num: int
+    x: int = -1
+    y: int = -1
+    suppress_scripts: bool = False
+    suppress_events: bool = False
+
+    def payload(self) -> bytes:
+        if not 0 <= self.request_id <= 0xFFFFFFFF:
+            raise ValueError("request_id is outside u32")
+        if not 0 <= self.map_group <= 0xFFFF:
+            raise ValueError("map_group is outside u16")
+        if not 0 <= self.map_num <= 0xFFFF:
+            raise ValueError("map_num is outside u16")
+        if not -0x8000 <= self.x <= 0x7FFF or not -0x8000 <= self.y <= 0x7FFF:
+            raise ValueError("coordinates are outside s16")
+        return struct.pack(
+            "<IHHhhBBBB",
+            self.request_id,
+            self.map_group,
+            self.map_num,
+            self.x,
+            self.y,
+            int(self.suppress_scripts),
+            int(self.suppress_events),
+            IntegrityLoadStatus.IDLE,
+            0,
+        )
+
+
+@dataclass(frozen=True)
+class IntegrityMapLoadResult:
+    request_id: int
+    map_group: int
+    map_num: int
+    status: IntegrityLoadStatus
+    phase: IntegrityLoadPhase
+    error: IntegrityLoadError
 
 
 class Symbols:
@@ -86,12 +169,23 @@ def _free_port() -> int:
 
 
 class SkyEmuSession:
-    def __init__(self, binary: Path, rom: Path, symbols: Symbols, workdir: Path):
+    def __init__(
+        self,
+        binary: Path,
+        rom: Path,
+        symbols: Symbols,
+        workdir: Path,
+        battery_save: Path | None = None,
+    ):
         self.symbols = symbols
         self.workdir = workdir
         self.workdir.mkdir(parents=True, exist_ok=True)
         self.rom = self.workdir / "game.gba"
         shutil.copy2(rom, self.rom)
+        if battery_save is not None:
+            if not battery_save.is_file():
+                raise FileNotFoundError(f"battery save does not exist: {battery_save}")
+            shutil.copy2(battery_save, self.rom.with_suffix(".sav"))
         self.log_path = self.workdir / "skyemu.log"
         self.port = _free_port()
         data_home = self.workdir / "skyemu-data"
@@ -164,6 +258,16 @@ class SkyEmuSession:
         if result != "ok":
             raise RuntimeError(f"SkyEmu step failed: {result}")
 
+    def pause(self) -> None:
+        # HTTP-control sessions are loaded paused. Each /step call runs a fixed
+        # frame count synchronously and returns to that deterministic state.
+        pass
+
+    def resume(self) -> None:
+        # Integrity waits advance with /step, rather than SkyEmu's unbounded
+        # /run endpoint, so timeout accounting remains frame-exact.
+        pass
+
     def set_buttons(self, **states: bool) -> None:
         unknown = states.keys() - set(BUTTONS)
         if unknown:
@@ -215,6 +319,80 @@ class SkyEmuSession:
     def write_u16(self, address: int, value: int) -> None:
         self.write(address, struct.pack("<H", value & 0xFFFF))
 
+    def integrity_result(self) -> IntegrityMapLoadResult:
+        data = self.read(self.address("gIntegrityMapLoadResult"), INTEGRITY_RESULT_SIZE)
+        request_id, map_group, map_num, status, phase, error = struct.unpack(
+            "<IHHBBH", data
+        )
+        try:
+            return IntegrityMapLoadResult(
+                request_id=request_id,
+                map_group=map_group,
+                map_num=map_num,
+                status=IntegrityLoadStatus(status),
+                phase=IntegrityLoadPhase(phase),
+                error=IntegrityLoadError(error),
+            )
+        except ValueError as value_error:
+            raise RuntimeError(
+                f"malformed Integrity result: {data.hex()}"
+            ) from value_error
+
+    def wait_for_integrity_result(
+        self, request_id: int, *, max_frames: int
+    ) -> IntegrityMapLoadResult:
+        if max_frames < 1:
+            raise ValueError("max_frames must be positive")
+        last = self.integrity_result()
+        for _ in range(max_frames):
+            self.step()
+            last = self.integrity_result()
+            if last.status not in (
+                IntegrityLoadStatus.SUCCESS,
+                IntegrityLoadStatus.ERROR,
+            ):
+                continue
+            if last.request_id != request_id:
+                raise RuntimeError(
+                    "Integrity result echoed the wrong request id: "
+                    f"expected={request_id}, actual={last.request_id}"
+                )
+            return last
+        raise TimeoutError(
+            f"Integrity request {request_id} timed out after {max_frames} frames; "
+            f"status={last.status.name}, phase={last.phase.name}, error={last.error.name}"
+        )
+
+    def request_map_load(
+        self, request: IntegrityMapLoadRequest, *, max_frames: int = 1_200
+    ) -> IntegrityMapLoadResult:
+        request_address = self.address("gIntegrityMapLoadRequest")
+        payload = request.payload()
+        if len(payload) != INTEGRITY_REQUEST_SIZE:
+            raise AssertionError("Integrity request ABI size drifted")
+
+        self.pause()
+        self.write(request_address, payload)
+        # PENDING is the request commit field and must be the final host write.
+        self.write_u8(
+            request_address + INTEGRITY_REQUEST_STATUS_OFFSET,
+            IntegrityLoadStatus.PENDING,
+        )
+        self.resume()
+        result = self.wait_for_integrity_result(
+            request.request_id, max_frames=max_frames
+        )
+        if (result.map_group, result.map_num) != (
+            request.map_group,
+            request.map_num,
+        ):
+            raise RuntimeError(
+                "Integrity result echoed the wrong map id: "
+                f"expected={(request.map_group, request.map_num)}, "
+                f"actual={(result.map_group, result.map_num)}"
+            )
+        return result
+
     def address(self, symbol: str) -> int:
         return self.symbols[symbol]
 
@@ -246,6 +424,16 @@ class SkyEmuSession:
             raise ValueError(f"not a saved variable id: 0x{var_id:x}")
         offset = SAVE_BLOCK1_VARS_OFFSET + (var_id - VARS_START) * 2
         return self.read_u16(self.save_block1() + offset)
+
+    def set_var(self, var_id: int, value: int) -> None:
+        if not VARS_START <= var_id <= VARS_END:
+            raise ValueError(f"not a saved variable id: 0x{var_id:x}")
+        if not 0 <= value <= 0xFFFF:
+            raise ValueError(f"saved variable value is outside u16: 0x{value:x}")
+        offset = SAVE_BLOCK1_VARS_OFFSET + (var_id - VARS_START) * 2
+        self.write_u16(self.save_block1() + offset, value)
+        if self.read_var(var_id) != value:
+            raise RuntimeError(f"failed to update variable 0x{var_id:x}")
 
     def read_flag(self, flag_id: int) -> bool:
         if not 0 < flag_id < FLAGS_COUNT:
@@ -426,6 +614,14 @@ class SkyEmuSession:
         result = self._text("save", [("path", str(output.resolve()))])
         if result != "ok":
             raise RuntimeError(f"SkyEmu save failed: {result}")
+
+    def load_state(self, state: Path) -> None:
+        if not state.is_file():
+            raise FileNotFoundError(f"SkyEmu state does not exist: {state}")
+        result = self._text("load", [("path", str(state.resolve()))])
+        if result != "ok":
+            raise RuntimeError(f"SkyEmu state load failed: {result}")
+        self.set_buttons(**{button: False for button in BUTTONS})
 
     def close(self) -> None:
         if self.process.poll() is None:

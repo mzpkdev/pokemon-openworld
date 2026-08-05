@@ -4467,7 +4467,7 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_ApricornTree = {
     .images = sPicTable_ApricornTree,
 };
 
-#if IS_FRLG
+#if HAS_FRLG_TILESETS
 
 const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_RedNormal = {
     .tileTag = TAG_NONE,
@@ -7224,4 +7224,4 @@ const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_SSAnne = {
     .affineAnims = gDummySpriteAffineAnimTable,
 };
 
-#endif // IS_FRLG
+#endif // HAS_FRLG_TILESETS

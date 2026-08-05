@@ -25,6 +25,9 @@
 #include "trainer_hill.h"
 #include "test_runner.h"
 #include "constants/rgb.h"
+#ifdef DEBUG
+#include "integrity_map_load.h"
+#endif
 
 static void VBlankIntr(void);
 static void HBlankIntr(void);
@@ -136,6 +139,10 @@ void AgbMainLoop(void)
     for (;;)
     {
         ReadKeys();
+
+#ifdef DEBUG
+        IntegrityMapLoad_Update();
+#endif
 
         if (gSoftResetDisabled == FALSE
          && JOY_HELD_RAW(A_BUTTON)

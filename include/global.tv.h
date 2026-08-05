@@ -226,7 +226,7 @@ typedef union // size = 0x24
         /*0x04*/ u8 filler_04[2];
         /*0x06*/ enum Item itemIds[SMARTSHOPPER_NUM_ITEMS];
         /*0x0C*/ u16 itemAmounts[SMARTSHOPPER_NUM_ITEMS];
-        /*0x12*/ mapsec_u8_t shopLocation;
+        /*0x12*/ SavedLocationCode shopLocation;
         /*0x13*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
         /*0x1B*/ //u8 padding;
     } smartshopperShow;
@@ -241,7 +241,7 @@ typedef union // size = 0x24
         /*0x0E*/ enum Species species2;
         /*0x10*/ u8 nBallsUsed;
         /*0x11*/ u8 outcome;
-        /*0x12*/ mapsec_u8_t location;
+        /*0x12*/ SavedLocationCode location;
         /*0x13*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
         /*0x1B*/ //u8 padding;
     } pokemonTodayFailed;
@@ -267,7 +267,7 @@ typedef union // size = 0x24
         /*0x04*/ u16 caughtPoke;
         /*0x06*/ u16 steps;
         /*0x08*/ enum Species species;
-        /*0x0A*/ mapsec_u8_t location;
+        /*0x0A*/ SavedLocationCode location;
         /*0x0B*/ u8 language;
         /*0x0C*/ u8 filler_0C[7];
         /*0x13*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
@@ -282,7 +282,7 @@ typedef union // size = 0x24
         /*0x04*/ u8 badgeCount;
         /*0x05*/ u8 nSilverSymbols;
         /*0x06*/ u8 nGoldSymbols;
-        /*0x07*/ mapsec_u8_t location;
+        /*0x07*/ SavedLocationCode location;
         /*0x08*/ u16 battlePoints;
         /*0x0A*/ u16 mapLayoutId;
         /*0x0C*/ u8 language;
@@ -309,7 +309,7 @@ typedef union // size = 0x24
         /*0x00*/ u8 kind;
         /*0x01*/ bool8 active;
         /*0x02*/ enum Item item;
-        /*0x04*/ mapsec_u8_t location;
+        /*0x04*/ SavedLocationCode location;
         /*0x05*/ u8 language;
         /*0x06*/ u16 mapLayoutId;
         /*0x08*/ u8 filler_08[11];
@@ -336,7 +336,7 @@ typedef union // size = 0x24
         /*0x00*/ u8 kind;
         /*0x01*/ bool8 active;
         /*0x02*/ enum Species lastOpponentSpecies;
-        /*0x04*/ mapsec_u8_t location;
+        /*0x04*/ SavedLocationCode location;
         /*0x05*/ u8 outcome;
         /*0x06*/ u16 caughtMonBall;
         /*0x08*/ u16 balls;
@@ -492,6 +492,14 @@ typedef union // size = 0x24
     } massOutbreak;
 } TVShow;
 
+STATIC_ASSERT(sizeof(TVShow) == 0x24, TVShowSize);
+STATIC_ASSERT(__builtin_offsetof(TVShow, smartshopperShow.shopLocation) == 0x12, TVShowSmartShopperLocationOffset);
+STATIC_ASSERT(__builtin_offsetof(TVShow, pokemonTodayFailed.location) == 0x12, TVShowPokemonTodayFailedLocationOffset);
+STATIC_ASSERT(__builtin_offsetof(TVShow, worldOfMasters.location) == 0x0A, TVShowWorldOfMastersLocationOffset);
+STATIC_ASSERT(__builtin_offsetof(TVShow, rivalTrainer.location) == 0x07, TVShowRivalTrainerLocationOffset);
+STATIC_ASSERT(__builtin_offsetof(TVShow, treasureInvestigators.location) == 0x04, TVShowTreasureInvestigatorsLocationOffset);
+STATIC_ASSERT(__builtin_offsetof(TVShow, breakingNews.location) == 0x04, TVShowBreakingNewsLocationOffset);
+
 typedef struct
 {
     u8 kind;
@@ -505,7 +513,7 @@ struct GabbyAndTyData
     /*2BA6*/ u16 mon2;
     /*2BA8*/ u16 lastMove;
     /*2BAA*/ u16 quote[1];
-    /*2BAC*/ mapsec_u8_t mapnum;
+    /*2BAC*/ SavedLocationCode mapnum;
     /*2BAD*/ u8 battleNum;
     /*2BAE*/ u8 battleTookMoreThanOneTurn:1;
              u8 playerLostAMon:1;
@@ -519,5 +527,8 @@ struct GabbyAndTyData
              u8 playerThrewABall2:1;
              u8 valB_4:4;
 };
+
+STATIC_ASSERT(sizeof(struct GabbyAndTyData) == 0x0C, GabbyAndTyDataSize);
+STATIC_ASSERT(__builtin_offsetof(struct GabbyAndTyData, mapnum) == 0x08, GabbyAndTyDataLocationOffset);
 
 #endif //GUARD_GLOBAL_TV_H

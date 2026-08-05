@@ -78,6 +78,11 @@ struct PlayerRecordEmerald
     /* 0x1434 */ u8 filler_1434[16];
 }; // 0x1444
 
+STATIC_ASSERT(sizeof(struct PlayerRecordEmerald) == 0x1444, PlayerRecordEmeraldSize);
+STATIC_ASSERT(__builtin_offsetof(struct PlayerRecordEmerald, tvShows) == 0x0C80, PlayerRecordEmeraldTVShowsOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PlayerRecordEmerald, daycareMail) == 0x10AC, PlayerRecordEmeraldDaycareMailOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PlayerRecordEmerald, giftItem) == 0x1210, PlayerRecordEmeraldGiftItemOffset);
+
 union PlayerRecord
 {
     struct PlayerRecordRS ruby;
@@ -170,6 +175,11 @@ void RecordMixingPlayerSpotTriggered(void)
     CreateTask_EnterCableClubSeat(Task_RecordMixing_Main);
 }
 
+void CopyTVShowsForRecordMixing(TVShow *dest, const TVShow *src, u32 count)
+{
+    memcpy(dest, src, count * sizeof(*dest));
+}
+
 // these variables were const in R/S, but had to become changeable because of saveblocks changing RAM position
 static void SetSrcLookupPointers(void)
 {
@@ -188,7 +198,7 @@ static void SetSrcLookupPointers(void)
 static void PrepareUnknownExchangePacket(struct PlayerRecordRS *dest)
 {
     memcpy(dest->secretBases, sSecretBasesSave, sizeof(dest->secretBases));
-    memcpy(dest->tvShows, sTvShowsSave, sizeof(dest->tvShows));
+    CopyTVShowsForRecordMixing(dest->tvShows, sTvShowsSave, ARRAY_COUNT(dest->tvShows));
     SanitizeTVShowLocationsForRuby(dest->tvShows);
     memcpy(dest->pokeNews, sPokeNewsSave, sizeof(dest->pokeNews));
     memcpy(&dest->oldMan, sOldManSave, sizeof(dest->oldMan));
@@ -204,7 +214,7 @@ static void PrepareExchangePacketForRubySapphire(struct PlayerRecordRS *dest)
 {
     memcpy(dest->secretBases, sSecretBasesSave, sizeof(dest->secretBases));
     ClearJapaneseSecretBases(dest->secretBases);
-    memcpy(dest->tvShows, sTvShowsSave, sizeof(dest->tvShows));
+    CopyTVShowsForRecordMixing(dest->tvShows, sTvShowsSave, ARRAY_COUNT(dest->tvShows));
     SanitizeTVShowsForRuby(dest->tvShows);
     memcpy(dest->pokeNews, sPokeNewsSave, sizeof(dest->pokeNews));
     memcpy(&dest->oldMan, sOldManSave, sizeof(dest->oldMan));
@@ -235,7 +245,7 @@ static void PrepareExchangePacket(void)
     else
     {
         memcpy(sSentRecord->emerald.secretBases, sSecretBasesSave, sizeof(sSentRecord->emerald.secretBases));
-        memcpy(sSentRecord->emerald.tvShows, sTvShowsSave, sizeof(sSentRecord->emerald.tvShows));
+        CopyTVShowsForRecordMixing(sSentRecord->emerald.tvShows, sTvShowsSave, ARRAY_COUNT(sSentRecord->emerald.tvShows));
         memcpy(sSentRecord->emerald.pokeNews, sPokeNewsSave, sizeof(sSentRecord->emerald.pokeNews));
         memcpy(&sSentRecord->emerald.oldMan, sOldManSave, sizeof(sSentRecord->emerald.oldMan));
         memcpy(&sSentRecord->emerald.lilycoveLady, sLilycoveLadySave, sizeof(sSentRecord->emerald.lilycoveLady));

@@ -1292,6 +1292,10 @@ static void ShowDecorationOnMap_(u16 mapX, u16 mapY, u8 decWidth, u8 decHeight, 
     u16 impassableFlag;
     u16 overlapsWall;
     u16 elevation;
+    u16 primaryMetatileCount = GetNumMetatilesInPrimary(gMapHeader.mapLayout);
+
+    if (primaryMetatileCount == 0)
+        return;
 
     for (j = 0; j < decHeight; j++)
     {
@@ -1299,8 +1303,8 @@ static void ShowDecorationOnMap_(u16 mapX, u16 mapY, u8 decWidth, u8 decHeight, 
         for (i = 0; i < decWidth; i++)
         {
             x = mapX + i;
-            metatileBehavior = GetAttributeByMetatileIdAndMapLayout(NUM_TILES_IN_PRIMARY + gDecorations[decoration].tiles[j * decWidth + i], METATILE_ATTRIBUTE_BEHAVIOR, FALSE);
-            layerType = GetAttributeByMetatileIdAndMapLayout(NUM_TILES_IN_PRIMARY + gDecorations[decoration].tiles[j * decWidth + i], METATILE_ATTRIBUTE_LAYER_TYPE, FALSE);
+            metatileBehavior = GetAttributeByMetatileIdAndMapLayout(primaryMetatileCount + gDecorations[decoration].tiles[j * decWidth + i], METATILE_ATTRIBUTE_BEHAVIOR);
+            layerType = GetAttributeByMetatileIdAndMapLayout(primaryMetatileCount + gDecorations[decoration].tiles[j * decWidth + i], METATILE_ATTRIBUTE_LAYER_TYPE);
             if (MetatileBehavior_IsSecretBaseImpassable(metatileBehavior) == TRUE
              || (gDecorations[decoration].permission != DECORPERM_PASS_FLOOR && layerType != METATILE_LAYER_TYPE_NORMAL))
                 impassableFlag = MAPGRID_IMPASSABLE;
@@ -1315,9 +1319,9 @@ static void ShowDecorationOnMap_(u16 mapX, u16 mapY, u8 decWidth, u8 decHeight, 
 
             elevation = GetDecorationElevation(gDecorations[decoration].id, j * decWidth + i);
             if (elevation != ELEVATION_INVALID)
-                MapGridSetMetatileEntryAt(x, y, (gDecorations[decoration].tiles[j * decWidth + i] + (NUM_TILES_IN_PRIMARY | overlapsWall)) | impassableFlag | elevation);
+                MapGridSetMetatileEntryAt(x, y, (gDecorations[decoration].tiles[j * decWidth + i] + (primaryMetatileCount | overlapsWall)) | impassableFlag | elevation);
             else
-                MapGridSetMetatileIdAt(x, y, (gDecorations[decoration].tiles[j * decWidth + i] + (NUM_TILES_IN_PRIMARY | overlapsWall)) | impassableFlag);
+                MapGridSetMetatileIdAt(x, y, (gDecorations[decoration].tiles[j * decWidth + i] + (primaryMetatileCount | overlapsWall)) | impassableFlag);
         }
     }
 }
@@ -1524,17 +1528,6 @@ static bool8 IsFloorOrBoardAndHole(u16 behaviorAt, const struct Decoration *deco
     return FALSE;
 }
 
-#ifdef BUGFIX
-#define GetLayerType(tileId) UNPACK_LAYER_TYPE(GetMetatileAttributesById(tileId))
-#else
-// This incompletely extracts the layer type data. The result is that comparisons against any nonzero
-// value in the valid range always have the same result.
-// Because GF only compares against 0 (METATILE_LAYER_TYPE_NORMAL) there are no ill effects and it's possible this
-// is what they intended. We use the named constant for the comparisons, which implies you can use nonzero constants at
-// those locations (which you can't), so to avoid this trap and keep the better documentation this is included as a bug fix.
-#define GetLayerType(tileId) GetMetatileAttributesById(tileId) & METATILE_ATTR_LAYER_MASK
-#endif
-
 static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
 {
     u8 i;
@@ -1545,6 +1538,11 @@ static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
     u8 mapX;
     s16 curY;
     s16 curX;
+    u16 primaryMetatileCount = GetNumMetatilesInPrimary(gMapHeader.mapLayout);
+
+    if (primaryMetatileCount == 0)
+        return FALSE;
+
     mapY = gTasks[taskId].tDecorHeight;
     mapX = gTasks[taskId].tDecorWidth;
 
@@ -1559,7 +1557,7 @@ static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
             {
                 curX = gTasks[taskId].tCursorX + j;
                 behaviorAt = MapGridGetMetatileBehaviorAt(curX, curY);
-                layerType = GetAttributeByMetatileIdAndMapLayout(NUM_TILES_IN_PRIMARY + decoration->tiles[(mapY - 1 - i) * mapX + j], METATILE_ATTRIBUTE_LAYER_TYPE, FALSE);
+                layerType = GetAttributeByMetatileIdAndMapLayout(primaryMetatileCount + decoration->tiles[(mapY - 1 - i) * mapX + j], METATILE_ATTRIBUTE_LAYER_TYPE);
                 if (!IsFloorOrBoardAndHole(behaviorAt, decoration))
                     return FALSE;
 
@@ -1580,7 +1578,7 @@ static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
             {
                 curX = gTasks[taskId].tCursorX + j;
                 behaviorAt = MapGridGetMetatileBehaviorAt(curX, curY);
-                layerType = GetAttributeByMetatileIdAndMapLayout(NUM_TILES_IN_PRIMARY + decoration->tiles[(mapY - 1 - i) * mapX + j], METATILE_ATTRIBUTE_LAYER_TYPE, FALSE);
+                layerType = GetAttributeByMetatileIdAndMapLayout(primaryMetatileCount + decoration->tiles[(mapY - 1 - i) * mapX + j], METATILE_ATTRIBUTE_LAYER_TYPE);
                 if (!MetatileBehavior_IsNormal(behaviorAt) && !IsSecretBaseTrainerSpot(behaviorAt, layerType))
                     return FALSE;
 
@@ -1597,7 +1595,7 @@ static bool8 CanPlaceDecoration(u8 taskId, const struct Decoration *decoration)
         {
             curX = gTasks[taskId].tCursorX + j;
             behaviorAt = MapGridGetMetatileBehaviorAt(curX, curY);
-            layerType = GetAttributeByMetatileIdAndMapLayout(NUM_TILES_IN_PRIMARY + decoration->tiles[j], METATILE_ATTRIBUTE_LAYER_TYPE, FALSE);
+            layerType = GetAttributeByMetatileIdAndMapLayout(primaryMetatileCount + decoration->tiles[j], METATILE_ATTRIBUTE_LAYER_TYPE);
             if (!MetatileBehavior_IsNormal(behaviorAt) && !MetatileBehavior_IsSecretBaseNorthWall(behaviorAt))
                 return FALSE;
 

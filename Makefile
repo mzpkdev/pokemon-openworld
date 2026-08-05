@@ -1,8 +1,33 @@
+# Product identity is deliberately closed.  Diagnostic map dialects are exposed
+# only by the generator-fixture-* targets below; they can never select a link.
+ifeq ($(origin GAME_VERSION),command line)
+  ifneq ($(GAME_VERSION),EMERALD)
+    $(error pokemon-openworld requires GAME_VERSION=EMERALD)
+  endif
+endif
+ifeq ($(origin ALL_REGIONS),command line)
+  ifneq ($(ALL_REGIONS),1)
+    $(error pokemon-openworld requires ALL_REGIONS=1)
+  endif
+endif
+ifeq ($(origin MAP_VERSION),command line)
+  ifneq ($(MAP_VERSION),allregions)
+    $(error pokemon-openworld requires MAP_VERSION=allregions)
+  endif
+endif
+ifeq ($(origin FILE_NAME),command line)
+  ifneq ($(FILE_NAME),pokemon-openworld)
+    $(error pokemon-openworld requires FILE_NAME=pokemon-openworld)
+  endif
+endif
+
 override GAME_VERSION := EMERALD
 override TITLE        := POKEMON EMER
 override GAME_CODE    := BPEE
 override BUILD_NAME   := emerald
-override MAP_VERSION  := emerald
+override IS_FRLG      := 0
+override MAP_VERSION  := allregions
+override ALL_REGIONS  := 1
 
 # GBA rom header
 MAKER_CODE  := 01
@@ -12,6 +37,8 @@ KEEP_TEMPS  ?= 0
 # `File name`.gba
 override FILE_NAME := pokemon-openworld
 BUILD_DIR := build
+GENERATED_POLICY_ROOT := $(BUILD_DIR)/generated/$(MAP_VERSION)
+GENERATED_ROOT := $(GENERATED_POLICY_ROOT)/current
 
 # Compares the ROM to a checksum of the original - only makes sense using when non-modern
 COMPARE     ?= 0
@@ -46,7 +73,7 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-override _E2E_SUITE_GOALS := e2e-core e2e-extended
+override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity
 override _E2E_ONLY := 0
 ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
   ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
@@ -97,10 +124,17 @@ override OUTPUT_NAME := $(FILE_NAME)-debug
 endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
-OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)
-OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)-test
-OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)-debug
-OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)-release
+# Keep the historical Emerald/ALL_REGIONS=0 object path, but ensure every other
+# content-policy tuple has a distinct namespace. Output artifact names stay put.
+ifeq ($(MAP_VERSION)-$(ALL_REGIONS),emerald-0)
+BUILD_POLICY_SUFFIX :=
+else
+BUILD_POLICY_SUFFIX := -$(MAP_VERSION)-allregions$(ALL_REGIONS)
+endif
+OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)
+OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-debug
+OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-release
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
@@ -163,23 +197,35 @@ TEST_BUILDDIR = $(OBJ_DIR)/$(TEST_SUBDIR)
 SHELL := bash -o pipefail
 
 # Set flags for tools
-ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1
+ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1 --defsym ALL_REGIONS=$(ALL_REGIONS)
 
-INCLUDE_DIRS := include
-INCLUDE_CPP_ARGS := $(INCLUDE_DIRS:%=-iquote %)
-INCLUDE_SCANINC_ARGS := $(INCLUDE_DIRS:%=-I %)
+SOURCE_INCLUDE_DIR := include
+INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include $(SOURCE_INCLUDE_DIR)
+GENERATED_CONSTANT_INCLUDE_DIR := $(GENERATED_ROOT)/include/constants
+CPP_INCLUDE_DIRS := $(GENERATED_CONSTANT_INCLUDE_DIR) $(INCLUDE_DIRS)
+INCLUDE_CPP_ARGS := $(CPP_INCLUDE_DIRS:%=-iquote %)
+INCLUDE_SCANINC_ARGS := $(CPP_INCLUDE_DIRS:%=-I %)
 
 ifeq ($(DEBUG),1)
 O_LEVEL ?= g
 else
 O_LEVEL ?= 2
 endif
-CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -std=gnu17
+INHERITED_CPPFLAGS := $(CPPFLAGS)
+BASE_CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -DALL_REGIONS=$(ALL_REGIONS) -std=gnu17 $(INHERITED_CPPFLAGS)
+GENERATED_CONSTANT_HEADERS := $(GENERATED_ROOT)/include/constants/map_groups.h \
+                              $(GENERATED_ROOT)/include/constants/layouts.h \
+                              $(GENERATED_ROOT)/include/constants/map_event_ids.h
+GENERATED_CONSTANT_CPPFLAGS := $(addprefix -include ,$(GENERATED_CONSTANT_HEADERS))
+# trainerproc consumes its own party language, not C. Keep the common defines and
+# include search paths, but do not inject C declarations ahead of the party data.
+override CPPFLAGS = $(BASE_CPPFLAGS) $(GENERATED_CONSTANT_CPPFLAGS)
+TRAINER_CPPFLAGS = $(BASE_CPPFLAGS)
 ifeq ($(DEBUG),1)
-	override CPPFLAGS += -DDEBUG
+	BASE_CPPFLAGS += -DDEBUG
 endif
 ifeq ($(RELEASE),1)
-	override CPPFLAGS += -DRELEASE
+	BASE_CPPFLAGS += -DRELEASE
 	ifeq ($(USE_LTO_ON_RELEASE),1)
 		LTO := 1
 	endif
@@ -245,10 +291,24 @@ SCANINC      := $(TOOLS_DIR)/scaninc/scaninc$(EXE)
 PREPROC      := $(TOOLS_DIR)/preproc/preproc$(EXE)
 RAMSCRGEN    := $(TOOLS_DIR)/ramscrgen/ramscrgen$(EXE)
 FIX          := $(TOOLS_DIR)/gbafix/gbafix$(EXE)
-MAPJSON      := $(TOOLS_DIR)/mapjson/mapjson$(EXE)
+BUNDLED_MAPJSON := $(TOOLS_DIR)/mapjson/mapjson$(EXE)
+MAPJSON      ?= $(BUNDLED_MAPJSON)
 JSONPROC     := $(TOOLS_DIR)/jsonproc/jsonproc$(EXE)
-TRAINERPROC  := $(TOOLS_DIR)/trainerproc/trainerproc$(EXE)
+BUNDLED_TRAINERPROC := $(TOOLS_DIR)/trainerproc/trainerproc$(EXE)
+TRAINERPROC  ?= $(BUNDLED_TRAINERPROC)
 PATCHELF     := $(TOOLS_DIR)/patchelf/patchelf$(EXE)
+# Generated map sources name the executable as a prerequisite.  Give the
+# bundled executable a real source-aware rule so a missing or stale tool is
+# rebuilt before map generation in the same make invocation.  An external
+# MAPJSON override must remain an ordinary prerequisite and skip this rule.
+ifeq ($(MAPJSON),$(BUNDLED_MAPJSON))
+$(BUNDLED_MAPJSON): $(TOOLS_DIR)/mapjson/json11.cpp \
+                    $(TOOLS_DIR)/mapjson/json11.h \
+                    $(TOOLS_DIR)/mapjson/mapjson.cpp \
+                    $(TOOLS_DIR)/mapjson/mapjson.h \
+                    $(TOOLS_DIR)/mapjson/Makefile
+	@$(MAKE) -C $(TOOLS_DIR)/mapjson -B $(notdir $@)
+endif
 ifeq ($(shell uname),Darwin)
     ROMTEST ?= $(shell command -v mgba-rom-test-mac 2>/dev/null || echo $(TOOLS_DIR)/mgba/mgba-rom-test-mac)
     ROMTESTHYDRA := $(shell command -v mgba-rom-test-hydra 2>/dev/null || echo $(TOOLS_DIR)/mgba-rom-test-hydra/mgba-rom-test-hydra)
@@ -273,12 +333,13 @@ WILD_ENCOUNTERS_TOOL_DIR := $(TOOLS_DIR)/wild_encounters
 AUTO_GEN_TARGETS += $(DATA_SRC_SUBDIR)/wild_encounters.h
 
 MISC_TOOL_DIR := $(TOOLS_DIR)/misc
-AUTO_GEN_TARGETS +=  $(INCLUDE_DIRS)/constants/script_commands.h
+SCRIPT_COMMANDS_HEADER := $(SOURCE_INCLUDE_DIR)/constants/script_commands.h
+AUTO_GEN_TARGETS += $(SCRIPT_COMMANDS_HEADER)
 
-$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(INCLUDE_DIRS)/config/overworld.h $(INCLUDE_DIRS)/config/dexnav.h
+$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(SOURCE_INCLUDE_DIR)/config/overworld.h $(SOURCE_INCLUDE_DIR)/config/dexnav.h
 	python3 $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py
 
-$(INCLUDE_DIRS)/constants/script_commands.h: $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
+$(SCRIPT_COMMANDS_HEADER): $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
 	python3  $(MISC_TOOL_DIR)/make_scr_cmd_constants.py
 
 PERL := perl
@@ -294,9 +355,10 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended format format-check lint lint-check
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check format format-check lint lint-check
+RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
+.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -458,6 +520,22 @@ e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
 
+e2e-integrity: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
+	$(E2E_PYTHON) tools/e2e/run.py integrity
+
+INTEGRITY_REPORT := $(BUILD_DIR)/integrity/artifact-report.json
+CAPACITY_POLICY := tools/integrity/capacity_policy.json
+
+integrity-check: $(CAPACITY_POLICY)
+	$(MAKE) $(ROM) $(SYM)
+	@mkdir -p $(dir $(INTEGRITY_REPORT))
+	python3 tools/integrity/validate_artifact.py \
+		--rom $(ROM) --map $(MAP) --sym $(SYM) \
+		--manifest $(INTEGRITY_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
+		--output $(INTEGRITY_REPORT)
+
 # Other rules
 rom: $(ROM)
 ifeq ($(COMPARE),1)
@@ -475,6 +553,7 @@ clean-assets:
 	rm -f $(DATA_ASM_SUBDIR)/layouts/layouts.inc $(DATA_ASM_SUBDIR)/layouts/layouts_table.inc
 	rm -f $(DATA_ASM_SUBDIR)/maps/connections.inc $(DATA_ASM_SUBDIR)/maps/events.inc $(DATA_ASM_SUBDIR)/maps/groups.inc $(DATA_ASM_SUBDIR)/maps/headers.inc $(DATA_SRC_SUBDIR)/map_group_count.h
 	rm -f .map_version
+	rm -rf $(BUILD_DIR)/generated
 	find sound -iname '*.bin' -exec rm {} +
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.smol' -o -iname '*.fastSmol' -o -iname '*.smolTM' -o -iname '*.rl' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
 	find $(DATA_ASM_SUBDIR)/maps \( -iname 'connections.inc' -o -iname 'events.inc' -o -iname 'header.inc' \) -exec rm {} +
@@ -512,6 +591,16 @@ include json_data_rules.mk
 include audio_rules.mk
 include trainer_rules.mk
 
+# Every C translation unit is preprocessed with these generated constants forced
+# in, so their object targets must carry the same dependency.  A present policy
+# stamp is not sufficient evidence of a complete atomic generation: if any
+# forced header is absent, invalidate the authority and let mapjson repromote the
+# complete tree before an object recipe starts.
+ifneq ($(words $(wildcard $(GENERATED_CONSTANT_HEADERS))),$(words $(GENERATED_CONSTANT_HEADERS)))
+.PHONY: $(MAP_GENERATION_STAMP)
+endif
+$(C_OBJS) $(TEST_OBJS): $(MAP_GENERATION_STAMP) $(GENERATED_CONSTANT_HEADERS)
+
 # NOTE: Tools must have been built prior (FIXME)
 # so you can't really call this rule directly
 generated: $(AUTO_GEN_TARGETS)
@@ -543,6 +632,8 @@ clean-teachables_intermediates:
 clean-generated: clean-teachables_intermediates
 	@rm -f $(AUTO_GEN_TARGETS)
 	@echo "rm -f <AUTO_GEN_TARGETS>"
+	@rm -rf $(BUILD_DIR)/generated
+	@echo "rm -rf $(BUILD_DIR)/generated"
 
 clean-teachables: clean-teachables_intermediates
 	rm -f $(ALL_LEARNABLES_JSON)
@@ -637,7 +728,7 @@ $(OBJ_DIR)/sym_common.ld: sym_common.txt $(C_OBJS) $(wildcard common_syms/*.txt)
 $(OBJ_DIR)/sym_ewram.ld: sym_ewram.txt
 	$(RAMSCRGEN) ewram_data $< ENGLISH > $@
 
-TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(INCLUDE_DIRS)/constants/tms_hms.h $(INCLUDE_DIRS)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(INCLUDE_DIRS)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
+TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(SOURCE_INCLUDE_DIR)/constants/tms_hms.h $(SOURCE_INCLUDE_DIR)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(SOURCE_INCLUDE_DIR)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
 
 $(LEARNSET_HELPERS_BUILD_DIR):
 	@mkdir -p $@

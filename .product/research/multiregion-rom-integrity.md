@@ -1,14 +1,14 @@
-# Multi-region ROM foundation: Hoenn, Kanto, and Sevii Islands
+# Multi-region ROM integrity: Hoenn, Kanto, and Sevii Islands
 
 - Status: Superseded as an implementation recommendation
-- Superseded by: [Approved multi-region world foundation](../rfc/multi-region-world-foundation.md) and [approved PKMN-World donor adaptation](../rfc/pkmn-world-donor-adaptation.md)
+- Superseded by: [Approved multi-region world integrity](../rfc/multi-region-world-integrity.md) and [approved PKMN-World donor adaptation](../rfc/pkmn-world-donor-adaptation.md)
 - Evidence status: retained as historical research; later RFCs own architectural decisions
 
 > Do not implement the recommendation below. It predates the approved Johto-ready `u16` world contract and is retained only as evidence.
 
 ## Scope
 
-This research covers the build and runtime-data foundation required to place Hoenn, Kanto, and the Sevii Islands in one standard `.gba` ROM. It deliberately excludes story integration, player-facing travel warps, badge/flag reconciliation, and region-specific progression.
+This research covers the build and runtime-data integrity required to place Hoenn, Kanto, and the Sevii Islands in one standard `.gba` ROM. It deliberately excludes story integration, player-facing travel warps, badge/flag reconciliation, and region-specific progression.
 
 The codebases inspected were:
 
@@ -16,7 +16,7 @@ The codebases inspected were:
 - the workspace reference `.references/pokecrossroads`
 - the workspace reference `.references/PKMN-World` (the directory is case-sensitive)
 
-The conclusion is straightforward: keep Emerald as the base game, introduce an explicit `ALL_REGIONS` build mode, make both Emerald and FRLG map assets resident, and retain the fork's existing per-layout runtime dispatch. Do not introduce a second map engine, ROM bank swapping, or a persisted “current region” abstraction for this foundation.
+The conclusion is straightforward: keep Emerald as the base game, introduce an explicit `ALL_REGIONS` build mode, make both Emerald and FRLG map assets resident, and retain the fork's existing per-layout runtime dispatch. Do not introduce a second map engine, ROM bank swapping, or a persisted “current region” abstraction for this integrity.
 
 ## Historical recommendation (superseded)
 
@@ -34,7 +34,7 @@ This is the smallest architecture that supports all requested landmasses without
 
 ## What is already present
 
-`pokemon-openworld` already contains almost all of the source data needed for this foundation.
+`pokemon-openworld` already contains almost all of the source data needed for this integrity.
 
 | Registry | Current fork | `pokecrossroads` | `PKMN-World` |
 | --- | ---: | ---: | ---: |

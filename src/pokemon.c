@@ -27,6 +27,7 @@
 #include "graphics.h"
 #include "item.h"
 #include "link.h"
+#include "location_codecs.h"
 #include "m4a.h"
 #include "main.h"
 #include "move_relearner.h"
@@ -765,6 +766,10 @@ UNUSED static const struct BoxPokemon sBoxPokemonConstantsFit =
 };
 
 STATIC_ASSERT(MAX_LEVEL <= 100, PokemonSubstruct0_experience_PotentiallyTooSmall); // Maximum of ~2 million exp.
+STATIC_ASSERT(sizeof(struct PokemonSubstruct3) == 0x0C, PokemonSubstruct3Size);
+STATIC_ASSERT(__builtin_offsetof(struct PokemonSubstruct3, metLocation) == 0x01, PokemonMetLocationOffset);
+STATIC_ASSERT(sizeof(struct BoxPokemon) == 0x50, BoxPokemonSize);
+STATIC_ASSERT(sizeof(struct Pokemon) == 0x64, PokemonSize);
 
 static u32 CompressStatus(u32 status)
 {
@@ -969,6 +974,7 @@ void CreateBoxMon(struct BoxPokemon *boxMon, enum Species species, u8 level, u32
     u32 value;
     u16 checksum;
     bool32 isShiny;
+    MetLocationCode metLocation;
 
     ZeroBoxMonData(boxMon);
     // Determine original trainer ID
@@ -1002,8 +1008,8 @@ void CreateBoxMon(struct BoxPokemon *boxMon, enum Species species, u8 level, u32
     SetBoxMonData(boxMon, MON_DATA_SPECIES, &species);
     SetBoxMonData(boxMon, MON_DATA_EXP, &gExperienceTables[gSpeciesInfo[species].growthRate][level]);
     SetBoxMonData(boxMon, MON_DATA_FRIENDSHIP, &gSpeciesInfo[species].friendship);
-    value = GetCurrentRegionMapSectionId();
-    SetBoxMonData(boxMon, MON_DATA_MET_LOCATION, &value);
+    metLocation = EncodeMetLocation(GetCurrentRegionMapSectionId());
+    SetBoxMonData(boxMon, MON_DATA_MET_LOCATION, &metLocation);
     SetBoxMonData(boxMon, MON_DATA_MET_LEVEL, &level);
     SetBoxMonData(boxMon, MON_DATA_MET_GAME, &gGameVersion);
     value = BALL_POKE;
@@ -4964,7 +4970,7 @@ s32 CalculateFriendshipBonuses(struct Pokemon *mon, s32 modifier, enum HoldEffec
     if (GetMonData(mon, MON_DATA_POKEBALL) == BALL_LUXURY)
         bonus += ITEM_FRIENDSHIP_LUXURY_BONUS;
 
-    if (GetMonData(mon, MON_DATA_MET_LOCATION) == GetCurrentRegionMapSectionId())
+    if (DecodeMetLocation(GetMonData(mon, MON_DATA_MET_LOCATION)) == GetCurrentRegionMapSectionId())
         bonus += ITEM_FRIENDSHIP_MAPSEC_BONUS;
 
     return bonus;

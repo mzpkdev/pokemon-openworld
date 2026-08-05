@@ -1,0 +1,14 @@
+{
+  "description": "Saved flag slots explicitly marked unused by the Emerald engine and reserved for the 183 resident Kanto/Sevii hidden items. Symbols are assigned in stable lexical order.",
+  "unusedFlagPools": [
+    {"first": 612, "last": 699},
+    {"first": 729, "last": 729},
+    {"first": 1128, "last": 1128},
+    {"first": 1136, "last": 1136},
+    {"first": 1138, "last": 1138},
+    {"first": 1145, "last": 1145},
+    {"first": 1171, "last": 1263},
+    {"first": 1273, "last": 1274},
+    {"first": 1279, "last": 1279}
+  ]
+}

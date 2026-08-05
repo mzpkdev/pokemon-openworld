@@ -140,6 +140,9 @@ jobs:
           - name: Extended
             suite: extended
             target: e2e-extended
+          - name: Integrity
+            suite: integrity
+            target: e2e-integrity
 
     steps:
       - name: Checkout
@@ -152,6 +155,15 @@ jobs:
         with:
           name: pokemon-openworld-debug
           path: .
+
+      - name: Generate and validate Integrity manifest
+        if: ${{ matrix.suite == 'integrity' }}
+        run: |
+          make -C tools/mapjson
+          make NODEP=1 SETUP_PREREQS=0 \
+            build/generated/allregions/current/integrity-manifest.json
+          python3 tools/integrity/manifest.py \
+            build/generated/allregions/current/integrity-manifest.json
 
       - name: Install E2E runtime dependencies
         run: |
@@ -177,4 +189,42 @@ jobs:
           name: e2e-${{ matrix.suite }}-failure-evidence
           path: test-results/e2e/${{ matrix.suite }}/
           if-no-files-found: warn
+          retention-days: 3
+
+  integrity:
+    name: Integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up build dependencies
+        uses: ./.github/actions/setup-build
+
+      - name: Check deterministic generation and schemas
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/integrity
+          python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py' \
+            2>&1 | tee build/integrity/generator-schema.log
+
+      - name: Check optimized release capacity
+        shell: bash
+        run: |
+          set -o pipefail
+          make -j"$(nproc)" -O RELEASE=1 integrity-check \
+            2>&1 | tee build/integrity/release-capacity.log
+
+      - name: Upload Integrity reports
+        if: ${{ always() }}
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: integrity-evidence
+          path: build/integrity/
+          if-no-files-found: error
           retention-days: 3

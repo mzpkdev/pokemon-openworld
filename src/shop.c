@@ -46,7 +46,6 @@
 #define TAG_ITEM_ICON_BASE 9110 // immune to time blending
 
 #define MAX_ITEMS_SHOWN 8
-#define SHOP_MENU_PALETTE_ID (gMapHeader.mapLayout->isFrlg ? 11 : 12)
 
 enum {
     WIN_BUY_SELL_QUIT,
@@ -158,6 +157,7 @@ static void Task_HandleShopMenuBuy(u8 taskId);
 static void Task_HandleShopMenuSell(u8 taskId);
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, struct ListMenu *list);
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
+static s8 GetShopMenuPaletteId(void);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 {
@@ -428,6 +428,13 @@ static void Task_ShopMenu(u8 taskId)
 static void Task_HandleShopMenuBuy(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
+
+    if (GetShopMenuPaletteId() < 0)
+    {
+        PlaySE(SE_FAILURE);
+        return;
+    }
+
     tCallbackHi = (u32)CB2_InitBuyMenu >> 16;
     tCallbackLo = (u32)CB2_InitBuyMenu;
     gTasks[taskId].func = Task_GoToBuyOrSellMenu;
@@ -759,9 +766,12 @@ static void BuyMenuInitBgs(void)
 
 static void BuyMenuDecompressBgGraphics(void)
 {
+    s8 paletteId = GetShopMenuPaletteId();
+
     DecompressAndCopyTileDataToVram(1, gShopMenu_Gfx, 0x3A0, 0x3E3, 0);
     DecompressDataWithHeaderWram(gShopMenu_Tilemap, sShopData->tilemapBuffers[0]);
-    LoadPalette(gShopMenu_Pal, BG_PLTT_ID(SHOP_MENU_PALETTE_ID), PLTT_SIZE_4BPP);
+    if (paletteId >= 0)
+        LoadPalette(gShopMenu_Pal, BG_PLTT_ID(paletteId), PLTT_SIZE_4BPP);
 }
 
 static void BuyMenuInitWindows(void)
@@ -816,6 +826,9 @@ static void BuyMenuDrawMapBg(void)
 
     mapLayout = gMapHeader.mapLayout;
     numMetatilesInPrimary = GetNumMetatilesInPrimary(mapLayout);
+    if (numMetatilesInPrimary == 0)
+        return;
+
     GetXYCoordsOneStepInFrontOfPlayer(&x, &y);
     x -= 4;
     y -= 4;
@@ -967,13 +980,30 @@ static bool8 BuyMenuCheckIfObjectEventOverlapsMenuBg(s16 *object)
 static void BuyMenuCopyMenuBgToBg1TilemapBuffer(void)
 {
     s16 i;
+    s8 paletteId = GetShopMenuPaletteId();
     u16 *dest = sShopData->tilemapBuffers[1];
     const u16 *src = sShopData->tilemapBuffers[0];
+
+    if (paletteId < 0)
+        return;
 
     for (i = 0; i < 1024; i++)
     {
         if (src[i] != 0)
-            dest[i] = src[i] + ((SHOP_MENU_PALETTE_ID << 12) | 0x3E3);
+            dest[i] = src[i] + ((paletteId << 12) | 0x3E3);
+    }
+}
+
+static s8 GetShopMenuPaletteId(void)
+{
+    switch (GetMapShopPaletteFormat(gMapHeader.mapLayout))
+    {
+    case SHOP_PALETTE_EMERALD:
+        return 12;
+    case SHOP_PALETTE_FRLG:
+        return 11;
+    default:
+        return -1;
     }
 }
 

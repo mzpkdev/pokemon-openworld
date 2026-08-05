@@ -1,84 +1,62 @@
 #include "global.h"
+#include "region_map.h"
 #include "regions.h"
 
-
-static const u16 sKantoSubregionMapsecs[KANTO_SUBREGION_COUNT][30] = {
-    [KANTO_SUBREGION_KANTO] =
-    {
-        MAPSEC_NONE
-    },
-    [KANTO_SUBREGION_SEVII123] =
-    {
-        MAPSEC_ONE_ISLAND,
-        MAPSEC_TWO_ISLAND,
-        MAPSEC_THREE_ISLAND,
-        MAPSEC_KINDLE_ROAD,
-        MAPSEC_TREASURE_BEACH,
-        MAPSEC_CAPE_BRINK,
-        MAPSEC_BOND_BRIDGE,
-        MAPSEC_THREE_ISLE_PORT,
-        MAPSEC_MT_EMBER,
-        MAPSEC_BERRY_FOREST,
-        MAPSEC_THREE_ISLE_PATH,
-        MAPSEC_EMBER_SPA,
-        MAPSEC_NONE
-    },
-    [KANTO_SUBREGION_SEVII45] =
-    {
-        MAPSEC_FOUR_ISLAND,
-        MAPSEC_FIVE_ISLAND,
-        MAPSEC_RESORT_GORGEOUS,
-        MAPSEC_WATER_LABYRINTH,
-        MAPSEC_FIVE_ISLE_MEADOW,
-        MAPSEC_MEMORIAL_PILLAR,
-        MAPSEC_NAVEL_ROCK_FRLG,
-        MAPSEC_ICEFALL_CAVE,
-        MAPSEC_ROCKET_WAREHOUSE,
-        MAPSEC_LOST_CAVE,
-        MAPSEC_NONE
-    },
-    [KANTO_SUBREGION_SEVII67] =
-    {
-        MAPSEC_SEVEN_ISLAND,
-        MAPSEC_SIX_ISLAND,
-        MAPSEC_OUTCAST_ISLAND,
-        MAPSEC_GREEN_PATH,
-        MAPSEC_WATER_PATH,
-        MAPSEC_RUIN_VALLEY,
-        MAPSEC_TRAINER_TOWER,
-        MAPSEC_CANYON_ENTRANCE,
-        MAPSEC_SEVAULT_CANYON,
-        MAPSEC_TANOBY_RUINS,
-        MAPSEC_SEVII_ISLE_22,
-        MAPSEC_SEVII_ISLE_23,
-        MAPSEC_SEVII_ISLE_24,
-        MAPSEC_TRAINER_TOWER_2,
-        MAPSEC_DOTTED_HOLE,
-        MAPSEC_PATTERN_BUSH,
-        MAPSEC_ALTERING_CAVE_FRLG,
-        MAPSEC_TANOBY_CHAMBERS,
-        MAPSEC_TANOBY_KEY,
-        MAPSEC_BIRTH_ISLAND_FRLG,
-        MAPSEC_MONEAN_CHAMBER,
-        MAPSEC_LIPTOO_CHAMBER,
-        MAPSEC_WEEPTH_CHAMBER,
-        MAPSEC_DILFORD_CHAMBER,
-        MAPSEC_SCUFIB_CHAMBER,
-        MAPSEC_RIXY_CHAMBER,
-        MAPSEC_VIAPOIS_CHAMBER,
-        MAPSEC_NONE
-    }
-};
-
-enum KantoSubRegion GetKantoSubregion(u32 mapSecId)
+bool8 IsValidMapSectionIdInRegistry(MapSectionId section, const struct MapSectionRegistry *registry)
 {
-    for (u32 i = KANTO_SUBREGION_KANTO; i <= KANTO_SUBREGION_SEVII67; i++)
+    return registry != NULL
+        && registry->metadata != NULL
+        && section < registry->sectionCount
+        && registry->metadata[section].kind != MAP_SECTION_KIND_RESERVED
+        && registry->metadata[section].kind != MAP_SECTION_KIND_INVALID;
+}
+
+bool8 TryGetRegionForSectionIdInRegistry(MapSectionId section, RegionId *region, const struct MapSectionRegistry *registry)
+{
+    if (!IsValidMapSectionIdInRegistry(section, registry) || region == NULL)
+        return FALSE;
+
+    *region = registry->metadata[section].region;
+    return *region != REGION_NONE;
+}
+
+enum MapSectionKind GetMapSectionKindInRegistry(MapSectionId section, const struct MapSectionRegistry *registry)
+{
+    if (registry == NULL || registry->metadata == NULL || section >= registry->sectionCount)
+        return MAP_SECTION_KIND_INVALID;
+    return registry->metadata[section].kind;
+}
+
+bool8 IsValidMapSectionId(MapSectionId section)
+{
+    return IsValidMapSectionIdInRegistry(section, &gMapSectionRegistry);
+}
+
+bool8 TryGetRegionForSectionId(MapSectionId section, RegionId *region)
+{
+    return TryGetRegionForSectionIdInRegistry(section, region, &gMapSectionRegistry);
+}
+
+enum MapSectionKind GetMapSectionKind(MapSectionId section)
+{
+    return GetMapSectionKindInRegistry(section, &gMapSectionRegistry);
+}
+
+enum KantoSubRegion GetKantoSubregion(MapSectionId section)
+{
+    if (!IsValidMapSectionId(section) || gMapSectionMetadata[section].region != REGION_KANTO)
+        return KANTO_SUBREGION_KANTO;
+
+    switch (gMapSectionMetadata[section].regionMapType)
     {
-        for (u32 j = 0; sKantoSubregionMapsecs[i][j] != MAPSEC_NONE; j++)
-        {
-            if (mapSecId == sKantoSubregionMapsecs[i][j])
-                return i;
-        }
+    case REGION_MAP_SEVII123:
+        return KANTO_SUBREGION_SEVII123;
+    case REGION_MAP_SEVII45:
+        return KANTO_SUBREGION_SEVII45;
+    case REGION_MAP_SEVII67:
+        return KANTO_SUBREGION_SEVII67;
+    case REGION_MAP_KANTO:
+    default:
+        return KANTO_SUBREGION_KANTO;
     }
-    return KANTO_SUBREGION_KANTO;
 }

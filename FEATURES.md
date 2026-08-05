@@ -5,8 +5,38 @@ describes capabilities inherited from that engine, not a promise that every
 capability is enabled, configured, complete, or used by Pokémon OpenWorld.
 Links to original feature branches are retained as source attribution.
 
+## Pokémon OpenWorld product and residency
+
+The repository builds one Emerald-engine product, `pokemon-openworld`, with
+Hoenn, mainland Kanto, and Sevii in the same ROM. There are no FireRed,
+LeafGreen, or per-region product variants.
+
+Three-region **residency** means every registered map has its required header,
+layout, tilesets, events, scripts, connections, section metadata, location
+codecs, and callbacks, and passes structural initialization. Representative
+maps are additionally **field-ready** when a normal full load reaches the
+correct map, scripts settle, and player control returns. These are technical
+content/readiness contracts, not gameplay scope: inter-region travel, Fly
+routing, story progression, and complete Kanto or Sevii stories are excluded.
+
+The local gates are:
+
+```sh
+make -j"$(nproc)" -O emerald syms
+make -j"$(nproc)" -O DEBUG=1 \
+  pokemon-openworld-debug.gba pokemon-openworld-debug.sym
+make integrity-check
+make e2e-integrity
+```
+
+The normal build emits only `pokemon-openworld.gba`, `.map`, and `.sym`; the
+debug pair is the sole E2E emulator input. Integrity capacity and linked-
+artifact results are written to `build/integrity/artifact-report.json`, while
+Integrity E2E failures are recorded under `test-results/e2e/integrity/`.
+
 ## Table of Contents
 - [Inherited engine capabilities](#inherited-engine-capabilities)
+  - [Pokémon OpenWorld product and residency](#pokémon-openworld-product-and-residency)
   - [Table of Contents](#table-of-contents)
   - [Configuration files](#configuration-files)
   - [Upgraded Battle Engine](#upgraded-battle-engine)

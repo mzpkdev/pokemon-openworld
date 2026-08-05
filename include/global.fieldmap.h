@@ -94,17 +94,83 @@ enum
 
 typedef void (*TilesetCB)(void);
 
+enum MapLayoutFormatValue
+{
+    MAP_LAYOUT_FORMAT_EMERALD,
+    MAP_LAYOUT_FORMAT_FRLG,
+    MAP_LAYOUT_FORMAT_JOHTO,
+    MAP_LAYOUT_FORMAT_COUNT,
+    MAP_LAYOUT_FORMAT_INVALID = 0xFF,
+};
+
+typedef u8 MapLayoutFormat;
+
+enum MetatileAttributeFormatValue
+{
+    METATILE_ATTRIBUTES_EMERALD_U16,
+    METATILE_ATTRIBUTES_FRLG_U32,
+    METATILE_ATTRIBUTE_FORMAT_COUNT,
+    METATILE_ATTRIBUTES_INVALID = 0xFF,
+};
+
+typedef u8 MetatileAttributeFormat;
+
+#define TILESET_FLAG_SECONDARY                  (1 << 0)
+#define TILESET_ATTRIBUTE_FORMAT_SHIFT          1
+#define TILESET_ATTRIBUTE_FORMAT_MASK           (3 << TILESET_ATTRIBUTE_FORMAT_SHIFT)
+#define TILESET_FLAGS(secondary, attributeFormat) \
+    (((secondary) ? TILESET_FLAG_SECONDARY : 0) | ((attributeFormat) << TILESET_ATTRIBUTE_FORMAT_SHIFT))
+
+enum MapBorderFormat
+{
+    BORDER_INVALID,
+    BORDER_EMERALD,
+    BORDER_FRLG,
+};
+
+enum MapDoorFormat
+{
+    DOOR_INVALID,
+    DOOR_EMERALD,
+    DOOR_FRLG,
+};
+
+enum MapEscalatorFormat
+{
+    ESCALATOR_INVALID,
+    ESCALATOR_EMERALD,
+    ESCALATOR_FRLG,
+};
+
+enum MapShopPaletteFormat
+{
+    SHOP_PALETTE_INVALID,
+    SHOP_PALETTE_EMERALD,
+    SHOP_PALETTE_FRLG,
+};
+
+struct MapLayoutFormatTraits
+{
+    u16 primaryTileCount;
+    u16 primaryMetatileCount;
+    u8 primaryPaletteCount;
+    u8 borderFormat;
+    u8 doorFormat;
+    u8 escalatorFormat;
+    u8 shopPaletteFormat;
+};
+
 struct Tileset
 {
     /*0x00*/ u8 isCompressed:1;
     /*0x00*/ u8 swapPalettes:7; // Bitmask determining whether palette has an alternate, night-time palette
-    /*0x01*/ bool8 isSecondary;
+    /*0x01*/ u8 flags;
     /*0x02*/ u8 lightPalettes; // Bitmask determining whether a palette should be time-blended as a light
     /*0x03*/ u8 customLightColor; // Bitmask determining which light palettes have custom light colors (color 15)
     /*0x04*/ const u32 *tiles;
     /*0x08*/ const u16 (*palettes)[16];
     /*0x0C*/ const u16 *metatiles;
-    /*0x10*/ const u16 *metatileAttributes;
+    /*0x10*/ const void *metatileAttributes;
     /*0x14*/ TilesetCB callback;
 };
 
@@ -116,11 +182,53 @@ struct MapLayout
     /*0x0C*/ const u16 *map;
     /*0x10*/ const struct Tileset *primaryTileset;
     /*0x14*/ const struct Tileset *secondaryTileset;
-    bool8 isFrlg;
-    u8 borderWidth;
-    u8 borderHeight;
-    u8 padding;
+    /*0x18*/ MapLayoutFormat format;
+    /*0x19*/ u8 borderWidth;
+    /*0x1A*/ u8 borderHeight;
+    /*0x1B*/ u8 padding;
 };
+
+struct TilesetAbiStride
+{
+    struct Tileset items[2];
+};
+
+struct MapLayoutAbiStride
+{
+    struct MapLayout items[2];
+};
+
+STATIC_ASSERT(sizeof(MapLayoutFormat) == 1, MapLayoutFormatMustBeByteSized);
+STATIC_ASSERT(sizeof(MetatileAttributeFormat) == 1, MetatileAttributeFormatMustBeByteSized);
+STATIC_ASSERT(MAP_LAYOUT_FORMAT_EMERALD == 0, MapLayoutFormatEmeraldEncoding);
+STATIC_ASSERT(MAP_LAYOUT_FORMAT_FRLG == 1, MapLayoutFormatFrlgEncoding);
+STATIC_ASSERT(MAP_LAYOUT_FORMAT_JOHTO == 2, MapLayoutFormatJohtoEncoding);
+STATIC_ASSERT(MAP_LAYOUT_FORMAT_INVALID == 0xFF, MapLayoutFormatInvalidEncoding);
+STATIC_ASSERT(METATILE_ATTRIBUTES_INVALID == 0xFF, MetatileAttributeFormatInvalidEncoding);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, flags) == 0x01, TilesetFlagsOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, lightPalettes) == 0x02, TilesetLightPalettesOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, customLightColor) == 0x03, TilesetCustomLightColorOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, tiles) == 0x04, TilesetTilesOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, palettes) == 0x08, TilesetPalettesOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, metatiles) == 0x0C, TilesetMetatilesOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, metatileAttributes) == 0x10, TilesetMetatileAttributesOffset);
+STATIC_ASSERT(__builtin_offsetof(struct Tileset, callback) == 0x14, TilesetCallbackOffset);
+STATIC_ASSERT(sizeof(struct Tileset) == 0x18, TilesetSize);
+STATIC_ASSERT(_Alignof(struct Tileset) == 4, TilesetAlignment);
+STATIC_ASSERT(__builtin_offsetof(struct TilesetAbiStride, items[1]) == 0x18, TilesetStride);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, width) == 0x00, MapLayoutWidthOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, height) == 0x04, MapLayoutHeightOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, border) == 0x08, MapLayoutBorderOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, map) == 0x0C, MapLayoutMapOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, primaryTileset) == 0x10, MapLayoutPrimaryTilesetOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, secondaryTileset) == 0x14, MapLayoutSecondaryTilesetOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, format) == 0x18, MapLayoutFormatOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, borderWidth) == 0x19, MapLayoutBorderWidthOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, borderHeight) == 0x1A, MapLayoutBorderHeightOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayout, padding) == 0x1B, MapLayoutPaddingOffset);
+STATIC_ASSERT(sizeof(struct MapLayout) == 0x1C, MapLayoutSize);
+STATIC_ASSERT(_Alignof(struct MapLayout) == 4, MapLayoutAlignment);
+STATIC_ASSERT(__builtin_offsetof(struct MapLayoutAbiStride, items[1]) == 0x1C, MapLayoutStride);
 
 struct BackupMapLayout
 {
@@ -231,20 +339,34 @@ struct MapHeader
     /* 0x0C */ const struct MapConnections *connections;
     /* 0x10 */ u16 music;
     /* 0x12 */ u16 mapLayoutId;
-    /* 0x14 */ mapsec_u8_t regionMapSectionId;
-    /* 0x15 */ u8 cave;
-    /* 0x16 */ u8 weather;
-    /* 0x17 */ u8 mapType;
-    /* 0x18 */ s8 floorNumber;
-    /* 0x19 */ u8 filler_19;
+    /* 0x14 */ MapSectionId regionMapSectionId;
+    /* 0x16 */ u8 cave;
+    /* 0x17 */ u8 weather;
+    /* 0x18 */ u8 mapType;
+    /* 0x19 */ s8 floorNumber;
+    /* 0x1A */ u8 filler;
                // fields correspond to the arguments in the map_header_flags macro
-    /* 0x1A */ bool8 allowCycling:1;
+    /* 0x1B */ bool8 allowCycling:1;
                bool8 allowEscaping:1; // Escape Rope and Dig
                bool8 allowRunning:1;
                bool8 showMapName:5; // the last 4 bits are unused
                                     // but the 5 bit sized bitfield is required to match
-    /* 0x1B */ u8 battleType;
+    /* 0x1C */ u8 battleType;
+    /* 0x1D */ u8 padding[3];
 };
+
+struct MapHeaderAbiStride
+{
+    struct MapHeader items[2];
+};
+
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, regionMapSectionId) == 0x14, MapHeaderRegionMapSectionIdOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, cave) == 0x16, MapHeaderCaveOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, battleType) == 0x1C, MapHeaderBattleTypeOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, padding) == 0x1D, MapHeaderPaddingOffset);
+STATIC_ASSERT(sizeof(struct MapHeader) == 0x20, MapHeaderSize);
+STATIC_ASSERT(_Alignof(struct MapHeader) == 4, MapHeaderAlignment);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeaderAbiStride, items[1]) == 0x20, MapHeaderStride);
 
 
 struct ObjectEvent

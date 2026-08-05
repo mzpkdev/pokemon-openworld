@@ -1,13 +1,13 @@
 # RFC: PKMN-World donor adaptation
 
 - Status: Approved
-- Implements: [Multi-region world foundation](./multi-region-world-foundation.md)
+- Implements: [Multi-region world integrity](./multi-region-world-integrity.md)
 - Donor: `.references/PKMN-World`
-- Scope: Build and load foundations for Hoenn, Kanto, Sevii Islands, and later Johto
+- Scope: Build and load integrity infrastructure for Hoenn, Kanto, Sevii Islands, and later Johto
 
 ## Summary
 
-Use PKMN-World as an implementation donor, not as an architectural authority. Port the behavior that has already proved a unified Emerald-based ROM can generate, link, and load maps from multiple regional data sets. Put that behavior behind the types, binary contracts, generated metadata, and validation rules approved in the foundation RFC.
+Use PKMN-World as an implementation donor, not as an architectural authority. Port the behavior that has already proved a unified Emerald-based ROM can generate, link, and load maps from multiple regional data sets. Put that behavior behind the types, binary contracts, generated metadata, and validation rules approved in the integrity RFC.
 
 The donor supplies four especially valuable lessons:
 
@@ -20,7 +20,7 @@ The donor implementation is not copied wholesale. Its global generator state, mi
 
 ## Decision
 
-Implement the approved multi-region foundation through donor-guided adaptation:
+Implement the approved multi-region integrity through donor-guided adaptation:
 
 - reproduce PKMN-World's `ALL_REGIONS` build and generator behavior;
 - reproduce its header-width and alignment corrections;
@@ -384,10 +384,10 @@ Exact generated filenames may follow existing mapjson conventions. Generated dat
 - stop generation from mutating reviewed JSON or shared generated trees;
 - add deterministic alternating-mode generation tests;
 - add the debug-only symbol-addressable direct-load request/result contract to the canonical debug ROM consumed by the existing pinned-SkyEmu fixture before making map-load claims;
-- add the independent `e2e-foundation` host suite without redefining `e2e-core` or the story-oriented `e2e-extended` suite, and require the prebuilt debug ROM and symbols rather than compiling another output;
+- add the independent `e2e-integrity` host suite without redefining `e2e-core` or the story-oriented `e2e-extended` suite, and require the prebuilt debug ROM and symbols rather than compiling another output;
 - record artifact-size, EWRAM, and IWRAM baselines for the normal, debug, optimized release-mode, test-runner, and headless-test outputs.
 
-Gate: alternating `emerald`, `firered`, and `allregions` generator fixtures cannot contaminate one another; only `allregions` can link product-prefixed outputs; the existing `e2e-core` Quickstart smoke and `e2e-extended` Pokédex journey pass; `e2e-foundation` can report a controlled map initialization failure; and a normal build contains no E2E hook symbols.
+Gate: alternating `emerald`, `firered`, and `allregions` generator fixtures cannot contaminate one another; only `allregions` can link product-prefixed outputs; the existing `e2e-core` Quickstart smoke and `e2e-extended` Pokédex journey pass; `e2e-integrity` can report a controlled map initialization failure; and a normal build contains no E2E hook symbols.
 
 ### Slice A: current-ABI three-region feasibility
 
@@ -442,7 +442,7 @@ Gate: every registered Hoenn, Kanto, and Sevii map is structurally loadable, rep
 - add guarded assets, region metadata, and provenance decisions;
 - update count sentinels and direct-load coverage.
 
-Gate: sections above 255, mixed primary/secondary attribute widths, and all three layout formats are exercised in a real unified build. No foundation ABI redesign is permitted merely to land content unless a new RFC supersedes this one.
+Gate: sections above 255, mixed primary/secondary attribute widths, and all three layout formats are exercised in a real unified build. No integrity ABI redesign is permitted merely to land content unless a new RFC supersedes this one.
 
 ## Validation and acceptance
 
@@ -467,8 +467,8 @@ Each validation layer proves a different claim. Passing one layer must not be re
 - Makefile, CI, and release configuration expose no FireRed or LeafGreen ROM artifact;
 - the required CI `Build` job runs `make emerald syms` and uploads exactly `pokemon-openworld.gba`, `pokemon-openworld.map`, and `pokemon-openworld.sym` as the `pokemon-openworld` artifact;
 - preserve the rendered `CI / Build`, `CI / Format`, `CI / Lint`, `CI / Test`, `CI / E2E (Core)`, `CI / E2E (Extended)`, and `Metadata / Lint` check identities;
-- add `Foundation` to the existing fail-fast-disabled E2E matrix, invoking `make e2e-foundation` as the rendered `CI / E2E (Foundation)` check and reusing its suite-scoped `if: failure()` evidence upload with `if-no-files-found: warn`, three-day retention, and no ROM artifact;
-- add a separate `CI / Foundation` check only for unified generator/schema determinism, the optimized release-mode build, and ROM/RAM capacity enforcement; it consumes Build's canonical normal/debug evidence where needed and must not rebuild debug, rerun `make check`, or run E2E;
+- add `Integrity` to the existing fail-fast-disabled E2E matrix, invoking `make e2e-integrity` as the rendered `CI / E2E (Integrity)` check and reusing its suite-scoped `if: failure()` evidence upload with `if-no-files-found: warn`, three-day retention, and no ROM artifact;
+- add a separate `CI / Integrity` check only for unified generator/schema determinism, the optimized release-mode build, and ROM/RAM capacity enforcement; it consumes Build's canonical normal/debug evidence where needed and must not rebuild debug, rerun `make check`, or run E2E;
 - configure merge gates from observed check runs after the new jobs land; the rendered `CI / Lint` and `Metadata / Lint` jobs currently collide on the bare `Lint` context, so either accept shared enforcement or rename one before requiring them independently;
 - each mode is copied to separate evidence staging before a later build can overwrite a root-level output;
 - non-emulator validation measurements, logs, and test ELFs use a non-release artifact uploaded under `if: ${{ always() }}` with an explicit missing-files policy, and never enter the `release/` staging directory;
@@ -483,7 +483,7 @@ An all-map sweep loads every registered map through header, layout, border, tile
 
 Use the canonical debug-only `pokemon-openworld-debug.gba` and `.sym`, digest-verified pinned SkyEmu v5 HTTP process, symbol-backed memory access, isolated save/settings directories, and failure evidence under `test-results/e2e`. Do not build another emulator driver or E2E-specific ROM. The debug build exposes a request/result structure through symbols with a monotonically increasing request ID and idle, pending, running, success, and error states. The paused host writes the payload, commits `pending` last, and accepts only a bounded-time terminal result that echoes the request ID and requested map. The ROM validates map-group, map-number, and coordinate bounds, enters the ordinary warp and map-load path, and reports a phase-specific error. The hook is compiled out of normal and optimized release-mode outputs. The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their current contracts.
 
-Add `e2e-foundation` for the all-map structural sweep and representative field-ready loads from Hoenn, mainland Kanto, Sevii 1-3, Sevii 4-5, Sevii 6-7, and later Johto. Coverage includes at least one exterior, interior, and cave for each resident layout format and each mixed tileset-attribute combination. Run the manifest-driven sweep in one process with per-map diagnostics, reloading a reviewed clean state and resetting tasks, callbacks, scripts, suppression flags, request state, and transient save/RAM effects before every map. Abort on reset failure and restore ordinary scripts/events before full loads. Keep all three suites independently invocable and add no aggregate E2E target. Preserve Core and Extended in the existing CI matrix and add Foundation as its third independent entry.
+Add `e2e-integrity` for the all-map structural sweep and representative field-ready loads from Hoenn, mainland Kanto, Sevii 1-3, Sevii 4-5, Sevii 6-7, and later Johto. Coverage includes at least one exterior, interior, and cave for each resident layout format and each mixed tileset-attribute combination. Run the manifest-driven sweep in one process with per-map diagnostics, reloading a reviewed clean state and resetting tasks, callbacks, scripts, suppression flags, request state, and transient save/RAM effects before every map. Abort on reset failure and restore ordinary scripts/events before full loads. Keep all three suites independently invocable and add no aggregate E2E target. Preserve Core and Extended in the existing CI matrix and add Integrity as its third independent entry.
 
 For each load, assert:
 
@@ -537,4 +537,4 @@ This uses PKMN-World to identify required behavior and proven failure points, th
 
 ## Completion criteria
 
-This RFC is complete when normal, debug, optimized release-mode, test-runner, and headless-test outputs share the forced Emerald/all-regions identity and `pokemon-openworld` prefix; every linked ROM fits within 32 MiB and retains the approved headroom floor; `CI / Build` publishes exactly the normal `.gba`, `.map`, and `.sym` plus the isolated debug `.gba` and `.sym` artifact; `CI / Test`, `CI / Foundation`, and all three `CI / E2E (...)` contexts pass; no FireRed or LeafGreen ROM target or artifact is exposed; every registered Hoenn, Kanto, and Sevii map passes the structural load sweep; representative maps reach field-ready state; frozen map-section values and `MAPSEC_INVALID = 0xFFFF` are enforced; world section IDs safely exceed 255; TV, Gabby/Ty, record-mixing, save, and Pokémon layouts remain unchanged behind explicit codecs; mixed tileset attribute widths decode correctly; and the code exposes a documented `MAP_LAYOUT_FORMAT_JOHTO` path ready for a later Johto content import.
+This RFC is complete when normal, debug, optimized release-mode, test-runner, and headless-test outputs share the forced Emerald/all-regions identity and `pokemon-openworld` prefix; every linked ROM fits within 32 MiB and retains the approved headroom floor; `CI / Build` publishes exactly the normal `.gba`, `.map`, and `.sym` plus the isolated debug `.gba` and `.sym` artifact; `CI / Test`, `CI / Integrity`, and all three `CI / E2E (...)` contexts pass; no FireRed or LeafGreen ROM target or artifact is exposed; every registered Hoenn, Kanto, and Sevii map passes the structural load sweep; representative maps reach field-ready state; frozen map-section values and `MAPSEC_INVALID = 0xFFFF` are enforced; world section IDs safely exceed 255; TV, Gabby/Ty, record-mixing, save, and Pokémon layouts remain unchanged behind explicit codecs; mixed tileset attribute widths decode correctly; and the code exposes a documented `MAP_LAYOUT_FORMAT_JOHTO` path ready for a later Johto content import.

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "representatives": [
+    {
+      "name": "LittlerootTown",
+      "region": "hoenn",
+      "kind": "exterior"
+    },
+    {
+      "name": "LittlerootTown_ProfessorBirchsLab",
+      "region": "hoenn",
+      "kind": "interior"
+    },
+    {
+      "name": "PalletTown_Frlg",
+      "region": "kanto",
+      "kind": "exterior"
+    },
+    {
+      "name": "PalletTown_ProfessorOaksLab_Frlg",
+      "region": "kanto",
+      "kind": "interior"
+    },
+    {
+      "name": "MtMoon_1F_Frlg",
+      "region": "kanto",
+      "kind": "cave"
+    },
+    {
+      "name": "OneIsland_Frlg",
+      "region": "sevii123",
+      "kind": "exterior"
+    },
+    {
+      "name": "OneIsland_PokemonCenter_1F_Frlg",
+      "region": "sevii123",
+      "kind": "interior"
+    },
+    {
+      "name": "FourIsland_Frlg",
+      "region": "sevii45",
+      "kind": "exterior",
+      "seedVars": [
+        {
+          "id": 16518,
+          "value": 1,
+          "name": "VAR_MAP_SCENE_FOUR_ISLAND"
+        }
+      ]
+    },
+    {
+      "name": "FourIsland_IcefallCave_Entrance_Frlg",
+      "region": "sevii45",
+      "kind": "cave"
+    },
+    {
+      "name": "SevenIsland_Frlg",
+      "region": "sevii67",
+      "kind": "exterior"
+    },
+    {
+      "name": "SevenIsland_PokemonCenter_1F_Frlg",
+      "region": "sevii67",
+      "kind": "interior"
+    }
+  ],
+  "interactions": [
+    {
+      "behavior": "door",
+      "map": "PalletTown_Frlg",
+      "x": 6,
+      "y": 8,
+      "direction": "Up",
+      "destination": "PalletTown_PlayersHouse_1F_Frlg",
+      "seedVars": [
+        {
+          "id": 16464,
+          "value": 3,
+          "name": "VAR_MAP_SCENE_PALLET_TOWN_OAK"
+        }
+      ]
+    },
+    {
+      "behavior": "escalator",
+      "map": "PewterCity_PokemonCenter_1F_Frlg",
+      "x": 2,
+      "y": 6,
+      "direction": "Left",
+      "destination": "PewterCity_PokemonCenter_2F_Frlg"
+    },
+    {
+      "behavior": "shop",
+      "map": "ViridianCity_Mart_Frlg",
+      "x": 3,
+      "y": 3,
+      "direction": "Left",
+      "seedVars": [
+        {
+          "id": 16471,
+          "value": 2,
+          "name": "VAR_MAP_SCENE_VIRIDIAN_CITY_MART"
+        }
+      ]
+    },
+    {
+      "behavior": "animated_tileset",
+      "map": "PalletTown_Frlg",
+      "x": 12,
+      "y": 12,
+      "callback": "TilesetAnim_General_Frlg",
+      "vramAddress": 100679552,
+      "vramSize": 128
+    }
+  ]
+}

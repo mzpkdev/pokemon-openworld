@@ -7,6 +7,7 @@
 #include "constants/metatile_labels.h"
 
 static EWRAM_DATA u8 sEscalatorAnim_TaskId = 0;
+static EWRAM_DATA bool8 sEscalatorAnim_Active = FALSE;
 
 static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatileMasks);
 static void Task_DrawEscalator(u8 taskId);
@@ -162,6 +163,17 @@ static void SetEscalatorMetatile(u8 taskId, const s16 *metatileIds, u16 metatile
 static void Task_DrawEscalator(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
+    u8 format = GetMapEscalatorFormat(gMapHeader.mapLayout);
+    bool32 useFrlgMetatiles;
+
+    if (format == ESCALATOR_INVALID)
+    {
+        sEscalatorAnim_Active = FALSE;
+        DestroyTask(taskId);
+        return;
+    }
+
+    useFrlgMetatiles = format == ESCALATOR_FRLG;
 
     tDrawingEscalator = TRUE;
 
@@ -169,25 +181,25 @@ static void Task_DrawEscalator(u8 taskId)
     switch (tState)
     {
     case 0:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_BottomNextRail : sEscalatorMetatiles_1F_0, 0);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_BottomNextRail : sEscalatorMetatiles_1F_0, 0);
         break;
     case 1:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_BottomRail : sEscalatorMetatiles_1F_1, 0);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_BottomRail : sEscalatorMetatiles_1F_1, 0);
         break;
     case 2:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_BottomNext : sEscalatorMetatiles_1F_2, MAPGRID_IMPASSABLE);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_BottomNext : sEscalatorMetatiles_1F_2, MAPGRID_IMPASSABLE);
         break;
     case 3:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_Bottom : sEscalatorMetatiles_1F_3, 0);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_Bottom : sEscalatorMetatiles_1F_3, 0);
         break;
     case 4:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_TopNext : sEscalatorMetatiles_2F_0, MAPGRID_IMPASSABLE);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_TopNext : sEscalatorMetatiles_2F_0, MAPGRID_IMPASSABLE);
         break;
     case 5:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_Top : sEscalatorMetatiles_2F_1, 0);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_Top : sEscalatorMetatiles_2F_1, 0);
         break;
     case 6:
-        SetEscalatorMetatile(taskId, gMapHeader.mapLayout->isFrlg ? sEscalatorMetatilesFrlg_TopNextRail : sEscalatorMetatiles_2F_2, 0);
+        SetEscalatorMetatile(taskId, useFrlgMetatiles ? sEscalatorMetatilesFrlg_TopNextRail : sEscalatorMetatiles_2F_2, 0);
         break;
     }
 
@@ -217,16 +229,30 @@ static u8 CreateEscalatorTask(bool16 goingUp)
 
 void StartEscalator(bool8 goingUp)
 {
+    if (GetMapEscalatorFormat(gMapHeader.mapLayout) == ESCALATOR_INVALID)
+    {
+        sEscalatorAnim_Active = FALSE;
+        return;
+    }
+
     sEscalatorAnim_TaskId = CreateEscalatorTask(goingUp);
+    sEscalatorAnim_Active = TRUE;
 }
 
 void StopEscalator(void)
 {
-    DestroyTask(sEscalatorAnim_TaskId);
+    if (sEscalatorAnim_Active)
+    {
+        DestroyTask(sEscalatorAnim_TaskId);
+        sEscalatorAnim_Active = FALSE;
+    }
 }
 
 bool8 IsEscalatorMoving(void)
 {
+    if (!sEscalatorAnim_Active)
+        return FALSE;
+
     if (gTasks[sEscalatorAnim_TaskId].tDrawingEscalator == FALSE
      && gTasks[sEscalatorAnim_TaskId].tTransitionStage == LAST_ESCALATOR_STAGE)
         return FALSE;

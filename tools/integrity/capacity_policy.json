@@ -1,0 +1,28 @@
+{
+  "commit": "d40affe26e58a20f445daad84af5e45be812e69f",
+  "evidenceCategories": {
+    "deduplicatedSymbolRanges": 1709643,
+    "johtoRuntime": 195067,
+    "mapLayoutEventData": 895864,
+    "objectGraphics": 7412,
+    "regionMapEntries": 464,
+    "scriptsTextCallbacks": 281213,
+    "tilesetResourcesCallbacks": 701120,
+    "trainerArt": 8460,
+    "trainerParties": 25632,
+    "trainerRecords": 37596
+  },
+  "evidenceDigest": "a656e089dc474bbe62a808957875ee577cd408519e3be4649f120ca9a06ea217",
+  "evidenceFileCount": 32385,
+  "integrationMultiplier": 1.25,
+  "johtoLayoutCount": 255,
+  "johtoMapCount": 254,
+  "johtoResidentBytes": 1747703,
+  "measurementKind": "linked-symbol-range-attribution",
+  "provenanceMode": "declared-commit+source-tree-digest",
+  "requiredHeadroomBytes": 2708917,
+  "schemaVersion": 2,
+  "source": ".references/PKMN-World",
+  "sourceTreeDigest": "6bca91e491e7e8304f9268aa41a4c9d629d50baa6d3150fe45d55632b6f4f762",
+  "travelStoryReserveBytes": 524288
+}

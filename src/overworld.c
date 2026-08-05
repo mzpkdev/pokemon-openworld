@@ -83,6 +83,9 @@
 #include "constants/songs.h"
 #include "constants/trainer_hill.h"
 #include "constants/weather.h"
+#ifdef DEBUG
+#include "integrity_map_load.h"
+#endif
 
 STATIC_ASSERT((B_FLAG_FOLLOWERS_DISABLED == 0 || OW_FOLLOWERS_ENABLED), FollowersFlagAssignedWithoutEnablingThem);
 
@@ -223,7 +226,7 @@ EWRAM_DATA struct WarpData gLastUsedWarp = {0};
 EWRAM_DATA static struct WarpData sWarpDestination = {0};  // new warp position
 EWRAM_DATA static struct WarpData sFixedDiveWarp = {0};
 EWRAM_DATA static struct WarpData sFixedHoleWarp = {0};
-EWRAM_DATA static mapsec_u16_t sLastMapSectionId = 0;
+EWRAM_DATA static MapSectionId sLastMapSectionId = 0;
 EWRAM_DATA static struct InitialPlayerAvatarState sInitialPlayerAvatarState = {0};
 EWRAM_DATA static enum Species sAmbientCrySpecies = SPECIES_NONE;
 EWRAM_DATA static bool8 sIsAmbientCryWaterMon = FALSE;
@@ -877,6 +880,8 @@ bool8 SetDiveWarpDive(u16 x, u16 y)
 
 void LoadMapFromCameraTransition(u8 mapGroup, u8 mapNum)
 {
+    u8 primaryPaletteCount;
+
     SetWarpDestination(mapGroup, mapNum, WARP_ID_NONE, -1, -1);
 
     // Dont transition map music between BF Outside West/East
@@ -908,7 +913,9 @@ void LoadMapFromCameraTransition(u8 mapGroup, u8 mapNum)
     CopySecondaryTilesetToVramUsingHeap(gMapHeader.mapLayout);
     LoadSecondaryTilesetPalette(gMapHeader.mapLayout, TRUE); // skip copying to Faded, gamma shift will take care of it
 
-    ApplyWeatherColorMapToPals(GetNumPalsInPrimary(gMapHeader.mapLayout), NUM_PALS_TOTAL - GetNumPalsInPrimary(gMapHeader.mapLayout)); // palettes [6,12]
+    primaryPaletteCount = GetNumPalsInPrimary(gMapHeader.mapLayout);
+    if (primaryPaletteCount != 0)
+        ApplyWeatherColorMapToPals(primaryPaletteCount, NUM_PALS_TOTAL - primaryPaletteCount);
 
     InitSecondaryTilesetAnimation();
     UpdateLocationHistoryForRoamer();
@@ -935,9 +942,16 @@ static void LoadMapFromWarp(bool32 a1)
 {
     bool8 isOutdoors;
     bool8 isIndoors;
+#ifdef DEBUG
+    const u8 *mapScripts;
+#endif
 
     LoadCurrentMapData();
-    if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD))
+    if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
+#ifdef DEBUG
+     && !IntegrityMapLoad_ShouldSuppressEvents()
+#endif
+    )
     {
         if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
             LoadBattlePyramidObjectEventTemplates();
@@ -973,7 +987,10 @@ static void LoadMapFromWarp(bool32 a1)
         FlagClear(FLAG_SYS_USE_FLASH);
     SetDefaultFlashLevel();
     Overworld_ClearSavedMusic();
-    RunOnTransitionMapScript();
+#ifdef DEBUG
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
+#endif
+        RunOnTransitionMapScript();
     UpdateLocationHistoryForRoamer();
     MoveAllRoamersToOtherLocationSets();
     gChainFishingDexNavStreak = 0;
@@ -982,7 +999,20 @@ static void LoadMapFromWarp(bool32 a1)
     else if (InTrainerHill())
         InitTrainerHillMap();
     else
+    {
+#ifdef DEBUG
+        // InitMap runs MAP_SCRIPT_ON_LOAD internally. Hide the script table for
+        // the whole call so a structural load cannot run an on-load script
+        // against object templates that were intentionally suppressed above.
+        mapScripts = gMapHeader.mapScripts;
+        if (IntegrityMapLoad_ShouldSuppressScripts())
+            gMapHeader.mapScripts = NULL;
+#endif
         InitMap();
+#ifdef DEBUG
+        gMapHeader.mapScripts = mapScripts;
+#endif
+    }
 
     if (a1 != TRUE && isIndoors)
     {
@@ -1297,7 +1327,7 @@ void Overworld_PlaySpecialMapMusic(void)
         else if (GetCurrentMapType() == MAP_TYPE_UNDERWATER)
             music = MUS_UNDERWATER;
         else if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING))
-            music = (IS_FRLG ? MUS_RG_SURF : MUS_SURF);
+            music = MUS_SURF;
     }
 
     if (music != GetCurrentMapMusic())
@@ -1330,10 +1360,10 @@ static void TransitionMapMusic(void)
         u16 currentMusic = GetCurrentMapMusic();
         if (newMusic != MUS_ABNORMAL_WEATHER && newMusic != MUS_NONE)
         {
-            if (currentMusic == MUS_UNDERWATER || currentMusic == (IS_FRLG ? MUS_RG_SURF : MUS_SURF))
+            if (currentMusic == MUS_UNDERWATER || currentMusic == MUS_SURF)
                 return;
             if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING))
-                newMusic = (IS_FRLG ? MUS_RG_SURF : MUS_SURF);
+                newMusic = MUS_SURF;
         }
         if (newMusic != currentMusic)
         {
@@ -1535,7 +1565,7 @@ enum MapType GetLastUsedWarpMapType(void)
     return GetMapTypeByWarpData(&gLastUsedWarp);
 }
 
-mapsec_u8_t GetLastUsedWarpMapSectionId(void)
+MapSectionId GetLastUsedWarpMapSectionId(void)
 {
     return Overworld_GetMapHeaderByGroupAndId(gLastUsedWarp.mapGroup, gLastUsedWarp.mapNum)->regionMapSectionId;
 }
@@ -1572,12 +1602,12 @@ bool8 IsMapTypeIndoors(enum MapType mapType)
         return FALSE;
 }
 
-mapsec_u8_t GetSavedWarpRegionMapSectionId(void)
+MapSectionId GetSavedWarpRegionMapSectionId(void)
 {
     return Overworld_GetMapHeaderByGroupAndId(gSaveBlock1Ptr->dynamicWarp.mapGroup, gSaveBlock1Ptr->dynamicWarp.mapNum)->regionMapSectionId;
 }
 
-mapsec_u8_t GetCurrentRegionMapSectionId(void)
+MapSectionId GetCurrentRegionMapSectionId(void)
 {
     return Overworld_GetMapHeaderByGroupAndId(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum)->regionMapSectionId;
 }
@@ -1786,11 +1816,12 @@ void UpdateAltBgPalettes(u16 palettes)
 {
     const struct Tileset *primary = gMapHeader.mapLayout->primaryTileset;
     const struct Tileset *secondary = gMapHeader.mapLayout->secondaryTileset;
+    u8 primaryPaletteCount = GetNumPalsInPrimary(gMapHeader.mapLayout);
     u32 i = 1;
-    if (!MapHasNaturalLight(gMapHeader.mapType))
+    if (!MapHasNaturalLight(gMapHeader.mapType) || primaryPaletteCount == 0)
         return;
-    palettes &= ~((1 << GetNumPalsInPrimary(gMapHeader.mapLayout)) - 1) | primary->swapPalettes;
-    palettes &= ((1 << GetNumPalsInPrimary(gMapHeader.mapLayout)) - 1) | (secondary->swapPalettes << GetNumPalsInPrimary(gMapHeader.mapLayout));
+    palettes &= ~((1 << primaryPaletteCount) - 1) | primary->swapPalettes;
+    palettes &= ((1 << primaryPaletteCount) - 1) | (secondary->swapPalettes << primaryPaletteCount);
     palettes &= PALETTES_MAP ^ (1 << 0); // don't blend palette 0, [13,15]
     palettes >>= 1; // start at palette 1
     if (!palettes)
@@ -1799,7 +1830,7 @@ void UpdateAltBgPalettes(u16 palettes)
     {
         if (palettes & 1)
         {
-            if (i < GetNumPalsInPrimary(gMapHeader.mapLayout))
+            if (i < primaryPaletteCount)
                 AvgPaletteWeighted(&((u16 *)primary->palettes)[i * 16], &((u16 *)primary->palettes)[((i + 9) % 16) * 16], gPlttBufferUnfaded + i * 16, gTimeBlend.altWeight);
             else
                 AvgPaletteWeighted(&((u16 *)secondary->palettes)[i * 16], &((u16 *)secondary->palettes)[((i + 9) % 16) * 16], gPlttBufferUnfaded + i * 16, gTimeBlend.altWeight);
@@ -1934,10 +1965,7 @@ void CB2_NewGame(void)
     PlayTimeCounter_Start();
     ScriptContext_Init();
     UnlockPlayerFieldControls();
-    if (IS_FRLG)
-        gFieldCallback = FieldCB_WarpExitFadeFromBlack;
-    else
-        gFieldCallback = ExecuteTruckSequence;
+    gFieldCallback = ExecuteTruckSequence;
     gFieldCallback2 = NULL;
     DoMapLoadLoop(&gMain.state);
     SetFieldVBlankCallback();
@@ -2296,6 +2324,28 @@ static bool32 LoadMapInStepsLink(u8 *state)
 
 static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
 {
+#ifdef DEBUG
+    static const enum IntegrityLoadPhase sIntegrityPhases[] =
+    {
+        [0] = INTEGRITY_LOAD_PHASE_MAP_DATA,
+        [1] = INTEGRITY_LOAD_PHASE_RESET,
+        [2] = INTEGRITY_LOAD_PHASE_RESUME,
+        [3] = INTEGRITY_LOAD_PHASE_EVENTS,
+        [4] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [5] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [6] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [7] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [8] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [9] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [10] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [11] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [12] = INTEGRITY_LOAD_PHASE_CALLBACK,
+        [13] = INTEGRITY_LOAD_PHASE_FIELD_READY,
+    };
+
+    if (*state < ARRAY_COUNT(sIntegrityPhases))
+        IntegrityMapLoad_ReportPhase(sIntegrityPhases[*state]);
+#endif
     switch (*state)
     {
     case 0:
@@ -2365,6 +2415,9 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
             (*state)++;
         break;
     case 13:
+#ifdef DEBUG
+        IntegrityMapLoad_Complete();
+#endif
         return TRUE;
     }
 
@@ -2595,7 +2648,10 @@ static void ResumeMap(bool32 a1)
     ResumePausedWeather();
     if (!a1)
         SetUpFieldTasks();
-    RunOnResumeMapScript();
+#ifdef DEBUG
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
+#endif
+        RunOnResumeMapScript();
     TryStartMirageTowerPulseBlendEffect();
 }
 
@@ -2621,10 +2677,18 @@ static void InitObjectEventsLocal(void)
     InitPlayerAvatar(x, y, player->direction, gSaveBlock2Ptr->playerGender);
     SetPlayerAvatarTransitionFlags(player->transitionFlags);
     ResetInitialPlayerAvatarState();
-    TrySpawnObjectEvents(0, 0);
-    FollowerNPC_HandleSprite();
-    UpdateFollowingPokemon();
-    TryRunOnWarpIntoMapScript();
+#ifdef DEBUG
+    if (!IntegrityMapLoad_ShouldSuppressEvents())
+#endif
+    {
+        TrySpawnObjectEvents(0, 0);
+        FollowerNPC_HandleSprite();
+        UpdateFollowingPokemon();
+    }
+#ifdef DEBUG
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
+#endif
+        TryRunOnWarpIntoMapScript();
 }
 
 static void InitObjectEventsReturnToField(void)

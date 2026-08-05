@@ -595,9 +595,8 @@ static void LeaveFrontierPass(void)
 
 static u32 AllocateFrontierPassData(MainCallback callback)
 {
-    // This variable is a MAPSEC initially, but is recycled as a
-    // bare integer near the end of the function.
-    mapsec_u8_t i;
+    MapSectionId mapSection;
+    u8 i;
 
     if (sPassData != NULL)
         return ERR_ALREADY_DONE;
@@ -607,8 +606,8 @@ static u32 AllocateFrontierPassData(MainCallback callback)
         return ERR_ALLOC_FAILED;
 
     sPassData->callback = callback;
-    i = GetCurrentRegionMapSectionId();
-    if (i != MAPSEC_BATTLE_FRONTIER && i != MAPSEC_ARTISAN_CAVE)
+    mapSection = GetCurrentRegionMapSectionId();
+    if (!IsFrontierPassMapSection(mapSection))
     {
         // Player is not in the frontier, set
         // cursor position to the Trainer Card
@@ -636,6 +635,11 @@ static u32 AllocateFrontierPassData(MainCallback callback)
     }
 
     return SUCCESS;
+}
+
+bool32 IsFrontierPassMapSection(MapSectionId mapSection)
+{
+    return mapSection == MAPSEC_BATTLE_FRONTIER || mapSection == MAPSEC_ARTISAN_CAVE;
 }
 
 static u32 FreeFrontierPassData(void)
@@ -1622,8 +1626,9 @@ static u8 MapNumToFrontierFacilityId(u16 mapNum) // id + 1, zero means not a fro
 static void InitFrontierMapSprites(void)
 {
     struct SpriteTemplate sprite;
+    MapSectionId mapSection;
     u8 spriteId;
-    u8 id;
+    u8 facilityId;
     s16 x = 0, y;
 
     FreeAllSpritePalettes();
@@ -1643,10 +1648,10 @@ static void InitFrontierMapSprites(void)
     StartSpriteAnim(sMapData->mapIndicatorSprite, sMapLandmarks[sMapData->cursorPos].animNum);
 
     // Create player indicator head sprite only if it's in vicinity of battle frontier.
-    id = GetCurrentRegionMapSectionId();
-    if (id == MAPSEC_BATTLE_FRONTIER || id == MAPSEC_ARTISAN_CAVE)
+    mapSection = GetCurrentRegionMapSectionId();
+    if (IsFrontierPassMapSection(mapSection))
     {
-        s8 mapNum = gSaveBlock1Ptr->location.mapNum;
+        u8 mapNum = gSaveBlock1Ptr->location.mapNum;
 
         if (mapNum == MAP_NUM(MAP_BATTLE_FRONTIER_OUTSIDE_WEST)
             || (mapNum == MAP_NUM(MAP_BATTLE_FRONTIER_OUTSIDE_EAST) && (x = 55)))
@@ -1657,15 +1662,15 @@ static void InitFrontierMapSprites(void)
             x /= 8;
             y /= 8;
 
-            id = 0;
+            facilityId = 0;
         }
         else
         {
-            id = MapNumToFrontierFacilityId(mapNum);
-            if (id != 0)
+            facilityId = MapNumToFrontierFacilityId(mapNum);
+            if (facilityId != 0)
             {
-                x = sMapLandmarks[id - 1].x;
-                y = sMapLandmarks[id - 1].y;
+                x = sMapLandmarks[facilityId - 1].x;
+                y = sMapLandmarks[facilityId - 1].y;
             }
             else
             {
@@ -1685,7 +1690,7 @@ static void InitFrontierMapSprites(void)
         LoadCompressedSpriteSheet(sHeadsSpriteSheet);
         sprite = sSpriteTemplate_PlayerHead;
         sprite.paletteTag = gSaveBlock2Ptr->playerGender + TAG_HEAD_MALE; // TAG_HEAD_FEMALE if gender is FEMALE
-        if (id != 0)
+        if (facilityId != 0)
         {
             spriteId = CreateSprite(&sprite, x, y, 0);
         }

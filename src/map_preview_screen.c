@@ -347,7 +347,7 @@ bool32 ShouldRunMapPreview(void)
     return FALSE;
 }
 
-static u8 GetMapPreviewScreenIdx(mapsec_u8_t mapsec)
+static u8 GetMapPreviewScreenIdx(MapSectionId mapsec)
 {
     s32 i;
 
@@ -385,7 +385,7 @@ void MapPreview_InitBgs(void)
     ShowBg(0);
 }
 
-void MapPreview_LoadGfx(mapsec_u8_t mapsec)
+void MapPreview_LoadGfx(MapSectionId mapsec)
 {
     u8 idx;
 
@@ -427,7 +427,7 @@ bool32 MapPreview_IsGfxLoadFinished(void)
     return FreeTempTileDataBuffersIfPossible();
 }
 
-u16 MapPreview_CreateMapNameWindow(mapsec_u8_t mapsec)
+u16 MapPreview_CreateMapNameWindow(MapSectionId mapsec)
 {
     u16 windowId;
     u32 xctr;
@@ -469,7 +469,7 @@ u16 MapPreview_CreateMapNameWindow(mapsec_u8_t mapsec)
 #define tMapSecId   data[3]
 #define tWindowId   data[4]
 
-void RunMapPreviewScreenNonFade(u8 mapSecId)
+void RunMapPreviewScreenNonFade(MapSectionId mapSecId)
 {
     u8 taskId = CreateTask(Task_MapPreviewScreen_NonFade, 0);
     gTasks[taskId].tMapSecId = mapSecId;
@@ -559,7 +559,7 @@ void Task_MapPreviewScreen_NonFade(u8 taskId)
 #define tDuration       data[10]
 #define tWindowId       data[11]
 
-void RunMapPreviewScreenFadeIn(mapsec_u8_t mapsec)
+void RunMapPreviewScreenFadeIn(MapSectionId mapsec)
 {
     u8 taskId;
 
@@ -678,7 +678,7 @@ static void Task_MapPreviewScreen_FadeIn(u8 taskId)
 #undef tDuration
 #undef tWindowId
 
-u16 MapPreview_GetDuration(mapsec_u8_t mapsec)
+u16 MapPreview_GetDuration(MapSectionId mapsec)
 {
     u8 idx;
     u16 flagId;
