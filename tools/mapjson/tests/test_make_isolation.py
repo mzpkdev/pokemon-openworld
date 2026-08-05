@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -10,6 +11,14 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class ProductMakeContractTests(unittest.TestCase):
+    def run_make(self, *arguments: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["make", "NODEP=1", "SETUP_PREREQS=0", *arguments],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+        )
+
     def make_recipe(
         self, target: str, *, testing: bool, assignments: tuple[str, ...] = ()
     ) -> str:
@@ -24,10 +33,10 @@ class ProductMakeContractTests(unittest.TestCase):
                 target,
             ],
             cwd=ROOT,
-            check=True,
             text=True,
             capture_output=True,
         )
+        self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
     def test_product_tuple_is_forced_for_every_build_purpose(self) -> None:
@@ -60,6 +69,91 @@ class ProductMakeContractTests(unittest.TestCase):
                 "FILE_NAME": "pokemon-openworld",
             },
         )
+
+    def test_auto_generated_targets_contain_files_not_include_search_dirs(self) -> None:
+        result = subprocess.run(
+            ["make", "-pn", "NODEP=1", "SETUP_PREREQS=0", "clean-generated"],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        assignment = next(
+            line
+            for line in result.stdout.splitlines()
+            if line.startswith("AUTO_GEN_TARGETS :=")
+        )
+        targets = assignment.partition(":=")[2].split()
+        self.assertEqual(targets.count("include/constants/script_commands.h"), 1)
+        self.assertNotIn("build/generated/allregions/current/src", targets)
+        self.assertNotIn("build/generated/allregions/current/include", targets)
+        database_targets = {
+            line.partition(":")[0]
+            for line in result.stdout.splitlines()
+            if line and not line[0].isspace() and ":" in line
+        }
+        self.assertNotIn("build/generated/allregions/current/src", database_targets)
+        self.assertNotIn("build/generated/allregions/current/include", database_targets)
+
+    def test_built_tree_supports_clean_generated_and_clean(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            checkout = Path(temp_dir) / "checkout"
+            checkout.mkdir()
+            archive = subprocess.Popen(
+                ["git", "archive", "--format=tar", "HEAD"],
+                cwd=ROOT,
+                stdout=subprocess.PIPE,
+            )
+            extract = subprocess.run(
+                ["tar", "-xf", "-", "-C", str(checkout)],
+                stdin=archive.stdout,
+                text=False,
+                capture_output=True,
+            )
+            assert archive.stdout is not None
+            archive.stdout.close()
+            archive_returncode = archive.wait()
+            self.assertEqual(archive_returncode, 0)
+            self.assertEqual(extract.returncode, 0, extract.stderr.decode())
+            # Local runs exercise the working Makefile; in CI this is identical
+            # to the archived committed copy.
+            shutil.copy2(ROOT / "Makefile", checkout / "Makefile")
+
+            header = checkout / "include/constants/script_commands.h"
+            generated_dirs = (
+                checkout / "build/generated/allregions/current/src",
+                checkout / "build/generated/allregions/current/include",
+            )
+            for clean_goal in ("clean-generated", "clean"):
+                with self.subTest(clean_goal=clean_goal):
+                    build = subprocess.run(
+                        [
+                            "make",
+                            "NODEP=1",
+                            "SETUP_PREREQS=0",
+                            "include/constants/script_commands.h",
+                        ],
+                        cwd=checkout,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(build.returncode, 0, build.stderr)
+                    self.assertEqual(
+                        build.stdout.count("make_scr_cmd_constants.py"),
+                        1,
+                        build.stdout,
+                    )
+                    self.assertTrue(header.is_file())
+                    self.assertFalse(any(path.exists() for path in generated_dirs))
+
+                    clean = subprocess.run(
+                        ["make", "NODEP=1", "SETUP_PREREQS=0", clean_goal],
+                        cwd=checkout,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(clean.returncode, 0, clean.stderr)
+                    self.assertFalse(header.exists())
 
     def test_conflicting_command_line_values_fail_before_assignment(self) -> None:
         conflicts = {
@@ -263,6 +357,91 @@ cat "${@: -1}"
                     )
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertEqual(log.read_text().splitlines(), ["compile"])
+
+    def test_stale_bundled_tools_rebuild_before_their_outputs(self) -> None:
+        tools = (
+            (
+                ROOT / "tools/mapjson/mapjson",
+                ROOT / "tools/mapjson/json11.h",
+            ),
+            (
+                ROOT / "tools/trainerproc/trainerproc",
+                ROOT / "tools/trainerproc/main.c",
+            ),
+        )
+        for executable, _ in tools:
+            result = subprocess.run(
+                ["make", "-C", str(executable.parent), executable.name],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+
+            mapjson, mapjson_source = tools[0]
+            stale_mtime = mapjson_source.stat().st_mtime_ns - 1_000_000_000
+            os.utime(mapjson, ns=(stale_mtime, stale_mtime))
+            generated_root = temp / "build/generated/allregions/current"
+            result = self.run_make(
+                f"BUILD_DIR={temp / 'build'}",
+                str(generated_root / ".map-build-policy"),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertGreater(mapjson.stat().st_mtime_ns, stale_mtime)
+            self.assertEqual(
+                (generated_root / ".map-build-policy").read_text(), "allregions\n"
+            )
+
+            trainerproc, trainerproc_source = tools[1]
+            stale_mtime = trainerproc_source.stat().st_mtime_ns - 1_000_000_000
+            os.utime(trainerproc, ns=(stale_mtime, stale_mtime))
+            party = temp / "fixture.party"
+            header = temp / "fixture.h"
+            party.write_text(
+                """=== TRAINER_TEST ===
+Name: TEST
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+
+Pikachu
+Level: 5
+
+"""
+            )
+            result = self.run_make("CPP=cpp", str(header))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertGreater(trainerproc.stat().st_mtime_ns, stale_mtime)
+            self.assertIn("[DIFFICULTY_NORMAL][TRAINER_TEST]", header.read_text())
+
+    def test_external_tool_overrides_do_not_build_bundled_tools(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            generated_root = temp / "build/generated/allregions/current"
+            result = self.run_make(
+                f"BUILD_DIR={temp / 'build'}",
+                "MAPJSON=/bin/true",
+                "CXX=false",
+                str(generated_root / ".map-build-policy"),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("mapjson.cpp", result.stdout + result.stderr)
+
+            party = temp / "override.party"
+            party.write_text("override input\n")
+            result = self.run_make(
+                "CPP=/bin/true",
+                "TRAINERPROC=/bin/true",
+                "CC=false",
+                str(temp / "override.h"),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("trainerproc/main.c", result.stdout + result.stderr)
 
 
 if __name__ == "__main__":

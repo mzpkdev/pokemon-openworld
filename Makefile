@@ -199,7 +199,8 @@ SHELL := bash -o pipefail
 # Set flags for tools
 ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1 --defsym ALL_REGIONS=$(ALL_REGIONS)
 
-INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include include
+SOURCE_INCLUDE_DIR := include
+INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include $(SOURCE_INCLUDE_DIR)
 GENERATED_CONSTANT_INCLUDE_DIR := $(GENERATED_ROOT)/include/constants
 CPP_INCLUDE_DIRS := $(GENERATED_CONSTANT_INCLUDE_DIR) $(INCLUDE_DIRS)
 INCLUDE_CPP_ARGS := $(CPP_INCLUDE_DIRS:%=-iquote %)
@@ -290,10 +291,24 @@ SCANINC      := $(TOOLS_DIR)/scaninc/scaninc$(EXE)
 PREPROC      := $(TOOLS_DIR)/preproc/preproc$(EXE)
 RAMSCRGEN    := $(TOOLS_DIR)/ramscrgen/ramscrgen$(EXE)
 FIX          := $(TOOLS_DIR)/gbafix/gbafix$(EXE)
-MAPJSON      := $(TOOLS_DIR)/mapjson/mapjson$(EXE)
+BUNDLED_MAPJSON := $(TOOLS_DIR)/mapjson/mapjson$(EXE)
+MAPJSON      ?= $(BUNDLED_MAPJSON)
 JSONPROC     := $(TOOLS_DIR)/jsonproc/jsonproc$(EXE)
-TRAINERPROC  := $(TOOLS_DIR)/trainerproc/trainerproc$(EXE)
+BUNDLED_TRAINERPROC := $(TOOLS_DIR)/trainerproc/trainerproc$(EXE)
+TRAINERPROC  ?= $(BUNDLED_TRAINERPROC)
 PATCHELF     := $(TOOLS_DIR)/patchelf/patchelf$(EXE)
+# Generated map sources name the executable as a prerequisite.  Give the
+# bundled executable a real source-aware rule so a missing or stale tool is
+# rebuilt before map generation in the same make invocation.  An external
+# MAPJSON override must remain an ordinary prerequisite and skip this rule.
+ifeq ($(MAPJSON),$(BUNDLED_MAPJSON))
+$(BUNDLED_MAPJSON): $(TOOLS_DIR)/mapjson/json11.cpp \
+                    $(TOOLS_DIR)/mapjson/json11.h \
+                    $(TOOLS_DIR)/mapjson/mapjson.cpp \
+                    $(TOOLS_DIR)/mapjson/mapjson.h \
+                    $(TOOLS_DIR)/mapjson/Makefile
+	@$(MAKE) -C $(TOOLS_DIR)/mapjson -B $(notdir $@)
+endif
 ifeq ($(shell uname),Darwin)
     ROMTEST ?= $(shell command -v mgba-rom-test-mac 2>/dev/null || echo $(TOOLS_DIR)/mgba/mgba-rom-test-mac)
     ROMTESTHYDRA := $(shell command -v mgba-rom-test-hydra 2>/dev/null || echo $(TOOLS_DIR)/mgba-rom-test-hydra/mgba-rom-test-hydra)
@@ -318,12 +333,13 @@ WILD_ENCOUNTERS_TOOL_DIR := $(TOOLS_DIR)/wild_encounters
 AUTO_GEN_TARGETS += $(DATA_SRC_SUBDIR)/wild_encounters.h
 
 MISC_TOOL_DIR := $(TOOLS_DIR)/misc
-AUTO_GEN_TARGETS +=  $(INCLUDE_DIRS)/constants/script_commands.h
+SCRIPT_COMMANDS_HEADER := $(SOURCE_INCLUDE_DIR)/constants/script_commands.h
+AUTO_GEN_TARGETS += $(SCRIPT_COMMANDS_HEADER)
 
-$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(INCLUDE_DIRS)/config/overworld.h $(INCLUDE_DIRS)/config/dexnav.h
+$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(SOURCE_INCLUDE_DIR)/config/overworld.h $(SOURCE_INCLUDE_DIR)/config/dexnav.h
 	python3 $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py
 
-$(INCLUDE_DIRS)/constants/script_commands.h: $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
+$(SCRIPT_COMMANDS_HEADER): $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
 	python3  $(MISC_TOOL_DIR)/make_scr_cmd_constants.py
 
 PERL := perl
@@ -712,7 +728,7 @@ $(OBJ_DIR)/sym_common.ld: sym_common.txt $(C_OBJS) $(wildcard common_syms/*.txt)
 $(OBJ_DIR)/sym_ewram.ld: sym_ewram.txt
 	$(RAMSCRGEN) ewram_data $< ENGLISH > $@
 
-TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(INCLUDE_DIRS)/constants/tms_hms.h $(INCLUDE_DIRS)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(INCLUDE_DIRS)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
+TEACHABLE_DEPS := $(ALL_LEARNABLES_JSON) $(SOURCE_INCLUDE_DIR)/constants/tms_hms.h $(SOURCE_INCLUDE_DIR)/config/pokemon.h $(DATA_SRC_SUBDIR)/pokemon/special_movesets.json $(SOURCE_INCLUDE_DIR)/config/pokedex_plus_hgss.h $(LEARNSET_HELPERS_DIR)/make_teachables.py
 
 $(LEARNSET_HELPERS_BUILD_DIR):
 	@mkdir -p $@
