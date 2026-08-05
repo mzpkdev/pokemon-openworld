@@ -38,6 +38,7 @@ using json11::Json;
 #include <system_error>
 #include <chrono>
 #include <cctype>
+#include <cstdint>
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -619,6 +620,7 @@ static string humanize_debug_name_component(const string &identifier)
         const bool starts_word = i > 0
             && ((std::isupper(current) && std::islower(previous))
              || (std::isupper(current) && std::isupper(previous) && std::islower(next))
+             || (std::isupper(current) && std::isdigit(previous))
              || (std::isdigit(current) && std::islower(previous)));
 
         if (starts_word)
@@ -631,6 +633,8 @@ static string humanize_debug_name_component(const string &identifier)
 
 static string humanize_debug_map_name(string identifier)
 {
+    constexpr size_t max_line_length = 32;
+
     if (ends_with(identifier, "_Frlg"))
         identifier.resize(identifier.size() - string("_Frlg").size());
 
@@ -640,12 +644,36 @@ static string humanize_debug_map_name(string identifier)
         const size_t separator = identifier.find('_', start);
         const size_t end = separator == string::npos ? identifier.size() : separator;
         if (!display.empty())
-            display += "\\n";
+            display += ' ';
         display += humanize_debug_name_component(identifier.substr(start, end - start));
         if (separator == string::npos)
             break;
         start = separator + 1;
     }
+
+    if (display.size() <= max_line_length)
+        return display;
+
+    size_t best_separator = string::npos;
+    size_t best_longest_line = string::npos;
+    size_t separator = display.find(' ');
+    while (separator != string::npos) {
+        const size_t left_length = separator;
+        const size_t right_length = display.size() - separator - 1;
+        const size_t longest_line = std::max(left_length, right_length);
+        if (left_length <= max_line_length
+         && right_length <= max_line_length
+         && longest_line < best_longest_line) {
+            best_separator = separator;
+            best_longest_line = longest_line;
+        }
+        separator = display.find(' ', separator + 1);
+    }
+
+    if (best_separator == string::npos)
+        FATAL_ERROR("Debug map name '%s' cannot fit in two %zu-character lines\n", identifier.c_str(), max_line_length);
+
+    display.replace(best_separator, 1, "\\n");
     return display;
 }
 
@@ -664,7 +692,86 @@ static string humanize_debug_group_name(string identifier)
     return humanize_debug_name_component(identifier);
 }
 
-static string generate_debug_map_names_text(const Json &groups_data, const vector<string> &invalid_maps)
+// This version is part of the named-warp map-registry/content contract. Bump it
+// whenever the generator changes how an identity-covered value is interpreted.
+static constexpr const char *DEBUG_NAMED_WARP_FORMAT = "named-warp-v1";
+
+static void debug_identity_add(uint64_t &identity, const string &value)
+{
+    // Length framing makes the stream unambiguous without relying on a value
+    // that JSON strings cannot contain.
+    uint64_t length = value.size();
+    for (int i = 0; i < 8; i++) {
+        identity ^= static_cast<uint8_t>(length >> (i * 8));
+        identity *= UINT64_C(1099511628211);
+    }
+    for (const unsigned char byte : value) {
+        identity ^= byte;
+        identity *= UINT64_C(1099511628211);
+    }
+}
+
+static uint64_t generate_debug_named_warp_identity(const Json &groups_data,
+                                                   const map<string, Json> &maps_by_name)
+{
+    string err;
+    const Json sections_document = Json::parse(
+        read_text_file("src/data/region_map/region_map_sections.json"), err);
+    if (sections_document == Json())
+        FATAL_ERROR("Failed to read region-map section metadata for debug identity: %s\n", err.c_str());
+
+    map<string, string> section_presentations;
+    for (const Json &section : sections_document["map_sections"].array_items())
+        section_presentations[json_to_string(section, "id")] = json_to_string(section, "region_map_type");
+
+    uint64_t identity = UINT64_C(14695981039346656037);
+    debug_identity_add(identity, DEBUG_NAMED_WARP_FORMAT);
+    for (const Json &group_value : groups_data["group_order"].array_items()) {
+        const string group_name = json_to_string(group_value);
+        debug_identity_add(identity, "group");
+        debug_identity_add(identity, group_name);
+        for (const Json &map_value : groups_data[group_name].array_items()) {
+            const string registry_name = json_to_string(map_value);
+            const auto map_it = maps_by_name.find(registry_name);
+            if (map_it == maps_by_name.end())
+                FATAL_ERROR("Map '%s' is absent while generating debug identity\n", registry_name.c_str());
+            const Json &map_data = map_it->second;
+            const string section_id = json_to_string(map_data, "region_map_section");
+            const auto section_it = section_presentations.find(section_id);
+            if (section_it == section_presentations.end())
+                FATAL_ERROR("Map '%s' has unknown region-map section '%s'\n",
+                            registry_name.c_str(), section_id.c_str());
+
+            debug_identity_add(identity, "map");
+            debug_identity_add(identity, registry_name);
+            debug_identity_add(identity, json_to_string(map_data, "name"));
+            debug_identity_add(identity, json_to_string(map_data, "id", true));
+            string region = json_to_string(map_data, "region", true);
+            if (region.empty())
+                region = "<default>";
+            debug_identity_add(identity, region);
+            debug_identity_add(identity, json_to_string(map_data, "map_type"));
+            debug_identity_add(identity, section_id);
+            debug_identity_add(identity, section_it->second);
+
+            const Json::array warps = map_data["warp_events"].array_items();
+            debug_identity_add(identity, std::to_string(warps.size()));
+            for (const Json &warp : warps) {
+                debug_identity_add(identity, std::to_string(warp["x"].int_value()));
+                debug_identity_add(identity, std::to_string(warp["y"].int_value()));
+                debug_identity_add(identity, std::to_string(warp["elevation"].int_value()));
+                debug_identity_add(identity, json_to_string(warp, "dest_map"));
+                debug_identity_add(identity, json_to_string(warp, "dest_warp_id"));
+            }
+        }
+    }
+    return identity;
+}
+
+static string generate_debug_map_names_text(const Json &groups_data,
+                                            const vector<string> &invalid_maps,
+                                            const map<string, string> &map_regions,
+                                            uint64_t registry_identity)
 {
     ostringstream text;
     vector<bool> group_has_maps;
@@ -672,6 +779,13 @@ static string generate_debug_map_names_text(const Json &groups_data, const vecto
     text << get_generated_warning("data/maps/map_groups.json", false);
     text << "#ifndef GUARD_GENERATED_DEBUG_MAP_NAMES_H\n";
     text << "#define GUARD_GENERATED_DEBUG_MAP_NAMES_H\n\n";
+    text << "#define DEBUG_NAMED_WARP_REGISTRY_IDENTITY { ";
+    for (int i = 0; i < 8; i++) {
+        if (i != 0)
+            text << ", ";
+        text << "0x" << std::hex << ((registry_identity >> (i * 8)) & 0xFF) << std::dec;
+    }
+    text << " }\n\n";
 
     int group_number = 0;
     for (const Json &group_value : groups_data["group_order"].array_items()) {
@@ -695,6 +809,14 @@ static string generate_debug_map_names_text(const Json &groups_data, const vecto
             for (size_t map_number = 0; map_number < valid_maps.size(); map_number++)
                 text << "    sDebugMapName_" << group_number << "_" << map_number << ",\n";
             text << "};\n";
+            text << "static const RegionId sDebugMapRegions_" << group_number << "[] =\n{\n";
+            for (const string &map_name : valid_maps) {
+                const auto region = map_regions.find(map_name);
+                if (region == map_regions.end())
+                    FATAL_ERROR("Map '%s' has no registry-backed region while generating debug names\n", map_name.c_str());
+                text << "    " << region->second << ",\n";
+            }
+            text << "};\n";
         }
         text << "\n";
         group_number++;
@@ -703,6 +825,15 @@ static string generate_debug_map_names_text(const Json &groups_data, const vecto
     text << "static const u8 *const sDebugMapGroupNames[] =\n{\n";
     for (int i = 0; i < group_number; i++)
         text << "    sDebugMapGroupName_" << i << ",\n";
+    text << "};\n\n";
+
+    text << "static const RegionId *const sDebugMapRegions[] =\n{\n";
+    for (int i = 0; i < group_number; i++) {
+        if (group_has_maps[i])
+            text << "    sDebugMapRegions_" << i << ",\n";
+        else
+            text << "    NULL,\n";
+    }
     text << "};\n\n";
 
     text << "static const u8 *const *const sDebugMapNames[] =\n{\n";
@@ -912,6 +1043,8 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
     Json groups_data = Json::parse(read_text_file(groups_filepath), err);
     vector<string> invalid_maps;
     vector<string> valid_map_ids;
+    map<string, string> map_regions;
+    map<string, Json> maps_by_name;
 
     for (const string &filepath : map_filepaths) {
         string err;
@@ -925,9 +1058,12 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
         if (region.empty())
             region = DefaultRegionName(policy.defaultDialect);
         string map_name = json_to_string(map_data, "name");
+        maps_by_name[map_name] = map_data;
 
         if (!policy.IncludesRegion(region)) {
             invalid_maps.push_back(map_name);
+        } else {
+            map_regions[map_name] = region;
         }
     }
 
@@ -943,7 +1079,9 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
     std::filesystem::path debug_map_names_filepath = std::filesystem::path(output_c) / ".." / ".." / "src" / "data" / "debug_map_names.h";
     string map_header_text = generate_map_constants_text(groups_filepath, groups_data, valid_map_ids,
                                                          map_count_filepath.lexically_normal().string());
-    string debug_map_names_text = generate_debug_map_names_text(groups_data, invalid_maps);
+    const uint64_t debug_named_warp_identity = generate_debug_named_warp_identity(groups_data, maps_by_name);
+    string debug_map_names_text = generate_debug_map_names_text(
+        groups_data, invalid_maps, map_regions, debug_named_warp_identity);
 
     write_text_file(output_asm + sep + "groups.inc", groups_text);
     write_text_file(output_asm + sep + "connections.inc", connections_text);

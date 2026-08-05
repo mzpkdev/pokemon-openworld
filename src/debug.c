@@ -42,6 +42,7 @@
 #include "pokemon_storage_system.h"
 #include "random.h"
 #include "region_map.h"
+#include "regions.h"
 #include "rtc.h"
 #include "script.h"
 #include "script_pokemon_util.h"
@@ -434,8 +435,10 @@ extern const u8 Common_EventScript_MoveRelearner[];
 #include "data/map_group_count.h"
 #ifdef DEBUG
 #include "data/debug_map_names.h"
+const u8 gDebugNamedWarpRegistryIdentity[] = DEBUG_NAMED_WARP_REGISTRY_IDENTITY;
 STATIC_ASSERT(ARRAY_COUNT(sDebugMapGroupNames) == MAP_GROUPS_COUNT, DebugMapGroupNamesCount);
 STATIC_ASSERT(ARRAY_COUNT(sDebugMapNames) == MAP_GROUPS_COUNT, DebugMapNamesCount);
+STATIC_ASSERT(ARRAY_COUNT(sDebugMapRegions) == MAP_GROUPS_COUNT, DebugMapRegionsCount);
 #endif
 
 // Text
@@ -451,12 +454,14 @@ static const u8 sDebugText_Continue[] =      _("Continue…");
 // Util Menu
 #ifdef DEBUG
 static const u8 sDebugText_Util_WarpRegion[] = _("Choose region\n{STR_VAR_1}\n\nUp/Down: Select\nA: Next  B: Exit");
-static const u8 sDebugText_Util_WarpGroup[] = _("Region: {STR_VAR_1}\n\nChoose map group\n{STR_VAR_2}\n\nUp/Down: Select\nA: Next  B: Back");
-static const u8 sDebugText_Util_WarpMap[] = _("Region: {STR_VAR_1}\nChoose map\n{STR_VAR_2}\n\nUp/Down: Select\nA: Next  B: Back");
-static const u8 sDebugText_Util_WarpEntry[] = _("Region: {STR_VAR_1}\n{STR_VAR_2}\nEntry: {STR_VAR_3}\n\nUp/Down: Select\nA: Warp  B: Back");
-static const u8 sDebugText_Util_WarpCenter[] = _("Map center");
-static const u8 sDebugText_Util_WarpNumber[] = _("Map warp ");
-static const u8 sDebugText_Util_WarpNumberSeparator[] = _(" / ");
+static const u8 sDebugText_Util_WarpGroup[] = _("Region: {STR_VAR_1}\n\nChoose map group\n{STR_VAR_2}\n\nUp/Down: Select\nLeft/Right: Page\nA: Next  B: Back");
+static const u8 sDebugText_Util_WarpMap[] = _("Region: {STR_VAR_1}\nChoose map\n{STR_VAR_2}\n\nUp/Down: Select\nLeft/Right: Page\nA: Next  B: Back");
+static const u8 sDebugText_Util_WarpEntry[] = _("Region: {STR_VAR_1}\nMap: {STR_VAR_2}\n{STR_VAR_3}\nUp/Down: Select\nLeft/Right: Page\nA: Warp  B: Back");
+static const u8 sDebugText_Util_WarpCenter[] = _("Entry: Map center");
+static const u8 sDebugText_Util_WarpNumber[] = _("Entry: Warp ");
+static const u8 sDebugText_Util_WarpDestination[] = _("\nTo: ");
+static const u8 sDebugText_Util_WarpDynamic[] = _("Dynamic destination");
+static const u8 sDebugText_Util_WarpInvalid[] = _("Invalid destination ");
 static const u8 *const sDebugWarpRegionNames[] =
 {
     [REGION_MAP_HOENN] = COMPOUND_STRING("Hoenn"),
@@ -1512,10 +1517,25 @@ static void DebugAction_Util_Warp_DrawEntry(u8 taskId)
     }
     else
     {
+        const struct WarpEvent *warp = &mapHeader->events->warps[gTasks[taskId].tWarp - 1];
         u8 *string = StringCopy(gStringVar3, sDebugText_Util_WarpNumber);
         string = ConvertIntToDecimalStringN(string, gTasks[taskId].tWarp, STR_CONV_MODE_LEFT_ALIGN, 3);
-        string = StringCopy(string, sDebugText_Util_WarpNumberSeparator);
-        ConvertIntToDecimalStringN(string, mapHeader->events->warpCount, STR_CONV_MODE_LEFT_ALIGN, 3);
+        string = StringCopy(string, sDebugText_Util_WarpDestination);
+        if (warp->mapGroup == MAP_GROUP(MAP_DYNAMIC) && warp->mapNum == MAP_NUM(MAP_DYNAMIC))
+        {
+            StringCopy(string, sDebugText_Util_WarpDynamic);
+        }
+        else if (warp->mapGroup < MAP_GROUPS_COUNT && warp->mapNum < MAP_GROUP_COUNT[warp->mapGroup])
+        {
+            StringCopy(string, sDebugMapNames[warp->mapGroup][warp->mapNum]);
+        }
+        else
+        {
+            string = StringCopy(string, sDebugText_Util_WarpInvalid);
+            string = ConvertIntToDecimalStringN(string, warp->mapGroup, STR_CONV_MODE_LEFT_ALIGN, 3);
+            *string++ = CHAR_SLASH;
+            ConvertIntToDecimalStringN(string, warp->mapNum, STR_CONV_MODE_LEFT_ALIGN, 3);
+        }
     }
     DebugAction_Util_Warp_Draw(taskId, sDebugText_Util_WarpEntry);
 }
@@ -1523,7 +1543,25 @@ static void DebugAction_Util_Warp_DrawEntry(u8 taskId)
 static bool32 DebugAction_Util_Warp_MapMatchesRegion(s16 mapGroup, s16 mapNum, s16 region)
 {
     const struct MapHeader *mapHeader = Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum);
-    return GetRegionMapType(mapHeader->regionMapSectionId) == (enum RegionMapType)region;
+    const RegionId declaredRegion = sDebugMapRegions[mapGroup][mapNum];
+
+    if (declaredRegion == REGION_HOENN)
+        return region == REGION_MAP_HOENN;
+    if (declaredRegion != REGION_KANTO)
+        return FALSE;
+
+    switch (GetKantoSubregion(mapHeader->regionMapSectionId))
+    {
+    case KANTO_SUBREGION_SEVII123:
+        return region == REGION_MAP_SEVII123;
+    case KANTO_SUBREGION_SEVII45:
+        return region == REGION_MAP_SEVII45;
+    case KANTO_SUBREGION_SEVII67:
+        return region == REGION_MAP_SEVII67;
+    case KANTO_SUBREGION_KANTO:
+    default:
+        return region == REGION_MAP_KANTO;
+    }
 }
 
 static bool32 DebugAction_Util_Warp_GroupMatchesRegion(s16 mapGroup, s16 region)
@@ -1568,6 +1606,30 @@ static s16 DebugAction_Util_Warp_FindMap(s16 mapGroup, s16 mapNum, s16 region, s
     return -1;
 }
 
+#define DEBUG_WARP_PAGE_SIZE 10
+
+static s16 DebugAction_Util_Warp_RepeatFindGroup(s16 mapGroup, s16 region, s16 direction, u32 count)
+{
+    while (count-- != 0)
+    {
+        mapGroup = DebugAction_Util_Warp_FindGroup(mapGroup, region, direction);
+        if (mapGroup < 0)
+            break;
+    }
+    return mapGroup;
+}
+
+static s16 DebugAction_Util_Warp_RepeatFindMap(s16 mapGroup, s16 mapNum, s16 region, s16 direction, u32 count)
+{
+    while (count-- != 0)
+    {
+        mapNum = DebugAction_Util_Warp_FindMap(mapGroup, mapNum, region, direction);
+        if (mapNum < 0)
+            break;
+    }
+    return mapNum;
+}
+
 static void DebugAction_Util_Warp_Close(u8 taskId)
 {
     ClearStdWindowAndFrame(gTasks[taskId].tSubWindowId, TRUE);
@@ -1602,14 +1664,14 @@ static void DebugAction_Util_Warp_SelectRegion(u8 taskId)
 {
     bool32 changed = FALSE;
 
-    if (JOY_NEW(DPAD_UP))
+    if (JOY_REPEAT(DPAD_UP))
     {
         gTasks[taskId].tRegion--;
         if (gTasks[taskId].tRegion < REGION_MAP_HOENN)
             gTasks[taskId].tRegion = REGION_MAP_SEVII67;
         changed = TRUE;
     }
-    else if (JOY_NEW(DPAD_DOWN))
+    else if (JOY_REPEAT(DPAD_DOWN))
     {
         gTasks[taskId].tRegion++;
         if (gTasks[taskId].tRegion > REGION_MAP_SEVII67)
@@ -1644,10 +1706,14 @@ static void DebugAction_Util_Warp_SelectNamedMapGroup(u8 taskId)
 {
     s16 nextGroup = -1;
 
-    if (JOY_NEW(DPAD_UP))
+    if (JOY_REPEAT(DPAD_UP))
         nextGroup = DebugAction_Util_Warp_FindGroup(gTasks[taskId].tMapGroup, gTasks[taskId].tRegion, -1);
-    else if (JOY_NEW(DPAD_DOWN))
+    else if (JOY_REPEAT(DPAD_DOWN))
         nextGroup = DebugAction_Util_Warp_FindGroup(gTasks[taskId].tMapGroup, gTasks[taskId].tRegion, 1);
+    else if (JOY_REPEAT(DPAD_LEFT))
+        nextGroup = DebugAction_Util_Warp_RepeatFindGroup(gTasks[taskId].tMapGroup, gTasks[taskId].tRegion, -1, DEBUG_WARP_PAGE_SIZE);
+    else if (JOY_REPEAT(DPAD_RIGHT))
+        nextGroup = DebugAction_Util_Warp_RepeatFindGroup(gTasks[taskId].tMapGroup, gTasks[taskId].tRegion, 1, DEBUG_WARP_PAGE_SIZE);
 
     if (nextGroup >= 0)
     {
@@ -1682,18 +1748,32 @@ static void DebugAction_Util_Warp_SelectNamedMap(u8 taskId)
 {
     s16 nextMap = -1;
 
-    if (JOY_NEW(DPAD_UP))
+    if (JOY_REPEAT(DPAD_UP))
         nextMap = DebugAction_Util_Warp_FindMap(
             gTasks[taskId].tMapGroup,
             gTasks[taskId].tMapNum,
             gTasks[taskId].tRegion,
             -1);
-    else if (JOY_NEW(DPAD_DOWN))
+    else if (JOY_REPEAT(DPAD_DOWN))
         nextMap = DebugAction_Util_Warp_FindMap(
             gTasks[taskId].tMapGroup,
             gTasks[taskId].tMapNum,
             gTasks[taskId].tRegion,
             1);
+    else if (JOY_REPEAT(DPAD_LEFT))
+        nextMap = DebugAction_Util_Warp_RepeatFindMap(
+            gTasks[taskId].tMapGroup,
+            gTasks[taskId].tMapNum,
+            gTasks[taskId].tRegion,
+            -1,
+            DEBUG_WARP_PAGE_SIZE);
+    else if (JOY_REPEAT(DPAD_RIGHT))
+        nextMap = DebugAction_Util_Warp_RepeatFindMap(
+            gTasks[taskId].tMapGroup,
+            gTasks[taskId].tMapNum,
+            gTasks[taskId].tRegion,
+            1,
+            DEBUG_WARP_PAGE_SIZE);
 
     if (nextMap >= 0)
     {
@@ -1725,18 +1805,32 @@ static void DebugAction_Util_Warp_SelectNamedWarp(u8 taskId)
     const s16 warpCount = mapHeader->events->warpCount;
     bool32 changed = FALSE;
 
-    if (JOY_NEW(DPAD_UP))
+    if (JOY_REPEAT(DPAD_UP))
     {
         gTasks[taskId].tWarp--;
         if (gTasks[taskId].tWarp < 0)
             gTasks[taskId].tWarp = warpCount;
         changed = TRUE;
     }
-    else if (JOY_NEW(DPAD_DOWN))
+    else if (JOY_REPEAT(DPAD_DOWN))
     {
         gTasks[taskId].tWarp++;
         if (gTasks[taskId].tWarp > warpCount)
             gTasks[taskId].tWarp = 0;
+        changed = TRUE;
+    }
+    else if (JOY_REPEAT(DPAD_LEFT))
+    {
+        gTasks[taskId].tWarp -= DEBUG_WARP_PAGE_SIZE;
+        while (gTasks[taskId].tWarp < 0)
+            gTasks[taskId].tWarp += warpCount + 1;
+        changed = TRUE;
+    }
+    else if (JOY_REPEAT(DPAD_RIGHT))
+    {
+        gTasks[taskId].tWarp += DEBUG_WARP_PAGE_SIZE;
+        while (gTasks[taskId].tWarp > warpCount)
+            gTasks[taskId].tWarp -= warpCount + 1;
         changed = TRUE;
     }
 
