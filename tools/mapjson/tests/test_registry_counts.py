@@ -77,6 +77,15 @@ class ProductRegistryTests(unittest.TestCase):
         self.assertIn("\t.align 2\ngMapGroups::", groups)
         self.assertIn("\t.align 2\ngMapLayouts::", layouts)
 
+    def test_debug_map_names_are_generated_from_scoped_registry_names(self) -> None:
+        names = (self.output / "src/data/debug_map_names.h").read_text()
+
+        self.assertIn('_("Towns And Routes")', names)
+        self.assertIn('_("Route 2")', names)
+        self.assertIn('_("Pallet Town\\nProfessor Oaks Lab")', names)
+        self.assertIn("static const u8 *const sDebugMapGroupNames[]", names)
+        self.assertIn("static const u8 *const *const sDebugMapNames[]", names)
+
     def test_kanto_hidden_items_receive_stable_nonzero_saved_flags(self) -> None:
         allocated: dict[str, int] = {}
         for entry in self.manifest["maps"]:

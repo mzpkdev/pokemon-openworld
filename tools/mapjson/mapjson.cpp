@@ -37,6 +37,7 @@ using json11::Json;
 #include <filesystem>
 #include <system_error>
 #include <chrono>
+#include <cctype>
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -601,6 +602,121 @@ string generate_groups_text(Json groups_data, vector<string> &invalid_maps) {
     return text.str();
 }
 
+static bool ends_with(const string &value, const string &suffix)
+{
+    return value.size() >= suffix.size()
+        && value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+static string humanize_debug_name_component(const string &identifier)
+{
+    string display;
+
+    for (size_t i = 0; i < identifier.size(); i++) {
+        const unsigned char current = identifier[i];
+        const unsigned char previous = i == 0 ? 0 : identifier[i - 1];
+        const unsigned char next = i + 1 == identifier.size() ? 0 : identifier[i + 1];
+        const bool starts_word = i > 0
+            && ((std::isupper(current) && std::islower(previous))
+             || (std::isupper(current) && std::isupper(previous) && std::islower(next))
+             || (std::isdigit(current) && std::islower(previous)));
+
+        if (starts_word)
+            display += ' ';
+        display += current;
+    }
+
+    return display;
+}
+
+static string humanize_debug_map_name(string identifier)
+{
+    if (ends_with(identifier, "_Frlg"))
+        identifier.resize(identifier.size() - string("_Frlg").size());
+
+    string display;
+    size_t start = 0;
+    while (start <= identifier.size()) {
+        const size_t separator = identifier.find('_', start);
+        const size_t end = separator == string::npos ? identifier.size() : separator;
+        if (!display.empty())
+            display += "\\n";
+        display += humanize_debug_name_component(identifier.substr(start, end - start));
+        if (separator == string::npos)
+            break;
+        start = separator + 1;
+    }
+    return display;
+}
+
+static string humanize_debug_group_name(string identifier)
+{
+    const string prefix = "gMapGroup_";
+    if (identifier.compare(0, prefix.size(), prefix) == 0)
+        identifier.erase(0, prefix.size());
+    if (ends_with(identifier, "_Frlg"))
+        identifier.resize(identifier.size() - string("_Frlg").size());
+
+    for (char &character : identifier) {
+        if (character == '_')
+            character = ' ';
+    }
+    return humanize_debug_name_component(identifier);
+}
+
+static string generate_debug_map_names_text(const Json &groups_data, const vector<string> &invalid_maps)
+{
+    ostringstream text;
+    vector<bool> group_has_maps;
+
+    text << get_generated_warning("data/maps/map_groups.json", false);
+    text << "#ifndef GUARD_GENERATED_DEBUG_MAP_NAMES_H\n";
+    text << "#define GUARD_GENERATED_DEBUG_MAP_NAMES_H\n\n";
+
+    int group_number = 0;
+    for (const Json &group_value : groups_data["group_order"].array_items()) {
+        const string group_name = json_to_string(group_value);
+        vector<string> valid_maps;
+        for (const Json &map_value : groups_data[group_name].array_items()) {
+            const string map_name = json_to_string(map_value);
+            if (find(invalid_maps.begin(), invalid_maps.end(), map_name) == invalid_maps.end())
+                valid_maps.push_back(map_name);
+        }
+
+        group_has_maps.push_back(!valid_maps.empty());
+        text << "static const u8 sDebugMapGroupName_" << group_number << "[] = _(";
+        text << '"' << humanize_debug_group_name(group_name) << "\");\n";
+        for (size_t map_number = 0; map_number < valid_maps.size(); map_number++) {
+            text << "static const u8 sDebugMapName_" << group_number << "_" << map_number << "[] = _(";
+            text << '"' << humanize_debug_map_name(valid_maps[map_number]) << "\");\n";
+        }
+        if (!valid_maps.empty()) {
+            text << "static const u8 *const sDebugMapNames_" << group_number << "[] =\n{\n";
+            for (size_t map_number = 0; map_number < valid_maps.size(); map_number++)
+                text << "    sDebugMapName_" << group_number << "_" << map_number << ",\n";
+            text << "};\n";
+        }
+        text << "\n";
+        group_number++;
+    }
+
+    text << "static const u8 *const sDebugMapGroupNames[] =\n{\n";
+    for (int i = 0; i < group_number; i++)
+        text << "    sDebugMapGroupName_" << i << ",\n";
+    text << "};\n\n";
+
+    text << "static const u8 *const *const sDebugMapNames[] =\n{\n";
+    for (int i = 0; i < group_number; i++) {
+        if (group_has_maps[i])
+            text << "    sDebugMapNames_" << i << ",\n";
+        else
+            text << "    NULL,\n";
+    }
+    text << "};\n\n";
+    text << "#endif // GUARD_GENERATED_DEBUG_MAP_NAMES_H\n";
+    return text.str();
+}
+
 string generate_connections_text(Json groups_data, vector<string> &invalid_maps, string include_path) {
     vector<Json> map_names;
 
@@ -824,14 +940,17 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
     string headers_text = generate_headers_text(groups_data, invalid_maps, generated_include_path);
     string events_text = generate_events_text(groups_data, invalid_maps, generated_include_path);
     std::filesystem::path map_count_filepath = std::filesystem::path(output_c) / ".." / ".." / "src" / "data" / "map_group_count.h";
+    std::filesystem::path debug_map_names_filepath = std::filesystem::path(output_c) / ".." / ".." / "src" / "data" / "debug_map_names.h";
     string map_header_text = generate_map_constants_text(groups_filepath, groups_data, valid_map_ids,
                                                          map_count_filepath.lexically_normal().string());
+    string debug_map_names_text = generate_debug_map_names_text(groups_data, invalid_maps);
 
     write_text_file(output_asm + sep + "groups.inc", groups_text);
     write_text_file(output_asm + sep + "connections.inc", connections_text);
     write_text_file(output_asm + sep + "headers.inc", headers_text);
     write_text_file(output_asm + sep + "events.inc", events_text);
     write_text_file(output_c + sep + "map_groups.h", map_header_text);
+    write_text_file(debug_map_names_filepath.lexically_normal().string(), debug_map_names_text);
 }
 
 static void validate_layout_formats(const Json &layouts_data, const MapBuildPolicy &policy);
