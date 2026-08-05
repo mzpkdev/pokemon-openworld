@@ -9,8 +9,12 @@ ROOT = Path(__file__).resolve().parents[3]
 
 class ProductMakeContractTests(unittest.TestCase):
     def test_product_tuple_is_forced_for_every_build_purpose(self) -> None:
+        # Query the parsed make database through a phony goal whose prerequisites
+        # are present in a clean checkout.  The production `generated` goal needs
+        # ignored tool binaries and generated headers even under `make -n`, which
+        # would make this global variable contract depend on prior local builds.
         result = subprocess.run(
-            ["make", "-pn", "generated"],
+            ["make", "-pn", "clean-generated"],
             cwd=ROOT,
             check=True,
             text=True,

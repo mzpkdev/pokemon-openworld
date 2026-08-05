@@ -182,12 +182,22 @@ string json_to_string(const Json &data, const string &field = "", bool silent = 
 }
 
 string get_generated_warning(const string &filename, bool isAsm) {
-    string comment = isAsm ? "@" : "//";
-
     ostringstream warning;
-    warning << comment << "\n"
-            << comment << " DO NOT MODIFY THIS FILE! It is auto-generated from " << filename << "\n"
-            << comment << "\n\n";
+    if (isAsm) {
+        warning << "@\n"
+                << "@ DO NOT MODIFY THIS FILE! It is auto-generated from " << filename << "\n"
+                << "@\n\n";
+    } else {
+        string safe_filename = filename;
+        size_t pos = 0;
+        while ((pos = safe_filename.find("*/", pos)) != string::npos) {
+            safe_filename.replace(pos, 2, "* /");
+            pos += 3;
+        }
+        warning << "/*\n"
+                << " * DO NOT MODIFY THIS FILE! It is auto-generated from " << safe_filename << "\n"
+                << " */\n\n";
+    }
     return warning.str();
 }
 
@@ -200,7 +210,7 @@ string get_include_guard_start(const string &name) {
 
 string get_include_guard_end(const string &name) {
     ostringstream guard;
-    guard << "#endif // GUARD_" << name << "_H\n";
+    guard << "#endif /* GUARD_" << name << "_H */\n";
     return guard.str();
 }
 
@@ -493,7 +503,7 @@ void process_map(string map_filepath, string layouts_filepath, string output_dir
 }
 
 void process_event_constants(const vector<string> &map_filepaths, string output_ids_file) {
-    string warning = get_generated_warning("data/maps/*/map.json", false);
+    string warning = get_generated_warning("data/maps/<map>/map.json", false);
 
     string guard_name = "CONSTANTS_MAP_EVENT_IDS";
     ostringstream ids_file_text;
@@ -526,7 +536,7 @@ void process_event_constants(const vector<string> &map_filepaths, string output_
         // Only output if we found any IDs
         string temp = map_ids_text.str();
         if (!temp.empty()) {
-            ids_file_text << "// " << map_id << "\n" << temp << "\n";
+            ids_file_text << "/* " << map_id << " */\n" << temp << "\n";
         }
     }
 
@@ -675,7 +685,7 @@ string generate_map_constants_text(string groups_filepath, Json groups_data, vec
 
     text << get_include_guard_start(guard_name) << get_generated_warning("data/maps/map_groups.json", false);
 
-    text << "//\n// DO NOT MODIFY THIS FILE! It is auto-generated from data/maps/map_groups.json\n//\n\n";
+    text << "/*\n * DO NOT MODIFY THIS FILE! It is auto-generated from data/maps/map_groups.json\n */\n\n";
 
     text << "enum\n{\n";
 
@@ -683,7 +693,7 @@ string generate_map_constants_text(string groups_filepath, Json groups_data, vec
     vector<int> map_count_vec; //DEBUG
     for (auto &group : groups_data["group_order"].array_items()) {
         string groupName = json_to_string(group);
-        text << "    // " << groupName << "\n";
+        text << "    /* " << groupName << " */\n";
         vector<string> map_ids;
         size_t max_length = 0;
 
@@ -717,7 +727,7 @@ string generate_map_constants_text(string groups_filepath, Json groups_data, vec
 
     text << "};\n\n";
 
-    text << "//Constants for unused maps\n";
+    text << "/* Constants for unused maps */\n";
     int map_id_num = 0;
     int old_map_group = -1;
     Json required_map_defines = parse_required_map_defines();
@@ -917,7 +927,7 @@ string generate_layouts_constants_text(Json layouts_data) {
         i++;
     }
 
-    text << "\n//Constants for unused layouts\n";
+    text << "\n/* Constants for unused layouts */\n";
     vector<string> required_layout_defines = parse_required_layout_defines();
     vector<string> filtered_layout_defines;
     size_t max_length = 0;
@@ -1144,7 +1154,7 @@ static void write_map_section_metadata(const std::filesystem::path &staging)
            << "#define GENERATED_MAP_SECTION_COUNT " << registry.count << "\n\n"
            << "extern const MapSectionId gSavedLocationToMapSection[256];\n"
            << "extern const MapSectionId gMetLocationToMapSection[256];\n\n"
-           << "#endif // GUARD_GENERATED_MAP_SECTION_METADATA_H\n";
+           << "#endif /* GUARD_GENERATED_MAP_SECTION_METADATA_H */\n";
     write_text_file((includeDir / "map_section_metadata.h").string(), header.str());
 
     ostringstream source;

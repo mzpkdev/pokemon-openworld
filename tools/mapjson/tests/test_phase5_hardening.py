@@ -181,6 +181,34 @@ class Phase5GeneratorHardeningTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((base / "current/foundation-manifest.json").is_file())
 
+    def test_generated_headers_are_valid_for_traditional_cpp(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="phase5-cpp-") as temporary:
+            base = Path(temporary)
+            result = self.generate(base)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            headers = sorted((base / "current/include").rglob("*.h"))
+            self.assertGreater(len(headers), 0)
+            for header in headers:
+                with self.subTest(header=header.relative_to(base / "current")):
+                    preprocessed = subprocess.run(
+                        ["cpp", "-traditional-cpp", "-P", str(header)],
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(preprocessed.returncode, 0, preprocessed.stderr)
+                    compiled = subprocess.run(
+                        ["cc", "-x", "c", "-fsyntax-only", "-"],
+                        input=(
+                            "typedef unsigned short MapSectionId;\n"
+                            + preprocessed.stdout
+                        ),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(compiled.returncode, 0, compiled.stderr)
+
     def test_signed_warp_domain_rejects_map_slot_128(self) -> None:
         with tempfile.TemporaryDirectory(prefix="phase5-warp-domain-") as temporary:
             base = Path(temporary)
