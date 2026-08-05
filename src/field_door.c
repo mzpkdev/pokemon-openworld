@@ -436,7 +436,11 @@ static const struct DoorGraphics sDoorAnimGraphicsTable[] =
 
 static void CopyDoorTilesToVram(const struct DoorGraphics *gfx, const struct DoorAnimFrame *frame)
 {
-    if (gfx->size == 2 && !gMapHeader.mapLayout->isFrlg)
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
+    if (format == DOOR_INVALID)
+        return;
+    if (gfx->size == 2 && format == DOOR_EMERALD)
         CpuFastCopy(gfx->tiles + frame->offset, (void *)(VRAM + TILE_OFFSET_4BPP(DOOR_TILE_START_SIZE2)), 16 * TILE_SIZE_4BPP);
     else
         CpuFastCopy(gfx->tiles + frame->offset, (void *)(VRAM + TILE_OFFSET_4BPP(DOOR_TILE_START_SIZE1)), 8 * TILE_SIZE_4BPP);
@@ -480,11 +484,15 @@ static void DrawCurrentDoorAnimFrameFrlg(const struct DoorGraphics *gfx, int x, 
 
 static void DrawCurrentDoorAnimFrame(const struct DoorGraphics *gfx, u32 x, u32 y, const u8 *paletteNums)
 {
-    if (gMapHeader.mapLayout->isFrlg)
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
+    if (format == DOOR_FRLG)
     {
         DrawCurrentDoorAnimFrameFrlg(gfx, x, y, paletteNums);
         return;
     }
+    if (format != DOOR_EMERALD)
+        return;
 
     u16 tiles[24];
 
@@ -531,11 +539,15 @@ static void DrawClosedDoorTilesFrlg(const struct DoorGraphics *gfx, int x, int y
 
 static void DrawClosedDoorTiles(const struct DoorGraphics *gfx, u32 x, u32 y)
 {
-    if (gMapHeader.mapLayout->isFrlg)
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
+    if (format == DOOR_FRLG)
     {
         DrawClosedDoorTilesFrlg(gfx, x, y);
         return;
     }
+    if (format != DOOR_EMERALD)
+        return;
 
     CurrentMapDrawMetatileAt(x, y - 1);
     CurrentMapDrawMetatileAt(x, y);
@@ -652,7 +664,16 @@ static void DrawClosedDoor(const struct DoorGraphics *gfx, u32 x, u32 y)
 
 static void DrawOpenedDoor(const struct DoorGraphics *gfx, u32 x, u32 y)
 {
-    const struct DoorAnimFrame *doorAnimFrames = gMapHeader.mapLayout->isFrlg ? sDoorAnimFrames_OpenSmallFrlg : sDoorOpenAnimFrames;
+    const struct DoorAnimFrame *doorAnimFrames;
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
+    if (format == DOOR_FRLG)
+        doorAnimFrames = sDoorAnimFrames_OpenSmallFrlg;
+    else if (format == DOOR_EMERALD)
+        doorAnimFrames = sDoorOpenAnimFrames;
+    else
+        return;
+
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx != NULL)
         DrawDoor(gfx, GetLastDoorFrame(doorAnimFrames, doorAnimFrames), x, y);
@@ -660,33 +681,50 @@ static void DrawOpenedDoor(const struct DoorGraphics *gfx, u32 x, u32 y)
 
 static s8 StartDoorOpenAnimation(const struct DoorGraphics *gfx, u32 x, u32 y)
 {
+    const struct DoorAnimFrame *doorAnimFrames;
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
+    if (format == DOOR_INVALID)
+        return -1;
+
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
-    {
         return -1;
-    }
+
+    if (format == DOOR_FRLG)
+        doorAnimFrames = gfx->size == 2 ? sDoorAnimFrames_OpenLargeFrlg : sDoorAnimFrames_OpenSmallFrlg;
+    else if (format == DOOR_EMERALD)
+        doorAnimFrames = gfx->size == 2 ? sBigDoorOpenAnimFrames : sDoorOpenAnimFrames;
     else
-    {
-        if (gfx->size == 2)
-            return StartDoorAnimationTask(gfx, gMapHeader.mapLayout->isFrlg ? sDoorAnimFrames_OpenLargeFrlg : sBigDoorOpenAnimFrames, x, y);
-        else
-            return StartDoorAnimationTask(gfx, gMapHeader.mapLayout->isFrlg ? sDoorAnimFrames_OpenSmallFrlg : sDoorOpenAnimFrames, x, y);
-    }
+        return -1;
+
+    return StartDoorAnimationTask(gfx, doorAnimFrames, x, y);
 }
 
 static s8 StartDoorCloseAnimation(const struct DoorGraphics *gfx, u32 x, u32 y)
 {
+    const struct DoorAnimFrame *doorAnimFrames;
+    u8 format = GetMapDoorFormat(gMapHeader.mapLayout);
+
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
         return -1;
-    else if (gfx->size != 1 && gMapHeader.mapLayout->isFrlg)
-        return StartDoorAnimationTask(gfx, sDoorAnimFrames_CloseLargeFrlg, x, y);
+
+    if (format == DOOR_FRLG)
+        doorAnimFrames = gfx->size == 1 ? sDoorAnimFrames_CloseSmallFrlg : sDoorAnimFrames_CloseLargeFrlg;
+    else if (format == DOOR_EMERALD)
+        doorAnimFrames = sDoorCloseAnimFrames;
     else
-        return StartDoorAnimationTask(gfx, gMapHeader.mapLayout->isFrlg ? sDoorAnimFrames_CloseSmallFrlg : sDoorCloseAnimFrames, x, y);
+        return -1;
+
+    return StartDoorAnimationTask(gfx, doorAnimFrames, x, y);
 }
 
 static s8 GetDoorSoundType(const struct DoorGraphics *gfx, u32 x, u32 y)
 {
+    if (GetMapDoorFormat(gMapHeader.mapLayout) == DOOR_INVALID)
+        return -1;
+
     gfx = GetDoorGraphics(gfx, MapGridGetMetatileIdAt(x, y));
     if (gfx == NULL)
         return -1;
@@ -735,7 +773,12 @@ bool8 FieldIsDoorAnimationRunning(void)
 
 u32 GetDoorSoundEffect(u32 x, u32 y)
 {
-    int sound = GetDoorSoundType(sDoorAnimGraphicsTable, x, y);
+    int sound;
+
+    if (GetMapDoorFormat(gMapHeader.mapLayout) == DOOR_INVALID)
+        return MUS_DUMMY;
+
+    sound = GetDoorSoundType(sDoorAnimGraphicsTable, x, y);
 
     if (sound == DOOR_SOUND_NORMAL)
         return SE_DOOR;

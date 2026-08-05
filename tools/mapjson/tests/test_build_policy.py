@@ -52,6 +52,7 @@ class MapBuildPolicyTests(unittest.TestCase):
         self.assertEqual(
             (allregions["emerald_layout"], allregions["frlg_layout"]), ("1", "1")
         )
+        self.assertEqual(allregions["johto_layout"], "1")
         self.assertEqual(allregions["product"], "1")
 
     def test_unknown_mode_is_fatal(self) -> None:

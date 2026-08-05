@@ -77,6 +77,20 @@ static string DefaultLayoutName(DataDialect dialect)
     return "";
 }
 
+struct LayoutFormatSpec
+{
+    const char *constant;
+    int encodedValue;
+};
+
+static LayoutFormatSpec GetLayoutFormatSpec(const string &value)
+{
+    if (value == "emerald") return {"MAP_LAYOUT_FORMAT_EMERALD", 0};
+    if (value == "frlg") return {"MAP_LAYOUT_FORMAT_FRLG", 1};
+    if (value == "johto") return {"MAP_LAYOUT_FORMAT_JOHTO", 2};
+    FATAL_ERROR("unknown layout format '%s'\n", value.c_str());
+}
+
 MapBuildPolicy ParseBuildPolicy(const string &value)
 {
     if (value == "emerald")
@@ -100,7 +114,7 @@ bool MapBuildPolicy::IncludesRegion(const string &region) const
 bool MapBuildPolicy::IncludesLayout(const string &layoutFormat) const
 {
     if (mode == MapBuildMode::AllRegions)
-        return layoutFormat == "emerald" || layoutFormat == "frlg";
+        return layoutFormat == "emerald" || layoutFormat == "frlg" || layoutFormat == "johto";
     return layoutFormat == DefaultLayoutName(defaultDialect);
 }
 
@@ -792,6 +806,8 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
     write_text_file(output_c + sep + "map_groups.h", map_header_text);
 }
 
+static void validate_layout_formats(const Json &layouts_data, const MapBuildPolicy &policy);
+
 string generate_layout_headers_text(Json layouts_data, const MapBuildPolicy &policy) {
     ostringstream text;
 
@@ -801,11 +817,8 @@ string generate_layout_headers_text(Json layouts_data, const MapBuildPolicy &pol
         if (layout == Json::object()) continue;
         if (!std::filesystem::exists(json_to_string(layout, "border_filepath")))
             continue;
-        string layout_version = json_to_string(layout, "layout_version", true);
-
-        if (layout_version.empty())
-            layout_version = DefaultLayoutName(policy.defaultDialect);
-        if (!policy.IncludesLayout(layout_version))
+        string layout_format = json_to_string(layout, "format");
+        if (!policy.IncludesLayout(layout_format))
             continue;
         string layoutName = json_to_string(layout, "name");
         string border_label = layoutName + "_Border";
@@ -822,12 +835,10 @@ string generate_layout_headers_text(Json layouts_data, const MapBuildPolicy &pol
              << "\t.4byte " << blockdata_label << "\n"
              << "\t.4byte " << json_to_string(layout, "primary_tileset") << "\n"
              << "\t.4byte " << json_to_string(layout, "secondary_tileset") << "\n";
-        if (layout_version == "frlg")
-            text << "\t.byte TRUE\n";
-        else
-            text << "\t.byte FALSE\n";
+        const LayoutFormatSpec format_spec = GetLayoutFormatSpec(layout_format);
+        text << "\t.byte " << format_spec.encodedValue << " @ " << format_spec.constant << "\n";
 
-        if (layout_version == "frlg")
+        if (layout_format == "frlg")
         {
             text << "\t.byte " << json_to_string(layout, "border_width") << "\n"
                  << "\t.byte " << json_to_string(layout, "border_height") << "\n"
@@ -855,10 +866,9 @@ string generate_layouts_table_text(Json layouts_data, const MapBuildPolicy &poli
     for (auto &layout : layouts_data["layouts"].array_items()) {
         if (!std::filesystem::exists(json_to_string(layout, "border_filepath")))
             continue;
-        string layout_version = json_to_string(layout, "layout_version", true);
-        if (layout_version.empty())
-            layout_version = DefaultLayoutName(policy.defaultDialect);
-        if (!policy.IncludesLayout(layout_version)) {
+        string layout_format = json_to_string(layout, "format");
+        GetLayoutFormatSpec(layout_format);
+        if (!policy.IncludesLayout(layout_format)) {
             text << "\t.4byte NULL\n";
         } else {
             string layout_name = json_to_string(layout, "name", true);
@@ -937,6 +947,8 @@ void process_layouts(string layouts_filepath, string output_asm, string output_c
     if (layouts_data == Json())
         FATAL_ERROR("%s\n", err.c_str());
 
+    validate_layout_formats(layouts_data, policy);
+
     string layout_headers_text = generate_layout_headers_text(layouts_data, policy);
     string layouts_table_text = generate_layouts_table_text(layouts_data, policy);
     string layouts_constants_text = generate_layouts_constants_text(layouts_data);
@@ -985,6 +997,7 @@ struct TilesetDependency
     string metatiles;
     string metatileAttributes;
     string callback;
+    string attributeFormat;
 };
 
 static string parse_tileset_field(const string &owner, const string &body, const string &field)
@@ -993,6 +1006,15 @@ static string parse_tileset_field(const string &owner, const string &body, const
     std::smatch match;
     require_product_registry(std::regex_search(body, match, field_regex),
                              "tileset '" + owner + "' lacks ." + field);
+    return match[1].str();
+}
+
+static string parse_tileset_attribute_format(const string &owner, const string &body)
+{
+    const std::regex flags_regex("\\.flags\\s*=\\s*TILESET_FLAGS\\s*\\(\\s*(?:TRUE|FALSE)\\s*,\\s*(METATILE_ATTRIBUTES_(?:EMERALD_U16|FRLG_U32))\\s*\\)\\s*,");
+    std::smatch match;
+    require_product_registry(std::regex_search(body, match, flags_regex),
+                             "tileset '" + owner + "' lacks an explicit attribute format");
     return match[1].str();
 }
 
@@ -1010,10 +1032,97 @@ static map<string, TilesetDependency> parse_tileset_dependencies()
             parse_tileset_field(name, body, "metatiles"),
             parse_tileset_field(name, body, "metatileAttributes"),
             parse_tileset_field(name, body, "callback"),
+            parse_tileset_attribute_format(name, body),
         });
     }
     require_product_registry(!dependencies.empty(), "no tileset dependencies parsed");
     return dependencies;
+}
+
+static map<string, string> parse_metatile_blob_paths()
+{
+    const string declarations = read_text_file("src/data/tilesets/metatiles.h");
+    const std::regex declaration_regex("const\\s+u16\\s+([A-Za-z_][A-Za-z0-9_]*)\\[\\]\\s*=\\s*INCBIN_U16\\(\"([^\"]+)\"\\)");
+    map<string, string> paths;
+
+    for (std::sregex_iterator it(declarations.begin(), declarations.end(), declaration_regex), end; it != end; ++it)
+        paths.emplace((*it)[1].str(), (*it)[2].str());
+    require_product_registry(!paths.empty(), "no metatile blob declarations parsed");
+    return paths;
+}
+
+static string derive_tileset_attribute_format(const string &tileset_name,
+                                               const TilesetDependency &tileset,
+                                               const map<string, string> &blob_paths)
+{
+    const auto metatiles_path = blob_paths.find(tileset.metatiles);
+    const auto attributes_path = blob_paths.find(tileset.metatileAttributes);
+    require_product_registry(metatiles_path != blob_paths.end(),
+                             "tileset '" + tileset_name + "' has unknown metatile blob '" + tileset.metatiles + "'");
+    require_product_registry(attributes_path != blob_paths.end(),
+                             "tileset '" + tileset_name + "' has unknown attribute blob '" + tileset.metatileAttributes + "'");
+
+    std::error_code error;
+    const uintmax_t metatiles_size = std::filesystem::file_size(metatiles_path->second, error);
+    require_product_registry(!error, "cannot size metatile blob '" + metatiles_path->second + "'");
+    const uintmax_t attributes_size = std::filesystem::file_size(attributes_path->second, error);
+    require_product_registry(!error, "cannot size attribute blob '" + attributes_path->second + "'");
+    require_product_registry(metatiles_size != 0 && metatiles_size % 16 == 0,
+                             "tileset '" + tileset_name + "' has malformed metatile blob width");
+
+    const uintmax_t metatile_count = metatiles_size / 16;
+    if (attributes_size == metatile_count * 2)
+        return "METATILE_ATTRIBUTES_EMERALD_U16";
+    if (attributes_size == metatile_count * 4)
+        return "METATILE_ATTRIBUTES_FRLG_U32";
+    FATAL_ERROR("tileset '%s' attribute blob width is neither u16 nor u32\n", tileset_name.c_str());
+}
+
+static void validate_layout_formats(const Json &layouts_data, const MapBuildPolicy &policy)
+{
+    const map<string, TilesetDependency> tilesets = parse_tileset_dependencies();
+    const map<string, string> blob_paths = parse_metatile_blob_paths();
+    map<string, string> derived_formats;
+
+    for (const auto &entry : tilesets)
+    {
+        const string derived = derive_tileset_attribute_format(entry.first, entry.second, blob_paths);
+        require_product_registry(entry.second.attributeFormat == derived,
+                                 "tileset '" + entry.first + "' declares " + entry.second.attributeFormat
+                                 + " but its blobs derive " + derived);
+        derived_formats.emplace(entry.first, derived);
+    }
+
+    for (const Json &layout : layouts_data["layouts"].array_items())
+    {
+        const string format = json_to_string(layout, "format");
+        GetLayoutFormatSpec(format);
+        if (!policy.IncludesLayout(format))
+            continue;
+
+        const string layout_name = json_to_string(layout, "name");
+        const string primary = json_to_string(layout, "primary_tileset");
+        const string secondary = json_to_string(layout, "secondary_tileset");
+        const auto primary_format = derived_formats.find(primary);
+        const auto secondary_format = derived_formats.find(secondary);
+        require_product_registry(primary_format != derived_formats.end(),
+                                 "layout '" + layout_name + "' references unknown primary tileset '" + primary + "'");
+        require_product_registry(secondary == "0" || secondary_format != derived_formats.end(),
+                                 "layout '" + layout_name + "' references unknown secondary tileset '" + secondary + "'");
+
+        if (format != "johto")
+        {
+            const string expected = format == "frlg"
+                ? "METATILE_ATTRIBUTES_FRLG_U32"
+                : "METATILE_ATTRIBUTES_EMERALD_U16";
+            require_product_registry(primary_format->second == expected,
+                                     "layout '" + layout_name + "' format '" + format
+                                     + "' mismatches primary tileset attribute width");
+            require_product_registry(secondary == "0" || secondary_format->second == expected,
+                                     "layout '" + layout_name + "' format '" + format
+                                     + "' mismatches secondary tileset attribute width");
+        }
+    }
 }
 
 static void write_foundation_manifest(const std::filesystem::path &staging,
@@ -1121,9 +1230,8 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
     int included_layout_count = 0;
     int layout_number = 1;
     for (const Json &layout : layouts_data["layouts"].array_items()) {
-        const string format = json_to_string(layout, "layout_version", true).empty()
-            ? DefaultLayoutName(policy.defaultDialect)
-            : json_to_string(layout, "layout_version");
+        const string format = json_to_string(layout, "format");
+        GetLayoutFormatSpec(format);
         if (policy.IncludesLayout(format)) {
             const string layout_name = json_to_string(layout, "name");
             const string primary_tileset = json_to_string(layout, "primary_tileset");
@@ -1454,6 +1562,7 @@ int main(int argc, char *argv[]) {
              << "kanto=" << policy.IncludesRegion("REGION_KANTO") << "\n"
              << "emerald_layout=" << policy.IncludesLayout("emerald") << "\n"
              << "frlg_layout=" << policy.IncludesLayout("frlg") << "\n"
+             << "johto_layout=" << policy.IncludesLayout("johto") << "\n"
              << "ruby_layout=" << policy.IncludesLayout("ruby") << "\n"
              << "product=" << policy.IsProduct() << "\n";
     }
