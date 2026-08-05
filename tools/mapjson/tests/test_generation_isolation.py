@@ -169,7 +169,57 @@ class GenerationIsolationTests(unittest.TestCase):
                 {"firered\n", "allregions\n"},
             )
             generations = list(output.parent.glob(".generation-*"))
-            self.assertGreaterEqual(len(generations), 3)
+            self.assertEqual(len(generations), 1)
+            self.assertFalse(list(output.parent.glob(".staging-*")))
+            self.assertFalse(list(output.parent.glob(".current-*")))
+
+    def test_successful_publish_removes_stale_work_trees(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mapjson-cleanup-") as directory:
+            base = Path(directory)
+            output = base / "current"
+            (base / ".staging-abandoned").mkdir()
+            (base / ".generation-abandoned").mkdir()
+
+            result = generate("emerald", output)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse((base / ".staging-abandoned").exists())
+            self.assertFalse((base / ".generation-abandoned").exists())
+            self.assertEqual(len(list(base.glob(".generation-*"))), 1)
+
+    def test_cleanup_preserves_direct_child_target_with_trailing_separator(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mapjson-active-generation-") as directory:
+            base = Path(directory)
+            active = base / ".generation-active"
+            active.mkdir()
+            os.symlink(".generation-active/", base / "other-current")
+            (base / ".generation-stale").mkdir()
+
+            result = generate("emerald", base / "current")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(active.is_dir())
+            self.assertTrue((base / "other-current").is_symlink())
+            self.assertFalse((base / ".generation-stale").exists())
+            self.assertEqual(len(list(base.glob(".generation-*"))), 2)
+
+    def test_cleanup_preserves_generation_owning_a_symlinked_subtree(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mapjson-active-subtree-") as directory:
+            base = Path(directory)
+            active_data = base / ".generation-active" / "data"
+            active_data.mkdir(parents=True)
+            (active_data / "sentinel").write_text("active\n")
+            os.symlink(".generation-active/data", base / "other-data")
+            (base / ".generation-stale").mkdir()
+
+            result = generate("emerald", base / "current")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual((base / "other-data/sentinel").read_text(), "active\n")
+            self.assertFalse((base / ".generation-stale").exists())
+            self.assertEqual(len(list(base.glob(".generation-*"))), 2)
+
+    def test_windows_publication_lock_uses_native_unicode_path_api(self) -> None:
+        source = (ROOT / "tools/mapjson/mapjson.cpp").read_text(encoding="utf-8")
+        self.assertIn("CreateFileW(lock_path.c_str()", source)
+        self.assertNotIn("CreateFileA(", source)
 
 
 if __name__ == "__main__":

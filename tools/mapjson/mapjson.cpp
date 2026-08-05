@@ -38,6 +38,16 @@ using json11::Json;
 #include <system_error>
 #include <chrono>
 
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#include <thread>
+#else
+#include <fcntl.h>
+#include <sys/file.h>
+#include <unistd.h>
+#endif
+
 // System directory separator
 string sep;
 
@@ -214,7 +224,8 @@ string get_include_guard_end(const string &name) {
     return guard.str();
 }
 
-string generate_map_header_text(Json map_data, Json layouts_data, const MapBuildPolicy &policy) {
+string generate_map_header_text(Json map_data, Json layouts_data, const MapBuildPolicy &policy,
+                                size_t connection_count) {
     string map_layout_id = json_to_string(map_data, "layout");
 
     vector<Json> matched;
@@ -247,8 +258,7 @@ string generate_map_header_text(Json map_data, Json layouts_data, const MapBuild
     else
         text << "\t.4byte " << mapName << "_MapScripts\n";
 
-    if (map_data.object_items().find("connections") != map_data.object_items().end()
-     && map_data["connections"].array_items().size() > 0 && json_to_string(map_data, "connections_no_include", true) != "TRUE")
+    if (connection_count > 0 && json_to_string(map_data, "connections_no_include", true) != "TRUE")
         text << "\t.4byte " << mapName << "_MapConnections\n";
     else
         text << "\t.4byte NULL\n";
@@ -283,7 +293,16 @@ string generate_map_header_text(Json map_data, Json layouts_data, const MapBuild
     return text.str();
 }
 
-string generate_map_connections_text(Json map_data, const vector<string> &existing_maps) {
+static vector<Json> filtered_map_connections(Json map_data, const vector<string> &existing_maps) {
+    vector<Json> connections;
+    for (const Json &connection : map_data["connections"].array_items()) {
+        if (find(existing_maps.begin(), existing_maps.end(), json_to_string(connection, "map")) != existing_maps.end())
+            connections.push_back(connection);
+    }
+    return connections;
+}
+
+string generate_map_connections_text(Json map_data, const vector<Json> &connections) {
     if (map_data["connections"] == Json())
         return string("\n");
 
@@ -293,10 +312,7 @@ string generate_map_connections_text(Json map_data, const vector<string> &existi
     text << get_generated_warning("data/maps/" + mapName + "/map.json", true);
     text << mapName << "_MapConnectionsList:\n";
 
-    for (auto &connection : map_data["connections"].array_items()) {
-        auto it = find(existing_maps.begin(), existing_maps.end(), json_to_string(connection, "map"));
-        if (it == existing_maps.end())
-            continue;
+    for (const Json &connection : connections) {
         text << "\tconnection "
              << json_to_string(connection, "direction") << ", "
              << json_to_string(connection, "offset") << ", "
@@ -304,7 +320,7 @@ string generate_map_connections_text(Json map_data, const vector<string> &existi
     }
 
     text << "\n" << mapName << "_MapConnections:\n"
-         << "\t.4byte " << map_data["connections"].array_items().size() << "\n"
+         << "\t.4byte " << connections.size() << "\n"
          << "\t.4byte " << mapName << "_MapConnectionsList\n\n";
 
     return text.str();
@@ -492,9 +508,10 @@ void process_map(string map_filepath, string layouts_filepath, string output_dir
     if (layouts_data == Json())
         FATAL_ERROR("%s\n", layouts_err.c_str());
 
-    string header_text = generate_map_header_text(map_data, layouts_data, policy);
+    const vector<Json> connections = filtered_map_connections(map_data, existing_maps);
+    string header_text = generate_map_header_text(map_data, layouts_data, policy, connections.size());
     string events_text = generate_map_events_text(map_data, hidden_item_flags);
-    string connections_text = generate_map_connections_text(map_data, existing_maps);
+    string connections_text = generate_map_connections_text(map_data, connections);
 
     string out_dir = strip_trailing_separator(output_dir).append(sep);
     write_text_file(out_dir + "header.inc", header_text);
@@ -985,6 +1002,22 @@ static vector<string> included_map_ids(const vector<string> &map_filepaths, cons
             ids.push_back(json_to_string(map_data, "id"));
     }
     return ids;
+}
+
+static vector<string> sibling_map_ids(const string &map_filepath, const MapBuildPolicy &policy)
+{
+    const std::filesystem::path maps_dir = std::filesystem::path(map_filepath).parent_path().parent_path();
+    vector<string> map_filepaths;
+    std::error_code error;
+    for (std::filesystem::directory_iterator it(maps_dir, error), end; !error && it != end; it.increment(error)) {
+        const std::filesystem::path candidate = it->path() / "map.json";
+        if (std::filesystem::is_regular_file(candidate))
+            map_filepaths.push_back(candidate.string());
+    }
+    if (error)
+        FATAL_ERROR("Failed to scan standalone map registry '%s': %s\n",
+                    maps_dir.string().c_str(), error.message().c_str());
+    return included_map_ids(map_filepaths, policy);
 }
 
 static Json read_json_file(const string &filepath, const string &purpose)
@@ -1735,6 +1768,108 @@ static std::filesystem::path reserve_generation_staging(const std::filesystem::p
     FATAL_ERROR("Failed to reserve a unique generation staging tree below '%s'.\n", parent.string().c_str());
 }
 
+#ifndef _WIN32
+class GenerationLock
+{
+public:
+    explicit GenerationLock(const std::filesystem::path &parent)
+    {
+        const std::filesystem::path lock_path = parent / ".generation.lock";
+        descriptor = open(lock_path.c_str(), O_CREAT | O_RDWR, 0666);
+        if (descriptor < 0 || flock(descriptor, LOCK_EX) != 0)
+            FATAL_ERROR("Failed to lock generation directory '%s'.\n", parent.string().c_str());
+    }
+
+    ~GenerationLock()
+    {
+        flock(descriptor, LOCK_UN);
+        close(descriptor);
+    }
+
+private:
+    int descriptor = -1;
+};
+#else
+class GenerationLock
+{
+public:
+    explicit GenerationLock(const std::filesystem::path &parent)
+    {
+        const std::filesystem::path lock_path = parent / ".generation.lock";
+        for (;;) {
+            handle = CreateFileW(lock_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+                                 OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (handle != INVALID_HANDLE_VALUE)
+                return;
+            if (GetLastError() != ERROR_SHARING_VIOLATION)
+                FATAL_ERROR("Failed to lock generation directory '%s'.\n", parent.string().c_str());
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+
+    ~GenerationLock()
+    {
+        CloseHandle(handle);
+    }
+
+private:
+    HANDLE handle = INVALID_HANDLE_VALUE;
+};
+#endif
+
+static void remove_generation_work_trees(const std::filesystem::path &parent)
+{
+    set<string> referenced_generations;
+    std::error_code canonical_error;
+    const std::filesystem::path canonical_parent = std::filesystem::canonical(parent, canonical_error);
+    if (canonical_error)
+        FATAL_ERROR("Failed to resolve generation directory '%s': %s\n",
+                    parent.string().c_str(), canonical_error.message().c_str());
+    std::error_code iterator_error;
+    for (std::filesystem::directory_iterator it(parent, iterator_error), end;
+         !iterator_error && it != end; it.increment(iterator_error)) {
+        std::error_code status_error;
+        if (!std::filesystem::is_symlink(it->symlink_status(status_error)) || status_error)
+            continue;
+        const std::filesystem::path target = std::filesystem::read_symlink(it->path(), status_error);
+        if (status_error)
+            continue;
+        const std::filesystem::path resolved_target = std::filesystem::canonical(parent / target, status_error);
+        if (status_error)
+            continue;
+        const std::filesystem::path relative_target = resolved_target.lexically_relative(canonical_parent);
+        if (relative_target.empty() || relative_target.is_absolute())
+            continue;
+        const auto first_component = relative_target.begin();
+        if (first_component == relative_target.end() || *first_component == "..")
+            continue;
+        const string generation_name = first_component->string();
+        if (generation_name.rfind(".generation-", 0) == 0)
+            referenced_generations.insert(generation_name);
+    }
+    if (iterator_error)
+        FATAL_ERROR("Failed to inspect generation pointers below '%s': %s\n",
+                    parent.string().c_str(), iterator_error.message().c_str());
+
+    iterator_error.clear();
+    for (std::filesystem::directory_iterator it(parent, iterator_error), end;
+         !iterator_error && it != end; it.increment(iterator_error)) {
+        const string name = it->path().filename().string();
+        if (name.rfind(".staging-", 0) != 0 && name.rfind(".generation-", 0) != 0)
+            continue;
+        if (referenced_generations.count(name))
+            continue;
+        std::error_code remove_error;
+        std::filesystem::remove_all(it->path(), remove_error);
+        if (remove_error)
+            FATAL_ERROR("Failed to remove stale generation tree '%s': %s\n",
+                        it->path().string().c_str(), remove_error.message().c_str());
+    }
+    if (iterator_error)
+        FATAL_ERROR("Failed to inspect generation directory '%s': %s\n",
+                    parent.string().c_str(), iterator_error.message().c_str());
+}
+
 static void promote_generation_tree(const std::filesystem::path &staging,
                                     const std::filesystem::path &destination)
 {
@@ -1766,6 +1901,8 @@ static void promote_generation_tree(const std::filesystem::path &staging,
     std::filesystem::rename(next_link, destination, ec);
     if (ec)
         FATAL_ERROR("Failed to publish generation pointer '%s': %s\n", destination.string().c_str(), ec.message().c_str());
+
+    remove_generation_work_trees(staging.parent_path());
 }
 
 static map<string, int> allocate_product_hidden_item_flags(const MapBuildPolicy &policy,
@@ -2013,6 +2150,9 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
 {
     validate_product_inputs(policy, groups_filepath, layouts_filepath, map_filepaths);
     std::filesystem::path destination = strip_trailing_separator(output_root);
+    std::filesystem::create_directories(destination.parent_path());
+    GenerationLock generation_lock(destination.parent_path());
+    remove_generation_work_trees(destination.parent_path());
     std::filesystem::path staging = reserve_generation_staging(destination);
 
     const std::filesystem::path maps_out = staging / "data" / "maps";
@@ -2064,7 +2204,8 @@ int main(int argc, char *argv[]) {
         string layouts_filepath(argv[4]);
         string output_dir(argv[5]);
 
-        process_map(filepath, layouts_filepath, output_dir, policy, {});
+        process_map(filepath, layouts_filepath, output_dir, policy,
+                    sibling_map_ids(filepath, policy));
     }
     else if (mode == "groups") {
         if (argc < 6)

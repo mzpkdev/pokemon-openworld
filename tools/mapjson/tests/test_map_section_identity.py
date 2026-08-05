@@ -1,5 +1,6 @@
 import copy
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -197,6 +198,58 @@ class MapHeaderAbiGenerationTests(unittest.TestCase):
         c_header = (ROOT / "include" / "global.fieldmap.h").read_text()
         self.assertIn("sizeof(struct MapHeader) == 0x20", c_header)
         self.assertIn("MapHeaderAbiStride, items[1]) == 0x20", c_header)
+
+    def test_standalone_map_connections_use_the_sibling_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            result = subprocess.run(
+                [
+                    str(MAPJSON),
+                    "map",
+                    "allregions",
+                    "data/maps/Route101/map.json",
+                    "data/layouts/layouts.json",
+                    f"{output}/",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            header = (output / "header.inc").read_text(encoding="utf-8")
+            connections = (output / "connections.inc").read_text(encoding="utf-8")
+            self.assertIn("\t.4byte Route101_MapConnections", header)
+            self.assertIn("\t.4byte 2\n\t.4byte Route101_MapConnectionsList", connections)
+            self.assertEqual(connections.count("\tconnection "), 2)
+
+    def test_filtered_standalone_connections_clear_header_pointer_and_count(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            map_dir = base / "maps" / "Route101"
+            output = base / "output"
+            map_dir.mkdir(parents=True)
+            output.mkdir()
+            shutil.copy2(ROOT / "data/maps/Route101/map.json", map_dir / "map.json")
+            result = subprocess.run(
+                [
+                    str(MAPJSON),
+                    "map",
+                    "allregions",
+                    str(map_dir / "map.json"),
+                    "data/layouts/layouts.json",
+                    f"{output}/",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            header = (output / "header.inc").read_text(encoding="utf-8")
+            connections = (output / "connections.inc").read_text(encoding="utf-8")
+            self.assertNotIn("\t.4byte Route101_MapConnections", header)
+            self.assertIn("\t.4byte NULL", header)
+            self.assertIn("\t.4byte 0\n\t.4byte Route101_MapConnectionsList", connections)
+            self.assertNotIn("\tconnection ", connections)
 
 
 if __name__ == "__main__":

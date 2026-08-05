@@ -95,6 +95,130 @@ class ProductMakeContractTests(unittest.TestCase):
         self.assertNotIn("build/generated/allregions/current/src", database_targets)
         self.assertNotIn("build/generated/allregions/current/include", database_targets)
 
+    def test_map_generation_stamp_tracks_every_indirect_input_class(self) -> None:
+        result = subprocess.run(
+            ["make", "-pn", "NODEP=1", "SETUP_PREREQS=0", "clean-generated"],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        rule = next(
+            line
+            for line in result.stdout.splitlines()
+            if line.startswith("build/generated/allregions/current/.map-build-policy:")
+        )
+        for dependency in (
+            "tools/mapjson/required_map_defines.json",
+            "src/data/tilesets/headers.h",
+            "src/data/tilesets/metatiles.h",
+            "data/tilesets/primary/general/metatiles.bin",
+            "data/layouts/LittlerootTown/map.bin",
+            "data/layouts/LittlerootTown/border.bin",
+            "data/maps/LittlerootTown/scripts.inc",
+            "data/scripts/movement.inc",
+        ):
+            with self.subTest(dependency=dependency):
+                self.assertIn(dependency, rule)
+
+    def test_global_script_registry_dependency_scan_is_recursive(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            nested = temp / "data/scripts/nested/deeper/registry.inc"
+            nested.parent.mkdir(parents=True)
+            nested.write_text("NestedOwner_MapScripts::\n")
+            makefile = temp / "Makefile"
+            makefile.write_text(
+                "DATA_ASM_SUBDIR := data\n"
+                "DATA_ASM_BUILDDIR := build/data\n"
+                "C_BUILDDIR := build/src\n"
+                "TEST_BUILDDIR := build/test\n"
+                "GENERATED_ROOT := build/generated/current\n"
+                "MAPJSON := mapjson\n"
+                f"include {ROOT / 'map_data_rules.mk'}\n"
+                ".PHONY: print-global-script-registries\n"
+                "print-global-script-registries:\n"
+                "\t@printf '%s\\n' $(GLOBAL_SCRIPT_REGISTRIES)\n"
+            )
+            result = subprocess.run(
+                ["make", "--no-print-directory", "print-global-script-registries"],
+                cwd=temp,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("data/scripts/nested/deeper/registry.inc", result.stdout.splitlines())
+
+    def test_deleting_wildcard_inputs_regenerates_the_map_tree(self) -> None:
+        deletion_cases = (
+            "data/maps/Only/map.json",
+            "data/maps/Only/scripts.inc",
+            "data/layouts/Only/map.bin",
+        )
+        for deleted_path in deletion_cases:
+            with self.subTest(deleted_path=deleted_path), tempfile.TemporaryDirectory() as temp_dir:
+                temp = Path(temp_dir)
+                for relative, contents in (
+                    ("data/maps/map_groups.json", "{}\n"),
+                    ("data/maps/Only/map.json", "{}\n"),
+                    ("data/maps/Only/scripts.inc", "Only_MapScripts::\n"),
+                    ("data/layouts/layouts.json", "{}\n"),
+                    ("data/layouts/Only/map.bin", "map\n"),
+                    ("data/layouts/Only/border.bin", "border\n"),
+                    ("data/scripts/global.inc", "Global_MapScripts::\n"),
+                    ("src/data/tilesets/headers.h", "\n"),
+                    ("src/data/tilesets/metatiles.h", "\n"),
+                    ("src/data/region_map/region_map_sections.json", "{}\n"),
+                    ("src/data/region_map/map_section_compatibility.json", "{}\n"),
+                    ("tools/mapjson/required_map_defines.json", "{}\n"),
+                    ("tools/mapjson/product_exclusions.json", "{}\n"),
+                    ("tools/mapjson/product_hidden_item_flags.json", "{}\n"),
+                ):
+                    path = temp / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(contents)
+
+                log = temp / "generations.log"
+                mapjson = temp / "fake-mapjson"
+                mapjson.write_text(
+                    "#!/bin/sh\n"
+                    "set -eu\n"
+                    "printf 'generate\\n' >> \"$CONTRACT_LOG\"\n"
+                    "mkdir -p \"$5\"\n"
+                    "printf 'allregions\\n' > \"$5/.map-build-policy\"\n"
+                )
+                mapjson.chmod(0o755)
+                makefile = temp / "Makefile"
+                makefile.write_text(
+                    "DATA_ASM_SUBDIR := data\n"
+                    "DATA_ASM_BUILDDIR := build/data\n"
+                    "C_BUILDDIR := build/src\n"
+                    "TEST_BUILDDIR := build/test\n"
+                    "GENERATED_ROOT := build/generated/current\n"
+                    "MAP_VERSION := allregions\n"
+                    f"MAPJSON := {mapjson}\n"
+                    f"include {ROOT / 'map_data_rules.mk'}\n"
+                )
+                target = "build/generated/current/.map-build-policy"
+                environment = {**os.environ, "CONTRACT_LOG": str(log)}
+                first = subprocess.run(
+                    ["make", "--no-print-directory", target], cwd=temp,
+                    text=True, capture_output=True, env=environment,
+                )
+                self.assertEqual(first.returncode, 0, first.stderr)
+
+                deleted = temp / deleted_path
+                containing_directory = deleted.parent
+                deleted.unlink()
+                stamp_mtime = (temp / target).stat().st_mtime + 10
+                os.utime(containing_directory, (stamp_mtime, stamp_mtime))
+                second = subprocess.run(
+                    ["make", "--no-print-directory", target], cwd=temp,
+                    text=True, capture_output=True, env=environment,
+                )
+                self.assertEqual(second.returncode, 0, second.stderr)
+                self.assertEqual(log.read_text().splitlines(), ["generate", "generate"])
+
     def test_built_tree_supports_clean_generated_and_clean(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             checkout = Path(temp_dir) / "checkout"

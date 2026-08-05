@@ -20,6 +20,22 @@ AUTO_GEN_TARGETS += $(MAP_GENERATION_STAMP)
 MAP_DIRS := $(dir $(wildcard $(MAPS_DIR)/*/map.json))
 MAP_JSONS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/map.json,$(MAP_DIRS))
 MAP_NAMES := $(notdir $(patsubst %/,%,$(MAP_DIRS)))
+MAP_INPUT_DIRS := $(MAPS_DIR)/ $(wildcard $(MAPS_DIR)/*/)
+MAP_SCRIPT_REGISTRIES := $(wildcard $(MAPS_DIR)/*/scripts.inc)
+mapjson_recursive_wildcard = $(foreach path,$(wildcard $1*),$(call mapjson_recursive_wildcard,$(path)/,$2) $(filter $(subst *,%,$2),$(path)))
+mapjson_recursive_directories = $(foreach directory,$(wildcard $1*/),$(directory) $(call mapjson_recursive_directories,$(directory)))
+GLOBAL_SCRIPT_REGISTRIES := $(call mapjson_recursive_wildcard,data/scripts/,*.inc)
+GLOBAL_SCRIPT_INPUT_DIRS := data/scripts/ $(call mapjson_recursive_directories,data/scripts/)
+LAYOUT_INPUT_DIRS := $(LAYOUTS_DIR)/ $(wildcard $(LAYOUTS_DIR)/*/)
+LAYOUT_BINARIES := $(wildcard $(LAYOUTS_DIR)/*/*.bin)
+TILESET_REGISTRY_HEADERS := src/data/tilesets/headers.h src/data/tilesets/metatiles.h
+TILESET_BLOBS := $(shell sed -n 's/.*INCBIN_U16("\([^"]*\)").*/\1/p' src/data/tilesets/metatiles.h)
+MAP_GENERATOR_POLICY_INPUTS := \
+	tools/mapjson/required_map_defines.json \
+	tools/mapjson/product_exclusions.json \
+	tools/mapjson/product_hidden_item_flags.json \
+	src/data/region_map/region_map_sections.json \
+	src/data/region_map/map_section_compatibility.json
 MAP_CONNECTIONS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/connections.inc)
 MAP_EVENTS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/events.inc)
 MAP_HEADERS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/header.inc)
@@ -40,9 +56,9 @@ MAP_GENERATED_GLOBALS := \
 	$(FOUNDATION_MANIFEST)
 
 $(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) \
-		src/data/region_map/region_map_sections.json \
-		src/data/region_map/map_section_compatibility.json \
-		tools/mapjson/product_exclusions.json tools/mapjson/product_hidden_item_flags.json $(MAPJSON)
+		$(MAP_INPUT_DIRS) $(MAP_SCRIPT_REGISTRIES) $(GLOBAL_SCRIPT_INPUT_DIRS) $(GLOBAL_SCRIPT_REGISTRIES) \
+		$(LAYOUT_INPUT_DIRS) $(LAYOUT_BINARIES) \
+		$(TILESET_REGISTRY_HEADERS) $(TILESET_BLOBS) $(MAP_GENERATOR_POLICY_INPUTS) $(MAPJSON)
 	@$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) $(MAP_JSONS)
 	@echo "$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) <MAP_JSONS>"
 
