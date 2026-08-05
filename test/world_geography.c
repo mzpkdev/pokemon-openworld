@@ -9,11 +9,11 @@
 
 #define SYNTHETIC_SECTION_COUNT 301
 
-static struct MapSectionMetadata sSyntheticMetadata[SYNTHETIC_SECTION_COUNT];
-static SavedLocationCode sSyntheticSectionToSaved[SYNTHETIC_SECTION_COUNT];
-static MetLocationCode sSyntheticSectionToMet[SYNTHETIC_SECTION_COUNT];
-static MapSectionId sSyntheticSavedToSection[256];
-static MapSectionId sSyntheticMetToSection[256];
+static EWRAM_DATA struct MapSectionMetadata sSyntheticMetadata[SYNTHETIC_SECTION_COUNT];
+static EWRAM_DATA SavedLocationCode sSyntheticSectionToSaved[SYNTHETIC_SECTION_COUNT];
+static EWRAM_DATA MetLocationCode sSyntheticSectionToMet[SYNTHETIC_SECTION_COUNT];
+static EWRAM_DATA MapSectionId sSyntheticSavedToSection[256];
+static EWRAM_DATA MapSectionId sSyntheticMetToSection[256];
 
 static const MapSectionId sSyntheticSections[] = {253, 254, 255, 256, 300};
 static const RegionId sSyntheticRegions[] = {REGION_HOENN, REGION_KANTO, REGION_HOENN, REGION_KANTO, REGION_HOENN};
