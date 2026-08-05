@@ -31,11 +31,15 @@ class MapBuildPolicyTests(unittest.TestCase):
     def test_single_region_modes_only_include_their_region_and_layout(self) -> None:
         emerald = policy("emerald")
         self.assertEqual((emerald["hoenn"], emerald["kanto"]), ("1", "0"))
-        self.assertEqual((emerald["emerald_layout"], emerald["frlg_layout"]), ("1", "0"))
+        self.assertEqual(
+            (emerald["emerald_layout"], emerald["frlg_layout"]), ("1", "0")
+        )
 
         firered = policy("firered")
         self.assertEqual((firered["hoenn"], firered["kanto"]), ("0", "1"))
-        self.assertEqual((firered["emerald_layout"], firered["frlg_layout"]), ("0", "1"))
+        self.assertEqual(
+            (firered["emerald_layout"], firered["frlg_layout"]), ("0", "1")
+        )
 
         ruby = policy("ruby")
         self.assertEqual((ruby["hoenn"], ruby["kanto"]), ("1", "0"))
@@ -45,7 +49,9 @@ class MapBuildPolicyTests(unittest.TestCase):
         allregions = policy("allregions")
         self.assertEqual(allregions["dialect"], "emerald")
         self.assertEqual((allregions["hoenn"], allregions["kanto"]), ("1", "1"))
-        self.assertEqual((allregions["emerald_layout"], allregions["frlg_layout"]), ("1", "1"))
+        self.assertEqual(
+            (allregions["emerald_layout"], allregions["frlg_layout"]), ("1", "1")
+        )
         self.assertEqual(allregions["product"], "1")
 
     def test_unknown_mode_is_fatal(self) -> None:

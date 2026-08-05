@@ -938,6 +938,9 @@ static void LoadMapFromWarp(bool32 a1)
 {
     bool8 isOutdoors;
     bool8 isIndoors;
+#ifdef DEBUG
+    const u8 *mapScripts;
+#endif
 
     LoadCurrentMapData();
     if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
@@ -992,7 +995,20 @@ static void LoadMapFromWarp(bool32 a1)
     else if (InTrainerHill())
         InitTrainerHillMap();
     else
+    {
+#ifdef DEBUG
+        // InitMap runs MAP_SCRIPT_ON_LOAD internally. Hide the script table for
+        // the whole call so a structural load cannot run an on-load script
+        // against object templates that were intentionally suppressed above.
+        mapScripts = gMapHeader.mapScripts;
+        if (FoundationMapLoad_ShouldSuppressScripts())
+            gMapHeader.mapScripts = NULL;
+#endif
         InitMap();
+#ifdef DEBUG
+        gMapHeader.mapScripts = mapScripts;
+#endif
+    }
 
     if (a1 != TRUE && isIndoors)
     {

@@ -92,3 +92,52 @@ def test_foundation_request_rejects_wrong_map_echo():
 
     with pytest.raises(RuntimeError, match="echoed the wrong map id"):
         SkyEmuSession.request_map_load(harness, request, max_frames=1)
+
+
+class StateHarness:
+    def __init__(self):
+        self.calls = []
+        self.buttons = None
+
+    def _text(self, command, params):
+        self.calls.append((command, params))
+        return "ok"
+
+    def set_buttons(self, **states):
+        self.buttons = states
+
+
+def test_load_state_uses_skyemu_load_endpoint_and_releases_buttons(tmp_path):
+    state = tmp_path / "clean-state.png"
+    state.write_bytes(b"state")
+    harness = StateHarness()
+
+    SkyEmuSession.load_state(harness, state)
+
+    assert harness.calls == [("load", [("path", str(state.resolve()))])]
+    assert harness.buttons and not any(harness.buttons.values())
+
+
+class SavedVarHarness:
+    def __init__(self):
+        self.value = 0
+        self.address_written = None
+
+    def save_block1(self):
+        return 0x02000000
+
+    def write_u16(self, address, value):
+        self.address_written = address
+        self.value = value
+
+    def read_var(self, var_id):
+        return self.value
+
+
+def test_set_var_writes_and_verifies_saved_variable():
+    harness = SavedVarHarness()
+
+    SkyEmuSession.set_var(harness, 0x4086, 1)
+
+    assert harness.address_written == 0x02000000 + 0x139C + 0x86 * 2
+    assert harness.value == 1

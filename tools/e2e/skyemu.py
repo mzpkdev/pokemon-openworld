@@ -169,12 +169,23 @@ def _free_port() -> int:
 
 
 class SkyEmuSession:
-    def __init__(self, binary: Path, rom: Path, symbols: Symbols, workdir: Path):
+    def __init__(
+        self,
+        binary: Path,
+        rom: Path,
+        symbols: Symbols,
+        workdir: Path,
+        battery_save: Path | None = None,
+    ):
         self.symbols = symbols
         self.workdir = workdir
         self.workdir.mkdir(parents=True, exist_ok=True)
         self.rom = self.workdir / "game.gba"
         shutil.copy2(rom, self.rom)
+        if battery_save is not None:
+            if not battery_save.is_file():
+                raise FileNotFoundError(f"battery save does not exist: {battery_save}")
+            shutil.copy2(battery_save, self.rom.with_suffix(".sav"))
         self.log_path = self.workdir / "skyemu.log"
         self.port = _free_port()
         data_home = self.workdir / "skyemu-data"
@@ -416,6 +427,16 @@ class SkyEmuSession:
         offset = SAVE_BLOCK1_VARS_OFFSET + (var_id - VARS_START) * 2
         return self.read_u16(self.save_block1() + offset)
 
+    def set_var(self, var_id: int, value: int) -> None:
+        if not VARS_START <= var_id <= VARS_END:
+            raise ValueError(f"not a saved variable id: 0x{var_id:x}")
+        if not 0 <= value <= 0xFFFF:
+            raise ValueError(f"saved variable value is outside u16: 0x{value:x}")
+        offset = SAVE_BLOCK1_VARS_OFFSET + (var_id - VARS_START) * 2
+        self.write_u16(self.save_block1() + offset, value)
+        if self.read_var(var_id) != value:
+            raise RuntimeError(f"failed to update variable 0x{var_id:x}")
+
     def read_flag(self, flag_id: int) -> bool:
         if not 0 < flag_id < FLAGS_COUNT:
             raise ValueError(f"not a saved flag id: 0x{flag_id:x}")
@@ -595,6 +616,14 @@ class SkyEmuSession:
         result = self._text("save", [("path", str(output.resolve()))])
         if result != "ok":
             raise RuntimeError(f"SkyEmu save failed: {result}")
+
+    def load_state(self, state: Path) -> None:
+        if not state.is_file():
+            raise FileNotFoundError(f"SkyEmu state does not exist: {state}")
+        result = self._text("load", [("path", str(state.resolve()))])
+        if result != "ok":
+            raise RuntimeError(f"SkyEmu state load failed: {result}")
+        self.set_buttons(**{button: False for button in BUTTONS})
 
     def close(self) -> None:
         if self.process.poll() is None:

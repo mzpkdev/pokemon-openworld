@@ -11,6 +11,7 @@ LAYOUTS_OUTDIR := $(GENERATED_ROOT)/data/layouts
 INCLUDECONSTS_OUTDIR := $(GENERATED_ROOT)/include/constants
 MAP_GROUP_COUNT_OUT := $(GENERATED_ROOT)/src/data/map_group_count.h
 MAP_GENERATION_STAMP := $(GENERATED_ROOT)/.map-build-policy
+FOUNDATION_MANIFEST := $(GENERATED_ROOT)/foundation-manifest.json
 
 AUTO_GEN_TARGETS += $(MAP_GENERATION_STAMP)
 
@@ -31,9 +32,11 @@ MAP_GENERATED_GLOBALS := \
 	$(INCLUDECONSTS_OUTDIR)/map_groups.h \
 	$(INCLUDECONSTS_OUTDIR)/layouts.h \
 	$(INCLUDECONSTS_OUTDIR)/map_event_ids.h \
-	$(MAP_GROUP_COUNT_OUT)
+	$(MAP_GROUP_COUNT_OUT) \
+	$(FOUNDATION_MANIFEST)
 
-$(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) $(MAPJSON)
+$(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) \
+		tools/mapjson/product_exclusions.json tools/mapjson/product_hidden_item_flags.json $(MAPJSON)
 	@$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) $(MAP_JSONS)
 	@echo "$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) <MAP_JSONS>"
 
@@ -58,3 +61,12 @@ $(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_OUTDIR
 	| $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
 
 $(C_BUILDDIR)/debug.o $(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)
+
+# Retail dialects remain useful generator diagnostics, but never inherit the
+# product name or enter a link/release graph.
+GENERATOR_FIXTURE_ROOT := $(BUILD_DIR)/fixtures
+.PHONY: generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
+generator-fixture-emerald generator-fixture-firered generator-fixture-ruby: generator-fixture-%: $(MAPJSON)
+	@$(MAPJSON) generate $* $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json \
+		$(GENERATOR_FIXTURE_ROOT)/$*/current $(MAP_JSONS)
+	@echo "Generated diagnostic $* registry fixture under $(GENERATOR_FIXTURE_ROOT)/$*"

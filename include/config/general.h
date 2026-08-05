@@ -58,6 +58,11 @@
 #define POKEMON_EXPANSION
 #define ITEM_EXPANSION
 
+// Content residency capabilities. These do not select the runtime engine dialect.
+#define HAS_HOENN_TILESETS (!IS_FRLG || ALL_REGIONS)
+#define HAS_FRLG_TILESETS  (IS_FRLG || ALL_REGIONS)
+#define HAS_JOHTO_TILESETS (ALL_REGIONS && HAS_JOHTO_CONTENT)
+
 // Generation constants used in configs to define behavior.
 #define GEN_1 0
 #define GEN_2 1

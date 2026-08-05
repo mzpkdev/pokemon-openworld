@@ -1,9 +1,33 @@
+# Product identity is deliberately closed.  Diagnostic map dialects are exposed
+# only by the generator-fixture-* targets below; they can never select a link.
+ifeq ($(origin GAME_VERSION),command line)
+  ifneq ($(GAME_VERSION),EMERALD)
+    $(error pokemon-openworld requires GAME_VERSION=EMERALD)
+  endif
+endif
+ifeq ($(origin ALL_REGIONS),command line)
+  ifneq ($(ALL_REGIONS),1)
+    $(error pokemon-openworld requires ALL_REGIONS=1)
+  endif
+endif
+ifeq ($(origin MAP_VERSION),command line)
+  ifneq ($(MAP_VERSION),allregions)
+    $(error pokemon-openworld requires MAP_VERSION=allregions)
+  endif
+endif
+ifeq ($(origin FILE_NAME),command line)
+  ifneq ($(FILE_NAME),pokemon-openworld)
+    $(error pokemon-openworld requires FILE_NAME=pokemon-openworld)
+  endif
+endif
+
 override GAME_VERSION := EMERALD
 override TITLE        := POKEMON EMER
 override GAME_CODE    := BPEE
 override BUILD_NAME   := emerald
-MAP_VERSION ?= emerald
-ALL_REGIONS ?= 0
+override IS_FRLG      := 0
+override MAP_VERSION  := allregions
+override ALL_REGIONS  := 1
 
 # GBA rom header
 MAKER_CODE  := 01
@@ -308,6 +332,7 @@ MAKEFLAGS += --no-print-directory
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
 RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check format format-check lint lint-check
+RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
 .PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check
 .PHONY: $(RULES_NO_SCAN)
@@ -476,9 +501,16 @@ e2e-foundation: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_RESULTS=test-results/e2e E2E_SUITE=foundation \
 	$(E2E_PYTHON) tools/e2e/run.py foundation
 
-foundation-check:
-	$(MAKE) DEBUG=1 $(E2E_ROM) $(E2E_SYMS)
-	$(MAKE) e2e-foundation
+FOUNDATION_REPORT := $(BUILD_DIR)/foundation/artifact-report.json
+CAPACITY_POLICY := tools/foundation/capacity_policy.json
+
+foundation-check: $(CAPACITY_POLICY)
+	$(MAKE) $(ROM) $(SYM)
+	@mkdir -p $(dir $(FOUNDATION_REPORT))
+	python3 tools/foundation/validate_artifact.py \
+		--rom $(ROM) --map $(MAP) --sym $(SYM) \
+		--manifest $(FOUNDATION_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
+		--output $(FOUNDATION_REPORT)
 
 # Other rules
 rom: $(ROM)

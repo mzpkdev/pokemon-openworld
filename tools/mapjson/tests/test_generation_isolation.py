@@ -49,7 +49,9 @@ def digest_files(paths: tuple[Path, ...]) -> dict[str, str]:
     return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
 
 
-def generate(mode: str, root: Path, layouts: Path = LAYOUTS) -> subprocess.CompletedProcess[str]:
+def generate(
+    mode: str, root: Path, layouts: Path = LAYOUTS
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             str(MAPJSON),
@@ -78,7 +80,14 @@ class GenerationIsolationTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory(prefix="mapjson-isolation-") as directory:
             base = Path(directory)
-            for mode in ("emerald", "firered", "allregions", "firered", "emerald", "allregions"):
+            for mode in (
+                "emerald",
+                "firered",
+                "allregions",
+                "firered",
+                "emerald",
+                "allregions",
+            ):
                 output = base / mode
                 result = generate(mode, output)
                 self.assertEqual(result.returncode, 0, result.stderr)
@@ -87,11 +96,19 @@ class GenerationIsolationTests(unittest.TestCase):
                     self.assertEqual(digest, expected[mode])
                 else:
                     expected[mode] = digest
-                self.assertEqual((output / ".map-build-policy").read_text(), f"{mode}\n")
+                self.assertEqual(
+                    (output / ".map-build-policy").read_text(), f"{mode}\n"
+                )
 
-            emerald_headers = (base / "emerald" / "data" / "maps" / "headers.inc").read_text()
-            firered_headers = (base / "firered" / "data" / "maps" / "headers.inc").read_text()
-            allregions_headers = (base / "allregions" / "data" / "maps" / "headers.inc").read_text()
+            emerald_headers = (
+                base / "emerald" / "data" / "maps" / "headers.inc"
+            ).read_text()
+            firered_headers = (
+                base / "firered" / "data" / "maps" / "headers.inc"
+            ).read_text()
+            allregions_headers = (
+                base / "allregions" / "data" / "maps" / "headers.inc"
+            ).read_text()
             self.assertIn("LittlerootTown/header.inc", emerald_headers)
             self.assertNotIn("PalletTown_Frlg/header.inc", emerald_headers)
             self.assertIn("PalletTown_Frlg/header.inc", firered_headers)
@@ -118,7 +135,9 @@ class GenerationIsolationTests(unittest.TestCase):
             self.assertEqual(digest_tree(output), before)
             self.assertEqual(os.readlink(output), pointer_before)
 
-    def test_concurrent_publication_uses_unique_trees_and_never_removes_pointer(self) -> None:
+    def test_concurrent_publication_uses_unique_trees_and_never_removes_pointer(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory(prefix="mapjson-concurrent-") as directory:
             output = Path(directory) / "current"
             initial = generate("emerald", output)
@@ -145,7 +164,10 @@ class GenerationIsolationTests(unittest.TestCase):
             self.assertEqual([process.wait() for process in processes], [0, 0])
             self.assertFalse(missing)
             self.assertTrue(output.is_symlink())
-            self.assertIn((output / ".map-build-policy").read_text(), {"firered\n", "allregions\n"})
+            self.assertIn(
+                (output / ".map-build-policy").read_text(),
+                {"firered\n", "allregions\n"},
+            )
             generations = list(output.parent.glob(".generation-*"))
             self.assertGreaterEqual(len(generations), 3)
 

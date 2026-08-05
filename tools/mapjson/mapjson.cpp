@@ -15,6 +15,9 @@ using std::sort; using std::find;
 #include <map>
 using std::map;
 
+#include <set>
+using std::set;
+
 #include <fstream>
 using std::ofstream; using std::ifstream;
 
@@ -282,7 +285,7 @@ string generate_map_connections_text(Json map_data, const vector<string> &existi
     return text.str();
 }
 
-string generate_map_events_text(Json map_data) {
+string generate_map_events_text(Json map_data, const map<string, int> &hidden_item_flags) {
     if (map_data.object_items().find("shared_events_map") != map_data.object_items().end())
         return string("\n");
 
@@ -398,12 +401,16 @@ string generate_map_events_text(Json map_data) {
                 if (underfoot.empty()) {
                     underfoot = "FALSE";
                 }
+                const string reviewed_flag = json_to_string(bg_event, "flag");
+                auto allocated_flag = hidden_item_flags.find(reviewed_flag);
+                const string emitted_flag = allocated_flag == hidden_item_flags.end()
+                    ? reviewed_flag : std::to_string(allocated_flag->second);
                 text << "\tbg_hidden_item_event "
                      << json_to_string(bg_event, "x") << ", "
                      << json_to_string(bg_event, "y") << ", "
                      << json_to_string(bg_event, "elevation") << ", "
                      << json_to_string(bg_event, "item") << ", "
-                     << json_to_string(bg_event, "flag") << ", "
+                     << emitted_flag << ", "
                      << quantity << ", "
                      << underfoot << "\n";
             }
@@ -445,7 +452,8 @@ string file_parent(string filename){
 }
 
 void process_map(string map_filepath, string layouts_filepath, string output_dir,
-                 const MapBuildPolicy &policy, const vector<string> &existing_maps) {
+                 const MapBuildPolicy &policy, const vector<string> &existing_maps,
+                 const map<string, int> &hidden_item_flags = {}) {
     string mapdata_err, layouts_err;
 
     string mapdata_json_text = read_text_file(map_filepath);
@@ -460,7 +468,7 @@ void process_map(string map_filepath, string layouts_filepath, string output_dir
         FATAL_ERROR("%s\n", layouts_err.c_str());
 
     string header_text = generate_map_header_text(map_data, layouts_data, policy);
-    string events_text = generate_map_events_text(map_data);
+    string events_text = generate_map_events_text(map_data, hidden_item_flags);
     string connections_text = generate_map_connections_text(map_data, existing_maps);
 
     string out_dir = strip_trailing_separator(output_dir).append(sep);
@@ -955,6 +963,294 @@ static vector<string> included_map_ids(const vector<string> &map_filepaths, cons
     return ids;
 }
 
+static Json read_json_file(const string &filepath, const string &purpose)
+{
+    string err;
+    Json data = Json::parse(read_text_file(filepath), err);
+    if (data == Json())
+        FATAL_ERROR("Failed to read '%s' while %s: %s\n", filepath.c_str(), purpose.c_str(), err.c_str());
+    return data;
+}
+
+static void require_product_registry(bool condition, const string &message)
+{
+    if (!condition)
+        FATAL_ERROR("All-regions registry contract failed: %s\n", message.c_str());
+}
+
+struct TilesetDependency
+{
+    string tiles;
+    string palettes;
+    string metatiles;
+    string metatileAttributes;
+    string callback;
+};
+
+static string parse_tileset_field(const string &owner, const string &body, const string &field)
+{
+    std::regex field_regex("\\." + field + "\\s*=\\s*([A-Za-z_][A-Za-z0-9_]*|0)\\s*,");
+    std::smatch match;
+    require_product_registry(std::regex_search(body, match, field_regex),
+                             "tileset '" + owner + "' lacks ." + field);
+    return match[1].str();
+}
+
+static map<string, TilesetDependency> parse_tileset_dependencies()
+{
+    const string headers = read_text_file("src/data/tilesets/headers.h");
+    const std::regex tileset_regex("const\\s+struct\\s+Tileset\\s+(gTileset_[A-Za-z0-9_]+)\\s*=\\s*\\{([\\s\\S]*?)\\};");
+    map<string, TilesetDependency> dependencies;
+    for (std::sregex_iterator it(headers.begin(), headers.end(), tileset_regex), end; it != end; ++it) {
+        const string name = (*it)[1].str();
+        const string body = (*it)[2].str();
+        dependencies.emplace(name, TilesetDependency {
+            parse_tileset_field(name, body, "tiles"),
+            parse_tileset_field(name, body, "palettes"),
+            parse_tileset_field(name, body, "metatiles"),
+            parse_tileset_field(name, body, "metatileAttributes"),
+            parse_tileset_field(name, body, "callback"),
+        });
+    }
+    require_product_registry(!dependencies.empty(), "no tileset dependencies parsed");
+    return dependencies;
+}
+
+static void write_foundation_manifest(const std::filesystem::path &staging,
+                                      const MapBuildPolicy &policy,
+                                      const string &groups_filepath,
+                                      const string &layouts_filepath,
+                                      const vector<string> &map_filepaths)
+{
+    const Json groups_data = read_json_file(groups_filepath, "building the foundation manifest");
+    const Json layouts_data = read_json_file(layouts_filepath, "building the foundation manifest");
+    map<string, Json> maps_by_name;
+    map<string, int> region_counts;
+    set<string> reviewed_names;
+
+    for (const string &filepath : map_filepaths) {
+        Json map_data = read_json_file(filepath, "building the foundation manifest");
+        const string name = json_to_string(map_data, "name");
+        require_product_registry(maps_by_name.emplace(name, map_data).second,
+                                 "duplicate reviewed map name '" + name + "'");
+        reviewed_names.insert(name);
+        region_counts[json_to_string(map_data, "region")]++;
+    }
+
+    Json::array group_records;
+    Json::array map_records;
+    Json::array layout_records;
+    Json::array tileset_records;
+    Json::array exclusion_records;
+    set<string> grouped_names;
+    set<string> required_symbols;
+    set<string> used_tilesets;
+    map<string, string> layout_symbols_by_id;
+    for (const Json &layout : layouts_data["layouts"].array_items())
+        layout_symbols_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "name"));
+    int grouped_map_count = 0;
+    int nonempty_group_count = 0;
+
+    int group_number = 0;
+    for (const Json &group_value : groups_data["group_order"].array_items()) {
+        const string group_name = json_to_string(group_value);
+        int map_number = 0;
+        int included_count = 0;
+        for (const Json &map_value : groups_data[group_name].array_items()) {
+            const string map_name = json_to_string(map_value);
+            auto found = maps_by_name.find(map_name);
+            require_product_registry(found != maps_by_name.end(),
+                                     "group '" + group_name + "' names missing map '" + map_name + "'");
+            const Json &map_data = found->second;
+            const string region = json_to_string(map_data, "region");
+            if (!policy.IncludesRegion(region)) {
+                map_number++;
+                continue;
+            }
+
+            require_product_registry(grouped_names.insert(map_name).second,
+                                     "map '" + map_name + "' appears in more than one group");
+            const string scripts_owner = map_data["shared_scripts_map"] == Json()
+                ? map_name : json_to_string(map_data, "shared_scripts_map");
+            const string events_owner = map_data["shared_events_map"] == Json()
+                ? map_name : json_to_string(map_data, "shared_events_map");
+            const string layout_id = json_to_string(map_data, "layout");
+            auto layout_symbol = layout_symbols_by_id.find(layout_id);
+            require_product_registry(layout_symbol != layout_symbols_by_id.end(),
+                                     "map '" + map_name + "' names missing layout '" + layout_id + "'");
+            const bool has_connections = map_data["connections"] != Json()
+                && !map_data["connections"].array_items().empty()
+                && json_to_string(map_data, "connections_no_include", true) != "TRUE";
+            required_symbols.insert(map_name);
+            required_symbols.insert(layout_symbol->second);
+            required_symbols.insert(scripts_owner + "_MapScripts");
+            required_symbols.insert(events_owner + "_MapEvents");
+            if (has_connections)
+                required_symbols.insert(map_name + "_MapConnections");
+
+            map_records.push_back(Json::object {
+                {"name", map_name},
+                {"id", json_to_string(map_data, "id")},
+                {"group", group_number},
+                {"number", map_number},
+                {"region", region},
+                {"layoutId", layout_id},
+                {"mapLayout", layout_symbol->second},
+                {"mapEvents", events_owner + "_MapEvents"},
+                {"mapScripts", scripts_owner + "_MapScripts"},
+                {"mapConnections", has_connections ? Json(map_name + "_MapConnections") : Json()},
+            });
+            grouped_map_count++;
+            included_count++;
+            map_number++;
+        }
+        if (included_count > 0) {
+            nonempty_group_count++;
+            required_symbols.insert(group_name);
+        }
+        group_records.push_back(Json::object {
+            {"name", group_name},
+            {"number", group_number},
+            {"mapCount", included_count},
+        });
+        group_number++;
+    }
+    required_symbols.insert(json_to_string(groups_data, "groups_table_label", true).empty()
+                                ? "gMapGroups" : json_to_string(groups_data, "groups_table_label"));
+
+    int included_layout_count = 0;
+    int layout_number = 1;
+    for (const Json &layout : layouts_data["layouts"].array_items()) {
+        const string format = json_to_string(layout, "layout_version", true).empty()
+            ? DefaultLayoutName(policy.defaultDialect)
+            : json_to_string(layout, "layout_version");
+        if (policy.IncludesLayout(format)) {
+            const string layout_name = json_to_string(layout, "name");
+            const string primary_tileset = json_to_string(layout, "primary_tileset");
+            const string secondary_tileset = json_to_string(layout, "secondary_tileset");
+            layout_records.push_back(Json::object {
+                {"id", json_to_string(layout, "id")},
+                {"name", layout_name},
+                {"number", layout_number},
+                {"format", format},
+                {"width", layout["width"].int_value()},
+                {"height", layout["height"].int_value()},
+                {"border", layout_name + "_Border"},
+                {"map", layout_name + "_Blockdata"},
+                {"primaryTileset", primary_tileset},
+                {"secondaryTileset", secondary_tileset == "0" || secondary_tileset == "NULL"
+                                         ? Json() : Json(secondary_tileset)},
+            });
+            required_symbols.insert(layout_name);
+            required_symbols.insert(layout_name + "_Border");
+            required_symbols.insert(layout_name + "_Blockdata");
+            required_symbols.insert(primary_tileset);
+            used_tilesets.insert(primary_tileset);
+            if (secondary_tileset != "0" && secondary_tileset != "NULL")
+                required_symbols.insert(secondary_tileset);
+            if (secondary_tileset != "0" && secondary_tileset != "NULL")
+                used_tilesets.insert(secondary_tileset);
+            included_layout_count++;
+        }
+        layout_number++;
+    }
+    required_symbols.insert(json_to_string(layouts_data, "layouts_table_label"));
+
+    const map<string, TilesetDependency> tileset_dependencies = parse_tileset_dependencies();
+    for (const string &tileset_name : used_tilesets) {
+        auto found = tileset_dependencies.find(tileset_name);
+        require_product_registry(found != tileset_dependencies.end(),
+                                 "layout references undeclared tileset '" + tileset_name + "'");
+        const TilesetDependency &dependency = found->second;
+        const bool null_callback = dependency.callback == "NULL" || dependency.callback == "0";
+        tileset_records.push_back(Json::object {
+            {"name", tileset_name},
+            {"tiles", dependency.tiles},
+            {"palettes", dependency.palettes},
+            {"metatiles", dependency.metatiles},
+            {"metatileAttributes", dependency.metatileAttributes},
+            {"callback", null_callback ? Json() : Json(dependency.callback)},
+            {"allowNullCallback", null_callback},
+        });
+        required_symbols.insert(dependency.tiles);
+        required_symbols.insert(dependency.palettes);
+        required_symbols.insert(dependency.metatiles);
+        required_symbols.insert(dependency.metatileAttributes);
+        if (!null_callback)
+            required_symbols.insert(dependency.callback);
+    }
+
+    const Json exclusions_data = read_json_file("tools/mapjson/product_exclusions.json",
+                                                "checking reviewed product exclusions");
+    set<string> excluded_names;
+    for (const Json &exclusion : exclusions_data["exclusions"].array_items()) {
+        const string name = json_to_string(exclusion, "name");
+        auto found = maps_by_name.find(name);
+        require_product_registry(found != maps_by_name.end(),
+                                 "reviewed exclusion names missing map '" + name + "'");
+        require_product_registry(grouped_names.find(name) == grouped_names.end(),
+                                 "reviewed exclusion '" + name + "' is also grouped");
+        require_product_registry(json_to_string(found->second, "id") == json_to_string(exclusion, "id"),
+                                 "reviewed exclusion '" + name + "' has a changed id");
+        require_product_registry(json_to_string(found->second, "region") == json_to_string(exclusion, "region"),
+                                 "reviewed exclusion '" + name + "' has a changed region");
+        require_product_registry(excluded_names.insert(name).second,
+                                 "duplicate reviewed exclusion '" + name + "'");
+        exclusion_records.push_back(exclusion);
+    }
+
+    if (policy.IsProduct()) {
+        set<string> ungrouped_names;
+        for (const string &name : reviewed_names) {
+            if (grouped_names.find(name) == grouped_names.end())
+                ungrouped_names.insert(name);
+        }
+        require_product_registry(group_number == 75, "expected 75 groups, got " + std::to_string(group_number));
+        require_product_registry(nonempty_group_count == 75, "one or more group pointer slots would be null");
+        require_product_registry(grouped_map_count == 935,
+                                 "expected 935 grouped maps, got " + std::to_string(grouped_map_count));
+        require_product_registry(static_cast<int>(map_filepaths.size()) == 939,
+                                 "expected 939 reviewed maps, got " + std::to_string(map_filepaths.size()));
+        require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
+        require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
+        require_product_registry(included_layout_count == 785,
+                                 "expected 785 layouts, got " + std::to_string(included_layout_count));
+        require_product_registry(ungrouped_names == excluded_names,
+                                 "ungrouped map directories differ from the explicit exclusion list");
+    }
+
+    Json::array symbol_records;
+    for (const string &symbol : required_symbols)
+        symbol_records.push_back(Json::object {{"name", symbol}, {"kind", "rom"}});
+
+    const Json manifest = Json::object {
+        {"schemaVersion", 2},
+        {"product", Json::object {
+            {"gameVersion", "EMERALD"},
+            {"mapVersion", MapBuildModeName(policy.mode)},
+            {"allRegions", policy.IsProduct() ? 1 : 0},
+            {"fileName", policy.IsProduct() ? "pokemon-openworld" : "generator-fixture"},
+        }},
+        {"counts", Json::object {
+            {"groups", nonempty_group_count},
+            {"groupedMaps", grouped_map_count},
+            {"reviewedMaps", static_cast<int>(map_filepaths.size())},
+            {"layouts", included_layout_count},
+            {"regions", Json::object {
+                {"REGION_HOENN", region_counts["REGION_HOENN"]},
+                {"REGION_KANTO", region_counts["REGION_KANTO"]},
+            }},
+        }},
+        {"exclusions", exclusion_records},
+        {"groups", group_records},
+        {"maps", map_records},
+        {"layouts", layout_records},
+        {"tilesets", tileset_records},
+        {"symbols", symbol_records},
+    };
+    write_text_file((staging / "foundation-manifest.json").string(), manifest.dump() + "\n");
+}
+
 static std::filesystem::path reserve_generation_staging(const std::filesystem::path &destination)
 {
     const std::filesystem::path parent = destination.parent_path();
@@ -1005,6 +1301,47 @@ static void promote_generation_tree(const std::filesystem::path &staging,
         FATAL_ERROR("Failed to publish generation pointer '%s': %s\n", destination.string().c_str(), ec.message().c_str());
 }
 
+static map<string, int> allocate_product_hidden_item_flags(const MapBuildPolicy &policy,
+                                                           const vector<string> &map_filepaths)
+{
+    map<string, int> allocations;
+    if (!policy.IsProduct())
+        return allocations;
+
+    set<string> reviewed_flags;
+    for (const string &filepath : map_filepaths) {
+        const Json map_data = read_json_file(filepath, "allocating all-regions hidden-item flags");
+        if (json_to_string(map_data, "region") != "REGION_KANTO")
+            continue;
+        for (const Json &event : map_data["bg_events"].array_items()) {
+            if (json_to_string(event, "type", true) == "hidden_item")
+                reviewed_flags.insert(json_to_string(event, "flag"));
+        }
+    }
+
+    const Json policy_data = read_json_file("tools/mapjson/product_hidden_item_flags.json",
+                                            "loading all-regions hidden-item flag pools");
+    vector<int> available;
+    for (const Json &pool : policy_data["unusedFlagPools"].array_items()) {
+        const int first = pool["first"].int_value();
+        const int last = pool["last"].int_value();
+        require_product_registry(first >= 0x1F4 && last >= first && last < 0x8FE,
+                                 "invalid hidden-item flag pool");
+        for (int value = first; value <= last; value++)
+            available.push_back(value);
+    }
+    require_product_registry(reviewed_flags.size() == 183,
+                             "expected 183 Kanto/Sevii hidden-item flags, got "
+                                 + std::to_string(reviewed_flags.size()));
+    require_product_registry(available.size() >= reviewed_flags.size(),
+                             "reviewed hidden-item flag pools are too small");
+
+    size_t index = 0;
+    for (const string &flag : reviewed_flags)
+        allocations.emplace(flag, available[index++]);
+    return allocations;
+}
+
 static void process_generation_tree(const MapBuildPolicy &policy, const string &groups_filepath,
                                     const string &layouts_filepath, const string &output_root,
                                     vector<string> &map_filepaths)
@@ -1019,10 +1356,13 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
     std::filesystem::create_directories(layouts_out);
     std::filesystem::create_directories(constants_out);
 
+    const map<string, int> hidden_item_flags = allocate_product_hidden_item_flags(policy, map_filepaths);
+
     process_groups(groups_filepath, map_filepaths, maps_out.string(), constants_out.string(), policy,
                    (destination / "data" / "maps").string());
     process_layouts(layouts_filepath, layouts_out.string(), constants_out.string(), policy);
     process_event_constants(map_filepaths, (constants_out / "map_event_ids.h").string());
+    write_foundation_manifest(staging, policy, groups_filepath, layouts_filepath, map_filepaths);
 
     vector<string> existing_maps = included_map_ids(map_filepaths, policy);
     for (const string &filepath : map_filepaths) {
@@ -1032,7 +1372,7 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
             FATAL_ERROR("Failed to read '%s' while generating map files: %s\n", filepath.c_str(), err.c_str());
         std::filesystem::path map_out = maps_out / json_to_string(map_data, "name");
         std::filesystem::create_directories(map_out);
-        process_map(filepath, layouts_filepath, map_out.string(), policy, existing_maps);
+        process_map(filepath, layouts_filepath, map_out.string(), policy, existing_maps, hidden_item_flags);
     }
 
     write_text_file((staging / ".map-build-policy").string(),
