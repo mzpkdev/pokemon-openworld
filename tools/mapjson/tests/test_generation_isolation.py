@@ -186,8 +186,12 @@ class GenerationIsolationTests(unittest.TestCase):
             self.assertFalse((base / ".generation-abandoned").exists())
             self.assertEqual(len(list(base.glob(".generation-*"))), 1)
 
-    def test_cleanup_preserves_direct_child_target_with_trailing_separator(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="mapjson-active-generation-") as directory:
+    def test_cleanup_preserves_direct_child_target_with_trailing_separator(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="mapjson-active-generation-"
+        ) as directory:
             base = Path(directory)
             active = base / ".generation-active"
             active.mkdir()

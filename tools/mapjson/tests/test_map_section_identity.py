@@ -219,10 +219,14 @@ class MapHeaderAbiGenerationTests(unittest.TestCase):
             header = (output / "header.inc").read_text(encoding="utf-8")
             connections = (output / "connections.inc").read_text(encoding="utf-8")
             self.assertIn("\t.4byte Route101_MapConnections", header)
-            self.assertIn("\t.4byte 2\n\t.4byte Route101_MapConnectionsList", connections)
+            self.assertIn(
+                "\t.4byte 2\n\t.4byte Route101_MapConnectionsList", connections
+            )
             self.assertEqual(connections.count("\tconnection "), 2)
 
-    def test_filtered_standalone_connections_clear_header_pointer_and_count(self) -> None:
+    def test_filtered_standalone_connections_clear_header_pointer_and_count(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
             map_dir = base / "maps" / "Route101"
@@ -248,7 +252,9 @@ class MapHeaderAbiGenerationTests(unittest.TestCase):
             connections = (output / "connections.inc").read_text(encoding="utf-8")
             self.assertNotIn("\t.4byte Route101_MapConnections", header)
             self.assertIn("\t.4byte NULL", header)
-            self.assertIn("\t.4byte 0\n\t.4byte Route101_MapConnectionsList", connections)
+            self.assertIn(
+                "\t.4byte 0\n\t.4byte Route101_MapConnectionsList", connections
+            )
             self.assertNotIn("\tconnection ", connections)
 
 

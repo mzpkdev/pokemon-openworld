@@ -147,7 +147,9 @@ class ProductMakeContractTests(unittest.TestCase):
                 capture_output=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("data/scripts/nested/deeper/registry.inc", result.stdout.splitlines())
+            self.assertIn(
+                "data/scripts/nested/deeper/registry.inc", result.stdout.splitlines()
+            )
 
     def test_deleting_wildcard_inputs_regenerates_the_map_tree(self) -> None:
         deletion_cases = (
@@ -156,7 +158,10 @@ class ProductMakeContractTests(unittest.TestCase):
             "data/layouts/Only/map.bin",
         )
         for deleted_path in deletion_cases:
-            with self.subTest(deleted_path=deleted_path), tempfile.TemporaryDirectory() as temp_dir:
+            with (
+                self.subTest(deleted_path=deleted_path),
+                tempfile.TemporaryDirectory() as temp_dir,
+            ):
                 temp = Path(temp_dir)
                 for relative, contents in (
                     ("data/maps/map_groups.json", "{}\n"),
@@ -184,7 +189,7 @@ class ProductMakeContractTests(unittest.TestCase):
                     "#!/bin/sh\n"
                     "set -eu\n"
                     "printf 'generate\\n' >> \"$CONTRACT_LOG\"\n"
-                    "mkdir -p \"$5\"\n"
+                    'mkdir -p "$5"\n'
                     "printf 'allregions\\n' > \"$5/.map-build-policy\"\n"
                 )
                 mapjson.chmod(0o755)
@@ -202,8 +207,11 @@ class ProductMakeContractTests(unittest.TestCase):
                 target = "build/generated/current/.map-build-policy"
                 environment = {**os.environ, "CONTRACT_LOG": str(log)}
                 first = subprocess.run(
-                    ["make", "--no-print-directory", target], cwd=temp,
-                    text=True, capture_output=True, env=environment,
+                    ["make", "--no-print-directory", target],
+                    cwd=temp,
+                    text=True,
+                    capture_output=True,
+                    env=environment,
                 )
                 self.assertEqual(first.returncode, 0, first.stderr)
 
@@ -213,8 +221,11 @@ class ProductMakeContractTests(unittest.TestCase):
                 stamp_mtime = (temp / target).stat().st_mtime + 10
                 os.utime(containing_directory, (stamp_mtime, stamp_mtime))
                 second = subprocess.run(
-                    ["make", "--no-print-directory", target], cwd=temp,
-                    text=True, capture_output=True, env=environment,
+                    ["make", "--no-print-directory", target],
+                    cwd=temp,
+                    text=True,
+                    capture_output=True,
+                    env=environment,
                 )
                 self.assertEqual(second.returncode, 0, second.stderr)
                 self.assertEqual(log.read_text().splitlines(), ["generate", "generate"])
