@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.foundation.manifest import ManifestError, validate_manifest
+from tools.foundation.manifest import EXPECTED_ABIS, ManifestError, validate_manifest
 from tools.foundation.validate_artifact import (
     ROM_BASE,
     ValidationError,
@@ -14,6 +14,7 @@ from tools.foundation.validate_artifact import (
     validate_group_slots,
     validate_layouts,
     validate_map_headers,
+    validate_section_metadata,
 )
 
 
@@ -53,6 +54,58 @@ class FoundationToolTests(unittest.TestCase):
         manifest["counts"]["groupedMaps"] -= 1
         with self.assertRaisesRegex(ManifestError, "wrong registry counts"):
             validate_manifest(manifest)
+
+    def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
+        original = json.loads(
+            (self.generated / "foundation-manifest.json").read_text()
+        )
+        validate_manifest(original)
+        cross_region_maps = [
+            entry["name"]
+            for entry in original["maps"]
+            if entry["region"]
+            != original["mapSectionMetadata"][entry["regionMapSectionValue"]]["region"]
+        ]
+        self.assertEqual(
+            cross_region_maps,
+            [
+                "BattleColosseum_2P_Frlg",
+                "TradeCenter_Frlg",
+                "RecordCorner_Frlg",
+                "BattleColosseum_4P_Frlg",
+                "UnionRoom_Frlg",
+            ],
+        )
+        mutations = (
+            (
+                "unknown name",
+                lambda manifest: manifest["maps"][0].__setitem__(
+                    "regionMapSection", "MAPSEC_DOES_NOT_EXIST"
+                ),
+                "names unknown map section",
+            ),
+            (
+                "mismatched value",
+                lambda manifest: manifest["maps"][0].__setitem__(
+                    "regionMapSectionValue",
+                    (manifest["maps"][0]["regionMapSectionValue"] + 1) % 209,
+                ),
+                "map-section name/value disagree",
+            ),
+            (
+                "mismatched region",
+                lambda manifest: manifest["maps"][0].__setitem__(
+                    "region", "REGION_JOHTO"
+                ),
+                "region .* disagrees",
+            ),
+        )
+        for label, mutate, message in mutations:
+            with self.subTest(label=label):
+                manifest = copy.deepcopy(original)
+                mutate(manifest)
+                with self.assertRaisesRegex(ManifestError, message):
+                    validate_manifest(manifest)
 
     def test_capacity_policy_rejects_bad_arithmetic_and_malformed_evidence_digest(
         self,
@@ -109,6 +162,7 @@ class FoundationToolTests(unittest.TestCase):
         struct.pack_into("<I", rom, 0x30, 0)  # Mutated primaryTileset.
         struct.pack_into("<I", rom, 0x34, symbols["gTileset_Petalburg"])
         manifest = {
+            "abis": {"mapLayout": EXPECTED_ABIS["mapLayout"]},
             "layouts": [
                 {
                     "name": "PetalburgCity_Layout",
@@ -119,8 +173,11 @@ class FoundationToolTests(unittest.TestCase):
                     "map": "PetalburgCity_Layout_Blockdata",
                     "primaryTileset": "gTileset_General",
                     "secondaryTileset": "gTileset_Petalburg",
+                    "layoutFormatValue": 0,
+                    "borderWidth": 0,
+                    "borderHeight": 0,
                 }
-            ]
+            ],
         }
         with self.assertRaisesRegex(
             ValidationError, "PetalburgCity_Layout.primaryTileset points outside ROM"
@@ -158,6 +215,9 @@ class FoundationToolTests(unittest.TestCase):
             maps.append(
                 {
                     "name": name,
+                    "group": index,
+                    "region": "REGION_HOENN" if index == 0 else "REGION_KANTO",
+                    "regionMapSection": f"MAPSEC_{prefix.upper()}_FIXTURE",
                     "mapLayout": f"{prefix}Layout",
                     "mapEvents": f"{prefix}Events",
                     "mapScripts": f"{prefix}Scripts",
@@ -178,6 +238,22 @@ class FoundationToolTests(unittest.TestCase):
                 }
             },
             "maps": maps,
+            "groups": [
+                {"name": "gMapGroup_Fixture", "number": 0},
+                {"name": "gMapGroup_Fixture_Frlg", "number": 1},
+            ],
+            "mapSectionMetadata": [
+                {
+                    "id": "MAPSEC_FIRST_FIXTURE",
+                    "value": 253,
+                    "region": "REGION_HOENN",
+                },
+                {
+                    "id": "MAPSEC_SECOND_FIXTURE",
+                    "value": 256,
+                    "region": "REGION_HOENN",
+                },
+            ],
         }
         return rom, manifest, symbols
 
@@ -212,6 +288,65 @@ class FoundationToolTests(unittest.TestCase):
         bad_stride_symbols["SecondMap"] += 4
         with self.assertRaisesRegex(ValidationError, "32-byte stride"):
             validate_map_headers(rom, manifest, bad_stride_symbols, ROM_BASE + len(rom))
+
+    def test_artifact_rejects_unbound_map_section_against_valid_rom(self) -> None:
+        rom, original, symbols = self.map_header_fixture()
+        mutations = (
+            (
+                "unknown name",
+                "regionMapSection",
+                "MAPSEC_DOES_NOT_EXIST",
+                "names unknown map section",
+            ),
+            (
+                "mismatched value",
+                "regionMapSectionValue",
+                256,
+                "map-section name/value disagree",
+            ),
+            (
+                "mismatched region",
+                "region",
+                "REGION_JOHTO",
+                "region .* disagrees",
+            ),
+        )
+        for label, field, value, message in mutations:
+            with self.subTest(label=label):
+                manifest = copy.deepcopy(original)
+                manifest["maps"][0][field] = value
+                with self.assertRaisesRegex(ValidationError, message):
+                    validate_map_headers(
+                        rom, manifest, symbols, ROM_BASE + len(rom)
+                    )
+
+    def test_map_section_metadata_byte_mutation_is_rejected(self) -> None:
+        rom = bytearray((3, 0, 0, 0, 1, 1, 4, 0))
+        manifest = {
+            "mapSectionMetadata": [
+                {
+                    "id": "MAPSEC_HOENN_FIXTURE",
+                    "value": 0,
+                    "regionValue": 3,
+                    "kindValue": 0,
+                    "regionMapTypeValue": 0,
+                },
+                {
+                    "id": "MAPSEC_SEVII_FIXTURE",
+                    "value": 1,
+                    "regionValue": 1,
+                    "kindValue": 1,
+                    "regionMapTypeValue": 4,
+                },
+            ]
+        }
+        symbols = {"gMapSectionMetadata": ROM_BASE}
+        validate_section_metadata(rom, manifest, symbols, ROM_BASE + len(rom))
+        rom[0] = 0
+        with self.assertRaisesRegex(
+            ValidationError, "MAPSEC_HOENN_FIXTURE.regionValue"
+        ):
+            validate_section_metadata(rom, manifest, symbols, ROM_BASE + len(rom))
 
 
 if __name__ == "__main__":

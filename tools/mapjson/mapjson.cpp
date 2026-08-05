@@ -569,7 +569,7 @@ string generate_groups_text(Json groups_data, vector<string> &invalid_maps) {
         else
             text << "\t.4byte NULL\n";
     }
-    text << "\n";
+    text << "gMapGroupsEnd::\n\n";
 
     return text.str();
 }
@@ -877,6 +877,7 @@ string generate_layouts_table_text(Json layouts_data, const MapBuildPolicy &poli
             text << "\t.4byte " << layout_name << "\n";
         }
     }
+    text << "gMapLayoutsEnd::\n";
 
     return text.str();
 }
@@ -1353,6 +1354,36 @@ static int map_battle_scene_value(const string &name)
     return found->second;
 }
 
+static int section_region_value(const string &name)
+{
+    if (name == "REGION_KANTO") return 1;
+    if (name == "REGION_HOENN") return 3;
+    FATAL_ERROR("unknown map-section region '%s'\n", name.c_str());
+}
+
+static int section_kind_value(const string &name)
+{
+    if (name == "geographic") return 0;
+    if (name == "special") return 1;
+    if (name == "reserved") return 2;
+    FATAL_ERROR("unknown map-section kind '%s'\n", name.c_str());
+}
+
+static int region_map_type_value(const string &name)
+{
+    static const map<string, int> values = {
+        {"REGION_MAP_HOENN", 0},
+        {"REGION_MAP_KANTO", 1},
+        {"REGION_MAP_SEVII123", 2},
+        {"REGION_MAP_SEVII45", 3},
+        {"REGION_MAP_SEVII67", 4},
+    };
+    const auto found = values.find(name);
+    if (found == values.end())
+        FATAL_ERROR("unknown region-map type '%s'\n", name.c_str());
+    return found->second;
+}
+
 static void write_foundation_manifest(const std::filesystem::path &staging,
                                       const MapBuildPolicy &policy,
                                       const string &groups_filepath,
@@ -1383,9 +1414,32 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
     Json::array layout_records;
     Json::array tileset_records;
     Json::array exclusion_records;
+    Json::array section_metadata_records;
     set<string> grouped_names;
     set<string> required_symbols;
     set<string> used_tilesets;
+    map<int, Json> sections_by_value;
+    for (const Json &section : sectionRegistry.sections)
+        sections_by_value.emplace(section["value"].int_value(), section);
+    for (int value = 0; value < sectionRegistry.count; value++) {
+        const auto found = sections_by_value.find(value);
+        require_product_registry(found != sections_by_value.end(),
+                                 "map-section metadata lacks value " + std::to_string(value));
+        const Json &section = found->second;
+        const string region = json_to_string(section, "region");
+        const string kind = json_to_string(section, "kind");
+        const string presentation = json_to_string(section, "region_map_type");
+        section_metadata_records.push_back(Json::object {
+            {"id", json_to_string(section, "id")},
+            {"value", value},
+            {"region", region},
+            {"regionValue", section_region_value(region)},
+            {"kind", kind},
+            {"kindValue", section_kind_value(kind)},
+            {"regionMapType", presentation},
+            {"regionMapTypeValue", region_map_type_value(presentation)},
+        });
+    }
     map<string, string> layout_symbols_by_id;
     for (const Json &layout : layouts_data["layouts"].array_items())
         layout_symbols_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "name"));
@@ -1487,6 +1541,9 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
                 {"primaryTileset", primary_tileset},
                 {"secondaryTileset", secondary_tileset == "0" || secondary_tileset == "NULL"
                                          ? Json() : Json(secondary_tileset)},
+                {"layoutFormatValue", GetLayoutFormatSpec(format).encodedValue},
+                {"borderWidth", format == "frlg" ? layout["border_width"].int_value() : 0},
+                {"borderHeight", format == "frlg" ? layout["border_height"].int_value() : 0},
             });
             required_symbols.insert(layout_name);
             required_symbols.insert(layout_name + "_Border");
@@ -1516,6 +1573,7 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
             {"palettes", dependency.palettes},
             {"metatiles", dependency.metatiles},
             {"metatileAttributes", dependency.metatileAttributes},
+            {"attributeFormat", dependency.attributeFormat},
             {"callback", null_callback ? Json() : Json(dependency.callback)},
             {"allowNullCallback", null_callback},
         });
@@ -1566,6 +1624,15 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
                                  "ungrouped map directories differ from the explicit exclusion list");
     }
 
+    required_symbols.insert("gMapGroupsEnd");
+    required_symbols.insert("gMapLayoutsEnd");
+    required_symbols.insert("gMapSectionMetadata");
+    required_symbols.insert("gMapSectionToSavedLocation");
+    required_symbols.insert("gMapSectionToMetLocation");
+    required_symbols.insert("gSavedLocationToMapSection");
+    required_symbols.insert("gMetLocationToMapSection");
+    required_symbols.insert("gMapSectionRegistry");
+
     Json::array symbol_records;
     for (const string &symbol : required_symbols)
         symbol_records.push_back(Json::object {{"name", symbol}, {"kind", "rom"}});
@@ -1597,7 +1664,40 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
                 {"paddingOffset", 29},
                 {"paddingSize", 3},
             }},
+            {"mapLayout", Json::object {
+                {"size", 28}, {"alignment", 4}, {"widthOffset", 0},
+                {"heightOffset", 4}, {"borderOffset", 8}, {"mapOffset", 12},
+                {"primaryTilesetOffset", 16}, {"secondaryTilesetOffset", 20},
+                {"formatOffset", 24}, {"borderWidthOffset", 25},
+                {"borderHeightOffset", 26}, {"paddingOffset", 27},
+            }},
+            {"tileset", Json::object {
+                {"size", 24}, {"alignment", 4}, {"flagsOffset", 1},
+                {"tilesOffset", 4}, {"palettesOffset", 8}, {"metatilesOffset", 12},
+                {"metatileAttributesOffset", 16}, {"callbackOffset", 20},
+            }},
+            {"mapSectionRegistry", Json::object {
+                {"size", 24}, {"alignment", 4}, {"metadataOffset", 0},
+                {"sectionToSavedLocationOffset", 4}, {"sectionToMetLocationOffset", 8},
+                {"savedLocationToSectionOffset", 12}, {"metLocationToSectionOffset", 16},
+                {"sectionCountOffset", 20},
+            }},
         }},
+        {"countSentinels", Json::object {
+            {"groups", Json::object {{"start", "gMapGroups"}, {"end", "gMapGroupsEnd"},
+                                      {"count", group_number}, {"stride", 4}}},
+            {"layouts", Json::object {{"start", json_to_string(layouts_data, "layouts_table_label")},
+                                       {"end", "gMapLayoutsEnd"}, {"count", included_layout_count}, {"stride", 4}}},
+            {"mapSections", Json::object {{"registry", "gMapSectionRegistry"},
+                                           {"count", sectionRegistry.count}}},
+        }},
+        {"codecs", Json::object {
+            {"sectionToSavedLocation", sectionRegistry.sectionToSaved},
+            {"sectionToMetLocation", sectionRegistry.sectionToMet},
+            {"savedLocationToSection", sectionRegistry.savedToSection},
+            {"metLocationToSection", sectionRegistry.metToSection},
+        }},
+        {"mapSectionMetadata", section_metadata_records},
         {"exclusions", exclusion_records},
         {"groups", group_records},
         {"maps", map_records},
@@ -1699,10 +1799,209 @@ static map<string, int> allocate_product_hidden_item_flags(const MapBuildPolicy 
     return allocations;
 }
 
+static bool is_stable_identifier(const string &value)
+{
+    static const std::regex identifier("^[A-Za-z_][A-Za-z0-9_]*$");
+    return std::regex_match(value, identifier);
+}
+
+static void require_array_field(const Json &owner, const string &owner_name, const string &field)
+{
+    require_product_registry(owner[field].type() == Json::Type::ARRAY,
+                             "map '" + owner_name + "' lacks " + field + " event registry");
+}
+
+static bool script_registry_defines(const std::filesystem::path &path, const string &owner)
+{
+    const std::regex declaration("^[ \\t]*" + owner
+                                 + "_MapScripts::[ \\t]*(?:(?:@|//).*)?$");
+    std::istringstream lines(read_text_file(path.string()));
+    string line;
+    while (std::getline(lines, line)) {
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+        if (std::regex_match(line, declaration))
+            return true;
+    }
+    return false;
+}
+
+static bool global_script_registry_defines(const string &owner)
+{
+    std::error_code error;
+    for (std::filesystem::recursive_directory_iterator it("data/scripts", error), end;
+         !error && it != end; it.increment(error)) {
+        if (it->is_regular_file() && it->path().extension() == ".inc"
+         && script_registry_defines(it->path(), owner))
+            return true;
+    }
+    return false;
+}
+
+static void validate_product_inputs(const MapBuildPolicy &policy,
+                                    const string &groups_filepath,
+                                    const string &layouts_filepath,
+                                    const vector<string> &map_filepaths)
+{
+    if (!policy.IsProduct())
+        return;
+
+    const Json groups_data = read_json_file(groups_filepath, "validating all-regions groups");
+    const Json layouts_data = read_json_file(layouts_filepath, "validating all-regions layouts");
+    require_product_registry(groups_data["group_order"].type() == Json::Type::ARRAY,
+                             "map groups lack group_order registry");
+    require_product_registry(layouts_data["layouts"].type() == Json::Type::ARRAY,
+                             "layouts registry lacks layouts array");
+
+    map<string, Json> maps_by_name;
+    map<string, string> map_names_by_id;
+    map<string, std::filesystem::path> map_paths_by_name;
+    for (const string &filepath : map_filepaths) {
+        const Json map_data = read_json_file(filepath, "validating all-regions map contract");
+        const string name = json_to_string(map_data, "name");
+        const string id = json_to_string(map_data, "id");
+        require_product_registry(is_stable_identifier(name),
+                                 "map '" + name + "' has unstable name identifier");
+        require_product_registry(is_stable_identifier(id),
+                                 "map '" + name + "' has unstable id '" + id + "'");
+        require_product_registry(maps_by_name.emplace(name, map_data).second,
+                                 "duplicate map name '" + name + "'");
+        require_product_registry(map_names_by_id.emplace(id, name).second,
+                                 "duplicate map id '" + id + "'");
+        map_paths_by_name.emplace(name, std::filesystem::path(filepath));
+    }
+
+    set<string> layout_ids;
+    set<string> layout_names;
+    map<string, string> included_layouts;
+    const map<string, TilesetDependency> tilesets = parse_tileset_dependencies();
+    for (const Json &layout : layouts_data["layouts"].array_items()) {
+        require_product_registry(layout.type() == Json::Type::OBJECT,
+                                 "layouts registry contains an empty layout slot");
+        const string id = json_to_string(layout, "id");
+        const string name = json_to_string(layout, "name");
+        const string format = json_to_string(layout, "format");
+        require_product_registry(is_stable_identifier(id) && is_stable_identifier(name),
+                                 "layout '" + name + "' has unstable identifiers");
+        require_product_registry(layout_ids.insert(id).second,
+                                 "duplicate layout id '" + id + "'");
+        require_product_registry(layout_names.insert(name).second,
+                                 "duplicate layout name '" + name + "'");
+        GetLayoutFormatSpec(format);
+        if (!policy.IncludesLayout(format))
+            continue;
+        require_product_registry(layout["width"].type() == Json::Type::NUMBER
+                              && layout["width"].int_value() > 0
+                              && layout["height"].type() == Json::Type::NUMBER
+                              && layout["height"].int_value() > 0,
+                                 "layout '" + name + "' has invalid dimensions");
+        const string border = json_to_string(layout, "border_filepath");
+        const string blockdata = json_to_string(layout, "blockdata_filepath");
+        std::error_code error;
+        const uintmax_t border_size = std::filesystem::file_size(border, error);
+        require_product_registry(!error && border_size > 0,
+                                 "layout '" + name + "' lacks border data '" + border + "'");
+        error.clear();
+        const uintmax_t blockdata_size = std::filesystem::file_size(blockdata, error);
+        require_product_registry(!error && blockdata_size > 0,
+                                 "layout '" + name + "' lacks blockdata '" + blockdata + "'");
+        const string primary = json_to_string(layout, "primary_tileset");
+        const string secondary = json_to_string(layout, "secondary_tileset");
+        require_product_registry(tilesets.count(primary),
+                                 "layout '" + name + "' lacks primary tileset '" + primary + "'");
+        require_product_registry(secondary == "0" || secondary == "NULL" || tilesets.count(secondary),
+                                 "layout '" + name + "' lacks secondary tileset '" + secondary + "'");
+        require_product_registry(included_layouts.emplace(id, name).second,
+                                 "layout id '" + id + "' is not stable");
+    }
+
+    set<string> grouped_names;
+    int group_number = 0;
+    for (const Json &group_value : groups_data["group_order"].array_items()) {
+        const string group_name = json_to_string(group_value);
+        require_product_registry(is_stable_identifier(group_name),
+                                 "group '" + group_name + "' has an unstable identifier");
+        require_product_registry(group_number <= 127,
+                                 "group '" + group_name + "' exceeds signed WarpData range");
+        require_product_registry(groups_data[group_name].type() == Json::Type::ARRAY,
+                                 "group '" + group_name + "' lacks its map registry");
+        int map_number = 0;
+        for (const Json &map_value : groups_data[group_name].array_items()) {
+            const string map_name = json_to_string(map_value);
+            require_product_registry(map_number <= 127,
+                                     "map '" + map_name + "' exceeds signed WarpData range in group '"
+                                         + group_name + "'");
+            require_product_registry(maps_by_name.count(map_name),
+                                     "group '" + group_name + "' names missing map '" + map_name + "'");
+            require_product_registry(grouped_names.insert(map_name).second,
+                                     "map '" + map_name + "' appears in more than one group");
+            map_number++;
+        }
+        group_number++;
+    }
+
+    for (const auto &[map_name, map_data] : maps_by_name) {
+        if (!policy.IncludesRegion(json_to_string(map_data, "region")))
+            continue;
+        if (!grouped_names.count(map_name))
+            continue; // Explicit reviewed exclusions are checked by the manifest contract.
+        const string layout_id = json_to_string(map_data, "layout");
+        require_product_registry(included_layouts.count(layout_id),
+                                 "map '" + map_name + "' names missing product layout '" + layout_id + "'");
+        const string section = json_to_string(map_data, "region_map_section");
+        require_product_registry(is_stable_identifier(section),
+                                 "map '" + map_name + "' lacks stable section metadata");
+
+        const bool shares_events = map_data["shared_events_map"] != Json();
+        const bool shares_scripts = map_data["shared_scripts_map"] != Json();
+        const string events_owner = shares_events ? json_to_string(map_data, "shared_events_map") : map_name;
+        const string scripts_owner = shares_scripts ? json_to_string(map_data, "shared_scripts_map") : map_name;
+        require_product_registry(maps_by_name.count(events_owner),
+                                 "map '" + map_name + "' names missing events owner '" + events_owner + "'");
+        if (maps_by_name.count(scripts_owner)) {
+            const std::filesystem::path scripts_path = map_paths_by_name.at(scripts_owner).parent_path() / "scripts.inc";
+            require_product_registry(std::filesystem::is_regular_file(scripts_path),
+                                     "map '" + map_name + "' lacks scripts registry '" + scripts_path.string() + "'");
+            require_product_registry(script_registry_defines(scripts_path, scripts_owner),
+                                     "map '" + map_name + "' scripts registry does not define '"
+                                         + scripts_owner + "_MapScripts'");
+        } else {
+            require_product_registry(global_script_registry_defines(scripts_owner),
+                                     "map '" + map_name + "' names missing scripts owner '" + scripts_owner + "'");
+        }
+        const Json &events_data = maps_by_name.at(events_owner);
+        require_array_field(events_data, events_owner, "object_events");
+        require_array_field(events_data, events_owner, "warp_events");
+        require_array_field(events_data, events_owner, "coord_events");
+        require_array_field(events_data, events_owner, "bg_events");
+
+        require_product_registry(map_data["connections"].type() == Json::Type::NUL
+                              || map_data["connections"].type() == Json::Type::ARRAY
+                              || (map_data["connections"].type() == Json::Type::NUMBER
+                               && map_data["connections"].int_value() == 0),
+                                 "map '" + map_name + "' lacks connections registry");
+        for (const Json &connection : map_data["connections"].array_items()) {
+            const string destination = json_to_string(connection, "map");
+            require_product_registry(map_names_by_id.count(destination),
+                                     "map '" + map_name + "' connection names missing map id '" + destination + "'");
+        }
+        for (const Json &warp : events_data["warp_events"].array_items()) {
+            const string destination = json_to_string(warp, "dest_map");
+            require_product_registry(destination == "MAP_DYNAMIC" || map_names_by_id.count(destination),
+                                     "map '" + events_owner + "' warp names missing map id '" + destination + "'");
+        }
+    }
+
+    // Map-section validation owns the metadata, compact codecs, reverse maps,
+    // stable frozen range, and invalid/reserved sentinels as one contract.
+    validate_map_section_registry();
+}
+
 static void process_generation_tree(const MapBuildPolicy &policy, const string &groups_filepath,
                                     const string &layouts_filepath, const string &output_root,
                                     vector<string> &map_filepaths)
 {
+    validate_product_inputs(policy, groups_filepath, layouts_filepath, map_filepaths);
     std::filesystem::path destination = strip_trailing_separator(output_root);
     std::filesystem::path staging = reserve_generation_staging(destination);
 
@@ -1822,6 +2121,13 @@ int main(int argc, char *argv[]) {
         const MapSectionRegistry registry = validate_map_section_registry(argv[3], argv[4]);
         cout << "count=" << registry.count << "\n";
     }
+    else if (mode == "script_registry") {
+        if (argc != 5)
+            FATAL_ERROR("USAGE: mapjson script_registry <build-mode> <owner> <file>\n");
+        if (!script_registry_defines(argv[4], argv[3]))
+            FATAL_ERROR("Script registry '%s' does not define '%s_MapScripts'.\n", argv[4], argv[3]);
+        cout << "owner=" << argv[3] << "\n";
+    }
     else if (mode == "generate") {
         if (argc < 7)
             FATAL_ERROR("USAGE: mapjson generate <build-mode> <groups_file> <layouts_file> <output_root> <map_file> [additional_map_files]\n");
@@ -1832,7 +2138,7 @@ int main(int argc, char *argv[]) {
         process_generation_tree(policy, argv[3], argv[4], argv[5], map_filepaths);
     }
     else {
-        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', 'policy', or 'sections'.\n");
+        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', 'policy', 'sections', or 'script_registry'.\n");
     }
 
     return 0;

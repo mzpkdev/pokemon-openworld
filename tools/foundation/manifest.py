@@ -30,7 +30,41 @@ EXPECTED_ABIS = {
         "battleTypeOffset": 28,
         "paddingOffset": 29,
         "paddingSize": 3,
-    }
+    },
+    "mapLayout": {
+        "size": 28,
+        "alignment": 4,
+        "widthOffset": 0,
+        "heightOffset": 4,
+        "borderOffset": 8,
+        "mapOffset": 12,
+        "primaryTilesetOffset": 16,
+        "secondaryTilesetOffset": 20,
+        "formatOffset": 24,
+        "borderWidthOffset": 25,
+        "borderHeightOffset": 26,
+        "paddingOffset": 27,
+    },
+    "tileset": {
+        "size": 24,
+        "alignment": 4,
+        "flagsOffset": 1,
+        "tilesOffset": 4,
+        "palettesOffset": 8,
+        "metatilesOffset": 12,
+        "metatileAttributesOffset": 16,
+        "callbackOffset": 20,
+    },
+    "mapSectionRegistry": {
+        "size": 24,
+        "alignment": 4,
+        "metadataOffset": 0,
+        "sectionToSavedLocationOffset": 4,
+        "sectionToMetLocationOffset": 8,
+        "savedLocationToSectionOffset": 12,
+        "metLocationToSectionOffset": 16,
+        "sectionCountOffset": 20,
+    },
 }
 
 
@@ -55,6 +89,13 @@ def _unique(records: list[dict[str, Any]], field: str, owner: str) -> None:
         raise ManifestError(f"{owner} must have unique non-null {field} values")
 
 
+def group_content_region(group_name: Any) -> str | None:
+    """Return the content origin encoded by the product's map-group namespace."""
+    if not isinstance(group_name, str) or not group_name.startswith("gMapGroup_"):
+        return None
+    return "REGION_KANTO" if group_name.endswith("_Frlg") else "REGION_HOENN"
+
+
 def validate_manifest(manifest: dict[str, Any]) -> None:
     if manifest.get("schemaVersion") != 2:
         raise ManifestError("unsupported foundation manifest schema")
@@ -71,6 +112,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     tilesets = manifest.get("tilesets")
     exclusions = manifest.get("exclusions")
     symbols = manifest.get("symbols")
+    count_sentinels = manifest.get("countSentinels")
+    codecs = manifest.get("codecs")
+    section_metadata = manifest.get("mapSectionMetadata")
     if not all(
         isinstance(records, list)
         for records in (groups, maps, layouts, tilesets, exclusions, symbols)
@@ -78,6 +122,10 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ManifestError(
             "groups, maps, layouts, tilesets, exclusions, and symbols must be arrays"
         )
+    if not isinstance(count_sentinels, dict) or not isinstance(codecs, dict):
+        raise ManifestError("countSentinels and codecs must be objects")
+    if not isinstance(section_metadata, list) or len(section_metadata) != 209:
+        raise ManifestError("mapSectionMetadata must contain all 209 tuples")
     if (len(groups), len(maps), len(layouts), len(exclusions)) != (75, 935, 785, 4):
         raise ManifestError("manifest arrays disagree with their count sentinels")
 
@@ -93,6 +141,11 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     if sorted(group["number"] for group in groups) != list(range(75)):
         raise ManifestError("group numbers must be contiguous from zero")
     group_counts = {group["number"]: group["mapCount"] for group in groups}
+    group_regions = {
+        group["number"]: group_content_region(group.get("name")) for group in groups
+    }
+    if any(region is None for region in group_regions.values()):
+        raise ManifestError("groups must use the product map-group namespace")
     if any(count <= 0 for count in group_counts.values()):
         raise ManifestError("every product group must be non-null")
     seen_slots = {(entry["group"], entry["number"]) for entry in maps}
@@ -105,6 +158,63 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ManifestError("map slots are missing, duplicated, or outside their group")
     if sorted(layout["number"] for layout in layouts) != list(range(1, 786)):
         raise ManifestError("layout slots must be contiguous from one")
+    expected_sentinels = {
+        "groups": {
+            "start": "gMapGroups",
+            "end": "gMapGroupsEnd",
+            "count": 75,
+            "stride": 4,
+        },
+        "layouts": {
+            "start": "gMapLayouts",
+            "end": "gMapLayoutsEnd",
+            "count": 785,
+            "stride": 4,
+        },
+        "mapSections": {"registry": "gMapSectionRegistry", "count": 209},
+    }
+    if count_sentinels != expected_sentinels:
+        raise ManifestError(f"wrong linked count sentinels: {count_sentinels!r}")
+    codec_lengths = {
+        "sectionToSavedLocation": 209,
+        "sectionToMetLocation": 209,
+        "savedLocationToSection": 256,
+        "metLocationToSection": 256,
+    }
+    for name, length in codec_lengths.items():
+        values = codecs.get(name)
+        if (
+            not isinstance(values, list)
+            or len(values) != length
+            or any(
+                not isinstance(value, int) or not -1 <= value < 0xFFFF
+                for value in values
+            )
+        ):
+            raise ManifestError(f"codec {name} lacks {length} valid entries")
+    _unique(section_metadata, "id", "mapSectionMetadata")
+    if [entry.get("value") for entry in section_metadata] != list(range(209)):
+        raise ManifestError("mapSectionMetadata values must be ordered and contiguous")
+    region_values = {"REGION_KANTO": 1, "REGION_HOENN": 3}
+    kind_values = {"geographic": 0, "special": 1, "reserved": 2}
+    presentation_values = {
+        "REGION_MAP_HOENN": 0,
+        "REGION_MAP_KANTO": 1,
+        "REGION_MAP_SEVII123": 2,
+        "REGION_MAP_SEVII45": 3,
+        "REGION_MAP_SEVII67": 4,
+    }
+    for entry in section_metadata:
+        if (
+            entry.get("regionValue") != region_values.get(entry.get("region"))
+            or entry.get("kindValue") != kind_values.get(entry.get("kind"))
+            or entry.get("regionMapTypeValue")
+            != presentation_values.get(entry.get("regionMapType"))
+        ):
+            raise ManifestError(
+                f"map-section metadata tuple {entry.get('id')} has inconsistent encodings"
+            )
+    sections_by_id = {entry["id"]: entry for entry in section_metadata}
     layout_ids = {layout["id"]: layout for layout in layouts}
     tileset_names = {tileset["name"] for tileset in tilesets}
     for entry in maps:
@@ -123,6 +233,24 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             or not 0 <= entry["battleType"] <= 0xFF
         ):
             raise ManifestError(f"map {entry.get('name')} lacks scalar header metadata")
+        section = sections_by_id.get(entry["regionMapSection"])
+        if section is None:
+            raise ManifestError(
+                f"map {entry.get('name')} names unknown map section "
+                f"{entry['regionMapSection']!r}"
+            )
+        if entry["regionMapSectionValue"] != section["value"]:
+            raise ManifestError(
+                f"map {entry.get('name')} map-section name/value disagree: "
+                f"{entry['regionMapSection']} is {section['value']}, "
+                f"not {entry['regionMapSectionValue']}"
+            )
+        expected_region = group_regions[entry["group"]]
+        if entry.get("region") != expected_region:
+            raise ManifestError(
+                f"map {entry.get('name')} region {entry.get('region')!r} disagrees "
+                f"with group {entry['group']} content origin {expected_region!r}"
+            )
     for layout in layouts:
         if layout.get("width", 0) <= 0 or layout.get("height", 0) <= 0:
             raise ManifestError(f"layout {layout['name']} has invalid dimensions")
@@ -146,6 +274,13 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         if (tileset.get("callback") is None) != bool(tileset.get("allowNullCallback")):
             raise ManifestError(
                 f"tileset {tileset['name']} has inconsistent callback policy"
+            )
+        if tileset.get("attributeFormat") not in {
+            "METATILE_ATTRIBUTES_EMERALD_U16",
+            "METATILE_ATTRIBUTES_FRLG_U32",
+        }:
+            raise ManifestError(
+                f"tileset {tileset['name']} lacks an exact attribute ABI"
             )
     if any(not symbol["name"] or symbol.get("kind") != "rom" for symbol in symbols):
         raise ManifestError("every required symbol must name a ROM resident object")

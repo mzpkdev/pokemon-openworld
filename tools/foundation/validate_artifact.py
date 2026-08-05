@@ -12,13 +12,42 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .manifest import ManifestError, load_manifest
+    from .manifest import ManifestError, group_content_region, load_manifest
 except ImportError:  # Direct script execution.
-    from manifest import ManifestError, load_manifest
+    from manifest import ManifestError, group_content_region, load_manifest
 
 
 ROM_BASE = 0x08000000
 ROM_LIMIT = 32 * 1024 * 1024
+CAPACITY_SCHEMA_VERSION = 2
+CAPACITY_MEASUREMENT_KIND = "linked-symbol-range-attribution"
+CAPACITY_SOURCE = ".references/PKMN-World"
+CAPACITY_COMMIT = "d40affe26e58a20f445daad84af5e45be812e69f"
+CAPACITY_PROVENANCE_MODE = "declared-commit+source-tree-digest"
+CAPACITY_SOURCE_TREE_DIGEST = (
+    "6bca91e491e7e8304f9268aa41a4c9d629d50baa6d3150fe45d55632b6f4f762"
+)
+CAPACITY_EVIDENCE_DIGEST = (
+    "a656e089dc474bbe62a808957875ee577cd408519e3be4649f120ca9a06ea217"
+)
+CAPACITY_EVIDENCE_FILE_COUNT = 32_385
+CAPACITY_JOHTO_LAYOUT_COUNT = 255
+CAPACITY_JOHTO_MAP_COUNT = 254
+CAPACITY_EVIDENCE_CATEGORIES = {
+    "mapLayoutEventData": 895_864,
+    "scriptsTextCallbacks": 281_213,
+    "tilesetResourcesCallbacks": 701_120,
+    "objectGraphics": 7_412,
+    "johtoRuntime": 195_067,
+    "trainerParties": 25_632,
+    "trainerArt": 8_460,
+    "trainerRecords": 37_596,
+    "regionMapEntries": 464,
+    "deduplicatedSymbolRanges": 1_709_643,
+}
+JOHTO_RESIDENT_FLOOR_BYTES = 1_747_703
+TRAVEL_STORY_RESERVE_FLOOR_BYTES = 512 * 1024
+REQUIRED_HEADROOM_FLOOR_BYTES = 2_708_917
 
 
 class ValidationError(ValueError):
@@ -31,38 +60,77 @@ def load_capacity_policy(path: Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError) as error:
         raise ValidationError(f"cannot read capacity policy {path}: {error}") from error
     required = (
+        "schemaVersion",
+        "source",
         "commit",
+        "provenanceMode",
+        "measurementKind",
+        "sourceTreeDigest",
         "evidenceDigest",
         "evidenceFileCount",
+        "johtoLayoutCount",
+        "johtoMapCount",
+        "evidenceCategories",
         "johtoResidentBytes",
         "integrationMultiplier",
         "travelStoryReserveBytes",
         "requiredHeadroomBytes",
     )
-    if any(key not in policy for key in required):
+    if not isinstance(policy, dict) or any(key not in policy for key in required):
         raise ValidationError("capacity policy is incomplete")
+    categories = policy["evidenceCategories"]
+    integer_fields = (
+        "evidenceFileCount",
+        "johtoLayoutCount",
+        "johtoMapCount",
+        "johtoResidentBytes",
+        "travelStoryReserveBytes",
+        "requiredHeadroomBytes",
+    )
+    if (
+        policy["schemaVersion"] != CAPACITY_SCHEMA_VERSION
+        or policy["source"] != CAPACITY_SOURCE
+        or policy["measurementKind"] != CAPACITY_MEASUREMENT_KIND
+        or policy["commit"] != CAPACITY_COMMIT
+        or policy["provenanceMode"] != CAPACITY_PROVENANCE_MODE
+        or policy["sourceTreeDigest"] != CAPACITY_SOURCE_TREE_DIGEST
+        or policy["evidenceDigest"] != CAPACITY_EVIDENCE_DIGEST
+        or policy["evidenceFileCount"] != CAPACITY_EVIDENCE_FILE_COUNT
+        or policy["johtoLayoutCount"] != CAPACITY_JOHTO_LAYOUT_COUNT
+        or policy["johtoMapCount"] != CAPACITY_JOHTO_MAP_COUNT
+        or any(
+            not isinstance(policy[field], int)
+            or isinstance(policy[field], bool)
+            or policy[field] <= 0
+            for field in integer_fields
+        )
+        or not isinstance(categories, dict)
+        or categories != CAPACITY_EVIDENCE_CATEGORIES
+    ):
+        raise ValidationError("capacity policy has invalid measurement provenance")
     johto = policy["johtoResidentBytes"]
     multiplier = policy["integrationMultiplier"]
     reserve = policy["travelStoryReserveBytes"]
     required_headroom = policy["requiredHeadroomBytes"]
-    calculated = -(-int(johto * 125) // 100) + reserve if multiplier == 1.25 else None
-    digest = policy["evidenceDigest"]
-    snapshot_commit = f"snapshot-sha256:{digest}"
-    if (
-        not policy["commit"]
-        or len(digest) != 64
-        or any(character not in "0123456789abcdef" for character in digest)
-        or policy["evidenceFileCount"] <= 0
-        or (
-            policy["commit"].startswith("snapshot-sha256:")
-            and policy["commit"] != snapshot_commit
+    measured_johto = sum(
+        categories[name]
+        for name in (
+            "deduplicatedSymbolRanges",
+            "trainerRecords",
+            "regionMapEntries",
         )
-        or johto <= 0
-        or reserve <= 0
+    )
+    calculated = (johto * 125 + 99) // 100 + reserve
+    if (
+        multiplier != 1.25
+        or johto != measured_johto
+        or johto < JOHTO_RESIDENT_FLOOR_BYTES
+        or reserve < TRAVEL_STORY_RESERVE_FLOOR_BYTES
         or calculated != required_headroom
+        or required_headroom < REQUIRED_HEADROOM_FLOOR_BYTES
     ):
         raise ValidationError(
-            "capacity policy has invalid evidence or inconsistent arithmetic"
+            "capacity policy has inconsistent measurement or collapses the reviewed floor"
         )
     return policy
 
@@ -134,6 +202,8 @@ def require_expected_pointer(
         if actual != 0:
             raise ValidationError(f"{owner} must be null, got 0x{actual:08x}")
         return
+    if expected_symbol not in symbols:
+        raise ValidationError(f"{owner} expects unresolved symbol {expected_symbol}")
     expected = symbols[expected_symbol]
     comparable_actual = actual & ~1 if function else actual
     comparable_expected = expected & ~1 if function else expected
@@ -177,6 +247,7 @@ def validate_group_slots(
 def validate_layouts(
     rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
 ) -> None:
+    abi = manifest["abis"]["mapLayout"]
     layouts_table = symbols["gMapLayouts"]
     if layouts_table % 4:
         raise ValidationError("layout pointer table is not four-byte aligned")
@@ -189,17 +260,25 @@ def validate_layouts(
             raise ValidationError(
                 f"layout slot {layout['number']} points at the wrong symbol"
             )
-        if read_i32(rom, pointer, f"{layout['name']}.width") != layout["width"]:
+        if pointer % abi["alignment"]:
+            raise ValidationError(f"layout {layout['name']} violates ABI alignment")
+        if (
+            read_i32(rom, pointer + abi["widthOffset"], f"{layout['name']}.width")
+            != layout["width"]
+        ):
             raise ValidationError(f"{layout['name']}.width disagrees with the manifest")
-        if read_i32(rom, pointer + 4, f"{layout['name']}.height") != layout["height"]:
+        if (
+            read_i32(rom, pointer + abi["heightOffset"], f"{layout['name']}.height")
+            != layout["height"]
+        ):
             raise ValidationError(
                 f"{layout['name']}.height disagrees with the manifest"
             )
         for offset, field in (
-            (8, "border"),
-            (12, "map"),
-            (16, "primaryTileset"),
-            (20, "secondaryTileset"),
+            (abi["borderOffset"], "border"),
+            (abi["mapOffset"], "map"),
+            (abi["primaryTilesetOffset"], "primaryTileset"),
+            (abi["secondaryTilesetOffset"], "secondaryTileset"),
         ):
             require_expected_pointer(
                 rom,
@@ -209,13 +288,72 @@ def validate_layouts(
                 symbols,
                 rom_end,
             )
+        for offset, field in (
+            (abi["formatOffset"], "layoutFormatValue"),
+            (abi["borderWidthOffset"], "borderWidth"),
+            (abi["borderHeightOffset"], "borderHeight"),
+        ):
+            actual = read_u8(rom, pointer + offset, f"{layout['name']}.{field}")
+            if actual != layout[field]:
+                raise ValidationError(
+                    f"{layout['name']}.{field} is {actual}, expected {layout[field]}"
+                )
+        if read_u8(rom, pointer + abi["paddingOffset"], f"{layout['name']}.padding"):
+            raise ValidationError(f"{layout['name']}.padding is not zero-filled")
 
 
 def validate_map_headers(
     rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
 ) -> None:
     abi = manifest["abis"]["mapHeader"]
+    section_metadata = manifest.get("mapSectionMetadata")
+    if not isinstance(section_metadata, list):
+        raise ValidationError("artifact manifest lacks map-section metadata")
+    groups = manifest.get("groups")
+    if not isinstance(groups, list):
+        raise ValidationError("artifact manifest lacks map-group metadata")
+    groups_by_number = {
+        group.get("number"): group for group in groups if isinstance(group, dict)
+    }
+    if len(groups_by_number) != len(groups):
+        raise ValidationError("artifact manifest has invalid map-group metadata")
+    sections_by_id: dict[str, dict[str, Any]] = {}
+    for section in section_metadata:
+        if (
+            not isinstance(section, dict)
+            or not isinstance(section.get("id"), str)
+            or not isinstance(section.get("value"), int)
+            or not isinstance(section.get("region"), str)
+            or section["id"] in sections_by_id
+        ):
+            raise ValidationError("artifact manifest has invalid map-section metadata")
+        sections_by_id[section["id"]] = section
     for index, entry in enumerate(manifest["maps"]):
+        section_name = entry.get("regionMapSection")
+        section_metadata_entry = sections_by_id.get(section_name)
+        if section_metadata_entry is None:
+            raise ValidationError(
+                f"map {entry.get('name')} names unknown map section {section_name!r}"
+            )
+        if entry.get("regionMapSectionValue") != section_metadata_entry["value"]:
+            raise ValidationError(
+                f"map {entry.get('name')} map-section name/value disagree: "
+                f"{section_name} is {section_metadata_entry['value']}, "
+                f"not {entry.get('regionMapSectionValue')}"
+            )
+        group = groups_by_number.get(entry.get("group"))
+        expected_region = (
+            group_content_region(group.get("name")) if group is not None else None
+        )
+        if expected_region is None:
+            raise ValidationError(
+                f"map {entry.get('name')} references invalid map-group metadata"
+            )
+        if entry.get("region") != expected_region:
+            raise ValidationError(
+                f"map {entry.get('name')} region {entry.get('region')!r} disagrees "
+                f"with group {entry.get('group')} content origin {expected_region!r}"
+            )
         header = symbols[entry["name"]]
         if header % abi["alignment"]:
             raise ValidationError(
@@ -274,13 +412,25 @@ def validate_map_headers(
 def validate_tilesets(
     rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
 ) -> None:
+    abi = manifest["abis"]["tileset"]
+    formats = {
+        "METATILE_ATTRIBUTES_EMERALD_U16": 0,
+        "METATILE_ATTRIBUTES_FRLG_U32": 1,
+    }
     for tileset in manifest["tilesets"]:
         address = symbols[tileset["name"]]
+        if address % abi["alignment"]:
+            raise ValidationError(f"tileset {tileset['name']} violates ABI alignment")
+        flags = read_u8(rom, address + abi["flagsOffset"], f"{tileset['name']}.flags")
+        if (flags >> 1) & 0x3 != formats[tileset["attributeFormat"]]:
+            raise ValidationError(
+                f"{tileset['name']}.flags disagrees with attribute ABI"
+            )
         for offset, field in (
-            (4, "tiles"),
-            (8, "palettes"),
-            (12, "metatiles"),
-            (16, "metatileAttributes"),
+            (abi["tilesOffset"], "tiles"),
+            (abi["palettesOffset"], "palettes"),
+            (abi["metatilesOffset"], "metatiles"),
+            (abi["metatileAttributesOffset"], "metatileAttributes"),
         ):
             require_expected_pointer(
                 rom,
@@ -292,13 +442,104 @@ def validate_tilesets(
             )
         require_expected_pointer(
             rom,
-            address + 20,
+            address + abi["callbackOffset"],
             f"{tileset['name']}.callback",
             tileset["callback"],
             symbols,
             rom_end,
             function=True,
         )
+
+
+def validate_count_sentinels(manifest: dict[str, Any], symbols: dict[str, int]) -> None:
+    for name in ("groups", "layouts"):
+        sentinel = manifest["countSentinels"][name]
+        start = symbols[sentinel["start"]]
+        end = symbols[sentinel["end"]]
+        expected = sentinel["count"] * sentinel["stride"]
+        if end - start != expected:
+            raise ValidationError(
+                f"{name} linked count sentinel spans {end - start} bytes, expected {expected}"
+            )
+
+
+def validate_section_metadata(
+    rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
+) -> None:
+    address = symbols["gMapSectionMetadata"]
+    require_rom_address("gMapSectionMetadata", address, rom_end)
+    fields = ("regionValue", "kindValue", "regionMapTypeValue")
+    for entry in manifest["mapSectionMetadata"]:
+        record = address + entry["value"] * 4
+        for offset, field in enumerate(fields):
+            actual = read_u8(rom, record + offset, f"{entry['id']}.{field}")
+            if actual != entry[field]:
+                raise ValidationError(
+                    f"{entry['id']}.{field} is {actual}, expected {entry[field]}"
+                )
+        if read_u8(rom, record + 3, f"{entry['id']}.reserved") != 0:
+            raise ValidationError(f"{entry['id']}.reserved is not zero-filled")
+
+
+def validate_section_codecs(
+    rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
+) -> None:
+    abi = manifest["abis"]["mapSectionRegistry"]
+    registry = symbols["gMapSectionRegistry"]
+    if registry % abi["alignment"]:
+        raise ValidationError("map-section registry violates ABI alignment")
+    fields = (
+        ("metadataOffset", "gMapSectionMetadata"),
+        ("sectionToSavedLocationOffset", "gMapSectionToSavedLocation"),
+        ("sectionToMetLocationOffset", "gMapSectionToMetLocation"),
+        ("savedLocationToSectionOffset", "gSavedLocationToMapSection"),
+        ("metLocationToSectionOffset", "gMetLocationToMapSection"),
+    )
+    for offset_name, symbol in fields:
+        require_expected_pointer(
+            rom,
+            registry + abi[offset_name],
+            f"gMapSectionRegistry.{offset_name}",
+            symbol,
+            symbols,
+            rom_end,
+        )
+    section_count = read_pointer(
+        rom, registry + abi["sectionCountOffset"], "gMapSectionRegistry.sectionCount"
+    )
+    expected_count = manifest["countSentinels"]["mapSections"]["count"]
+    if section_count != expected_count:
+        raise ValidationError(
+            f"map-section count sentinel is {section_count}, expected {expected_count}"
+        )
+
+    codecs = manifest["codecs"]
+    byte_tables = (
+        ("sectionToSavedLocation", "gMapSectionToSavedLocation", 0xFF),
+        ("sectionToMetLocation", "gMapSectionToMetLocation", 0xFC),
+    )
+    for name, symbol, invalid in byte_tables:
+        address = symbols[symbol]
+        for index, expected in enumerate(codecs[name]):
+            actual = read_u8(rom, address + index, f"{symbol}[{index}]")
+            expected = invalid if expected < 0 else expected
+            if actual != expected:
+                raise ValidationError(
+                    f"{symbol}[{index}] is {actual}, expected {expected}"
+                )
+    halfword_tables = (
+        ("savedLocationToSection", "gSavedLocationToMapSection"),
+        ("metLocationToSection", "gMetLocationToMapSection"),
+    )
+    for name, symbol in halfword_tables:
+        address = symbols[symbol]
+        for index, expected in enumerate(codecs[name]):
+            actual = read_u16(rom, address + index * 2, f"{symbol}[{index}]")
+            expected = 0xFFFF if expected < 0 else expected
+            if actual != expected:
+                raise ValidationError(
+                    f"{symbol}[{index}] is {actual}, expected {expected}"
+                )
 
 
 def validate_artifact(
@@ -313,7 +554,12 @@ def validate_artifact(
     rom = rom_path.read_bytes()
     if len(rom) > ROM_LIMIT:
         raise ValidationError(f"ROM exceeds 32 MiB: {len(rom)}")
-    if len(rom) < 0xB0 or rom[0xAC:0xB0] != b"BPEE":
+    if (
+        len(rom) < 0xB2
+        or rom[0xA0:0xAC] != b"POKEMON EMER"
+        or rom[0xAC:0xB0] != b"BPEE"
+        or rom[0xB0:0xB2] != b"01"
+    ):
         raise ValidationError("ROM header does not identify the Emerald product")
 
     symbols = parse_symbols(sym_path)
@@ -341,6 +587,9 @@ def validate_artifact(
     validate_layouts(rom, manifest, symbols, rom_end)
     validate_map_headers(rom, manifest, symbols, rom_end)
     validate_tilesets(rom, manifest, symbols, rom_end)
+    validate_count_sentinels(manifest, symbols)
+    validate_section_metadata(rom, manifest, symbols, rom_end)
+    validate_section_codecs(rom, manifest, symbols, rom_end)
 
     linker_map = map_path.read_text(errors="strict")
 
@@ -363,6 +612,13 @@ def validate_artifact(
             )
         return max(sections[name][0] + sections[name][1] for name in names) - origin
 
+    ewram_bytes = section_bytes((".ewram", ".ewram.sbss"), 0x02000000)
+    iwram_bytes = section_bytes((".iwram", ".iwram.bss"), 0x03000000)
+    if not 0 < ewram_bytes <= 0x40000:
+        raise ValidationError(f"EWRAM use is outside memory bounds: {ewram_bytes}")
+    if not 0 < iwram_bytes <= 0x8000:
+        raise ValidationError(f"IWRAM use is outside memory bounds: {iwram_bytes}")
+
     report = {
         "schemaVersion": 1,
         "product": manifest["product"],
@@ -375,8 +631,10 @@ def validate_artifact(
         },
         "capacity": capacity,
         "memory": {
-            "ewramBytes": section_bytes((".ewram", ".ewram.sbss"), 0x02000000),
-            "iwramBytes": section_bytes((".iwram", ".iwram.bss"), 0x03000000),
+            "ewramBytes": ewram_bytes,
+            "ewramLimitBytes": 0x40000,
+            "iwramBytes": iwram_bytes,
+            "iwramLimitBytes": 0x8000,
         },
         "linkerMapBytes": len(linker_map.encode()),
     }

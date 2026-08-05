@@ -6,9 +6,11 @@ which in turn is based on [pret's `pokeemerald`](https://github.com/pret/pokeeme
 The project uses the expansion engine as its technical foundation while developing
 its own world, content, and gameplay direction.
 
-This repository contains the source code and tooling needed to build the ROM
-locally. You may only use ROM images in accordance with the laws that apply to
-you.
+This repository contains the source code and tooling needed to build its sole
+product: one Emerald-engine `pokemon-openworld` ROM with Hoenn, mainland Kanto,
+and Sevii resident. It does not expose FireRed, LeafGreen, or separate
+region-specific product ROMs. You may only use ROM images in accordance with
+the laws that apply to you.
 
 ## Releases
 
@@ -37,12 +39,41 @@ and link the published files back to their source commit and CI origin.
 
 ## Build and setup
 
-See [INSTALL.md](INSTALL.md) for supported development environments and build
-commands. A standard build produces `pokemon-openworld.gba`:
+See [INSTALL.md](INSTALL.md) for supported development environments. The sole
+normal product build emits `pokemon-openworld.gba`, `pokemon-openworld.map`, and
+`pokemon-openworld.sym`:
 
-```console
-make
+```sh
+make -j"$(nproc)" -O emerald syms
 ```
+
+The canonical emulator input is the isolated debug pair:
+
+```sh
+make -j"$(nproc)" -O DEBUG=1 \
+  pokemon-openworld-debug.gba pokemon-openworld-debug.sym
+```
+
+Validate deterministic generation, manifest/schema integrity, linked pointers,
+ABI sentinels, and the ROM/EWRAM/IWRAM capacity contract with:
+
+```sh
+python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py'
+make foundation-check
+make e2e-foundation
+```
+
+`make foundation-check` writes the machine-readable linked-artifact and
+capacity report to `build/foundation/artifact-report.json`. The Foundation E2E
+suite writes failure evidence under `test-results/e2e/foundation/`. See
+[the E2E guide](tools/e2e/README.md) for the exact residency contract.
+
+Here, **resident** means every registered Hoenn, mainland Kanto, and Sevii map
+has complete structural data and can initialize. **Field-ready** is the stronger
+representative-map proof that normal scripts/events run and player control is
+restored. Neither term promises inter-region travel, Fly routing, story
+progression, or finished Kanto/Sevii story content; those behaviors are outside
+this milestone.
 
 ## Project reference
 
