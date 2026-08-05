@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import IntEnum
 import os
 from pathlib import Path
 import shutil
@@ -25,6 +27,87 @@ SETTINGS_THEME_OFFSET = 8
 SETTINGS_VERSION_OFFSET = 12
 CUSTOM_THEME = 3
 SETTINGS_VERSION = 3
+
+FOUNDATION_REQUEST_STATUS_OFFSET = 14
+FOUNDATION_REQUEST_SIZE = 16
+FOUNDATION_RESULT_SIZE = 12
+
+
+class FoundationLoadStatus(IntEnum):
+    IDLE = 0
+    PENDING = 1
+    RUNNING = 2
+    SUCCESS = 3
+    ERROR = 4
+
+
+class FoundationLoadPhase(IntEnum):
+    NONE = 0
+    VALIDATE = 1
+    PREPARE = 2
+    WARP = 3
+    MAP_DATA = 4
+    RESET = 5
+    RESUME = 6
+    EVENTS = 7
+    GRAPHICS = 8
+    CALLBACK = 9
+    FIELD_READY = 10
+
+
+class FoundationLoadError(IntEnum):
+    NONE = 0
+    MAP_GROUP = 1
+    MAP_GROUP_UNAVAILABLE = 2
+    MAP_NUM = 3
+    MAP_HEADER = 4
+    MAP_LAYOUT = 5
+    COORDINATES = 6
+    FLAGS = 7
+    NOT_READY = 8
+
+
+@dataclass(frozen=True)
+class FoundationMapLoadRequest:
+    request_id: int
+    map_group: int
+    map_num: int
+    x: int = -1
+    y: int = -1
+    suppress_scripts: bool = False
+    suppress_events: bool = False
+
+    def payload(self) -> bytes:
+        if not 0 <= self.request_id <= 0xFFFFFFFF:
+            raise ValueError("request_id is outside u32")
+        if not 0 <= self.map_group <= 0xFFFF:
+            raise ValueError("map_group is outside u16")
+        if not 0 <= self.map_num <= 0xFFFF:
+            raise ValueError("map_num is outside u16")
+        if not -0x8000 <= self.x <= 0x7FFF or not -0x8000 <= self.y <= 0x7FFF:
+            raise ValueError("coordinates are outside s16")
+        return struct.pack(
+            "<IHHhhBBBB",
+            self.request_id,
+            self.map_group,
+            self.map_num,
+            self.x,
+            self.y,
+            int(self.suppress_scripts),
+            int(self.suppress_events),
+            FoundationLoadStatus.IDLE,
+            0,
+        )
+
+
+@dataclass(frozen=True)
+class FoundationMapLoadResult:
+    request_id: int
+    map_group: int
+    map_num: int
+    status: FoundationLoadStatus
+    phase: FoundationLoadPhase
+    error: FoundationLoadError
 
 
 class Symbols:
@@ -164,6 +247,16 @@ class SkyEmuSession:
         if result != "ok":
             raise RuntimeError(f"SkyEmu step failed: {result}")
 
+    def pause(self) -> None:
+        # HTTP-control sessions are loaded paused. Each /step call runs a fixed
+        # frame count synchronously and returns to that deterministic state.
+        pass
+
+    def resume(self) -> None:
+        # Foundation waits advance with /step, rather than SkyEmu's unbounded
+        # /run endpoint, so timeout accounting remains frame-exact.
+        pass
+
     def set_buttons(self, **states: bool) -> None:
         unknown = states.keys() - set(BUTTONS)
         if unknown:
@@ -214,6 +307,82 @@ class SkyEmuSession:
 
     def write_u16(self, address: int, value: int) -> None:
         self.write(address, struct.pack("<H", value & 0xFFFF))
+
+    def foundation_result(self) -> FoundationMapLoadResult:
+        data = self.read(
+            self.address("gFoundationMapLoadResult"), FOUNDATION_RESULT_SIZE
+        )
+        request_id, map_group, map_num, status, phase, error = struct.unpack(
+            "<IHHBBH", data
+        )
+        try:
+            return FoundationMapLoadResult(
+                request_id=request_id,
+                map_group=map_group,
+                map_num=map_num,
+                status=FoundationLoadStatus(status),
+                phase=FoundationLoadPhase(phase),
+                error=FoundationLoadError(error),
+            )
+        except ValueError as value_error:
+            raise RuntimeError(
+                f"malformed Foundation result: {data.hex()}"
+            ) from value_error
+
+    def wait_for_foundation_result(
+        self, request_id: int, *, max_frames: int
+    ) -> FoundationMapLoadResult:
+        if max_frames < 1:
+            raise ValueError("max_frames must be positive")
+        last = self.foundation_result()
+        for _ in range(max_frames):
+            self.step()
+            last = self.foundation_result()
+            if last.status not in (
+                FoundationLoadStatus.SUCCESS,
+                FoundationLoadStatus.ERROR,
+            ):
+                continue
+            if last.request_id != request_id:
+                raise RuntimeError(
+                    "Foundation result echoed the wrong request id: "
+                    f"expected={request_id}, actual={last.request_id}"
+                )
+            return last
+        raise TimeoutError(
+            f"Foundation request {request_id} timed out after {max_frames} frames; "
+            f"status={last.status.name}, phase={last.phase.name}, error={last.error.name}"
+        )
+
+    def request_map_load(
+        self, request: FoundationMapLoadRequest, *, max_frames: int = 1_200
+    ) -> FoundationMapLoadResult:
+        request_address = self.address("gFoundationMapLoadRequest")
+        payload = request.payload()
+        if len(payload) != FOUNDATION_REQUEST_SIZE:
+            raise AssertionError("Foundation request ABI size drifted")
+
+        self.pause()
+        self.write(request_address, payload)
+        # PENDING is the request commit field and must be the final host write.
+        self.write_u8(
+            request_address + FOUNDATION_REQUEST_STATUS_OFFSET,
+            FoundationLoadStatus.PENDING,
+        )
+        self.resume()
+        result = self.wait_for_foundation_result(
+            request.request_id, max_frames=max_frames
+        )
+        if (result.map_group, result.map_num) != (
+            request.map_group,
+            request.map_num,
+        ):
+            raise RuntimeError(
+                "Foundation result echoed the wrong map id: "
+                f"expected={(request.map_group, request.map_num)}, "
+                f"actual={(result.map_group, result.map_num)}"
+            )
+        return result
 
     def address(self, symbol: str) -> int:
         return self.symbols[symbol]

@@ -1,49 +1,60 @@
 # Map JSON data
 
-# Inputs
-MAPS_DIR = $(DATA_ASM_SUBDIR)/maps
-LAYOUTS_DIR = $(DATA_ASM_SUBDIR)/layouts
+# Reviewed inputs
+MAPS_DIR := $(DATA_ASM_SUBDIR)/maps
+LAYOUTS_DIR := $(DATA_ASM_SUBDIR)/layouts
 
-# Outputs
-MAPS_OUTDIR := $(MAPS_DIR)
-LAYOUTS_OUTDIR := $(LAYOUTS_DIR)
-INCLUDECONSTS_OUTDIR := include/constants
+# Policy-isolated outputs. mapjson builds a complete sibling staging tree and only
+# promotes it after every file has been generated successfully.
+MAPS_OUTDIR := $(GENERATED_ROOT)/data/maps
+LAYOUTS_OUTDIR := $(GENERATED_ROOT)/data/layouts
+INCLUDECONSTS_OUTDIR := $(GENERATED_ROOT)/include/constants
+MAP_GROUP_COUNT_OUT := $(GENERATED_ROOT)/src/data/map_group_count.h
+MAP_GENERATION_STAMP := $(GENERATED_ROOT)/.map-build-policy
 
-AUTO_GEN_TARGETS += $(INCLUDECONSTS_OUTDIR)/map_groups.h
-AUTO_GEN_TARGETS += $(INCLUDECONSTS_OUTDIR)/layouts.h
-AUTO_GEN_TARGETS += $(INCLUDECONSTS_OUTDIR)/map_event_ids.h
-AUTO_GEN_TARGETS += $(DATA_SRC_SUBDIR)/map_group_count.h
+AUTO_GEN_TARGETS += $(MAP_GENERATION_STAMP)
 
 MAP_DIRS := $(dir $(wildcard $(MAPS_DIR)/*/map.json))
-MAP_CONNECTIONS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/connections.inc,$(MAP_DIRS))
-MAP_EVENTS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/events.inc,$(MAP_DIRS))
-MAP_HEADERS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/header.inc,$(MAP_DIRS))
 MAP_JSONS := $(patsubst $(MAPS_DIR)/%/,$(MAPS_DIR)/%/map.json,$(MAP_DIRS))
+MAP_NAMES := $(notdir $(patsubst %/,%,$(MAP_DIRS)))
+MAP_CONNECTIONS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/connections.inc)
+MAP_EVENTS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/events.inc)
+MAP_HEADERS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/header.inc)
 
-$(DATA_ASM_BUILDDIR)/maps.o: $(DATA_ASM_SUBDIR)/maps.s $(LAYOUTS_DIR)/layouts.inc $(LAYOUTS_DIR)/layouts_table.inc $(MAPS_DIR)/headers.inc $(MAPS_DIR)/groups.inc $(MAPS_DIR)/connections.inc $(MAP_CONNECTIONS) $(MAP_HEADERS)
-	$(PREPROC) -s $< charmap.txt | $(CPP) $(CPPFLAGS) -I include - | $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
-$(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_DIR)/events.inc $(MAP_EVENTS)
-	$(PREPROC) -s $< charmap.txt | $(CPP) $(CPPFLAGS) -I include - | $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
+MAP_GENERATED_GLOBALS := \
+	$(MAPS_OUTDIR)/connections.inc \
+	$(MAPS_OUTDIR)/groups.inc \
+	$(MAPS_OUTDIR)/events.inc \
+	$(MAPS_OUTDIR)/headers.inc \
+	$(LAYOUTS_OUTDIR)/layouts.inc \
+	$(LAYOUTS_OUTDIR)/layouts_table.inc \
+	$(INCLUDECONSTS_OUTDIR)/map_groups.h \
+	$(INCLUDECONSTS_OUTDIR)/layouts.h \
+	$(INCLUDECONSTS_OUTDIR)/map_event_ids.h \
+	$(MAP_GROUP_COUNT_OUT)
 
-$(MAPS_OUTDIR)/%/header.inc $(MAPS_OUTDIR)/%/events.inc $(MAPS_OUTDIR)/%/connections.inc: $(MAPS_DIR)/%/map.json $(INCLUDECONSTS_OUTDIR)/map_groups.h
-	$(MAPJSON) map emerald $< $(LAYOUTS_DIR)/layouts.json $(@D)
+$(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) $(MAPJSON)
+	@$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) $(MAP_JSONS)
+	@echo "$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) <MAP_JSONS>"
 
+# These are products of the atomic generation above. Keeping them as explicit
+# targets gives make useful dependency errors if a supposedly complete tree is
+# ever missing a member.
+$(MAP_GENERATED_GLOBALS) $(MAP_CONNECTIONS) $(MAP_EVENTS) $(MAP_HEADERS): $(MAP_GENERATION_STAMP)
+	@test -f $@
 
-$(MAPS_OUTDIR)/connections.inc $(MAPS_OUTDIR)/groups.inc $(MAPS_OUTDIR)/events.inc $(MAPS_OUTDIR)/headers.inc $(INCLUDECONSTS_OUTDIR)/map_groups.h $(DATA_SRC_SUBDIR)/map_group_count.h: $(MAPS_DIR)/map_groups.json $(MAP_JSONS) .map_version
-	@$(MAPJSON) groups $(MAP_VERSION) $(filter-out .map_version,$^) $(MAPS_OUTDIR) $(INCLUDECONSTS_OUTDIR)
-	@echo "$(MAPJSON) groups $(MAP_VERSION) $(MAPS_DIR)/map_groups.json <MAP_JSONS> $(MAPS_OUTDIR) $(INCLUDECONSTS_OUTDIR)"
+$(DATA_ASM_BUILDDIR)/maps.o: $(DATA_ASM_SUBDIR)/maps.s $(LAYOUTS_OUTDIR)/layouts.inc $(LAYOUTS_OUTDIR)/layouts_table.inc $(MAPS_OUTDIR)/headers.inc $(MAPS_OUTDIR)/groups.inc $(MAPS_OUTDIR)/connections.inc $(MAP_CONNECTIONS) $(MAP_HEADERS)
+	sed -e 's#"data/layouts/layouts.inc"#"$(LAYOUTS_OUTDIR)/layouts.inc"#' \
+	    -e 's#"data/layouts/layouts_table.inc"#"$(LAYOUTS_OUTDIR)/layouts_table.inc"#' \
+	    -e 's#"data/maps/headers.inc"#"$(MAPS_OUTDIR)/headers.inc"#' \
+	    -e 's#"data/maps/groups.inc"#"$(MAPS_OUTDIR)/groups.inc"#' \
+	    -e 's#"data/maps/connections.inc"#"$(MAPS_OUTDIR)/connections.inc"#' $< \
+	| $(PREPROC) -is $< charmap.txt | $(CPP) $(CPPFLAGS) -I include - \
+	| $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
 
-$(LAYOUTS_OUTDIR)/layouts.inc $(LAYOUTS_OUTDIR)/layouts_table.inc $(INCLUDECONSTS_OUTDIR)/layouts.h: $(LAYOUTS_DIR)/layouts.json .map_version
-	$(MAPJSON) layouts $(MAP_VERSION) $< $(LAYOUTS_OUTDIR) $(INCLUDECONSTS_OUTDIR)
+$(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_OUTDIR)/events.inc $(MAP_EVENTS)
+	sed -e 's#"data/maps/events.inc"#"$(MAPS_OUTDIR)/events.inc"#' $< \
+	| $(PREPROC) -is $< charmap.txt | $(CPP) $(CPPFLAGS) -I include - \
+	| $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
 
-# Generate constants for map events, which depend on data that's distributed across the map.json files.
-# There's a lot of map.json files, so we print an abbreviated output with echo.
-$(INCLUDECONSTS_OUTDIR)/map_event_ids.h: $(MAP_JSONS)
-	@$(MAPJSON) event_constants emerald $^ $(INCLUDECONSTS_OUTDIR)/map_event_ids.h
-	@echo "$(MAPJSON) event_constants emerald <MAP_JSONS> $(INCLUDECONSTS_OUTDIR)/map_event_ids.h"
-
-.map_version : FORCE
-	@(echo "$(MAP_VERSION)" | cmp $@ -) || echo "$(MAP_VERSION)" > .map_version
-
-FORCE:
-.PHONY : FORCE
+$(C_BUILDDIR)/debug.o $(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)

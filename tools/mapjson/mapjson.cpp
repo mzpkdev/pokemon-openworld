@@ -32,10 +32,74 @@ using json11::Json;
 #include "mapjson.h"
 
 #include <filesystem>
+#include <system_error>
+#include <chrono>
 
-string version;
 // System directory separator
 string sep;
+
+const char *MapBuildModeName(MapBuildMode mode)
+{
+    switch (mode) {
+    case MapBuildMode::Emerald: return "emerald";
+    case MapBuildMode::FireRed: return "firered";
+    case MapBuildMode::Ruby: return "ruby";
+    case MapBuildMode::AllRegions: return "allregions";
+    }
+    return "unknown";
+}
+
+const char *DataDialectName(DataDialect dialect)
+{
+    switch (dialect) {
+    case DataDialect::Emerald: return "emerald";
+    case DataDialect::FireRed: return "firered";
+    case DataDialect::Ruby: return "ruby";
+    }
+    return "unknown";
+}
+
+static string DefaultRegionName(DataDialect dialect)
+{
+    return dialect == DataDialect::FireRed ? "REGION_KANTO" : "REGION_HOENN";
+}
+
+static string DefaultLayoutName(DataDialect dialect)
+{
+    switch (dialect) {
+    case DataDialect::Emerald: return "emerald";
+    case DataDialect::FireRed: return "frlg";
+    case DataDialect::Ruby: return "ruby";
+    }
+    return "";
+}
+
+MapBuildPolicy ParseBuildPolicy(const string &value)
+{
+    if (value == "emerald")
+        return {MapBuildMode::Emerald, DataDialect::Emerald};
+    if (value == "firered")
+        return {MapBuildMode::FireRed, DataDialect::FireRed};
+    if (value == "ruby")
+        return {MapBuildMode::Ruby, DataDialect::Ruby};
+    if (value == "allregions")
+        return {MapBuildMode::AllRegions, DataDialect::Emerald};
+    FATAL_ERROR("ERROR: unknown map build mode '%s'.\n", value.c_str());
+}
+
+bool MapBuildPolicy::IncludesRegion(const string &region) const
+{
+    if (mode == MapBuildMode::AllRegions)
+        return region == "REGION_HOENN" || region == "REGION_KANTO";
+    return region == DefaultRegionName(defaultDialect);
+}
+
+bool MapBuildPolicy::IncludesLayout(const string &layoutFormat) const
+{
+    if (mode == MapBuildMode::AllRegions)
+        return layoutFormat == "emerald" || layoutFormat == "frlg";
+    return layoutFormat == DefaultLayoutName(defaultDialect);
+}
 
 string read_text_file(string filepath) {
     ifstream in_file(filepath);
@@ -123,7 +187,7 @@ string get_include_guard_end(const string &name) {
     return guard.str();
 }
 
-string generate_map_header_text(Json map_data, Json layouts_data) {
+string generate_map_header_text(Json map_data, Json layouts_data, const MapBuildPolicy &policy) {
     string map_layout_id = json_to_string(map_data, "layout");
 
     vector<Json> matched;
@@ -177,9 +241,9 @@ string generate_map_header_text(Json map_data, Json layouts_data) {
 
     text << "\t.byte 0\n";
 
-    if (version == "ruby")
+    if (policy.defaultDialect == DataDialect::Ruby)
         text << "\t.byte " << json_to_string(map_data, "show_map_name") << "\n";
-    else if (version == "emerald" || version == "firered")
+    else
         text << "\tmap_header_flags "
              << "allow_cycling=" << json_to_string(map_data, "allow_cycling") << ", "
              << "allow_escaping=" << json_to_string(map_data, "allow_escaping") << ", "
@@ -191,27 +255,12 @@ string generate_map_header_text(Json map_data, Json layouts_data) {
     return text.str();
 }
 
-vector<string> get_existing_maps() {
-    vector<string> v = {};
-    string map_constants = read_text_file("include/constants/map_groups.h");
-
-    std::regex map_regex("(MAP_\\w+)\\s+=\\s+\\(\\d+");
-
-    for (std::smatch sm; regex_search(map_constants, sm, map_regex);)
-    {
-        v.push_back(sm[1]);
-        map_constants = sm.suffix();
-    }
-    return v;
-}
-
-string generate_map_connections_text(Json map_data) {
+string generate_map_connections_text(Json map_data, const vector<string> &existing_maps) {
     if (map_data["connections"] == Json())
         return string("\n");
 
     string mapName = json_to_string(map_data, "name");
 
-    vector<string> existing_maps = get_existing_maps();
     ostringstream text;
     text << get_generated_warning("data/maps/" + mapName + "/map.json", true);
     text << mapName << "_MapConnectionsList:\n";
@@ -395,7 +444,8 @@ string file_parent(string filename){
     return filename.substr(0, dir_pos + 1);
 }
 
-void process_map(string map_filepath, string layouts_filepath, string output_dir) {
+void process_map(string map_filepath, string layouts_filepath, string output_dir,
+                 const MapBuildPolicy &policy, const vector<string> &existing_maps) {
     string mapdata_err, layouts_err;
 
     string mapdata_json_text = read_text_file(map_filepath);
@@ -409,9 +459,9 @@ void process_map(string map_filepath, string layouts_filepath, string output_dir
     if (layouts_data == Json())
         FATAL_ERROR("%s\n", layouts_err.c_str());
 
-    string header_text = generate_map_header_text(map_data, layouts_data);
+    string header_text = generate_map_header_text(map_data, layouts_data, policy);
     string events_text = generate_map_events_text(map_data);
-    string connections_text = generate_map_connections_text(map_data);
+    string connections_text = generate_map_connections_text(map_data, existing_maps);
 
     string out_dir = strip_trailing_separator(output_dir).append(sep);
     write_text_file(out_dir + "header.inc", header_text);
@@ -592,7 +642,8 @@ Json parse_required_map_defines(void) {
     return json_data;
 }
 
-string generate_map_constants_text(string groups_filepath, Json groups_data, vector<string> &valid_map_ids) {
+string generate_map_constants_text(string groups_filepath, Json groups_data, vector<string> &valid_map_ids,
+                                   const string &map_count_filepath) {
     string file_dir = file_parent(groups_filepath) + sep;
 
     string guard_name = "CONSTANTS_MAP_GROUPS";
@@ -674,47 +725,20 @@ string generate_map_constants_text(string groups_filepath, Json groups_data, vec
     text << "\n#define MAP_GROUPS_COUNT " << group_num << "\n\n";
     text << get_include_guard_end(guard_name);
 
-    char s = file_dir.back();
     mapCountText << "static const u8 MAP_GROUP_COUNT[] = {"; //DEBUG
     for(int i=0; i<group_num; i++){                          //DEBUG
         mapCountText << map_count_vec[i] << ", ";            //DEBUG
     }                                                        //DEBUG
     mapCountText << "0};\n";                                 //DEBUG
-    write_text_file(file_dir + ".." + s + ".." + s + "src" + s + "data" + s + "map_group_count.h", mapCountText.str());
+    std::filesystem::create_directories(std::filesystem::path(map_count_filepath).parent_path());
+    write_text_file(map_count_filepath, mapCountText.str());
 
     return text.str();
 }
 
-void clean_heal_locations(vector<string> &valid_map_ids)
-{
-    std::stringstream new_json;
-    std::ifstream infile("src/data/heal_locations.json");
-    bool deleted_flag = false;
-
-    std::regex map_regex("\"respawn_map\"\\s*:\\s*\"(MAP_\\w+)\"");
-    std::regex npc_regex("LOCALID_\\w+");
-    std::smatch map_match;
-    string line;
-    while (std::getline(infile, line))
-    {
-        if (std::regex_search(line, map_match, map_regex) && !deleted_flag) {
-            auto it = find(valid_map_ids.begin(), valid_map_ids.end(), map_match[1]);
-            if (it == valid_map_ids.end())
-                deleted_flag = true;
-        }
-        if (deleted_flag && std::regex_search(line, npc_regex)) {
-            deleted_flag = false;
-            new_json << std::regex_replace(line, npc_regex, "0") << "\n";
-        } else {
-            new_json << line << "\n";
-        }
-    }
-
-    write_text_file("src/data/heal_locations.json", new_json.str());
-}
-
 // Output paths are directories with trailing path separators
-void process_groups(string groups_filepath, vector<string> &map_filepaths, string output_asm, string output_c) {
+void process_groups(string groups_filepath, vector<string> &map_filepaths, string output_asm, string output_c,
+                    const MapBuildPolicy &policy, const string &include_path = "") {
     output_asm = strip_trailing_separator(output_asm); // Remove separator if existing.
     output_c = strip_trailing_separator(output_c);
 
@@ -732,16 +756,11 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
 
         string region = json_to_string(map_data, "region", true);
 
-        if (region.empty()) {
-            if (version == "emerald")
-                region = "REGION_HOENN";
-            else if (version == "firered")
-                region = "REGION_KANTO";
-        }
+        if (region.empty())
+            region = DefaultRegionName(policy.defaultDialect);
         string map_name = json_to_string(map_data, "name");
 
-        if ((version == "emerald" && region != "REGION_HOENN")
-         || (version == "firered" && region != "REGION_KANTO")) {
+        if (!policy.IncludesRegion(region)) {
             invalid_maps.push_back(map_name);
         }
     }
@@ -750,12 +769,14 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
         FATAL_ERROR("%s\n", err.c_str());
 
     string groups_text = generate_groups_text(groups_data, invalid_maps);
-    string connections_text = generate_connections_text(groups_data, invalid_maps, output_asm);
-    string headers_text = generate_headers_text(groups_data, invalid_maps, output_asm);
-    string events_text = generate_events_text(groups_data, invalid_maps, output_asm);
-    string map_header_text = generate_map_constants_text(groups_filepath, groups_data, valid_map_ids);
+    string generated_include_path = include_path.empty() ? output_asm : include_path;
+    string connections_text = generate_connections_text(groups_data, invalid_maps, generated_include_path);
+    string headers_text = generate_headers_text(groups_data, invalid_maps, generated_include_path);
+    string events_text = generate_events_text(groups_data, invalid_maps, generated_include_path);
+    std::filesystem::path map_count_filepath = std::filesystem::path(output_c) / ".." / ".." / "src" / "data" / "map_group_count.h";
+    string map_header_text = generate_map_constants_text(groups_filepath, groups_data, valid_map_ids,
+                                                         map_count_filepath.lexically_normal().string());
 
-    clean_heal_locations(valid_map_ids);
     write_text_file(output_asm + sep + "groups.inc", groups_text);
     write_text_file(output_asm + sep + "connections.inc", connections_text);
     write_text_file(output_asm + sep + "headers.inc", headers_text);
@@ -763,7 +784,7 @@ void process_groups(string groups_filepath, vector<string> &map_filepaths, strin
     write_text_file(output_c + sep + "map_groups.h", map_header_text);
 }
 
-string generate_layout_headers_text(Json layouts_data) {
+string generate_layout_headers_text(Json layouts_data, const MapBuildPolicy &policy) {
     ostringstream text;
 
     text << get_generated_warning("data/layouts/layouts.json", true);
@@ -774,14 +795,9 @@ string generate_layout_headers_text(Json layouts_data) {
             continue;
         string layout_version = json_to_string(layout, "layout_version", true);
 
-        if (layout_version.empty()) {
-            if (version == "emerald")
-                layout_version = "emerald";
-            else if (version == "firered")
-                layout_version = "frlg";
-        }
-        if ((version == "emerald" && layout_version != "emerald")
-         || (version == "firered" && layout_version != "frlg"))
+        if (layout_version.empty())
+            layout_version = DefaultLayoutName(policy.defaultDialect);
+        if (!policy.IncludesLayout(layout_version))
             continue;
         string layoutName = json_to_string(layout, "name");
         string border_label = layoutName + "_Border";
@@ -820,7 +836,7 @@ string generate_layout_headers_text(Json layouts_data) {
     return text.str();
 }
 
-string generate_layouts_table_text(Json layouts_data) {
+string generate_layouts_table_text(Json layouts_data, const MapBuildPolicy &policy) {
     ostringstream text;
 
     text << get_generated_warning("data/layouts/layouts.json", true);
@@ -832,13 +848,9 @@ string generate_layouts_table_text(Json layouts_data) {
         if (!std::filesystem::exists(json_to_string(layout, "border_filepath")))
             continue;
         string layout_version = json_to_string(layout, "layout_version", true);
-        if (layout_version.empty()) {
-            if (version == "emerald")
-                layout_version = "emerald";
-            else if (version == "firered")
-                layout_version = "frlg";
-        }
-        if ((version == "emerald" && layout_version != "emerald") || (version == "firered" && layout_version != "frlg")) {
+        if (layout_version.empty())
+            layout_version = DefaultLayoutName(policy.defaultDialect);
+        if (!policy.IncludesLayout(layout_version)) {
             text << "\t.4byte NULL\n";
         } else {
             string layout_name = json_to_string(layout, "name", true);
@@ -907,7 +919,7 @@ string generate_layouts_constants_text(Json layouts_data) {
     return text.str();
 }
 
-void process_layouts(string layouts_filepath, string output_asm, string output_c) {
+void process_layouts(string layouts_filepath, string output_asm, string output_c, const MapBuildPolicy &policy) {
     output_asm = strip_trailing_separator(output_asm).append(sep);
     output_c = strip_trailing_separator(output_c).append(sep);
 
@@ -917,8 +929,8 @@ void process_layouts(string layouts_filepath, string output_asm, string output_c
     if (layouts_data == Json())
         FATAL_ERROR("%s\n", err.c_str());
 
-    string layout_headers_text = generate_layout_headers_text(layouts_data);
-    string layouts_table_text = generate_layouts_table_text(layouts_data);
+    string layout_headers_text = generate_layout_headers_text(layouts_data, policy);
+    string layouts_table_text = generate_layouts_table_text(layouts_data, policy);
     string layouts_constants_text = generate_layouts_constants_text(layouts_data);
 
     write_text_file(output_asm + "layouts.inc", layout_headers_text);
@@ -926,14 +938,113 @@ void process_layouts(string layouts_filepath, string output_asm, string output_c
     write_text_file(output_c + "layouts.h", layouts_constants_text);
 }
 
+static vector<string> included_map_ids(const vector<string> &map_filepaths, const MapBuildPolicy &policy)
+{
+    vector<string> ids;
+    for (const string &filepath : map_filepaths) {
+        string err;
+        Json map_data = Json::parse(read_text_file(filepath), err);
+        if (map_data == Json())
+            FATAL_ERROR("Failed to read '%s' while selecting maps: %s\n", filepath.c_str(), err.c_str());
+        string region = json_to_string(map_data, "region", true);
+        if (region.empty())
+            region = DefaultRegionName(policy.defaultDialect);
+        if (policy.IncludesRegion(region))
+            ids.push_back(json_to_string(map_data, "id"));
+    }
+    return ids;
+}
+
+static std::filesystem::path reserve_generation_staging(const std::filesystem::path &destination)
+{
+    const std::filesystem::path parent = destination.parent_path();
+    std::filesystem::create_directories(parent);
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+
+    for (unsigned int attempt = 0; attempt < 1000; attempt++) {
+        std::filesystem::path staging = parent / (".staging-" + std::to_string(nonce) + "-" + std::to_string(attempt));
+        std::error_code ec;
+        if (std::filesystem::create_directory(staging, ec))
+            return staging;
+        if (ec && ec != std::errc::file_exists)
+            FATAL_ERROR("Failed to reserve generation staging tree '%s': %s\n", staging.string().c_str(), ec.message().c_str());
+    }
+    FATAL_ERROR("Failed to reserve a unique generation staging tree below '%s'.\n", parent.string().c_str());
+}
+
+static void promote_generation_tree(const std::filesystem::path &staging,
+                                    const std::filesystem::path &destination)
+{
+    const string token = staging.filename().string().substr(string(".staging-").size());
+    const std::filesystem::path published = staging.parent_path() / (".generation-" + token);
+    const std::filesystem::path next_link = staging.parent_path() / (".current-" + token);
+    std::error_code ec;
+
+    std::filesystem::rename(staging, published, ec);
+    if (ec)
+        FATAL_ERROR("Failed to finalize generation tree '%s': %s\n", published.string().c_str(), ec.message().c_str());
+
+    std::filesystem::create_directory_symlink(published.filename(), next_link, ec);
+    if (ec)
+        FATAL_ERROR("Failed to create generation pointer '%s': %s\n", next_link.string().c_str(), ec.message().c_str());
+
+    const std::filesystem::file_status destination_status = std::filesystem::symlink_status(destination, ec);
+    if (ec && ec != std::errc::no_such_file_or_directory)
+        FATAL_ERROR("Failed to inspect generation pointer '%s': %s\n", destination.string().c_str(), ec.message().c_str());
+    if (destination_status.type() != std::filesystem::file_type::not_found
+     && destination_status.type() != std::filesystem::file_type::symlink) {
+        std::filesystem::remove(next_link, ec);
+        FATAL_ERROR("Generation destination '%s' must be absent or a symbolic link; remove the legacy generated directory first.\n",
+                    destination.string().c_str());
+    }
+
+    // POSIX rename atomically replaces the old symlink. Readers therefore see
+    // either the complete prior tree or the complete new tree, never a gap.
+    std::filesystem::rename(next_link, destination, ec);
+    if (ec)
+        FATAL_ERROR("Failed to publish generation pointer '%s': %s\n", destination.string().c_str(), ec.message().c_str());
+}
+
+static void process_generation_tree(const MapBuildPolicy &policy, const string &groups_filepath,
+                                    const string &layouts_filepath, const string &output_root,
+                                    vector<string> &map_filepaths)
+{
+    std::filesystem::path destination = strip_trailing_separator(output_root);
+    std::filesystem::path staging = reserve_generation_staging(destination);
+
+    const std::filesystem::path maps_out = staging / "data" / "maps";
+    const std::filesystem::path layouts_out = staging / "data" / "layouts";
+    const std::filesystem::path constants_out = staging / "include" / "constants";
+    std::filesystem::create_directories(maps_out);
+    std::filesystem::create_directories(layouts_out);
+    std::filesystem::create_directories(constants_out);
+
+    process_groups(groups_filepath, map_filepaths, maps_out.string(), constants_out.string(), policy,
+                   (destination / "data" / "maps").string());
+    process_layouts(layouts_filepath, layouts_out.string(), constants_out.string(), policy);
+    process_event_constants(map_filepaths, (constants_out / "map_event_ids.h").string());
+
+    vector<string> existing_maps = included_map_ids(map_filepaths, policy);
+    for (const string &filepath : map_filepaths) {
+        string err;
+        Json map_data = Json::parse(read_text_file(filepath), err);
+        if (map_data == Json())
+            FATAL_ERROR("Failed to read '%s' while generating map files: %s\n", filepath.c_str(), err.c_str());
+        std::filesystem::path map_out = maps_out / json_to_string(map_data, "name");
+        std::filesystem::create_directories(map_out);
+        process_map(filepath, layouts_filepath, map_out.string(), policy, existing_maps);
+    }
+
+    write_text_file((staging / ".map-build-policy").string(),
+                    string(MapBuildModeName(policy.mode)) + "\n");
+    promote_generation_tree(staging, destination);
+}
+
 int main(int argc, char *argv[]) {
     if (argc < 3)
         FATAL_ERROR("USAGE: mapjson <mode> <game-version> [options]\n");
 
-    char *version_arg = argv[2];
-    version = string(version_arg);
-    if (version != "emerald" && version != "ruby" && version != "firered")
-        FATAL_ERROR("ERROR: <game-version> must be 'emerald', 'firered', or 'ruby'.\n");
+    MapBuildPolicy policy = ParseBuildPolicy(argv[2]);
 
     char *mode_arg = argv[1];
     string mode(mode_arg);
@@ -946,7 +1057,7 @@ int main(int argc, char *argv[]) {
         string layouts_filepath(argv[4]);
         string output_dir(argv[5]);
 
-        process_map(filepath, layouts_filepath, output_dir);
+        process_map(filepath, layouts_filepath, output_dir, policy, {});
     }
     else if (mode == "groups") {
         if (argc < 6)
@@ -965,7 +1076,7 @@ int main(int argc, char *argv[]) {
         string output_asm(argv[argc - 2]);
         string output_c(argv[argc - 1]);
 
-        process_groups(filepath, map_filepaths, output_asm, output_c);
+        process_groups(filepath, map_filepaths, output_asm, output_c, policy);
     }
     else if (mode == "layouts") {
         if (argc != 6)
@@ -976,7 +1087,7 @@ int main(int argc, char *argv[]) {
         string output_asm(argv[4]);
         string output_c(argv[5]);
 
-        process_layouts(filepath, output_asm, output_c);
+        process_layouts(filepath, output_asm, output_c, policy);
     }
     else if (mode == "event_constants") {
         if (argc < 5)
@@ -994,8 +1105,29 @@ int main(int argc, char *argv[]) {
 
         process_event_constants(filepaths, output_ids_file);
     }
+    else if (mode == "policy") {
+        if (argc != 3)
+            FATAL_ERROR("USAGE: mapjson policy <build-mode>\n");
+        cout << "mode=" << MapBuildModeName(policy.mode) << "\n"
+             << "dialect=" << DataDialectName(policy.defaultDialect) << "\n"
+             << "hoenn=" << policy.IncludesRegion("REGION_HOENN") << "\n"
+             << "kanto=" << policy.IncludesRegion("REGION_KANTO") << "\n"
+             << "emerald_layout=" << policy.IncludesLayout("emerald") << "\n"
+             << "frlg_layout=" << policy.IncludesLayout("frlg") << "\n"
+             << "ruby_layout=" << policy.IncludesLayout("ruby") << "\n"
+             << "product=" << policy.IsProduct() << "\n";
+    }
+    else if (mode == "generate") {
+        if (argc < 7)
+            FATAL_ERROR("USAGE: mapjson generate <build-mode> <groups_file> <layouts_file> <output_root> <map_file> [additional_map_files]\n");
+        infer_separator(argv[3]);
+        vector<string> map_filepaths;
+        for (int i = 6; i < argc; i++)
+            map_filepaths.push_back(argv[i]);
+        process_generation_tree(policy, argv[3], argv[4], argv[5], map_filepaths);
+    }
     else {
-        FATAL_ERROR("ERROR: <mode> must be 'layouts', 'map', 'event_constants', or 'groups'.\n");
+        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', or 'policy'.\n");
     }
 
     return 0;

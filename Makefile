@@ -2,7 +2,8 @@ override GAME_VERSION := EMERALD
 override TITLE        := POKEMON EMER
 override GAME_CODE    := BPEE
 override BUILD_NAME   := emerald
-override MAP_VERSION  := emerald
+MAP_VERSION ?= emerald
+ALL_REGIONS ?= 0
 
 # GBA rom header
 MAKER_CODE  := 01
@@ -12,6 +13,8 @@ KEEP_TEMPS  ?= 0
 # `File name`.gba
 override FILE_NAME := pokemon-openworld
 BUILD_DIR := build
+GENERATED_POLICY_ROOT := $(BUILD_DIR)/generated/$(MAP_VERSION)
+GENERATED_ROOT := $(GENERATED_POLICY_ROOT)/current
 
 # Compares the ROM to a checksum of the original - only makes sense using when non-modern
 COMPARE     ?= 0
@@ -46,7 +49,7 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-override _E2E_SUITE_GOALS := e2e-core e2e-extended
+override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-foundation
 override _E2E_ONLY := 0
 ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
   ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
@@ -97,10 +100,17 @@ override OUTPUT_NAME := $(FILE_NAME)-debug
 endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
-OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)
-OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)-test
-OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)-debug
-OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)-release
+# Keep the historical Emerald/ALL_REGIONS=0 object path, but ensure every other
+# content-policy tuple has a distinct namespace. Output artifact names stay put.
+ifeq ($(MAP_VERSION)-$(ALL_REGIONS),emerald-0)
+BUILD_POLICY_SUFFIX :=
+else
+BUILD_POLICY_SUFFIX := -$(MAP_VERSION)-allregions$(ALL_REGIONS)
+endif
+OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)
+OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-debug
+OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-release
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
@@ -163,9 +173,9 @@ TEST_BUILDDIR = $(OBJ_DIR)/$(TEST_SUBDIR)
 SHELL := bash -o pipefail
 
 # Set flags for tools
-ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1
+ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1 --defsym ALL_REGIONS=$(ALL_REGIONS)
 
-INCLUDE_DIRS := include
+INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include include
 INCLUDE_CPP_ARGS := $(INCLUDE_DIRS:%=-iquote %)
 INCLUDE_SCANINC_ARGS := $(INCLUDE_DIRS:%=-I %)
 
@@ -174,7 +184,10 @@ O_LEVEL ?= g
 else
 O_LEVEL ?= 2
 endif
-CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -std=gnu17
+CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -DALL_REGIONS=$(ALL_REGIONS) -std=gnu17
+CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/map_groups.h
+CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/layouts.h
+CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/map_event_ids.h
 ifeq ($(DEBUG),1)
 	override CPPFLAGS += -DDEBUG
 endif
@@ -294,9 +307,9 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended format format-check lint lint-check
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check format format-check lint lint-check
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended
+.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -458,6 +471,15 @@ e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
 
+e2e-foundation: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=foundation \
+	$(E2E_PYTHON) tools/e2e/run.py foundation
+
+foundation-check:
+	$(MAKE) DEBUG=1 $(E2E_ROM) $(E2E_SYMS)
+	$(MAKE) e2e-foundation
+
 # Other rules
 rom: $(ROM)
 ifeq ($(COMPARE),1)
@@ -475,6 +497,7 @@ clean-assets:
 	rm -f $(DATA_ASM_SUBDIR)/layouts/layouts.inc $(DATA_ASM_SUBDIR)/layouts/layouts_table.inc
 	rm -f $(DATA_ASM_SUBDIR)/maps/connections.inc $(DATA_ASM_SUBDIR)/maps/events.inc $(DATA_ASM_SUBDIR)/maps/groups.inc $(DATA_ASM_SUBDIR)/maps/headers.inc $(DATA_SRC_SUBDIR)/map_group_count.h
 	rm -f .map_version
+	rm -rf $(BUILD_DIR)/generated
 	find sound -iname '*.bin' -exec rm {} +
 	find . \( -iname '*.1bpp' -o -iname '*.4bpp' -o -iname '*.8bpp' -o -iname '*.gbapal' -o -iname '*.lz' -o -iname '*.smol' -o -iname '*.fastSmol' -o -iname '*.smolTM' -o -iname '*.rl' -o -iname '*.latfont' -o -iname '*.hwjpnfont' -o -iname '*.fwjpnfont' \) -exec rm {} +
 	find $(DATA_ASM_SUBDIR)/maps \( -iname 'connections.inc' -o -iname 'events.inc' -o -iname 'header.inc' \) -exec rm {} +
@@ -543,6 +566,8 @@ clean-teachables_intermediates:
 clean-generated: clean-teachables_intermediates
 	@rm -f $(AUTO_GEN_TARGETS)
 	@echo "rm -f <AUTO_GEN_TARGETS>"
+	@rm -rf $(BUILD_DIR)/generated
+	@echo "rm -rf $(BUILD_DIR)/generated"
 
 clean-teachables: clean-teachables_intermediates
 	rm -f $(ALL_LEARNABLES_JSON)

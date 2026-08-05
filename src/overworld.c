@@ -83,6 +83,9 @@
 #include "constants/songs.h"
 #include "constants/trainer_hill.h"
 #include "constants/weather.h"
+#ifdef DEBUG
+#include "foundation_map_load.h"
+#endif
 
 STATIC_ASSERT((B_FLAG_FOLLOWERS_DISABLED == 0 || OW_FOLLOWERS_ENABLED), FollowersFlagAssignedWithoutEnablingThem);
 
@@ -937,7 +940,11 @@ static void LoadMapFromWarp(bool32 a1)
     bool8 isIndoors;
 
     LoadCurrentMapData();
-    if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD))
+    if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
+#ifdef DEBUG
+     && !FoundationMapLoad_ShouldSuppressEvents()
+#endif
+    )
     {
         if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
             LoadBattlePyramidObjectEventTemplates();
@@ -973,7 +980,10 @@ static void LoadMapFromWarp(bool32 a1)
         FlagClear(FLAG_SYS_USE_FLASH);
     SetDefaultFlashLevel();
     Overworld_ClearSavedMusic();
-    RunOnTransitionMapScript();
+#ifdef DEBUG
+    if (!FoundationMapLoad_ShouldSuppressScripts())
+#endif
+        RunOnTransitionMapScript();
     UpdateLocationHistoryForRoamer();
     MoveAllRoamersToOtherLocationSets();
     gChainFishingDexNavStreak = 0;
@@ -2296,6 +2306,28 @@ static bool32 LoadMapInStepsLink(u8 *state)
 
 static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
 {
+#ifdef DEBUG
+    static const enum FoundationLoadPhase sFoundationPhases[] =
+    {
+        [0] = FOUNDATION_LOAD_PHASE_MAP_DATA,
+        [1] = FOUNDATION_LOAD_PHASE_RESET,
+        [2] = FOUNDATION_LOAD_PHASE_RESUME,
+        [3] = FOUNDATION_LOAD_PHASE_EVENTS,
+        [4] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [5] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [6] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [7] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [8] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [9] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [10] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [11] = FOUNDATION_LOAD_PHASE_GRAPHICS,
+        [12] = FOUNDATION_LOAD_PHASE_CALLBACK,
+        [13] = FOUNDATION_LOAD_PHASE_FIELD_READY,
+    };
+
+    if (*state < ARRAY_COUNT(sFoundationPhases))
+        FoundationMapLoad_ReportPhase(sFoundationPhases[*state]);
+#endif
     switch (*state)
     {
     case 0:
@@ -2365,6 +2397,9 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
             (*state)++;
         break;
     case 13:
+#ifdef DEBUG
+        FoundationMapLoad_Complete();
+#endif
         return TRUE;
     }
 
@@ -2595,7 +2630,10 @@ static void ResumeMap(bool32 a1)
     ResumePausedWeather();
     if (!a1)
         SetUpFieldTasks();
-    RunOnResumeMapScript();
+#ifdef DEBUG
+    if (!FoundationMapLoad_ShouldSuppressScripts())
+#endif
+        RunOnResumeMapScript();
     TryStartMirageTowerPulseBlendEffect();
 }
 
@@ -2621,10 +2659,18 @@ static void InitObjectEventsLocal(void)
     InitPlayerAvatar(x, y, player->direction, gSaveBlock2Ptr->playerGender);
     SetPlayerAvatarTransitionFlags(player->transitionFlags);
     ResetInitialPlayerAvatarState();
-    TrySpawnObjectEvents(0, 0);
-    FollowerNPC_HandleSprite();
-    UpdateFollowingPokemon();
-    TryRunOnWarpIntoMapScript();
+#ifdef DEBUG
+    if (!FoundationMapLoad_ShouldSuppressEvents())
+#endif
+    {
+        TrySpawnObjectEvents(0, 0);
+        FollowerNPC_HandleSprite();
+        UpdateFollowingPokemon();
+    }
+#ifdef DEBUG
+    if (!FoundationMapLoad_ShouldSuppressScripts())
+#endif
+        TryRunOnWarpIntoMapScript();
 }
 
 static void InitObjectEventsReturnToField(void)
