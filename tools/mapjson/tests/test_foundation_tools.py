@@ -56,9 +56,7 @@ class FoundationToolTests(unittest.TestCase):
             validate_manifest(manifest)
 
     def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
-        original = json.loads(
-            (self.generated / "foundation-manifest.json").read_text()
-        )
+        original = json.loads((self.generated / "foundation-manifest.json").read_text())
         validate_manifest(original)
         cross_region_maps = [
             entry["name"]
@@ -316,9 +314,7 @@ class FoundationToolTests(unittest.TestCase):
                 manifest = copy.deepcopy(original)
                 manifest["maps"][0][field] = value
                 with self.assertRaisesRegex(ValidationError, message):
-                    validate_map_headers(
-                        rom, manifest, symbols, ROM_BASE + len(rom)
-                    )
+                    validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
 
     def test_map_section_metadata_byte_mutation_is_rejected(self) -> None:
         rom = bytearray((3, 0, 0, 0, 1, 1, 4, 0))

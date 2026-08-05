@@ -77,7 +77,9 @@ class CapacityMeasurementTests(unittest.TestCase):
             with self.subTest(category=category):
                 self.assert_policy_rejected(mutation)
 
-    def test_coordinated_measurement_mutation_cannot_collapse_capacity_floor(self) -> None:
+    def test_coordinated_measurement_mutation_cannot_collapse_capacity_floor(
+        self,
+    ) -> None:
         policy = json.loads(POLICY.read_text())
         mutations = []
 
@@ -98,8 +100,7 @@ class CapacityMeasurementTests(unittest.TestCase):
         multiplier = copy.deepcopy(policy)
         multiplier["integrationMultiplier"] = 1.0
         multiplier["requiredHeadroomBytes"] = (
-            multiplier["johtoResidentBytes"]
-            + multiplier["travelStoryReserveBytes"]
+            multiplier["johtoResidentBytes"] + multiplier["travelStoryReserveBytes"]
         )
         mutations.append(("integration multiplier", multiplier))
 
