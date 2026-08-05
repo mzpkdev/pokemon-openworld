@@ -200,23 +200,31 @@ SHELL := bash -o pipefail
 ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1 --defsym ALL_REGIONS=$(ALL_REGIONS)
 
 INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include include
-INCLUDE_CPP_ARGS := $(INCLUDE_DIRS:%=-iquote %)
-INCLUDE_SCANINC_ARGS := $(INCLUDE_DIRS:%=-I %)
+GENERATED_CONSTANT_INCLUDE_DIR := $(GENERATED_ROOT)/include/constants
+CPP_INCLUDE_DIRS := $(GENERATED_CONSTANT_INCLUDE_DIR) $(INCLUDE_DIRS)
+INCLUDE_CPP_ARGS := $(CPP_INCLUDE_DIRS:%=-iquote %)
+INCLUDE_SCANINC_ARGS := $(CPP_INCLUDE_DIRS:%=-I %)
 
 ifeq ($(DEBUG),1)
 O_LEVEL ?= g
 else
 O_LEVEL ?= 2
 endif
-CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -DALL_REGIONS=$(ALL_REGIONS) -std=gnu17
-CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/map_groups.h
-CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/layouts.h
-CPPFLAGS += -include $(GENERATED_ROOT)/include/constants/map_event_ids.h
+INHERITED_CPPFLAGS := $(CPPFLAGS)
+BASE_CPPFLAGS := $(INCLUDE_CPP_ARGS) -Wno-trigraphs -DMODERN=1 -DTESTING=$(TEST) -D$(GAME_VERSION) -DALL_REGIONS=$(ALL_REGIONS) -std=gnu17 $(INHERITED_CPPFLAGS)
+GENERATED_CONSTANT_HEADERS := $(GENERATED_ROOT)/include/constants/map_groups.h \
+                              $(GENERATED_ROOT)/include/constants/layouts.h \
+                              $(GENERATED_ROOT)/include/constants/map_event_ids.h
+GENERATED_CONSTANT_CPPFLAGS := $(addprefix -include ,$(GENERATED_CONSTANT_HEADERS))
+# trainerproc consumes its own party language, not C. Keep the common defines and
+# include search paths, but do not inject C declarations ahead of the party data.
+override CPPFLAGS = $(BASE_CPPFLAGS) $(GENERATED_CONSTANT_CPPFLAGS)
+TRAINER_CPPFLAGS = $(BASE_CPPFLAGS)
 ifeq ($(DEBUG),1)
-	override CPPFLAGS += -DDEBUG
+	BASE_CPPFLAGS += -DDEBUG
 endif
 ifeq ($(RELEASE),1)
-	override CPPFLAGS += -DRELEASE
+	BASE_CPPFLAGS += -DRELEASE
 	ifeq ($(USE_LTO_ON_RELEASE),1)
 		LTO := 1
 	endif
@@ -566,6 +574,16 @@ include spritesheet_rules.mk
 include json_data_rules.mk
 include audio_rules.mk
 include trainer_rules.mk
+
+# Every C translation unit is preprocessed with these generated constants forced
+# in, so their object targets must carry the same dependency.  A present policy
+# stamp is not sufficient evidence of a complete atomic generation: if any
+# forced header is absent, invalidate the authority and let mapjson repromote the
+# complete tree before an object recipe starts.
+ifneq ($(words $(wildcard $(GENERATED_CONSTANT_HEADERS))),$(words $(GENERATED_CONSTANT_HEADERS)))
+.PHONY: $(MAP_GENERATION_STAMP)
+endif
+$(C_OBJS) $(TEST_OBJS): $(MAP_GENERATION_STAMP) $(GENERATED_CONSTANT_HEADERS)
 
 # NOTE: Tools must have been built prior (FIXME)
 # so you can't really call this rule directly
