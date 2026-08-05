@@ -12,6 +12,8 @@ INCLUDECONSTS_OUTDIR := $(GENERATED_ROOT)/include/constants
 MAP_GROUP_COUNT_OUT := $(GENERATED_ROOT)/src/data/map_group_count.h
 MAP_GENERATION_STAMP := $(GENERATED_ROOT)/.map-build-policy
 FOUNDATION_MANIFEST := $(GENERATED_ROOT)/foundation-manifest.json
+MAP_SECTION_METADATA_HEADER := $(GENERATED_ROOT)/include/generated/map_section_metadata.h
+MAP_SECTION_METADATA_SOURCE := $(GENERATED_ROOT)/src/data/map_section_metadata.inc.c
 
 AUTO_GEN_TARGETS += $(MAP_GENERATION_STAMP)
 
@@ -33,9 +35,13 @@ MAP_GENERATED_GLOBALS := \
 	$(INCLUDECONSTS_OUTDIR)/layouts.h \
 	$(INCLUDECONSTS_OUTDIR)/map_event_ids.h \
 	$(MAP_GROUP_COUNT_OUT) \
+	$(MAP_SECTION_METADATA_HEADER) \
+	$(MAP_SECTION_METADATA_SOURCE) \
 	$(FOUNDATION_MANIFEST)
 
 $(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) \
+		src/data/region_map/region_map_sections.json \
+		src/data/region_map/map_section_compatibility.json \
 		tools/mapjson/product_exclusions.json tools/mapjson/product_hidden_item_flags.json $(MAPJSON)
 	@$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) $(MAP_JSONS)
 	@echo "$(MAPJSON) generate $(MAP_VERSION) $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(GENERATED_ROOT) <MAP_JSONS>"
@@ -61,6 +67,7 @@ $(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_OUTDIR
 	| $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
 
 $(C_BUILDDIR)/debug.o $(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)
+$(C_BUILDDIR)/location_codecs.o $(C_BUILDDIR)/regions.o: $(MAP_SECTION_METADATA_HEADER) $(MAP_SECTION_METADATA_SOURCE)
 
 # Retail dialects remain useful generator diagnostics, but never inherit the
 # product name or enter a link/release graph.

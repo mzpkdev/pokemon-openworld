@@ -30,6 +30,7 @@
 #include "scanline_effect.h"
 #include "field_weather.h"
 #include "international_string_util.h"
+#include "location_codecs.h"
 #include "naming_screen.h"
 #include "pokemon_storage_system.h"
 #include "field_screen_effect.h"
@@ -364,7 +365,7 @@ static void AddHatchedMonToParty(u8 id)
     enum NationalDexOrder nationalDexNum;
     u8 name[POKEMON_NAME_LENGTH + 1];
     u16 metLevel;
-    metloc_u8_t metLocation;
+    MetLocationCode metLocation;
     struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][id];
 
     CreateHatchedMon(mon, &gParties[B_TRAINER_OPPONENT_A][0]);
@@ -384,7 +385,7 @@ static void AddHatchedMonToParty(u8 id)
     metLevel = 0;
     SetMonData(mon, MON_DATA_MET_LEVEL, &metLevel);
 
-    metLocation = GetCurrentRegionMapSectionId();
+    metLocation = EncodeMetLocation(GetCurrentRegionMapSectionId());
     SetMonData(mon, MON_DATA_MET_LOCATION, &metLocation);
 
     MonRestorePP(mon);

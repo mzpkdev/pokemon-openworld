@@ -9,5 +9,6 @@ struct PlayerHallRecords
 
 void RecordMixingPlayerSpotTriggered(void);
 void GetPlayerHallRecords(struct PlayerHallRecords *dst);
+void CopyTVShowsForRecordMixing(TVShow *dest, const TVShow *src, u32 count);
 
 #endif //GUARD_RECORD_MIXING_H

@@ -105,6 +105,20 @@ def read_i32(rom: bytes, address: int, owner: str) -> int:
     return struct.unpack_from("<i", rom, offset)[0]
 
 
+def read_u16(rom: bytes, address: int, owner: str) -> int:
+    offset = address - ROM_BASE
+    if offset < 0 or offset + 2 > len(rom):
+        raise ValidationError(f"cannot read {owner} at 0x{address:08x}")
+    return struct.unpack_from("<H", rom, offset)[0]
+
+
+def read_u8(rom: bytes, address: int, owner: str) -> int:
+    offset = address - ROM_BASE
+    if offset < 0 or offset + 1 > len(rom):
+        raise ValidationError(f"cannot read {owner} at 0x{address:08x}")
+    return rom[offset]
+
+
 def require_expected_pointer(
     rom: bytes,
     address: int,
@@ -200,9 +214,10 @@ def validate_layouts(
 def validate_map_headers(
     rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
 ) -> None:
-    for entry in manifest["maps"]:
+    abi = manifest["abis"]["mapHeader"]
+    for index, entry in enumerate(manifest["maps"]):
         header = symbols[entry["name"]]
-        if header % 4:
+        if header % abi["alignment"]:
             raise ValidationError(
                 f"map header {entry['name']} is not four-byte aligned"
             )
@@ -220,6 +235,40 @@ def validate_map_headers(
                 symbols,
                 rom_end,
             )
+        section = read_u16(
+            rom,
+            header + abi["regionMapSectionIdOffset"],
+            f"{entry['name']}.regionMapSectionId",
+        )
+        if section != entry["regionMapSectionValue"]:
+            raise ValidationError(
+                f"{entry['name']}.regionMapSectionId is {section}, "
+                f"expected {entry['regionMapSectionValue']}"
+            )
+        battle_type = read_u8(
+            rom,
+            header + abi["battleTypeOffset"],
+            f"{entry['name']}.battleType",
+        )
+        if battle_type != entry["battleType"]:
+            raise ValidationError(
+                f"{entry['name']}.battleType is {battle_type}, expected {entry['battleType']}"
+            )
+        padding_address = header + abi["paddingOffset"]
+        padding = bytes(
+            read_u8(rom, padding_address + offset, f"{entry['name']}.padding")
+            for offset in range(abi["paddingSize"])
+        )
+        if padding != bytes(abi["paddingSize"]):
+            raise ValidationError(f"{entry['name']}.padding is not zero-filled")
+        if index + 1 < len(manifest["maps"]):
+            next_entry = manifest["maps"][index + 1]
+            next_header = symbols[next_entry["name"]]
+            if next_header != header + abi["size"]:
+                raise ValidationError(
+                    f"map headers {entry['name']} and {next_entry['name']} "
+                    f"do not have the required {abi['size']}-byte stride"
+                )
 
 
 def validate_tilesets(

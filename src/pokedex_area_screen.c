@@ -79,7 +79,7 @@ struct OverworldArea
 {
     u8 mapGroup;
     u8 mapNum;
-    mapsec_u16_t regionMapSectionId;
+    MapSectionId regionMapSectionId;
 };
 
 struct
@@ -100,7 +100,7 @@ struct
     /*0x61C*/ u16 areaShadeBldArgHi;
     /*0x61E*/ bool8 showingMarkers;
     /*0x61F*/ u8 markerFlashCounter;
-    /*0x620*/ mapsec_u16_t specialAreaRegionMapSectionIds[MAX_AREA_MARKERS];
+    /*0x620*/ MapSectionId specialAreaRegionMapSectionIds[MAX_AREA_MARKERS];
     /*0x660*/ struct Sprite *areaMarkerSprites[MAX_AREA_MARKERS];
     /*0x6E0*/ u16 numAreaMarkerSprites;
     /*0x6E2*/ u16 alteringCaveCounter;
@@ -120,8 +120,8 @@ static void FindMapsWithMon(enum Species);
 static void BuildAreaGlowTilemap(void);
 static void SetAreaHasMon(u16, u16);
 static void SetSpecialMapHasMon(u16, u16);
-static mapsec_u16_t GetRegionMapSectionId(u8, u8);
-static bool8 MapHasSpecies(const struct WildEncounterTypes *, u32, enum Species);
+static MapSectionId GetRegionMapSectionId(u8, u8);
+static bool8 MapHasSpecies(const struct WildEncounterTypes *, MapSectionId, enum Species);
 static bool8 MonListHasSpecies(const struct WildPokemonInfo *, enum Species, u16);
 static void DoAreaGlow(void);
 static void Task_ShowPokedexAreaScreen(u8 taskId);
@@ -148,7 +148,7 @@ static void LoadHGSSScreenSelectBarSubmenu(void);
 
 static const u16 sSpeciesHiddenFromAreaScreen[] = { SPECIES_WYNAUT };
 
-static const mapsec_u16_t sMovingRegionMapSections[3] =
+static const MapSectionId sMovingRegionMapSections[3] =
 {
     MAPSEC_MARINE_CAVE,
     MAPSEC_UNDERWATER_MARINE_CAVE,
@@ -161,7 +161,7 @@ static const u16 sFeebasData[][3] =
     {NUM_SPECIES}
 };
 
-static const mapsec_u16_t sLandmarkData[][2] =
+static const MapSectionId sLandmarkData[][2] =
 {
     {MAPSEC_SKY_PILLAR,       FLAG_LANDMARK_SKY_PILLAR},
     {MAPSEC_SEAFLOOR_CAVERN,  FLAG_LANDMARK_SEAFLOOR_CAVERN},
@@ -335,7 +335,7 @@ static void FindMapsWithMon(enum Species species)
     // Add regular species to the area map
     for (i = 0; gWildMonHeaders[i].mapGroup != MAP_GROUP(MAP_UNDEFINED); i++)
     {
-        u32 headerSectionId = Overworld_GetMapHeaderByGroupAndId(gWildMonHeaders[i].mapGroup, gWildMonHeaders[i].mapNum)->regionMapSectionId;
+        MapSectionId headerSectionId = Overworld_GetMapHeaderByGroupAndId(gWildMonHeaders[i].mapGroup, gWildMonHeaders[i].mapNum)->regionMapSectionId;
 
         if (GetRegionMapType(headerSectionId) != currentRegionMapType)
             continue;
@@ -390,8 +390,8 @@ static void SetSpecialMapHasMon(u16 mapGroup, u16 mapNum)
 
     if (sPokedexAreaScreen->numSpecialAreas < MAX_AREA_MARKERS)
     {
-        mapsec_u16_t regionMapSectionId = GetRegionMapSectionId(mapGroup, mapNum);
-        if (regionMapSectionId < MAPSEC_NONE)
+        MapSectionId regionMapSectionId = GetRegionMapSectionId(mapGroup, mapNum);
+        if (IsValidMapSectionId(regionMapSectionId))
         {
             // Don't highlight the area if it's a moving area (Marine/Terra Cave)
             for (i = 0; i < ARRAY_COUNT(sMovingRegionMapSections); i++)
@@ -424,12 +424,12 @@ static void SetSpecialMapHasMon(u16 mapGroup, u16 mapNum)
     }
 }
 
-static mapsec_u16_t GetRegionMapSectionId(u8 mapGroup, u8 mapNum)
+static MapSectionId GetRegionMapSectionId(u8 mapGroup, u8 mapNum)
 {
     return Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum)->regionMapSectionId;
 }
 
-static bool8 MapHasSpecies(const struct WildEncounterTypes *info, u32 headerSectionId, enum Species species)
+static bool8 MapHasSpecies(const struct WildEncounterTypes *info, MapSectionId headerSectionId, enum Species species)
 {
     // If this is a header for Altering Cave, skip it if it's not the current Altering Cave encounter set
     if (headerSectionId == MAPSEC_ALTERING_CAVE)
@@ -944,7 +944,7 @@ static void CreateAreaMarkerSprites(void)
     s16 x;
     s16 y;
     s16 i;
-    mapsec_u16_t mapSecId;
+    MapSectionId mapSecId;
     s16 numSprites;
 
     LoadSpriteSheet(&sAreaMarkerSpriteSheet);

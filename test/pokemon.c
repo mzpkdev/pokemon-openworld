@@ -2,7 +2,9 @@
 #include "battle.h"
 #include "egg_hatch.h"
 #include "event_data.h"
+#include "location_codecs.h"
 #include "new_game.h"
+#include "overworld.h"
 #include "pokemon.h"
 #include "test/overworld_script.h"
 #include "test/test.h"
@@ -109,6 +111,33 @@ TEST("Shininess set on an Egg persists after hatching")
 
     EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_IS_EGG), FALSE);
     EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_IS_SHINY), TRUE);
+    EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_MET_LOCATION),
+              EncodeMetLocation(GetCurrentRegionMapSectionId()));
+}
+
+TEST("Pokemon met-location serialization preserves compact codes and special origins")
+{
+    struct Pokemon mon;
+    MetLocationCode metLocation;
+
+    CreateMon(&mon, SPECIES_WOBBUFFET, 5, 0, OTID_STRUCT_PLAYER_ID);
+
+    metLocation = EncodeMetLocation(MAPSEC_LITTLEROOT_TOWN);
+    SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), metLocation);
+    EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_LITTLEROOT_TOWN);
+
+    metLocation = METLOC_SPECIAL_EGG;
+    SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_SPECIAL_EGG);
+
+    metLocation = METLOC_IN_GAME_TRADE;
+    SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_IN_GAME_TRADE);
+
+    metLocation = METLOC_FATEFUL_ENCOUNTER;
+    SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_FATEFUL_ENCOUNTER);
 }
 
 TEST("Hyper Training increases stats without affecting IVs")

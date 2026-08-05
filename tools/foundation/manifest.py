@@ -22,6 +22,16 @@ EXPECTED_PRODUCT = {
     "allRegions": 1,
     "fileName": "pokemon-openworld",
 }
+EXPECTED_ABIS = {
+    "mapHeader": {
+        "size": 32,
+        "alignment": 4,
+        "regionMapSectionIdOffset": 20,
+        "battleTypeOffset": 28,
+        "paddingOffset": 29,
+        "paddingSize": 3,
+    }
+}
 
 
 class ManifestError(ValueError):
@@ -52,6 +62,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ManifestError(f"wrong product identity: {manifest.get('product')!r}")
     if manifest.get("counts") != EXPECTED_COUNTS:
         raise ManifestError(f"wrong registry counts: {manifest.get('counts')!r}")
+    if manifest.get("abis") != EXPECTED_ABIS:
+        raise ManifestError(f"wrong ABI contracts: {manifest.get('abis')!r}")
 
     groups = manifest.get("groups")
     maps = manifest.get("maps")
@@ -103,6 +115,14 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             )
         if not entry.get("mapEvents") or not entry.get("mapScripts"):
             raise ManifestError(f"map {entry.get('name')} lacks header dependencies")
+        if (
+            not isinstance(entry.get("regionMapSection"), str)
+            or not isinstance(entry.get("regionMapSectionValue"), int)
+            or not 0 <= entry["regionMapSectionValue"] < 0xFFFF
+            or not isinstance(entry.get("battleType"), int)
+            or not 0 <= entry["battleType"] <= 0xFF
+        ):
+            raise ManifestError(f"map {entry.get('name')} lacks scalar header metadata")
     for layout in layouts:
         if layout.get("width", 0) <= 0 or layout.get("height", 0) <= 0:
             raise ManifestError(f"layout {layout['name']} has invalid dimensions")

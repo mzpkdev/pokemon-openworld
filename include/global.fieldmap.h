@@ -339,20 +339,34 @@ struct MapHeader
     /* 0x0C */ const struct MapConnections *connections;
     /* 0x10 */ u16 music;
     /* 0x12 */ u16 mapLayoutId;
-    /* 0x14 */ mapsec_u8_t regionMapSectionId;
-    /* 0x15 */ u8 cave;
-    /* 0x16 */ u8 weather;
-    /* 0x17 */ u8 mapType;
-    /* 0x18 */ s8 floorNumber;
-    /* 0x19 */ u8 filler_19;
+    /* 0x14 */ MapSectionId regionMapSectionId;
+    /* 0x16 */ u8 cave;
+    /* 0x17 */ u8 weather;
+    /* 0x18 */ u8 mapType;
+    /* 0x19 */ s8 floorNumber;
+    /* 0x1A */ u8 filler;
                // fields correspond to the arguments in the map_header_flags macro
-    /* 0x1A */ bool8 allowCycling:1;
+    /* 0x1B */ bool8 allowCycling:1;
                bool8 allowEscaping:1; // Escape Rope and Dig
                bool8 allowRunning:1;
                bool8 showMapName:5; // the last 4 bits are unused
                                     // but the 5 bit sized bitfield is required to match
-    /* 0x1B */ u8 battleType;
+    /* 0x1C */ u8 battleType;
+    /* 0x1D */ u8 padding[3];
 };
+
+struct MapHeaderAbiStride
+{
+    struct MapHeader items[2];
+};
+
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, regionMapSectionId) == 0x14, MapHeaderRegionMapSectionIdOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, cave) == 0x16, MapHeaderCaveOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, battleType) == 0x1C, MapHeaderBattleTypeOffset);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeader, padding) == 0x1D, MapHeaderPaddingOffset);
+STATIC_ASSERT(sizeof(struct MapHeader) == 0x20, MapHeaderSize);
+STATIC_ASSERT(_Alignof(struct MapHeader) == 4, MapHeaderAlignment);
+STATIC_ASSERT(__builtin_offsetof(struct MapHeaderAbiStride, items[1]) == 0x20, MapHeaderStride);
 
 
 struct ObjectEvent

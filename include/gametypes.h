@@ -27,30 +27,24 @@
 //    compiler-inserted padding. It's easier to deal with this when you can
 //    see these types' widths at a glance.
 //
-// Accordingly, this file generally doesn't contain just single types, but
-// rather families of types. For example, Region Map Sections are saved as
-// u8s within the player's save file, but are sometimes handled as u16s or
-// even s16s and ints; and so there are multiple typedefs for Map Sections
-// corresponding to each of these underlying types, and each typedef has a
-// name which indicates the underlying type.
-//
-// For a given family of typedefs, the smallest one should be considered
-// the "real" or "canonical" type. Continuing with Map Sections as our
-// example, the smallest type is an 8-bit integer, and so any values that
-// can't fit in an 8-bit integer will be truncated and lost at some point
-// within the codebase. Therefore mapsec_u8_t is the "canonical" type for
-// Map Sections, and the larger typedefs just exist to describe situations
-// where the game handles Map Sections inconsistently with that "canon."
+// World identifiers and their compact serialized representations are distinct
+// domains. Keep the byte-sized codes behind explicit codecs instead of
+// assigning world geography directly into saved data or Pokemon provenance.
 //
 
 // Map Sections are named areas that can appear in the region map. Each
 // individual map can be assigned to a Map Section as appropriate. The
 // possible values are in constants/region_map_sections.h.
 //
-// If you choose to widen Map Sections, be aware that Met Locations (below)
-// are based on Map Sections and will also be widened.
-typedef u8  mapsec_u8_t;
-typedef u16 mapsec_u16_t;
+typedef u8 RegionId;
+typedef u16 MapSectionId;
+typedef u8 SavedLocationCode;
+typedef u8 MetLocationCode;
+
+// Compatibility aliases for code that has not yet migrated to the honest
+// domain names. New world-geography APIs use MapSectionId.
+typedef SavedLocationCode mapsec_u8_t;
+typedef MapSectionId mapsec_u16_t;
 typedef s16 mapsec_s16_t;
 typedef s32 mapsec_s32_t;
 
@@ -62,6 +56,6 @@ typedef s32 mapsec_s32_t;
 // greater than you expect due to how Pokemon substructs are laid out; you
 // would have to rearrange the substructs' contents in order to minimize
 // how much more space a wider Met Location would consume.
-typedef mapsec_u8_t metloc_u8_t;
+typedef MetLocationCode metloc_u8_t;
 
 #endif //GUARD_GAMETYPES_H

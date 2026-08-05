@@ -224,7 +224,7 @@ string generate_map_header_text(Json map_data, Json layouts_data, const MapBuild
     string mapName = json_to_string(map_data, "name");
     text << get_generated_warning("data/maps/" + mapName + "/map.json", true);
 
-    text << mapName << ":\n"
+    text << "\t.align 2\n" << mapName << ":\n"
          << "\t.4byte " << json_to_string(layout, "name") << "\n";
 
     if (map_data.object_items().find("shared_events_map") != map_data.object_items().end())
@@ -245,7 +245,7 @@ string generate_map_header_text(Json map_data, Json layouts_data, const MapBuild
 
     text << "\t.2byte " << json_to_string(map_data, "music") << "\n"
          << "\t.2byte " << json_to_string(layout, "id") << "\n"
-         << "\t.byte "  << json_to_string(map_data, "region_map_section") << "\n"
+         << "\t.2byte " << json_to_string(map_data, "region_map_section") << "\n"
          << "\t.byte "  << json_to_string(map_data, "requires_flash") << "\n"
          << "\t.byte "  << json_to_string(map_data, "weather") << "\n"
          << "\t.byte "  << json_to_string(map_data, "map_type") << "\n";
@@ -267,7 +267,8 @@ string generate_map_header_text(Json map_data, Json layouts_data, const MapBuild
              << "allow_running=" << json_to_string(map_data, "allow_running") << ", "
              << "show_map_name=" << json_to_string(map_data, "show_map_name") << "\n";
 
-     text << "\t.byte " << json_to_string(map_data, "battle_scene") << "\n\n";
+     text << "\t.byte " << json_to_string(map_data, "battle_scene") << "\n"
+          << "\t.byte 0, 0, 0\n\n";
 
     return text.str();
 }
@@ -984,6 +985,207 @@ static Json read_json_file(const string &filepath, const string &purpose)
     return data;
 }
 
+static void require_product_registry(bool condition, const string &message);
+
+struct MapSectionRegistry
+{
+    Json::array sections;
+    int count;
+    vector<int> sectionToSaved;
+    vector<int> sectionToMet;
+    vector<int> savedToSection;
+    vector<int> metToSection;
+};
+
+static MapSectionRegistry validate_map_section_registry(
+    const string &registryPath = "src/data/region_map/region_map_sections.json",
+    const string &compatibilityPath = "src/data/region_map/map_section_compatibility.json")
+{
+    const Json registry = read_json_file(registryPath,
+                                        "validating map-section registry");
+    const Json compatibility = read_json_file(compatibilityPath,
+                                              "validating map-section compatibility");
+    const Json::array sections = registry["map_sections"].array_items();
+    const Json::array stable = compatibility["stable_sections"].array_items();
+    const Json savedCompatibility = compatibility["saved_location"];
+    const Json metCompatibility = compatibility["met_location"];
+    const int savedInvalid = savedCompatibility["invalid_code"].int_value();
+    const int metInvalid = metCompatibility["invalid_code"].int_value();
+    const int savedFrozenFirst = savedCompatibility["frozen_round_trip"]["first"].int_value();
+    const int savedFrozenLast = savedCompatibility["frozen_round_trip"]["last"].int_value();
+    const int metFrozenFirst = metCompatibility["frozen_round_trip"]["first"].int_value();
+    const int metFrozenLast = metCompatibility["frozen_round_trip"]["last"].int_value();
+    const int savedReservedFirst = savedCompatibility["reserved_codes"]["first"].int_value();
+    const int savedReservedLast = savedCompatibility["reserved_codes"]["last"].int_value();
+    const int metReservedFirst = metCompatibility["reserved_codes"]["first"].int_value();
+    const int metReservedLast = metCompatibility["reserved_codes"]["last"].int_value();
+    require_product_registry(compatibility["schema_version"].int_value() == 1,
+                             "unsupported map-section compatibility schema");
+    require_product_registry(savedInvalid == 0xFF && metInvalid == 0xFC,
+                             "compact invalid location codes changed");
+    require_product_registry(savedFrozenFirst == 0 && savedFrozenLast == 208
+                          && metFrozenFirst == savedFrozenFirst && metFrozenLast == savedFrozenLast,
+                             "compact frozen round-trip range changed");
+    require_product_registry(savedReservedFirst == savedFrozenLast + 1
+                          && savedReservedLast == savedInvalid - 1,
+                             "saved-location reserved code range changed");
+    require_product_registry(metReservedFirst == metFrozenLast + 1
+                          && metReservedLast == metInvalid - 1,
+                             "met-location reserved code range changed");
+    require_product_registry(!sections.empty(), "map-section registry is empty");
+    require_product_registry(stable.size() == 209 && sections.size() >= stable.size(),
+                             "frozen map-section compatibility range changed");
+
+    set<string> ids;
+    set<int> values;
+    map<string, int> valuesById;
+    int maximum = -1;
+    for (const Json &section : sections)
+    {
+        const string id = json_to_string(section, "id");
+        const int value = section["value"].int_value();
+        const string kind = json_to_string(section, "kind");
+        const string region = json_to_string(section, "region");
+        const string presentation = json_to_string(section, "region_map_type");
+        require_product_registry(section["value"].type() == Json::Type::NUMBER && value >= 0 && value < 0xFFFF,
+                                 "map section '" + id + "' has invalid value");
+        require_product_registry(kind == "geographic" || kind == "special" || kind == "reserved",
+                                 "map section '" + id + "' has unknown kind '" + kind + "'");
+        require_product_registry(region == "REGION_HOENN" || region == "REGION_KANTO",
+                                 "map section '" + id + "' has unknown region '" + region + "'");
+        require_product_registry(presentation == "REGION_MAP_HOENN" || presentation == "REGION_MAP_KANTO"
+                              || presentation == "REGION_MAP_SEVII123" || presentation == "REGION_MAP_SEVII45"
+                              || presentation == "REGION_MAP_SEVII67",
+                                 "map section '" + id + "' has unknown region-map presentation");
+        require_product_registry(ids.insert(id).second, "duplicate map-section id '" + id + "'");
+        require_product_registry(values.insert(value).second,
+                                 "duplicate map-section value " + std::to_string(value));
+        valuesById.emplace(id, value);
+        maximum = std::max(maximum, value);
+    }
+
+    set<int> reservedValues;
+    for (const Json &reserved : compatibility["reserved_map_section_values"].array_items())
+    {
+        const int value = reserved.int_value();
+        require_product_registry(reserved.type() == Json::Type::NUMBER && value >= 0 && value < 0xFFFF,
+                                 "reserved map-section value is outside the world-ID domain");
+        require_product_registry(!values.count(value),
+                                 "reserved map-section value is still assigned: " + std::to_string(value));
+        require_product_registry(reservedValues.insert(value).second,
+                                 "duplicate reserved map-section value " + std::to_string(value));
+    }
+    for (int value = 0; value <= maximum; value++)
+        require_product_registry(values.count(value) || reservedValues.count(value),
+                                 "unmarked map-section value gap " + std::to_string(value));
+    require_product_registry(registry["map_section_count"].int_value() == maximum + 1,
+                             "map_section_count does not cover the complete world-ID domain");
+
+    vector<int> savedToSection(256, -1);
+    vector<int> metToSection(256, -1);
+    vector<int> sectionToSaved(maximum + 1, -1);
+    vector<int> sectionToMet(maximum + 1, -1);
+    for (const Json &section : sections)
+    {
+        const string id = json_to_string(section, "id");
+        const int value = section["value"].int_value();
+        const string savedTarget = json_to_string(section, "saved_location");
+        const auto saved = valuesById.find(savedTarget);
+        const int metCode = section["met_location"].int_value();
+        const string metDisplay = json_to_string(section, "met_location_display");
+        const auto metDisplayTarget = valuesById.find(metDisplay);
+        require_product_registry(saved != valuesById.end(),
+                                 "map section '" + id + "' has unknown saved-location target '" + savedTarget + "'");
+        require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
+                                 "map section '" + id + "' saved-location mapping collides with invalid sentinel");
+        require_product_registry(metCode >= 0 && metCode < metInvalid,
+                                 "map section '" + id + "' met-location mapping collides with reserved origin");
+        require_product_registry(metDisplayTarget != valuesById.end(),
+                                 "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
+        require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
+                                 "conflicting saved-location reverse target code " + std::to_string(saved->second));
+        require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
+                                 "conflicting met-location reverse target code " + std::to_string(metCode));
+        savedToSection[saved->second] = saved->second;
+        metToSection[metCode] = metDisplayTarget->second;
+        sectionToSaved[value] = saved->second;
+        sectionToMet[value] = metCode;
+    }
+
+    for (size_t i = 0; i < stable.size(); i++)
+    {
+        require_product_registry(json_to_string(stable[i], "id") == json_to_string(sections[i], "id")
+                              && stable[i]["value"].int_value() == sections[i]["value"].int_value(),
+                                 "map-section compatibility manifest changed at index " + std::to_string(i));
+    }
+    for (int value = savedFrozenFirst; value <= savedFrozenLast; value++)
+        require_product_registry(savedToSection[value] == value && metToSection[value] == value,
+                                 "map-section compact round trip changed for " + std::to_string(value));
+    require_product_registry(metCompatibility["special_origins"]["egg"].int_value() == metInvalid + 1
+                          && metCompatibility["special_origins"]["in_game_trade"].int_value() == metInvalid + 2
+                          && metCompatibility["special_origins"]["fateful_encounter"].int_value() == 0xFF,
+                             "reserved met-location origins changed");
+    return {sections, maximum + 1, sectionToSaved, sectionToMet, savedToSection, metToSection};
+}
+
+static void write_map_section_metadata(const std::filesystem::path &staging)
+{
+    const MapSectionRegistry registry = validate_map_section_registry();
+    const std::filesystem::path includeDir = staging / "include" / "generated";
+    const std::filesystem::path sourceDir = staging / "src" / "data";
+    std::filesystem::create_directories(includeDir);
+    std::filesystem::create_directories(sourceDir);
+
+    ostringstream header;
+    header << get_generated_warning("src/data/region_map/region_map_sections.json", false)
+           << "#ifndef GUARD_GENERATED_MAP_SECTION_METADATA_H\n"
+           << "#define GUARD_GENERATED_MAP_SECTION_METADATA_H\n\n"
+           << "#define GENERATED_MAP_SECTION_COUNT " << registry.count << "\n\n"
+           << "extern const MapSectionId gSavedLocationToMapSection[256];\n"
+           << "extern const MapSectionId gMetLocationToMapSection[256];\n\n"
+           << "#endif // GUARD_GENERATED_MAP_SECTION_METADATA_H\n";
+    write_text_file((includeDir / "map_section_metadata.h").string(), header.str());
+
+    ostringstream source;
+    source << get_generated_warning("src/data/region_map/region_map_sections.json", false);
+    map<int, Json> sectionsByValue;
+    for (const Json &section : registry.sections)
+        sectionsByValue.emplace(section["value"].int_value(), section);
+    source << "const struct MapSectionMetadata gMapSectionMetadata[MAPSEC_COUNT] =\n{\n";
+    for (int value = 0; value < registry.count; value++)
+    {
+        const auto found = sectionsByValue.find(value);
+        if (found == sectionsByValue.end())
+        {
+            source << "    [" << value << "] = {REGION_NONE, MAP_SECTION_KIND_RESERVED, 0xFF, 0},\n";
+            continue;
+        }
+        const Json &section = found->second;
+        const string kind = json_to_string(section, "kind");
+        source << "    [" << json_to_string(section, "id") << "] = {"
+               << json_to_string(section, "region") << ", "
+               << (kind == "geographic" ? "MAP_SECTION_KIND_GEOGRAPHIC" : kind == "special" ? "MAP_SECTION_KIND_SPECIAL" : "MAP_SECTION_KIND_RESERVED")
+               << ", " << json_to_string(section, "region_map_type") << ", 0},\n";
+    }
+    source << "};\n\nconst SavedLocationCode gMapSectionToSavedLocation[MAPSEC_COUNT] =\n{\n";
+    for (int value = 0; value < registry.count; value++)
+        source << "    [" << value << "] = "
+               << (registry.sectionToSaved[value] < 0 ? "SAVED_LOCATION_INVALID" : std::to_string(registry.sectionToSaved[value])) << ",\n";
+    source << "};\n\nconst MetLocationCode gMapSectionToMetLocation[MAPSEC_COUNT] =\n{\n";
+    for (int value = 0; value < registry.count; value++)
+        source << "    [" << value << "] = "
+               << (registry.sectionToMet[value] < 0 ? "MET_LOCATION_INVALID" : std::to_string(registry.sectionToMet[value])) << ",\n";
+
+    source << "};\n\nconst MapSectionId gSavedLocationToMapSection[256] =\n{\n";
+    for (int code = 0; code < 256; code++)
+        source << "    " << (registry.savedToSection[code] < 0 ? "MAPSEC_INVALID" : std::to_string(registry.savedToSection[code])) << ",\n";
+    source << "};\n\nconst MapSectionId gMetLocationToMapSection[256] =\n{\n";
+    for (int code = 0; code < 256; code++)
+        source << "    " << (registry.metToSection[code] < 0 ? "MAPSEC_INVALID" : std::to_string(registry.metToSection[code])) << ",\n";
+    source << "};\n";
+    write_text_file((sourceDir / "map_section_metadata.inc.c").string(), source.str());
+}
+
 static void require_product_registry(bool condition, const string &message)
 {
     if (!condition)
@@ -1125,6 +1327,32 @@ static void validate_layout_formats(const Json &layouts_data, const MapBuildPoli
     }
 }
 
+static int map_battle_scene_value(const string &name)
+{
+    static const map<string, int> values = {
+        {"MAP_BATTLE_SCENE_NORMAL", 0},
+        {"MAP_BATTLE_SCENE_GYM", 1},
+        {"MAP_BATTLE_SCENE_MAGMA", 2},
+        {"MAP_BATTLE_SCENE_AQUA", 3},
+        {"MAP_BATTLE_SCENE_SIDNEY", 4},
+        {"MAP_BATTLE_SCENE_PHOEBE", 5},
+        {"MAP_BATTLE_SCENE_GLACIA", 6},
+        {"MAP_BATTLE_SCENE_DRAKE", 7},
+        {"MAP_BATTLE_SCENE_FRONTIER", 8},
+        {"MAP_BATTLE_SCENE_INDOOR_1", 0},
+        {"MAP_BATTLE_SCENE_INDOOR_2", 0},
+        {"MAP_BATTLE_SCENE_LORELEI", 0},
+        {"MAP_BATTLE_SCENE_BRUNO", 0},
+        {"MAP_BATTLE_SCENE_AGATHA", 0},
+        {"MAP_BATTLE_SCENE_LANCE", 0},
+        {"MAP_BATTLE_SCENE_LINK", 0},
+    };
+    const auto found = values.find(name);
+    if (found == values.end())
+        FATAL_ERROR("unknown map battle scene '%s'\n", name.c_str());
+    return found->second;
+}
+
 static void write_foundation_manifest(const std::filesystem::path &staging,
                                       const MapBuildPolicy &policy,
                                       const string &groups_filepath,
@@ -1133,6 +1361,10 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
 {
     const Json groups_data = read_json_file(groups_filepath, "building the foundation manifest");
     const Json layouts_data = read_json_file(layouts_filepath, "building the foundation manifest");
+    const MapSectionRegistry sectionRegistry = validate_map_section_registry();
+    map<string, int> sectionValues;
+    for (const Json &section : sectionRegistry.sections)
+        sectionValues.emplace(json_to_string(section, "id"), section["value"].int_value());
     map<string, Json> maps_by_name;
     map<string, int> region_counts;
     set<string> reviewed_names;
@@ -1190,6 +1422,10 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
             const bool has_connections = map_data["connections"] != Json()
                 && !map_data["connections"].array_items().empty()
                 && json_to_string(map_data, "connections_no_include", true) != "TRUE";
+            const string sectionId = json_to_string(map_data, "region_map_section");
+            const auto sectionValue = sectionValues.find(sectionId);
+            require_product_registry(sectionValue != sectionValues.end(),
+                                     "map '" + map_name + "' names unknown map section '" + sectionId + "'");
             required_symbols.insert(map_name);
             required_symbols.insert(layout_symbol->second);
             required_symbols.insert(scripts_owner + "_MapScripts");
@@ -1203,6 +1439,9 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
                 {"group", group_number},
                 {"number", map_number},
                 {"region", region},
+                {"regionMapSection", sectionId},
+                {"regionMapSectionValue", sectionValue->second},
+                {"battleType", map_battle_scene_value(json_to_string(map_data, "battle_scene"))},
                 {"layoutId", layout_id},
                 {"mapLayout", layout_symbol->second},
                 {"mapEvents", events_owner + "_MapEvents"},
@@ -1349,6 +1588,16 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
                 {"REGION_KANTO", region_counts["REGION_KANTO"]},
             }},
         }},
+        {"abis", Json::object {
+            {"mapHeader", Json::object {
+                {"size", 32},
+                {"alignment", 4},
+                {"regionMapSectionIdOffset", 20},
+                {"battleTypeOffset", 28},
+                {"paddingOffset", 29},
+                {"paddingSize", 3},
+            }},
+        }},
         {"exclusions", exclusion_records},
         {"groups", group_records},
         {"maps", map_records},
@@ -1470,6 +1719,7 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
                    (destination / "data" / "maps").string());
     process_layouts(layouts_filepath, layouts_out.string(), constants_out.string(), policy);
     process_event_constants(map_filepaths, (constants_out / "map_event_ids.h").string());
+    write_map_section_metadata(staging);
     write_foundation_manifest(staging, policy, groups_filepath, layouts_filepath, map_filepaths);
 
     vector<string> existing_maps = included_map_ids(map_filepaths, policy);
@@ -1566,6 +1816,12 @@ int main(int argc, char *argv[]) {
              << "ruby_layout=" << policy.IncludesLayout("ruby") << "\n"
              << "product=" << policy.IsProduct() << "\n";
     }
+    else if (mode == "sections") {
+        if (argc != 5)
+            FATAL_ERROR("USAGE: mapjson sections <build-mode> <registry> <compatibility>\n");
+        const MapSectionRegistry registry = validate_map_section_registry(argv[3], argv[4]);
+        cout << "count=" << registry.count << "\n";
+    }
     else if (mode == "generate") {
         if (argc < 7)
             FATAL_ERROR("USAGE: mapjson generate <build-mode> <groups_file> <layouts_file> <output_root> <map_file> [additional_map_files]\n");
@@ -1576,7 +1832,7 @@ int main(int argc, char *argv[]) {
         process_generation_tree(policy, argv[3], argv[4], argv[5], map_filepaths);
     }
     else {
-        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', or 'policy'.\n");
+        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', 'policy', or 'sections'.\n");
     }
 
     return 0;

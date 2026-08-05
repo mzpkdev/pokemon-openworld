@@ -19,6 +19,7 @@
 #include "international_string_util.h"
 #include "item.h"
 #include "link.h"
+#include "location_codecs.h"
 #include "m4a.h"
 #include "malloc.h"
 #include "menu.h"
@@ -142,7 +143,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u8 ribbonCount; // 0x6
         u8 ailment; // 0x7
         u8 abilityNum; // 0x8
-        metloc_u8_t metLocation; // 0x9
+        MetLocationCode metLocation; // 0x9
         u8 metLevel; // 0xA
         u8 metGame; // 0xB
         u32 pid; // 0xC
@@ -3559,6 +3560,13 @@ static void BufferMonTrainerMemo(void)
 {
     struct PokeSummary *sum = &sMonSummaryScreen->summary;
     const u8 *text;
+    MapSectionId metLocation = MAPSEC_INVALID;
+    bool8 hasMetLocation;
+
+    // 0xFD-0xFF are provenance sentinels, not compact map-section codes.
+    if (sum->metLocation < METLOC_SPECIAL_EGG)
+        metLocation = DecodeMetLocation(sum->metLocation);
+    hasMetLocation = metLocation != MAPSEC_INVALID;
 
     DynamicPlaceholderTextUtil_Reset();
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, sMemoNatureTextColor);
@@ -3575,18 +3583,18 @@ static void BufferMonTrainerMemo(void)
         u8 *metLocationString = Alloc(32);
         GetMetLevelString(metLevelString);
 
-        if (sum->metLocation < MAPSEC_NONE)
+        if (hasMetLocation)
         {
-            GetMapNameHandleAquaHideout(metLocationString, sum->metLocation);
+            GetMapNameHandleAquaHideout(metLocationString, metLocation);
             DynamicPlaceholderTextUtil_SetPlaceholderPtr(4, metLocationString);
         }
 
         if (DoesMonOTMatchOwner() == TRUE)
         {
             if (sum->metLevel == 0)
-                text = (sum->metLocation >= MAPSEC_NONE) ? gText_XNatureHatchedSomewhereAt : gText_XNatureHatchedAtYZ;
+                text = hasMetLocation ? gText_XNatureHatchedAtYZ : gText_XNatureHatchedSomewhereAt;
             else
-                text = (sum->metLocation >= MAPSEC_NONE) ? gText_XNatureMetSomewhereAt : gText_XNatureMetAtYZ;
+                text = hasMetLocation ? gText_XNatureMetAtYZ : gText_XNatureMetSomewhereAt;
         }
         else if (sum->metLocation == METLOC_FATEFUL_ENCOUNTER)
         {
@@ -3594,7 +3602,7 @@ static void BufferMonTrainerMemo(void)
         }
         else if (sum->metLocation != METLOC_IN_GAME_TRADE && DidMonComeFromGBAGames())
         {
-            text = (sum->metLocation >= MAPSEC_NONE) ? gText_XNatureObtainedInTrade : gText_XNatureProbablyMetAt;
+            text = hasMetLocation ? gText_XNatureProbablyMetAt : gText_XNatureObtainedInTrade;
         }
         else
         {

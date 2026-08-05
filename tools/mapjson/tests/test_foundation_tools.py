@@ -13,6 +13,7 @@ from tools.foundation.validate_artifact import (
     load_capacity_policy,
     validate_group_slots,
     validate_layouts,
+    validate_map_headers,
 )
 
 
@@ -125,6 +126,92 @@ class FoundationToolTests(unittest.TestCase):
             ValidationError, "PetalburgCity_Layout.primaryTileset points outside ROM"
         ):
             validate_layouts(rom, manifest, symbols, ROM_BASE + len(rom))
+
+    def map_header_fixture(self):
+        rom = bytearray(0x180)
+        symbols = {
+            "FirstMap": ROM_BASE,
+            "SecondMap": ROM_BASE + 0x20,
+            "FirstLayout": ROM_BASE + 0x80,
+            "SecondLayout": ROM_BASE + 0x84,
+            "FirstEvents": ROM_BASE + 0x88,
+            "SecondEvents": ROM_BASE + 0x8C,
+            "FirstScripts": ROM_BASE + 0x90,
+            "SecondScripts": ROM_BASE + 0x94,
+        }
+        maps = []
+        section_values = (253, 256)
+        for index, name in enumerate(("FirstMap", "SecondMap")):
+            header = symbols[name] - ROM_BASE
+            prefix = "First" if index == 0 else "Second"
+            struct.pack_into(
+                "<IIII",
+                rom,
+                header,
+                symbols[f"{prefix}Layout"],
+                symbols[f"{prefix}Events"],
+                symbols[f"{prefix}Scripts"],
+                0,
+            )
+            struct.pack_into("<H", rom, header + 0x14, section_values[index])
+            rom[header + 0x1C] = 4 + index
+            maps.append(
+                {
+                    "name": name,
+                    "mapLayout": f"{prefix}Layout",
+                    "mapEvents": f"{prefix}Events",
+                    "mapScripts": f"{prefix}Scripts",
+                    "mapConnections": None,
+                    "regionMapSectionValue": section_values[index],
+                    "battleType": 4 + index,
+                }
+            )
+        manifest = {
+            "abis": {
+                "mapHeader": {
+                    "size": 32,
+                    "alignment": 4,
+                    "regionMapSectionIdOffset": 20,
+                    "battleTypeOffset": 28,
+                    "paddingOffset": 29,
+                    "paddingSize": 3,
+                }
+            },
+            "maps": maps,
+        }
+        return rom, manifest, symbols
+
+    def test_map_header_exact_offsets_values_stride_and_alignment(self) -> None:
+        rom, manifest, symbols = self.map_header_fixture()
+        self.assertEqual(
+            struct.unpack_from("<H", rom, symbols["SecondMap"] - ROM_BASE + 0x14)[0],
+            256,
+        )
+        validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
+
+        mutations = (
+            (0x14, 0xFF, "regionMapSectionId"),
+            (0x1C, 0xFF, "battleType"),
+            (0x1D, 0x01, "padding"),
+        )
+        for offset, value, message in mutations:
+            with self.subTest(message=message):
+                changed = bytearray(rom)
+                changed[offset] = value
+                with self.assertRaisesRegex(ValidationError, message):
+                    validate_map_headers(
+                        changed, manifest, symbols, ROM_BASE + len(changed)
+                    )
+
+        misaligned_symbols = dict(symbols)
+        misaligned_symbols["FirstMap"] += 2
+        with self.assertRaisesRegex(ValidationError, "not four-byte aligned"):
+            validate_map_headers(rom, manifest, misaligned_symbols, ROM_BASE + len(rom))
+
+        bad_stride_symbols = dict(symbols)
+        bad_stride_symbols["SecondMap"] += 4
+        with self.assertRaisesRegex(ValidationError, "32-byte stride"):
+            validate_map_headers(rom, manifest, bad_stride_symbols, ROM_BASE + len(rom))
 
 
 if __name__ == "__main__":
