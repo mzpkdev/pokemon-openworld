@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.foundation.manifest import EXPECTED_ABIS, ManifestError, validate_manifest
-from tools.foundation.validate_artifact import (
+from tools.integrity.manifest import EXPECTED_ABIS, ManifestError, validate_manifest
+from tools.integrity.validate_artifact import (
     ROM_BASE,
     ValidationError,
     load_capacity_policy,
@@ -19,14 +19,14 @@ from tools.foundation.validate_artifact import (
 
 
 ROOT = Path(__file__).resolve().parents[3]
-CAPACITY = ROOT / "tools/foundation/capacity_policy.json"
+CAPACITY = ROOT / "tools/integrity/capacity_policy.json"
 
 
-class FoundationToolTests(unittest.TestCase):
+class IntegrityToolTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         subprocess.run(["make", "-C", "tools/mapjson", "all"], cwd=ROOT, check=True)
-        cls.tempdir = tempfile.TemporaryDirectory(prefix="foundation-tools-")
+        cls.tempdir = tempfile.TemporaryDirectory(prefix="integrity-tools-")
         cls.generated = Path(cls.tempdir.name) / "current"
         subprocess.run(
             [
@@ -50,13 +50,13 @@ class FoundationToolTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_manifest_rejects_count_drift(self) -> None:
-        manifest = json.loads((self.generated / "foundation-manifest.json").read_text())
+        manifest = json.loads((self.generated / "integrity-manifest.json").read_text())
         manifest["counts"]["groupedMaps"] -= 1
         with self.assertRaisesRegex(ManifestError, "wrong registry counts"):
             validate_manifest(manifest)
 
     def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
-        original = json.loads((self.generated / "foundation-manifest.json").read_text())
+        original = json.loads((self.generated / "integrity-manifest.json").read_text())
         validate_manifest(original)
         cross_region_maps = [
             entry["name"]

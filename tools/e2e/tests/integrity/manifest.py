@@ -83,11 +83,11 @@ EXTERIOR_PRIMARY_TILESETS = {
 }
 
 
-def foundation_manifest_path() -> Path:
+def integrity_manifest_path() -> Path:
     return Path(
         os.environ.get(
-            "FOUNDATION_MANIFEST",
-            "build/generated/allregions/current/foundation-manifest.json",
+            "INTEGRITY_MANIFEST",
+            "build/generated/allregions/current/integrity-manifest.json",
         )
     )
 
@@ -120,24 +120,24 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
         document = json.loads(path.read_text())
     except FileNotFoundError as error:
         raise FileNotFoundError(
-            f"Foundation manifest does not exist: {path}; build the all-regions "
-            "debug ROM and its foundation manifest first"
+            f"Integrity manifest does not exist: {path}; build the all-regions "
+            "debug ROM and its integrity manifest first"
         ) from error
     if not isinstance(document, dict):
-        raise ValueError("foundation manifest root must be an object")
+        raise ValueError("integrity manifest root must be an object")
     if document.get("schemaVersion") not in (1, 2):
         raise ValueError(
-            "foundation manifest schemaVersion must be 1 or 2, got "
+            "integrity manifest schemaVersion must be 1 or 2, got "
             f"{document.get('schemaVersion')!r}"
         )
     metadata_entries = document.get("mapSectionMetadata")
     if not isinstance(metadata_entries, list) or not metadata_entries:
         raise ValueError(
-            "foundation manifest mapSectionMetadata must be a non-empty array"
+            "integrity manifest mapSectionMetadata must be a non-empty array"
         )
     codecs = document.get("codecs")
     if not isinstance(codecs, dict):
-        raise ValueError("foundation manifest codecs must be an object")
+        raise ValueError("integrity manifest codecs must be an object")
     codec_names = (
         "sectionToSavedLocation",
         "sectionToMetLocation",
@@ -146,7 +146,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
     )
     for name in codec_names:
         if not isinstance(codecs.get(name), list):
-            raise ValueError(f"foundation manifest codecs.{name} must be an array")
+            raise ValueError(f"integrity manifest codecs.{name} must be an array")
 
     sections: dict[int, MapSectionContract] = {}
     section_ids: set[str] = set()
@@ -186,12 +186,12 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
         section_value = required["value"]
         if section_value != index:
             raise ValueError(
-                "foundation manifest mapSectionMetadata must be ordered by value: "
+                "integrity manifest mapSectionMetadata must be ordered by value: "
                 f"index={index}, value={section_value}"
             )
         if required["id"] in section_ids:
             raise ValueError(
-                f"foundation manifest repeats map-section id {required['id']!r}"
+                f"integrity manifest repeats map-section id {required['id']!r}"
             )
         section_ids.add(required["id"])
         section_to_saved = codecs["sectionToSavedLocation"]
@@ -200,7 +200,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
             section_to_met
         ):
             raise ValueError(
-                f"foundation manifest codecs do not cover map section {section_value}"
+                f"integrity manifest codecs do not cover map section {section_value}"
             )
         saved_code = section_to_saved[section_value]
         met_code = section_to_met[section_value]
@@ -214,7 +214,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
                 or not -1 <= code <= 0xFF
             ):
                 raise ValueError(
-                    f"foundation manifest codecs.{name}[{section_value}] is invalid"
+                    f"integrity manifest codecs.{name}[{section_value}] is invalid"
                 )
 
         def reverse_target(name: str, code: int) -> int:
@@ -223,7 +223,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
             reverse = codecs[name]
             if code >= len(reverse):
                 raise ValueError(
-                    f"foundation manifest codecs.{name} does not cover code {code}"
+                    f"integrity manifest codecs.{name} does not cover code {code}"
                 )
             target = reverse[code]
             if (
@@ -231,9 +231,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
                 or not isinstance(target, int)
                 or not -1 <= target <= 0xFFFF
             ):
-                raise ValueError(
-                    f"foundation manifest codecs.{name}[{code}] is invalid"
-                )
+                raise ValueError(f"integrity manifest codecs.{name}[{code}] is invalid")
             return target
 
         sections[section_value] = MapSectionContract(
@@ -256,10 +254,10 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
         )
     entries = document.get("maps")
     if not isinstance(entries, list) or not entries:
-        raise ValueError("foundation manifest maps must be a non-empty array")
+        raise ValueError("integrity manifest maps must be a non-empty array")
     layout_entries = document.get("layouts")
     if not isinstance(layout_entries, list) or not layout_entries:
-        raise ValueError("foundation manifest layouts must be a non-empty array")
+        raise ValueError("integrity manifest layouts must be a non-empty array")
     layouts: dict[str, dict[str, Any]] = {}
     for index, layout in enumerate(layout_entries):
         if not isinstance(layout, dict):
@@ -268,7 +266,7 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
         if not isinstance(layout_id, str) or not layout_id:
             raise ValueError(f"manifest layouts[{index}].id must be a non-empty string")
         if layout_id in layouts:
-            raise ValueError(f"foundation manifest repeats layout id {layout_id!r}")
+            raise ValueError(f"integrity manifest repeats layout id {layout_id!r}")
         layouts[layout_id] = layout
 
     maps: list[ManifestMap] = []
@@ -341,9 +339,9 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
             raise ValueError(f"manifest maps[{index}].number must be a u16 integer")
         map_id = (group, number)
         if name in seen_names:
-            raise ValueError(f"foundation manifest repeats map name {name!r}")
+            raise ValueError(f"integrity manifest repeats map name {name!r}")
         if map_id in seen_ids:
-            raise ValueError(f"foundation manifest repeats map id {map_id}")
+            raise ValueError(f"integrity manifest repeats map id {map_id}")
         seen_names.add(name)
         seen_ids.add(map_id)
         try:
@@ -451,7 +449,7 @@ def _validate_representative_coverage(
         if representative.name not in maps_by_name
     )
     if missing:
-        raise ValueError(f"representatives absent from foundation manifest: {missing}")
+        raise ValueError(f"representatives absent from integrity manifest: {missing}")
 
     actual_regions: set[str] = set()
     actual_kinds: set[str] = set()

@@ -179,7 +179,7 @@ class Phase5GeneratorHardeningTests(unittest.TestCase):
             )
             result = self.generate(base, replacement=replacement)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((base / "current/foundation-manifest.json").is_file())
+            self.assertTrue((base / "current/integrity-manifest.json").is_file())
 
     def test_generated_headers_are_valid_for_traditional_cpp(self) -> None:
         with tempfile.TemporaryDirectory(prefix="phase5-cpp-") as temporary:

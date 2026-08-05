@@ -51,7 +51,7 @@ REQUIRED_HEADROOM_FLOOR_BYTES = 2_708_917
 
 
 class ValidationError(ValueError):
-    """A linked product artifact violates the foundation contract."""
+    """A linked product artifact violates the integrity contract."""
 
 
 def load_capacity_policy(path: Path) -> dict[str, Any]:
@@ -650,7 +650,7 @@ def main() -> int:
     parser.add_argument(
         "--capacity-policy",
         type=Path,
-        default=Path("tools/foundation/capacity_policy.json"),
+        default=Path("tools/integrity/capacity_policy.json"),
     )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -659,7 +659,7 @@ def main() -> int:
             args.rom, args.map, args.sym, args.manifest, args.capacity_policy
         )
     except (ManifestError, ValidationError, OSError) as error:
-        print(f"foundation validation failed: {error}", file=sys.stderr)
+        print(f"integrity validation failed: {error}", file=sys.stderr)
         return 1
     text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:

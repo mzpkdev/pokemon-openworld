@@ -59,13 +59,13 @@ ABI sentinels, and the ROM/EWRAM/IWRAM capacity contract with:
 
 ```sh
 python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py'
-make foundation-check
-make e2e-foundation
+make integrity-check
+make e2e-integrity
 ```
 
-`make foundation-check` writes the machine-readable linked-artifact and
-capacity report to `build/foundation/artifact-report.json`. The Foundation E2E
-suite writes failure evidence under `test-results/e2e/foundation/`. See
+`make integrity-check` writes the machine-readable linked-artifact and
+capacity report to `build/integrity/artifact-report.json`. The Integrity E2E
+suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
 
 Here, **resident** means every registered Hoenn, mainland Kanto, and Sevii map

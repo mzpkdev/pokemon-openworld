@@ -73,7 +73,7 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-foundation
+override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity
 override _E2E_ONLY := 0
 ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
   ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
@@ -355,10 +355,10 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check format format-check lint lint-check
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-foundation foundation-check
+.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -520,21 +520,21 @@ e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
 
-e2e-foundation: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-integrity: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=test-results/e2e E2E_SUITE=foundation \
-	$(E2E_PYTHON) tools/e2e/run.py foundation
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
+	$(E2E_PYTHON) tools/e2e/run.py integrity
 
-FOUNDATION_REPORT := $(BUILD_DIR)/foundation/artifact-report.json
-CAPACITY_POLICY := tools/foundation/capacity_policy.json
+INTEGRITY_REPORT := $(BUILD_DIR)/integrity/artifact-report.json
+CAPACITY_POLICY := tools/integrity/capacity_policy.json
 
-foundation-check: $(CAPACITY_POLICY)
+integrity-check: $(CAPACITY_POLICY)
 	$(MAKE) $(ROM) $(SYM)
-	@mkdir -p $(dir $(FOUNDATION_REPORT))
-	python3 tools/foundation/validate_artifact.py \
+	@mkdir -p $(dir $(INTEGRITY_REPORT))
+	python3 tools/integrity/validate_artifact.py \
 		--rom $(ROM) --map $(MAP) --sym $(SYM) \
-		--manifest $(FOUNDATION_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
-		--output $(FOUNDATION_REPORT)
+		--manifest $(INTEGRITY_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
+		--output $(INTEGRITY_REPORT)
 
 # Other rules
 rom: $(ROM)

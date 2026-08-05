@@ -25,14 +25,14 @@ The local gates are:
 make -j"$(nproc)" -O emerald syms
 make -j"$(nproc)" -O DEBUG=1 \
   pokemon-openworld-debug.gba pokemon-openworld-debug.sym
-make foundation-check
-make e2e-foundation
+make integrity-check
+make e2e-integrity
 ```
 
 The normal build emits only `pokemon-openworld.gba`, `.map`, and `.sym`; the
-debug pair is the sole E2E emulator input. Foundation capacity and linked-
-artifact results are written to `build/foundation/artifact-report.json`, while
-Foundation E2E failures are recorded under `test-results/e2e/foundation/`.
+debug pair is the sole E2E emulator input. Integrity capacity and linked-
+artifact results are written to `build/integrity/artifact-report.json`, while
+Integrity E2E failures are recorded under `test-results/e2e/integrity/`.
 
 ## Table of Contents
 - [Inherited engine capabilities](#inherited-engine-capabilities)

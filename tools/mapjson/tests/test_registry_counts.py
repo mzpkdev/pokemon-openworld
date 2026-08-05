@@ -35,7 +35,7 @@ class ProductRegistryTests(unittest.TestCase):
         )
         if result.returncode:
             raise AssertionError(result.stderr)
-        cls.manifest = json.loads((cls.output / "foundation-manifest.json").read_text())
+        cls.manifest = json.loads((cls.output / "integrity-manifest.json").read_text())
 
     @classmethod
     def tearDownClass(cls) -> None:

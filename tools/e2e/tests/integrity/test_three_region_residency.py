@@ -6,13 +6,13 @@ from pathlib import Path
 import re
 
 from tools.e2e.skyemu import (
-    FoundationLoadError,
-    FoundationLoadPhase,
-    FoundationLoadStatus,
-    FoundationMapLoadRequest,
+    IntegrityLoadError,
+    IntegrityLoadPhase,
+    IntegrityLoadStatus,
+    IntegrityMapLoadRequest,
 )
-from tools.e2e.tests.foundation.manifest import (
-    foundation_manifest_path,
+from tools.e2e.tests.integrity.manifest import (
+    integrity_manifest_path,
     load_manifest_maps,
     load_representatives,
 )
@@ -46,8 +46,8 @@ def _clean_state_fingerprint(game) -> bytes:
             game.read(game.address("gMain"), 12),
             game.read(game.address("gMapHeader"), MAP_HEADER_SIZE),
             game.read(save_block, 8),
-            game.read(game.address("gFoundationMapLoadRequest"), 16),
-            game.read(game.address("gFoundationMapLoadResult"), 12),
+            game.read(game.address("gIntegrityMapLoadRequest"), 16),
+            game.read(game.address("gIntegrityMapLoadResult"), 12),
             bytes((game.controls_locked(), game.script_status())),
         )
     )
@@ -163,14 +163,14 @@ def _assert_load_contract(game, entry, request, result, *, exact_field_state) ->
         f"{entry.name} map echo mismatch: expected={request_map_id}, "
         f"actual={(result.map_group, result.map_num)}"
     )
-    assert result.status is FoundationLoadStatus.SUCCESS, (
+    assert result.status is IntegrityLoadStatus.SUCCESS, (
         f"{entry.name} ({entry.group}, {entry.number}) failed: "
         f"phase={result.phase.name}, error={result.error.name}"
     )
-    assert result.phase is FoundationLoadPhase.FIELD_READY, (
+    assert result.phase is IntegrityLoadPhase.FIELD_READY, (
         f"{entry.name} stopped at phase {result.phase.name}"
     )
-    assert result.error is FoundationLoadError.NONE
+    assert result.error is IntegrityLoadError.NONE
 
     if exact_field_state:
         # The protocol result is committed by the final load step. Representative
@@ -251,7 +251,7 @@ def _runtime_diagnostics(game) -> dict[str, object]:
         "controlsLocked": game.controls_locked,
         "scriptStatus": game.script_status,
         "movementIdle": game.movement_idle,
-        "foundationResult": lambda: repr(game.foundation_result()),
+        "integrityResult": lambda: repr(game.integrity_result()),
         "callback1": lambda: f"0x{game.read_u32(game.address('gMain')):08x}",
         "callback2": lambda: f"0x{game.read_u32(game.address('gMain') + 4):08x}",
     }
@@ -266,7 +266,7 @@ def _runtime_diagnostics(game) -> dict[str, object]:
 def _capture_map_failure(
     game, tmp_path: Path, entry, index: int, error: Exception, *, phase: str
 ):
-    root = Path(os.environ.get("E2E_RESULTS", tmp_path)) / "foundation" / "maps" / phase
+    root = Path(os.environ.get("E2E_RESULTS", tmp_path)) / "integrity" / "maps" / phase
     safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", entry.name)
     output = root / f"{index:04d}-{safe_name}"
     output.mkdir(parents=True, exist_ok=True)
@@ -296,7 +296,7 @@ def _capture_map_failure(
 
 
 def _request_for(entry, request_id: int, *, structural: bool):
-    return FoundationMapLoadRequest(
+    return IntegrityMapLoadRequest(
         request_id=request_id,
         map_group=entry.group,
         map_num=entry.number,
@@ -307,25 +307,25 @@ def _request_for(entry, request_id: int, *, structural: bool):
     )
 
 
-def test_all_manifest_maps_are_structurally_loadable(foundation_game, tmp_path):
-    maps = load_manifest_maps(foundation_manifest_path())
+def test_all_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
+    maps = load_manifest_maps(integrity_manifest_path())
     assert len(maps) == 935, f"expected 935 registered maps, found {len(maps)}"
 
-    _settle_overworld(foundation_game)
-    clean_state = tmp_path / "foundation-clean-state.png"
-    foundation_game.save_state(clean_state)
-    clean_fingerprint = _clean_state_fingerprint(foundation_game)
+    _settle_overworld(integrity_game)
+    clean_state = tmp_path / "integrity-clean-state.png"
+    integrity_game.save_state(clean_state)
+    clean_fingerprint = _clean_state_fingerprint(integrity_game)
     failures: list[str] = []
     for index, entry in enumerate(maps, 1):
         _reload_clean_state(
-            foundation_game, clean_state, clean_fingerprint, entry, index, len(maps)
+            integrity_game, clean_state, clean_fingerprint, entry, index, len(maps)
         )
         request = _request_for(entry, 0xF1000000 + index, structural=True)
         assert request.suppress_scripts and request.suppress_events
         try:
-            result = foundation_game.request_map_load(request, max_frames=1_200)
+            result = integrity_game.request_map_load(request, max_frames=1_200)
             _assert_load_contract(
-                foundation_game,
+                integrity_game,
                 entry,
                 request,
                 result,
@@ -333,7 +333,7 @@ def test_all_manifest_maps_are_structurally_loadable(foundation_game, tmp_path):
             )
         except Exception as error:
             evidence = _capture_map_failure(
-                foundation_game,
+                integrity_game,
                 tmp_path,
                 entry,
                 index,
@@ -346,20 +346,20 @@ def test_all_manifest_maps_are_structurally_loadable(foundation_game, tmp_path):
     assert not failures, "structural map-load failures:\n" + "\n".join(failures)
 
 
-def test_representative_maps_reach_normal_field_ready_state(foundation_game, tmp_path):
-    maps = load_manifest_maps(foundation_manifest_path())
+def test_representative_maps_reach_normal_field_ready_state(integrity_game, tmp_path):
+    maps = load_manifest_maps(integrity_manifest_path())
     maps_by_name = {entry.name: entry for entry in maps}
     representatives = load_representatives(HERE / "maps.json", maps)
 
-    _settle_overworld(foundation_game)
-    clean_state = tmp_path / "foundation-representative-state.png"
-    foundation_game.save_state(clean_state)
-    clean_fingerprint = _clean_state_fingerprint(foundation_game)
+    _settle_overworld(integrity_game)
+    clean_state = tmp_path / "integrity-representative-state.png"
+    integrity_game.save_state(clean_state)
+    clean_fingerprint = _clean_state_fingerprint(integrity_game)
     failures: list[str] = []
     for index, representative in enumerate(representatives, 1):
         entry = maps_by_name[representative.name]
         _reload_clean_state(
-            foundation_game,
+            integrity_game,
             clean_state,
             clean_fingerprint,
             entry,
@@ -367,13 +367,13 @@ def test_representative_maps_reach_normal_field_ready_state(foundation_game, tmp
             len(representatives),
         )
         for var_id, value in representative.seed_vars:
-            foundation_game.set_var(var_id, value)
+            integrity_game.set_var(var_id, value)
         request = _request_for(entry, 0xF2000000 + index, structural=False)
         assert not request.suppress_scripts and not request.suppress_events
         try:
-            result = foundation_game.request_map_load(request, max_frames=1_800)
+            result = integrity_game.request_map_load(request, max_frames=1_800)
             _assert_load_contract(
-                foundation_game,
+                integrity_game,
                 entry,
                 request,
                 result,
@@ -381,7 +381,7 @@ def test_representative_maps_reach_normal_field_ready_state(foundation_game, tmp
             )
         except Exception as error:
             evidence = _capture_map_failure(
-                foundation_game,
+                integrity_game,
                 tmp_path,
                 entry,
                 index,

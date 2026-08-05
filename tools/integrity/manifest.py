@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the deterministic foundation manifest emitted by mapjson."""
+"""Validate the deterministic integrity manifest emitted by mapjson."""
 
 from __future__ import annotations
 
@@ -98,7 +98,7 @@ def group_content_region(group_name: Any) -> str | None:
 
 def validate_manifest(manifest: dict[str, Any]) -> None:
     if manifest.get("schemaVersion") != 2:
-        raise ManifestError("unsupported foundation manifest schema")
+        raise ManifestError("unsupported integrity manifest schema")
     if manifest.get("product") != EXPECTED_PRODUCT:
         raise ManifestError(f"wrong product identity: {manifest.get('product')!r}")
     if manifest.get("counts") != EXPECTED_COUNTS:

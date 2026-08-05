@@ -1427,14 +1427,14 @@ static int region_map_type_value(const string &name)
     return found->second;
 }
 
-static void write_foundation_manifest(const std::filesystem::path &staging,
+static void write_integrity_manifest(const std::filesystem::path &staging,
                                       const MapBuildPolicy &policy,
                                       const string &groups_filepath,
                                       const string &layouts_filepath,
                                       const vector<string> &map_filepaths)
 {
-    const Json groups_data = read_json_file(groups_filepath, "building the foundation manifest");
-    const Json layouts_data = read_json_file(layouts_filepath, "building the foundation manifest");
+    const Json groups_data = read_json_file(groups_filepath, "building the integrity manifest");
+    const Json layouts_data = read_json_file(layouts_filepath, "building the integrity manifest");
     const MapSectionRegistry sectionRegistry = validate_map_section_registry();
     map<string, int> sectionValues;
     for (const Json &section : sectionRegistry.sections)
@@ -1444,7 +1444,7 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
     set<string> reviewed_names;
 
     for (const string &filepath : map_filepaths) {
-        Json map_data = read_json_file(filepath, "building the foundation manifest");
+        Json map_data = read_json_file(filepath, "building the integrity manifest");
         const string name = json_to_string(map_data, "name");
         require_product_registry(maps_by_name.emplace(name, map_data).second,
                                  "duplicate reviewed map name '" + name + "'");
@@ -1748,7 +1748,7 @@ static void write_foundation_manifest(const std::filesystem::path &staging,
         {"tilesets", tileset_records},
         {"symbols", symbol_records},
     };
-    write_text_file((staging / "foundation-manifest.json").string(), manifest.dump() + "\n");
+    write_text_file((staging / "integrity-manifest.json").string(), manifest.dump() + "\n");
 }
 
 static std::filesystem::path reserve_generation_staging(const std::filesystem::path &destination)
@@ -2169,7 +2169,7 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
     process_layouts(layouts_filepath, layouts_out.string(), constants_out.string(), policy);
     process_event_constants(map_filepaths, (constants_out / "map_event_ids.h").string());
     write_map_section_metadata(staging);
-    write_foundation_manifest(staging, policy, groups_filepath, layouts_filepath, map_filepaths);
+    write_integrity_manifest(staging, policy, groups_filepath, layouts_filepath, map_filepaths);
 
     vector<string> existing_maps = included_map_ids(map_filepaths, policy);
     for (const string &filepath : map_filepaths) {

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tools.e2e.tests.foundation.test_three_region_residency import (
+from tools.e2e.tests.integrity.test_three_region_residency import (
     _capture_map_failure,
     _request_for,
 )
@@ -22,7 +22,7 @@ class EvidenceGame:
     def movement_idle(self):
         return True
 
-    def foundation_result(self):
+    def integrity_result(self):
         return "success"
 
     def address(self, symbol):

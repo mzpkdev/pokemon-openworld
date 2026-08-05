@@ -1,11 +1,11 @@
 import pytest
 
 from tools.e2e.skyemu import (
-    FoundationLoadError,
-    FoundationLoadPhase,
-    FoundationLoadStatus,
-    FoundationMapLoadRequest,
-    FoundationMapLoadResult,
+    IntegrityLoadError,
+    IntegrityLoadPhase,
+    IntegrityLoadStatus,
+    IntegrityMapLoadRequest,
+    IntegrityMapLoadResult,
     SkyEmuSession,
 )
 
@@ -15,15 +15,15 @@ def result(
     request_id=7,
     map_group=0,
     map_num=9,
-    status=FoundationLoadStatus.RUNNING,
+    status=IntegrityLoadStatus.RUNNING,
 ):
-    return FoundationMapLoadResult(
+    return IntegrityMapLoadResult(
         request_id=request_id,
         map_group=map_group,
         map_num=map_num,
         status=status,
-        phase=FoundationLoadPhase.GRAPHICS,
-        error=FoundationLoadError.NONE,
+        phase=IntegrityLoadPhase.GRAPHICS,
+        error=IntegrityLoadError.NONE,
     )
 
 
@@ -33,7 +33,7 @@ class ResultWaitHarness:
         self.last = None
         self.steps = 0
 
-    def foundation_result(self):
+    def integrity_result(self):
         self.last = next(self.results, self.last)
         return self.last
 
@@ -41,25 +41,25 @@ class ResultWaitHarness:
         self.steps += 1
 
 
-def test_foundation_wait_times_out_with_last_phase():
+def test_integrity_wait_times_out_with_last_phase():
     harness = ResultWaitHarness([result(), result(), result()])
 
     with pytest.raises(
         TimeoutError,
         match=r"request 7 timed out after 2 frames; .*phase=GRAPHICS",
     ):
-        SkyEmuSession.wait_for_foundation_result(harness, 7, max_frames=2)
+        SkyEmuSession.wait_for_integrity_result(harness, 7, max_frames=2)
 
     assert harness.steps == 2
 
 
-def test_foundation_wait_rejects_wrong_request_echo():
+def test_integrity_wait_rejects_wrong_request_echo():
     harness = ResultWaitHarness(
-        [result(), result(request_id=8, status=FoundationLoadStatus.ERROR)]
+        [result(), result(request_id=8, status=IntegrityLoadStatus.ERROR)]
     )
 
     with pytest.raises(RuntimeError, match="echoed the wrong request id"):
-        SkyEmuSession.wait_for_foundation_result(harness, 7, max_frames=1)
+        SkyEmuSession.wait_for_integrity_result(harness, 7, max_frames=1)
 
 
 class RequestHarness:
@@ -67,7 +67,7 @@ class RequestHarness:
         self.response = response
 
     def address(self, symbol):
-        assert symbol == "gFoundationMapLoadRequest"
+        assert symbol == "gIntegrityMapLoadRequest"
         return 0x03000000
 
     def pause(self):
@@ -82,13 +82,13 @@ class RequestHarness:
     def resume(self):
         pass
 
-    def wait_for_foundation_result(self, request_id, *, max_frames):
+    def wait_for_integrity_result(self, request_id, *, max_frames):
         return self.response
 
 
-def test_foundation_request_rejects_wrong_map_echo():
-    request = FoundationMapLoadRequest(request_id=7, map_group=0, map_num=9)
-    harness = RequestHarness(result(map_num=10, status=FoundationLoadStatus.ERROR))
+def test_integrity_request_rejects_wrong_map_echo():
+    request = IntegrityMapLoadRequest(request_id=7, map_group=0, map_num=9)
+    harness = RequestHarness(result(map_num=10, status=IntegrityLoadStatus.ERROR))
 
     with pytest.raises(RuntimeError, match="echoed the wrong map id"):
         SkyEmuSession.request_map_load(harness, request, max_frames=1)

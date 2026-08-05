@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from tools.e2e.tests.foundation.manifest import (
-    foundation_manifest_path,
+from tools.e2e.tests.integrity.manifest import (
+    integrity_manifest_path,
     load_manifest_maps,
     load_representatives,
 )
@@ -80,7 +80,7 @@ def write_manifest(
     codecs=None,
     schema_version=1,
 ):
-    path = tmp_path / "foundation-manifest.json"
+    path = tmp_path / "integrity-manifest.json"
     path.write_text(
         json.dumps(
             {
@@ -139,9 +139,9 @@ def test_manifest_map_contract_is_exact(tmp_path):
 
 def test_manifest_path_honors_environment_override(monkeypatch, tmp_path):
     expected = tmp_path / "custom-manifest.json"
-    monkeypatch.setenv("FOUNDATION_MANIFEST", str(expected))
+    monkeypatch.setenv("INTEGRITY_MANIFEST", str(expected))
 
-    assert foundation_manifest_path() == expected
+    assert integrity_manifest_path() == expected
 
 
 def test_manifest_map_contract_accepts_schema_2(tmp_path):

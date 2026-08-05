@@ -1,4 +1,4 @@
-# RFC: Multi-region world foundation
+# RFC: Multi-region world integrity
 
 - Status: Approved
 - Scope: Hoenn, Kanto, Sevii Islands, and planned Johto support
@@ -8,7 +8,7 @@
 
 ## Summary
 
-Build one Emerald-based ROM in which every regional map, layout, tileset, event table, and region-map definition is resident and structurally loadable. Prove full field-ready behavior on representative maps; story and event state fixtures for exhaustive full loads remain outside this foundation. Use a 16-bit map-section identity throughout the world engine, while keeping the Pokémon met-location field byte-sized and mapping detailed map sections onto a smaller provenance vocabulary.
+Build one Emerald-based ROM in which every regional map, layout, tileset, event table, and region-map definition is resident and structurally loadable. Prove full field-ready behavior on representative maps; story and event state fixtures for exhaustive full loads remain outside this integrity. Use a 16-bit map-section identity throughout the world engine, while keeping the Pokémon met-location field byte-sized and mapping detailed map sections onto a smaller provenance vocabulary.
 
 This separates two concepts that the inherited engine conflates:
 
@@ -17,7 +17,7 @@ This separates two concepts that the inherited engine conflates:
 
 The world receives full fidelity and room for additional regions. Pokémon storage, save-sector allocation, TV/Gabby/Ty records, record-mixing packets, and link packet sizes remain unchanged. Byte-sized persisted locations cross explicit compact codecs, so exact display naming may be coarser for a small number of later locations.
 
-Original-game trading is not part of this RFC. The design preserves a clean boundary for future per-generation codecs without making link protocols a dependency of the world foundation.
+Original-game trading is not part of this RFC. The design preserves a clean boundary for future per-generation codecs without making link protocols a dependency of the world integrity.
 
 ## Motivation
 
@@ -27,7 +27,7 @@ Johto adds a second constraint. The current three-region registry has 209 real m
 
 The inherited type also aliases map sections and Pokémon met locations even though their requirements differ. The world needs an extensible geographic identifier. Pokémon store provenance inside a tightly packed, encrypted record and reserve values `0xFD`–`0xFF` for special origins. Expanding that record would affect PC storage, save sectors, trades, recorded battles, mystery events, and tools.
 
-The foundation should remove the world limit without turning a map-loading project into a Pokémon-format and link-protocol migration.
+The integrity should remove the world limit without turning a map-loading project into a Pokémon-format and link-protocol migration.
 
 ## Goals
 
@@ -51,7 +51,7 @@ The foundation should remove the world limit without turning a map-loading proje
 - Save migration for an expanded Pokémon binary format.
 - A nonstandard ROM larger than 32 MiB.
 
-These are sequencing exclusions, not permanent product prohibitions. Later work is expected to add the inter-region warps and travel behavior after this resident-world foundation is stable.
+These are sequencing exclusions, not permanent product prohibitions. Later work is expected to add the inter-region warps and travel behavior after this resident-world integrity is stable.
 
 ## Proposed architecture
 
@@ -162,8 +162,8 @@ The generator and build must enforce these invariants:
 - Assert all 75 current group slots and 785 current layout slots are valid; update expected counts when Johto is imported.
 - Build the normal, debug, and optimized release-mode ROMs plus the test-runner and headless-test ELFs; all use the same Emerald engine and unified world. E2E suites consume the canonical debug ROM and symbols rather than compiling another ROM. FireRed, LeafGreen, and Virtual Console ROM products are not supported targets.
 - Preserve the rendered `CI / Build`, `CI / Format`, `CI / Lint`, `CI / Test`, `CI / E2E (Core)`, `CI / E2E (Extended)`, and `Metadata / Lint` check identities. `Build` continues to produce the release-authority `pokemon-openworld` artifact containing exactly `pokemon-openworld.gba`, `.map`, and `.sym`, plus the separate one-day `pokemon-openworld-debug` artifact containing the debug `.gba` and `.sym`. `Test` remains the sole CI owner of `make check`.
-- Add `Foundation` as a third entry in the existing fail-fast-disabled E2E matrix, invoking `make e2e-foundation`, downloading the canonical `pokemon-openworld-debug` artifact, and producing `CI / E2E (Foundation)`. It follows the existing suite-scoped failure-evidence policy: upload `test-results/e2e/foundation/` under `if: failure()`, warn when no evidence files exist, retain them for three days, and publish no E2E ROM artifact.
-- Add a separate `CI / Foundation` check only for unified generator/schema determinism, the optimized release-mode build, and ROM/RAM capacity enforcement. It consumes Build's canonical normal/debug evidence where comparison is needed; it must not rebuild debug, rerun `make check`, or run an E2E suite. Upload only its generator/schema logs, capacity reports, and isolated release-mode evidence under a non-release artifact name from a step guarded by `if: ${{ always() }}` and an explicit missing-files policy. Never stage debug, release-mode, test, or E2E evidence under `release/`.
+- Add `Integrity` as a third entry in the existing fail-fast-disabled E2E matrix, invoking `make e2e-integrity`, downloading the canonical `pokemon-openworld-debug` artifact, and producing `CI / E2E (Integrity)`. It follows the existing suite-scoped failure-evidence policy: upload `test-results/e2e/integrity/` under `if: failure()`, warn when no evidence files exist, retain them for three days, and publish no E2E ROM artifact.
+- Add a separate `CI / Integrity` check only for unified generator/schema determinism, the optimized release-mode build, and ROM/RAM capacity enforcement. It consumes Build's canonical normal/debug evidence where comparison is needed; it must not rebuild debug, rerun `make check`, or run an E2E suite. Upload only its generator/schema logs, capacity reports, and isolated release-mode evidence under a non-release artifact name from a step guarded by `if: ${{ always() }}` and an explicit missing-files policy. Never stage debug, release-mode, test, or E2E evidence under `release/`.
 - Configure merge gates from observed check runs after the new jobs land, not from guessed workflow prefixes. The two rendered Lint checks currently share the bare ruleset context `Lint`; either accept that shared enforcement or rename one job before requiring them independently.
 - Publish ROM, EWRAM, and IWRAM usage for each build.
 - Fail when the linked ROM exceeds 32 MiB.
@@ -172,7 +172,7 @@ The generator and build must enforce these invariants:
 
 Extend the existing `tools/e2e` SkyEmu fixture with a test-only direct map-load hook rather than adding production travel warps or a second emulator harness. Compile the hook under `DEBUG` into the canonical `pokemon-openworld-debug` CI artifact consumed by every E2E suite; do not restore the removed `E2E` build flag or a separate E2E ROM. Expose a symbol-addressable request/result structure with a monotonically increasing request ID and explicit idle, pending, running, success, and error states. The host writes the payload while paused, commits it by setting `pending` last, resumes, and accepts only a terminal result that echoes the request ID and requested map. The ROM validates map-group, map-number, and coordinate bounds before entering the ordinary warp and map-load path; reports the failing initialization phase and error code; and the host enforces a timeout. The hook and its symbols must be absent from normal, optimized release-mode, snapshot, and stable-release artifacts.
 
-Add an independently invocable `make e2e-foundation` suite. Like Core and Extended, it requires the prebuilt `pokemon-openworld-debug.gba` and `.sym` pair and never compiles the ROM. Add it to the Makefile's E2E-only goal set and to the host runner's suite choices. First sweep every registered map through header, layout, border, tileset, palette, metatile, and callback initialization with story scripts and events suppressed. Run the manifest-driven sweep in one SkyEmu process with per-map diagnostics, but reload a reviewed clean state and reset tasks, callbacks, scripts, suppression flags, request state, and transient save/RAM effects before every entry. A failed reset aborts the sweep. Restore ordinary script and event behavior before representative full loads. Then fully load and settle representative maps from:
+Add an independently invocable `make e2e-integrity` suite. Like Core and Extended, it requires the prebuilt `pokemon-openworld-debug.gba` and `.sym` pair and never compiles the ROM. Add it to the Makefile's E2E-only goal set and to the host runner's suite choices. First sweep every registered map through header, layout, border, tileset, palette, metatile, and callback initialization with story scripts and events suppressed. Run the manifest-driven sweep in one SkyEmu process with per-map diagnostics, but reload a reviewed clean state and reset tasks, callbacks, scripts, suppression flags, request state, and transient save/RAM effects before every entry. A failed reset aborts the sweep. Restore ordinary script and event behavior before representative full loads. Then fully load and settle representative maps from:
 
 - Hoenn;
 - mainland Kanto;
@@ -195,7 +195,7 @@ Add focused tests for:
 - Pokémon save/load stability with unchanged record sizes;
 - title screen, new game, and Hoenn save/continue regression.
 
-The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their meanings and rendered `CI / E2E (Core)` and `CI / E2E (Extended)` identities. `e2e-foundation` supplies direct-load proof under `CI / E2E (Foundation)`. All three suites remain independently invocable matrix targets; this RFC does not introduce an aggregate E2E target.
+The existing `e2e-core` Quickstart-to-overworld smoke and `e2e-extended` Quickstart-to-Pokédex journey retain their meanings and rendered `CI / E2E (Core)` and `CI / E2E (Extended)` identities. `e2e-integrity` supplies direct-load proof under `CI / E2E (Integrity)`. All three suites remain independently invocable matrix targets; this RFC does not introduce an aggregate E2E target.
 
 ## Capacity policy
 
@@ -205,12 +205,12 @@ If it exceeds capacity, remove duplicate or unreachable graphics, audio, and sto
 
 ## Delivery sequence
 
-1. Isolate build and generated outputs by mode; add deterministic generation and the `e2e-foundation` direct-load infrastructure.
+1. Isolate build and generated outputs by mode; add deterministic generation and the `e2e-integrity` direct-load infrastructure.
 2. Build and measure a current-byte-ABI Hoenn/Kanto/Sevii `ALL_REGIONS` feasibility ROM with every guarded asset family resident.
 3. Atomically widen the C and generated map-header schemas while adding explicit IDs, the fixed sentinel, metadata, saved-location codecs, and provenance codecs.
 4. Add fail-closed generation, exhaustive structural map loads, representative full loads, and serialized-boundary regressions.
 5. Import Johto data against these contracts as a separate change.
-6. Add story, travel, Fly, and trade features independently after the world foundation is stable.
+6. Add story, travel, Fly, and trade features independently after the world integrity is stable.
 
 Each step must leave the default `make emerald syms` candidate path buildable. No step may introduce production access to unfinished regions merely to test them.
 
@@ -246,4 +246,4 @@ Composite region/local IDs are scalable but force most geography APIs and script
 
 ## Decision
 
-Adopt a full-fidelity 16-bit world map-section architecture, explicit fixed IDs and section kinds, a fixed aligned map-header schema, per-tileset attribute formats, and generated region metadata in the sole Emerald-base `pokemon-openworld` product. Preserve fixed byte-sized TV, record-mixing, and Pokémon layouts through explicit reviewed codecs. Keep story, travel, Fly, and original-game trading outside the foundation.
+Adopt a full-fidelity 16-bit world map-section architecture, explicit fixed IDs and section kinds, a fixed aligned map-header schema, per-tileset attribute formats, and generated region metadata in the sole Emerald-base `pokemon-openworld` product. Preserve fixed byte-sized TV, record-mixing, and Pokémon layouts through explicit reviewed codecs. Keep story, travel, Fly, and original-game trading outside the integrity.

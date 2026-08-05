@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 from tools.e2e.skyemu import (
-    FoundationLoadError,
-    FoundationLoadPhase,
-    FoundationLoadStatus,
-    FoundationMapLoadRequest,
+    IntegrityLoadError,
+    IntegrityLoadPhase,
+    IntegrityLoadStatus,
+    IntegrityMapLoadRequest,
 )
-from tools.e2e.tests.foundation.manifest import (
-    foundation_manifest_path,
+from tools.e2e.tests.integrity.manifest import (
+    integrity_manifest_path,
     load_manifest_maps,
 )
 
@@ -35,13 +35,13 @@ def _settle_overworld(game) -> None:
 
 def _load_fixture(game, fixture: dict, request_id: int):
     maps = {
-        entry.name: entry for entry in load_manifest_maps(foundation_manifest_path())
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
     entry = maps[fixture["map"]]
     for seed_var in fixture.get("seedVars", []):
         game.set_var(seed_var["id"], seed_var["value"])
     result = game.request_map_load(
-        FoundationMapLoadRequest(
+        IntegrityMapLoadRequest(
             request_id=request_id,
             map_group=entry.group,
             map_num=entry.number,
@@ -50,9 +50,9 @@ def _load_fixture(game, fixture: dict, request_id: int):
         ),
         max_frames=1_800,
     )
-    assert result.status is FoundationLoadStatus.SUCCESS
-    assert result.phase is FoundationLoadPhase.FIELD_READY
-    assert result.error is FoundationLoadError.NONE
+    assert result.status is IntegrityLoadStatus.SUCCESS
+    assert result.phase is IntegrityLoadPhase.FIELD_READY
+    assert result.error is IntegrityLoadError.NONE
     assert game.map_id() == entry.map_id
     game.wait_for_controls_unlocked(max_frames=1_200)
     return maps
@@ -84,13 +84,13 @@ def _hold_direction_until_map(game, direction: str, destination, task_symbols):
     )
 
 
-def test_frlg_door_animates_and_warps(foundation_game):
+def test_frlg_door_animates_and_warps(integrity_game):
     fixture = _fixture("door")
-    _settle_overworld(foundation_game)
-    maps = _load_fixture(foundation_game, fixture, 0xF4000001)
+    _settle_overworld(integrity_game)
+    maps = _load_fixture(integrity_game, fixture, 0xF4000001)
 
     saw = _hold_direction_until_map(
-        foundation_game,
+        integrity_game,
         fixture["direction"],
         maps[fixture["destination"]],
         ("Task_DoDoorWarp", "Task_AnimateDoor"),
@@ -100,13 +100,13 @@ def test_frlg_door_animates_and_warps(foundation_game):
     assert saw["Task_AnimateDoor"], "FRLG door animation task never ran"
 
 
-def test_frlg_escalator_runs_transition_and_warps(foundation_game):
+def test_frlg_escalator_runs_transition_and_warps(integrity_game):
     fixture = _fixture("escalator")
-    _settle_overworld(foundation_game)
-    maps = _load_fixture(foundation_game, fixture, 0xF4000002)
+    _settle_overworld(integrity_game)
+    maps = _load_fixture(integrity_game, fixture, 0xF4000002)
 
     saw = _hold_direction_until_map(
-        foundation_game,
+        integrity_game,
         fixture["direction"],
         maps[fixture["destination"]],
         ("Task_EscalatorWarpOut", "Task_EscalatorWarpIn"),
@@ -115,40 +115,40 @@ def test_frlg_escalator_runs_transition_and_warps(foundation_game):
     assert saw["Task_EscalatorWarpOut"], "FRLG escalator warp-out task never ran"
 
 
-def test_frlg_mart_clerk_opens_buy_menu(foundation_game):
+def test_frlg_mart_clerk_opens_buy_menu(integrity_game):
     fixture = _fixture("shop")
-    _settle_overworld(foundation_game)
-    _load_fixture(foundation_game, fixture, 0xF4000003)
-    foundation_game.face(fixture["direction"])
+    _settle_overworld(integrity_game)
+    _load_fixture(integrity_game, fixture, 0xF4000003)
+    integrity_game.face(fixture["direction"])
 
-    foundation_game.advance_until(
-        lambda: foundation_game.task_active("Task_ShopMenu"),
+    integrity_game.advance_until(
+        lambda: integrity_game.task_active("Task_ShopMenu"),
         description="FRLG shop menu",
         max_pulses=300,
     )
-    assert foundation_game.task_active("Task_ShopMenu")
+    assert integrity_game.task_active("Task_ShopMenu")
 
-    foundation_game.press("A")
-    foundation_game.wait_for_callback("CB2_BuyMenu", max_frames=1_200)
-    assert foundation_game.callback_is("CB2_BuyMenu")
+    integrity_game.press("A")
+    integrity_game.wait_for_callback("CB2_BuyMenu", max_frames=1_200)
+    assert integrity_game.callback_is("CB2_BuyMenu")
 
 
-def test_frlg_primary_tileset_animates_vram(foundation_game):
+def test_frlg_primary_tileset_animates_vram(integrity_game):
     fixture = _fixture("animated_tileset")
-    _settle_overworld(foundation_game)
-    _load_fixture(foundation_game, fixture, 0xF4000004)
+    _settle_overworld(integrity_game)
+    _load_fixture(integrity_game, fixture, 0xF4000004)
 
-    callback = foundation_game.read_u32(
-        foundation_game.address("sPrimaryTilesetAnimCallback")
+    callback = integrity_game.read_u32(
+        integrity_game.address("sPrimaryTilesetAnimCallback")
     )
-    assert callback == foundation_game.address(fixture["callback"]) | 1
-    counter_address = foundation_game.address("sPrimaryTilesetAnimCounter")
+    assert callback == integrity_game.address(fixture["callback"]) | 1
+    counter_address = integrity_game.address("sPrimaryTilesetAnimCounter")
     counters = []
     frames = set()
     for _ in range(40):
-        counters.append(foundation_game.read_u16(counter_address))
-        frames.add(foundation_game.read(fixture["vramAddress"], fixture["vramSize"]))
-        foundation_game.step()
+        counters.append(integrity_game.read_u16(counter_address))
+        frames.add(integrity_game.read(fixture["vramAddress"], fixture["vramSize"]))
+        integrity_game.step()
 
     assert len(set(counters)) > 1, "FRLG tileset animation counter did not advance"
     assert len(frames) > 1, "FRLG animated tile frames did not change in VRAM"

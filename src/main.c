@@ -26,7 +26,7 @@
 #include "test_runner.h"
 #include "constants/rgb.h"
 #ifdef DEBUG
-#include "foundation_map_load.h"
+#include "integrity_map_load.h"
 #endif
 
 static void VBlankIntr(void);
@@ -141,7 +141,7 @@ void AgbMainLoop(void)
         ReadKeys();
 
 #ifdef DEBUG
-        FoundationMapLoad_Update();
+        IntegrityMapLoad_Update();
 #endif
 
         if (gSoftResetDisabled == FALSE

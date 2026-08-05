@@ -28,12 +28,12 @@ SETTINGS_VERSION_OFFSET = 12
 CUSTOM_THEME = 3
 SETTINGS_VERSION = 3
 
-FOUNDATION_REQUEST_STATUS_OFFSET = 14
-FOUNDATION_REQUEST_SIZE = 16
-FOUNDATION_RESULT_SIZE = 12
+INTEGRITY_REQUEST_STATUS_OFFSET = 14
+INTEGRITY_REQUEST_SIZE = 16
+INTEGRITY_RESULT_SIZE = 12
 
 
-class FoundationLoadStatus(IntEnum):
+class IntegrityLoadStatus(IntEnum):
     IDLE = 0
     PENDING = 1
     RUNNING = 2
@@ -41,7 +41,7 @@ class FoundationLoadStatus(IntEnum):
     ERROR = 4
 
 
-class FoundationLoadPhase(IntEnum):
+class IntegrityLoadPhase(IntEnum):
     NONE = 0
     VALIDATE = 1
     PREPARE = 2
@@ -55,7 +55,7 @@ class FoundationLoadPhase(IntEnum):
     FIELD_READY = 10
 
 
-class FoundationLoadError(IntEnum):
+class IntegrityLoadError(IntEnum):
     NONE = 0
     MAP_GROUP = 1
     MAP_GROUP_UNAVAILABLE = 2
@@ -68,7 +68,7 @@ class FoundationLoadError(IntEnum):
 
 
 @dataclass(frozen=True)
-class FoundationMapLoadRequest:
+class IntegrityMapLoadRequest:
     request_id: int
     map_group: int
     map_num: int
@@ -95,19 +95,19 @@ class FoundationMapLoadRequest:
             self.y,
             int(self.suppress_scripts),
             int(self.suppress_events),
-            FoundationLoadStatus.IDLE,
+            IntegrityLoadStatus.IDLE,
             0,
         )
 
 
 @dataclass(frozen=True)
-class FoundationMapLoadResult:
+class IntegrityMapLoadResult:
     request_id: int
     map_group: int
     map_num: int
-    status: FoundationLoadStatus
-    phase: FoundationLoadPhase
-    error: FoundationLoadError
+    status: IntegrityLoadStatus
+    phase: IntegrityLoadPhase
+    error: IntegrityLoadError
 
 
 class Symbols:
@@ -264,7 +264,7 @@ class SkyEmuSession:
         pass
 
     def resume(self) -> None:
-        # Foundation waits advance with /step, rather than SkyEmu's unbounded
+        # Integrity waits advance with /step, rather than SkyEmu's unbounded
         # /run endpoint, so timeout accounting remains frame-exact.
         pass
 
@@ -319,69 +319,67 @@ class SkyEmuSession:
     def write_u16(self, address: int, value: int) -> None:
         self.write(address, struct.pack("<H", value & 0xFFFF))
 
-    def foundation_result(self) -> FoundationMapLoadResult:
-        data = self.read(
-            self.address("gFoundationMapLoadResult"), FOUNDATION_RESULT_SIZE
-        )
+    def integrity_result(self) -> IntegrityMapLoadResult:
+        data = self.read(self.address("gIntegrityMapLoadResult"), INTEGRITY_RESULT_SIZE)
         request_id, map_group, map_num, status, phase, error = struct.unpack(
             "<IHHBBH", data
         )
         try:
-            return FoundationMapLoadResult(
+            return IntegrityMapLoadResult(
                 request_id=request_id,
                 map_group=map_group,
                 map_num=map_num,
-                status=FoundationLoadStatus(status),
-                phase=FoundationLoadPhase(phase),
-                error=FoundationLoadError(error),
+                status=IntegrityLoadStatus(status),
+                phase=IntegrityLoadPhase(phase),
+                error=IntegrityLoadError(error),
             )
         except ValueError as value_error:
             raise RuntimeError(
-                f"malformed Foundation result: {data.hex()}"
+                f"malformed Integrity result: {data.hex()}"
             ) from value_error
 
-    def wait_for_foundation_result(
+    def wait_for_integrity_result(
         self, request_id: int, *, max_frames: int
-    ) -> FoundationMapLoadResult:
+    ) -> IntegrityMapLoadResult:
         if max_frames < 1:
             raise ValueError("max_frames must be positive")
-        last = self.foundation_result()
+        last = self.integrity_result()
         for _ in range(max_frames):
             self.step()
-            last = self.foundation_result()
+            last = self.integrity_result()
             if last.status not in (
-                FoundationLoadStatus.SUCCESS,
-                FoundationLoadStatus.ERROR,
+                IntegrityLoadStatus.SUCCESS,
+                IntegrityLoadStatus.ERROR,
             ):
                 continue
             if last.request_id != request_id:
                 raise RuntimeError(
-                    "Foundation result echoed the wrong request id: "
+                    "Integrity result echoed the wrong request id: "
                     f"expected={request_id}, actual={last.request_id}"
                 )
             return last
         raise TimeoutError(
-            f"Foundation request {request_id} timed out after {max_frames} frames; "
+            f"Integrity request {request_id} timed out after {max_frames} frames; "
             f"status={last.status.name}, phase={last.phase.name}, error={last.error.name}"
         )
 
     def request_map_load(
-        self, request: FoundationMapLoadRequest, *, max_frames: int = 1_200
-    ) -> FoundationMapLoadResult:
-        request_address = self.address("gFoundationMapLoadRequest")
+        self, request: IntegrityMapLoadRequest, *, max_frames: int = 1_200
+    ) -> IntegrityMapLoadResult:
+        request_address = self.address("gIntegrityMapLoadRequest")
         payload = request.payload()
-        if len(payload) != FOUNDATION_REQUEST_SIZE:
-            raise AssertionError("Foundation request ABI size drifted")
+        if len(payload) != INTEGRITY_REQUEST_SIZE:
+            raise AssertionError("Integrity request ABI size drifted")
 
         self.pause()
         self.write(request_address, payload)
         # PENDING is the request commit field and must be the final host write.
         self.write_u8(
-            request_address + FOUNDATION_REQUEST_STATUS_OFFSET,
-            FoundationLoadStatus.PENDING,
+            request_address + INTEGRITY_REQUEST_STATUS_OFFSET,
+            IntegrityLoadStatus.PENDING,
         )
         self.resume()
-        result = self.wait_for_foundation_result(
+        result = self.wait_for_integrity_result(
             request.request_id, max_frames=max_frames
         )
         if (result.map_group, result.map_num) != (
@@ -389,7 +387,7 @@ class SkyEmuSession:
             request.map_num,
         ):
             raise RuntimeError(
-                "Foundation result echoed the wrong map id: "
+                "Integrity result echoed the wrong map id: "
                 f"expected={(request.map_group, request.map_num)}, "
                 f"actual={(result.map_group, result.map_num)}"
             )

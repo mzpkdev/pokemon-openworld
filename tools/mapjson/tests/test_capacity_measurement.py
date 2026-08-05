@@ -5,16 +5,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.foundation.measure_reference_headroom import (
+from tools.integrity.measure_reference_headroom import (
     MeasurementError,
     donor_commit,
     union_bytes,
 )
-from tools.foundation.validate_artifact import ValidationError, load_capacity_policy
+from tools.integrity.validate_artifact import ValidationError, load_capacity_policy
 
 
 ROOT = Path(__file__).resolve().parents[3]
-POLICY = ROOT / "tools/foundation/capacity_policy.json"
+POLICY = ROOT / "tools/integrity/capacity_policy.json"
 
 
 class CapacityMeasurementTests(unittest.TestCase):

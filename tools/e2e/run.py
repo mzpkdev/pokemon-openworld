@@ -7,7 +7,7 @@ from pathlib import Path
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("suite", choices=("core", "extended", "foundation"))
+    parser.add_argument("suite", choices=("core", "extended", "integrity"))
     args = parser.parse_args()
     suite_dir = Path(__file__).parent / "tests" / args.suite
     tests = sorted(suite_dir.glob("test_*.py"))

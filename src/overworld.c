@@ -84,7 +84,7 @@
 #include "constants/trainer_hill.h"
 #include "constants/weather.h"
 #ifdef DEBUG
-#include "foundation_map_load.h"
+#include "integrity_map_load.h"
 #endif
 
 STATIC_ASSERT((B_FLAG_FOLLOWERS_DISABLED == 0 || OW_FOLLOWERS_ENABLED), FollowersFlagAssignedWithoutEnablingThem);
@@ -949,7 +949,7 @@ static void LoadMapFromWarp(bool32 a1)
     LoadCurrentMapData();
     if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
 #ifdef DEBUG
-     && !FoundationMapLoad_ShouldSuppressEvents()
+     && !IntegrityMapLoad_ShouldSuppressEvents()
 #endif
     )
     {
@@ -988,7 +988,7 @@ static void LoadMapFromWarp(bool32 a1)
     SetDefaultFlashLevel();
     Overworld_ClearSavedMusic();
 #ifdef DEBUG
-    if (!FoundationMapLoad_ShouldSuppressScripts())
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
 #endif
         RunOnTransitionMapScript();
     UpdateLocationHistoryForRoamer();
@@ -1005,7 +1005,7 @@ static void LoadMapFromWarp(bool32 a1)
         // the whole call so a structural load cannot run an on-load script
         // against object templates that were intentionally suppressed above.
         mapScripts = gMapHeader.mapScripts;
-        if (FoundationMapLoad_ShouldSuppressScripts())
+        if (IntegrityMapLoad_ShouldSuppressScripts())
             gMapHeader.mapScripts = NULL;
 #endif
         InitMap();
@@ -2325,26 +2325,26 @@ static bool32 LoadMapInStepsLink(u8 *state)
 static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
 {
 #ifdef DEBUG
-    static const enum FoundationLoadPhase sFoundationPhases[] =
+    static const enum IntegrityLoadPhase sIntegrityPhases[] =
     {
-        [0] = FOUNDATION_LOAD_PHASE_MAP_DATA,
-        [1] = FOUNDATION_LOAD_PHASE_RESET,
-        [2] = FOUNDATION_LOAD_PHASE_RESUME,
-        [3] = FOUNDATION_LOAD_PHASE_EVENTS,
-        [4] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [5] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [6] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [7] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [8] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [9] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [10] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [11] = FOUNDATION_LOAD_PHASE_GRAPHICS,
-        [12] = FOUNDATION_LOAD_PHASE_CALLBACK,
-        [13] = FOUNDATION_LOAD_PHASE_FIELD_READY,
+        [0] = INTEGRITY_LOAD_PHASE_MAP_DATA,
+        [1] = INTEGRITY_LOAD_PHASE_RESET,
+        [2] = INTEGRITY_LOAD_PHASE_RESUME,
+        [3] = INTEGRITY_LOAD_PHASE_EVENTS,
+        [4] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [5] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [6] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [7] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [8] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [9] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [10] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [11] = INTEGRITY_LOAD_PHASE_GRAPHICS,
+        [12] = INTEGRITY_LOAD_PHASE_CALLBACK,
+        [13] = INTEGRITY_LOAD_PHASE_FIELD_READY,
     };
 
-    if (*state < ARRAY_COUNT(sFoundationPhases))
-        FoundationMapLoad_ReportPhase(sFoundationPhases[*state]);
+    if (*state < ARRAY_COUNT(sIntegrityPhases))
+        IntegrityMapLoad_ReportPhase(sIntegrityPhases[*state]);
 #endif
     switch (*state)
     {
@@ -2416,7 +2416,7 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
         break;
     case 13:
 #ifdef DEBUG
-        FoundationMapLoad_Complete();
+        IntegrityMapLoad_Complete();
 #endif
         return TRUE;
     }
@@ -2649,7 +2649,7 @@ static void ResumeMap(bool32 a1)
     if (!a1)
         SetUpFieldTasks();
 #ifdef DEBUG
-    if (!FoundationMapLoad_ShouldSuppressScripts())
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
 #endif
         RunOnResumeMapScript();
     TryStartMirageTowerPulseBlendEffect();
@@ -2678,7 +2678,7 @@ static void InitObjectEventsLocal(void)
     SetPlayerAvatarTransitionFlags(player->transitionFlags);
     ResetInitialPlayerAvatarState();
 #ifdef DEBUG
-    if (!FoundationMapLoad_ShouldSuppressEvents())
+    if (!IntegrityMapLoad_ShouldSuppressEvents())
 #endif
     {
         TrySpawnObjectEvents(0, 0);
@@ -2686,7 +2686,7 @@ static void InitObjectEventsLocal(void)
         UpdateFollowingPokemon();
     }
 #ifdef DEBUG
-    if (!FoundationMapLoad_ShouldSuppressScripts())
+    if (!IntegrityMapLoad_ShouldSuppressScripts())
 #endif
         TryRunOnWarpIntoMapScript();
 }
