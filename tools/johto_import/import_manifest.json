@@ -2161,6 +2161,34 @@
       "hns": "0",
       "mechanical": "1",
       "reason": "mechanical donor fixes the downstairs return warp"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/1/dest_map",
+      "hns": "MAP_VICTORY_ROAD_KANTO_B2F",
+      "mechanical": "MAP_JOHTO_VICTORY_ROAD_1F",
+      "reason": "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/2/dest_map",
+      "hns": "MAP_VICTORY_ROAD_KANTO_B2F",
+      "mechanical": "MAP_JOHTO_VICTORY_ROAD_1F",
+      "reason": "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/4/dest_map",
+      "hns": "MAP_ROUTE22",
+      "mechanical": "MAP_ROUTE26NORTH",
+      "reason": "mechanical Johto membership keeps the east exit inside the active Tohjo shell"
+    },
+    {
+      "source": "SSAqua_1F",
+      "path": "warp_events/0/dest_warp_id",
+      "hns": "1",
+      "mechanical": "0",
+      "reason": "mechanical donor fixes the Olivine port return to the target's only warp"
     }
   ],
   "berryTreeAllocations": [
@@ -2192,36 +2220,6 @@
       "destination": "MAP_ROCKET_HIDEOUT_B1F"
     },
     {
-      "source": "NewBarkTown",
-      "path": "connections/1",
-      "kind": "connection",
-      "destination": "MAP_ROUTE27"
-    },
-    {
-      "source": "Route28",
-      "path": "connections/1",
-      "kind": "connection",
-      "destination": "MAP_ROUTE26NORTH"
-    },
-    {
-      "source": "Route28",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_RECEPTION_GATE"
-    },
-    {
-      "source": "Route30",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_ROUTE30_HOUSE"
-    },
-    {
-      "source": "Route30",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE"
-    },
-    {
       "source": "Route40",
       "path": "connections/2",
       "kind": "connection",
@@ -2238,6 +2236,30 @@
       "path": "connections/2",
       "kind": "connection",
       "destination": "MAP_SAFARI_ZONE_TOP_LEFT"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_JOHTO_VICTORY_ROAD_1F"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_JOHTO_VICTORY_ROAD_1F"
+    },
+    {
+      "source": "Route26North",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE22"
+    },
+    {
+      "source": "VermilionCity_PortInside",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VERMILION_CITY_PORT_OUTSIDE"
     }
   ],
   "warpRemovals": [
@@ -2263,35 +2285,35 @@
       "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     },
     {
-      "source": "Route28",
-      "path": "warp_events/0",
-      "destination": "MAP_RECEPTION_GATE",
-      "destWarpId": "3",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
-    },
-    {
-      "source": "Route30",
-      "path": "warp_events/0",
-      "destination": "MAP_ROUTE30_HOUSE",
-      "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
-    },
-    {
-      "source": "Route30",
+      "source": "ReceptionGate",
       "path": "warp_events/1",
-      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
+      "destination": "MAP_JOHTO_VICTORY_ROAD_1F",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
+      "reason": "defer the north League exit until the bounded Phase 8 fallback"
+    },
+    {
+      "source": "ReceptionGate",
+      "path": "warp_events/2",
+      "destination": "MAP_JOHTO_VICTORY_ROAD_1F",
+      "destWarpId": "0",
+      "reason": "defer the north League exit until the bounded Phase 8 fallback"
+    },
+    {
+      "source": "VermilionCity_PortInside",
+      "path": "warp_events/0",
+      "destination": "MAP_VERMILION_CITY_PORT_OUTSIDE",
+      "destWarpId": "0",
+      "reason": "strip the cross-region port transition from residency-only materialization"
     }
   ],
   "warpReindexes": [
     {
-      "source": "Route28_House",
+      "source": "Route28",
       "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ROUTE28",
-      "from": "1",
-      "to": "0",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
+      "destination": "MAP_RECEPTION_GATE",
+      "from": "3",
+      "to": "1",
+      "reason": "reindex the retained west-gate entry after deferring two Phase 8 League warps"
     }
   ],
   "preserveSpatialUpdates": [
@@ -2318,10 +2340,25 @@
       ]
     },
     {
-      "source": "Route28",
-      "activationBatch": "mt-silver",
+      "source": "NewBarkTown",
+      "activationBatch": "tohjo-league-hns",
       "fields": [
         "connections"
+      ]
+    },
+    {
+      "source": "Route28",
+      "activationBatch": "tohjo-league-hns",
+      "fields": [
+        "connections",
+        "warp_events"
+      ]
+    },
+    {
+      "source": "Route28_House",
+      "activationBatch": "tohjo-league-hns",
+      "fields": [
+        "warp_events"
       ]
     }
   ],
@@ -6938,7 +6975,60 @@
     {"source":"SafariZone_Top_Mid","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_RIGHT"},
     {"source":"SafariZone_Top_Mid","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_MID"},
     {"source":"SafariZone_Top_Right","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_MID"},
-    {"source":"SafariZone_Top_Right","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_RIGHT"}
+    {"source":"SafariZone_Top_Right","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_RIGHT"},
+    {"source":"NewBarkTown","path":"connections/1","kind":"connection","destination":"MAP_ROUTE27"},
+    {"source":"ReceptionGate","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE26NORTH"},
+    {"source":"ReceptionGate","path":"warp_events/3","kind":"warp","destination":"MAP_ROUTE28"},
+    {"source":"ReceptionGate","path":"warp_events/4","kind":"warp","destination":"MAP_ROUTE26NORTH"},
+    {"source":"Route26","path":"connections/0","kind":"connection","destination":"MAP_ROUTE27"},
+    {"source":"Route26","path":"connections/1","kind":"connection","destination":"MAP_ROUTE26NORTH"},
+    {"source":"Route26","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"},
+    {"source":"Route26","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE26_HOUSE1"},
+    {"source":"Route26","path":"warp_events/2","kind":"warp","destination":"MAP_ROUTE26_HOUSE2"},
+    {"source":"Route26North","path":"connections/0","kind":"connection","destination":"MAP_ROUTE26"},
+    {"source":"Route26North","path":"connections/1","kind":"connection","destination":"MAP_ROUTE28"},
+    {"source":"Route26North","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"},
+    {"source":"Route26_House1","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE26"},
+    {"source":"Route26_House2","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE26"},
+    {"source":"Route27","path":"connections/0","kind":"connection","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"Route27","path":"connections/1","kind":"connection","destination":"MAP_ROUTE26"},
+    {"source":"Route27","path":"warp_events/0","kind":"warp","destination":"MAP_TOHJO_FALLS_CAVERN"},
+    {"source":"Route27","path":"warp_events/1","kind":"warp","destination":"MAP_TOHJO_FALLS_CAVERN"},
+    {"source":"Route27","path":"warp_events/2","kind":"warp","destination":"MAP_ROUTE27_HOUSE"},
+    {"source":"Route27_House","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE27"},
+    {"source":"Route28","path":"connections/1","kind":"connection","destination":"MAP_ROUTE26NORTH"},
+    {"source":"Route28","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"},
+    {"source":"Route30","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE30_HOUSE"},
+    {"source":"Route30","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE30_MR_POKEMONS_HOUSE"},
+    {"source":"Route30_House","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE30"},
+    {"source":"Route30_MrPokemonsHouse","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE30"},
+    {"source":"SSAqua_1F","path":"warp_events/0","kind":"warp","destination":"MAP_OLIVINE_CITY_PORT_INSIDE"},
+    {"source":"SSAqua_1F","path":"warp_events/1","kind":"warp","destination":"MAP_SSAQUA_PLAYERS_ROOM"},
+    {"source":"SSAqua_1F","path":"warp_events/10","kind":"warp","destination":"MAP_SSAQUA_B1F"},
+    {"source":"SSAqua_1F","path":"warp_events/11","kind":"warp","destination":"MAP_SSAQUA_CAPTAINS_ROOM"},
+    {"source":"SSAqua_1F","path":"warp_events/2","kind":"warp","destination":"MAP_SSAQUA_ROOM_NW"},
+    {"source":"SSAqua_1F","path":"warp_events/3","kind":"warp","destination":"MAP_SSAQUA_ROOM_NE"},
+    {"source":"SSAqua_1F","path":"warp_events/4","kind":"warp","destination":"MAP_SSAQUA_ROOM_NNE"},
+    {"source":"SSAqua_1F","path":"warp_events/5","kind":"warp","destination":"MAP_SSAQUA_ROOM_SSE"},
+    {"source":"SSAqua_1F","path":"warp_events/6","kind":"warp","destination":"MAP_SSAQUA_ROOM_SE"},
+    {"source":"SSAqua_1F","path":"warp_events/7","kind":"warp","destination":"MAP_SSAQUA_ROOM_SW"},
+    {"source":"SSAqua_1F","path":"warp_events/8","kind":"warp","destination":"MAP_SSAQUA_ROOM_SSW"},
+    {"source":"SSAqua_1F","path":"warp_events/9","kind":"warp","destination":"MAP_SSAQUA_B1F"},
+    {"source":"SSAqua_B1F","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_B1F","path":"warp_events/1","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_CaptainsRoom","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_PlayersRoom","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomNE","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomNNE","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomNW","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomSE","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomSSE","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomSSW","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"SSAqua_RoomSW","path":"warp_events/0","kind":"warp","destination":"MAP_SSAQUA_1F"},
+    {"source":"TohjoFalls_Cavern","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE27"},
+    {"source":"TohjoFalls_Cavern","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE27"},
+    {"source":"TohjoFalls_Cavern","path":"warp_events/2","kind":"warp","destination":"MAP_TOHJO_FALLS_GIOVANNI_ROOM"},
+    {"source":"TohjoFalls_GiovanniRoom","path":"warp_events/0","kind":"warp","destination":"MAP_TOHJO_FALLS_CAVERN"}
   ],
   "graphicsAdaptations": [
     {
@@ -7179,12 +7269,28 @@
     {
       "hns": "MUS_HG_SAFARI_ZONE_GATE",
       "target": "MUS_SAFARI_ZONE"
+    },
+    {
+      "hns": "MUS_HG_SS_AQUA",
+      "target": "MUS_ABANDONED_SHIP"
+    },
+    {
+      "hns": "MUS_HG_VERMILION",
+      "target": "MUS_SLATEPORT"
     }
   ],
   "regionAssignment": {
     "hns": null,
     "target": "REGION_JOHTO"
   },
+  "sectionSymbolRemaps": [
+    {
+      "source": "MAPSEC_VERMILION_CITY",
+      "target": "MAPSEC_JOHTO_VERMILION_PORT",
+      "targetId": 260,
+      "reason": "isolate Johto port residency from the incompatible resident Kanto Vermilion section"
+    }
+  ],
   "scriptSubstitutions": [
     {
       "source": "Route28_House",
@@ -7903,6 +8009,14 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ssaqua",
+      "symbol": "ssaqua",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "layoutTilesetRemaps": [
@@ -8058,7 +8172,9 @@
     "mahogany-hns",
     "blackthorn-ice-dark-den",
     "safari",
-    "mt-silver"
+    "mt-silver",
+    "aqua-vermilion",
+    "tohjo-league-hns"
   ],
   "batches": [
     {

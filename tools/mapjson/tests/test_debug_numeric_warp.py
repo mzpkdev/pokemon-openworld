@@ -27,11 +27,11 @@ def function_body(source: str, name: str) -> str:
 
 
 class DebugNumericWarpTests(unittest.TestCase):
-    def test_empty_group_is_rejected_before_map_count_or_header_use(self) -> None:
+    def test_empty_group_guard_precedes_map_count_or_header_use(self) -> None:
         groups = json.loads(GROUPS.read_text(encoding="utf-8"))
         counts = [len(groups[name]) for name in groups["group_order"]]
-        self.assertEqual(counts[96], 0)
-        self.assertTrue(any(count > 0 for count in counts))
+        self.assertEqual(counts[96], 12)
+        self.assertTrue(all(count > 0 for count in counts))
 
         body = function_body(
             DEBUG_SOURCE.read_text(encoding="utf-8"),

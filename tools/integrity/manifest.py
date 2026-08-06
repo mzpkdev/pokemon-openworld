@@ -29,12 +29,16 @@ ACTIVE_JOHTO_LAYOUT_IDS = {
 ACTIVE_JOHTO_LAYOUTS = [
     item for item in JOHTO_LOCK["layouts"] if item["id"] in ACTIVE_JOHTO_LAYOUT_IDS
 ]
+INACTIVE_JOHTO_PLACEHOLDERS = [
+    item
+    for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+    if item["activationBatch"] not in ACTIVE_JOHTO_BATCHES
+]
 ACTIVE_JOHTO_GROUPS = {item["targetGroup"] for item in ACTIVE_JOHTO_MAPS} | {
-    item["name"] for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+    item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
 }
 INACTIVE_JOHTO_GROUPS = {
-    item["targetId"]: item["name"]
-    for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+    item["targetId"]: item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
 }
 ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in ACTIVE_JOHTO_MAPS}
 BASE_GROUPS = 75

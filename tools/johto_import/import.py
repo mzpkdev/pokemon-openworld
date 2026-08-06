@@ -123,6 +123,9 @@ LAYOUT_HEADER_DECISION_KEYS = (
     ("LAYOUT_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE", "name"),
 )
 MAP_FIELD_DECISION_KEYS = (("ReceptionGate", "region_map_section"),)
+SECTION_SYMBOL_REMAP_KEYS = (
+    ("MAPSEC_VERMILION_CITY", "MAPSEC_JOHTO_VERMILION_PORT", 260),
+)
 LAYOUT_TILESET_REMAP_KEYS = (("LAYOUT_ROUTE34_DAY_CARE", "secondary_tileset"),)
 ATTRIBUTE_FIXTURE_KEYS = (
     ("route28-primary", "LAYOUT_ROUTE28", "primary", "mechanical"),
@@ -144,7 +147,13 @@ PRESERVE_SPATIAL_UPDATE_KEYS = (
         "blackthorn-ice-dark-den",
         ("connections", "warp_events"),
     ),
-    ("Route28", "mt-silver", ("connections",)),
+    ("NewBarkTown", "tohjo-league-hns", ("connections",)),
+    (
+        "Route28",
+        "tohjo-league-hns",
+        ("connections", "warp_events"),
+    ),
+    ("Route28_House", "tohjo-league-hns", ("warp_events",)),
 )
 INACTIVE_GROUP_PLACEHOLDER_KEYS = (("gMapGroup_IndoorSSAqua", 96, "aqua-vermilion"),)
 BATCH_GROUPS = {
@@ -189,6 +198,147 @@ BATCH_ORDER = (
     *BATCH_GROUPS,
     "pkmn-world-fallback",
 )
+REVIEWED_AUTHORITY_ADAPTATIONS = (
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/4/dest_map",
+        "MAP_WORLD_HUB",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/5/dest_map",
+        "MAP_TIN_TOWER_ROOF_DAY",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/7/dest_map",
+        "MAP_WORLD_HUB",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown_PlayersHouse_2F",
+        "warp_events/1/dest_map",
+        "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
+        "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
+        "mechanical donor fixes the downstairs return warp",
+    ),
+    (
+        "baseline",
+        "NewBarkTown_PlayersHouse_2F",
+        "warp_events/1/dest_warp_id",
+        "0",
+        "1",
+        "mechanical donor fixes the downstairs return warp",
+    ),
+    (
+        "aqua-vermilion",
+        "SSAqua_1F",
+        "warp_events/0/dest_warp_id",
+        "1",
+        "0",
+        "mechanical donor fixes the Olivine port return to the target's only warp",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/1/dest_map",
+        "MAP_VICTORY_ROAD_KANTO_B2F",
+        "MAP_JOHTO_VICTORY_ROAD_1F",
+        "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/2/dest_map",
+        "MAP_VICTORY_ROAD_KANTO_B2F",
+        "MAP_JOHTO_VICTORY_ROAD_1F",
+        "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/4/dest_map",
+        "MAP_ROUTE22",
+        "MAP_ROUTE26NORTH",
+        "mechanical Johto membership keeps the east exit inside the active Tohjo shell",
+    ),
+)
+REVIEWED_BATCH_INVENTORY = {
+    "baseline": (
+        "preserve",
+        "50ac109f251908580fbfaa6ba3cf3d02b43431a513554f4eb768b5305347f475",
+        "561e9888e0e9259b1fe4becc1c9c911ee1b651dfc526e1ca55e22039743d69be",
+    ),
+    "early-violet-ruins": (
+        "residency",
+        "d0f956f7e008696f18837051b0b526591c9d9b13faf42811b781582c300c3376",
+        "be788f0d25cc76b0467e10437daa0d6867c278fb81c31e4b8b03aee8af4bb6a9",
+    ),
+    "azalea-union-ilex": (
+        "residency",
+        "efb41c0b9184b9d9acb23813291ed74be6aaafa5053baffabfbfabca78f6567a",
+        "81621ffa2611d7b8cad6801bbf8eb2c278dceb1e29b63b7d32ec24112c54870c",
+    ),
+    "goldenrod-park": (
+        "residency",
+        "188c1a26eef2289ee55720fd2e1ce1abecbf8681d7446287c464d209c98cfd11",
+        "53549acb69dc2e997ceada4f28d42044652507c7ebe5572b6742acad7eb86cc6",
+    ),
+    "ecruteak-towers": (
+        "residency",
+        "8aa12a63b98ae56c90a9f5a95301d53653690f5e08f46e353fb63fc0940c17b6",
+        "f05ab024ab18dbbd2accfca35b845a92ced091b87ad6dc7e40f7e4e3c3bb5c74",
+    ),
+    "olivine-cianwood-whirl": (
+        "residency",
+        "53e53cc1e6258d0b4fd08afbdb5f41636a5dd6234b43eb41e2fb3c47bc14762a",
+        "1f246046b0b5569796d59a1344a25191c5cbc0770ccef8e71d4a89a31b169cba",
+    ),
+    "mahogany-hns": (
+        "residency",
+        "b479cb20f5a0e5623e5c3631bac59aeeaef491027b08ea8a027aff39c0ded212",
+        "defd16781bdfa30fb505c1bcb3e467d76fa38251f6d8d466cbf8ff4034284791",
+    ),
+    "blackthorn-ice-dark-den": (
+        "residency",
+        "ae7af35a2618a5b636b95bc125962a1e730dfa28ba26bf118497350fab7b70d5",
+        "14876054194e62fd5d5ca785c27d5b101e55bbf028f5b6ae7a9bf911e4516a2c",
+    ),
+    "safari": (
+        "residency",
+        "a854fc2fff0b33cda15ab65855e6f42dcbabe94fd4bc286057cf204a261fd4a1",
+        "5f42b60f00ebe851316b52ca90962550d23645cc53f535a1cfb03de44dc0ff52",
+    ),
+    "mt-silver": (
+        "residency",
+        "e812cc4163d06b01f475cbc61445a6c454bc913c5461d6bf8fe595db73f0d322",
+        "3d915bbf43fb807a66714bda2cd96d9d69e717448ae44504794a37c083b3728c",
+    ),
+    "aqua-vermilion": (
+        "residency",
+        "769df76b9e511becd67ec976bc72170f5b738b81acf86ab5d9315bc264a9dfd6",
+        "ee2c8bf5a4d95b55e18ce024d619f1c9f8ff97173dcbca46fa2dfc7e95529fc8",
+    ),
+    "tohjo-league-hns": (
+        "residency",
+        "2469e0128d53399e3f45d4d84b6d52b63b1fcb9e9b4c7af9967f39e92983189c",
+        "b879f778271d56d49475a6deee7824abbfebc15d46f709ef0ddfceef48547d2e",
+    ),
+    "pkmn-world-fallback": (
+        "residency",
+        "df4b5fc51c6fbdd65c7d791709f10c9e4ef29b5f4d38adb8a7b9aa8fa6e9bf50",
+        "a2d7aaecd003f1590fd63d7c320bbefee314b3d14f003c0aff45b527310bbdad",
+    ),
+}
 BASELINE_GROUP_IDS = {
     "gMapGroup_JohtoTownsAndRoutes": 75,
     "gMapGroup_IndoorNewBark": 76,
@@ -307,6 +457,11 @@ def inventory_digest(values: Sequence[str]) -> str:
     encoded = (
         json.dumps(sorted(values), ensure_ascii=True, separators=(",", ":")) + "\n"
     )
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def ordered_inventory_digest(values: Sequence[str]) -> str:
+    encoded = json.dumps(values, ensure_ascii=True, separators=(",", ":")) + "\n"
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
@@ -718,24 +873,70 @@ def validate_adaptations(
     adaptations = manifest.get("adaptations", [])
     if not isinstance(hns_categories, list) or not isinstance(adaptations, list):
         raise ImportError("authority or adaptation manifest is malformed")
+    active_batches = manifest.get("activeBatches", [])
+    if not isinstance(active_batches, list):
+        raise ImportError("active batch selection is malformed")
+    canonical = {
+        (source, path): {
+            "source": source,
+            "path": path,
+            "hns": hns,
+            "mechanical": mechanical,
+            "reason": reason,
+        }
+        for activation_batch, source, path, hns, mechanical, reason in REVIEWED_AUTHORITY_ADAPTATIONS
+        if activation_batch in active_batches
+    }
+    all_canonical = {
+        (source, path): activation_batch
+        for activation_batch, source, path, _hns, _mechanical, _reason in REVIEWED_AUTHORITY_ADAPTATIONS
+    }
     exact_paths: list[str] = []
+    declared: set[tuple[str, str]] = set()
     for rule in adaptations:
+        if not isinstance(rule, Mapping):
+            raise ImportError("authority adaptation declaration is malformed")
         source = rule.get("source")
         path = rule.get("path")
-        if (
-            source not in mechanical_maps
-            or (selected_names is not None and source not in selected_names)
-            or not isinstance(path, str)
+        if not isinstance(source, str) or not isinstance(path, str):
+            raise ImportError("authority adaptation source or path is malformed")
+        key = (source, path)
+        if key in declared:
+            raise ImportError(f"duplicate adaptation path: {source}/{path}")
+        declared.add(key)
+        if source not in mechanical_maps or (
+            selected_names is not None and source not in selected_names
         ):
-            raise ImportError("adaptation names an unknown selected map or path")
+            raise ImportError(
+                f"adaptation targets an unknown or unselected map: {source}/{path}"
+            )
+        if key not in canonical:
+            if key in all_canonical:
+                raise ImportError(
+                    f"adaptation targets inactive batch {all_canonical[key]}: "
+                    f"{source}/{path}"
+                )
+            raise ImportError(f"unexpected authority adaptation: {source}/{path}")
+        expected = canonical[key]
+        if dict(rule) != expected:
+            raise ImportError(
+                f"authority adaptation declaration drift: {source}/{path}"
+            )
+        expected_hns, expected_mechanical = expected["hns"], expected["mechanical"]
         hns = _json(hns_root / "data/maps" / source / "map.json")
         actual_hns = _pointer(hns, path)
         actual_mechanical = _pointer(mechanical_maps[source], path)
-        if actual_hns != rule.get("hns") or actual_mechanical != rule.get("mechanical"):
-            raise ImportError(f"adaptation drift: {source}/{path}")
+        if actual_hns != expected_hns or actual_mechanical != expected_mechanical:
+            raise ImportError(
+                f"adaptation donor drift: {source}/{path}; "
+                f"expected hns={expected_hns!r} mechanical={expected_mechanical!r}, "
+                f"got hns={actual_hns!r} mechanical={actual_mechanical!r}"
+            )
         exact_paths.append(f"maps/{source}/{path}")
-    if len(exact_paths) != len(set(exact_paths)):
-        raise ImportError("duplicate adaptation path")
+    missing = sorted(set(canonical) - declared)
+    if missing:
+        source, path = missing[0]
+        raise ImportError(f"missing required authority adaptation: {source}/{path}")
     return AuthorityRules(
         tuple(str(item) for item in hns_categories), tuple(exact_paths)
     )
@@ -1211,6 +1412,8 @@ def validate_full_port_contract(
     }:
         raise ImportError("residency materialization profile drift")
     batches = manifest.get("batches")
+    if tuple(REVIEWED_BATCH_INVENTORY) != BATCH_ORDER:
+        raise ImportError("canonical batch inventory configuration drift")
     if not isinstance(batches, list) or [item.get("name") for item in batches] != list(
         BATCH_ORDER
     ):
@@ -1221,6 +1424,15 @@ def validate_full_port_contract(
         names, layouts = batch.get("maps"), batch.get("layouts")
         if not isinstance(names, list) or not isinstance(layouts, list):
             raise ImportError("batch inventory is malformed")
+        expected_materialization, expected_maps, expected_layouts = (
+            REVIEWED_BATCH_INVENTORY[batch["name"]]
+        )
+        if (
+            batch.get("materialization") != expected_materialization
+            or ordered_inventory_digest(names) != expected_maps
+            or ordered_inventory_digest(layouts) != expected_layouts
+        ):
+            raise ImportError(f"canonical batch inventory drift: {batch['name']}")
         if batch.get("mapCount") != len(names) or batch.get(
             "mapDigest"
         ) != inventory_digest(names):
@@ -1549,6 +1761,26 @@ def _preserve_spatial_updates(
     return records
 
 
+def _section_symbol_remaps(
+    manifest: Mapping[str, Any], *, required: bool = False
+) -> dict[str, str]:
+    records = manifest.get("sectionSymbolRemaps")
+    if records is None and not required:
+        return {}
+    if not isinstance(records, list):
+        raise ImportError("section symbol remap allowlist drift")
+    actual = [
+        (item.get("source"), item.get("target"), item.get("targetId"))
+        for item in records
+        if isinstance(item, dict)
+    ]
+    if actual != list(SECTION_SYMBOL_REMAP_KEYS) or any(
+        set(item) != {"source", "target", "targetId", "reason"} for item in records
+    ):
+        raise ImportError("section symbol remap allowlist drift")
+    return {str(item["source"]): str(item["target"]) for item in records}
+
+
 def _inactive_group_placeholders(
     manifest: Mapping[str, Any],
 ) -> list[Mapping[str, Any]]:
@@ -1842,6 +2074,7 @@ def validate_materialization_adaptations(
     }
 
     _preserve_spatial_updates(manifest)
+    _section_symbol_remaps(manifest, required=True)
     for source, activation_batch, fields in PRESERVE_SPATIAL_UPDATE_KEYS:
         if source not in preserved_names:
             raise ImportError(
@@ -2340,6 +2573,10 @@ def _materialized_map(
     for rule in manifest.get("mapFieldDecisions", []):
         if rule["map"] == name:
             value[str(rule["field"])] = mechanical[str(rule["field"])]
+    if "region_map_section" in value:
+        value["region_map_section"] = _section_symbol_remaps(manifest).get(
+            str(value["region_map_section"]), str(value["region_map_section"])
+        )
     value["region"] = manifest["regionAssignment"]["target"]
     music = _mapping(manifest, "musicAdaptations")
     value["music"] = music.get(value.get("music"), value.get("music"))
@@ -2550,6 +2787,7 @@ def _materialize_section_registry(
     if not isinstance(sections, list):
         raise ImportError("target region-map section registry is malformed")
     existing = {str(item.get("id")) for item in sections}
+    section_remaps = _section_symbol_remaps(manifest)
     residency_sections = {
         str(item["section"])
         for item in manifest["selection"]["maps"]
@@ -2560,33 +2798,44 @@ def _materialize_section_registry(
         str(item["map_section"]): item
         for item in source_document.get("map_sections", [])
     }
+    metadata_sources = {
+        str(item["mechanical"]): str(item["hns"])
+        for item in manifest.get("mapFieldDecisions", [])
+        if item.get("field") == "region_map_section"
+    }
     for allocation in manifest["sectionAllocations"]:
         name = str(allocation["name"])
-        if name in existing and name not in residency_sections:
+        target_name = section_remaps.get(name, name)
+        if target_name in existing and name not in residency_sections:
             continue
         target_id = int(allocation["targetId"])
-        source = source_sections.get(name)
+        source_name = metadata_sources.get(name, name)
+        source = source_sections.get(source_name)
         if source is None:
             raise ImportError(f"HnS has no region-map section metadata for {name}")
         emitted = {
-            "id": name,
+            "id": target_name,
             "value": target_id,
             "kind": "geographic",
             "region": "REGION_JOHTO",
             "region_map_type": "REGION_MAP_HOENN",
-            "saved_location": (name if target_id < SAVED_LOCATION_INVALID else None),
+            "saved_location": (
+                target_name if target_id < SAVED_LOCATION_INVALID else None
+            ),
             "met_location": target_id if target_id < MET_LOCATION_INVALID else None,
             "met_location_display": (
-                name if target_id < MET_LOCATION_INVALID else None
+                target_name if target_id < MET_LOCATION_INVALID else None
             ),
             "name": source["name"],
         }
         for key in ("x", "y", "width", "height"):
             if key in source:
                 emitted[key] = source[key]
-        if name in existing:
+        if target_name in existing:
             matching_indices = [
-                index for index, item in enumerate(sections) if item.get("id") == name
+                index
+                for index, item in enumerate(sections)
+                if item.get("id") == target_name
             ]
             if matching_indices != [target_id]:
                 raise ImportError(
@@ -2599,7 +2848,7 @@ def _materialize_section_registry(
                     f"section allocation drift: {name} cannot occupy ID {target_id}"
                 )
             sections.append(emitted)
-        existing.add(name)
+        existing.add(target_name)
     document["map_section_count"] = len(sections)
     atomic_write(
         path,

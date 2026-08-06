@@ -17,6 +17,11 @@
       "map": "MAP_MT_SILVER_OUTSIDE",
       "offset": -6,
       "direction": "left"
+    },
+    {
+      "map": "MAP_ROUTE26NORTH",
+      "offset": 29,
+      "direction": "right"
     }
   ],
   "object_events": [
@@ -217,6 +222,13 @@
     }
   ],
   "warp_events": [
+    {
+      "x": 53,
+      "y": 12,
+      "elevation": 0,
+      "dest_map": "MAP_RECEPTION_GATE",
+      "dest_warp_id": "1"
+    },
     {
       "x": 20,
       "y": 9,

@@ -596,5 +596,8 @@ const u16 gMetatileAttributes_SafariZone_Entrance[] = INCBIN_U16("data/tilesets/
 const u16 gMetatiles_SafariZoneJohto[] = INCBIN_U16("data/tilesets/secondary/safari_zone_johto/metatiles.bin");
 const u16 gMetatileAttributes_SafariZoneJohto[] = INCBIN_U16("data/tilesets/secondary/safari_zone_johto/metatile_attributes.bin");
 
+const u16 gMetatiles_ssaqua[] = INCBIN_U16("data/tilesets/secondary/ssaqua/metatiles.bin");
+const u16 gMetatileAttributes_ssaqua[] = INCBIN_U16("data/tilesets/secondary/ssaqua/metatile_attributes.bin");
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: metatiles

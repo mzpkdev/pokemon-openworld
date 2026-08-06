@@ -124,6 +124,7 @@ extern const struct Tileset gTileset_MtSilverSnow;
 extern const struct Tileset gTileset_PokemonCenter_White;
 extern const struct Tileset gTileset_SafariZone_Entrance;
 extern const struct Tileset gTileset_SafariZoneJohto;
+extern const struct Tileset gTileset_ssaqua;
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: externs
 

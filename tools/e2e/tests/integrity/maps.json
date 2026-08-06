@@ -142,6 +142,21 @@
       "name": "MtSilver_1F_WaterfallRoom",
       "region": "johto",
       "kind": "cave"
+    },
+    {
+      "name": "SSAqua_PlayersRoom",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "Route26",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "TohjoFalls_Cavern",
+      "region": "johto",
+      "kind": "cave"
     }
   ],
   "interactions": [

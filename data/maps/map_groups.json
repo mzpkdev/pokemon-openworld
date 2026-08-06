@@ -97,7 +97,8 @@
     "gMapGroup_IndoorMahogany",
     "gMapGroup_JohtoBlackthorn",
     "gMapGroup_IndoorSSAqua",
-    "gMapGroup_SafariZoneJohto"
+    "gMapGroup_SafariZoneJohto",
+    "gMapGroup_JohtoFinal"
   ],
   "gMapGroup_TownsAndRoutes": [
     "PetalburgCity",
@@ -1430,7 +1431,20 @@
     "Route45",
     "Route46"
   ],
-  "gMapGroup_IndoorSSAqua": [],
+  "gMapGroup_IndoorSSAqua": [
+    "SSAqua_1F",
+    "SSAqua_B1F",
+    "SSAqua_CaptainsRoom",
+    "SSAqua_PlayersRoom",
+    "SSAqua_RoomNW",
+    "SSAqua_RoomNE",
+    "SSAqua_RoomNNE",
+    "SSAqua_RoomSSW",
+    "SSAqua_RoomSSE",
+    "SSAqua_RoomSE",
+    "SSAqua_RoomSW",
+    "VermilionCity_PortInside"
+  ],
   "gMapGroup_SafariZoneJohto": [
     "SafariZoneGate",
     "SafariZoneGate_PokemonCenter",
@@ -1445,5 +1459,18 @@
     "SafariZone1",
     "SafariZone2",
     "SafariZone3"
+  ],
+  "gMapGroup_JohtoFinal": [
+    "Route26",
+    "Route26North",
+    "Route26_House1",
+    "Route26_House2",
+    "Route27",
+    "Route27_House",
+    "Route30_House",
+    "Route30_MrPokemonsHouse",
+    "TohjoFalls_Cavern",
+    "TohjoFalls_GiovanniRoom",
+    "ReceptionGate"
   ]
 }

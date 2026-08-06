@@ -1,0 +1,21 @@
+{
+  "id": "MAP_VERMILION_CITY_PORT_INSIDE",
+  "name": "VermilionCity_PortInside",
+  "layout": "LAYOUT_VERMILION_CITY_PORT_INSIDE",
+  "music": "MUS_SLATEPORT",
+  "region_map_section": "MAPSEC_JOHTO_VERMILION_PORT",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": false,
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

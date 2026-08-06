@@ -2218,5 +2218,16 @@ const struct Tileset gTileset_SafariZoneJohto =
     .callback = NULL,
 };
 
+const struct Tileset gTileset_ssaqua =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_ssaqua,
+    .palettes = gTilesetPalettes_ssaqua,
+    .metatiles = gMetatiles_ssaqua,
+    .metatileAttributes = gMetatileAttributes_ssaqua,
+    .callback = NULL,
+};
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: headers

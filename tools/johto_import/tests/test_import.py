@@ -1216,6 +1216,207 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(johto_import.ImportError, "immutable reviewed"):
             johto_import._pin(manifest, "mechanicalDonor", "PKMN-World")
 
+    def test_closure_rejects_missing_required_ss_aqua_adaptation(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        manifest["adaptations"] = [
+            rule
+            for rule in manifest["adaptations"]
+            if not (
+                rule["source"] == "SSAqua_1F"
+                and rule["path"] == "warp_events/0/dest_warp_id"
+            )
+        ]
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "missing required authority adaptation: "
+            "SSAqua_1F/warp_events/0/dest_warp_id",
+        ):
+            johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_ss_aqua_adaptation_without_reason(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        rule = next(
+            item for item in manifest["adaptations"] if item["source"] == "SSAqua_1F"
+        )
+        del rule["reason"]
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "authority adaptation declaration drift: SSAqua_1F",
+        ):
+            johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_ss_aqua_adaptation_with_unknown_key(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        rule = next(
+            item for item in manifest["adaptations"] if item["source"] == "SSAqua_1F"
+        )
+        rule["reviewed"] = True
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "authority adaptation declaration drift: SSAqua_1F",
+        ):
+            johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_ss_aqua_adaptation_reason_drift(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        rule = next(
+            item for item in manifest["adaptations"] if item["source"] == "SSAqua_1F"
+        )
+        rule["reason"] = "equally plausible but unreviewed rationale"
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "authority adaptation declaration drift: SSAqua_1F",
+        ):
+            johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_recomputed_cross_batch_map_swap(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        early = next(
+            batch
+            for batch in manifest["batches"]
+            if batch["name"] == "early-violet-ruins"
+        )
+        tohjo = next(
+            batch
+            for batch in manifest["batches"]
+            if batch["name"] == "tohjo-league-hns"
+        )
+        early["maps"][early["maps"].index("Route30")] = "Route26"
+        tohjo["maps"][tohjo["maps"].index("Route26")] = "Route30"
+        for batch in (early, tohjo):
+            batch["mapDigest"] = johto_import.inventory_digest(batch["maps"])
+        for item in lock["maps"]:
+            if item["name"] == "Route30":
+                item["batch"] = "tohjo-league-hns"
+            elif item["name"] == "Route26":
+                item["batch"] = "early-violet-ruins"
+
+        with tempfile.TemporaryDirectory() as directory:
+            manifest["__manifestPath"] = str(Path(directory) / "import_manifest.json")
+            (Path(directory) / "allocation_lock.json").write_text(
+                johto_import._dump(lock)
+            )
+            with self.assertRaisesRegex(
+                johto_import.ImportError,
+                "canonical batch inventory drift: early-violet-ruins",
+            ):
+                johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_recomputed_in_batch_map_reorder(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        batch = manifest["batches"][0]
+        original_digest = batch["mapDigest"]
+        first, second = batch["maps"][:2]
+        batch["maps"][:2] = reversed(batch["maps"][:2])
+        batch["mapDigest"] = johto_import.inventory_digest(batch["maps"])
+        self.assertEqual(batch["mapDigest"], original_digest)
+        first_index = next(
+            index for index, item in enumerate(lock["maps"]) if item["name"] == first
+        )
+        second_index = next(
+            index for index, item in enumerate(lock["maps"]) if item["name"] == second
+        )
+        lock["maps"][first_index], lock["maps"][second_index] = (
+            lock["maps"][second_index],
+            lock["maps"][first_index],
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            manifest["__manifestPath"] = str(Path(directory) / "import_manifest.json")
+            (Path(directory) / "allocation_lock.json").write_text(
+                johto_import._dump(lock)
+            )
+            with self.assertRaisesRegex(
+                johto_import.ImportError, "canonical batch inventory drift: baseline"
+            ):
+                johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_recomputed_in_batch_layout_reorder(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        batch = manifest["batches"][0]
+        original_digest = batch["layoutDigest"]
+        first, second = batch["layouts"][:2]
+        batch["layouts"][:2] = reversed(batch["layouts"][:2])
+        batch["layoutDigest"] = johto_import.inventory_digest(batch["layouts"])
+        self.assertEqual(batch["layoutDigest"], original_digest)
+        first_index = next(
+            index for index, item in enumerate(lock["layouts"]) if item["id"] == first
+        )
+        second_index = next(
+            index for index, item in enumerate(lock["layouts"]) if item["id"] == second
+        )
+        lock["layouts"][first_index], lock["layouts"][second_index] = (
+            lock["layouts"][second_index],
+            lock["layouts"][first_index],
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            manifest["__manifestPath"] = str(Path(directory) / "import_manifest.json")
+            (Path(directory) / "allocation_lock.json").write_text(
+                johto_import._dump(lock)
+            )
+            with self.assertRaisesRegex(
+                johto_import.ImportError, "canonical batch inventory drift: baseline"
+            ):
+                johto_import.build_closure(manifest, pkmn_world, hns)
+
+    def test_closure_rejects_unreviewed_exact_route26_adaptation(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        manifest["adaptations"].append(
+            {
+                "source": "Route26",
+                "path": "warp_events/0/x",
+                "hns": -24,
+                "mechanical": 12,
+                "reason": "unreviewed exact mechanical overlay",
+            }
+        )
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "unexpected authority adaptation: Route26/warp_events/0/x",
+        ):
+            johto_import.build_closure(manifest, pkmn_world, hns)
+
     def test_attribute_fixture_identity_kind_and_declared_path_mutations_fail(self):
         pkmn_world, hns = self.donor_paths()
         if not pkmn_world.is_dir() or not hns.is_dir():
@@ -1265,8 +1466,70 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             reception, pkmn_world, hns, manifest
         )
         self.assertEqual(
+            manifest["mapFieldDecisions"],
+            [
+                {
+                    "map": "ReceptionGate",
+                    "field": "region_map_section",
+                    "hns": "MAPSEC_VICTORY_ROAD",
+                    "mechanical": "MAPSEC_JOHTO_VICTORY_ROAD",
+                    "authority": "mechanical",
+                }
+            ],
+        )
+        self.assertEqual(
             reception_map["region_map_section"], "MAPSEC_JOHTO_VICTORY_ROAD"
         )
+        vermilion = next(
+            item for item in lock["maps"] if item["name"] == "VermilionCity_PortInside"
+        )
+        vermilion_map = johto_import._materialized_map(
+            vermilion, pkmn_world, hns, manifest
+        )
+        self.assertEqual(
+            vermilion_map["region_map_section"], "MAPSEC_JOHTO_VERMILION_PORT"
+        )
+        self.assertEqual(
+            [
+                (rule["path"], rule["mechanical"])
+                for rule in manifest["adaptations"]
+                if rule["source"] == "ReceptionGate"
+            ],
+            [
+                ("warp_events/1/dest_map", "MAP_JOHTO_VICTORY_ROAD_1F"),
+                ("warp_events/2/dest_map", "MAP_JOHTO_VICTORY_ROAD_1F"),
+                ("warp_events/4/dest_map", "MAP_ROUTE26NORTH"),
+            ],
+        )
+        aqua = next(item for item in lock["maps"] if item["name"] == "SSAqua_1F")
+        aqua_map = johto_import._materialized_map(aqua, pkmn_world, hns, manifest)
+        aqua_rule = next(
+            rule for rule in manifest["adaptations"] if rule["source"] == "SSAqua_1F"
+        )
+        self.assertEqual(
+            aqua_rule,
+            {
+                "source": "SSAqua_1F",
+                "path": "warp_events/0/dest_warp_id",
+                "hns": "1",
+                "mechanical": "0",
+                "reason": "mechanical donor fixes the Olivine port return to the target's only warp",
+            },
+        )
+        self.assertEqual(aqua_map["warp_events"][0]["dest_warp_id"], "0")
+
+        _inventory, maps, _layouts = johto_import.discover_inventory(pkmn_world)
+        drifted = copy.deepcopy(maps)
+        drifted["SSAqua_1F"]["warp_events"][0]["dest_warp_id"] = "1"
+        with self.assertRaisesRegex(
+            johto_import.ImportError, "adaptation donor drift: SSAqua_1F"
+        ):
+            johto_import.validate_adaptations(
+                manifest,
+                drifted,
+                hns,
+                {item["name"] for item in manifest["selection"]["maps"]},
+            )
 
         department_store = next(
             item
@@ -1288,14 +1551,20 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(layout["secondary_tileset"], "gTileset_JohtoPokemonDayCare")
 
-        drifted = copy.deepcopy(manifest)
-        drifted["mapFieldDecisions"][0]["mechanical"] = "MAPSEC_VICTORY_ROAD"
-        with self.assertRaisesRegex(
-            johto_import.ImportError, "map-field decision drift"
+        for field, value in (
+            ("mechanical", "MAPSEC_VICTORY_ROAD"),
+            ("hns", "MAPSEC_JOHTO_VICTORY_ROAD"),
+            ("authority", "hns"),
         ):
-            johto_import.validate_authority_decisions(
-                drifted, maps, layouts, pkmn_world, hns
-            )
+            with self.subTest(field=field):
+                drifted = copy.deepcopy(manifest)
+                drifted["mapFieldDecisions"][0][field] = value
+                with self.assertRaisesRegex(
+                    johto_import.ImportError, "map-field decision drift"
+                ):
+                    johto_import.validate_authority_decisions(
+                        drifted, maps, layouts, pkmn_world, hns
+                    )
 
     def test_all_fallback_maps_and_scripts_resolve_only_from_pkmn_world(self):
         pkmn_world, hns = self.donor_paths()
@@ -1385,11 +1654,11 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
         )
         selected_layouts = johto_import.active_layout_selection(manifest, lock)
-        self.assertEqual(len(selected), 217)
-        self.assertEqual(len(selected_layouts), 218)
+        self.assertEqual(len(selected), 240)
+        self.assertEqual(len(selected_layouts), 241)
         self.assertEqual(
             manifest["activeBatches"][-2:],
-            ["safari", "mt-silver"],
+            ["aqua-vermilion", "tohjo-league-hns"],
         )
         selected_names = {item["name"] for item in selected}
         self.assertTrue(set(johto_import.FALLBACK_MAPS[-3:]).isdisjoint(selected_names))
@@ -1409,6 +1678,43 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                 "destination": "MAP_MT_SILVER_OUTSIDE",
             },
             manifest["retainedEdges"],
+        )
+        self.assertEqual(
+            [
+                item["name"]
+                for item in selected
+                if item["targetGroup"] == "gMapGroup_IndoorSSAqua"
+            ],
+            [
+                "SSAqua_1F",
+                "SSAqua_B1F",
+                "SSAqua_CaptainsRoom",
+                "SSAqua_PlayersRoom",
+                "SSAqua_RoomNW",
+                "SSAqua_RoomNE",
+                "SSAqua_RoomNNE",
+                "SSAqua_RoomSSW",
+                "SSAqua_RoomSSE",
+                "SSAqua_RoomSE",
+                "SSAqua_RoomSW",
+                "VermilionCity_PortInside",
+            ],
+        )
+        self.assertEqual(
+            next(
+                item["targetGroupId"]
+                for item in selected
+                if item["name"] == "SSAqua_1F"
+            ),
+            96,
+        )
+        self.assertEqual(
+            next(
+                item["targetGroupId"]
+                for item in selected
+                if item["name"] == "SafariZoneGate"
+            ),
+            97,
         )
         self.assertEqual(closure.maps, tuple(item["name"] for item in selected))
         self.assertEqual(
@@ -1468,6 +1774,7 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             "graphicsAdaptations",
             "musicAdaptations",
             "preserveSpatialUpdates",
+            "sectionSymbolRemaps",
             "scriptSubstitutions",
             "berryTreeAllocations",
             "layoutBinaryAuthorities",
@@ -1697,18 +2004,63 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             materialized["Route28"]["warp_events"],
             [
                 {
+                    "x": 53,
+                    "y": 12,
+                    "elevation": 0,
+                    "dest_map": "MAP_RECEPTION_GATE",
+                    "dest_warp_id": "1",
+                },
+                {
                     "x": 20,
                     "y": 9,
                     "elevation": 0,
                     "dest_map": "MAP_ROUTE28_HOUSE",
                     "dest_warp_id": "0",
-                }
+                },
             ],
         )
         self.assertEqual(
             materialized["Route28_House"]["warp_events"][0]["dest_warp_id"],
+            "1",
+        )
+        self.assertEqual(
+            materialized["SSAqua_1F"]["warp_events"][0]["dest_warp_id"],
             "0",
         )
+
+    def test_checked_and_writer_emitted_warp_targets_match_reviewed_spatial_fixes(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        repo = Path(__file__).parents[3]
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        self.assertEqual(
+            johto_import._json(repo / "data/maps/Route28_House/map.json")[
+                "warp_events"
+            ][0]["dest_warp_id"],
+            "1",
+        )
+        self.assertEqual(
+            johto_import._json(repo / "data/maps/SSAqua_1F/map.json")["warp_events"][0][
+                "dest_warp_id"
+            ],
+            "0",
+        )
+
+        aqua = next(
+            item
+            for item in manifest["selection"]["maps"]
+            if item["name"] == "SSAqua_1F"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            johto_import._materialize_selected_map_trees(
+                target, [aqua], manifest, pkmn_world, hns
+            )
+            emitted = johto_import._json(target / "data/maps/SSAqua_1F/map.json")
+            self.assertEqual(emitted["warp_events"][0]["dest_warp_id"], "0")
 
 
 if __name__ == "__main__":
