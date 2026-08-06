@@ -455,8 +455,16 @@ class ClosureValidationTests(unittest.TestCase):
             {"name": "gMapGroup_JohtoB", "targetId": 76},
         ]
         selection = [
-            {"name": "MapA", "targetGroup": "gMapGroup_JohtoA"},
-            {"name": "MapB", "targetGroup": "gMapGroup_JohtoB"},
+            {
+                "name": "MapA",
+                "targetGroup": "gMapGroup_JohtoA",
+                "targetMember": 0,
+            },
+            {
+                "name": "MapB",
+                "targetGroup": "gMapGroup_JohtoB",
+                "targetMember": 0,
+            },
         ]
         first = johto_import._materialized_group_registry(
             groups, selection, allocations
@@ -476,6 +484,205 @@ class ClosureValidationTests(unittest.TestCase):
 
 
 class AtomicOutputTests(unittest.TestCase):
+    def test_locked_layout_ids_exactly_partition_discovered_inventory(self):
+        lock = {"layouts": [{"id": "LAYOUT_A"}, {"id": "LAYOUT_B"}]}
+        johto_import._validate_locked_layout_inventory(lock, ("LAYOUT_A", "LAYOUT_B"))
+        for changed in (
+            {"layouts": [{"id": "LAYOUT_A"}, {"id": "LAYOUT_A"}]},
+            {"layouts": [{"id": "LAYOUT_A"}, {"id": "LAYOUT_C"}]},
+        ):
+            with self.subTest(changed=changed):
+                with self.assertRaisesRegex(
+                    johto_import.ImportError, "do not partition"
+                ):
+                    johto_import._validate_locked_layout_inventory(
+                        changed, ("LAYOUT_A", "LAYOUT_B")
+                    )
+
+    def test_layout_and_group_emission_honor_locked_positions_not_input_order(self):
+        layouts = johto_import._append_layouts_at_locked_indices(
+            [{"id": "BASE"}],
+            [(2, {"id": "LAYOUT_B"}), (1, {"id": "LAYOUT_A"})],
+        )
+        self.assertEqual(
+            [item["id"] for item in layouts], ["BASE", "LAYOUT_A", "LAYOUT_B"]
+        )
+        groups = {
+            "group_order": ["gMapGroup_Base"],
+            "gMapGroup_Base": [],
+        }
+        emitted = johto_import._materialized_group_registry(
+            groups,
+            [
+                {"name": "MapB", "targetGroup": "gMapGroup_New", "targetMember": 1},
+                {"name": "MapA", "targetGroup": "gMapGroup_New", "targetMember": 0},
+            ],
+            [{"name": "gMapGroup_New", "targetId": 1}],
+        )
+        self.assertEqual(emitted["gMapGroup_New"], ["MapA", "MapB"])
+
+    def test_active_layout_selection_includes_mapless_orphan_at_locked_index(self):
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        manifest["activeBatches"] = list(johto_import.BATCH_ORDER[:5])
+        layouts = johto_import.active_layout_selection(manifest, lock)
+        orphan = next(
+            item for item in layouts if item["id"] == "LAYOUT_TIN_TOWER_ROOF_NIGHT"
+        )
+        self.assertEqual(orphan["targetIndex"], 907)
+        self.assertFalse(any(item["layout"] == orphan["id"] for item in lock["maps"]))
+
+    def test_active_selection_is_sorted_by_locked_layout_index(self):
+        manifest = {
+            "activeBatches": ["baseline"],
+        }
+        lock = {
+            "maps": [
+                {"name": "B", "batch": "baseline", "targetLayoutIndex": 786},
+                {"name": "A", "batch": "baseline", "targetLayoutIndex": 785},
+            ]
+        }
+        self.assertEqual(
+            [item["name"] for item in johto_import.active_selection(manifest, lock)],
+            ["A", "B"],
+        )
+
+    def test_residency_profile_strips_gameplay_but_keeps_spatial_edges(self):
+        source = {
+            "object_events": [{"script": "Npc"}],
+            "coord_events": [{"script": "Story"}],
+            "bg_events": [{"script": "Item"}],
+            "warp_events": [{"dest_map": "MAP_B", "dest_warp_id": "0"}],
+        }
+        actual = johto_import.materialize_resident_map(source)
+        self.assertEqual(actual["object_events"], [])
+        self.assertEqual(actual["coord_events"], [])
+        self.assertEqual(actual["bg_events"], [])
+        self.assertEqual(actual["warp_events"], source["warp_events"])
+        self.assertEqual(
+            johto_import.resident_map_script("MapA"),
+            "MapA_MapScripts::\n\t.byte 0\n",
+        )
+
+    def test_frozen_fallback_and_allocations_cover_the_full_inventory(self):
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        self.assertEqual(
+            manifest["contentFallback"]["maps"], list(johto_import.FALLBACK_MAPS)
+        )
+        self.assertEqual(len(lock["maps"]), 254)
+        self.assertEqual(len(lock["layouts"]), 255)
+        self.assertEqual(max(item["targetId"] for item in lock["sections"]), 266)
+        self.assertEqual(
+            sorted(item["targetId"] for item in lock["sections"]),
+            list(range(209, 267)),
+        )
+
+    def test_allocation_lock_drift_fails_closed(self):
+        root = Path(__file__).parents[1]
+        lock = johto_import._json(root / "allocation_lock.json")
+        lock["sections"][-1]["targetId"] = 265
+        with self.assertRaisesRegex(
+            johto_import.ImportError, "section allocation-lock drift"
+        ):
+            johto_import._validate_allocation_lock(lock)
+
+    def test_proposal_is_deterministic(self):
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        first = johto_import._dump(johto_import.proposal_document(manifest, lock))
+        second = johto_import._dump(johto_import.proposal_document(manifest, lock))
+        self.assertEqual(first, second)
+
+    def test_preserved_baseline_apply_is_byte_identical(self):
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            sentinel = target / "data/maps/NewBarkTown/map.json"
+            sentinel.parent.mkdir(parents=True)
+            sentinel.write_bytes(b"baseline\n")
+            before = sentinel.read_bytes()
+            johto_import.materialize_source_tree(
+                target, manifest, target / "unused-mechanical", target / "unused-hns"
+            )
+            self.assertEqual(sentinel.read_bytes(), before)
+
+    def test_mixed_preserve_and_residency_materializes_only_residency_shell(self):
+        manifest = {
+            "contentFallback": {"maps": []},
+            "regionAssignment": {"target": "REGION_JOHTO"},
+            "musicAdaptations": [{"hns": "MUS_UNUSED", "target": "MUS_NONE"}],
+            "adaptations": [],
+            "mapFieldDecisions": [],
+            "deferredEdges": [],
+            "warpReindexes": [],
+            "berryTreeAllocations": [],
+            "warpRemovals": [],
+            "graphicsAdaptations": [
+                {"hns": "OBJ_EVENT_GFX_UNUSED", "target": "OBJ_EVENT_GFX_NONE"}
+            ],
+        }
+        selection = [
+            {"name": "Baseline", "materialization": "preserve"},
+            {"name": "Resident", "materialization": "residency"},
+        ]
+        donor_map = {
+            "name": "Resident",
+            "id": "MAP_RESIDENT",
+            "layout": "LAYOUT_RESIDENT",
+            "region": "REGION_KANTO",
+            "connections": [],
+            "object_events": [{"script": "Npc"}],
+            "coord_events": [{"script": "Story"}],
+            "bg_events": [{"script": "Item"}],
+            "warp_events": [{"dest_map": "MAP_BASELINE", "dest_warp_id": "0"}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target, mechanical, hns = (
+                root / "target",
+                root / "mechanical",
+                root / "hns",
+            )
+            baseline = target / "data/maps/Baseline/map.json"
+            baseline.parent.mkdir(parents=True)
+            baseline.write_bytes(b"baseline sentinel\n")
+            for authority in (mechanical, hns):
+                path = authority / "data/maps/Resident/map.json"
+                path.parent.mkdir(parents=True)
+                path.write_text(json.dumps(donor_map), encoding="utf-8")
+
+            johto_import._materialize_selected_map_trees(
+                target, selection, manifest, mechanical, hns
+            )
+
+            self.assertEqual(baseline.read_bytes(), b"baseline sentinel\n")
+            resident = json.loads(
+                (target / "data/maps/Resident/map.json").read_text(encoding="utf-8")
+            )
+            for key in johto_import.GAMEPLAY_EVENT_KEYS:
+                self.assertEqual(resident[key], [])
+            self.assertEqual(resident["warp_events"], donor_map["warp_events"])
+            self.assertEqual(
+                (target / "data/maps/Resident/scripts.inc").read_text(encoding="utf-8"),
+                "Resident_MapScripts::\n\t.byte 0\n",
+            )
+
+    def test_active_selection_is_derived_from_allocation_lock(self):
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        manifest["activeBatches"] = ["baseline", "early-violet-ruins"]
+        selected = johto_import.active_selection(manifest, lock)
+        self.assertEqual(len(selected), 41)
+        self.assertEqual(selected[16]["name"], "Route30")
+        self.assertEqual(selected[16]["materialization"], "residency")
+
     def test_trainer_target_id_mutation_keeps_party_and_header_coherent(self):
         manifest = johto_import.load_manifest(
             Path(__file__).parents[1] / "import_manifest.json"
@@ -881,6 +1088,120 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(johto_import.ImportError, "tileset declarations"):
             johto_import.validate_route28_widths(pkmn_world, wrong_path)
 
+    def test_fallback_and_mechanical_field_decisions_are_applied(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        root = Path(__file__).parents[1]
+        manifest = johto_import.load_manifest(root / "import_manifest.json")
+        lock = johto_import._json(root / "allocation_lock.json")
+        _inventory, maps, layouts = johto_import.discover_inventory(pkmn_world)
+        johto_import.validate_authority_decisions(
+            manifest, maps, layouts, pkmn_world, hns
+        )
+
+        fallback = next(
+            item for item in lock["maps"] if item["name"] == "JohtoIndigoPlateau"
+        )
+        fallback_map = johto_import._materialized_map(
+            fallback, pkmn_world, hns, manifest
+        )
+        self.assertEqual(fallback_map["id"], "MAP_JOHTO_INDIGO_PLATEAU")
+
+        reception = next(
+            item for item in lock["maps"] if item["name"] == "ReceptionGate"
+        )
+        reception_map = johto_import._materialized_map(
+            reception, pkmn_world, hns, manifest
+        )
+        self.assertEqual(
+            reception_map["region_map_section"], "MAPSEC_JOHTO_VICTORY_ROAD"
+        )
+
+        department_store = next(
+            item
+            for item in lock["maps"]
+            if item["layout"] == "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_1F"
+        )
+        layout = johto_import._materialized_layout(
+            department_store, layouts, manifest, pkmn_world, hns
+        )
+        self.assertEqual(
+            layout["secondary_tileset"], "gTileset_GoldenrodDepartmentStore"
+        )
+
+        drifted = copy.deepcopy(manifest)
+        drifted["mapFieldDecisions"][0]["mechanical"] = "MAPSEC_VICTORY_ROAD"
+        with self.assertRaisesRegex(
+            johto_import.ImportError, "map-field decision drift"
+        ):
+            johto_import.validate_authority_decisions(
+                drifted, maps, layouts, pkmn_world, hns
+            )
+
+    def test_all_fallback_maps_and_scripts_resolve_only_from_pkmn_world(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        lock = johto_import._json(Path(__file__).parents[1] / "allocation_lock.json")
+        missing_hns = hns / "does-not-exist"
+        for name in johto_import.FALLBACK_MAPS:
+            with self.subTest(name=name):
+                map_item, script = johto_import._content_map_and_script(
+                    name, manifest, pkmn_world, missing_hns
+                )
+                self.assertEqual(map_item["name"], name)
+                self.assertIsInstance(script, str)
+        fallback_selection = [
+            item for item in lock["maps"] if item["name"] in johto_import.FALLBACK_MAPS
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            johto_import._materialize_selected_map_trees(
+                target,
+                fallback_selection,
+                manifest,
+                pkmn_world,
+                missing_hns,
+            )
+            for name in johto_import.FALLBACK_MAPS:
+                with self.subTest(materialized=name):
+                    map_item = json.loads(
+                        (target / "data/maps" / name / "map.json").read_text(
+                            encoding="utf-8"
+                        )
+                    )
+                    self.assertEqual(map_item["name"], name)
+                    self.assertEqual(
+                        (target / "data/maps" / name / "scripts.inc").read_text(
+                            encoding="utf-8"
+                        ),
+                        johto_import.resident_map_script(name),
+                    )
+
+    def test_mapless_orphan_layout_and_binaries_exist_in_content_authority(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        _inventory, _maps, layouts = johto_import.discover_inventory(pkmn_world)
+        layout = johto_import._materialized_layout(
+            {"id": "LAYOUT_TIN_TOWER_ROOF_NIGHT"},
+            layouts,
+            manifest,
+            pkmn_world,
+            hns,
+        )
+        self.assertEqual(layout["id"], "LAYOUT_TIN_TOWER_ROOF_NIGHT")
+        self.assertEqual(layout["format"], "johto")
+        for key in ("blockdata_filepath", "border_filepath"):
+            self.assertTrue((hns / layout[key]).is_file())
+
     def test_pinned_donors_and_complete_selected_closure_pass(self):
         pkmn_world, hns = self.donor_paths()
         if not pkmn_world.is_dir() or not hns.is_dir():
@@ -953,14 +1274,16 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                     )
 
     def test_selected_materialized_maps_remove_deferred_warps_and_reindex_returns(self):
-        _pkmn_world, hns = self.donor_paths()
-        if not hns.is_dir():
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
             self.skipTest("pinned donor checkout is unavailable")
         manifest = johto_import.load_manifest(
             Path(__file__).parents[1] / "import_manifest.json"
         )
         materialized = {
-            item["name"]: johto_import._materialized_map(item, hns, manifest)
+            item["name"]: johto_import._materialized_map(
+                item, pkmn_world, hns, manifest
+            )
             for item in manifest["selection"]["maps"]
         }
         for name, map_item in materialized.items():
