@@ -321,12 +321,6 @@
       "destination": "MAP_ROUTE46"
     },
     {
-      "source": "CherrygroveCity",
-      "path": "connections/1",
-      "kind": "connection",
-      "destination": "MAP_ROUTE30"
-    },
-    {
       "source": "Route28",
       "path": "connections/0",
       "kind": "connection",
@@ -343,6 +337,66 @@
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_RECEPTION_GATE"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE30_HOUSE"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE"
+    },
+    {
+      "source": "Route31",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
+    },
+    {
+      "source": "Route32",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE33"
+    },
+    {
+      "source": "Route32",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_1F"
+    },
+    {
+      "source": "VioletCity",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route36",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE36"
     }
   ],
   "warpRemovals": [
@@ -359,6 +413,55 @@
       "destination": "MAP_RECEPTION_GATE",
       "destWarpId": "3",
       "reason": "remove the deferred Reception Gate exit instead of routing through stale dynamic-warp state"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/0",
+      "destination": "MAP_ROUTE30_HOUSE",
+      "destWarpId": "0",
+      "reason": "remove the deferred Route 30 house exit"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/1",
+      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
+      "destWarpId": "0",
+      "reason": "remove the deferred Mr. Pokemon house exit"
+    },
+    {
+      "source": "Route31",
+      "path": "warp_events/0",
+      "destination": "MAP_DARK_CAVE_SOUTH_SIDE",
+      "destWarpId": "0",
+      "reason": "remove the deferred Dark Cave exit"
+    },
+    {
+      "source": "Route32",
+      "path": "warp_events/1",
+      "destination": "MAP_UNION_CAVE_1F",
+      "destWarpId": "0",
+      "reason": "remove the deferred Union Cave exit"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/2",
+      "destination": "MAP_UNION_CAVE_B1F",
+      "destWarpId": "4",
+      "reason": "remove the first deferred Union Cave basement exit"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/3",
+      "destination": "MAP_UNION_CAVE_B1F",
+      "destWarpId": "3",
+      "reason": "remove the second deferred Union Cave basement exit"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route36",
+      "path": "warp_events/0",
+      "destination": "MAP_ROUTE36",
+      "destWarpId": "0",
+      "reason": "remove the deferred Route 36 exit"
     }
   ],
   "warpReindexes": [
@@ -385,6 +488,78 @@
       "from": "1",
       "to": "0",
       "reason": "Route 28 warp 0 removal shifts the retained house entrance to index 0"
+    },
+    {
+      "source": "Gate_Route31_VioletCity",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ROUTE31",
+      "from": "1",
+      "to": "0",
+      "reason": "Route 31 warp 0 removal shifts the retained gate entrance to index 0"
+    },
+    {
+      "source": "Route32_PokemonCenter",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ROUTE32",
+      "from": "2",
+      "to": "1",
+      "reason": "Route 32 warp 1 removal shifts the retained Pokemon Center entrance to index 1"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/1/dest_warp_id",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
+      "from": "1",
+      "to": "0",
+      "reason": "Route 36 gate warp 0 removal shifts the retained Ruins entrance to index 0"
+    },
+    {
+      "source": "RuinsOfAlph_Lab",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "4",
+      "to": "2",
+      "reason": "two Union Cave warp removals shift the retained lab entrance to index 2"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "5",
+      "to": "3",
+      "reason": "two Union Cave warp removals shift the retained basement entrance to index 3"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "9",
+      "to": "7",
+      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 7"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/1/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "8",
+      "to": "6",
+      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 6"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/2/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "7",
+      "to": "5",
+      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 5"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/3/dest_warp_id",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "from": "6",
+      "to": "4",
+      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 4"
     }
   ],
   "retainedEdges": [
@@ -597,6 +772,558 @@
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_ROUTE28"
+    },
+    {
+      "source": "CherrygroveCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE30"
+    },
+    {
+      "source": "Route30",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE31"
+    },
+    {
+      "source": "Route30",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_CHERRYGROVE_CITY"
+    },
+    {
+      "source": "Route31",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE30"
+    },
+    {
+      "source": "Route31",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "Route31",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE31_VIOLET_CITY"
+    },
+    {
+      "source": "Route32",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "Route32",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "Route32",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE32"
+    },
+    {
+      "source": "Route32",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE32_POKEMON_CENTER"
+    },
+    {
+      "source": "VioletCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE31"
+    },
+    {
+      "source": "VioletCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE31_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_1F"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_POKEMON_CENTER"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_MART"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_HOUSE1"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_HOUSE2"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_TRAINER_SCHOOL"
+    },
+    {
+      "source": "VioletCity",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY_GYM"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE32"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_LAB"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "VioletCity_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity_Mart",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "VioletCity_TrainerSchool",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "SproutTower_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "SproutTower_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_2F"
+    },
+    {
+      "source": "SproutTower_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_2F"
+    },
+    {
+      "source": "SproutTower_1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_2F"
+    },
+    {
+      "source": "SproutTower_2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_1F"
+    },
+    {
+      "source": "SproutTower_2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_1F"
+    },
+    {
+      "source": "SproutTower_2F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_1F"
+    },
+    {
+      "source": "SproutTower_2F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_3F"
+    },
+    {
+      "source": "SproutTower_3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_SPROUT_TOWER_2F"
+    },
+    {
+      "source": "Route32_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "Gate_Route31_VioletCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE31"
+    },
+    {
+      "source": "Gate_Route31_VioletCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route32",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route32",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route36",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_Lab",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_B1F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/13",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/15",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/16",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/17",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/18",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/19",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/20",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM1"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/21",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM1"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/22",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM4"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/23",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM4"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/24",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM3"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/25",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM3"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/26",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM2"
+    },
+    {
+      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "path": "warp_events/27",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_WORDS_ROOM2"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom1",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom2",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom3",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom3",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom4",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_WordsRoom4",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
     }
   ],
   "graphicsAdaptations": [
@@ -726,6 +1453,34 @@
     {
       "hns": "MUS_HG_ROUTE29",
       "target": "MUS_ROUTE101"
+    },
+    {
+      "hns": "MUS_HG_ROUTE30",
+      "target": "MUS_ROUTE101"
+    },
+    {
+      "hns": "MUS_HG_ROUTE34",
+      "target": "MUS_ROUTE110"
+    },
+    {
+      "hns": "MUS_HG_VIOLET",
+      "target": "MUS_RUSTBORO"
+    },
+    {
+      "hns": "MUS_HG_UNION_CAVE",
+      "target": "MUS_MT_PYRE"
+    },
+    {
+      "hns": "MUS_HG_SPROUT_TOWER",
+      "target": "MUS_MT_PYRE"
+    },
+    {
+      "hns": "MUS_HG_GYM",
+      "target": "MUS_GYM"
+    },
+    {
+      "hns": "MUS_HG_RUINS_OF_ALPH",
+      "target": "MUS_CAVE_OF_ORIGIN"
     },
     {
       "hns": "MUS_HG_FOLLOW_ME_1",
@@ -1052,6 +1807,70 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ecruteak_theater",
+      "symbol": "EcruteakTheater",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "power_plant_generator_room",
+      "symbol": "PowerPlant_GeneratorRoom",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "route_32",
+      "symbol": "Route32",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ruins_of_alph_writing",
+      "symbol": "RuinsOfAlphWriting",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ruins_of_alph_b1_f",
+      "symbol": "RuinsOfAlph_B1F",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ruins_of_alph_outside",
+      "symbol": "RuinsOfAlph_Outside",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "trainer_school",
+      "symbol": "TrainerSchool",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "violet_city",
+      "symbol": "VioletCity",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "trainerPresentation": [
@@ -1148,7 +1967,8 @@
     "gameplayGlobals": false
   },
   "activeBatches": [
-    "baseline"
+    "baseline",
+    "early-violet-ruins"
   ],
   "batches": [
     {

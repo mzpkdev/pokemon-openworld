@@ -1692,6 +1692,9 @@ def validate_materialization_adaptations(
     """Validate every content-changing materialization rule against pinned inputs."""
     selection = manifest["selection"]["maps"]
     names = {str(item["name"]) for item in selection}
+    preserved_names = {
+        str(item["name"]) for item in selection if not should_materialize(item)
+    }
 
     region = manifest.get("regionAssignment")
     if region != {"hns": None, "target": "REGION_JOHTO"}:
@@ -1712,6 +1715,8 @@ def validate_materialization_adaptations(
             if source_music not in music:
                 raise ImportError(f"undeclared music adaptation: {name}/{source_music}")
             used_music.add(source_music)
+        if name not in preserved_names:
+            continue
         for event in map_item.get("object_events") or []:
             source = event.get("graphics_id")
             if not isinstance(source, str):
@@ -1737,7 +1742,7 @@ def validate_materialization_adaptations(
     )
     seen_substitutions: set[tuple[str, str]] = set()
     scripts: dict[str, str] = {}
-    for name in names:
+    for name in preserved_names:
         _map_item, scripts[name] = _content_map_and_script(
             name, manifest, pkmn_world, hns
         )
@@ -1749,7 +1754,7 @@ def validate_materialization_adaptations(
             rule["occurrences"],
         )
         if (
-            source not in names
+            source not in preserved_names
             or not isinstance(old, str)
             or not old
             or not isinstance(new, str)
@@ -1832,8 +1837,11 @@ def validate_materialization_adaptations(
         source = (
             authority / "data/tilesets" / str(item["role"]) / str(item["directory"])
         )
-        palettes = list((source / "palettes").glob("*.pal"))
-        if not source.is_dir() or len(palettes) != item["paletteCount"]:
+        palettes = [
+            source / "palettes" / f"{index:02}.pal"
+            for index in range(item["paletteCount"])
+        ]
+        if not source.is_dir() or not all(path.is_file() for path in palettes):
             raise ImportError(f"tileset authority drift: {item['directory']}")
 
     encounter = manifest.get("encounterAdaptations")
@@ -2273,6 +2281,71 @@ def _append_layouts_at_locked_indices(
     return result
 
 
+def _materialize_section_registry(
+    target: Path, manifest: Mapping[str, Any], hns: Path
+) -> None:
+    """Materialize residency-owned sections at their allocation-locked values."""
+    path = target / "src/data/region_map/region_map_sections.json"
+    document = _json(path)
+    sections = document.get("map_sections")
+    if not isinstance(sections, list):
+        raise ImportError("target region-map section registry is malformed")
+    existing = {str(item.get("id")) for item in sections}
+    residency_sections = {
+        str(item["section"])
+        for item in manifest["selection"]["maps"]
+        if should_materialize(item)
+    }
+    source_document = _json(hns / "src/data/region_map/region_map_sections_johto.json")
+    source_sections = {
+        str(item["map_section"]): item
+        for item in source_document.get("map_sections", [])
+    }
+    for allocation in manifest["sectionAllocations"]:
+        name = str(allocation["name"])
+        if name in existing and name not in residency_sections:
+            continue
+        target_id = int(allocation["targetId"])
+        source = source_sections.get(name)
+        if source is None:
+            raise ImportError(f"HnS has no region-map section metadata for {name}")
+        emitted = {
+            "id": name,
+            "value": target_id,
+            "kind": "geographic",
+            "region": "REGION_JOHTO",
+            "region_map_type": "REGION_MAP_HOENN",
+            "saved_location": name,
+            "met_location": target_id,
+            "met_location_display": name,
+            "name": source["name"],
+        }
+        for key in ("x", "y", "width", "height"):
+            if key in source:
+                emitted[key] = source[key]
+        if name in existing:
+            matching_indices = [
+                index for index, item in enumerate(sections) if item.get("id") == name
+            ]
+            if matching_indices != [target_id]:
+                raise ImportError(
+                    f"section allocation drift: {name} cannot occupy ID {target_id}"
+                )
+            sections[target_id] = emitted
+        else:
+            if len(sections) != target_id:
+                raise ImportError(
+                    f"section allocation drift: {name} cannot occupy ID {target_id}"
+                )
+            sections.append(emitted)
+        existing.add(name)
+    document["map_section_count"] = len(sections)
+    atomic_write(
+        path,
+        (json.dumps(document, indent=2, ensure_ascii=False) + "\n").encode("utf-8"),
+    )
+
+
 def materialize_source_tree(
     target: Path, manifest: Mapping[str, Any], pkmn_world: Path, hns: Path
 ) -> None:
@@ -2361,6 +2434,7 @@ def materialize_source_tree(
         groups, selection, manifest["groupAllocations"]
     )
     atomic_write(target / "data/maps/map_groups.json", _dump_source(groups))
+    _materialize_section_registry(target, manifest, hns)
 
     for item in _tilesets(manifest):
         role, directory = item["role"], item["directory"]

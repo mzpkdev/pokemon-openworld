@@ -308,8 +308,13 @@ def _request_for(entry, request_id: int, *, structural: bool):
 
 
 def test_all_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
-    maps = load_manifest_maps(integrity_manifest_path())
-    assert len(maps) == 951, f"expected 951 registered maps, found {len(maps)}"
+    manifest_path = integrity_manifest_path()
+    maps = load_manifest_maps(manifest_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_maps = sum(group["mapCount"] for group in manifest["groups"])
+    assert len(maps) == expected_maps, (
+        f"expected {expected_maps} registered maps, found {len(maps)}"
+    )
 
     _settle_overworld(integrity_game)
     clean_state = tmp_path / "integrity-clean-state.png"

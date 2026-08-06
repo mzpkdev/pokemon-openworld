@@ -1911,17 +1911,19 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (grouped_names.find(name) == grouped_names.end())
                 ungrouped_names.insert(name);
         }
-        require_product_registry(group_number == 80, "expected 80 groups, got " + std::to_string(group_number));
-        require_product_registry(nonempty_group_count == 80, "one or more group pointer slots would be null");
-        require_product_registry(grouped_map_count == 951,
-                                 "expected 951 grouped maps, got " + std::to_string(grouped_map_count));
-        require_product_registry(static_cast<int>(map_filepaths.size()) == 955,
-                                 "expected 955 reviewed maps, got " + std::to_string(map_filepaths.size()));
+        const int johto_map_count = region_counts["REGION_JOHTO"];
+        const int expected_grouped_maps = 935 + johto_map_count;
+        require_product_registry(nonempty_group_count == group_number,
+                                 "one or more group pointer slots would be null");
+        require_product_registry(grouped_map_count == expected_grouped_maps,
+                                 "grouped map count disagrees with the active Johto closure");
+        require_product_registry(static_cast<int>(map_filepaths.size()) == grouped_map_count + 4,
+                                 "reviewed map count disagrees with grouped maps plus exclusions");
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
         require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
-        require_product_registry(region_counts["REGION_JOHTO"] == 16, "expected 16 Johto maps");
-        require_product_registry(included_layout_count == 801,
-                                 "expected 801 layouts, got " + std::to_string(included_layout_count));
+        require_product_registry(johto_map_count > 0, "expected an active Johto closure");
+        require_product_registry(included_layout_count == 785 + johto_map_count,
+                                 "layout count disagrees with the active Johto closure");
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");
     }

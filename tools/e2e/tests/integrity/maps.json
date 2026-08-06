@@ -67,6 +67,21 @@
       "name": "NewBarkTown",
       "region": "johto",
       "kind": "exterior"
+    },
+    {
+      "name": "VioletCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "SproutTower_1F",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "RuinsOfAlph_B1F",
+      "region": "johto",
+      "kind": "cave"
     }
   ],
   "interactions": [

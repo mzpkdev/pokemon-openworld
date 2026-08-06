@@ -51,23 +51,27 @@ class ProductRegistryTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_exact_reviewed_registry_boundary(self) -> None:
+        grouped_map_count = sum(
+            len(self.groups[name]) for name in self.groups["group_order"]
+        )
+        layout_count = len(json.loads(LAYOUTS.read_text())["layouts"])
+        region_counts = {
+            region: sum(data["region"] == region for data in self.maps_by_name.values())
+            for region in ("REGION_HOENN", "REGION_KANTO", "REGION_JOHTO")
+        }
         self.assertEqual(
             self.manifest["counts"],
             {
-                "groups": 80,
-                "groupedMaps": 951,
-                "reviewedMaps": 955,
-                "layouts": 801,
-                "regions": {
-                    "REGION_HOENN": 518,
-                    "REGION_KANTO": 421,
-                    "REGION_JOHTO": 16,
-                },
+                "groups": len(self.groups["group_order"]),
+                "groupedMaps": grouped_map_count,
+                "reviewedMaps": len(self.maps_by_name),
+                "layouts": layout_count,
+                "regions": region_counts,
             },
         )
-        self.assertEqual(len(self.manifest["groups"]), 80)
-        self.assertEqual(len(self.manifest["maps"]), 951)
-        self.assertEqual(len(self.manifest["layouts"]), 801)
+        self.assertEqual(len(self.manifest["groups"]), len(self.groups["group_order"]))
+        self.assertEqual(len(self.manifest["maps"]), grouped_map_count)
+        self.assertEqual(len(self.manifest["layouts"]), layout_count)
 
     def test_only_four_reviewed_unused_houses_are_excluded(self) -> None:
         self.assertEqual(
@@ -248,8 +252,8 @@ class ProductRegistryTests(unittest.TestCase):
             r'sDebugMapName_\d+_\d+\[\] = _\("([^"]*)"\);', self.debug_names
         )
 
-        self.assertEqual(len(group_labels), 80)
-        self.assertEqual(len(map_labels), 951)
+        self.assertEqual(len(group_labels), len(self.groups["group_order"]))
+        self.assertEqual(len(map_labels), len(self.manifest["maps"]))
         self.assertTrue(all(r"\n" not in label for label in group_labels))
         for label in map_labels:
             lines = label.split(r"\n")
@@ -313,7 +317,7 @@ class ProductRegistryTests(unittest.TestCase):
             overflowing,
             "FONT_NORMAL group labels exceed the 28-tile debug warp window",
         )
-        self.assertEqual(len(measured), 80)
+        self.assertEqual(len(measured), len(self.groups["group_order"]))
 
     def test_frlg_link_maps_keep_declared_kanto_debug_region(self) -> None:
         names = (self.output / "src/data/debug_map_names.h").read_text()

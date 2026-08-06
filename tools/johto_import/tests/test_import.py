@@ -601,6 +601,7 @@ class AtomicOutputTests(unittest.TestCase):
         manifest = johto_import.load_manifest(
             Path(__file__).parents[1] / "import_manifest.json"
         )
+        manifest["activeBatches"] = ["baseline"]
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory)
             sentinel = target / "data/maps/NewBarkTown/map.json"
@@ -611,6 +612,110 @@ class AtomicOutputTests(unittest.TestCase):
                 target, manifest, target / "unused-mechanical", target / "unused-hns"
             )
             self.assertEqual(sentinel.read_bytes(), before)
+
+    def test_reapply_restores_residency_section_and_preserves_baseline(self):
+        manifest = {
+            "selection": {
+                "maps": [
+                    {
+                        "name": "Baseline",
+                        "section": "MAPSEC_BASELINE",
+                        "materialization": "preserve",
+                    },
+                    {
+                        "name": "Resident",
+                        "section": "MAPSEC_RESIDENT",
+                        "materialization": "residency",
+                    },
+                ]
+            },
+            "sectionAllocations": [
+                {"name": "MAPSEC_BASELINE", "targetId": 1},
+                {"name": "MAPSEC_RESIDENT", "targetId": 2},
+            ],
+        }
+        baseline = {
+            "id": "MAPSEC_BASELINE",
+            "value": 1,
+            "name": "BASELINE SENTINEL",
+            "custom": "preserve byte-for-byte",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target, hns = root / "target", root / "hns"
+            registry = target / "src/data/region_map/region_map_sections.json"
+            registry.parent.mkdir(parents=True)
+            registry.write_text(
+                json.dumps(
+                    {
+                        "map_section_count": 2,
+                        "map_sections": [
+                            {"id": "MAPSEC_ORIGINAL", "value": 0},
+                            baseline,
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            source = hns / "src/data/region_map/region_map_sections_johto.json"
+            source.parent.mkdir(parents=True)
+            source.write_text(
+                json.dumps(
+                    {
+                        "map_sections": [
+                            {
+                                "map_section": "MAPSEC_RESIDENT",
+                                "name": "RESIDENT",
+                                "x": 3,
+                                "y": 4,
+                                "width": 5,
+                                "height": 6,
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            johto_import._materialize_section_registry(target, manifest, hns)
+            first = registry.read_bytes()
+            corrupted_document = json.loads(first)
+            corrupted_section = corrupted_document["map_sections"][2]
+            corrupted_section.update(
+                {
+                    "name": "CORRUPTED",
+                    "x": 99,
+                    "y": 98,
+                    "width": 97,
+                    "height": 96,
+                }
+            )
+            registry.write_text(json.dumps(corrupted_document), encoding="utf-8")
+
+            johto_import._materialize_section_registry(target, manifest, hns)
+            self.assertEqual(registry.read_bytes(), first)
+            document = json.loads(registry.read_bytes())
+            self.assertEqual(document["map_sections"][1], baseline)
+            self.assertEqual(
+                [item["id"] for item in document["map_sections"]],
+                ["MAPSEC_ORIGINAL", "MAPSEC_BASELINE", "MAPSEC_RESIDENT"],
+            )
+            self.assertEqual(
+                [item["value"] for item in document["map_sections"]], [0, 1, 2]
+            )
+            self.assertEqual(
+                {
+                    key: document["map_sections"][2][key]
+                    for key in ("name", "x", "y", "width", "height")
+                },
+                {
+                    "name": "RESIDENT",
+                    "x": 3,
+                    "y": 4,
+                    "width": 5,
+                    "height": 6,
+                },
+            )
 
     def test_mixed_preserve_and_residency_materializes_only_residency_shell(self):
         manifest = {
@@ -1222,10 +1327,10 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             ),
             (254, 255, 25, 58, 71),
         )
-        self.assertEqual(len(closure.maps), 16)
-        self.assertEqual(len(closure.layouts), 16)
-        self.assertEqual(len(closure.groups), 5)
-        self.assertEqual(len(closure.sections), 5)
+        self.assertEqual(len(closure.maps), 41)
+        self.assertEqual(len(closure.layouts), 41)
+        self.assertEqual(len(closure.groups), 7)
+        self.assertEqual(len(closure.sections), 12)
         self.assertEqual(
             evidence["route28AttributeFormats"],
             {

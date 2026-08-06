@@ -443,5 +443,29 @@ const u16 gMetatileAttributes_PlayersHouse[] = INCBIN_U16("data/tilesets/seconda
 const u16 gMetatiles_Gate_Standard[] = INCBIN_U16("data/tilesets/secondary/gate_standard/metatiles.bin");
 const u16 gMetatileAttributes_Gate_Standard[] = INCBIN_U16("data/tilesets/secondary/gate_standard/metatile_attributes.bin");
 
+const u16 gMetatiles_EcruteakTheater[] = INCBIN_U16("data/tilesets/secondary/ecruteak_theater/metatiles.bin");
+const u16 gMetatileAttributes_EcruteakTheater[] = INCBIN_U16("data/tilesets/secondary/ecruteak_theater/metatile_attributes.bin");
+
+const u16 gMetatiles_PowerPlant_GeneratorRoom[] = INCBIN_U16("data/tilesets/secondary/power_plant_generator_room/metatiles.bin");
+const u16 gMetatileAttributes_PowerPlant_GeneratorRoom[] = INCBIN_U16("data/tilesets/secondary/power_plant_generator_room/metatile_attributes.bin");
+
+const u16 gMetatiles_Route32[] = INCBIN_U16("data/tilesets/secondary/route_32/metatiles.bin");
+const u16 gMetatileAttributes_Route32[] = INCBIN_U16("data/tilesets/secondary/route_32/metatile_attributes.bin");
+
+const u16 gMetatiles_RuinsOfAlphWriting[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_writing/metatiles.bin");
+const u16 gMetatileAttributes_RuinsOfAlphWriting[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_writing/metatile_attributes.bin");
+
+const u16 gMetatiles_RuinsOfAlph_B1F[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_b1_f/metatiles.bin");
+const u16 gMetatileAttributes_RuinsOfAlph_B1F[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_b1_f/metatile_attributes.bin");
+
+const u16 gMetatiles_RuinsOfAlph_Outside[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_outside/metatiles.bin");
+const u16 gMetatileAttributes_RuinsOfAlph_Outside[] = INCBIN_U16("data/tilesets/secondary/ruins_of_alph_outside/metatile_attributes.bin");
+
+const u16 gMetatiles_TrainerSchool[] = INCBIN_U16("data/tilesets/secondary/trainer_school/metatiles.bin");
+const u16 gMetatileAttributes_TrainerSchool[] = INCBIN_U16("data/tilesets/secondary/trainer_school/metatile_attributes.bin");
+
+const u16 gMetatiles_VioletCity[] = INCBIN_U16("data/tilesets/secondary/violet_city/metatiles.bin");
+const u16 gMetatileAttributes_VioletCity[] = INCBIN_U16("data/tilesets/secondary/violet_city/metatile_attributes.bin");
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: metatiles

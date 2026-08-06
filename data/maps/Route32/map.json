@@ -1,0 +1,47 @@
+{
+  "id": "MAP_ROUTE32",
+  "name": "Route32",
+  "layout": "LAYOUT_ROUTE32",
+  "music": "MUS_ROUTE101",
+  "region_map_section": "MAPSEC_ROUTE_32",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_ROUTE",
+  "allow_cycling": true,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [
+    {
+      "map": "MAP_VIOLET_CITY",
+      "offset": 4,
+      "direction": "up"
+    },
+    {
+      "map": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "offset": -24,
+      "direction": "left"
+    }
+  ],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 13,
+      "y": 3,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_RUINS_OF_ALPH_ROUTE32",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 25,
+      "y": 84,
+      "elevation": 0,
+      "dest_map": "MAP_ROUTE32_POKEMON_CENTER",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

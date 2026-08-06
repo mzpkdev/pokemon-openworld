@@ -73,6 +73,14 @@ extern const struct Tileset gTileset_JohtoMart;
 extern const struct Tileset gTileset_House_Lab;
 extern const struct Tileset gTileset_PlayersHouse;
 extern const struct Tileset gTileset_Gate_Standard;
+extern const struct Tileset gTileset_EcruteakTheater;
+extern const struct Tileset gTileset_PowerPlant_GeneratorRoom;
+extern const struct Tileset gTileset_Route32;
+extern const struct Tileset gTileset_RuinsOfAlphWriting;
+extern const struct Tileset gTileset_RuinsOfAlph_B1F;
+extern const struct Tileset gTileset_RuinsOfAlph_Outside;
+extern const struct Tileset gTileset_TrainerSchool;
+extern const struct Tileset gTileset_VioletCity;
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: externs
 
