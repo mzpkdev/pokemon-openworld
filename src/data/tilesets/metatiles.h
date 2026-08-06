@@ -467,5 +467,68 @@ const u16 gMetatileAttributes_TrainerSchool[] = INCBIN_U16("data/tilesets/second
 const u16 gMetatiles_VioletCity[] = INCBIN_U16("data/tilesets/secondary/violet_city/metatiles.bin");
 const u16 gMetatileAttributes_VioletCity[] = INCBIN_U16("data/tilesets/secondary/violet_city/metatile_attributes.bin");
 
+const u16 gMetatiles_Johto_South[] = INCBIN_U16("data/tilesets/primary/johto_south/metatiles.bin");
+const u16 gMetatileAttributes_Johto_South[] = INCBIN_U16("data/tilesets/primary/johto_south/metatile_attributes.bin");
+
+const u16 gMetatiles_AzaleaTown[] = INCBIN_U16("data/tilesets/secondary/azalea_town/metatiles.bin");
+const u16 gMetatileAttributes_AzaleaTown[] = INCBIN_U16("data/tilesets/secondary/azalea_town/metatile_attributes.bin");
+
+const u16 gMetatiles_AzaleaTown_Gym[] = INCBIN_U16("data/tilesets/secondary/azalea_town_gym/metatiles.bin");
+const u16 gMetatileAttributes_AzaleaTown_Gym[] = INCBIN_U16("data/tilesets/secondary/azalea_town_gym/metatile_attributes.bin");
+
+const u16 gMetatiles_Barn[] = INCBIN_U16("data/tilesets/secondary/barn/metatiles.bin");
+const u16 gMetatileAttributes_Barn[] = INCBIN_U16("data/tilesets/secondary/barn/metatile_attributes.bin");
+
+const u16 gMetatiles_Cafe[] = INCBIN_U16("data/tilesets/secondary/cafe/metatiles.bin");
+const u16 gMetatileAttributes_Cafe[] = INCBIN_U16("data/tilesets/secondary/cafe/metatile_attributes.bin");
+
+const u16 gMetatiles_Cave_Default[] = INCBIN_U16("data/tilesets/secondary/cave_default/metatiles.bin");
+const u16 gMetatileAttributes_Cave_Default[] = INCBIN_U16("data/tilesets/secondary/cave_default/metatile_attributes.bin");
+
+const u16 gMetatiles_Cave_Gray[] = INCBIN_U16("data/tilesets/secondary/cave_gray/metatiles.bin");
+const u16 gMetatileAttributes_Cave_Gray[] = INCBIN_U16("data/tilesets/secondary/cave_gray/metatile_attributes.bin");
+
+const u16 gMetatiles_Ecruteak_City[] = INCBIN_U16("data/tilesets/secondary/ecruteak_city/metatiles.bin");
+const u16 gMetatileAttributes_Ecruteak_City[] = INCBIN_U16("data/tilesets/secondary/ecruteak_city/metatile_attributes.bin");
+
+const u16 gMetatiles_Goldenrod[] = INCBIN_U16("data/tilesets/secondary/goldenrod/metatiles.bin");
+const u16 gMetatileAttributes_Goldenrod[] = INCBIN_U16("data/tilesets/secondary/goldenrod/metatile_attributes.bin");
+
+const u16 gMetatiles_GoldenrodCity_TrainStation[] = INCBIN_U16("data/tilesets/secondary/goldenrod_station/metatiles.bin");
+const u16 gMetatileAttributes_GoldenrodCity_TrainStation[] = INCBIN_U16("data/tilesets/secondary/goldenrod_station/metatile_attributes.bin");
+
+const u16 gMetatiles_GoldenrodDepartmentStore[] = INCBIN_U16("data/tilesets/secondary/goldenrod_department_store/metatiles.bin");
+const u16 gMetatileAttributes_GoldenrodDepartmentStore[] = INCBIN_U16("data/tilesets/secondary/goldenrod_department_store/metatile_attributes.bin");
+
+const u16 gMetatiles_GoldenrodGameCorner[] = INCBIN_U16("data/tilesets/secondary/goldenrod_game_corner/metatiles.bin");
+const u16 gMetatileAttributes_GoldenrodGameCorner[] = INCBIN_U16("data/tilesets/secondary/goldenrod_game_corner/metatile_attributes.bin");
+
+const u16 gMetatiles_GoldenrodUndergroundRocket[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_rocket/metatiles.bin");
+const u16 gMetatileAttributes_GoldenrodUndergroundRocket[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_rocket/metatile_attributes.bin");
+
+const u16 gMetatiles_GoldenrodUndergroundTunnel[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_tunnel/metatiles.bin");
+const u16 gMetatileAttributes_GoldenrodUndergroundTunnel[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_tunnel/metatile_attributes.bin");
+
+const u16 gMetatiles_Goldenrod_Underground_Storage[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_storage/metatiles.bin");
+const u16 gMetatileAttributes_Goldenrod_Underground_Storage[] = INCBIN_U16("data/tilesets/secondary/goldenrod_underground_storage/metatile_attributes.bin");
+
+const u16 gMetatiles_IlexForest[] = INCBIN_U16("data/tilesets/secondary/ilex_forest/metatiles.bin");
+const u16 gMetatileAttributes_IlexForest[] = INCBIN_U16("data/tilesets/secondary/ilex_forest/metatile_attributes.bin");
+
+const u16 gMetatiles_JohtoBikeShop[] = INCBIN_U16("data/tilesets/secondary/johto_bike_shop/metatiles.bin");
+const u16 gMetatileAttributes_JohtoBikeShop[] = INCBIN_U16("data/tilesets/secondary/johto_bike_shop/metatile_attributes.bin");
+
+const u16 gMetatiles_KurtsHouse[] = INCBIN_U16("data/tilesets/secondary/kurts_house/metatiles.bin");
+const u16 gMetatileAttributes_KurtsHouse[] = INCBIN_U16("data/tilesets/secondary/kurts_house/metatile_attributes.bin");
+
+const u16 gMetatiles_NationalPark[] = INCBIN_U16("data/tilesets/secondary/national_park/metatiles.bin");
+const u16 gMetatileAttributes_NationalPark[] = INCBIN_U16("data/tilesets/secondary/national_park/metatile_attributes.bin");
+
+const u16 gMetatiles_JohtoPokemonDayCare[] = INCBIN_U16("data/tilesets/secondary/johto_pokemon_day_care/metatiles.bin");
+const u16 gMetatileAttributes_JohtoPokemonDayCare[] = INCBIN_U16("data/tilesets/secondary/johto_pokemon_day_care/metatile_attributes.bin");
+
+const u16 gMetatiles_ShopRooftop[] = INCBIN_U16("data/tilesets/secondary/shop_rooftop/metatiles.bin");
+const u16 gMetatileAttributes_ShopRooftop[] = INCBIN_U16("data/tilesets/secondary/shop_rooftop/metatile_attributes.bin");
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: metatiles

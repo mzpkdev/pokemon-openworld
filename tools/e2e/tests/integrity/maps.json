@@ -82,6 +82,21 @@
       "name": "RuinsOfAlph_B1F",
       "region": "johto",
       "kind": "cave"
+    },
+    {
+      "name": "GoldenrodCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "GoldenrodCity_DepartmentStore_1F",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "UnionCave_1F",
+      "region": "johto",
+      "kind": "cave"
     }
   ],
   "interactions": [

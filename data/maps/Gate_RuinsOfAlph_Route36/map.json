@@ -17,6 +17,13 @@
   "warp_events": [
     {
       "x": 7,
+      "y": 1,
+      "elevation": 0,
+      "dest_map": "MAP_ROUTE36",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 7,
       "y": 9,
       "elevation": 0,
       "dest_map": "MAP_RUINS_OF_ALPH_OUTSIDE",

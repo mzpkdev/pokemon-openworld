@@ -19,6 +19,11 @@
       "direction": "up"
     },
     {
+      "map": "MAP_ROUTE33",
+      "offset": -1,
+      "direction": "down"
+    },
+    {
       "map": "MAP_RUINS_OF_ALPH_OUTSIDE",
       "offset": -24,
       "direction": "left"
@@ -31,6 +36,13 @@
       "y": 3,
       "elevation": 0,
       "dest_map": "MAP_GATE_RUINS_OF_ALPH_ROUTE32",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 17,
+      "y": 91,
+      "elevation": 0,
+      "dest_map": "MAP_UNION_CAVE_1F",
       "dest_warp_id": "0"
     },
     {

@@ -347,9 +347,27 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
             "gTileset_RuinsOfAlph_B1F",
             "cave",
         ),
+        (
+            "GoldenrodCity",
+            "gTileset_Johto_General",
+            "gTileset_Goldenrod",
+            "exterior",
+        ),
+        (
+            "GoldenrodCity_DepartmentStore_1F",
+            "gTileset_Johto_Building",
+            "gTileset_GoldenrodDepartmentStore",
+            "interior",
+        ),
+        (
+            "UnionCave_1F",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Default",
+            "cave",
+        ),
     ],
 )
-def test_phase2_johto_representative_kind_is_derived_from_known_tilesets(
+def test_johto_representative_kind_is_derived_from_known_tilesets(
     tmp_path, name, primary_tileset, secondary_tileset, expected_kind
 ):
     maps = load_manifest_maps(

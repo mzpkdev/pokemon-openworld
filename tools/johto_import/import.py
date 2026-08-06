@@ -120,6 +120,7 @@ LAYOUT_HEADER_DECISION_KEYS = (
     ("LAYOUT_NATIONAL_PARK_BUG_CONTEST", "primary_tileset"),
 )
 MAP_FIELD_DECISION_KEYS = (("ReceptionGate", "region_map_section"),)
+LAYOUT_TILESET_REMAP_KEYS = (("LAYOUT_ROUTE34_DAY_CARE", "secondary_tileset"),)
 BATCH_GROUPS = {
     "early-violet-ruins": (
         "gMapGroup_JohtoViolet",
@@ -1419,7 +1420,7 @@ def _pin(manifest: Mapping[str, Any], key: str, name: str) -> DonorPin:
 
 def load_manifest(path: Path) -> dict[str, Any]:
     manifest = _json(path)
-    if not isinstance(manifest, dict) or manifest.get("schemaVersion") != 2:
+    if not isinstance(manifest, dict) or manifest.get("schemaVersion") != 3:
         raise ImportError("unsupported or malformed import manifest")
     manifest["__manifestPath"] = str(path.resolve())
     lock_name = manifest.get("allocationLock")
@@ -1474,15 +1475,62 @@ def _tilesets(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
         {"role", "directory", "symbol", "secondary", "paletteCount", "authority"},
     )
     _require_unique(records, "directory", "tileset adaptation")
+    _require_unique(records, "symbol", "tileset adaptation")
     for item in records:
+        target_directory = item.get("targetDirectory", item["directory"])
+        target_symbol = item.get("targetSymbol", item["symbol"])
         if (
             item["role"] not in {"primary", "secondary"}
             or not isinstance(item["secondary"], bool)
             or not isinstance(item["paletteCount"], int)
             or item["paletteCount"] <= 0
             or item["authority"] not in {"hns", "mechanical"}
+            or re.fullmatch(r"[a-z0-9_]+", str(item["directory"])) is None
+            or re.fullmatch(r"[A-Za-z0-9_]+", str(item["symbol"])) is None
+            or not isinstance(target_directory, str)
+            or re.fullmatch(r"[a-z0-9_]+", target_directory) is None
+            or not isinstance(target_symbol, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", target_symbol) is None
         ):
             raise ImportError("invalid tileset adaptation")
+    targets = [
+        {
+            "directory": str(item.get("targetDirectory", item["directory"])),
+            "symbol": str(item.get("targetSymbol", item["symbol"])),
+        }
+        for item in records
+    ]
+    _require_unique(targets, "directory", "tileset target")
+    _require_unique(targets, "symbol", "tileset target")
+    return records
+
+
+def _tileset_target_directory(item: Mapping[str, Any]) -> str:
+    return str(item.get("targetDirectory", item["directory"]))
+
+
+def _tileset_target_symbol(item: Mapping[str, Any]) -> str:
+    return str(item.get("targetSymbol", item["symbol"]))
+
+
+def _layout_tileset_remaps(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    records = _exact_records(
+        manifest,
+        "layoutTilesetRemaps",
+        {"layout", "field", "source", "target"},
+    )
+    if [(item.get("layout"), item.get("field")) for item in records] != list(
+        LAYOUT_TILESET_REMAP_KEYS
+    ):
+        raise ImportError("layout tileset remap drift")
+    if any(
+        not isinstance(item.get(key), str)
+        or not item[key]
+        or (key in {"source", "target"} and not item[key].startswith("gTileset_"))
+        for item in records
+        for key in ("layout", "field", "source", "target")
+    ):
+        raise ImportError("invalid layout tileset remap")
     return records
 
 
@@ -1811,16 +1859,39 @@ def validate_materialization_adaptations(
         raise ImportError("layout binary authority declaration drift")
 
     tilesets = _tilesets(manifest)
+    remaps = _layout_tileset_remaps(manifest)
     lock = _json(Path(manifest["__manifestPath"]).parent / manifest["allocationLock"])
+    mechanical_layouts = {
+        str(item["id"]): item
+        for item in _json(pkmn_world / "data/layouts/layouts.json")["layouts"]
+    }
     expected_tilesets = {
         str(layout[key])
         for layout in (
-            _find_layout(pkmn_world / "data/layouts/layouts.json", str(item["id"]))
+            _materialized_layout(item, mechanical_layouts, manifest, pkmn_world, hns)
             for item in active_layout_selection(manifest, lock)
         )
         for key in ("primary_tileset", "secondary_tileset")
     }
-    declared_tilesets = {f"gTileset_{item['symbol']}" for item in tilesets}
+    declared_tilesets = {
+        f"gTileset_{_tileset_target_symbol(item)}" for item in tilesets
+    }
+    source_to_target = {
+        f"gTileset_{item['symbol']}": f"gTileset_{_tileset_target_symbol(item)}"
+        for item in tilesets
+    }
+    hns_layouts = {
+        str(item["id"]): item
+        for item in _json(hns / "data/layouts/layouts.json")["layouts"]
+    }
+    for remap in remaps:
+        layout, field = str(remap["layout"]), str(remap["field"])
+        if (
+            hns_layouts.get(layout, {}).get(field) != remap["source"]
+            or source_to_target.get(str(remap["source"])) != remap["target"]
+            or remap["source"] == remap["target"]
+        ):
+            raise ImportError(f"layout tileset remap drift: {layout}/{field}")
     target_tileset_header = _without_generated_section(
         (Path(__file__).parents[2] / "include/tilesets.h").read_text(encoding="utf-8"),
         "externs",
@@ -1828,6 +1899,21 @@ def validate_materialization_adaptations(
     existing_tilesets = set(
         re.findall(r"\bgTileset_[A-Za-z0-9_]+\b", target_tileset_header)
     )
+    target_headers = _without_generated_section(
+        (Path(__file__).parents[2] / "src/data/tilesets/headers.h").read_text(
+            encoding="utf-8"
+        ),
+        "headers",
+    )
+    target_definitions = set(
+        re.findall(r"\bconst struct Tileset (gTileset_[A-Za-z0-9_]+)\b", target_headers)
+    )
+    collisions = declared_tilesets & (existing_tilesets | target_definitions)
+    if collisions:
+        raise ImportError(
+            f"tileset target collides with target-defined symbol: {sorted(collisions)[0]}"
+        )
+    existing_tilesets |= target_definitions
     if not declared_tilesets <= expected_tilesets or not expected_tilesets <= (
         declared_tilesets | existing_tilesets
     ):
@@ -1837,11 +1923,15 @@ def validate_materialization_adaptations(
         source = (
             authority / "data/tilesets" / str(item["role"]) / str(item["directory"])
         )
-        palettes = [
+        required_assets = [
+            source / "tiles.png",
+            source / "metatiles.bin",
+            source / "metatile_attributes.bin",
+        ] + [
             source / "palettes" / f"{index:02}.pal"
             for index in range(item["paletteCount"])
         ]
-        if not source.is_dir() or not all(path.is_file() for path in palettes):
+        if not source.is_dir() or not all(path.is_file() for path in required_assets):
             raise ImportError(f"tileset authority drift: {item['directory']}")
 
     encounter = manifest.get("encounterAdaptations")
@@ -2085,6 +2175,30 @@ def _copy_tree_without_generated(source: Path, destination: Path) -> None:
         _copy_file(item, destination / item.relative_to(source))
 
 
+def _tree_payload(root: Path) -> dict[str, bytes]:
+    payload: dict[str, bytes] = {}
+    for item in sorted(root.rglob("*")):
+        relative = item.relative_to(root)
+        if item.is_symlink():
+            raise ImportError(f"tileset tree contains a symlink: {item}")
+        if item.is_file() and item.suffix != ".inc" and "anim" not in relative.parts:
+            payload[relative.as_posix()] = item.read_bytes()
+    return payload
+
+
+def _copy_imported_tileset_tree(source: Path, destination: Path) -> None:
+    """Create an importer-owned tree without overwriting an existing asset tree."""
+    if destination.exists():
+        if not destination.is_dir() or _tree_payload(destination) != _tree_payload(
+            source
+        ):
+            raise ImportError(
+                f"refusing to overwrite pre-existing tileset destination: {destination}"
+            )
+        return
+    _copy_tree_without_generated(source, destination)
+
+
 def _content_authority_root(
     name: str, manifest: Mapping[str, Any], pkmn_world: Path, hns: Path
 ) -> Path:
@@ -2203,6 +2317,14 @@ def _materialized_layout(
             layout[str(rule["field"])] = mechanical_layouts[layout_id][
                 str(rule["field"])
             ]
+    for rule in _layout_tileset_remaps(manifest):
+        if rule["layout"] == layout_id:
+            field = str(rule["field"])
+            if layout.get(field) != rule["source"]:
+                raise ImportError(
+                    f"layout tileset remap source drift: {layout_id}/{field}"
+                )
+            layout[field] = rule["target"]
     layout.pop("layout_version", None)
     layout["format"] = "johto"
     return layout
@@ -2211,7 +2333,9 @@ def _materialized_layout(
 def _tileset_graphics(manifest: Mapping[str, Any]) -> str:
     blocks: list[str] = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        role, directory, symbol = item["role"], item["directory"], item["symbol"]
+        role = item["role"]
+        directory = _tileset_target_directory(item)
+        symbol = _tileset_target_symbol(item)
         blocks.append(
             f"const u32 gTilesetTiles_{symbol}[] = INCGFX_U32("
             f'"data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\n'
@@ -2230,7 +2354,9 @@ def _tileset_graphics(manifest: Mapping[str, Any]) -> str:
 def _tileset_metatiles(manifest: Mapping[str, Any]) -> str:
     lines = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        role, directory, symbol = item["role"], item["directory"], item["symbol"]
+        role = item["role"]
+        directory = _tileset_target_directory(item)
+        symbol = _tileset_target_symbol(item)
         lines.extend(
             (
                 f'const u16 gMetatiles_{symbol}[] = INCBIN_U16("data/tilesets/{role}/{directory}/metatiles.bin");',
@@ -2245,7 +2371,7 @@ def _tileset_metatiles(manifest: Mapping[str, Any]) -> str:
 def _tileset_headers(manifest: Mapping[str, Any]) -> str:
     blocks = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        symbol, secondary = item["symbol"], item["secondary"]
+        symbol, secondary = _tileset_target_symbol(item), item["secondary"]
         blocks.append(
             f"const struct Tileset gTileset_{symbol} =\n{{\n"
             f"    .isCompressed = TRUE,\n"
@@ -2437,11 +2563,13 @@ def materialize_source_tree(
     _materialize_section_registry(target, manifest, hns)
 
     for item in _tilesets(manifest):
-        role, directory = item["role"], item["directory"]
+        role = item["role"]
+        source_directory = str(item["directory"])
+        target_directory = _tileset_target_directory(item)
         authority = pkmn_world if item["authority"] == "mechanical" else hns
-        _copy_tree_without_generated(
-            authority / "data/tilesets" / role / directory,
-            target / "data/tilesets" / role / directory,
+        _copy_imported_tileset_tree(
+            authority / "data/tilesets" / role / source_directory,
+            target / "data/tilesets" / role / target_directory,
         )
     _replace_generated_section(
         target / "src/data/tilesets/graphics.h",
@@ -2460,7 +2588,7 @@ def materialize_source_tree(
         "#if HAS_JOHTO_TILESETS\n"
         + "\n".join(
             f"extern const struct Tileset gTileset_{symbol};"
-            for symbol in (item["symbol"] for item in _tilesets(manifest))
+            for symbol in (_tileset_target_symbol(item) for item in _tilesets(manifest))
         )
         + "\n#endif // HAS_JOHTO_TILESETS"
     )

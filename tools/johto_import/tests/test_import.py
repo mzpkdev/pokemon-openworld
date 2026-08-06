@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -1158,6 +1160,25 @@ class GeneratedSectionTests(unittest.TestCase):
             self.assertFalse((destination / "stale.inc").exists())
             self.assertFalse((destination / "anim").exists())
 
+    def test_imported_tileset_copy_never_overwrites_a_preexisting_tree(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, destination = root / "source", root / "destination"
+            source.mkdir()
+            destination.mkdir()
+            (source / "tiles.png").write_bytes(b"donor")
+            (destination / "tiles.png").write_bytes(b"target")
+
+            with self.assertRaisesRegex(
+                johto_import.ImportError, "refusing to overwrite pre-existing"
+            ):
+                johto_import._copy_imported_tileset_tree(source, destination)
+            self.assertEqual((destination / "tiles.png").read_bytes(), b"target")
+
+            (destination / "tiles.png").write_bytes(b"donor")
+            johto_import._copy_imported_tileset_tree(source, destination)
+            self.assertEqual((destination / "tiles.png").read_bytes(), b"donor")
+
 
 class PinnedDonorIntegrationTests(unittest.TestCase):
     def donor_paths(self):
@@ -1234,6 +1255,14 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         self.assertEqual(
             layout["secondary_tileset"], "gTileset_GoldenrodDepartmentStore"
         )
+
+        route34_day_care = next(
+            item for item in lock["maps"] if item["layout"] == "LAYOUT_ROUTE34_DAY_CARE"
+        )
+        layout = johto_import._materialized_layout(
+            route34_day_care, layouts, manifest, pkmn_world, hns
+        )
+        self.assertEqual(layout["secondary_tileset"], "gTileset_JohtoPokemonDayCare")
 
         drifted = copy.deepcopy(manifest)
         drifted["mapFieldDecisions"][0]["mechanical"] = "MAPSEC_VICTORY_ROAD"
@@ -1327,10 +1356,21 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             ),
             (254, 255, 25, 58, 71),
         )
-        self.assertEqual(len(closure.maps), 41)
-        self.assertEqual(len(closure.layouts), 41)
-        self.assertEqual(len(closure.groups), 7)
-        self.assertEqual(len(closure.sections), 12)
+        selected = manifest["selection"]["maps"]
+        lock = johto_import._json(
+            Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
+        )
+        selected_layouts = johto_import.active_layout_selection(manifest, lock)
+        self.assertEqual(closure.maps, tuple(item["name"] for item in selected))
+        self.assertEqual(
+            closure.layouts, tuple(item["id"] for item in selected_layouts)
+        )
+        self.assertEqual(
+            closure.groups, tuple(sorted({item["targetGroup"] for item in selected}))
+        )
+        self.assertEqual(
+            closure.sections, tuple(sorted({item["section"] for item in selected}))
+        )
         self.assertEqual(
             evidence["route28AttributeFormats"],
             {
@@ -1353,6 +1393,7 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             "scriptSubstitutions",
             "berryTreeAllocations",
             "layoutBinaryAuthorities",
+            "layoutTilesetRemaps",
             "tilesetAdaptations",
             "trainerPresentation",
         ):
@@ -1371,12 +1412,99 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         changed = copy.deepcopy(original)
         changed["regionAssignment"]["target"] = "REGION_HOENN"
         mutations.append(("regionAssignment", changed))
+        changed = copy.deepcopy(original)
+        changed["tilesetAdaptations"][-2]["targetDirectory"] = "../pokemon_day_care"
+        mutations.append(("tilesetTargetTraversal", changed))
         for key, manifest in mutations:
             with self.subTest(key=key):
                 with self.assertRaises(johto_import.ImportError):
                     johto_import.validate_materialization_adaptations(
                         manifest, pkmn_world, hns
                     )
+
+    def test_johto_day_care_is_isolated_from_target_route117_assets(self):
+        repo = Path(__file__).parents[3]
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        adaptation = next(
+            item
+            for item in johto_import._tilesets(manifest)
+            if item["directory"] == "pokemon_day_care"
+        )
+        self.assertEqual(
+            (
+                adaptation["symbol"],
+                johto_import._tileset_target_directory(adaptation),
+                johto_import._tileset_target_symbol(adaptation),
+            ),
+            (
+                "PokemonDayCare",
+                "johto_pokemon_day_care",
+                "JohtoPokemonDayCare",
+            ),
+        )
+
+        records = johto_import.source_tree_records(
+            repo / "data/tilesets/secondary/pokemon_day_care"
+        )
+        self.assertEqual(len(records), 19)
+        self.assertEqual(
+            johto_import.records_digest(records),
+            "7e31d6fb0478538f648bb5c695a946596853083ce8d9436f1487d506f258b562",
+        )
+
+        definition_fixtures = (
+            (
+                "src/data/tilesets/headers.h",
+                r"const struct Tileset gTileset_PokemonDayCare =\n\{.*?\n\};",
+                "bc32807bb99482072b8ee12b9a04803c620e456c5ae0a3e31e41686db07c6246",
+            ),
+            (
+                "src/data/tilesets/graphics.h",
+                r"const u32 gTilesetTiles_PokemonDayCare\[\].*?\n\};",
+                "71703936f0a483d46e59c0a1f509912e550d6efb04ca3b56e267e4875198512f",
+            ),
+            (
+                "src/data/tilesets/metatiles.h",
+                r"const u16 gMetatiles_PokemonDayCare\[\].*?\nconst u16 gMetatileAttributes_PokemonDayCare\[\].*?;",
+                "24937879c60da7f11bda52aec9bbd9927fbc590be237262bf5b62a9089ec066f",
+            ),
+        )
+        for relative, pattern, digest in definition_fixtures:
+            with self.subTest(relative=relative):
+                matches = re.findall(pattern, (repo / relative).read_text(), re.DOTALL)
+                self.assertEqual(len(matches), 1)
+                self.assertEqual(
+                    hashlib.sha256(matches[0].encode()).hexdigest(), digest
+                )
+
+        layouts = johto_import._json(repo / "data/layouts/layouts.json")["layouts"]
+        route117 = next(
+            item for item in layouts if item["id"] == "LAYOUT_ROUTE117_POKEMON_DAY_CARE"
+        )
+        route34 = next(
+            item for item in layouts if item["id"] == "LAYOUT_ROUTE34_DAY_CARE"
+        )
+        self.assertEqual(route117["secondary_tileset"], "gTileset_PokemonDayCare")
+        self.assertEqual(route34["secondary_tileset"], "gTileset_JohtoPokemonDayCare")
+
+        graphics = johto_import._tileset_graphics(manifest)
+        metatiles = johto_import._tileset_metatiles(manifest)
+        headers = johto_import._tileset_headers(manifest)
+        self.assertEqual(
+            graphics.count("const u32 gTilesetTiles_JohtoPokemonDayCare[]"), 1
+        )
+        self.assertEqual(
+            metatiles.count("const u16 gMetatiles_JohtoPokemonDayCare[]"), 1
+        )
+        self.assertEqual(
+            metatiles.count("const u16 gMetatileAttributes_JohtoPokemonDayCare[]"),
+            1,
+        )
+        self.assertEqual(
+            headers.count("const struct Tileset gTileset_JohtoPokemonDayCare ="), 1
+        )
 
     def test_selected_materialized_maps_remove_deferred_warps_and_reindex_returns(self):
         pkmn_world, hns = self.donor_paths()

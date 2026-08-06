@@ -1745,5 +1745,236 @@ const struct Tileset gTileset_VioletCity =
     .callback = NULL,
 };
 
+const struct Tileset gTileset_Johto_South =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(FALSE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Johto_South,
+    .palettes = gTilesetPalettes_Johto_South,
+    .metatiles = gMetatiles_Johto_South,
+    .metatileAttributes = gMetatileAttributes_Johto_South,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_AzaleaTown =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_AzaleaTown,
+    .palettes = gTilesetPalettes_AzaleaTown,
+    .metatiles = gMetatiles_AzaleaTown,
+    .metatileAttributes = gMetatileAttributes_AzaleaTown,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_AzaleaTown_Gym =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_AzaleaTown_Gym,
+    .palettes = gTilesetPalettes_AzaleaTown_Gym,
+    .metatiles = gMetatiles_AzaleaTown_Gym,
+    .metatileAttributes = gMetatileAttributes_AzaleaTown_Gym,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Barn =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Barn,
+    .palettes = gTilesetPalettes_Barn,
+    .metatiles = gMetatiles_Barn,
+    .metatileAttributes = gMetatileAttributes_Barn,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Cafe =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Cafe,
+    .palettes = gTilesetPalettes_Cafe,
+    .metatiles = gMetatiles_Cafe,
+    .metatileAttributes = gMetatileAttributes_Cafe,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Cave_Default =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Cave_Default,
+    .palettes = gTilesetPalettes_Cave_Default,
+    .metatiles = gMetatiles_Cave_Default,
+    .metatileAttributes = gMetatileAttributes_Cave_Default,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Cave_Gray =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Cave_Gray,
+    .palettes = gTilesetPalettes_Cave_Gray,
+    .metatiles = gMetatiles_Cave_Gray,
+    .metatileAttributes = gMetatileAttributes_Cave_Gray,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Ecruteak_City =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Ecruteak_City,
+    .palettes = gTilesetPalettes_Ecruteak_City,
+    .metatiles = gMetatiles_Ecruteak_City,
+    .metatileAttributes = gMetatileAttributes_Ecruteak_City,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Goldenrod =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Goldenrod,
+    .palettes = gTilesetPalettes_Goldenrod,
+    .metatiles = gMetatiles_Goldenrod,
+    .metatileAttributes = gMetatileAttributes_Goldenrod,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_GoldenrodCity_TrainStation =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_GoldenrodCity_TrainStation,
+    .palettes = gTilesetPalettes_GoldenrodCity_TrainStation,
+    .metatiles = gMetatiles_GoldenrodCity_TrainStation,
+    .metatileAttributes = gMetatileAttributes_GoldenrodCity_TrainStation,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_GoldenrodDepartmentStore =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_GoldenrodDepartmentStore,
+    .palettes = gTilesetPalettes_GoldenrodDepartmentStore,
+    .metatiles = gMetatiles_GoldenrodDepartmentStore,
+    .metatileAttributes = gMetatileAttributes_GoldenrodDepartmentStore,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_GoldenrodGameCorner =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_GoldenrodGameCorner,
+    .palettes = gTilesetPalettes_GoldenrodGameCorner,
+    .metatiles = gMetatiles_GoldenrodGameCorner,
+    .metatileAttributes = gMetatileAttributes_GoldenrodGameCorner,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_GoldenrodUndergroundRocket =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_GoldenrodUndergroundRocket,
+    .palettes = gTilesetPalettes_GoldenrodUndergroundRocket,
+    .metatiles = gMetatiles_GoldenrodUndergroundRocket,
+    .metatileAttributes = gMetatileAttributes_GoldenrodUndergroundRocket,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_GoldenrodUndergroundTunnel =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_GoldenrodUndergroundTunnel,
+    .palettes = gTilesetPalettes_GoldenrodUndergroundTunnel,
+    .metatiles = gMetatiles_GoldenrodUndergroundTunnel,
+    .metatileAttributes = gMetatileAttributes_GoldenrodUndergroundTunnel,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Goldenrod_Underground_Storage =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Goldenrod_Underground_Storage,
+    .palettes = gTilesetPalettes_Goldenrod_Underground_Storage,
+    .metatiles = gMetatiles_Goldenrod_Underground_Storage,
+    .metatileAttributes = gMetatileAttributes_Goldenrod_Underground_Storage,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_IlexForest =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_IlexForest,
+    .palettes = gTilesetPalettes_IlexForest,
+    .metatiles = gMetatiles_IlexForest,
+    .metatileAttributes = gMetatileAttributes_IlexForest,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_JohtoBikeShop =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_JohtoBikeShop,
+    .palettes = gTilesetPalettes_JohtoBikeShop,
+    .metatiles = gMetatiles_JohtoBikeShop,
+    .metatileAttributes = gMetatileAttributes_JohtoBikeShop,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_KurtsHouse =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_KurtsHouse,
+    .palettes = gTilesetPalettes_KurtsHouse,
+    .metatiles = gMetatiles_KurtsHouse,
+    .metatileAttributes = gMetatileAttributes_KurtsHouse,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_NationalPark =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_NationalPark,
+    .palettes = gTilesetPalettes_NationalPark,
+    .metatiles = gMetatiles_NationalPark,
+    .metatileAttributes = gMetatileAttributes_NationalPark,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_JohtoPokemonDayCare =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_JohtoPokemonDayCare,
+    .palettes = gTilesetPalettes_JohtoPokemonDayCare,
+    .metatiles = gMetatiles_JohtoPokemonDayCare,
+    .metatileAttributes = gMetatileAttributes_JohtoPokemonDayCare,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_ShopRooftop =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_ShopRooftop,
+    .palettes = gTilesetPalettes_ShopRooftop,
+    .metatiles = gMetatiles_ShopRooftop,
+    .metatileAttributes = gMetatileAttributes_ShopRooftop,
+    .callback = NULL,
+};
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: headers

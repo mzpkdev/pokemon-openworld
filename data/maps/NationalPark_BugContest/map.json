@@ -1,0 +1,64 @@
+{
+  "id": "MAP_NATIONAL_PARK_BUG_CONTEST",
+  "name": "NationalPark_BugContest",
+  "layout": "LAYOUT_NATIONAL_PARK_BUG_CONTEST",
+  "music": "MUS_ROUTE113",
+  "region_map_section": "MAPSEC_NATIONAL_PARK",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_ROUTE",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": false,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 12,
+      "y": 49,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 13,
+      "y": 49,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 40,
+      "y": 19,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 11,
+      "y": 49,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 14,
+      "y": 49,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 20,
+      "y": 28,
+      "elevation": 0,
+      "dest_map": "MAP_NATIONAL_PARK_BUG_CONTEST",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

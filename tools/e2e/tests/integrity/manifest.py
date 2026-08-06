@@ -74,6 +74,7 @@ INTERIOR_PRIMARY_TILESETS = {
 }
 
 CAVE_SECONDARY_TILESETS = {
+    "gTileset_Cave_Default",
     "gTileset_Cave_Frlg",
     "gTileset_RuinsOfAlph_B1F",
     "gTileset_SeafoamIslands",

@@ -1,0 +1,71 @@
+{
+  "id": "MAP_ROUTE36",
+  "name": "Route36",
+  "layout": "LAYOUT_ROUTE36",
+  "music": "MUS_ROUTE110",
+  "region_map_section": "MAPSEC_ROUTE_36",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_ROUTE",
+  "allow_cycling": true,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [
+    {
+      "map": "MAP_ROUTE35",
+      "offset": -16,
+      "direction": "down"
+    },
+    {
+      "map": "MAP_VIOLET_CITY",
+      "offset": 2,
+      "direction": "right"
+    },
+    {
+      "map": "MAP_ROUTE37",
+      "offset": 22,
+      "direction": "up"
+    },
+    {
+      "map": "MAP_RUINS_OF_ALPH_OUTSIDE",
+      "offset": 36,
+      "direction": "down"
+    }
+  ],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 56,
+      "y": 25,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 55,
+      "y": 25,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 16,
+      "y": 20,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_NATIONAL_PARK",
+      "dest_warp_id": "3"
+    },
+    {
+      "x": 57,
+      "y": 25,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

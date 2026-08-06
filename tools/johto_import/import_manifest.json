@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "mechanicalDonor": {
     "repository": "evilchinesefood/PKMN-World",
     "commit": "d40affe26e58a20f445daad84af5e45be812e69f",
@@ -357,46 +357,28 @@
       "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
     },
     {
-      "source": "Route32",
+      "source": "Route37",
       "path": "connections/1",
       "kind": "connection",
-      "destination": "MAP_ROUTE33"
+      "destination": "MAP_ECRUTEAK_CITY"
     },
     {
-      "source": "Route32",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_UNION_CAVE_1F"
-    },
-    {
-      "source": "VioletCity",
-      "path": "connections/2",
-      "kind": "connection",
-      "destination": "MAP_ROUTE36"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "connections/0",
-      "kind": "connection",
-      "destination": "MAP_ROUTE36"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "warp_events/2",
-      "kind": "warp",
-      "destination": "MAP_UNION_CAVE_B1F"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "warp_events/3",
-      "kind": "warp",
-      "destination": "MAP_UNION_CAVE_B1F"
-    },
-    {
-      "source": "Gate_RuinsOfAlph_Route36",
+      "source": "Route37",
       "path": "warp_events/0",
       "kind": "warp",
-      "destination": "MAP_ROUTE36"
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStoreElevator",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DYNAMIC"
     }
   ],
   "warpRemovals": [
@@ -405,63 +387,56 @@
       "path": "warp_events/0",
       "destination": "MAP_ROUTE46",
       "destWarpId": "0",
-      "reason": "remove the deferred Route 46 exit instead of routing through stale dynamic-warp state"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     },
     {
       "source": "Route28",
       "path": "warp_events/0",
       "destination": "MAP_RECEPTION_GATE",
       "destWarpId": "3",
-      "reason": "remove the deferred Reception Gate exit instead of routing through stale dynamic-warp state"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     },
     {
       "source": "Route30",
       "path": "warp_events/0",
       "destination": "MAP_ROUTE30_HOUSE",
       "destWarpId": "0",
-      "reason": "remove the deferred Route 30 house exit"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     },
     {
       "source": "Route30",
       "path": "warp_events/1",
       "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
       "destWarpId": "0",
-      "reason": "remove the deferred Mr. Pokemon house exit"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     },
     {
       "source": "Route31",
       "path": "warp_events/0",
       "destination": "MAP_DARK_CAVE_SOUTH_SIDE",
       "destWarpId": "0",
-      "reason": "remove the deferred Dark Cave exit"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     },
     {
-      "source": "Route32",
-      "path": "warp_events/1",
-      "destination": "MAP_UNION_CAVE_1F",
-      "destWarpId": "0",
-      "reason": "remove the deferred Union Cave exit"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "warp_events/2",
-      "destination": "MAP_UNION_CAVE_B1F",
-      "destWarpId": "4",
-      "reason": "remove the first deferred Union Cave basement exit"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "warp_events/3",
-      "destination": "MAP_UNION_CAVE_B1F",
-      "destWarpId": "3",
-      "reason": "remove the second deferred Union Cave basement exit"
-    },
-    {
-      "source": "Gate_RuinsOfAlph_Route36",
+      "source": "Route37",
       "path": "warp_events/0",
-      "destination": "MAP_ROUTE36",
-      "destWarpId": "0",
-      "reason": "remove the deferred Route 36 exit"
+      "destination": "MAP_ECRUTEAK_CITY",
+      "destWarpId": "7",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/1",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "destWarpId": "8",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStoreElevator",
+      "path": "warp_events/0",
+      "destination": "MAP_DYNAMIC",
+      "destWarpId": "WARP_ID_DYNAMIC",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
     }
   ],
   "warpReindexes": [
@@ -471,7 +446,7 @@
       "destination": "MAP_GATE_ROUTE29_ROUTE46",
       "from": "1",
       "to": "0",
-      "reason": "Gate warp 0 removal shifts the retained Route 29 return to index 0"
+      "reason": "reindex the retained return after reviewed deferred warp removal"
     },
     {
       "source": "Route29",
@@ -479,7 +454,7 @@
       "destination": "MAP_GATE_ROUTE29_ROUTE46",
       "from": "1",
       "to": "0",
-      "reason": "Gate warp 0 removal shifts the retained Route 29 return to index 0"
+      "reason": "reindex the retained return after reviewed deferred warp removal"
     },
     {
       "source": "Route28_House",
@@ -487,7 +462,7 @@
       "destination": "MAP_ROUTE28",
       "from": "1",
       "to": "0",
-      "reason": "Route 28 warp 0 removal shifts the retained house entrance to index 0"
+      "reason": "reindex the retained return after reviewed deferred warp removal"
     },
     {
       "source": "Gate_Route31_VioletCity",
@@ -495,71 +470,7 @@
       "destination": "MAP_ROUTE31",
       "from": "1",
       "to": "0",
-      "reason": "Route 31 warp 0 removal shifts the retained gate entrance to index 0"
-    },
-    {
-      "source": "Route32_PokemonCenter",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ROUTE32",
-      "from": "2",
-      "to": "1",
-      "reason": "Route 32 warp 1 removal shifts the retained Pokemon Center entrance to index 1"
-    },
-    {
-      "source": "RuinsOfAlph_Outside",
-      "path": "warp_events/1/dest_warp_id",
-      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
-      "from": "1",
-      "to": "0",
-      "reason": "Route 36 gate warp 0 removal shifts the retained Ruins entrance to index 0"
-    },
-    {
-      "source": "RuinsOfAlph_Lab",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "4",
-      "to": "2",
-      "reason": "two Union Cave warp removals shift the retained lab entrance to index 2"
-    },
-    {
-      "source": "RuinsOfAlph_B1F",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "5",
-      "to": "3",
-      "reason": "two Union Cave warp removals shift the retained basement entrance to index 3"
-    },
-    {
-      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "9",
-      "to": "7",
-      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 7"
-    },
-    {
-      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
-      "path": "warp_events/1/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "8",
-      "to": "6",
-      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 6"
-    },
-    {
-      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
-      "path": "warp_events/2/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "7",
-      "to": "5",
-      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 5"
-    },
-    {
-      "source": "RuinsOfAlph_PuzzleAndRewardChambers",
-      "path": "warp_events/3/dest_warp_id",
-      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "from": "6",
-      "to": "4",
-      "reason": "two Union Cave warp removals shift the retained chamber entrance to index 4"
+      "reason": "reindex the retained return after reviewed deferred warp removal"
     }
   ],
   "retainedEdges": [
@@ -703,6 +614,12 @@
     },
     {
       "source": "CherrygroveCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE30"
+    },
+    {
+      "source": "CherrygroveCity",
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_CHERRYGROVE_CITY_MART"
@@ -774,12 +691,6 @@
       "destination": "MAP_ROUTE28"
     },
     {
-      "source": "CherrygroveCity",
-      "path": "connections/1",
-      "kind": "connection",
-      "destination": "MAP_ROUTE30"
-    },
-    {
       "source": "Route30",
       "path": "connections/0",
       "kind": "connection",
@@ -817,6 +728,12 @@
     },
     {
       "source": "Route32",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE33"
+    },
+    {
+      "source": "Route32",
       "path": "connections/2",
       "kind": "connection",
       "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
@@ -826,6 +743,12 @@
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE32"
+    },
+    {
+      "source": "Route32",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_1F"
     },
     {
       "source": "Route32",
@@ -844,6 +767,12 @@
       "path": "connections/1",
       "kind": "connection",
       "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "VioletCity",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
     },
     {
       "source": "VioletCity",
@@ -895,6 +824,12 @@
     },
     {
       "source": "RuinsOfAlph_Outside",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
       "path": "connections/1",
       "kind": "connection",
       "destination": "MAP_ROUTE32"
@@ -910,6 +845,18 @@
       "path": "warp_events/1",
       "kind": "warp",
       "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "RuinsOfAlph_Outside",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
     },
     {
       "source": "RuinsOfAlph_Outside",
@@ -1066,6 +1013,12 @@
       "path": "warp_events/1",
       "kind": "warp",
       "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "Gate_RuinsOfAlph_Route36",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE36"
     },
     {
       "source": "Gate_RuinsOfAlph_Route36",
@@ -1324,6 +1277,912 @@
       "path": "warp_events/1",
       "kind": "warp",
       "destination": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE33"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_SLOWPOKE_WELL_B1F"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_AZALEA_TOWN_ILEX_FOREST"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN_KURTS_HOUSE"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN_POKEMON_CENTER"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN_MART"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN_HOUSE1"
+    },
+    {
+      "source": "AzaleaTown",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN_GYM"
+    },
+    {
+      "source": "Route33",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "Route33",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "Route33",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_1F"
+    },
+    {
+      "source": "Route34",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "Route34",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ILEX_FOREST"
+    },
+    {
+      "source": "Route34",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "Route34",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "Route34",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "Route34",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "Route34",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ROUTE34_DAY_CARE"
+    },
+    {
+      "source": "IlexForest",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE34"
+    },
+    {
+      "source": "IlexForest",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_AZALEA_TOWN_ILEX_FOREST"
+    },
+    {
+      "source": "IlexForest",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "IlexForest",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_ILEX_FOREST_ROUTE34"
+    },
+    {
+      "source": "AzaleaTown_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "AzaleaTown_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "AzaleaTown_KurtsHouse",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "AzaleaTown_Mart",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "AzaleaTown_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "Route34_DayCare",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE34"
+    },
+    {
+      "source": "Gate_AzaleaTown_IlexForest",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "Gate_AzaleaTown_IlexForest",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ILEX_FOREST"
+    },
+    {
+      "source": "Gate_IlexForest_Route34",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ILEX_FOREST"
+    },
+    {
+      "source": "Gate_IlexForest_Route34",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE34"
+    },
+    {
+      "source": "UnionCave_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE32"
+    },
+    {
+      "source": "UnionCave_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "UnionCave_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE33"
+    },
+    {
+      "source": "UnionCave_1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "UnionCave_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_1F"
+    },
+    {
+      "source": "UnionCave_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_1F"
+    },
+    {
+      "source": "UnionCave_B1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B2F"
+    },
+    {
+      "source": "UnionCave_B1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "UnionCave_B1F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "UnionCave_B2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_UNION_CAVE_B1F"
+    },
+    {
+      "source": "SlowpokeWell_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_AZALEA_TOWN"
+    },
+    {
+      "source": "SlowpokeWell_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_SLOWPOKE_WELL_B2F"
+    },
+    {
+      "source": "SlowpokeWell_B2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_SLOWPOKE_WELL_B1F"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE34"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE35"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_GOLDENROD_CITY_ROUTE35"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_GOLDENROD_CITY_ROUTE35"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_HOUSE1"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_GYM"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_FLOWER_SHOP"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_HOUSE2"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_1F"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_TRAIN_STATION"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_HOUSE3"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_GAME_CORNER"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_BILLS_HOUSE"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_POKEMON_CENTER"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/13",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_1F"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_BIKE_SHOP"
+    },
+    {
+      "source": "GoldenrodCity",
+      "path": "warp_events/15",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE"
+    },
+    {
+      "source": "Route35",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "Route35",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "Route35",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_GOLDENROD_CITY_ROUTE35"
+    },
+    {
+      "source": "Route35",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_GOLDENROD_CITY_ROUTE35"
+    },
+    {
+      "source": "Route35",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "Route35",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "Route36",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE35"
+    },
+    {
+      "source": "Route36",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_VIOLET_CITY"
+    },
+    {
+      "source": "Route36",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE37"
+    },
+    {
+      "source": "Route36",
+      "path": "connections/3",
+      "kind": "connection",
+      "destination": "MAP_RUINS_OF_ALPH_OUTSIDE"
+    },
+    {
+      "source": "Route36",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36"
+    },
+    {
+      "source": "Route36",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36"
+    },
+    {
+      "source": "Route36",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "Route36",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_RUINS_OF_ALPH_ROUTE36"
+    },
+    {
+      "source": "Route37",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "NationalPark_Normal",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_Normal",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_Normal",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_Normal",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_Normal",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_GATE_NATIONAL_PARK"
+    },
+    {
+      "source": "NationalPark_BugContest",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_NATIONAL_PARK_BUG_CONTEST"
+    },
+    {
+      "source": "Gate_GoldenrodCity_Route35",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "Gate_GoldenrodCity_Route35",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE35"
+    },
+    {
+      "source": "Gate_NationalPark",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE35"
+    },
+    {
+      "source": "Gate_NationalPark",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_NATIONAL_PARK_NORMAL"
+    },
+    {
+      "source": "Gate_NationalPark",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_NATIONAL_PARK_NORMAL"
+    },
+    {
+      "source": "Gate_NationalPark",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ROUTE36"
+    },
+    {
+      "source": "Gate_NationalPark",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_NATIONAL_PARK_BUG_CONTEST"
+    },
+    {
+      "source": "GoldenrodCity_BikeShop",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_BillsHouse",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStoreBasement",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_STORAGE"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_2F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_3F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_1F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_2F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_4F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_3F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_2F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_3F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_4F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_5F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_4F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_3F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_4F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_5F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_6F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_5F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_4F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_5F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_6F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_5F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_6F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_6F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_7F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_7F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_6F"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStore_7FNight",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_6F"
+    },
+    {
+      "source": "GoldenrodCity_FlowerShop",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_GameCorner",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_House3",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_2F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_1F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_3F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_3F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_3F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_2F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_4F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_5F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_4F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_3F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_4F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_3F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_4F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_5F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_5F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F"
+    },
+    {
+      "source": "GoldenrodCity_RadioTower_5F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F"
+    },
+    {
+      "source": "GoldenrodCity_TrainStation",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundEntrance",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_TUNNEL"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundEntrance",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_TUNNEL"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundEntrance",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundEntrance",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundStorage",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_BASEMENT"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundStorage",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_SWITCHES"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundSwitches",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_STORAGE"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundSwitches",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_TUNNEL"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundTunnel",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundTunnel",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE"
+    },
+    {
+      "source": "GoldenrodCity_UndergroundTunnel",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_SWITCHES"
     }
   ],
   "graphicsAdaptations": [
@@ -1427,6 +2286,10 @@
   ],
   "musicAdaptations": [
     {
+      "hns": "MUS_HG_AZALEA",
+      "target": "MUS_FALLARBOR"
+    },
+    {
       "hns": "MUS_HG_CHERRYGROVE",
       "target": "MUS_OLDALE"
     },
@@ -1477,6 +2340,22 @@
     {
       "hns": "MUS_HG_GYM",
       "target": "MUS_GYM"
+    },
+    {
+      "hns": "MUS_HG_GAME_CORNER",
+      "target": "MUS_GAME_CORNER"
+    },
+    {
+      "hns": "MUS_HG_GOLDENROD",
+      "target": "MUS_SLATEPORT"
+    },
+    {
+      "hns": "MUS_HG_NATIONAL_PARK",
+      "target": "MUS_ROUTE113"
+    },
+    {
+      "hns": "MUS_HG_ROCKET_TAKEOVER",
+      "target": "MUS_AQUA_MAGMA_HIDEOUT"
     },
     {
       "hns": "MUS_HG_RUINS_OF_ALPH",
@@ -1871,6 +2750,184 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "primary",
+      "directory": "johto_south",
+      "symbol": "Johto_South",
+      "secondary": false,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "azalea_town",
+      "symbol": "AzaleaTown",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "azalea_town_gym",
+      "symbol": "AzaleaTown_Gym",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "barn",
+      "symbol": "Barn",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cafe",
+      "symbol": "Cafe",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cave_default",
+      "symbol": "Cave_Default",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cave_gray",
+      "symbol": "Cave_Gray",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ecruteak_city",
+      "symbol": "Ecruteak_City",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod",
+      "symbol": "Goldenrod",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_station",
+      "symbol": "GoldenrodCity_TrainStation",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_department_store",
+      "symbol": "GoldenrodDepartmentStore",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "mechanical"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_game_corner",
+      "symbol": "GoldenrodGameCorner",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "mechanical"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_underground_rocket",
+      "symbol": "GoldenrodUndergroundRocket",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_underground_tunnel",
+      "symbol": "GoldenrodUndergroundTunnel",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "goldenrod_underground_storage",
+      "symbol": "Goldenrod_Underground_Storage",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ilex_forest",
+      "symbol": "IlexForest",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "johto_bike_shop",
+      "symbol": "JohtoBikeShop",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "kurts_house",
+      "symbol": "KurtsHouse",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "national_park",
+      "symbol": "NationalPark",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "pokemon_day_care",
+      "symbol": "PokemonDayCare",
+      "targetDirectory": "johto_pokemon_day_care",
+      "targetSymbol": "JohtoPokemonDayCare",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "shop_rooftop",
+      "symbol": "ShopRooftop",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    }
+  ],
+  "layoutTilesetRemaps": [
+    {
+      "layout": "LAYOUT_ROUTE34_DAY_CARE",
+      "field": "secondary_tileset",
+      "source": "gTileset_PokemonDayCare",
+      "target": "gTileset_JohtoPokemonDayCare"
     }
   ],
   "trainerPresentation": [
@@ -1968,7 +3025,9 @@
   },
   "activeBatches": [
     "baseline",
-    "early-violet-ruins"
+    "early-violet-ruins",
+    "azalea-union-ilex",
+    "goldenrod-park"
   ],
   "batches": [
     {

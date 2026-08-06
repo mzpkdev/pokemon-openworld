@@ -81,6 +81,27 @@ extern const struct Tileset gTileset_RuinsOfAlph_B1F;
 extern const struct Tileset gTileset_RuinsOfAlph_Outside;
 extern const struct Tileset gTileset_TrainerSchool;
 extern const struct Tileset gTileset_VioletCity;
+extern const struct Tileset gTileset_Johto_South;
+extern const struct Tileset gTileset_AzaleaTown;
+extern const struct Tileset gTileset_AzaleaTown_Gym;
+extern const struct Tileset gTileset_Barn;
+extern const struct Tileset gTileset_Cafe;
+extern const struct Tileset gTileset_Cave_Default;
+extern const struct Tileset gTileset_Cave_Gray;
+extern const struct Tileset gTileset_Ecruteak_City;
+extern const struct Tileset gTileset_Goldenrod;
+extern const struct Tileset gTileset_GoldenrodCity_TrainStation;
+extern const struct Tileset gTileset_GoldenrodDepartmentStore;
+extern const struct Tileset gTileset_GoldenrodGameCorner;
+extern const struct Tileset gTileset_GoldenrodUndergroundRocket;
+extern const struct Tileset gTileset_GoldenrodUndergroundTunnel;
+extern const struct Tileset gTileset_Goldenrod_Underground_Storage;
+extern const struct Tileset gTileset_IlexForest;
+extern const struct Tileset gTileset_JohtoBikeShop;
+extern const struct Tileset gTileset_KurtsHouse;
+extern const struct Tileset gTileset_NationalPark;
+extern const struct Tileset gTileset_JohtoPokemonDayCare;
+extern const struct Tileset gTileset_ShopRooftop;
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: externs
 
