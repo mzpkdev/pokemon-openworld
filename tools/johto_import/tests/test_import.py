@@ -360,6 +360,60 @@ class ClosureValidationTests(unittest.TestCase):
                 effective[0]["connections"][0]["map"], "MAP_MECHANICAL_OUT"
             )
 
+    def test_warp_removals_and_reindexes_fail_closed(self):
+        maps = [
+            {
+                "id": "MAP_GATE",
+                "name": "Gate",
+                "warp_events": [
+                    {"dest_map": "MAP_OUT", "dest_warp_id": "4"},
+                    {"dest_map": "MAP_ROUTE", "dest_warp_id": "0"},
+                ],
+            },
+            {
+                "id": "MAP_ROUTE",
+                "name": "Route",
+                "warp_events": [{"dest_map": "MAP_GATE", "dest_warp_id": "1"}],
+            },
+        ]
+        manifest = {
+            "deferredEdges": [
+                {
+                    "source": "Gate",
+                    "path": "warp_events/0",
+                    "kind": "warp",
+                    "destination": "MAP_OUT",
+                }
+            ],
+            "warpRemovals": [
+                {
+                    "source": "Gate",
+                    "path": "warp_events/0",
+                    "destination": "MAP_OUT",
+                    "destWarpId": "4",
+                }
+            ],
+            "warpReindexes": [
+                {
+                    "source": "Route",
+                    "path": "warp_events/0/dest_warp_id",
+                    "destination": "MAP_GATE",
+                    "from": "1",
+                    "to": "0",
+                }
+            ],
+        }
+        johto_import.validate_warp_transforms(manifest, maps)
+        for key, message in (
+            ("warpRemovals", "warp removal manifest drift"),
+            ("warpReindexes", "warp reindex manifest drift"),
+        ):
+            changed = copy.deepcopy(manifest)
+            changed[key] = []
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(johto_import.ImportError, message):
+                    johto_import.validate_warp_transforms(changed, maps)
+
     def test_duplicate_layout_allocations_fail(self):
         selection = [
             {"targetGroup": "G", "targetLayoutIndex": 785, "targetSection": 209},
@@ -393,8 +447,74 @@ class ClosureValidationTests(unittest.TestCase):
                         changed["selection"]["maps"], changed
                     )
 
+    def test_group_target_ids_control_materialized_numeric_placement(self):
+        existing = [f"gMapGroup_{index}" for index in range(75)]
+        groups = {"group_order": existing} | {name: [] for name in existing}
+        allocations = [
+            {"name": "gMapGroup_JohtoA", "targetId": 75},
+            {"name": "gMapGroup_JohtoB", "targetId": 76},
+        ]
+        selection = [
+            {"name": "MapA", "targetGroup": "gMapGroup_JohtoA"},
+            {"name": "MapB", "targetGroup": "gMapGroup_JohtoB"},
+        ]
+        first = johto_import._materialized_group_registry(
+            groups, selection, allocations
+        )
+        swapped = copy.deepcopy(allocations)
+        swapped[0]["targetId"], swapped[1]["targetId"] = (
+            swapped[1]["targetId"],
+            swapped[0]["targetId"],
+        )
+        second = johto_import._materialized_group_registry(groups, selection, swapped)
+        self.assertEqual(
+            first["group_order"][75:], ["gMapGroup_JohtoA", "gMapGroup_JohtoB"]
+        )
+        self.assertEqual(
+            second["group_order"][75:], ["gMapGroup_JohtoB", "gMapGroup_JohtoA"]
+        )
+
 
 class AtomicOutputTests(unittest.TestCase):
+    def test_trainer_target_id_mutation_keeps_party_and_header_coherent(self):
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        opponent_text = (
+            "#define TRAINER_EXISTING 854\n"
+            "#define TRAINERS_COUNT_EMERALD 855\n"
+            "#define MAX_TRAINERS_COUNT_EMERALD 864\n"
+        )
+        parties, macros, count = johto_import._trainer_materialization(
+            manifest, opponent_text
+        )
+        changed = copy.deepcopy(manifest)
+        changed["trainerPresentation"][0]["targetId"] = 857
+        changed["trainerPresentation"][2]["targetId"] = 855
+        changed_parties, changed_macros, changed_count = (
+            johto_import._trainer_materialization(changed, opponent_text)
+        )
+        self.assertEqual((count, changed_count), (858, 858))
+        self.assertIn("#define TRAINER_RIVAL_CHIKORITA_1 855", macros)
+        self.assertIn("#define TRAINER_RIVAL_CHIKORITA_1 857", changed_macros)
+        self.assertLess(
+            parties.index("TRAINER_RIVAL_CHIKORITA_1"),
+            parties.index("TRAINER_RIVAL_TOTODILE_1"),
+        )
+        self.assertLess(
+            changed_parties.index("TRAINER_RIVAL_TOTODILE_1"),
+            changed_parties.index("TRAINER_RIVAL_CHIKORITA_1"),
+        )
+
+    def test_materialized_text_normalization_is_focused_and_idempotent(self):
+        donor_text = "label:  \n\t\n\tcommand  value \t\n\n"
+        expected = "label:\n\n\tcommand  value\n"
+
+        normalized = johto_import.normalize_materialized_text(donor_text)
+
+        self.assertEqual(normalized, expected)
+        self.assertEqual(johto_import.normalize_materialized_text(normalized), expected)
+
     def test_atomic_write_is_deterministic(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "closure.json"
@@ -416,6 +536,95 @@ class AtomicOutputTests(unittest.TestCase):
                     johto_import.atomic_write(output, b"new")
             self.assertEqual(output.read_bytes(), b"old")
             self.assertEqual(list(output.parent.glob(".closure.json.*.tmp")), [])
+
+
+class GeneratedSectionTests(unittest.TestCase):
+    MARKER = "#endif // GUARD_FIXTURE_H"
+
+    def test_guarded_section_is_inserted_before_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "fixture.h"
+            output.write_text(
+                f"#ifndef GUARD_FIXTURE_H\n#define VALUE 1\n\n{self.MARKER}\n"
+            )
+
+            johto_import._replace_generated_section_before(
+                output, "fixture", "#define IMPORTED 2", self.MARKER
+            )
+
+            text = output.read_text()
+            self.assertLess(
+                text.index("// JOHTO IMPORT BEGIN"), text.index(self.MARKER)
+            )
+            self.assertTrue(text.endswith(f"{self.MARKER}\n"))
+
+    def test_guarded_section_replacement_is_idempotent_and_moves_inside_guard(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "fixture.h"
+            output.write_text(
+                f"#ifndef GUARD_FIXTURE_H\n{self.MARKER}\n\n"
+                "// JOHTO IMPORT BEGIN: fixture\n#define OLD 1\n"
+                "// JOHTO IMPORT END: fixture\n"
+            )
+
+            johto_import._replace_generated_section_before(
+                output, "fixture", "#define IMPORTED 2", self.MARKER
+            )
+            first = output.read_bytes()
+            johto_import._replace_generated_section_before(
+                output, "fixture", "#define IMPORTED 2", self.MARKER
+            )
+
+            self.assertEqual(output.read_bytes(), first)
+            text = first.decode()
+            self.assertEqual(text.count("// JOHTO IMPORT BEGIN: fixture"), 1)
+            self.assertLess(text.index("#define IMPORTED 2"), text.index(self.MARKER))
+
+    def test_guarded_section_requires_one_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "fixture.h"
+            for contents in ("#define VALUE 1\n", f"{self.MARKER}\n{self.MARKER}\n"):
+                with self.subTest(contents=contents):
+                    output.write_text(contents)
+                    with self.assertRaisesRegex(
+                        johto_import.ImportError, "exactly one placement marker"
+                    ):
+                        johto_import._replace_generated_section_before(
+                            output, "fixture", "#define IMPORTED 2", self.MARKER
+                        )
+
+    def test_unguarded_section_rejects_unmatched_or_duplicate_markers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "fixture.s"
+            begin = "// JOHTO IMPORT BEGIN: fixture"
+            end = "// JOHTO IMPORT END: fixture"
+            for contents in (
+                f"{begin}\n",
+                f"{end}\n",
+                f"{begin}\n{end}\n{begin}\n{end}\n",
+            ):
+                with self.subTest(contents=contents):
+                    output.write_text(contents)
+                    with self.assertRaisesRegex(
+                        johto_import.ImportError, "ambiguous generated section"
+                    ):
+                        johto_import._replace_generated_section(
+                            output, "fixture", "imported"
+                        )
+
+    def test_tileset_copy_prunes_excluded_stale_artifacts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, destination = root / "source", root / "destination"
+            source.mkdir()
+            (source / "tiles.png").write_bytes(b"new")
+            (destination / "anim").mkdir(parents=True)
+            (destination / "stale.inc").write_text("stale")
+            (destination / "anim" / "stale.bin").write_bytes(b"stale")
+            johto_import._copy_tree_without_generated(source, destination)
+            self.assertEqual((destination / "tiles.png").read_bytes(), b"new")
+            self.assertFalse((destination / "stale.inc").exists())
+            self.assertFalse((destination / "anim").exists())
 
 
 class PinnedDonorIntegrationTests(unittest.TestCase):
@@ -482,6 +691,91 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                 "gTileset_Johto_NorthEast": "METATILE_ATTRIBUTES_EMERALD_U16",
                 "gTileset_ViridianCity": "METATILE_ATTRIBUTES_FRLG_U32",
             },
+        )
+
+    def test_materialization_manifest_mutations_fail_closed(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        original = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        mutations = []
+        for key in (
+            "graphicsAdaptations",
+            "musicAdaptations",
+            "scriptSubstitutions",
+            "layoutBinaryAuthorities",
+            "tilesetAdaptations",
+            "trainerPresentation",
+        ):
+            changed = copy.deepcopy(original)
+            changed[key] = changed[key][1:]
+            mutations.append((key, changed))
+        changed = copy.deepcopy(original)
+        changed["encounterAdaptations"]["water12To5"]["sourceIndices"] = [
+            0,
+            3,
+            7,
+            9,
+            12,
+        ]
+        mutations.append(("encounterAdaptations", changed))
+        changed = copy.deepcopy(original)
+        changed["regionAssignment"]["target"] = "REGION_HOENN"
+        mutations.append(("regionAssignment", changed))
+        for key, manifest in mutations:
+            with self.subTest(key=key):
+                with self.assertRaises(johto_import.ImportError):
+                    johto_import.validate_materialization_adaptations(
+                        manifest, pkmn_world, hns
+                    )
+
+    def test_selected_materialized_maps_remove_deferred_warps_and_reindex_returns(self):
+        _pkmn_world, hns = self.donor_paths()
+        if not hns.is_dir():
+            self.skipTest("pinned donor checkout is unavailable")
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        materialized = {
+            item["name"]: johto_import._materialized_map(item, hns, manifest)
+            for item in manifest["selection"]["maps"]
+        }
+        for name, map_item in materialized.items():
+            with self.subTest(map=name):
+                self.assertNotIn("MAP_DYNAMIC", json.dumps(map_item))
+        self.assertEqual(
+            materialized["Gate_Route29_Route46"]["warp_events"],
+            [
+                {
+                    "x": 7,
+                    "y": 9,
+                    "elevation": 0,
+                    "dest_map": "MAP_ROUTE29",
+                    "dest_warp_id": "0",
+                }
+            ],
+        )
+        self.assertEqual(
+            [edge["dest_warp_id"] for edge in materialized["Route29"]["warp_events"]],
+            ["0", "0"],
+        )
+        self.assertEqual(
+            materialized["Route28"]["warp_events"],
+            [
+                {
+                    "x": 20,
+                    "y": 9,
+                    "elevation": 0,
+                    "dest_map": "MAP_ROUTE28_HOUSE",
+                    "dest_warp_id": "0",
+                }
+            ],
+        )
+        self.assertEqual(
+            materialized["Route28_House"]["warp_events"][0]["dest_warp_id"],
+            "0",
         )
 
 

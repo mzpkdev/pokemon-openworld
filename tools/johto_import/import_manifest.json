@@ -82,6 +82,15 @@
     {"source":"Route28","path":"connections/1","kind":"connection","destination":"MAP_ROUTE26NORTH"},
     {"source":"Route28","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"}
   ],
+  "warpRemovals": [
+    {"source":"Gate_Route29_Route46","path":"warp_events/0","destination":"MAP_ROUTE46","destWarpId":"0","reason":"remove the deferred Route 46 exit instead of routing through stale dynamic-warp state"},
+    {"source":"Route28","path":"warp_events/0","destination":"MAP_RECEPTION_GATE","destWarpId":"3","reason":"remove the deferred Reception Gate exit instead of routing through stale dynamic-warp state"}
+  ],
+  "warpReindexes": [
+    {"source":"Route29","path":"warp_events/0/dest_warp_id","destination":"MAP_GATE_ROUTE29_ROUTE46","from":"1","to":"0","reason":"Gate warp 0 removal shifts the retained Route 29 return to index 0"},
+    {"source":"Route29","path":"warp_events/1/dest_warp_id","destination":"MAP_GATE_ROUTE29_ROUTE46","from":"1","to":"0","reason":"Gate warp 0 removal shifts the retained Route 29 return to index 0"},
+    {"source":"Route28_House","path":"warp_events/0/dest_warp_id","destination":"MAP_ROUTE28","from":"1","to":"0","reason":"Route 28 warp 0 removal shifts the retained house entrance to index 0"}
+  ],
   "retainedEdges": [
     {"source":"NewBarkTown","path":"connections/0","kind":"connection","destination":"MAP_ROUTE29"},
     {"source":"NewBarkTown","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
@@ -119,6 +128,102 @@
     {"source":"Route28","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE28_HOUSE"},
     {"source":"Route28_House","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE28"}
   ],
+  "graphicsAdaptations": [
+    {"hns":"OBJ_EVENT_GFX_BATTLE_GIRL","target":"OBJ_EVENT_GFX_EXPERT_F"},
+    {"hns":"OBJ_EVENT_GFX_NURSE_CHANSEY","target":"OBJ_EVENT_GFX_SPECIES(CHANSEY)"},
+    {"hns":"OBJ_EVENT_GFX_PROF_ELM","target":"OBJ_EVENT_GFX_PROF_BIRCH"},
+    {"hns":"OBJ_EVENT_GFX_SCIENTIST_F","target":"OBJ_EVENT_GFX_SCIENTIST_2"},
+    {"hns":"OBJ_EVENT_GFX_SCIENTIST_M","target":"OBJ_EVENT_GFX_SCIENTIST_1"},
+    {"hns":"OBJ_EVENT_GFX_SILVER","target":"OBJ_EVENT_GFX_WALLY","reason":"HnS Silver uses the Wally object sheet"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_ARBOK","target":"OBJ_EVENT_GFX_SPECIES(ARBOK)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_CORSOLA","target":"OBJ_EVENT_GFX_SPECIES(CORSOLA)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_DODRIO","target":"OBJ_EVENT_GFX_SPECIES(DODRIO)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_DODUO","target":"OBJ_EVENT_GFX_SPECIES(DODUO)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_GOLBAT","target":"OBJ_EVENT_GFX_SPECIES(GOLBAT)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_HOOTHOOT","target":"OBJ_EVENT_GFX_SPECIES(HOOTHOOT)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_HOPPIP","target":"OBJ_EVENT_GFX_SPECIES(HOPPIP)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_KRABBY","target":"OBJ_EVENT_GFX_SPECIES(KRABBY)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_PIDGEY","target":"OBJ_EVENT_GFX_SPECIES(PIDGEY)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_PINECO","target":"OBJ_EVENT_GFX_SPECIES(PINECO)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_POLIWHIRL","target":"OBJ_EVENT_GFX_SPECIES(POLIWHIRL)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_PONYTA","target":"OBJ_EVENT_GFX_SPECIES(PONYTA)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_RAPIDASH","target":"OBJ_EVENT_GFX_SPECIES(RAPIDASH)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_RATTATA","target":"OBJ_EVENT_GFX_SPECIES(RATTATA)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_SENTRET","target":"OBJ_EVENT_GFX_SPECIES(SENTRET)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_STARYU","target":"OBJ_EVENT_GFX_SPECIES(STARYU)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_TANGELA","target":"OBJ_EVENT_GFX_SPECIES(TANGELA)"},
+    {"hns":"OBJ_EVENT_GFX_MON_BASE+SPECIES_WOOPER","target":"OBJ_EVENT_GFX_SPECIES(WOOPER)"}
+  ],
+  "musicAdaptations": [
+    {"hns":"MUS_HG_CHERRYGROVE","target":"MUS_OLDALE"},
+    {"hns":"MUS_HG_ELM_LAB","target":"MUS_LITTLEROOT_TEST"},
+    {"hns":"MUS_HG_NEW_BARK","target":"MUS_LITTLEROOT"},
+    {"hns":"MUS_HG_POKE_CENTER","target":"MUS_POKE_CENTER"},
+    {"hns":"MUS_HG_POKE_MART","target":"MUS_POKE_MART"},
+    {"hns":"MUS_HG_ROUTE26","target":"MUS_ROUTE101"},
+    {"hns":"MUS_HG_ROUTE29","target":"MUS_ROUTE101"},
+    {"hns":"MUS_HG_FOLLOW_ME_1","target":"MUS_FOLLOW_ME"},
+    {"hns":"MUS_HG_ENCOUNTER_RIVAL","target":"MUS_RG_ENCOUNTER_RIVAL"},
+    {"hns":"MUS_HG_RIVAL_EXIT","target":"MUS_RG_RIVAL_EXIT"}
+  ],
+  "regionAssignment": {"hns":null,"target":"REGION_JOHTO"},
+  "scriptSubstitutions": [
+    {"source":"Route28_House","old":"ITEM_TM_STEEL_WING","new":"ITEM_TM47","occurrences":1},
+    {"source":"CherrygroveCity_Mart","old":"pokemart 0","new":"pokemart Cherrygrove_Pokemart_Pokemart","occurrences":1},
+    {"source":"NewBarkTown","old":"SetTimeEncounters","new":"Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"Route29","old":"SetTimeEncounters","new":"Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"CherrygroveCity","old":"SetTimeEncounters","new":"Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"Route28","old":"SetTimeEncounters","new":"Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"NewBarkTown","old":"callnative SetTimeBasedEncounters","new":"call Johto_EventScript_SetTimeEncounters","occurrences":2},
+    {"source":"Route29","old":"callnative SetTimeBasedEncounters","new":"call Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"CherrygroveCity","old":"callnative SetTimeBasedEncounters","new":"call Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"Route28","old":"callnative SetTimeBasedEncounters","new":"call Johto_EventScript_SetTimeEncounters","occurrences":1},
+    {"source":"NewBarkTown_Lab","old":"specialvar VAR_RESULT, IsNuzlockeNicknamingActive","new":"setvar VAR_RESULT, FALSE @ unavailable optional mode; preserve normal nickname path","occurrences":1},
+    {"source":"NewBarkTown_Lab","old":"specialvar VAR_RESULT, CheckTogepi","new":"setvar VAR_RESULT, FALSE @ Togepi story is outside the resident slice","occurrences":1},
+    {"source":"NewBarkTown_Lab","old":"special NameRival","new":"setvar VAR_RESULT, FALSE @ rival naming UI is outside the resident slice","occurrences":1},
+    {"source":"NewBarkTown","old":"BlackthornCity_Text_ElmCall","new":"Johto_Text_DeferredElmCall","occurrences":1},
+    {"source":"NewBarkTown_Lab","old":"removeitem ITEM_MYSTERY_EGG","new":"@ Mystery Egg removal deferred with the out-of-scope Togepi story","occurrences":1},
+    {"source":"CherrygroveCity_PokemonCenter","old":"setrespawn HEAL_LOCATION_CHERRYGROVE_CITY","new":"@ Johto respawn/save integration is deliberately deferred","occurrences":1}
+  ],
+  "layoutBinaryAuthorities": [
+    {"source":"NewBarkTown","layout":"LAYOUT_NEW_BARK_TOWN","authority":"hns"},
+    {"source":"NewBarkTown_Lab","layout":"LAYOUT_NEW_BARK_TOWN_LAB","authority":"hns"},
+    {"source":"NewBarkTown_House1","layout":"LAYOUT_NEW_BARK_TOWN_HOUSE1","authority":"hns"},
+    {"source":"NewBarkTown_House2","layout":"LAYOUT_NEW_BARK_TOWN_HOUSE2","authority":"hns"},
+    {"source":"NewBarkTown_PlayersHouse_1F","layout":"LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_1F","authority":"hns"},
+    {"source":"NewBarkTown_PlayersHouse_2F","layout":"LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_2F","authority":"hns"},
+    {"source":"Route29","layout":"LAYOUT_ROUTE29","authority":"hns"},
+    {"source":"Gate_Route29_Route46","layout":"LAYOUT_GATE_ROUTE29_ROUTE46","authority":"hns"},
+    {"source":"CherrygroveCity","layout":"LAYOUT_CHERRYGROVE_CITY","authority":"hns"},
+    {"source":"CherrygroveCity_PokemonCenter","layout":"LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER","authority":"mechanical"},
+    {"source":"CherrygroveCity_Mart","layout":"LAYOUT_CHERRYGROVE_CITY_MART","authority":"hns"},
+    {"source":"CherrygroveCity_House1","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE1","authority":"hns"},
+    {"source":"CherrygroveCity_House2","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE2","authority":"hns"},
+    {"source":"CherrygroveCity_House3","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE3","authority":"hns"},
+    {"source":"Route28","layout":"LAYOUT_ROUTE28","authority":"hns"},
+    {"source":"Route28_House","layout":"LAYOUT_ROUTE28_HOUSE","authority":"hns"}
+  ],
+  "tilesetAdaptations": [
+    {"role":"primary","directory":"johto_general","symbol":"Johto_General","secondary":false,"paletteCount":16,"authority":"hns"},
+    {"role":"primary","directory":"johto_building","symbol":"Johto_Building","secondary":false,"paletteCount":16,"authority":"hns"},
+    {"role":"primary","directory":"johto_north_east","symbol":"Johto_NorthEast","secondary":false,"paletteCount":16,"authority":"hns"},
+    {"role":"secondary","directory":"new_bark_town","symbol":"NewBarkTown","secondary":true,"paletteCount":13,"authority":"hns"},
+    {"role":"secondary","directory":"cherrygrove_city","symbol":"CherrygroveCity","secondary":true,"paletteCount":13,"authority":"hns"},
+    {"role":"secondary","directory":"kanto_pokemon_center","symbol":"Kanto_PokemonCenter","secondary":true,"paletteCount":16,"authority":"mechanical"},
+    {"role":"secondary","directory":"johto_mart","symbol":"JohtoMart","secondary":true,"paletteCount":13,"authority":"hns"},
+    {"role":"secondary","directory":"house_lab","symbol":"House_Lab","secondary":true,"paletteCount":13,"authority":"hns"},
+    {"role":"secondary","directory":"players_house","symbol":"PlayersHouse","secondary":true,"paletteCount":13,"authority":"hns"},
+    {"role":"secondary","directory":"gate_standard","symbol":"Gate_Standard","secondary":true,"paletteCount":13,"authority":"hns"}
+  ],
+  "trainerPresentation": [
+    {"id":"TRAINER_RIVAL_CHIKORITA_1","targetId":855,"name":"???","class":"Rival","pic":"Wally","gender":"Male","music":"Male","battleType":"Singles","species":"Chikorita","level":5,"ivs":"0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe"},
+    {"id":"TRAINER_RIVAL_CYNDAQUIL_1","targetId":856,"name":"???","class":"Rival","pic":"Wally","gender":"Male","music":"Male","battleType":"Singles","species":"Cyndaquil","level":5,"ivs":"0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe"},
+    {"id":"TRAINER_RIVAL_TOTODILE_1","targetId":857,"name":"???","class":"Rival","pic":"Wally","gender":"Male","music":"Male","battleType":"Singles","species":"Totodile","level":5,"ivs":"0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe"}
+  ],
+  "encounterAdaptations": {
+    "dayNight":"retain paired HnS base labels; unsuffixed is the configured fallback and _Night is TIME_NIGHT",
+    "water12To5":{"sourceIndices":[0,3,7,9,11],"targetWeights":[60,30,5,4,1]}
+  },
   "attributeFixtures": [
     {
       "role":"primary",

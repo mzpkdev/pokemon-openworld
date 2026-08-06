@@ -16877,3 +16877,41 @@ Double Battle: No
 Kyogre
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+// JOHTO IMPORT BEGIN: rival trainers
+=== TRAINER_RIVAL_CHIKORITA_1 ===
+Name: ???
+Class: Rival
+Pic: Wally
+Gender: Male
+Music: Male
+Battle Type: Singles
+
+Chikorita
+Level: 5
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_RIVAL_CYNDAQUIL_1 ===
+Name: ???
+Class: Rival
+Pic: Wally
+Gender: Male
+Music: Male
+Battle Type: Singles
+
+Cyndaquil
+Level: 5
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_RIVAL_TOTODILE_1 ===
+Name: ???
+Class: Rival
+Pic: Wally
+Gender: Male
+Music: Male
+Battle Type: Singles
+
+Totodile
+Level: 5
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+// JOHTO IMPORT END: rival trainers
