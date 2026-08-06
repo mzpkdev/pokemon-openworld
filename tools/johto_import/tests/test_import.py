@@ -525,6 +525,24 @@ class AtomicOutputTests(unittest.TestCase):
         )
         self.assertEqual(emitted["gMapGroup_New"], ["MapA", "MapB"])
 
+    def test_group_emission_keeps_locked_inactive_placeholder(self):
+        emitted = johto_import._materialized_group_registry(
+            {"group_order": ["gMapGroup_Base"], "gMapGroup_Base": []},
+            [
+                {
+                    "name": "SafariZoneGate",
+                    "targetGroup": "gMapGroup_SafariZoneJohto",
+                    "targetMember": 0,
+                }
+            ],
+            [
+                {"name": "gMapGroup_IndoorSSAqua", "targetId": 1},
+                {"name": "gMapGroup_SafariZoneJohto", "targetId": 2},
+            ],
+        )
+        self.assertEqual(emitted["gMapGroup_IndoorSSAqua"], [])
+        self.assertEqual(emitted["gMapGroup_SafariZoneJohto"], ["SafariZoneGate"])
+
     def test_active_layout_selection_includes_mapless_orphan_at_locked_index(self):
         root = Path(__file__).parents[1]
         manifest = johto_import.load_manifest(root / "import_manifest.json")
@@ -1367,11 +1385,11 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
         )
         selected_layouts = johto_import.active_layout_selection(manifest, lock)
-        self.assertEqual(len(selected), 193)
-        self.assertEqual(len(selected_layouts), 194)
+        self.assertEqual(len(selected), 217)
+        self.assertEqual(len(selected_layouts), 218)
         self.assertEqual(
             manifest["activeBatches"][-2:],
-            ["mahogany-hns", "blackthorn-ice-dark-den"],
+            ["safari", "mt-silver"],
         )
         selected_names = {item["name"] for item in selected}
         self.assertTrue(set(johto_import.FALLBACK_MAPS[-3:]).isdisjoint(selected_names))
@@ -1379,9 +1397,18 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             [
                 edge
                 for edge in manifest["deferredEdges"]
-                if edge["destination"] == "MAP_ROUTE46"
+                if edge["destination"] == "MAP_MT_SILVER_OUTSIDE"
             ],
             [],
+        )
+        self.assertIn(
+            {
+                "source": "Route28",
+                "path": "connections/0",
+                "kind": "connection",
+                "destination": "MAP_MT_SILVER_OUTSIDE",
+            },
+            manifest["retainedEdges"],
         )
         self.assertEqual(closure.maps, tuple(item["name"] for item in selected))
         self.assertEqual(

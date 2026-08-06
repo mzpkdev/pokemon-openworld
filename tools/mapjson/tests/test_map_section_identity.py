@@ -122,7 +122,7 @@ class MapSectionIdentityTests(unittest.TestCase):
     ) -> None:
         registry = self.mutated_registry()
         compatibility = copy.deepcopy(self.compatibility)
-        synthetic_values = (258, 259, 260, 261, 300)
+        synthetic_values = (267, 268, 269, 270, 300)
         defined = {section["value"] for section in registry["map_sections"]}
         for index, value in enumerate(synthetic_values):
             registry["map_sections"].append(

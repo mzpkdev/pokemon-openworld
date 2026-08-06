@@ -29,7 +29,13 @@ ACTIVE_JOHTO_LAYOUT_IDS = {
 ACTIVE_JOHTO_LAYOUTS = [
     item for item in JOHTO_LOCK["layouts"] if item["id"] in ACTIVE_JOHTO_LAYOUT_IDS
 ]
-ACTIVE_JOHTO_GROUPS = {item["targetGroup"] for item in ACTIVE_JOHTO_MAPS}
+ACTIVE_JOHTO_GROUPS = {item["targetGroup"] for item in ACTIVE_JOHTO_MAPS} | {
+    item["name"] for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+}
+INACTIVE_JOHTO_GROUPS = {
+    item["targetId"]: item["name"]
+    for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+}
 ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in ACTIVE_JOHTO_MAPS}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935
@@ -196,7 +202,13 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     }
     if any(region is None for region in group_regions.values()):
         raise ManifestError("groups must use the product map-group namespace")
-    if any(count <= 0 for count in group_counts.values()):
+    empty_groups = {
+        group["number"]: group["name"] for group in groups if group["mapCount"] == 0
+    }
+    if (
+        any(count < 0 for count in group_counts.values())
+        or empty_groups != INACTIVE_JOHTO_GROUPS
+    ):
         raise ManifestError("every product group must be non-null")
     seen_slots = {(entry["group"], entry["number"]) for entry in maps}
     expected_slots = {

@@ -120,6 +120,7 @@ LAYOUT_HEADER_DECISION_KEYS = (
     ("LAYOUT_GOLDENROD_CITY_GAME_CORNER", "secondary_tileset"),
     ("LAYOUT_NATIONAL_PARK_NORMAL", "primary_tileset"),
     ("LAYOUT_NATIONAL_PARK_BUG_CONTEST", "primary_tileset"),
+    ("LAYOUT_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE", "name"),
 )
 MAP_FIELD_DECISION_KEYS = (("ReceptionGate", "region_map_section"),)
 LAYOUT_TILESET_REMAP_KEYS = (("LAYOUT_ROUTE34_DAY_CARE", "secondary_tileset"),)
@@ -143,7 +144,9 @@ PRESERVE_SPATIAL_UPDATE_KEYS = (
         "blackthorn-ice-dark-den",
         ("connections", "warp_events"),
     ),
+    ("Route28", "mt-silver", ("connections",)),
 )
+INACTIVE_GROUP_PLACEHOLDER_KEYS = (("gMapGroup_IndoorSSAqua", 96, "aqua-vermilion"),)
 BATCH_GROUPS = {
     "early-violet-ruins": (
         "gMapGroup_JohtoViolet",
@@ -1008,13 +1011,15 @@ def _validate_allocations(
         raise ImportError("duplicate allocation: targetLayoutIndex")
     for label, values in (
         ("layout", layout_indices),
-        ("group", [item.get("targetId") for item in groups]),
         ("section", [item.get("targetId") for item in sections]),
     ):
         if not values or any(not isinstance(value, int) for value in values):
             raise ImportError(f"{label} allocations must be integers")
         if sorted(values) != list(range(min(values), min(values) + len(values))):
             raise ImportError(f"{label} allocations must be append-only and contiguous")
+    group_ids = [item.get("targetId") for item in groups]
+    if not group_ids or any(not isinstance(value, int) for value in group_ids):
+        raise ImportError("group allocations must be integers")
     group_names = {str(item["name"]) for item in groups}
     selected_groups = {str(item.get("targetGroup")) for item in selection}
     unknown_groups = sorted(selected_groups - group_names)
@@ -1022,7 +1027,10 @@ def _validate_allocations(
         raise ImportError(
             f"selected map uses unallocated targetGroup: {', '.join(unknown_groups)}"
         )
-    if selected_groups != group_names:
+    placeholder_names = {
+        str(item["name"]) for item in _inactive_group_placeholders(manifest)
+    }
+    if group_names - selected_groups != placeholder_names - selected_groups:
         raise ImportError("group allocation has no selected map")
     section_ids = {str(item["name"]): item["targetId"] for item in sections}
     for item in selection:
@@ -1477,6 +1485,9 @@ def load_manifest(path: Path) -> dict[str, Any]:
         raise ImportError("manifest selection is malformed")
     selection["maps"] = active_selection(manifest, lock)
     selected_groups = {item["targetGroup"] for item in selection["maps"]}
+    selected_groups.update(
+        str(item["name"]) for item in _inactive_group_placeholders(manifest)
+    )
     selected_sections = {item["section"] for item in selection["maps"]}
     manifest["groupAllocations"] = sorted(
         (item for item in lock["groups"] if item["name"] in selected_groups),
@@ -1535,6 +1546,22 @@ def _preserve_spatial_updates(
         )
     if actual != list(PRESERVE_SPATIAL_UPDATE_KEYS):
         raise ImportError("preserve spatial update allowlist drift")
+    return records
+
+
+def _inactive_group_placeholders(
+    manifest: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    records = manifest.get("inactiveGroupPlaceholders")
+    if not isinstance(records, list):
+        raise ImportError("inactive group placeholder allowlist drift")
+    actual = [
+        (item.get("name"), item.get("targetId"), item.get("activationBatch"))
+        for item in records
+        if isinstance(item, dict)
+    ]
+    if actual != list(INACTIVE_GROUP_PLACEHOLDER_KEYS):
+        raise ImportError("inactive group placeholder allowlist drift")
     return records
 
 

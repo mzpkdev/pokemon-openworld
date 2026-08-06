@@ -2199,12 +2199,6 @@
     },
     {
       "source": "Route28",
-      "path": "connections/0",
-      "kind": "connection",
-      "destination": "MAP_MT_SILVER_OUTSIDE"
-    },
-    {
-      "source": "Route28",
       "path": "connections/1",
       "kind": "connection",
       "destination": "MAP_ROUTE26NORTH"
@@ -2234,10 +2228,16 @@
       "destination": "MAP_TRAINER_HILL_COURTYARD"
     },
     {
-      "source": "Route48",
+      "source": "SafariZone_Low_Left",
       "path": "connections/1",
       "kind": "connection",
-      "destination": "MAP_SAFARI_ZONE_GATE"
+      "destination": "MAP_SAFARI_ZONE_TOP_LEFT"
+    },
+    {
+      "source": "SafariZone_Top_Mid",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_SAFARI_ZONE_TOP_LEFT"
     }
   ],
   "warpRemovals": [
@@ -2316,6 +2316,20 @@
         "connections",
         "warp_events"
       ]
+    },
+    {
+      "source": "Route28",
+      "activationBatch": "mt-silver",
+      "fields": [
+        "connections"
+      ]
+    }
+  ],
+  "inactiveGroupPlaceholders": [
+    {
+      "name": "gMapGroup_IndoorSSAqua",
+      "targetId": 96,
+      "activationBatch": "aqua-vermilion"
     }
   ],
   "retainedEdges": [
@@ -6860,7 +6874,71 @@
       "path": "warp_events/2",
       "kind": "warp",
       "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
-    }
+    },
+    {"source":"MtSilver_1F_ItemRoom","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_1F_MoltresRoom","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_OUTSIDE"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_1F_MOLTRES_ROOM"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/2","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/3","kind":"warp","destination":"MAP_MT_SILVER_MOUNTAIN_SIDE"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/4","kind":"warp","destination":"MAP_MT_SILVER_MOUNTAIN_SIDE"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/5","kind":"warp","destination":"MAP_MT_SILVER_1F_ITEM_ROOM"},
+    {"source":"MtSilver_1F_WaterfallRoom","path":"warp_events/6","kind":"warp","destination":"MAP_MT_SILVER_MOUNTAIN_SIDE"},
+    {"source":"MtSilver_2F","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_2F","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_2F","path":"warp_events/2","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_2F","path":"warp_events/3","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_2F","path":"warp_events/4","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_2F","path":"warp_events/5","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_2F","path":"warp_events/6","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_3F","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_SUMMIT_DAY"},
+    {"source":"MtSilver_3F","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_SNOW"},
+    {"source":"MtSilver_MountainSide","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_MountainSide","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_MountainSide","path":"warp_events/2","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_Outside","path":"connections/0","kind":"connection","destination":"MAP_ROUTE28"},
+    {"source":"MtSilver_Outside","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_1F_WATERFALL_ROOM"},
+    {"source":"MtSilver_Outside","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_POKEMON_CENTER"},
+    {"source":"MtSilver_PokemonCenter","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_OUTSIDE"},
+    {"source":"MtSilver_Snow","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_3F"},
+    {"source":"MtSilver_Snow","path":"warp_events/1","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_Snow","path":"warp_events/2","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_Snow","path":"warp_events/3","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_Snow","path":"warp_events/4","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_Snow","path":"warp_events/5","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_Snow","path":"warp_events/6","kind":"warp","destination":"MAP_MT_SILVER_2F"},
+    {"source":"MtSilver_SummitDay","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_3F"},
+    {"source":"MtSilver_SummitNight","path":"warp_events/0","kind":"warp","destination":"MAP_MT_SILVER_3F"},
+    {"source":"Route28","path":"connections/0","kind":"connection","destination":"MAP_MT_SILVER_OUTSIDE"},
+    {"source":"Route48","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_GATE"},
+    {"source":"SafariZone1","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE2"},
+    {"source":"SafariZone1","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"SafariZone1","path":"warp_events/1","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"SafariZone1","path":"warp_events/2","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"SafariZone2","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE3"},
+    {"source":"SafariZone2","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE1"},
+    {"source":"SafariZone2","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE_INDOOR"},
+    {"source":"SafariZone3","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE2"},
+    {"source":"SafariZoneGate","path":"connections/0","kind":"connection","destination":"MAP_ROUTE48"},
+    {"source":"SafariZoneGate","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE"},
+    {"source":"SafariZoneGate","path":"warp_events/1","kind":"warp","destination":"MAP_SAFARI_ZONE_GATE_POKEMON_CENTER"},
+    {"source":"SafariZoneGate_PokemonCenter","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE_GATE"},
+    {"source":"SafariZoneGate_SafariZoneEntrance","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE_ENTERANCE"},
+    {"source":"SafariZoneGate_SafariZoneEntrance","path":"warp_events/1","kind":"warp","destination":"MAP_SAFARI_ZONE_GATE"},
+    {"source":"SafariZoneIndoor","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE2"},
+    {"source":"SafariZone_Enterance","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_MID"},
+    {"source":"SafariZone_Enterance","path":"warp_events/0","kind":"warp","destination":"MAP_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE"},
+    {"source":"SafariZone_Low_Left","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_MID"},
+    {"source":"SafariZone_Low_Mid","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_ENTERANCE"},
+    {"source":"SafariZone_Low_Mid","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_LEFT"},
+    {"source":"SafariZone_Low_Mid","path":"connections/2","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_RIGHT"},
+    {"source":"SafariZone_Low_Mid","path":"connections/3","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_MID"},
+    {"source":"SafariZone_Low_Right","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_MID"},
+    {"source":"SafariZone_Low_Right","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_RIGHT"},
+    {"source":"SafariZone_Top_Mid","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_RIGHT"},
+    {"source":"SafariZone_Top_Mid","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_MID"},
+    {"source":"SafariZone_Top_Right","path":"connections/0","kind":"connection","destination":"MAP_SAFARI_ZONE_TOP_MID"},
+    {"source":"SafariZone_Top_Right","path":"connections/1","kind":"connection","destination":"MAP_SAFARI_ZONE_LOW_RIGHT"}
   ],
   "graphicsAdaptations": [
     {
@@ -7093,6 +7171,14 @@
     {
       "hns": "MUS_HG_ROUTE42",
       "target": "MUS_ROUTE119"
+    },
+    {
+      "hns": "MUS_HG_SAFARI_ZONE",
+      "target": "MUS_SAFARI_ZONE"
+    },
+    {
+      "hns": "MUS_HG_SAFARI_ZONE_GATE",
+      "target": "MUS_SAFARI_ZONE"
     }
   ],
   "regionAssignment": {
@@ -7785,6 +7871,38 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "mt_silver_snow",
+      "symbol": "MtSilverSnow",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "pokemon_center_white",
+      "symbol": "PokemonCenter_White",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "safari_zone_entrance",
+      "symbol": "SafariZone_Entrance",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "safari_zone_johto",
+      "symbol": "SafariZoneJohto",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "layoutTilesetRemaps": [
@@ -7938,7 +8056,9 @@
     "ecruteak-towers",
     "olivine-cianwood-whirl",
     "mahogany-hns",
-    "blackthorn-ice-dark-den"
+    "blackthorn-ice-dark-den",
+    "safari",
+    "mt-silver"
   ],
   "batches": [
     {
@@ -8690,6 +8810,13 @@
       "field": "primary_tileset",
       "hns": "gTileset_Kanto_General",
       "mechanical": "gTileset_General_Frlg",
+      "authority": "mechanical"
+    },
+    {
+      "layout": "LAYOUT_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE",
+      "field": "name",
+      "hns": "SafariZoneGate_SafariZoneGate_SafariZoneEntrance_Layout",
+      "mechanical": "SafariZoneGate_SafariZoneEntrance_Layout",
       "authority": "mechanical"
     }
   ],

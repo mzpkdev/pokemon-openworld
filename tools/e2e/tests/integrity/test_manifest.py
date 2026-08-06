@@ -407,6 +407,18 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
             "gTileset_Blackthorn",
             "exterior",
         ),
+        (
+            "SafariZoneGate",
+            "gTileset_Johto_NorthEast",
+            "gTileset_SafariZoneJohto",
+            "exterior",
+        ),
+        (
+            "MtSilver_1F_WaterfallRoom",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Gray",
+            "cave",
+        ),
     ],
 )
 def test_johto_representative_kind_is_derived_from_known_tilesets(

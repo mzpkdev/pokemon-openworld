@@ -1923,6 +1923,12 @@ static void DebugAction_Util_Warp_SelectMapGroup(u8 taskId)
 
     if (JOY_NEW(A_BUTTON))
     {
+        if (MAP_GROUP_COUNT[gTasks[taskId].tInput] == 0)
+        {
+            PlaySE(SE_FAILURE);
+            return;
+        }
+
         gTasks[taskId].tMapGroup = gTasks[taskId].tInput;
         gTasks[taskId].tInput = 0;
         gTasks[taskId].tDigit = 0;

@@ -581,10 +581,14 @@ string generate_groups_text(Json groups_data, vector<string> &invalid_maps) {
             }
         }
 
-        if (valid_maps.size() > 0) {
+        const bool reviewed_empty_group = group == "gMapGroup_IndoorSSAqua"
+            && maps.empty();
+        if (valid_maps.size() > 0 || reviewed_empty_group) {
             text << group << "::\n";
             for (string map : valid_maps)
                 text << "\t.4byte " << map << "\n";
+            if (reviewed_empty_group)
+                text << "\t.4byte " << group << "\n";
             text << "\n";
             valid_groups.push_back(group);
         }
@@ -797,14 +801,17 @@ static string generate_debug_map_names_text(const Json &groups_data,
                 valid_maps.push_back(map_name);
         }
 
-        group_has_maps.push_back(!valid_maps.empty());
+        const bool reviewed_empty_group = group_number == 96
+            && group_name == "gMapGroup_IndoorSSAqua" && valid_maps.empty()
+            && groups_data[group_name].array_items().empty();
+        group_has_maps.push_back(!valid_maps.empty() || reviewed_empty_group);
         text << "static const u8 sDebugMapGroupName_" << group_number << "[] = _(";
         text << '"' << humanize_debug_group_name(group_name) << "\");\n";
         for (size_t map_number = 0; map_number < valid_maps.size(); map_number++) {
             text << "static const u8 sDebugMapName_" << group_number << "_" << map_number << "[] = _(";
             text << '"' << humanize_debug_map_name(valid_maps[map_number]) << "\");\n";
         }
-        if (!valid_maps.empty()) {
+        if (!valid_maps.empty() || reviewed_empty_group) {
             text << "static const u8 *const sDebugMapNames_" << group_number << "[] =\n{\n";
             for (size_t map_number = 0; map_number < valid_maps.size(); map_number++)
                 text << "    sDebugMapName_" << group_number << "_" << map_number << ",\n";
@@ -1758,6 +1765,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         layout_symbols_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "name"));
     int grouped_map_count = 0;
     int nonempty_group_count = 0;
+    int reviewed_empty_group_count = 0;
 
     int group_number = 0;
     for (const Json &group_value : groups_data["group_order"].array_items()) {
@@ -1821,6 +1829,10 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         }
         if (included_count > 0) {
             nonempty_group_count++;
+            required_symbols.insert(group_name);
+        } else if (group_number == 96 && group_name == "gMapGroup_IndoorSSAqua"
+                   && groups_data[group_name].array_items().empty()) {
+            reviewed_empty_group_count++;
             required_symbols.insert(group_name);
         }
         group_records.push_back(Json::object {
@@ -1932,7 +1944,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         }
         const int johto_map_count = region_counts["REGION_JOHTO"];
         const int expected_grouped_maps = 935 + johto_map_count;
-        require_product_registry(nonempty_group_count == group_number,
+        require_product_registry(nonempty_group_count + reviewed_empty_group_count == group_number,
                                  "one or more group pointer slots would be null");
         require_product_registry(grouped_map_count == expected_grouped_maps,
                                  "grouped map count disagrees with the active Johto closure");
@@ -1973,7 +1985,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             {"fileName", policy.IsProduct() ? "pokemon-openworld" : "generator-fixture"},
         }},
         {"counts", Json::object {
-            {"groups", nonempty_group_count},
+            {"groups", nonempty_group_count + reviewed_empty_group_count},
             {"groupedMaps", grouped_map_count},
             {"reviewedMaps", static_cast<int>(map_filepaths.size())},
             {"layouts", included_layout_count},

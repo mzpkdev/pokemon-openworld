@@ -1,5 +1,5 @@
 {
-  "map_section_count": 258,
+  "map_section_count": 259,
   "map_sections": [
     {
       "id": "MAPSEC_LITTLEROOT_TOWN",
@@ -3148,7 +3148,11 @@
       "saved_location": "MAPSEC_MT_SILVER",
       "met_location": 213,
       "met_location_display": "MAPSEC_MT_SILVER",
-      "name": "MT. SILVER"
+      "name": "MT. SILVER",
+      "x": 14,
+      "y": 7,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "MAPSEC_ROUTE_30",
@@ -3809,6 +3813,21 @@
       "y": 4,
       "width": 3,
       "height": 2
+    },
+    {
+      "id": "MAPSEC_SAFARI_ZONE_GATE",
+      "value": 258,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": null,
+      "met_location": null,
+      "met_location_display": null,
+      "name": "SAFARI ZONE GATE",
+      "x": 2,
+      "y": 9,
+      "width": 1,
+      "height": 1
     }
   ]
 }

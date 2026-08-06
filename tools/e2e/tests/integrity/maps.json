@@ -132,6 +132,16 @@
       "name": "BlackthornCity",
       "region": "johto",
       "kind": "exterior"
+    },
+    {
+      "name": "SafariZoneGate",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "MtSilver_1F_WaterfallRoom",
+      "region": "johto",
+      "kind": "cave"
     }
   ],
   "interactions": [
