@@ -1823,15 +1823,22 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
 
     int included_layout_count = 0;
     int layout_number = 1;
+    set<string> referenced_layout_ids;
+    for (const auto &[name, map_data] : maps_by_name)
+        referenced_layout_ids.insert(json_to_string(map_data, "layout"));
+    set<string> orphan_johto_layout_ids;
     for (const Json &layout : layouts_data["layouts"].array_items()) {
         const string format = json_to_string(layout, "format");
         GetLayoutFormatSpec(format);
         if (policy.IncludesLayout(format)) {
             const string layout_name = json_to_string(layout, "name");
+            const string layout_id = json_to_string(layout, "id");
+            if (format == "johto" && !referenced_layout_ids.count(layout_id))
+                orphan_johto_layout_ids.insert(layout_id);
             const string primary_tileset = json_to_string(layout, "primary_tileset");
             const string secondary_tileset = json_to_string(layout, "secondary_tileset");
             layout_records.push_back(Json::object {
-                {"id", json_to_string(layout, "id")},
+                {"id", layout_id},
                 {"name", layout_name},
                 {"number", layout_number},
                 {"format", format},
@@ -1922,7 +1929,11 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
         require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
         require_product_registry(johto_map_count > 0, "expected an active Johto closure");
-        require_product_registry(included_layout_count == 785 + johto_map_count,
+        require_product_registry(orphan_johto_layout_ids == set<string> {
+                                     "LAYOUT_TIN_TOWER_ROOF_NIGHT",
+                                 },
+                                 "unexpected active mapless Johto layout closure");
+        require_product_registry(included_layout_count == 786 + johto_map_count,
                                  "layout count disagrees with the active Johto closure");
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");

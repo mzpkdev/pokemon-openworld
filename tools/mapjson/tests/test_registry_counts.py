@@ -124,6 +124,26 @@ class ProductRegistryTests(unittest.TestCase):
             "METATILE_ATTRIBUTES_FRLG_U32",
         )
 
+    def test_tin_tower_night_roof_is_the_only_mapless_johto_layout(self) -> None:
+        johto_layouts = {
+            entry["id"]
+            for entry in self.manifest["layouts"]
+            if entry["format"] == "johto"
+        }
+        referenced = {
+            entry["layoutId"]
+            for entry in self.manifest["maps"]
+            if entry["region"] == "REGION_JOHTO"
+        }
+        self.assertEqual(johto_layouts - referenced, {"LAYOUT_TIN_TOWER_ROOF_NIGHT"})
+        orphan = next(
+            entry
+            for entry in self.manifest["layouts"]
+            if entry["id"] == "LAYOUT_TIN_TOWER_ROOF_NIGHT"
+        )
+        # Product layout numbers are one-based; the importer lock is index 907.
+        self.assertEqual(orphan["number"], 908)
+
     def test_product_pointer_tables_have_no_null_placeholders_and_are_aligned(
         self,
     ) -> None:

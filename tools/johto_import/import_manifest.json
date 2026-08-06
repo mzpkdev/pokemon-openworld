@@ -68,146 +68,2017 @@
       {
         "name": "NewBarkTown",
         "id": "MAP_NEW_BARK_TOWN",
-        "layout": "LAYOUT_NEW_BARK_TOWN",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 0,
+        "layout": "LAYOUT_NEW_BARK_TOWN",
         "targetLayoutIndex": 785,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "NewBarkTown_Lab",
         "id": "MAP_NEW_BARK_TOWN_LAB",
-        "layout": "LAYOUT_NEW_BARK_TOWN_LAB",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorNewBark",
+        "targetGroupId": 76,
+        "targetMember": 0,
+        "layout": "LAYOUT_NEW_BARK_TOWN_LAB",
         "targetLayoutIndex": 786,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "NewBarkTown_House1",
         "id": "MAP_NEW_BARK_TOWN_HOUSE1",
-        "layout": "LAYOUT_NEW_BARK_TOWN_HOUSE1",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorNewBark",
+        "targetGroupId": 76,
+        "targetMember": 1,
+        "layout": "LAYOUT_NEW_BARK_TOWN_HOUSE1",
         "targetLayoutIndex": 787,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "NewBarkTown_House2",
         "id": "MAP_NEW_BARK_TOWN_HOUSE2",
-        "layout": "LAYOUT_NEW_BARK_TOWN_HOUSE2",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorNewBark",
+        "targetGroupId": 76,
+        "targetMember": 2,
+        "layout": "LAYOUT_NEW_BARK_TOWN_HOUSE2",
         "targetLayoutIndex": 788,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "NewBarkTown_PlayersHouse_1F",
         "id": "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
-        "layout": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorNewBark",
+        "targetGroupId": 76,
+        "targetMember": 3,
+        "layout": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
         "targetLayoutIndex": 789,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "NewBarkTown_PlayersHouse_2F",
         "id": "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
-        "layout": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
-        "section": "MAPSEC_NEW_BARK_TOWN",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorNewBark",
+        "targetGroupId": 76,
+        "targetMember": 4,
+        "layout": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
         "targetLayoutIndex": 790,
+        "section": "MAPSEC_NEW_BARK_TOWN",
         "targetSection": 209
       },
       {
         "name": "Route29",
         "id": "MAP_ROUTE29",
-        "layout": "LAYOUT_ROUTE29",
-        "section": "MAPSEC_ROUTE_29",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE29",
         "targetLayoutIndex": 791,
+        "section": "MAPSEC_ROUTE_29",
         "targetSection": 210
       },
       {
         "name": "Gate_Route29_Route46",
         "id": "MAP_GATE_ROUTE29_ROUTE46",
-        "layout": "LAYOUT_GATE_ROUTE29_ROUTE46",
-        "section": "MAPSEC_ROUTE_29",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorBlackthorn",
+        "targetGroupId": 78,
+        "targetMember": 0,
+        "layout": "LAYOUT_GATE_ROUTE29_ROUTE46",
         "targetLayoutIndex": 792,
+        "section": "MAPSEC_ROUTE_29",
         "targetSection": 210
       },
       {
         "name": "CherrygroveCity",
         "id": "MAP_CHERRYGROVE_CITY",
-        "layout": "LAYOUT_CHERRYGROVE_CITY",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 2,
+        "layout": "LAYOUT_CHERRYGROVE_CITY",
         "targetLayoutIndex": 793,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "CherrygroveCity_PokemonCenter",
         "id": "MAP_CHERRYGROVE_CITY_POKEMON_CENTER",
-        "layout": "LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorCherrygrove",
+        "targetGroupId": 77,
+        "targetMember": 0,
+        "layout": "LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER",
         "targetLayoutIndex": 794,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "CherrygroveCity_Mart",
         "id": "MAP_CHERRYGROVE_CITY_MART",
-        "layout": "LAYOUT_CHERRYGROVE_CITY_MART",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorCherrygrove",
+        "targetGroupId": 77,
+        "targetMember": 1,
+        "layout": "LAYOUT_CHERRYGROVE_CITY_MART",
         "targetLayoutIndex": 795,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "CherrygroveCity_House1",
         "id": "MAP_CHERRYGROVE_CITY_HOUSE1",
-        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE1",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorCherrygrove",
+        "targetGroupId": 77,
+        "targetMember": 2,
+        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE1",
         "targetLayoutIndex": 796,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "CherrygroveCity_House2",
         "id": "MAP_CHERRYGROVE_CITY_HOUSE2",
-        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE2",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorCherrygrove",
+        "targetGroupId": 77,
+        "targetMember": 3,
+        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE2",
         "targetLayoutIndex": 797,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "CherrygroveCity_House3",
         "id": "MAP_CHERRYGROVE_CITY_HOUSE3",
-        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE3",
-        "section": "MAPSEC_CHERRYGROVE_CITY",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_IndoorCherrygrove",
+        "targetGroupId": 77,
+        "targetMember": 4,
+        "layout": "LAYOUT_CHERRYGROVE_CITY_HOUSE3",
         "targetLayoutIndex": 798,
+        "section": "MAPSEC_CHERRYGROVE_CITY",
         "targetSection": 211
       },
       {
         "name": "Route28",
         "id": "MAP_ROUTE28",
-        "layout": "LAYOUT_ROUTE28",
-        "section": "MAPSEC_ROUTE_28",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_MtSilver",
+        "targetGroupId": 79,
+        "targetMember": 0,
+        "layout": "LAYOUT_ROUTE28",
         "targetLayoutIndex": 799,
+        "section": "MAPSEC_ROUTE_28",
         "targetSection": 212
       },
       {
         "name": "Route28_House",
         "id": "MAP_ROUTE28_HOUSE",
-        "layout": "LAYOUT_ROUTE28_HOUSE",
-        "section": "MAPSEC_MT_SILVER",
+        "batch": "baseline",
+        "materialization": "preserve",
         "targetGroup": "gMapGroup_MtSilver",
+        "targetGroupId": 79,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE28_HOUSE",
         "targetLayoutIndex": 800,
+        "section": "MAPSEC_MT_SILVER",
         "targetSection": 213
+      },
+      {
+        "name": "Route30",
+        "id": "MAP_ROUTE30",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 3,
+        "layout": "LAYOUT_ROUTE30",
+        "targetLayoutIndex": 801,
+        "section": "MAPSEC_ROUTE_30",
+        "targetSection": 214
+      },
+      {
+        "name": "Route31",
+        "id": "MAP_ROUTE31",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 4,
+        "layout": "LAYOUT_ROUTE31",
+        "targetLayoutIndex": 802,
+        "section": "MAPSEC_ROUTE_31",
+        "targetSection": 215
+      },
+      {
+        "name": "Route32",
+        "id": "MAP_ROUTE32",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 5,
+        "layout": "LAYOUT_ROUTE32",
+        "targetLayoutIndex": 803,
+        "section": "MAPSEC_ROUTE_32",
+        "targetSection": 216
+      },
+      {
+        "name": "VioletCity",
+        "id": "MAP_VIOLET_CITY",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 6,
+        "layout": "LAYOUT_VIOLET_CITY",
+        "targetLayoutIndex": 804,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "RuinsOfAlph_Outside",
+        "id": "MAP_RUINS_OF_ALPH_OUTSIDE",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
+        "targetGroupId": 75,
+        "targetMember": 7,
+        "layout": "LAYOUT_RUINS_OF_ALPH_OUTSIDE",
+        "targetLayoutIndex": 805,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "VioletCity_Gym",
+        "id": "MAP_VIOLET_CITY_GYM",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 0,
+        "layout": "LAYOUT_VIOLET_CITY_GYM",
+        "targetLayoutIndex": 806,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "VioletCity_House1",
+        "id": "MAP_VIOLET_CITY_HOUSE1",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 1,
+        "layout": "LAYOUT_VIOLET_CITY_HOUSE1",
+        "targetLayoutIndex": 807,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "VioletCity_House2",
+        "id": "MAP_VIOLET_CITY_HOUSE2",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 2,
+        "layout": "LAYOUT_VIOLET_CITY_HOUSE2",
+        "targetLayoutIndex": 808,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "VioletCity_Mart",
+        "id": "MAP_VIOLET_CITY_MART",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 3,
+        "layout": "LAYOUT_VIOLET_CITY_MART",
+        "targetLayoutIndex": 809,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "VioletCity_PokemonCenter",
+        "id": "MAP_VIOLET_CITY_POKEMON_CENTER",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 4,
+        "layout": "LAYOUT_VIOLET_CITY_POKEMON_CENTER",
+        "targetLayoutIndex": 810,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "VioletCity_TrainerSchool",
+        "id": "MAP_VIOLET_CITY_TRAINER_SCHOOL",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 5,
+        "layout": "LAYOUT_VIOLET_CITY_TRAINER_SCHOOL",
+        "targetLayoutIndex": 811,
+        "section": "MAPSEC_VIOLET_CITY",
+        "targetSection": 217
+      },
+      {
+        "name": "SproutTower_1F",
+        "id": "MAP_SPROUT_TOWER_1F",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 6,
+        "layout": "LAYOUT_SPROUT_TOWER_1F",
+        "targetLayoutIndex": 812,
+        "section": "MAPSEC_SPROUT_TOWER",
+        "targetSection": 219
+      },
+      {
+        "name": "SproutTower_2F",
+        "id": "MAP_SPROUT_TOWER_2F",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 7,
+        "layout": "LAYOUT_SPROUT_TOWER_2F",
+        "targetLayoutIndex": 813,
+        "section": "MAPSEC_SPROUT_TOWER",
+        "targetSection": 219
+      },
+      {
+        "name": "SproutTower_3F",
+        "id": "MAP_SPROUT_TOWER_3F",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 8,
+        "layout": "LAYOUT_SPROUT_TOWER_3F",
+        "targetLayoutIndex": 814,
+        "section": "MAPSEC_SPROUT_TOWER",
+        "targetSection": 219
+      },
+      {
+        "name": "Route32_PokemonCenter",
+        "id": "MAP_ROUTE32_POKEMON_CENTER",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoViolet",
+        "targetGroupId": 80,
+        "targetMember": 9,
+        "layout": "LAYOUT_ROUTE32_POKEMON_CENTER",
+        "targetLayoutIndex": 815,
+        "section": "MAPSEC_ROUTE_32",
+        "targetSection": 216
+      },
+      {
+        "name": "Gate_Route31_VioletCity",
+        "id": "MAP_GATE_ROUTE31_VIOLET_CITY",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 0,
+        "layout": "LAYOUT_GATE_ROUTE31_VIOLET_CITY",
+        "targetLayoutIndex": 816,
+        "section": "MAPSEC_ROUTE_31",
+        "targetSection": 215
+      },
+      {
+        "name": "Gate_RuinsOfAlph_Route32",
+        "id": "MAP_GATE_RUINS_OF_ALPH_ROUTE32",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 1,
+        "layout": "LAYOUT_GATE_RUINS_OF_ALPH_ROUTE32",
+        "targetLayoutIndex": 817,
+        "section": "MAPSEC_ROUTE_32",
+        "targetSection": 216
+      },
+      {
+        "name": "Gate_RuinsOfAlph_Route36",
+        "id": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 2,
+        "layout": "LAYOUT_GATE_RUINS_OF_ALPH_ROUTE36",
+        "targetLayoutIndex": 818,
+        "section": "MAPSEC_ROUTE_36",
+        "targetSection": 220
+      },
+      {
+        "name": "RuinsOfAlph_Lab",
+        "id": "MAP_RUINS_OF_ALPH_LAB",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 3,
+        "layout": "LAYOUT_RUINS_OF_ALPH_LAB",
+        "targetLayoutIndex": 819,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_B1F",
+        "id": "MAP_RUINS_OF_ALPH_B1F",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 4,
+        "layout": "LAYOUT_RUINS_OF_ALPH_B1F",
+        "targetLayoutIndex": 820,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_PuzzleAndRewardChambers",
+        "id": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 5,
+        "layout": "LAYOUT_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS",
+        "targetLayoutIndex": 821,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_WordsRoom1",
+        "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM1",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 6,
+        "layout": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM1",
+        "targetLayoutIndex": 822,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_WordsRoom2",
+        "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM2",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 7,
+        "layout": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM2",
+        "targetLayoutIndex": 823,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_WordsRoom3",
+        "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM3",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 8,
+        "layout": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM3",
+        "targetLayoutIndex": 824,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "RuinsOfAlph_WordsRoom4",
+        "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM4",
+        "batch": "early-violet-ruins",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoRuins",
+        "targetGroupId": 81,
+        "targetMember": 9,
+        "layout": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM4",
+        "targetLayoutIndex": 825,
+        "section": "MAPSEC_RUINS_OF_ALPH",
+        "targetSection": 218
+      },
+      {
+        "name": "AzaleaTown",
+        "id": "MAP_AZALEA_TOWN",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoAzalea",
+        "targetGroupId": 82,
+        "targetMember": 0,
+        "layout": "LAYOUT_AZALEA_TOWN",
+        "targetLayoutIndex": 826,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "Route33",
+        "id": "MAP_ROUTE33",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoAzalea",
+        "targetGroupId": 82,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE33",
+        "targetLayoutIndex": 827,
+        "section": "MAPSEC_ROUTE_33",
+        "targetSection": 222
+      },
+      {
+        "name": "Route34",
+        "id": "MAP_ROUTE34",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoAzalea",
+        "targetGroupId": 82,
+        "targetMember": 2,
+        "layout": "LAYOUT_ROUTE34",
+        "targetLayoutIndex": 828,
+        "section": "MAPSEC_ROUTE_34",
+        "targetSection": 223
+      },
+      {
+        "name": "IlexForest",
+        "id": "MAP_ILEX_FOREST",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoAzalea",
+        "targetGroupId": 82,
+        "targetMember": 3,
+        "layout": "LAYOUT_ILEX_FOREST",
+        "targetLayoutIndex": 829,
+        "section": "MAPSEC_ILEX_FOREST",
+        "targetSection": 224
+      },
+      {
+        "name": "AzaleaTown_Gym",
+        "id": "MAP_AZALEA_TOWN_GYM",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 0,
+        "layout": "LAYOUT_AZALEA_TOWN_GYM",
+        "targetLayoutIndex": 830,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "AzaleaTown_House1",
+        "id": "MAP_AZALEA_TOWN_HOUSE1",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 1,
+        "layout": "LAYOUT_AZALEA_TOWN_HOUSE1",
+        "targetLayoutIndex": 831,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "AzaleaTown_KurtsHouse",
+        "id": "MAP_AZALEA_TOWN_KURTS_HOUSE",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 2,
+        "layout": "LAYOUT_AZALEA_TOWN_KURTS_HOUSE",
+        "targetLayoutIndex": 832,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "AzaleaTown_Mart",
+        "id": "MAP_AZALEA_TOWN_MART",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 3,
+        "layout": "LAYOUT_AZALEA_TOWN_MART",
+        "targetLayoutIndex": 833,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "AzaleaTown_PokemonCenter",
+        "id": "MAP_AZALEA_TOWN_POKEMON_CENTER",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 4,
+        "layout": "LAYOUT_AZALEA_TOWN_POKEMON_CENTER",
+        "targetLayoutIndex": 834,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "Route34_DayCare",
+        "id": "MAP_ROUTE34_DAY_CARE",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorAzalea",
+        "targetGroupId": 83,
+        "targetMember": 5,
+        "layout": "LAYOUT_ROUTE34_DAY_CARE",
+        "targetLayoutIndex": 835,
+        "section": "MAPSEC_ROUTE_34",
+        "targetSection": 223
+      },
+      {
+        "name": "Gate_AzaleaTown_IlexForest",
+        "id": "MAP_GATE_AZALEA_TOWN_ILEX_FOREST",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 0,
+        "layout": "LAYOUT_GATE_AZALEA_TOWN_ILEX_FOREST",
+        "targetLayoutIndex": 836,
+        "section": "MAPSEC_AZALEA_TOWN",
+        "targetSection": 221
+      },
+      {
+        "name": "Gate_IlexForest_Route34",
+        "id": "MAP_GATE_ILEX_FOREST_ROUTE34",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 1,
+        "layout": "LAYOUT_GATE_ILEX_FOREST_ROUTE34",
+        "targetLayoutIndex": 837,
+        "section": "MAPSEC_ROUTE_34",
+        "targetSection": 223
+      },
+      {
+        "name": "UnionCave_1F",
+        "id": "MAP_UNION_CAVE_1F",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 2,
+        "layout": "LAYOUT_UNION_CAVE_1F",
+        "targetLayoutIndex": 838,
+        "section": "MAPSEC_UNION_CAVE",
+        "targetSection": 225
+      },
+      {
+        "name": "UnionCave_B1F",
+        "id": "MAP_UNION_CAVE_B1F",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 3,
+        "layout": "LAYOUT_UNION_CAVE_B1F",
+        "targetLayoutIndex": 839,
+        "section": "MAPSEC_UNION_CAVE",
+        "targetSection": 225
+      },
+      {
+        "name": "UnionCave_B2F",
+        "id": "MAP_UNION_CAVE_B2F",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 4,
+        "layout": "LAYOUT_UNION_CAVE_B2F",
+        "targetLayoutIndex": 840,
+        "section": "MAPSEC_UNION_CAVE",
+        "targetSection": 225
+      },
+      {
+        "name": "SlowpokeWell_B1F",
+        "id": "MAP_SLOWPOKE_WELL_B1F",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 5,
+        "layout": "LAYOUT_SLOWPOKE_WELL_B1F",
+        "targetLayoutIndex": 841,
+        "section": "MAPSEC_SLOWPOKE_WELL",
+        "targetSection": 226
+      },
+      {
+        "name": "SlowpokeWell_B2F",
+        "id": "MAP_SLOWPOKE_WELL_B2F",
+        "batch": "azalea-union-ilex",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoUnion",
+        "targetGroupId": 84,
+        "targetMember": 6,
+        "layout": "LAYOUT_SLOWPOKE_WELL_B2F",
+        "targetLayoutIndex": 842,
+        "section": "MAPSEC_SLOWPOKE_WELL",
+        "targetSection": 226
+      },
+      {
+        "name": "GoldenrodCity",
+        "id": "MAP_GOLDENROD_CITY",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 0,
+        "layout": "LAYOUT_GOLDENROD_CITY",
+        "targetLayoutIndex": 843,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "Route35",
+        "id": "MAP_ROUTE35",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE35",
+        "targetLayoutIndex": 844,
+        "section": "MAPSEC_ROUTE_35",
+        "targetSection": 228
+      },
+      {
+        "name": "Route36",
+        "id": "MAP_ROUTE36",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 2,
+        "layout": "LAYOUT_ROUTE36",
+        "targetLayoutIndex": 845,
+        "section": "MAPSEC_ROUTE_36",
+        "targetSection": 220
+      },
+      {
+        "name": "Route37",
+        "id": "MAP_ROUTE37",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 3,
+        "layout": "LAYOUT_ROUTE37",
+        "targetLayoutIndex": 846,
+        "section": "MAPSEC_ROUTE_37",
+        "targetSection": 229
+      },
+      {
+        "name": "NationalPark_Normal",
+        "id": "MAP_NATIONAL_PARK_NORMAL",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 4,
+        "layout": "LAYOUT_NATIONAL_PARK_NORMAL",
+        "targetLayoutIndex": 847,
+        "section": "MAPSEC_NATIONAL_PARK",
+        "targetSection": 230
+      },
+      {
+        "name": "NationalPark_BugContest",
+        "id": "MAP_NATIONAL_PARK_BUG_CONTEST",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 5,
+        "layout": "LAYOUT_NATIONAL_PARK_BUG_CONTEST",
+        "targetLayoutIndex": 848,
+        "section": "MAPSEC_NATIONAL_PARK",
+        "targetSection": 230
+      },
+      {
+        "name": "Gate_GoldenrodCity_Route35",
+        "id": "MAP_GATE_GOLDENROD_CITY_ROUTE35",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 6,
+        "layout": "LAYOUT_GATE_GOLDENROD_CITY_ROUTE35",
+        "targetLayoutIndex": 849,
+        "section": "MAPSEC_ROUTE_35",
+        "targetSection": 228
+      },
+      {
+        "name": "Gate_NationalPark",
+        "id": "MAP_GATE_NATIONAL_PARK",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoGoldenrod",
+        "targetGroupId": 85,
+        "targetMember": 7,
+        "layout": "LAYOUT_GATE_NATIONAL_PARK",
+        "targetLayoutIndex": 850,
+        "section": "MAPSEC_NATIONAL_PARK",
+        "targetSection": 230
+      },
+      {
+        "name": "GoldenrodCity_BikeShop",
+        "id": "MAP_GOLDENROD_CITY_BIKE_SHOP",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 0,
+        "layout": "LAYOUT_GOLDENROD_CITY_BIKE_SHOP",
+        "targetLayoutIndex": 851,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_BillsHouse",
+        "id": "MAP_GOLDENROD_CITY_BILLS_HOUSE",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 1,
+        "layout": "LAYOUT_GOLDENROD_CITY_BILLS_HOUSE",
+        "targetLayoutIndex": 852,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStoreBasement",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_BASEMENT",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 2,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_BASEMENT",
+        "targetLayoutIndex": 853,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStoreElevator",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 3,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR",
+        "targetLayoutIndex": 854,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_1F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_1F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 4,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_1F",
+        "targetLayoutIndex": 855,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_2F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_2F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 5,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_2F",
+        "targetLayoutIndex": 856,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_3F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_3F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 6,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_3F",
+        "targetLayoutIndex": 857,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_4F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_4F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 7,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_4F",
+        "targetLayoutIndex": 858,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_5F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_5F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 8,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_5F",
+        "targetLayoutIndex": 859,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_6F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_6F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 9,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_6F",
+        "targetLayoutIndex": 860,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_7F",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_7F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 10,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_7F",
+        "targetLayoutIndex": 861,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_DepartmentStore_7FNight",
+        "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_7FNIGHT",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 11,
+        "layout": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_7FNIGHT",
+        "targetLayoutIndex": 862,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_FlowerShop",
+        "id": "MAP_GOLDENROD_CITY_FLOWER_SHOP",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 12,
+        "layout": "LAYOUT_GOLDENROD_CITY_FLOWER_SHOP",
+        "targetLayoutIndex": 863,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_GameCorner",
+        "id": "MAP_GOLDENROD_CITY_GAME_CORNER",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 13,
+        "layout": "LAYOUT_GOLDENROD_CITY_GAME_CORNER",
+        "targetLayoutIndex": 864,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_Gym",
+        "id": "MAP_GOLDENROD_CITY_GYM",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 14,
+        "layout": "LAYOUT_GOLDENROD_CITY_GYM",
+        "targetLayoutIndex": 865,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_House1",
+        "id": "MAP_GOLDENROD_CITY_HOUSE1",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 15,
+        "layout": "LAYOUT_GOLDENROD_CITY_HOUSE1",
+        "targetLayoutIndex": 866,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_House2",
+        "id": "MAP_GOLDENROD_CITY_HOUSE2",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 16,
+        "layout": "LAYOUT_GOLDENROD_CITY_HOUSE2",
+        "targetLayoutIndex": 867,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_House3",
+        "id": "MAP_GOLDENROD_CITY_HOUSE3",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 17,
+        "layout": "LAYOUT_GOLDENROD_CITY_HOUSE3",
+        "targetLayoutIndex": 868,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_PokemonCenter",
+        "id": "MAP_GOLDENROD_CITY_POKEMON_CENTER",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 18,
+        "layout": "LAYOUT_GOLDENROD_CITY_POKEMON_CENTER",
+        "targetLayoutIndex": 869,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_RadioTower_1F",
+        "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_1F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 19,
+        "layout": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_1F",
+        "targetLayoutIndex": 870,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_RadioTower_2F",
+        "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_2F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 20,
+        "layout": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_2F",
+        "targetLayoutIndex": 871,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_RadioTower_3F",
+        "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_3F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 21,
+        "layout": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_3F",
+        "targetLayoutIndex": 872,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_RadioTower_4F",
+        "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 22,
+        "layout": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_4F",
+        "targetLayoutIndex": 873,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_RadioTower_5F",
+        "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_5F",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 23,
+        "layout": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_5F",
+        "targetLayoutIndex": 874,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_TrainStation",
+        "id": "MAP_GOLDENROD_CITY_TRAIN_STATION",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 24,
+        "layout": "LAYOUT_GOLDENROD_CITY_TRAIN_STATION",
+        "targetLayoutIndex": 875,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_UndergroundEntrance",
+        "id": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 25,
+        "layout": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_ENTRANCE",
+        "targetLayoutIndex": 876,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_UndergroundStorage",
+        "id": "MAP_GOLDENROD_CITY_UNDERGROUND_STORAGE",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 26,
+        "layout": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_STORAGE",
+        "targetLayoutIndex": 877,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_UndergroundSwitches",
+        "id": "MAP_GOLDENROD_CITY_UNDERGROUND_SWITCHES",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 27,
+        "layout": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_SWITCHES",
+        "targetLayoutIndex": 878,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "GoldenrodCity_UndergroundTunnel",
+        "id": "MAP_GOLDENROD_CITY_UNDERGROUND_TUNNEL",
+        "batch": "goldenrod-park",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorGoldenrod",
+        "targetGroupId": 86,
+        "targetMember": 28,
+        "layout": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_TUNNEL",
+        "targetLayoutIndex": 879,
+        "section": "MAPSEC_GOLDENROD_CITY",
+        "targetSection": 227
+      },
+      {
+        "name": "EcruteakCity",
+        "id": "MAP_ECRUTEAK_CITY",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoEcruteak",
+        "targetGroupId": 87,
+        "targetMember": 0,
+        "layout": "LAYOUT_ECRUTEAK_CITY",
+        "targetLayoutIndex": 880,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "Route38",
+        "id": "MAP_ROUTE38",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoEcruteak",
+        "targetGroupId": 87,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE38",
+        "targetLayoutIndex": 881,
+        "section": "MAPSEC_ROUTE_38",
+        "targetSection": 232
+      },
+      {
+        "name": "Route39",
+        "id": "MAP_ROUTE39",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoEcruteak",
+        "targetGroupId": 87,
+        "targetMember": 2,
+        "layout": "LAYOUT_ROUTE39",
+        "targetLayoutIndex": 882,
+        "section": "MAPSEC_ROUTE_39",
+        "targetSection": 233
+      },
+      {
+        "name": "BellchimeTrail",
+        "id": "MAP_BELLCHIME_TRAIL",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoEcruteak",
+        "targetGroupId": 87,
+        "targetMember": 3,
+        "layout": "LAYOUT_BELLCHIME_TRAIL",
+        "targetLayoutIndex": 883,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "Gate_EcruteakCity_Route38",
+        "id": "MAP_GATE_ECRUTEAK_CITY_ROUTE38",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoEcruteak",
+        "targetGroupId": 87,
+        "targetMember": 4,
+        "layout": "LAYOUT_GATE_ECRUTEAK_CITY_ROUTE38",
+        "targetLayoutIndex": 884,
+        "section": "MAPSEC_ROUTE_38",
+        "targetSection": 232
+      },
+      {
+        "name": "EcruteakCity_Gym",
+        "id": "MAP_ECRUTEAK_CITY_GYM",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 0,
+        "layout": "LAYOUT_ECRUTEAK_CITY_GYM",
+        "targetLayoutIndex": 885,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_House1",
+        "id": "MAP_ECRUTEAK_CITY_HOUSE1",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 1,
+        "layout": "LAYOUT_ECRUTEAK_CITY_HOUSE1",
+        "targetLayoutIndex": 886,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_House2",
+        "id": "MAP_ECRUTEAK_CITY_HOUSE2",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 2,
+        "layout": "LAYOUT_ECRUTEAK_CITY_HOUSE2",
+        "targetLayoutIndex": 887,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_Mart",
+        "id": "MAP_ECRUTEAK_CITY_MART",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 3,
+        "layout": "LAYOUT_ECRUTEAK_CITY_MART",
+        "targetLayoutIndex": 888,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_PokemonCenter",
+        "id": "MAP_ECRUTEAK_CITY_POKEMON_CENTER",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 4,
+        "layout": "LAYOUT_ECRUTEAK_CITY_POKEMON_CENTER",
+        "targetLayoutIndex": 889,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_SageOffice1",
+        "id": "MAP_ECRUTEAK_CITY_SAGE_OFFICE1",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 5,
+        "layout": "LAYOUT_ECRUTEAK_CITY_SAGE_OFFICE1",
+        "targetLayoutIndex": 890,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_SageOffice2",
+        "id": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 6,
+        "layout": "LAYOUT_ECRUTEAK_CITY_SAGE_OFFICE2",
+        "targetLayoutIndex": 891,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "EcruteakCity_Theater",
+        "id": "MAP_ECRUTEAK_CITY_THEATER",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 7,
+        "layout": "LAYOUT_ECRUTEAK_CITY_THEATER",
+        "targetLayoutIndex": 892,
+        "section": "MAPSEC_ECRUTEAK_CITY",
+        "targetSection": 231
+      },
+      {
+        "name": "Route39_Barn",
+        "id": "MAP_ROUTE39_BARN",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 8,
+        "layout": "LAYOUT_ROUTE39_BARN",
+        "targetLayoutIndex": 893,
+        "section": "MAPSEC_ROUTE_39",
+        "targetSection": 233
+      },
+      {
+        "name": "Route39_FarmHouse",
+        "id": "MAP_ROUTE39_FARM_HOUSE",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 9,
+        "layout": "LAYOUT_ROUTE39_FARM_HOUSE",
+        "targetLayoutIndex": 894,
+        "section": "MAPSEC_ROUTE_39",
+        "targetSection": 233
+      },
+      {
+        "name": "BurnedTower_1F",
+        "id": "MAP_BURNED_TOWER_1F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 10,
+        "layout": "LAYOUT_BURNED_TOWER_1F",
+        "targetLayoutIndex": 895,
+        "section": "MAPSEC_BURNED_TOWER",
+        "targetSection": 234
+      },
+      {
+        "name": "BurnedTower_B1F",
+        "id": "MAP_BURNED_TOWER_B1F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 11,
+        "layout": "LAYOUT_BURNED_TOWER_B1F",
+        "targetLayoutIndex": 896,
+        "section": "MAPSEC_BURNED_TOWER",
+        "targetSection": 234
+      },
+      {
+        "name": "TinTower_1F",
+        "id": "MAP_TIN_TOWER_1F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 12,
+        "layout": "LAYOUT_TIN_TOWER_1F",
+        "targetLayoutIndex": 897,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_2F",
+        "id": "MAP_TIN_TOWER_2F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 13,
+        "layout": "LAYOUT_TIN_TOWER_2F",
+        "targetLayoutIndex": 898,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_3F",
+        "id": "MAP_TIN_TOWER_3F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 14,
+        "layout": "LAYOUT_TIN_TOWER_3F",
+        "targetLayoutIndex": 899,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_4F",
+        "id": "MAP_TIN_TOWER_4F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 15,
+        "layout": "LAYOUT_TIN_TOWER_4F",
+        "targetLayoutIndex": 900,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_5F",
+        "id": "MAP_TIN_TOWER_5F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 16,
+        "layout": "LAYOUT_TIN_TOWER_5F",
+        "targetLayoutIndex": 901,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_6F",
+        "id": "MAP_TIN_TOWER_6F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 17,
+        "layout": "LAYOUT_TIN_TOWER_6F",
+        "targetLayoutIndex": 902,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_7F",
+        "id": "MAP_TIN_TOWER_7F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 18,
+        "layout": "LAYOUT_TIN_TOWER_7F",
+        "targetLayoutIndex": 903,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_8F",
+        "id": "MAP_TIN_TOWER_8F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 19,
+        "layout": "LAYOUT_TIN_TOWER_8F",
+        "targetLayoutIndex": 904,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_9F",
+        "id": "MAP_TIN_TOWER_9F",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 20,
+        "layout": "LAYOUT_TIN_TOWER_9F",
+        "targetLayoutIndex": 905,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "TinTower_RoofDay",
+        "id": "MAP_TIN_TOWER_ROOF_DAY",
+        "batch": "ecruteak-towers",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorEcruteak",
+        "targetGroupId": 88,
+        "targetMember": 21,
+        "layout": "LAYOUT_TIN_TOWER_ROOF_DAY",
+        "targetLayoutIndex": 906,
+        "section": "MAPSEC_TIN_TOWER",
+        "targetSection": 235
+      },
+      {
+        "name": "OlivineCity",
+        "id": "MAP_OLIVINE_CITY",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoOlivine",
+        "targetGroupId": 89,
+        "targetMember": 0,
+        "layout": "LAYOUT_OLIVINE_CITY",
+        "targetLayoutIndex": 908,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "Route40",
+        "id": "MAP_ROUTE40",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoOlivine",
+        "targetGroupId": 89,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE40",
+        "targetLayoutIndex": 909,
+        "section": "MAPSEC_ROUTE_40",
+        "targetSection": 237
+      },
+      {
+        "name": "Route41",
+        "id": "MAP_ROUTE41",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoOlivine",
+        "targetGroupId": 89,
+        "targetMember": 2,
+        "layout": "LAYOUT_ROUTE41",
+        "targetLayoutIndex": 910,
+        "section": "MAPSEC_ROUTE_41",
+        "targetSection": 238
+      },
+      {
+        "name": "Gate_Route40_TrainerHill_Courtyard",
+        "id": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoOlivine",
+        "targetGroupId": 89,
+        "targetMember": 3,
+        "layout": "LAYOUT_GATE_ROUTE40_TRAINER_HILL_COURTYARD",
+        "targetLayoutIndex": 911,
+        "section": "MAPSEC_ROUTE_40",
+        "targetSection": 237
+      },
+      {
+        "name": "OlivineCity_Cafe",
+        "id": "MAP_OLIVINE_CITY_CAFE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 0,
+        "layout": "LAYOUT_OLIVINE_CITY_CAFE",
+        "targetLayoutIndex": 912,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_Gym",
+        "id": "MAP_OLIVINE_CITY_GYM",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 1,
+        "layout": "LAYOUT_OLIVINE_CITY_GYM",
+        "targetLayoutIndex": 913,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_House1",
+        "id": "MAP_OLIVINE_CITY_HOUSE1",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 2,
+        "layout": "LAYOUT_OLIVINE_CITY_HOUSE1",
+        "targetLayoutIndex": 914,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_House2",
+        "id": "MAP_OLIVINE_CITY_HOUSE2",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 3,
+        "layout": "LAYOUT_OLIVINE_CITY_HOUSE2",
+        "targetLayoutIndex": 915,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_House3",
+        "id": "MAP_OLIVINE_CITY_HOUSE3",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 4,
+        "layout": "LAYOUT_OLIVINE_CITY_HOUSE3",
+        "targetLayoutIndex": 916,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_Lighthouse",
+        "id": "MAP_OLIVINE_CITY_LIGHTHOUSE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 5,
+        "layout": "LAYOUT_OLIVINE_CITY_LIGHTHOUSE",
+        "targetLayoutIndex": 917,
+        "section": "MAPSEC_OLIVINE_LIGHTHOUSE",
+        "targetSection": 239
+      },
+      {
+        "name": "OlivineCity_Mart",
+        "id": "MAP_OLIVINE_CITY_MART",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 6,
+        "layout": "LAYOUT_OLIVINE_CITY_MART",
+        "targetLayoutIndex": 918,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_PokemonCenter",
+        "id": "MAP_OLIVINE_CITY_POKEMON_CENTER",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 7,
+        "layout": "LAYOUT_OLIVINE_CITY_POKEMON_CENTER",
+        "targetLayoutIndex": 919,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_PortInside",
+        "id": "MAP_OLIVINE_CITY_PORT_INSIDE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 8,
+        "layout": "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
+        "targetLayoutIndex": 920,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "OlivineCity_PortOutside",
+        "id": "MAP_OLIVINE_CITY_PORT_OUTSIDE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 9,
+        "layout": "LAYOUT_OLIVINE_CITY_PORT_OUTSIDE",
+        "targetLayoutIndex": 921,
+        "section": "MAPSEC_OLIVINE_CITY",
+        "targetSection": 236
+      },
+      {
+        "name": "WhirlIslands_1F",
+        "id": "MAP_WHIRL_ISLANDS_1F",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 10,
+        "layout": "LAYOUT_WHIRL_ISLANDS_1F",
+        "targetLayoutIndex": 922,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_B1F",
+        "id": "MAP_WHIRL_ISLANDS_B1F",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 11,
+        "layout": "LAYOUT_WHIRL_ISLANDS_B1F",
+        "targetLayoutIndex": 923,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_B1F_Inner",
+        "id": "MAP_WHIRL_ISLANDS_B1F_INNER",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 12,
+        "layout": "LAYOUT_WHIRL_ISLANDS_B1F_INNER",
+        "targetLayoutIndex": 924,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_B2F",
+        "id": "MAP_WHIRL_ISLANDS_B2F",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 13,
+        "layout": "LAYOUT_WHIRL_ISLANDS_B2F",
+        "targetLayoutIndex": 925,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_B3F",
+        "id": "MAP_WHIRL_ISLANDS_B3F",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 14,
+        "layout": "LAYOUT_WHIRL_ISLANDS_B3F",
+        "targetLayoutIndex": 926,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_Descent",
+        "id": "MAP_WHIRL_ISLANDS_DESCENT",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 15,
+        "layout": "LAYOUT_WHIRL_ISLANDS_DESCENT",
+        "targetLayoutIndex": 927,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "WhirlIslands_LugiaChamber",
+        "id": "MAP_WHIRL_ISLANDS_LUGIA_CHAMBER",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorOlivine",
+        "targetGroupId": 90,
+        "targetMember": 16,
+        "layout": "LAYOUT_WHIRL_ISLANDS_LUGIA_CHAMBER",
+        "targetLayoutIndex": 928,
+        "section": "MAPSEC_WHIRL_ISLANDS",
+        "targetSection": 240
+      },
+      {
+        "name": "CianwoodCity",
+        "id": "MAP_CIANWOOD_CITY",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoCianwood",
+        "targetGroupId": 91,
+        "targetMember": 0,
+        "layout": "LAYOUT_CIANWOOD_CITY",
+        "targetLayoutIndex": 929,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "Route47",
+        "id": "MAP_ROUTE47",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoCianwood",
+        "targetGroupId": 91,
+        "targetMember": 1,
+        "layout": "LAYOUT_ROUTE47",
+        "targetLayoutIndex": 930,
+        "section": "MAPSEC_ROUTE_47",
+        "targetSection": 242
+      },
+      {
+        "name": "Route48",
+        "id": "MAP_ROUTE48",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_JohtoCianwood",
+        "targetGroupId": 91,
+        "targetMember": 2,
+        "layout": "LAYOUT_ROUTE48",
+        "targetLayoutIndex": 931,
+        "section": "MAPSEC_ROUTE_48",
+        "targetSection": 243
+      },
+      {
+        "name": "CianwoodGym",
+        "id": "MAP_CIANWOOD_GYM",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 0,
+        "layout": "LAYOUT_CIANWOOD_GYM",
+        "targetLayoutIndex": 932,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CianwoodHouse1",
+        "id": "MAP_CIANWOOD_HOUSE1",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 1,
+        "layout": "LAYOUT_CIANWOOD_HOUSE1",
+        "targetLayoutIndex": 933,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CianwoodHouse2",
+        "id": "MAP_CIANWOOD_HOUSE2",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 2,
+        "layout": "LAYOUT_CIANWOOD_HOUSE2",
+        "targetLayoutIndex": 934,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CianwoodHouse3",
+        "id": "MAP_CIANWOOD_HOUSE3",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 3,
+        "layout": "LAYOUT_CIANWOOD_HOUSE3",
+        "targetLayoutIndex": 935,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CianwoodPokecenter",
+        "id": "MAP_CIANWOOD_POKECENTER",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 4,
+        "layout": "LAYOUT_CIANWOOD_POKECENTER",
+        "targetLayoutIndex": 936,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CianwoodShop",
+        "id": "MAP_CIANWOOD_SHOP",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 5,
+        "layout": "LAYOUT_CIANWOOD_SHOP",
+        "targetLayoutIndex": 937,
+        "section": "MAPSEC_CIANWOOD_CITY",
+        "targetSection": 241
+      },
+      {
+        "name": "CliffEdgeCave",
+        "id": "MAP_CLIFF_EDGE_CAVE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 6,
+        "layout": "LAYOUT_CLIFF_EDGE_CAVE",
+        "targetLayoutIndex": 938,
+        "section": "MAPSEC_CLIFF_CAVE",
+        "targetSection": 244
+      },
+      {
+        "name": "CliffEdgeGate",
+        "id": "MAP_CLIFF_EDGE_GATE",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 7,
+        "layout": "LAYOUT_CLIFF_EDGE_GATE",
+        "targetLayoutIndex": 939,
+        "section": "MAPSEC_CLIFF_CAVE",
+        "targetSection": 244
+      },
+      {
+        "name": "EmbeddedTower",
+        "id": "MAP_EMBEDDED_TOWER",
+        "batch": "olivine-cianwood-whirl",
+        "materialization": "residency",
+        "targetGroup": "gMapGroup_IndoorCianwood",
+        "targetGroupId": 92,
+        "targetMember": 8,
+        "layout": "LAYOUT_EMBEDDED_TOWER",
+        "targetLayoutIndex": 940,
+        "section": "MAPSEC_EMBEDDED_TOWER",
+        "targetSection": 245
       }
     ]
   },
@@ -357,28 +2228,40 @@
       "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
     },
     {
-      "source": "Route37",
-      "path": "connections/1",
-      "kind": "connection",
-      "destination": "MAP_ECRUTEAK_CITY"
-    },
-    {
-      "source": "Route37",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_ECRUTEAK_CITY"
-    },
-    {
-      "source": "Route37",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_ECRUTEAK_CITY"
-    },
-    {
       "source": "GoldenrodCity_DepartmentStoreElevator",
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_DYNAMIC"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "connections/3",
+      "kind": "connection",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY"
+    },
+    {
+      "source": "Route40",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_TRAINER_HILL_COURTYARD"
+    },
+    {
+      "source": "Route48",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_SAFARI_ZONE_GATE"
     }
   ],
   "warpRemovals": [
@@ -387,56 +2270,56 @@
       "path": "warp_events/0",
       "destination": "MAP_ROUTE46",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     },
     {
       "source": "Route28",
       "path": "warp_events/0",
       "destination": "MAP_RECEPTION_GATE",
       "destWarpId": "3",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     },
     {
       "source": "Route30",
       "path": "warp_events/0",
       "destination": "MAP_ROUTE30_HOUSE",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     },
     {
       "source": "Route30",
       "path": "warp_events/1",
       "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     },
     {
       "source": "Route31",
       "path": "warp_events/0",
       "destination": "MAP_DARK_CAVE_SOUTH_SIDE",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
-    },
-    {
-      "source": "Route37",
-      "path": "warp_events/0",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "destWarpId": "7",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
-    },
-    {
-      "source": "Route37",
-      "path": "warp_events/1",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "destWarpId": "8",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     },
     {
       "source": "GoldenrodCity_DepartmentStoreElevator",
       "path": "warp_events/0",
       "destination": "MAP_DYNAMIC",
       "destWarpId": "WARP_ID_DYNAMIC",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 3 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/1",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42",
+      "destWarpId": "0",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/14",
+      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY",
+      "destWarpId": "0",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
     }
   ],
   "warpReindexes": [
@@ -470,6 +2353,86 @@
       "destination": "MAP_ROUTE31",
       "from": "1",
       "to": "0",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "7",
+      "to": "6",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/1/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "8",
+      "to": "7",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "13",
+      "to": "12",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_House1",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "9",
+      "to": "8",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_House2",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "10",
+      "to": "9",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_Mart",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "12",
+      "to": "11",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_PokemonCenter",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "11",
+      "to": "10",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_SageOffice1",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "3",
+      "to": "2",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "EcruteakCity_Theater",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "6",
+      "to": "5",
+      "reason": "reindex the retained return after reviewed deferred warp removal"
+    },
+    {
+      "source": "BurnedTower_1F",
+      "path": "warp_events/0/dest_warp_id",
+      "destination": "MAP_ECRUTEAK_CITY",
+      "from": "2",
+      "to": "1",
       "reason": "reindex the retained return after reviewed deferred warp removal"
     }
   ],
@@ -1747,6 +3710,24 @@
       "destination": "MAP_ROUTE36"
     },
     {
+      "source": "Route37",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route37",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
       "source": "NationalPark_Normal",
       "path": "warp_events/0",
       "kind": "warp",
@@ -2183,6 +4164,2118 @@
       "path": "warp_events/2",
       "kind": "warp",
       "destination": "MAP_GOLDENROD_CITY_UNDERGROUND_SWITCHES"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE37"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_BELLCHIME_TRAIL"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE38"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE38"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_BURNED_TOWER_1F"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE1"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_1F"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_THEATER"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_ROUTE37"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_ROUTE37"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_HOUSE1"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_HOUSE2"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_POKEMON_CENTER"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_MART"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/13",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "Route38",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE39"
+    },
+    {
+      "source": "Route38",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route38",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE38"
+    },
+    {
+      "source": "Route39",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE38"
+    },
+    {
+      "source": "Route39",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "Route39",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE39_FARM_HOUSE"
+    },
+    {
+      "source": "Route39",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE39_BARN"
+    },
+    {
+      "source": "Route39",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE39_BARN"
+    },
+    {
+      "source": "BellchimeTrail",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "BellchimeTrail",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2"
+    },
+    {
+      "source": "BellchimeTrail",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_1F"
+    },
+    {
+      "source": "BellchimeTrail",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2"
+    },
+    {
+      "source": "BellchimeTrail",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2"
+    },
+    {
+      "source": "Gate_EcruteakCity_Route38",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Gate_EcruteakCity_Route38",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE38"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/13",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/15",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/16",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/17",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/18",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/19",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/20",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/21",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/22",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/23",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/24",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/25",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/26",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/27",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/28",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/29",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/30",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/31",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/32",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/33",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/34",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/35",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/36",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/37",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/38",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/39",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/40",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/41",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/42",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/43",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/44",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/45",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/46",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/47",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/48",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/49",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/50",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/51",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/52",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/53",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/54",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/55",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/56",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/57",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/58",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/59",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/60",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/61",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/62",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/63",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/64",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/65",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/66",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/67",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/68",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/69",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/70",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/71",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/72",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/73",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/74",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/75",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/76",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/77",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/78",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/79",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/80",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/81",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/82",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/83",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/84",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/85",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/86",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/87",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/88",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/89",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/90",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/91",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/92",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/93",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/94",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/95",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/96",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/97",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/98",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/99",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/100",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/101",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/102",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/103",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/104",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/105",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/106",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_Gym",
+      "path": "warp_events/107",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_GYM"
+    },
+    {
+      "source": "EcruteakCity_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_Mart",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_SageOffice1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "EcruteakCity_SageOffice1",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2"
+    },
+    {
+      "source": "EcruteakCity_SageOffice2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BELLCHIME_TRAIL"
+    },
+    {
+      "source": "EcruteakCity_SageOffice2",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY_SAGE_OFFICE1"
+    },
+    {
+      "source": "EcruteakCity_Theater",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route39_Barn",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE39"
+    },
+    {
+      "source": "Route39_FarmHouse",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE39"
+    },
+    {
+      "source": "BurnedTower_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "BurnedTower_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_BURNED_TOWER_B1F"
+    },
+    {
+      "source": "BurnedTower_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_BURNED_TOWER_B1F"
+    },
+    {
+      "source": "BurnedTower_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BURNED_TOWER_1F"
+    },
+    {
+      "source": "BurnedTower_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_BURNED_TOWER_1F"
+    },
+    {
+      "source": "TinTower_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BELLCHIME_TRAIL"
+    },
+    {
+      "source": "TinTower_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_2F"
+    },
+    {
+      "source": "TinTower_2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_1F"
+    },
+    {
+      "source": "TinTower_2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_3F"
+    },
+    {
+      "source": "TinTower_3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_4F"
+    },
+    {
+      "source": "TinTower_3F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_2F"
+    },
+    {
+      "source": "TinTower_4F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_3F"
+    },
+    {
+      "source": "TinTower_4F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_5F"
+    },
+    {
+      "source": "TinTower_4F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_5F"
+    },
+    {
+      "source": "TinTower_4F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_5F"
+    },
+    {
+      "source": "TinTower_5F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_4F"
+    },
+    {
+      "source": "TinTower_5F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_4F"
+    },
+    {
+      "source": "TinTower_5F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_6F"
+    },
+    {
+      "source": "TinTower_5F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_4F"
+    },
+    {
+      "source": "TinTower_6F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_5F"
+    },
+    {
+      "source": "TinTower_6F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_7F"
+    },
+    {
+      "source": "TinTower_7F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_7F"
+    },
+    {
+      "source": "TinTower_7F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_7F"
+    },
+    {
+      "source": "TinTower_7F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_6F"
+    },
+    {
+      "source": "TinTower_7F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_7F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_7F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_ROOF_DAY"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_9F"
+    },
+    {
+      "source": "TinTower_8F",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_ROOF_DAY"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_7F"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_9F",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "TinTower_RoofDay",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_TIN_TOWER_8F"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_OLIVINE_CITY_PORT_OUTSIDE"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE39"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_GYM"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_CAFE"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_MART"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_HOUSE1"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_HOUSE2"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_HOUSE3"
+    },
+    {
+      "source": "OlivineCity",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_POKEMON_CENTER"
+    },
+    {
+      "source": "Route40",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "Route40",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD"
+    },
+    {
+      "source": "Route40",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD"
+    },
+    {
+      "source": "Route41",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Route41",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Gate_Route40_TrainerHill_Courtyard",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "Gate_Route40_TrainerHill_Courtyard",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE40"
+    },
+    {
+      "source": "OlivineCity_Cafe",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_House3",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/13",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/15",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/16",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/17",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/18",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/19",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/20",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/21",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/22",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/23",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/24",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/25",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/26",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/27",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/28",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/29",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/30",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/31",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/32",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/33",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/34",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/35",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/36",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/37",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Lighthouse",
+      "path": "warp_events/38",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_LIGHTHOUSE"
+    },
+    {
+      "source": "OlivineCity_Mart",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_PortInside",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_PORT_OUTSIDE"
+    },
+    {
+      "source": "OlivineCity_PortOutside",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_OLIVINE_CITY"
+    },
+    {
+      "source": "OlivineCity_PortOutside",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_OLIVINE_CITY_PORT_INSIDE"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "WhirlIslands_1F",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_DESCENT"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_1F"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/9",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/10",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/11",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B1F",
+      "path": "warp_events/12",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_DESCENT"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B2F"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B1F_Inner",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_B2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B3F"
+    },
+    {
+      "source": "WhirlIslands_B2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F_INNER"
+    },
+    {
+      "source": "WhirlIslands_B3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B2F"
+    },
+    {
+      "source": "WhirlIslands_B3F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_DESCENT"
+    },
+    {
+      "source": "WhirlIslands_Descent",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_Descent",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B1F"
+    },
+    {
+      "source": "WhirlIslands_Descent",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_B3F"
+    },
+    {
+      "source": "WhirlIslands_Descent",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_LUGIA_CHAMBER"
+    },
+    {
+      "source": "WhirlIslands_LugiaChamber",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_WHIRL_ISLANDS_DESCENT"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE41"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_HOUSE1"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_GATE"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_HOUSE2"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_HOUSE3"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_GYM"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_POKECENTER"
+    },
+    {
+      "source": "CianwoodCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_SHOP"
+    },
+    {
+      "source": "Route47",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE48"
+    },
+    {
+      "source": "Route47",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_GATE"
+    },
+    {
+      "source": "Route47",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "Route47",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "Route47",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "Route47",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_EMBEDDED_TOWER"
+    },
+    {
+      "source": "Route48",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "CianwoodGym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CianwoodHouse1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CianwoodHouse2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CianwoodHouse3",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CianwoodPokecenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CianwoodShop",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "CliffEdgeCave",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_CLIFF_EDGE_CAVE"
+    },
+    {
+      "source": "CliffEdgeGate",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_CIANWOOD_CITY"
+    },
+    {
+      "source": "CliffEdgeGate",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "EmbeddedTower",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE47"
     }
   ],
   "graphicsAdaptations": [
@@ -2372,6 +6465,38 @@
     {
       "hns": "MUS_HG_RIVAL_EXIT",
       "target": "MUS_RG_RIVAL_EXIT"
+    },
+    {
+      "hns": "MUS_HG_BELL_TOWER",
+      "target": "MUS_MT_PYRE"
+    },
+    {
+      "hns": "MUS_HG_BURNED_TOWER",
+      "target": "MUS_MT_PYRE"
+    },
+    {
+      "hns": "MUS_HG_CIANWOOD",
+      "target": "MUS_DEWFORD"
+    },
+    {
+      "hns": "MUS_HG_DANCE_THEATER",
+      "target": "MUS_CONTEST_LOBBY"
+    },
+    {
+      "hns": "MUS_HG_ECRUTEAK",
+      "target": "MUS_FORTREE"
+    },
+    {
+      "hns": "MUS_HG_LIGHTHOUSE",
+      "target": "MUS_ABANDONED_SHIP"
+    },
+    {
+      "hns": "MUS_HG_ROUTE38",
+      "target": "MUS_ROUTE119"
+    },
+    {
+      "hns": "MUS_HG_ROUTE47",
+      "target": "MUS_ROUTE120"
     }
   ],
   "regionAssignment": {
@@ -2920,6 +7045,94 @@
       "secondary": true,
       "paletteCount": 16,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "bellchime_trail",
+      "symbol": "BellchimeTrail",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "burned_tower",
+      "symbol": "BurnedTower",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cianwood_city",
+      "symbol": "CianwoodCity",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cianwood_city_gym",
+      "symbol": "CianwoodCity_Gym",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "ecruteak_city_gym",
+      "symbol": "EcruteakCity_Gym",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "primary",
+      "directory": "johto_north_west",
+      "symbol": "Johto_NorthWest",
+      "secondary": false,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "lighthouse",
+      "symbol": "Lighthouse",
+      "secondary": true,
+      "paletteCount": 16,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "olivine_city",
+      "symbol": "OlivineCity",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "port_indoor",
+      "symbol": "PortIndoor",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "route38_farmland",
+      "symbol": "Route38_Farmland",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "whirl_islands",
+      "symbol": "WhirlIslands",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "layoutTilesetRemaps": [
@@ -2992,22 +7205,64 @@
   },
   "attributeFixtures": [
     {
+      "representative": "route28-primary",
+      "layout": "LAYOUT_ROUTE28",
       "role": "primary",
       "tileset": "gTileset_Johto_NorthEast",
       "metatiles": "data/tilesets/primary/johto_north_east/metatiles.bin",
       "attributes": "data/tilesets/primary/johto_north_east/metatile_attributes.bin",
       "metatilesSha256": "d3d19f9c456ec1faaa2d37e5f883057e7c17b905cffdc20d3a7bd3dc26bbb918",
       "attributesSha256": "3b40f88ad64b4d0a04ca606f7177d560750e55b890011ef690bd9a7a75a45be9",
-      "format": "METATILE_ATTRIBUTES_EMERALD_U16"
+      "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+      "authority": "mechanical"
     },
     {
+      "representative": "route28-secondary",
+      "layout": "LAYOUT_ROUTE28",
       "role": "secondary",
       "tileset": "gTileset_ViridianCity",
       "metatiles": "data/tilesets/secondary/viridian_city_frlg/metatiles.bin",
       "attributes": "data/tilesets/secondary/viridian_city_frlg/metatile_attributes.bin",
       "metatilesSha256": "8491038f93b038fd271a50821b51eaee2d3b3cf9aa99050632ed96306232f4e5",
       "attributesSha256": "6e2643efb546a161feb0d3b0346fbd345f744997ddce4fe0d0379e9c51cf3d34",
-      "format": "METATILE_ATTRIBUTES_FRLG_U32"
+      "format": "METATILE_ATTRIBUTES_FRLG_U32",
+      "authority": "mechanical"
+    },
+    {
+      "representative": "ecruteak-exterior",
+      "layout": "LAYOUT_ECRUTEAK_CITY",
+      "role": "secondary",
+      "tileset": "gTileset_Ecruteak_City",
+      "metatiles": "data/tilesets/secondary/ecruteak_city/metatiles.bin",
+      "attributes": "data/tilesets/secondary/ecruteak_city/metatile_attributes.bin",
+      "metatilesSha256": "bed75d37ed51cb6a3b192600e498b025ae9df14817d3250ba2da4181e6355e5b",
+      "attributesSha256": "fd6a9f5cbc6a1e0859f6ed03dd1d9a4402ec50b622872a403b7029cfa1d0a981",
+      "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+      "authority": "hns"
+    },
+    {
+      "representative": "olivine-interior",
+      "layout": "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
+      "role": "secondary",
+      "tileset": "gTileset_PortIndoor",
+      "metatiles": "data/tilesets/secondary/port_indoor/metatiles.bin",
+      "attributes": "data/tilesets/secondary/port_indoor/metatile_attributes.bin",
+      "metatilesSha256": "0dcfc4172c25ca099c6f19fe627def5aa2b98ef319e7bbc66b3e82d1e63badc2",
+      "attributesSha256": "7237fe8fb44512279c06c64862ef50cdc8e39e4d83f170d6d3bbd458f2d6ec57",
+      "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+      "authority": "hns"
+    },
+    {
+      "representative": "whirl-cave",
+      "layout": "LAYOUT_WHIRL_ISLANDS_1F",
+      "role": "secondary",
+      "tileset": "gTileset_WhirlIslands",
+      "metatiles": "data/tilesets/secondary/whirl_islands/metatiles.bin",
+      "attributes": "data/tilesets/secondary/whirl_islands/metatile_attributes.bin",
+      "metatilesSha256": "08fc33e308a46978141dc62fe70da13d45f00435bd389e2d568843764c32ace5",
+      "attributesSha256": "473aaff3b0a61abeca705c0e054eb31b50b8b2de7c54c397c47e4ab733c1ece3",
+      "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+      "authority": "hns"
     }
   ],
   "materializationProfile": {
@@ -3027,7 +7282,9 @@
     "baseline",
     "early-violet-ruins",
     "azalea-union-ilex",
-    "goldenrod-park"
+    "goldenrod-park",
+    "ecruteak-towers",
+    "olivine-cianwood-whirl"
   ],
   "batches": [
     {

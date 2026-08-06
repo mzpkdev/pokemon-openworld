@@ -530,5 +530,38 @@ const u16 gMetatileAttributes_JohtoPokemonDayCare[] = INCBIN_U16("data/tilesets/
 const u16 gMetatiles_ShopRooftop[] = INCBIN_U16("data/tilesets/secondary/shop_rooftop/metatiles.bin");
 const u16 gMetatileAttributes_ShopRooftop[] = INCBIN_U16("data/tilesets/secondary/shop_rooftop/metatile_attributes.bin");
 
+const u16 gMetatiles_BellchimeTrail[] = INCBIN_U16("data/tilesets/secondary/bellchime_trail/metatiles.bin");
+const u16 gMetatileAttributes_BellchimeTrail[] = INCBIN_U16("data/tilesets/secondary/bellchime_trail/metatile_attributes.bin");
+
+const u16 gMetatiles_BurnedTower[] = INCBIN_U16("data/tilesets/secondary/burned_tower/metatiles.bin");
+const u16 gMetatileAttributes_BurnedTower[] = INCBIN_U16("data/tilesets/secondary/burned_tower/metatile_attributes.bin");
+
+const u16 gMetatiles_CianwoodCity[] = INCBIN_U16("data/tilesets/secondary/cianwood_city/metatiles.bin");
+const u16 gMetatileAttributes_CianwoodCity[] = INCBIN_U16("data/tilesets/secondary/cianwood_city/metatile_attributes.bin");
+
+const u16 gMetatiles_CianwoodCity_Gym[] = INCBIN_U16("data/tilesets/secondary/cianwood_city_gym/metatiles.bin");
+const u16 gMetatileAttributes_CianwoodCity_Gym[] = INCBIN_U16("data/tilesets/secondary/cianwood_city_gym/metatile_attributes.bin");
+
+const u16 gMetatiles_EcruteakCity_Gym[] = INCBIN_U16("data/tilesets/secondary/ecruteak_city_gym/metatiles.bin");
+const u16 gMetatileAttributes_EcruteakCity_Gym[] = INCBIN_U16("data/tilesets/secondary/ecruteak_city_gym/metatile_attributes.bin");
+
+const u16 gMetatiles_Johto_NorthWest[] = INCBIN_U16("data/tilesets/primary/johto_north_west/metatiles.bin");
+const u16 gMetatileAttributes_Johto_NorthWest[] = INCBIN_U16("data/tilesets/primary/johto_north_west/metatile_attributes.bin");
+
+const u16 gMetatiles_Lighthouse[] = INCBIN_U16("data/tilesets/secondary/lighthouse/metatiles.bin");
+const u16 gMetatileAttributes_Lighthouse[] = INCBIN_U16("data/tilesets/secondary/lighthouse/metatile_attributes.bin");
+
+const u16 gMetatiles_OlivineCity[] = INCBIN_U16("data/tilesets/secondary/olivine_city/metatiles.bin");
+const u16 gMetatileAttributes_OlivineCity[] = INCBIN_U16("data/tilesets/secondary/olivine_city/metatile_attributes.bin");
+
+const u16 gMetatiles_PortIndoor[] = INCBIN_U16("data/tilesets/secondary/port_indoor/metatiles.bin");
+const u16 gMetatileAttributes_PortIndoor[] = INCBIN_U16("data/tilesets/secondary/port_indoor/metatile_attributes.bin");
+
+const u16 gMetatiles_Route38_Farmland[] = INCBIN_U16("data/tilesets/secondary/route38_farmland/metatiles.bin");
+const u16 gMetatileAttributes_Route38_Farmland[] = INCBIN_U16("data/tilesets/secondary/route38_farmland/metatile_attributes.bin");
+
+const u16 gMetatiles_WhirlIslands[] = INCBIN_U16("data/tilesets/secondary/whirl_islands/metatiles.bin");
+const u16 gMetatileAttributes_WhirlIslands[] = INCBIN_U16("data/tilesets/secondary/whirl_islands/metatile_attributes.bin");
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: metatiles

@@ -102,6 +102,17 @@ extern const struct Tileset gTileset_KurtsHouse;
 extern const struct Tileset gTileset_NationalPark;
 extern const struct Tileset gTileset_JohtoPokemonDayCare;
 extern const struct Tileset gTileset_ShopRooftop;
+extern const struct Tileset gTileset_BellchimeTrail;
+extern const struct Tileset gTileset_BurnedTower;
+extern const struct Tileset gTileset_CianwoodCity;
+extern const struct Tileset gTileset_CianwoodCity_Gym;
+extern const struct Tileset gTileset_EcruteakCity_Gym;
+extern const struct Tileset gTileset_Johto_NorthWest;
+extern const struct Tileset gTileset_Lighthouse;
+extern const struct Tileset gTileset_OlivineCity;
+extern const struct Tileset gTileset_PortIndoor;
+extern const struct Tileset gTileset_Route38_Farmland;
+extern const struct Tileset gTileset_WhirlIslands;
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: externs
 

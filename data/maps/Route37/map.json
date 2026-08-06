@@ -17,10 +17,30 @@
       "map": "MAP_ROUTE36",
       "offset": -22,
       "direction": "down"
+    },
+    {
+      "map": "MAP_ECRUTEAK_CITY",
+      "offset": -16,
+      "direction": "up"
     }
   ],
   "object_events": [],
-  "warp_events": [],
+  "warp_events": [
+    {
+      "x": 17,
+      "y": 10,
+      "elevation": 0,
+      "dest_map": "MAP_ECRUTEAK_CITY",
+      "dest_warp_id": "6"
+    },
+    {
+      "x": 18,
+      "y": 10,
+      "elevation": 0,
+      "dest_map": "MAP_ECRUTEAK_CITY",
+      "dest_warp_id": "7"
+    }
+  ],
   "coord_events": [],
   "bg_events": [],
   "region": "REGION_JOHTO"

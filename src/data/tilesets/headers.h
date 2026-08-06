@@ -1976,5 +1976,126 @@ const struct Tileset gTileset_ShopRooftop =
     .callback = NULL,
 };
 
+const struct Tileset gTileset_BellchimeTrail =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_BellchimeTrail,
+    .palettes = gTilesetPalettes_BellchimeTrail,
+    .metatiles = gMetatiles_BellchimeTrail,
+    .metatileAttributes = gMetatileAttributes_BellchimeTrail,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_BurnedTower =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_BurnedTower,
+    .palettes = gTilesetPalettes_BurnedTower,
+    .metatiles = gMetatiles_BurnedTower,
+    .metatileAttributes = gMetatileAttributes_BurnedTower,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_CianwoodCity =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_CianwoodCity,
+    .palettes = gTilesetPalettes_CianwoodCity,
+    .metatiles = gMetatiles_CianwoodCity,
+    .metatileAttributes = gMetatileAttributes_CianwoodCity,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_CianwoodCity_Gym =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_CianwoodCity_Gym,
+    .palettes = gTilesetPalettes_CianwoodCity_Gym,
+    .metatiles = gMetatiles_CianwoodCity_Gym,
+    .metatileAttributes = gMetatileAttributes_CianwoodCity_Gym,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_EcruteakCity_Gym =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_EcruteakCity_Gym,
+    .palettes = gTilesetPalettes_EcruteakCity_Gym,
+    .metatiles = gMetatiles_EcruteakCity_Gym,
+    .metatileAttributes = gMetatileAttributes_EcruteakCity_Gym,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Johto_NorthWest =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(FALSE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Johto_NorthWest,
+    .palettes = gTilesetPalettes_Johto_NorthWest,
+    .metatiles = gMetatiles_Johto_NorthWest,
+    .metatileAttributes = gMetatileAttributes_Johto_NorthWest,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Lighthouse =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Lighthouse,
+    .palettes = gTilesetPalettes_Lighthouse,
+    .metatiles = gMetatiles_Lighthouse,
+    .metatileAttributes = gMetatileAttributes_Lighthouse,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_OlivineCity =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_OlivineCity,
+    .palettes = gTilesetPalettes_OlivineCity,
+    .metatiles = gMetatiles_OlivineCity,
+    .metatileAttributes = gMetatileAttributes_OlivineCity,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_PortIndoor =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_PortIndoor,
+    .palettes = gTilesetPalettes_PortIndoor,
+    .metatiles = gMetatiles_PortIndoor,
+    .metatileAttributes = gMetatileAttributes_PortIndoor,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_Route38_Farmland =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_Route38_Farmland,
+    .palettes = gTilesetPalettes_Route38_Farmland,
+    .metatiles = gMetatiles_Route38_Farmland,
+    .metatileAttributes = gMetatileAttributes_Route38_Farmland,
+    .callback = NULL,
+};
+
+const struct Tileset gTileset_WhirlIslands =
+{
+    .isCompressed = TRUE,
+    .flags = TILESET_FLAGS(TRUE, METATILE_ATTRIBUTES_EMERALD_U16),
+    .tiles = gTilesetTiles_WhirlIslands,
+    .palettes = gTilesetPalettes_WhirlIslands,
+    .metatiles = gMetatiles_WhirlIslands,
+    .metatileAttributes = gMetatileAttributes_WhirlIslands,
+    .callback = NULL,
+};
+
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: headers

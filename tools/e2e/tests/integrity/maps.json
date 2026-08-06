@@ -97,6 +97,21 @@
       "name": "UnionCave_1F",
       "region": "johto",
       "kind": "cave"
+    },
+    {
+      "name": "EcruteakCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "OlivineCity_PortInside",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "WhirlIslands_1F",
+      "region": "johto",
+      "kind": "cave"
     }
   ],
   "interactions": [

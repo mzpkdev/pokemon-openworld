@@ -430,6 +430,8 @@ class ClosureValidationTests(unittest.TestCase):
         manifest = johto_import.load_manifest(
             Path(__file__).parents[1] / "import_manifest.json"
         )
+        lock = johto_import._json(Path(__file__).parents[1] / "allocation_lock.json")
+        selected_layouts = johto_import.active_layout_selection(manifest, lock)
         mutations = []
         duplicate_name = copy.deepcopy(manifest)
         duplicate_name["groupAllocations"][1]["name"] = duplicate_name[
@@ -446,7 +448,7 @@ class ClosureValidationTests(unittest.TestCase):
             with self.subTest(message=message):
                 with self.assertRaisesRegex(johto_import.ImportError, message):
                     johto_import._validate_allocations(
-                        changed["selection"]["maps"], changed
+                        changed["selection"]["maps"], changed, selected_layouts
                     )
 
     def test_group_target_ids_control_materialized_numeric_placement(self):
@@ -1196,23 +1198,27 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(johto_import.ImportError, "immutable reviewed"):
             johto_import._pin(manifest, "mechanicalDonor", "PKMN-World")
 
-    def test_route28_fixture_identity_and_declared_path_mutations_fail(self):
-        pkmn_world, _hns = self.donor_paths()
-        if not pkmn_world.is_dir():
+    def test_attribute_fixture_identity_kind_and_declared_path_mutations_fail(self):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
             self.skipTest("pinned donor checkout is unavailable")
         manifest = johto_import.load_manifest(
             Path(__file__).parents[1] / "import_manifest.json"
         )
         wrong_label = copy.deepcopy(manifest)
         wrong_label["attributeFixtures"][0]["tileset"] = "gTileset_Fake"
-        with self.assertRaisesRegex(johto_import.ImportError, "LAYOUT_ROUTE28"):
-            johto_import.validate_route28_widths(pkmn_world, wrong_label)
+        with self.assertRaisesRegex(johto_import.ImportError, "role drift"):
+            johto_import.validate_attribute_fixtures(pkmn_world, hns, wrong_label)
         wrong_path = copy.deepcopy(manifest)
         wrong_path["attributeFixtures"][1]["metatiles"] = wrong_path[
             "attributeFixtures"
         ][0]["metatiles"]
-        with self.assertRaisesRegex(johto_import.ImportError, "tileset declarations"):
-            johto_import.validate_route28_widths(pkmn_world, wrong_path)
+        with self.assertRaisesRegex(johto_import.ImportError, "path drift"):
+            johto_import.validate_attribute_fixtures(pkmn_world, hns, wrong_path)
+        wrong_kind = copy.deepcopy(manifest)
+        wrong_kind["attributeFixtures"][2]["role"] = "primary"
+        with self.assertRaisesRegex(johto_import.ImportError, "classification drift"):
+            johto_import.validate_attribute_fixtures(pkmn_world, hns, wrong_kind)
 
     def test_fallback_and_mechanical_field_decisions_are_applied(self):
         pkmn_world, hns = self.donor_paths()
@@ -1361,6 +1367,8 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
         )
         selected_layouts = johto_import.active_layout_selection(manifest, lock)
+        self.assertEqual(len(selected), 155)
+        self.assertEqual(len(selected_layouts), 156)
         self.assertEqual(closure.maps, tuple(item["name"] for item in selected))
         self.assertEqual(
             closure.layouts, tuple(item["id"] for item in selected_layouts)
@@ -1372,10 +1380,38 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             closure.sections, tuple(sorted({item["section"] for item in selected}))
         )
         self.assertEqual(
-            evidence["route28AttributeFormats"],
+            evidence["attributeFormats"],
             {
-                "gTileset_Johto_NorthEast": "METATILE_ATTRIBUTES_EMERALD_U16",
-                "gTileset_ViridianCity": "METATILE_ATTRIBUTES_FRLG_U32",
+                "route28-primary": {
+                    "layout": "LAYOUT_ROUTE28",
+                    "role": "primary",
+                    "tileset": "gTileset_Johto_NorthEast",
+                    "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+                },
+                "route28-secondary": {
+                    "layout": "LAYOUT_ROUTE28",
+                    "role": "secondary",
+                    "tileset": "gTileset_ViridianCity",
+                    "format": "METATILE_ATTRIBUTES_FRLG_U32",
+                },
+                "ecruteak-exterior": {
+                    "layout": "LAYOUT_ECRUTEAK_CITY",
+                    "role": "secondary",
+                    "tileset": "gTileset_Ecruteak_City",
+                    "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+                },
+                "olivine-interior": {
+                    "layout": "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
+                    "role": "secondary",
+                    "tileset": "gTileset_PortIndoor",
+                    "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+                },
+                "whirl-cave": {
+                    "layout": "LAYOUT_WHIRL_ISLANDS_1F",
+                    "role": "secondary",
+                    "tileset": "gTileset_WhirlIslands",
+                    "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+                },
             },
         )
 

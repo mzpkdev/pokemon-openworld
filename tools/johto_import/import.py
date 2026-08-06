@@ -121,6 +121,18 @@ LAYOUT_HEADER_DECISION_KEYS = (
 )
 MAP_FIELD_DECISION_KEYS = (("ReceptionGate", "region_map_section"),)
 LAYOUT_TILESET_REMAP_KEYS = (("LAYOUT_ROUTE34_DAY_CARE", "secondary_tileset"),)
+ATTRIBUTE_FIXTURE_KEYS = (
+    ("route28-primary", "LAYOUT_ROUTE28", "primary", "mechanical"),
+    ("route28-secondary", "LAYOUT_ROUTE28", "secondary", "mechanical"),
+    ("ecruteak-exterior", "LAYOUT_ECRUTEAK_CITY", "secondary", "hns"),
+    (
+        "olivine-interior",
+        "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
+        "secondary",
+        "hns",
+    ),
+    ("whirl-cave", "LAYOUT_WHIRL_ISLANDS_1F", "secondary", "hns"),
+)
 BATCH_GROUPS = {
     "early-violet-ruins": (
         "gMapGroup_JohtoViolet",
@@ -818,31 +830,55 @@ def validate_content_authority(
                 )
 
 
-def validate_route28_widths(
-    pkmn_world: Path, manifest: Mapping[str, Any]
-) -> dict[str, str]:
-    route28 = _find_layout(pkmn_world / "data/layouts/layouts.json", "LAYOUT_ROUTE28")
-    header_path = pkmn_world / "src/data/tilesets/metatiles.h"
-    try:
-        header = header_path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise ImportError(
-            f"cannot read tileset declarations {header_path}: {error}"
-        ) from error
-    declared_paths = {
-        (match.group("kind"), f"gTileset_{match.group('name')}"): match.group("path")
-        for match in TILESET_BLOB_RE.finditer(header)
-    }
-    results: dict[str, str] = {}
-    for item in manifest.get("attributeFixtures", []):
-        role = item.get("role")
-        if role not in {"primary", "secondary"}:
-            raise ImportError("Route 28 attribute fixture has an invalid role")
-        expected_tileset = route28.get(f"{role}_tileset")
+def validate_attribute_fixtures(
+    pkmn_world: Path, hns: Path, manifest: Mapping[str, Any]
+) -> dict[str, dict[str, str]]:
+    """Classify representative layout roles and verify their exact blob widths."""
+    fixtures = manifest.get("attributeFixtures", [])
+    keys = [
+        (
+            item.get("representative"),
+            item.get("layout"),
+            item.get("role"),
+            item.get("authority"),
+        )
+        for item in fixtures
+        if isinstance(item, dict)
+    ]
+    if keys != list(ATTRIBUTE_FIXTURE_KEYS):
+        raise ImportError("attribute fixture classification drift")
+
+    roots = {"mechanical": pkmn_world, "hns": hns}
+    declared_by_authority: dict[str, dict[tuple[str, str], str]] = {}
+    results: dict[str, dict[str, str]] = {}
+    for item in fixtures:
+        representative = str(item["representative"])
+        layout_id = str(item["layout"])
+        role = str(item["role"])
+        authority = str(item["authority"])
+        root = roots[authority]
+        layout = _find_layout(root / "data/layouts/layouts.json", layout_id)
+        expected_tileset = layout.get(f"{role}_tileset")
         if item.get("tileset") != expected_tileset:
             raise ImportError(
-                f"Route 28 {role} fixture does not match LAYOUT_ROUTE28 tileset"
+                f"attribute fixture role drift: {representative}/{layout_id}/{role}"
             )
+
+        if authority not in declared_by_authority:
+            header_path = root / "src/data/tilesets/metatiles.h"
+            try:
+                header = header_path.read_text(encoding="utf-8")
+            except (OSError, UnicodeError) as error:
+                raise ImportError(
+                    f"cannot read tileset declarations {header_path}: {error}"
+                ) from error
+            declared_by_authority[authority] = {
+                (match.group("kind"), f"gTileset_{match.group('name')}"): match.group(
+                    "path"
+                )
+                for match in TILESET_BLOB_RE.finditer(header)
+            }
+        declared_paths = declared_by_authority[authority]
         expected_metatiles = declared_paths.get(("Metatiles", expected_tileset))
         expected_attributes = declared_paths.get(
             ("MetatileAttributes", expected_tileset)
@@ -852,28 +888,26 @@ def validate_route28_widths(
             or item.get("attributes") != expected_attributes
         ):
             raise ImportError(
-                f"Route 28 fixture paths do not match tileset declarations: {expected_tileset}"
+                f"attribute fixture path drift: {representative}/{expected_tileset}"
             )
-        metatiles = pkmn_world / item["metatiles"]
-        attributes = pkmn_world / item["attributes"]
-        if (
-            _sha256(metatiles) != item["metatilesSha256"]
-            or _sha256(attributes) != item["attributesSha256"]
-        ):
-            raise ImportError(
-                f"Route 28 tileset evidence hash drift: {item['tileset']}"
-            )
+        metatiles = root / str(item["metatiles"])
+        attributes = root / str(item["attributes"])
+        if _sha256(metatiles) != item.get("metatilesSha256") or _sha256(
+            attributes
+        ) != item.get("attributesSha256"):
+            raise ImportError(f"attribute fixture hash drift: {representative}")
         actual = attribute_format(metatiles.stat().st_size, attributes.stat().st_size)
-        if actual != item["format"]:
+        if actual != item.get("format"):
             raise ImportError(
-                f"wrong attribute width for {item['tileset']}: expected {item['format']}, got {actual}"
+                f"wrong attribute width for {expected_tileset}: "
+                f"expected {item.get('format')}, got {actual}"
             )
-        results[item["tileset"]] = actual
-    required = {route28["primary_tileset"], route28["secondary_tileset"]}
-    if set(results) != required or len(manifest.get("attributeFixtures", [])) != 2:
-        raise ImportError(
-            "Route 28 must declare both primary and secondary attribute fixtures"
-        )
+        results[representative] = {
+            "layout": layout_id,
+            "role": role,
+            "tileset": str(expected_tileset),
+            "format": actual,
+        }
     return results
 
 
@@ -1356,7 +1390,7 @@ def build_closure(
         manifest.get("retainedEdges", []),
         manifest.get("deferredEdges", []),
     )
-    widths = validate_route28_widths(pkmn_world, manifest)
+    formats = validate_attribute_fixtures(pkmn_world, hns, manifest)
     preserved = [item for item in selection if not should_materialize(item)]
     definitions, input_records = referenced_symbols(hns, preserved)
     validate_map_local_symbols(hns, preserved, definitions)
@@ -1395,7 +1429,7 @@ def build_closure(
                 "fileCount": len(content_records),
             },
         },
-        "route28AttributeFormats": widths,
+        "attributeFormats": formats,
         "inputs": input_records,
     }
     return inventory, closure, evidence

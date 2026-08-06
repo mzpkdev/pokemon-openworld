@@ -365,6 +365,24 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
             "gTileset_Cave_Default",
             "cave",
         ),
+        (
+            "EcruteakCity",
+            "gTileset_Johto_NorthWest",
+            "gTileset_Ecruteak_City",
+            "exterior",
+        ),
+        (
+            "OlivineCity_PortInside",
+            "gTileset_Johto_General",
+            "gTileset_PortIndoor",
+            "interior",
+        ),
+        (
+            "WhirlIslands_1F",
+            "gTileset_Johto_NorthEast",
+            "gTileset_WhirlIslands",
+            "cave",
+        ),
     ],
 )
 def test_johto_representative_kind_is_derived_from_known_tilesets(

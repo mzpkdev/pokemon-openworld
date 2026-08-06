@@ -1,0 +1,40 @@
+{
+  "id": "MAP_ROUTE38",
+  "name": "Route38",
+  "layout": "LAYOUT_ROUTE38",
+  "music": "MUS_ROUTE119",
+  "region_map_section": "MAPSEC_ROUTE_38",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_ROUTE",
+  "allow_cycling": true,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [
+    {
+      "map": "MAP_ROUTE39",
+      "offset": 0,
+      "direction": "left"
+    },
+    {
+      "map": "MAP_ECRUTEAK_CITY",
+      "offset": -19,
+      "direction": "right"
+    }
+  ],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 43,
+      "y": 16,
+      "elevation": 0,
+      "dest_map": "MAP_GATE_ECRUTEAK_CITY_ROUTE38",
+      "dest_warp_id": "1"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}
