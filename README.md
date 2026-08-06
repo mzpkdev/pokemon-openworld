@@ -15,8 +15,9 @@ the laws that apply to you.
 ## Releases
 
 Once this release workflow is present on `main`, GitHub Releases publish the
-complete `pokemon-openworld.gba` ROM together with its map and symbol files.
-Successful `main` builds then produce public prerelease snapshots tagged
+normal `pokemon-openworld.gba` ROM together with its map and symbol files, plus
+`pokemon-openworld-debug.gba` without its debug symbols. Successful `main`
+builds then produce public prerelease snapshots tagged
 `build-<12-lowercase-hex>`, where the suffix is the start of the immutable
 source commit SHA.
 
@@ -25,6 +26,11 @@ A maintainer can promote a snapshot to a stable release by manually running the
 `build-<12-lowercase-hex>` form. Promotion reuses the snapshot's verified files
 byte for byte and publishes the stable release as latest; it does not rebuild or
 retarget either tag.
+
+Only snapshots created under this four-asset release contract are eligible for
+stable promotion. Legacy snapshots containing only the normal ROM, map, and
+symbol files remain immutable and cannot be promoted; the workflow does not
+reconstruct or repair them from expired CI artifacts.
 
 The workflow assigns the first stable release `v0.0.0`. After that it calculates
 the next version from Conventional Commits since the highest reachable stable:
@@ -47,7 +53,9 @@ normal product build emits `pokemon-openworld.gba`, `pokemon-openworld.map`, and
 make -j"$(nproc)" -O emerald syms
 ```
 
-The canonical emulator input is the isolated debug pair:
+GitHub releases contain those three normal-build files plus
+`pokemon-openworld-debug.gba`. The canonical emulator input for E2E remains the
+isolated debug pair (the debug `.sym` is a CI artifact, not a release asset):
 
 ```sh
 make -j"$(nproc)" -O DEBUG=1 \

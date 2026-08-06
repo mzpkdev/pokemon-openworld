@@ -15,12 +15,14 @@ import subprocess
 import sys
 import tempfile
 from typing import Any, Callable, Iterable
+from unittest.mock import patch
 
 
 ASSET_NAMES = (
     "pokemon-openworld.gba",
     "pokemon-openworld.map",
     "pokemon-openworld.sym",
+    "pokemon-openworld-debug.gba",
 )
 CI_WORKFLOW_PATH = ".github/workflows/ci.yml"
 SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
@@ -558,8 +560,17 @@ def resolve_stable_source() -> str:
             ci_run_id,
         ),
     )
-    if set(release_assets(release)) != set(ASSET_NAMES):
-        fail("snapshot release does not contain exactly the required assets")
+    snapshot_assets = set(release_assets(release))
+    required_assets = set(ASSET_NAMES)
+    if snapshot_assets != required_assets:
+        missing = sorted(required_assets - snapshot_assets)
+        unexpected = sorted(snapshot_assets - required_assets)
+        details = []
+        if missing:
+            details.append(f"missing: {', '.join(missing)}")
+        if unexpected:
+            details.append(f"unexpected: {', '.join(unexpected)}")
+        fail(f"snapshot release asset contract mismatch ({'; '.join(details)})")
     if not is_ancestor_via_api(repo, source_sha, "main"):
         fail("snapshot source is not reachable from main")
 
@@ -1012,6 +1023,18 @@ def expect_failure(callable_: Callable[[], Any], message: str) -> None:
     fail(f"self-test expected failure: {message}")
 
 
+def expect_failure_containing(
+    callable_: Callable[[], Any], expected: str, message: str
+) -> None:
+    try:
+        callable_()
+    except ReleaseError as error:
+        if expected not in str(error):
+            fail(f"self-test failure did not mention {expected!r}: {message}: {error}")
+        return
+    fail(f"self-test expected failure: {message}")
+
+
 def self_test() -> None:
     sha = "a" * 40
     other_sha = "b" * 40
@@ -1285,7 +1308,10 @@ def self_test() -> None:
         verify_tag=True,
     )
     assert create_args[:3] == ["release", "create", "build-" + sha[:12]]
-    assert create_args[3:6] == [str(Path("release") / name) for name in ASSET_NAMES]
+    asset_args_end = 3 + len(ASSET_NAMES)
+    assert create_args[3:asset_args_end] == [
+        str(Path("release") / name) for name in ASSET_NAMES
+    ]
     assert "--prerelease" in create_args and "--latest=false" in create_args
     assert create_args[-1] == "--verify-tag"
     stable_create_args = release_create_args(
@@ -1298,7 +1324,7 @@ def self_test() -> None:
         prerelease=False,
         verify_tag=False,
     )
-    assert stable_create_args[3:6] == [
+    assert stable_create_args[3:asset_args_end] == [
         str(Path("release") / name) for name in ASSET_NAMES
     ]
     assert "--latest" in stable_create_args and "--prerelease" not in stable_create_args
@@ -1334,6 +1360,39 @@ def self_test() -> None:
             full, "build-" + sha[:12], sha, prerelease=True, title=snapshot_title(sha)
         )
         validate_release_body(full, "generated notes\n")
+
+        legacy_asset_names = (
+            "pokemon-openworld.gba",
+            "pokemon-openworld.map",
+            "pokemon-openworld.sym",
+        )
+        legacy_snapshot = fixture_release(
+            "build-" + sha[:12],
+            sha,
+            digests,
+            legacy_asset_names,
+            body=release_notes_text(
+                "snapshot", render_changes([]).strip(), sha, "owner/repo", "123"
+            ),
+        )
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "GITHUB_REPOSITORY": "owner/repo",
+                    "SNAPSHOT_TAG": "build-" + sha[:12],
+                },
+            ),
+            patch(__name__ + ".resolve_tag_commit", return_value=sha),
+            patch(__name__ + ".release_for_tag", return_value=legacy_snapshot),
+            patch(__name__ + ".find_successful_ci_run", return_value="123"),
+            patch(__name__ + ".git", return_value="not conventional"),
+        ):
+            expect_failure_containing(
+                resolve_stable_source,
+                "missing: pokemon-openworld-debug.gba",
+                "legacy three-asset snapshot stable promotion",
+            )
         expect_failure(
             lambda: validate_release_body(full, "generated notes"),
             "final newline mismatch",
@@ -1346,9 +1405,9 @@ def self_test() -> None:
         )
         assert validate_release_asset_bytes(full, digests, allow_missing=True) == []
         partial = fixture_release("build-" + sha[:12], sha, digests, ASSET_NAMES[:2])
-        assert validate_release_asset_bytes(partial, digests, allow_missing=True) == [
-            ASSET_NAMES[2]
-        ]
+        assert validate_release_asset_bytes(
+            partial, digests, allow_missing=True
+        ) == list(ASSET_NAMES[2:])
         expect_failure(
             lambda: validate_release_asset_bytes(partial, digests, allow_missing=False),
             "partial assets",
