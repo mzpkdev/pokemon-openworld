@@ -157,6 +157,16 @@
       "name": "TohjoFalls_Cavern",
       "region": "johto",
       "kind": "cave"
+    },
+    {
+      "name": "JohtoVictoryRoad_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "JohtoPokemonLeague_WillsRoom",
+      "region": "johto",
+      "kind": "interior"
     }
   ],
   "interactions": [

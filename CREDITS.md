@@ -114,6 +114,11 @@ commit `d40affe26e58a20f445daad84af5e45be812e69f`. Johto content and its credit
 chain come from Pokémon Heart & Soul,
 [`PokemonHnS-Development/pokemonHnS`](https://github.com/PokemonHnS-Development/pokemonHnS),
 at commit `751823abaf677020bcd72c45fe3e7cb2b8a576e4` under author-approved reuse.
+HnS is the pinned content authority for the resident Johto shell. The importer
+uses PKMN-World content only for an exact 14-map fallback—Mahogany Hideout's
+three floors, Johto Victory Road's three floors, Indigo Plateau and its Pokémon
+Center, and the six League rooms—because those maps are absent from that HnS
+tree. This bounded fallback does not import either donor's gameplay systems.
 
 ### Pokémon Heart & Soul development
 

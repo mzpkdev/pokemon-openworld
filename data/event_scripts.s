@@ -1980,6 +1980,20 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/maps/TohjoFalls_Cavern/scripts.inc"
 	.include "data/maps/TohjoFalls_GiovanniRoom/scripts.inc"
 	.include "data/maps/ReceptionGate/scripts.inc"
+	.include "data/maps/JohtoIndigoPlateau/scripts.inc"
+	.include "data/maps/JohtoIndigoPlateau_PokemonCenter/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_BrunosRoom/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_ChampionsRoom/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_HallOfFame/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_KarensRoom/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_KogasRoom/scripts.inc"
+	.include "data/maps/JohtoPokemonLeague_WillsRoom/scripts.inc"
+	.include "data/maps/JohtoVictoryRoad_1F/scripts.inc"
+	.include "data/maps/JohtoVictoryRoad_B1F/scripts.inc"
+	.include "data/maps/JohtoVictoryRoad_B2F/scripts.inc"
+	.include "data/maps/MahoganyHideout_B1F/scripts.inc"
+	.include "data/maps/MahoganyHideout_B2F/scripts.inc"
+	.include "data/maps/MahoganyHideout_B3F/scripts.inc"
 
 Johto_EventScript_SetTimeEncounters::
 	return

@@ -16,6 +16,64 @@ JOHTO_MANIFEST = json.loads(
 JOHTO_LOCK = json.loads(
     (ROOT / "tools/johto_import/allocation_lock.json").read_text(encoding="utf-8")
 )
+FINAL_JOHTO_COUNTS = {
+    "maps": 254,
+    "layouts": 255,
+    "groups": 25,
+    "sections": 58,
+    "tilesets": 71,
+}
+FINAL_JOHTO_FALLBACK_MAPS = (
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F",
+)
+
+
+def _validate_final_johto_source_contract() -> None:
+    batch_names = [batch["name"] for batch in JOHTO_MANIFEST["batches"]]
+    if JOHTO_MANIFEST["activeBatches"] != batch_names:
+        raise RuntimeError("integrity requires every canonical Johto batch active")
+    if tuple(JOHTO_MANIFEST["contentFallback"]["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
+        raise RuntimeError("integrity Johto fallback allowlist drift")
+    fallback_batch = next(
+        batch
+        for batch in JOHTO_MANIFEST["batches"]
+        if batch["name"] == "pkmn-world-fallback"
+    )
+    if tuple(fallback_batch["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
+        raise RuntimeError("integrity Johto fallback batch drift")
+    actual = {
+        "maps": len(JOHTO_LOCK["maps"]),
+        "layouts": len(JOHTO_LOCK["layouts"]),
+        "groups": len(JOHTO_LOCK["groups"]),
+        "sections": len(JOHTO_LOCK["sections"]),
+        "tilesets": JOHTO_MANIFEST["expectedInventory"]["tilesets"]["count"],
+    }
+    if actual != FINAL_JOHTO_COUNTS:
+        raise RuntimeError(f"integrity final Johto counts drift: {actual!r}")
+    if [item["targetId"] for item in JOHTO_LOCK["groups"]] != list(range(75, 100)):
+        raise RuntimeError("integrity Johto group allocation drift")
+    if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(range(209, 267)):
+        raise RuntimeError("integrity Johto section allocation drift")
+    if [item["targetIndex"] for item in JOHTO_LOCK["layouts"]] != list(
+        range(785, 1040)
+    ):
+        raise RuntimeError("integrity Johto layout allocation drift")
+
+
+_validate_final_johto_source_contract()
 ACTIVE_JOHTO_BATCHES = set(JOHTO_MANIFEST["activeBatches"])
 ACTIVE_JOHTO_MAPS = [
     item for item in JOHTO_LOCK["maps"] if item["batch"] in ACTIVE_JOHTO_BATCHES

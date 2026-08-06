@@ -98,7 +98,8 @@
     "gMapGroup_JohtoBlackthorn",
     "gMapGroup_IndoorSSAqua",
     "gMapGroup_SafariZoneJohto",
-    "gMapGroup_JohtoFinal"
+    "gMapGroup_JohtoFinal",
+    "gMapGroup_JohtoLeague"
   ],
   "gMapGroup_TownsAndRoutes": [
     "PetalburgCity",
@@ -1424,7 +1425,10 @@
     "MtMortar_1F_North",
     "MtMortar_1F_South",
     "MtMortar_2F",
-    "MtMortar_B1F"
+    "MtMortar_B1F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F"
   ],
   "gMapGroup_JohtoBlackthorn": [
     "BlackthornCity",
@@ -1472,5 +1476,18 @@
     "TohjoFalls_Cavern",
     "TohjoFalls_GiovanniRoom",
     "ReceptionGate"
+  ],
+  "gMapGroup_JohtoLeague": [
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F"
   ]
 }

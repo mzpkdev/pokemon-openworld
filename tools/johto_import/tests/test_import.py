@@ -416,6 +416,27 @@ class ClosureValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(johto_import.ImportError, message):
                     johto_import.validate_warp_transforms(changed, maps)
 
+    def test_retained_warp_destination_id_must_be_in_bounds(self):
+        maps = [
+            {
+                "id": "MAP_SOURCE",
+                "name": "Source",
+                "warp_events": [{"dest_map": "MAP_DESTINATION", "dest_warp_id": "1"}],
+            },
+            {
+                "id": "MAP_DESTINATION",
+                "name": "Destination",
+                "warp_events": [{"dest_map": "MAP_SOURCE", "dest_warp_id": "0"}],
+            },
+        ]
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            r"destination warp out of bounds: Source/warp_events/0",
+        ):
+            johto_import.validate_destination_warp_bounds(maps)
+        maps[0]["warp_events"][0]["dest_warp_id"] = "0"
+        johto_import.validate_destination_warp_bounds(maps)
+
     def test_duplicate_layout_allocations_fail(self):
         selection = [
             {"targetGroup": "G", "targetLayoutIndex": 785, "targetSection": 209},
@@ -1602,6 +1623,9 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                         )
                     )
                     self.assertEqual(map_item["name"], name)
+                    self.assertEqual(map_item["object_events"], [])
+                    self.assertEqual(map_item["coord_events"], [])
+                    self.assertEqual(map_item["bg_events"], [])
                     self.assertEqual(
                         (target / "data/maps" / name / "scripts.inc").read_text(
                             encoding="utf-8"
@@ -1654,14 +1678,25 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
         )
         selected_layouts = johto_import.active_layout_selection(manifest, lock)
-        self.assertEqual(len(selected), 240)
-        self.assertEqual(len(selected_layouts), 241)
+        self.assertEqual(len(selected), 254)
+        self.assertEqual(len(selected_layouts), 255)
         self.assertEqual(
-            manifest["activeBatches"][-2:],
-            ["aqua-vermilion", "tohjo-league-hns"],
+            manifest["activeBatches"],
+            list(johto_import.BATCH_ORDER),
         )
         selected_names = {item["name"] for item in selected}
-        self.assertTrue(set(johto_import.FALLBACK_MAPS[-3:]).isdisjoint(selected_names))
+        self.assertEqual(
+            selected_names & set(johto_import.FALLBACK_MAPS),
+            set(johto_import.FALLBACK_MAPS),
+        )
+        selected_ids = {item["id"] for item in selected}
+        self.assertEqual(len(closure.deferred_edges), 7)
+        self.assertTrue(
+            all(
+                destination not in selected_ids
+                for _source, _kind, destination in closure.deferred_edges
+            )
+        )
         self.assertEqual(
             [
                 edge
@@ -1725,6 +1760,16 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(
             closure.sections, tuple(sorted({item["section"] for item in selected}))
+        )
+        self.assertEqual(
+            (
+                len(closure.maps),
+                len(closure.layouts),
+                len(closure.groups),
+                len(closure.sections),
+                len(closure.tilesets),
+            ),
+            johto_import.FINAL_INVENTORY_COUNTS,
         )
         self.assertEqual(
             evidence["attributeFormats"],
@@ -2008,7 +2053,7 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                     "y": 12,
                     "elevation": 0,
                     "dest_map": "MAP_RECEPTION_GATE",
-                    "dest_warp_id": "1",
+                    "dest_warp_id": "3",
                 },
                 {
                     "x": 20,
@@ -2026,6 +2071,20 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         self.assertEqual(
             materialized["SSAqua_1F"]["warp_events"][0]["dest_warp_id"],
             "0",
+        )
+        self.assertEqual(
+            materialized["MahoganyTown_Shop"]["warp_events"][1],
+            {
+                "x": 8,
+                "y": 4,
+                "elevation": 0,
+                "dest_map": "MAP_MAHOGANY_HIDEOUT_B1F",
+                "dest_warp_id": "0",
+            },
+        )
+        self.assertEqual(
+            materialized["MahoganyHideout_B1F"]["warp_events"][0]["dest_warp_id"],
+            "1",
         )
 
     def test_checked_and_writer_emitted_warp_targets_match_reviewed_spatial_fixes(self):
@@ -2047,6 +2106,13 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                 "dest_warp_id"
             ],
             "0",
+        )
+        shop = johto_import._json(repo / "data/maps/MahoganyTown_Shop/map.json")
+        hideout = johto_import._json(repo / "data/maps/MahoganyHideout_B1F/map.json")
+        self.assertEqual(shop["warp_events"][1]["dest_map"], "MAP_MAHOGANY_HIDEOUT_B1F")
+        self.assertLess(
+            int(hideout["warp_events"][0]["dest_warp_id"]),
+            len(shop["warp_events"]),
         )
 
         aqua = next(

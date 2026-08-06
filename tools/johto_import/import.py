@@ -112,6 +112,11 @@ FALLBACK_MAPS = (
     "MahoganyHideout_B2F",
     "MahoganyHideout_B3F",
 )
+FINAL_INVENTORY_COUNTS = (254, 255, 25, 58, 71)
+FALLBACK_SECTION_METADATA = (
+    "MAPSEC_JOHTO_INDIGO_PLATEAU",
+    "MAPSEC_MAHOGANY_HIDEOUT",
+)
 LAYOUT_HEADER_DECISION_KEYS = (
     *(
         (f"LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_{floor}F", "secondary_tileset")
@@ -270,6 +275,14 @@ REVIEWED_AUTHORITY_ADAPTATIONS = (
         "MAP_ROUTE22",
         "MAP_ROUTE26NORTH",
         "mechanical Johto membership keeps the east exit inside the active Tohjo shell",
+    ),
+    (
+        "pkmn-world-fallback",
+        "MahoganyTown_Shop",
+        "warp_events/1/dest_map",
+        "MAP_ROCKET_HIDEOUT_B1F",
+        "MAP_MAHOGANY_HIDEOUT_B1F",
+        "mechanical fallback identity restores the reverse Mahogany Hideout warp",
     ),
 )
 REVIEWED_BATCH_INVENTORY = {
@@ -818,6 +831,39 @@ def validate_warp_transforms(
         raise ImportError(
             f"warp reindex manifest drift: missing={missing[:1]} extra={extra[:1]}"
         )
+
+
+def validate_destination_warp_bounds(
+    maps: Sequence[Mapping[str, Any]],
+    *,
+    involved_map_ids: set[str] | None = None,
+) -> None:
+    """Require numeric retained warp IDs to index an emitted destination warp."""
+    maps_by_id = {str(item["id"]): item for item in maps}
+    for source in maps:
+        source_id = str(source["id"])
+        source_name = str(source["name"])
+        for index, edge in enumerate(source.get("warp_events") or []):
+            destination_id = str(edge.get("dest_map"))
+            destination = maps_by_id.get(destination_id)
+            if destination is None or (
+                involved_map_ids is not None
+                and source_id not in involved_map_ids
+                and destination_id not in involved_map_ids
+            ):
+                continue
+            warp_id = str(edge.get("dest_warp_id"))
+            try:
+                destination_index = int(warp_id)
+            except ValueError:
+                continue
+            destination_warps = destination.get("warp_events") or []
+            if destination_index < 0 or destination_index >= len(destination_warps):
+                raise ImportError(
+                    "destination warp out of bounds: "
+                    f"{source_name}/warp_events/{index} -> {destination_id}/"
+                    f"warp_events/{warp_id} (count={len(destination_warps)})"
+                )
 
 
 def _pointer(value: Any, path: str) -> Any:
@@ -1402,6 +1448,17 @@ def validate_full_port_contract(
     inventory: Inventory,
     maps: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
+    actual_counts = tuple(
+        len(getattr(inventory, field))
+        for field in ("maps", "layouts", "groups", "sections", "tilesets")
+    )
+    if actual_counts != FINAL_INVENTORY_COUNTS:
+        raise ImportError(
+            f"final Johto inventory count drift: expected {FINAL_INVENTORY_COUNTS}, "
+            f"got {actual_counts}"
+        )
+    if manifest.get("activeBatches") != list(BATCH_ORDER):
+        raise ImportError("final Johto import must activate every canonical batch")
     profile = manifest.get("materializationProfile")
     if profile != {
         "mapScripts": "empty",
@@ -1621,6 +1678,15 @@ def build_closure(
         manifest.get("retainedEdges", []),
         manifest.get("deferredEdges", []),
     )
+    materialized_maps = [
+        _materialized_map(item, pkmn_world, hns, manifest) for item in selection
+    ]
+    fallback_ids = {
+        str(item["id"])
+        for item in selection
+        if str(item["name"]) in manifest["contentFallback"]["maps"]
+    }
+    validate_destination_warp_bounds(materialized_maps, involved_map_ids=fallback_ids)
     formats = validate_attribute_fixtures(pkmn_world, hns, manifest)
     preserved = [item for item in selection if not should_materialize(item)]
     definitions, input_records = referenced_symbols(hns, preserved)
@@ -2778,7 +2844,10 @@ def _append_layouts_at_locked_indices(
 
 
 def _materialize_section_registry(
-    target: Path, manifest: Mapping[str, Any], hns: Path
+    target: Path,
+    manifest: Mapping[str, Any],
+    hns: Path,
+    pkmn_world: Path | None = None,
 ) -> None:
     """Materialize residency-owned sections at their allocation-locked values."""
     path = target / "src/data/region_map/region_map_sections.json"
@@ -2798,6 +2867,18 @@ def _materialize_section_registry(
         str(item["map_section"]): item
         for item in source_document.get("map_sections", [])
     }
+    fallback_sections: dict[str, Mapping[str, Any]] = {}
+    if pkmn_world is not None:
+        mechanical_document = _json(
+            pkmn_world / "src/data/region_map/region_map_sections.json"
+        )
+        fallback_sections = {
+            str(item["id"]): item
+            for item in mechanical_document.get("map_sections", [])
+            if item.get("id") in FALLBACK_SECTION_METADATA
+        }
+        if tuple(sorted(fallback_sections)) != tuple(sorted(FALLBACK_SECTION_METADATA)):
+            raise ImportError("PKMN-World fallback section metadata drift")
     metadata_sources = {
         str(item["mechanical"]): str(item["hns"])
         for item in manifest.get("mapFieldDecisions", [])
@@ -2811,6 +2892,8 @@ def _materialize_section_registry(
         target_id = int(allocation["targetId"])
         source_name = metadata_sources.get(name, name)
         source = source_sections.get(source_name)
+        if source is None and name in FALLBACK_SECTION_METADATA:
+            source = fallback_sections.get(name)
         if source is None:
             raise ImportError(f"HnS has no region-map section metadata for {name}")
         emitted = {
@@ -2945,7 +3028,7 @@ def materialize_source_tree(
         groups, selection, manifest["groupAllocations"]
     )
     atomic_write(target / "data/maps/map_groups.json", _dump_source(groups))
-    _materialize_section_registry(target, manifest, hns)
+    _materialize_section_registry(target, manifest, hns, pkmn_world)
 
     for item in _tilesets(manifest):
         role = item["role"]

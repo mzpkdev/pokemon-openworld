@@ -3,7 +3,7 @@
 `make e2e-core` runs the fast local smoke suite. `make e2e-extended` runs
 heavy, niche, and historical regressions. The extended suite currently plays
 from Quickstart through receiving the Pokédex. `make e2e-integrity` proves the
-three-region residency contract described below. There is no aggregate E2E
+four-region residency contract described below. There is no aggregate E2E
 target; each suite runs independently.
 
 On Debian or Ubuntu, install the ROM build prerequisites first:
@@ -32,7 +32,7 @@ make e2e-integrity
 ```
 
 Integrity uses the generated manifest to structurally initialize every
-registered Hoenn, mainland Kanto, and Sevii map. That is the meaning of
+registered Hoenn, mainland Kanto, Sevii, and Johto map. That is the meaning of
 **resident**: the map and its required header, layout, tileset, events, scripts,
 connections, section metadata, codecs, and callbacks are present and can be
 initialized. Representative full loads also prove **field-ready**: normal map
@@ -40,8 +40,14 @@ scripts and events run, the expected map is active, scripts settle, and player
 control returns. Structural loads suppress story scripts and events only during
 the exhaustive sweep; representative loads restore them.
 
-These checks do not implement or promise travel between regions, Fly routing,
-story progression, or a complete playable story in Kanto or Sevii. Failed runs
+Johto residency is deliberately non-gameplay: imported scripts and gameplay
+events are empty, while load-critical layouts, tilesets, sections, headers, and
+internal spatial edges remain. It does not provide NPCs, dialogue, trainers,
+encounters, trades, services, items, HM/key-item gates, daycare, healing, League
+gameplay, progression, Fly routing, or region switching. HnS supplies Johto
+content except for the importer-enforced 14-map PKMN-World fallback whose maps
+are absent from the pinned HnS authority. These checks do not promise travel
+between regions or a complete playable regional story. Failed runs
 write per-map screenshots, states, and logs under
 `test-results/e2e/integrity/`.
 

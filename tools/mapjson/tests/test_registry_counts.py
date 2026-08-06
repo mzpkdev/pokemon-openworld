@@ -13,6 +13,22 @@ LAYOUTS = ROOT / "data" / "layouts" / "layouts.json"
 MAPS = sorted((ROOT / "data" / "maps").glob("*/map.json"))
 FONTS_SOURCE = ROOT / "src" / "fonts.c"
 DEBUG_WARP_WINDOW_WIDTH_PX = 28 * 8
+FINAL_JOHTO_FALLBACK_MAPS = {
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F",
+}
 
 
 class ProductRegistryTests(unittest.TestCase):
@@ -143,6 +159,35 @@ class ProductRegistryTests(unittest.TestCase):
         )
         # Product layout numbers are one-based; the importer lock is index 907.
         self.assertEqual(orphan["number"], 908)
+
+    def test_final_johto_registry_and_fallback_shells_are_exact(self) -> None:
+        johto_maps = {
+            name
+            for name, entry in self.maps_by_name.items()
+            if entry["region"] == "REGION_JOHTO"
+        }
+        johto_layouts = {
+            entry["id"]
+            for entry in self.manifest["layouts"]
+            if entry["format"] == "johto"
+        }
+        johto_groups = {
+            group["name"] for group in self.manifest["groups"] if group["number"] >= 75
+        }
+        self.assertEqual(len(johto_maps), 254)
+        self.assertEqual(len(johto_layouts), 255)
+        self.assertEqual(len(johto_groups), 25)
+        self.assertTrue(FINAL_JOHTO_FALLBACK_MAPS <= johto_maps)
+        for name in FINAL_JOHTO_FALLBACK_MAPS:
+            source = self.maps_by_name[name]
+            self.assertEqual(source["object_events"], [], name)
+            self.assertEqual(source["coord_events"], [], name)
+            self.assertEqual(source["bg_events"], [], name)
+            self.assertEqual(
+                (ROOT / "data/maps" / name / "scripts.inc").read_text(),
+                f"{name}_MapScripts::\n\t.byte 0\n",
+                name,
+            )
 
     def test_product_pointer_tables_have_no_null_placeholders_and_are_aligned(
         self,

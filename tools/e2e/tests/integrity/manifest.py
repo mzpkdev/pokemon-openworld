@@ -78,6 +78,7 @@ INTERIOR_SECONDARY_TILESETS = {
 }
 
 CAVE_SECONDARY_TILESETS = {
+    "gTileset_Cave",
     "gTileset_Cave_Default",
     "gTileset_Cave_DragonsDen",
     "gTileset_Cave_Frlg",

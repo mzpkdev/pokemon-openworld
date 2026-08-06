@@ -41,7 +41,7 @@ EXPECTED_COUNTS = {
     "Sevii 1-3": 3,
     "Sevii 4-5": 2,
     "Sevii 6-7": 2,
-    "Johto": 2,
+    "Johto": 14,
 }
 SETTLEMENT_TYPES = {"MAP_TYPE_TOWN", "MAP_TYPE_CITY"}
 
@@ -86,6 +86,18 @@ EXPECTED_SETTLEMENTS = (
     ("SixIsland_Frlg", "Six Island", "Sevii 6-7"),
     ("NewBarkTown", "New Bark Town", "Johto"),
     ("CherrygroveCity", "Cherrygrove City", "Johto"),
+    ("VioletCity", "Violet City", "Johto"),
+    ("MtSilver_Outside", "Mt Silver Outside", "Johto"),
+    ("AzaleaTown", "Azalea Town", "Johto"),
+    ("GoldenrodCity", "Goldenrod City", "Johto"),
+    ("EcruteakCity", "Ecruteak City", "Johto"),
+    ("OlivineCity", "Olivine City", "Johto"),
+    ("CianwoodCity", "Cianwood City", "Johto"),
+    ("Mahoganytown", "Mahoganytown", "Johto"),
+    ("LakeOfRage", "Lake Of Rage", "Johto"),
+    ("BlackthornCity", "Blackthorn City", "Johto"),
+    ("SafariZoneGate", "Safari Zone Gate", "Johto"),
+    ("JohtoIndigoPlateau", "Johto Indigo Plateau", "Johto"),
 )
 
 PINNED_GROUP_LABELS = {
@@ -257,7 +269,7 @@ def _load_registry() -> tuple[
             "named-warp settlement identities/labels/regions drifted:\n"
             f"expected={EXPECTED_SETTLEMENTS!r}\nactual={actual_settlements!r}"
         )
-    if len(settlements) != 37 or dict(counts) != EXPECTED_COUNTS:
+    if len(settlements) != 49 or dict(counts) != EXPECTED_COUNTS:
         raise AssertionError(
             "named-warp settlement registry drifted: "
             f"total={len(settlements)}, counts={dict(counts)}"

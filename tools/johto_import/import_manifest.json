@@ -2163,6 +2163,13 @@
       "reason": "mechanical donor fixes the downstairs return warp"
     },
     {
+      "source": "MahoganyTown_Shop",
+      "path": "warp_events/1/dest_map",
+      "hns": "MAP_ROCKET_HIDEOUT_B1F",
+      "mechanical": "MAP_MAHOGANY_HIDEOUT_B1F",
+      "reason": "mechanical fallback identity restores the reverse Mahogany Hideout warp"
+    },
+    {
       "source": "ReceptionGate",
       "path": "warp_events/1/dest_map",
       "hns": "MAP_VICTORY_ROAD_KANTO_B2F",
@@ -2214,12 +2221,6 @@
       "destination": "MAP_DYNAMIC"
     },
     {
-      "source": "MahoganyTown_Shop",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_ROCKET_HIDEOUT_B1F"
-    },
-    {
       "source": "Route40",
       "path": "connections/2",
       "kind": "connection",
@@ -2236,18 +2237,6 @@
       "path": "connections/2",
       "kind": "connection",
       "destination": "MAP_SAFARI_ZONE_TOP_LEFT"
-    },
-    {
-      "source": "ReceptionGate",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_JOHTO_VICTORY_ROAD_1F"
-    },
-    {
-      "source": "ReceptionGate",
-      "path": "warp_events/2",
-      "kind": "warp",
-      "destination": "MAP_JOHTO_VICTORY_ROAD_1F"
     },
     {
       "source": "Route26North",
@@ -2278,27 +2267,6 @@
       "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     },
     {
-      "source": "MahoganyTown_Shop",
-      "path": "warp_events/1",
-      "destination": "MAP_ROCKET_HIDEOUT_B1F",
-      "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
-    },
-    {
-      "source": "ReceptionGate",
-      "path": "warp_events/1",
-      "destination": "MAP_JOHTO_VICTORY_ROAD_1F",
-      "destWarpId": "0",
-      "reason": "defer the north League exit until the bounded Phase 8 fallback"
-    },
-    {
-      "source": "ReceptionGate",
-      "path": "warp_events/2",
-      "destination": "MAP_JOHTO_VICTORY_ROAD_1F",
-      "destWarpId": "0",
-      "reason": "defer the north League exit until the bounded Phase 8 fallback"
-    },
-    {
       "source": "VermilionCity_PortInside",
       "path": "warp_events/0",
       "destination": "MAP_VERMILION_CITY_PORT_OUTSIDE",
@@ -2306,16 +2274,7 @@
       "reason": "strip the cross-region port transition from residency-only materialization"
     }
   ],
-  "warpReindexes": [
-    {
-      "source": "Route28",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_RECEPTION_GATE",
-      "from": "3",
-      "to": "1",
-      "reason": "reindex the retained west-gate entry after deferring two Phase 8 League warps"
-    }
-  ],
+  "warpReindexes": [],
   "preserveSpatialUpdates": [
     {
       "source": "CherrygroveCity",
@@ -6589,6 +6548,12 @@
       "destination": "MAP_MAHOGANYTOWN"
     },
     {
+      "source": "MahoganyTown_Shop",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANY_HIDEOUT_B1F"
+    },
+    {
       "source": "Mahoganytown",
       "path": "connections/0",
       "kind": "connection",
@@ -7028,7 +6993,53 @@
     {"source":"TohjoFalls_Cavern","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE27"},
     {"source":"TohjoFalls_Cavern","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE27"},
     {"source":"TohjoFalls_Cavern","path":"warp_events/2","kind":"warp","destination":"MAP_TOHJO_FALLS_GIOVANNI_ROOM"},
-    {"source":"TohjoFalls_GiovanniRoom","path":"warp_events/0","kind":"warp","destination":"MAP_TOHJO_FALLS_CAVERN"}
+    {"source":"TohjoFalls_GiovanniRoom","path":"warp_events/0","kind":"warp","destination":"MAP_TOHJO_FALLS_CAVERN"},
+    {"source":"JohtoIndigoPlateau","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_INDIGO_PLATEAU_POKEMON_CENTER"},
+    {"source":"JohtoIndigoPlateau","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"},
+    {"source":"JohtoIndigoPlateau_PokemonCenter","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_INDIGO_PLATEAU"},
+    {"source":"JohtoIndigoPlateau_PokemonCenter","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_WILLS_ROOM"},
+    {"source":"JohtoPokemonLeague_BrunosRoom","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_KOGAS_ROOM"},
+    {"source":"JohtoPokemonLeague_BrunosRoom","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_KARENS_ROOM"},
+    {"source":"JohtoPokemonLeague_ChampionsRoom","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_KARENS_ROOM"},
+    {"source":"JohtoPokemonLeague_ChampionsRoom","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_HALL_OF_FAME"},
+    {"source":"JohtoPokemonLeague_HallOfFame","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_CHAMPIONS_ROOM"},
+    {"source":"JohtoPokemonLeague_KarensRoom","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_BRUNOS_ROOM"},
+    {"source":"JohtoPokemonLeague_KarensRoom","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_CHAMPIONS_ROOM"},
+    {"source":"JohtoPokemonLeague_KogasRoom","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_BRUNOS_ROOM"},
+    {"source":"JohtoPokemonLeague_KogasRoom","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_WILLS_ROOM"},
+    {"source":"JohtoPokemonLeague_WillsRoom","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_INDIGO_PLATEAU_POKEMON_CENTER"},
+    {"source":"JohtoPokemonLeague_WillsRoom","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_POKEMON_LEAGUE_KOGAS_ROOM"},
+    {"source":"JohtoVictoryRoad_1F","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"},
+    {"source":"JohtoVictoryRoad_1F","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_INDIGO_PLATEAU"},
+    {"source":"JohtoVictoryRoad_1F","path":"warp_events/2","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_1F","path":"warp_events/3","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_1F","path":"warp_events/4","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B2F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B2F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/2","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/3","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B2F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/4","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/5","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"},
+    {"source":"JohtoVictoryRoad_B1F","path":"warp_events/6","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B2F"},
+    {"source":"JohtoVictoryRoad_B2F","path":"warp_events/0","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_B2F","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_B2F","path":"warp_events/2","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_B2F","path":"warp_events/3","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"JohtoVictoryRoad_B2F","path":"warp_events/4","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_B1F"},
+    {"source":"MahoganyHideout_B1F","path":"warp_events/0","kind":"warp","destination":"MAP_MAHOGANY_TOWN_SHOP"},
+    {"source":"MahoganyHideout_B1F","path":"warp_events/1","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B2F"},
+    {"source":"MahoganyHideout_B1F","path":"warp_events/2","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B1F"},
+    {"source":"MahoganyHideout_B2F","path":"warp_events/0","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B1F"},
+    {"source":"MahoganyHideout_B2F","path":"warp_events/1","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B3F"},
+    {"source":"MahoganyHideout_B2F","path":"warp_events/2","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B3F"},
+    {"source":"MahoganyHideout_B2F","path":"warp_events/3","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B3F"},
+    {"source":"MahoganyHideout_B2F","path":"warp_events/4","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B3F"},
+    {"source":"MahoganyHideout_B3F","path":"warp_events/0","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B2F"},
+    {"source":"MahoganyHideout_B3F","path":"warp_events/1","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B2F"},
+    {"source":"MahoganyHideout_B3F","path":"warp_events/2","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B2F"},
+    {"source":"MahoganyHideout_B3F","path":"warp_events/3","kind":"warp","destination":"MAP_MAHOGANY_HIDEOUT_B2F"},
+    {"source":"ReceptionGate","path":"warp_events/1","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"},
+    {"source":"ReceptionGate","path":"warp_events/2","kind":"warp","destination":"MAP_JOHTO_VICTORY_ROAD_1F"}
   ],
   "graphicsAdaptations": [
     {
@@ -8174,7 +8185,8 @@
     "safari",
     "mt-silver",
     "aqua-vermilion",
-    "tohjo-league-hns"
+    "tohjo-league-hns",
+    "pkmn-world-fallback"
   ],
   "batches": [
     {

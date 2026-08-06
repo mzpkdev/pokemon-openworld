@@ -8,7 +8,7 @@ its own world, content, and gameplay direction.
 
 This repository contains the source code and tooling needed to build its sole
 product: one Emerald-engine `pokemon-openworld` ROM with Hoenn, mainland Kanto,
-and Sevii resident. It does not expose FireRed, LeafGreen, or separate
+Sevii, and Johto resident. It does not expose FireRed, LeafGreen, or separate
 region-specific product ROMs. You may only use ROM images in accordance with
 the laws that apply to you.
 
@@ -76,12 +76,15 @@ capacity report to `build/integrity/artifact-report.json`. The Integrity E2E
 suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
 
-Here, **resident** means every registered Hoenn, mainland Kanto, and Sevii map
+Here, **resident** means every registered Hoenn, mainland Kanto, Sevii, and Johto map
 has complete structural data and can initialize. **Field-ready** is the stronger
 representative-map proof that normal scripts/events run and player control is
-restored. Neither term promises inter-region travel, Fly routing, story
-progression, or finished Kanto/Sevii story content; those behaviors are outside
-this milestone.
+restored. Johto is a load-critical spatial shell: its imported NPCs, dialogue,
+trainers, encounters, trades, services, items, HM/key-item gates, daycare,
+healing, League gameplay, progression, Fly routing, and region switching are not
+part of this milestone. HnS is the Johto content authority; exactly 14 maps absent
+from its pinned tree use the bounded PKMN-World fallback recorded by the importer.
+No residency claim promises inter-region travel or finished regional stories.
 
 ## Project reference
 

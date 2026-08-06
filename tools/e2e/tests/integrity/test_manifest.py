@@ -419,6 +419,12 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
             "gTileset_Cave_Gray",
             "cave",
         ),
+        (
+            "JohtoVictoryRoad_1F",
+            "gTileset_General",
+            "gTileset_Cave",
+            "cave",
+        ),
     ],
 )
 def test_johto_representative_kind_is_derived_from_known_tilesets(

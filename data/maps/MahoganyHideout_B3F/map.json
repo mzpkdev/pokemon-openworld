@@ -1,0 +1,50 @@
+{
+  "id": "MAP_MAHOGANY_HIDEOUT_B3F",
+  "name": "MahoganyHideout_B3F",
+  "layout": "LAYOUT_MAHOGANY_HIDEOUT_B3F",
+  "music": "MUS_MT_PYRE_EXTERIOR",
+  "region_map_section": "MAPSEC_MAHOGANY_HIDEOUT",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": true,
+  "allow_running": false,
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 3,
+      "y": 2,
+      "elevation": 0,
+      "dest_map": "MAP_MAHOGANY_HIDEOUT_B2F",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 32,
+      "y": 2,
+      "elevation": 0,
+      "dest_map": "MAP_MAHOGANY_HIDEOUT_B2F",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "elevation": 0,
+      "dest_map": "MAP_MAHOGANY_HIDEOUT_B2F",
+      "dest_warp_id": "3"
+    },
+    {
+      "x": 29,
+      "y": 18,
+      "elevation": 0,
+      "dest_map": "MAP_MAHOGANY_HIDEOUT_B2F",
+      "dest_warp_id": "4"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}
