@@ -48,7 +48,10 @@ class MapBuildPolicyTests(unittest.TestCase):
     def test_allregions_includes_both_reviewed_region_and_layout_families(self) -> None:
         allregions = policy("allregions")
         self.assertEqual(allregions["dialect"], "emerald")
-        self.assertEqual((allregions["hoenn"], allregions["kanto"]), ("1", "1"))
+        self.assertEqual(
+            (allregions["hoenn"], allregions["kanto"], allregions["johto"]),
+            ("1", "1", "1"),
+        )
         self.assertEqual(
             (allregions["emerald_layout"], allregions["frlg_layout"]), ("1", "1")
         )

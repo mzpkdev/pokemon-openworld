@@ -10,11 +10,11 @@ from typing import Any
 
 
 EXPECTED_COUNTS = {
-    "groups": 75,
-    "groupedMaps": 935,
-    "reviewedMaps": 939,
-    "layouts": 785,
-    "regions": {"REGION_HOENN": 518, "REGION_KANTO": 421},
+    "groups": 80,
+    "groupedMaps": 951,
+    "reviewedMaps": 955,
+    "layouts": 801,
+    "regions": {"REGION_HOENN": 518, "REGION_KANTO": 421, "REGION_JOHTO": 16},
 }
 EXPECTED_PRODUCT = {
     "gameVersion": "EMERALD",
@@ -93,7 +93,17 @@ def group_content_region(group_name: Any) -> str | None:
     """Return the content origin encoded by the product's map-group namespace."""
     if not isinstance(group_name, str) or not group_name.startswith("gMapGroup_"):
         return None
-    return "REGION_KANTO" if group_name.endswith("_Frlg") else "REGION_HOENN"
+    if group_name.endswith("_Frlg"):
+        return "REGION_KANTO"
+    if group_name in {
+        "gMapGroup_JohtoTownsAndRoutes",
+        "gMapGroup_IndoorNewBark",
+        "gMapGroup_IndoorCherrygrove",
+        "gMapGroup_IndoorBlackthorn",
+        "gMapGroup_MtSilver",
+    }:
+        return "REGION_JOHTO"
+    return "REGION_HOENN"
 
 
 def validate_manifest(manifest: dict[str, Any]) -> None:
@@ -124,9 +134,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         )
     if not isinstance(count_sentinels, dict) or not isinstance(codecs, dict):
         raise ManifestError("countSentinels and codecs must be objects")
-    if not isinstance(section_metadata, list) or len(section_metadata) != 209:
-        raise ManifestError("mapSectionMetadata must contain all 209 tuples")
-    if (len(groups), len(maps), len(layouts), len(exclusions)) != (75, 935, 785, 4):
+    if not isinstance(section_metadata, list) or len(section_metadata) != 214:
+        raise ManifestError("mapSectionMetadata must contain all 214 tuples")
+    if (len(groups), len(maps), len(layouts), len(exclusions)) != (80, 951, 801, 4):
         raise ManifestError("manifest arrays disagree with their count sentinels")
 
     _unique(groups, "name", "groups")
@@ -138,7 +148,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     _unique(exclusions, "name", "exclusions")
     _unique(symbols, "name", "symbols")
 
-    if sorted(group["number"] for group in groups) != list(range(75)):
+    if sorted(group["number"] for group in groups) != list(range(80)):
         raise ManifestError("group numbers must be contiguous from zero")
     group_counts = {group["number"]: group["mapCount"] for group in groups}
     group_regions = {
@@ -156,28 +166,28 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     }
     if seen_slots != expected_slots:
         raise ManifestError("map slots are missing, duplicated, or outside their group")
-    if sorted(layout["number"] for layout in layouts) != list(range(1, 786)):
+    if sorted(layout["number"] for layout in layouts) != list(range(1, 802)):
         raise ManifestError("layout slots must be contiguous from one")
     expected_sentinels = {
         "groups": {
             "start": "gMapGroups",
             "end": "gMapGroupsEnd",
-            "count": 75,
+            "count": 80,
             "stride": 4,
         },
         "layouts": {
             "start": "gMapLayouts",
             "end": "gMapLayoutsEnd",
-            "count": 785,
+            "count": 801,
             "stride": 4,
         },
-        "mapSections": {"registry": "gMapSectionRegistry", "count": 209},
+        "mapSections": {"registry": "gMapSectionRegistry", "count": 214},
     }
     if count_sentinels != expected_sentinels:
         raise ManifestError(f"wrong linked count sentinels: {count_sentinels!r}")
     codec_lengths = {
-        "sectionToSavedLocation": 209,
-        "sectionToMetLocation": 209,
+        "sectionToSavedLocation": 214,
+        "sectionToMetLocation": 214,
         "savedLocationToSection": 256,
         "metLocationToSection": 256,
     }
@@ -193,9 +203,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         ):
             raise ManifestError(f"codec {name} lacks {length} valid entries")
     _unique(section_metadata, "id", "mapSectionMetadata")
-    if [entry.get("value") for entry in section_metadata] != list(range(209)):
+    if [entry.get("value") for entry in section_metadata] != list(range(214)):
         raise ManifestError("mapSectionMetadata values must be ordered and contiguous")
-    region_values = {"REGION_KANTO": 1, "REGION_HOENN": 3}
+    region_values = {"REGION_KANTO": 1, "REGION_JOHTO": 2, "REGION_HOENN": 3}
     kind_values = {"geographic": 0, "special": 1, "reserved": 2}
     presentation_values = {
         "REGION_MAP_HOENN": 0,

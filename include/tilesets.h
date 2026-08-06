@@ -61,4 +61,19 @@ extern const struct Tileset gTileset_SSAnne;
 extern const struct Tileset gTileset_SeaCottage;
 extern const struct Tileset gTileset_TrainerTower;
 
+// JOHTO IMPORT BEGIN: externs
+#if HAS_JOHTO_TILESETS
+extern const struct Tileset gTileset_Johto_General;
+extern const struct Tileset gTileset_Johto_Building;
+extern const struct Tileset gTileset_Johto_NorthEast;
+extern const struct Tileset gTileset_NewBarkTown;
+extern const struct Tileset gTileset_CherrygroveCity;
+extern const struct Tileset gTileset_Kanto_PokemonCenter;
+extern const struct Tileset gTileset_JohtoMart;
+extern const struct Tileset gTileset_House_Lab;
+extern const struct Tileset gTileset_PlayersHouse;
+extern const struct Tileset gTileset_Gate_Standard;
+#endif // HAS_JOHTO_TILESETS
+// JOHTO IMPORT END: externs
+
 #endif //GUARD_tilesets_H

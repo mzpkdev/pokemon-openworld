@@ -80,6 +80,8 @@ CAVE_SECONDARY_TILESETS = {
 EXTERIOR_PRIMARY_TILESETS = {
     "gTileset_General",
     "gTileset_General_Frlg",
+    "gTileset_Johto_General",
+    "gTileset_Johto_NorthEast",
 }
 
 
@@ -366,6 +368,11 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
                 f"manifest maps[{index}] map-section id does not match value "
                 f"{region_map_section_value}"
             )
+        if (region == "REGION_JOHTO") != (section.region == "REGION_JOHTO"):
+            raise ValueError(
+                f"manifest maps[{index}] has one-sided Johto ownership: "
+                f"map region {region!r}, map-section region {section.region!r}"
+            )
         layout_number = _required(layout, "number", index)
         width = _required(layout, "width", index)
         height = _required(layout, "height", index)
@@ -417,6 +424,10 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
 
 
 def _representative_region(entry: ManifestMap) -> str:
+    # Johto content temporarily uses Hoenn's RegionMapType for presentation.
+    # Its manifest content origin remains authoritative for residency coverage.
+    if entry.region == "REGION_JOHTO":
+        return "johto"
     try:
         return REPRESENTATIVE_REGION_BY_MAP_TYPE[entry.section.region_map_type]
     except KeyError as error:
@@ -473,7 +484,14 @@ def _validate_representative_coverage(
         actual_regions.add(actual_region)
         actual_kinds.add(actual_kind)
 
-    required_regions = {"hoenn", "kanto", "sevii123", "sevii45", "sevii67"}
+    required_regions = {
+        "hoenn",
+        "kanto",
+        "sevii123",
+        "sevii45",
+        "sevii67",
+        "johto",
+    }
     if not required_regions <= actual_regions:
         raise ValueError(
             "representatives are missing required manifest region classes: "

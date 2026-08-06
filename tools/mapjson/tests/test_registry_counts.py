@@ -54,16 +54,20 @@ class ProductRegistryTests(unittest.TestCase):
         self.assertEqual(
             self.manifest["counts"],
             {
-                "groups": 75,
-                "groupedMaps": 935,
-                "reviewedMaps": 939,
-                "layouts": 785,
-                "regions": {"REGION_HOENN": 518, "REGION_KANTO": 421},
+                "groups": 80,
+                "groupedMaps": 951,
+                "reviewedMaps": 955,
+                "layouts": 801,
+                "regions": {
+                    "REGION_HOENN": 518,
+                    "REGION_KANTO": 421,
+                    "REGION_JOHTO": 16,
+                },
             },
         )
-        self.assertEqual(len(self.manifest["groups"]), 75)
-        self.assertEqual(len(self.manifest["maps"]), 935)
-        self.assertEqual(len(self.manifest["layouts"]), 785)
+        self.assertEqual(len(self.manifest["groups"]), 80)
+        self.assertEqual(len(self.manifest["maps"]), 951)
+        self.assertEqual(len(self.manifest["layouts"]), 801)
 
     def test_only_four_reviewed_unused_houses_are_excluded(self) -> None:
         self.assertEqual(
@@ -74,6 +78,46 @@ class ProductRegistryTests(unittest.TestCase):
                 "Route23_UnusedHouse",
                 "SevenIsland_UnusedHouse",
             },
+        )
+
+    def test_route28_is_real_johto_mixed_width_product_fixture(self) -> None:
+        source_map = json.loads((ROOT / "data/maps/Route28/map.json").read_text())
+        self.assertEqual(source_map["id"], "MAP_ROUTE28")
+        self.assertEqual(source_map["layout"], "LAYOUT_ROUTE28")
+        self.assertEqual(source_map["region"], "REGION_JOHTO")
+
+        source_layouts = {
+            entry["id"]: entry for entry in json.loads(LAYOUTS.read_text())["layouts"]
+        }
+        source = source_layouts["LAYOUT_ROUTE28"]
+        self.assertEqual(source["name"], "Route28_Layout")
+        self.assertEqual(source["format"], "johto")
+        self.assertEqual(source["primary_tileset"], "gTileset_Johto_NorthEast")
+        self.assertEqual(source["secondary_tileset"], "gTileset_ViridianCity")
+
+        product = next(
+            entry
+            for entry in self.manifest["layouts"]
+            if entry["id"] == "LAYOUT_ROUTE28"
+        )
+        self.assertEqual(product["format"], "johto")
+        self.assertEqual(product["primaryTileset"], "gTileset_Johto_NorthEast")
+        self.assertEqual(product["secondaryTileset"], "gTileset_ViridianCity")
+
+        product_map = next(
+            entry for entry in self.manifest["maps"] if entry["name"] == "Route28"
+        )
+        self.assertEqual(product_map["id"], "MAP_ROUTE28")
+        self.assertEqual(product_map["layoutId"], source_map["layout"])
+
+        tilesets = {entry["name"]: entry for entry in self.manifest["tilesets"]}
+        self.assertEqual(
+            tilesets[product["primaryTileset"]]["attributeFormat"],
+            "METATILE_ATTRIBUTES_EMERALD_U16",
+        )
+        self.assertEqual(
+            tilesets[product["secondaryTileset"]]["attributeFormat"],
+            "METATILE_ATTRIBUTES_FRLG_U32",
         )
 
     def test_product_pointer_tables_have_no_null_placeholders_and_are_aligned(
@@ -204,8 +248,8 @@ class ProductRegistryTests(unittest.TestCase):
             r'sDebugMapName_\d+_\d+\[\] = _\("([^"]*)"\);', self.debug_names
         )
 
-        self.assertEqual(len(group_labels), 75)
-        self.assertEqual(len(map_labels), 935)
+        self.assertEqual(len(group_labels), 80)
+        self.assertEqual(len(map_labels), 951)
         self.assertTrue(all(r"\n" not in label for label in group_labels))
         for label in map_labels:
             lines = label.split(r"\n")
@@ -269,7 +313,7 @@ class ProductRegistryTests(unittest.TestCase):
             overflowing,
             "FONT_NORMAL group labels exceed the 28-tile debug warp window",
         )
-        self.assertEqual(len(measured), 75)
+        self.assertEqual(len(measured), 80)
 
     def test_frlg_link_maps_keep_declared_kanto_debug_region(self) -> None:
         names = (self.output / "src/data/debug_map_names.h").read_text()

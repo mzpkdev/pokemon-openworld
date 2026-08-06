@@ -309,7 +309,7 @@ def _request_for(entry, request_id: int, *, structural: bool):
 
 def test_all_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
     maps = load_manifest_maps(integrity_manifest_path())
-    assert len(maps) == 935, f"expected 935 registered maps, found {len(maps)}"
+    assert len(maps) == 951, f"expected 951 registered maps, found {len(maps)}"
 
     _settle_overworld(integrity_game)
     clean_state = tmp_path / "integrity-clean-state.png"

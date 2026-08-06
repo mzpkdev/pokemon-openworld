@@ -1738,3 +1738,28 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/scripts/battle_frontier.inc"
 	.include "data/scripts/apricorn_tree.inc"
 	.include "data/scripts/wild_encounter.inc"
+
+// JOHTO IMPORT BEGIN: map scripts
+	.include "data/maps/NewBarkTown/scripts.inc"
+	.include "data/maps/NewBarkTown_Lab/scripts.inc"
+	.include "data/maps/NewBarkTown_House1/scripts.inc"
+	.include "data/maps/NewBarkTown_House2/scripts.inc"
+	.include "data/maps/NewBarkTown_PlayersHouse_1F/scripts.inc"
+	.include "data/maps/NewBarkTown_PlayersHouse_2F/scripts.inc"
+	.include "data/maps/Route29/scripts.inc"
+	.include "data/maps/Gate_Route29_Route46/scripts.inc"
+	.include "data/maps/CherrygroveCity/scripts.inc"
+	.include "data/maps/CherrygroveCity_PokemonCenter/scripts.inc"
+	.include "data/maps/CherrygroveCity_Mart/scripts.inc"
+	.include "data/maps/CherrygroveCity_House1/scripts.inc"
+	.include "data/maps/CherrygroveCity_House2/scripts.inc"
+	.include "data/maps/CherrygroveCity_House3/scripts.inc"
+	.include "data/maps/Route28/scripts.inc"
+	.include "data/maps/Route28_House/scripts.inc"
+
+Johto_EventScript_SetTimeEncounters::
+	return
+
+Johto_Text_DeferredElmCall::
+	.string "PROF. ELM will call again later.$"
+// JOHTO IMPORT END: map scripts

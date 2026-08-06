@@ -2458,5 +2458,41 @@
 #define TESTING_FLAG_UNUSED_7                   (TESTING_FLAGS_START + 0x7)
 #endif // TESTING
 
+// JOHTO IMPORT BEGIN: flags
+#define FLAG_COMPLETED_AERODACTYL_PUZZLE                             0x8E5
+#define FLAG_COMPLETED_HOOH_PUZZLE                                   0x8E6
+#define FLAG_COMPLETED_KABUTO_PUZZLE                                 0x8E7
+#define FLAG_COMPLETED_OMANYTE_PUZZLE                                0x8E8
+#define FLAG_DAY_POKEMON                                             0x8E9
+#define FLAG_EXP_SHARE                                               0x8EA
+#define FLAG_GOT_MYSTICWATER                                         0x8EB
+#define FLAG_GOT_SILK_SCARF                                          0x8EC
+#define FLAG_GOT_TM_STEEL_WING                                       0x8ED
+#define FLAG_HIDE_CHERRYGROVE_GUIDE_GENT_HOUSE                       0x8EE
+#define FLAG_HIDE_CHIKORITABALL                                      0x8EF
+#define FLAG_HIDE_CYNDAQUILBALL                                      0x8F0
+#define FLAG_HIDE_ECRUTEAK_CITY_THEATER_KIMONOS                      0x8F1
+#define FLAG_HIDE_ECRUTEAK_CITY_THEATER_NPCS                         0x8F2
+#define FLAG_HIDE_ECRUTEAK_SILVER                                    0x8F3
+#define FLAG_HIDE_GUIDE_GENT_CHERRYGROVE                             0x8F4
+#define FLAG_HIDE_LAB_POLICEMAN                                      0x8F5
+#define FLAG_HIDE_MOMS_FRIEND                                        0x8F6
+#define FLAG_HIDE_MOMS_FRIEND2                                       0x8F7
+#define FLAG_HIDE_NEWBARKTOWN_LAB_AIDE                               0x8F8
+#define FLAG_HIDE_OLIVINE_PORT_OAK                                   0x8F9
+#define FLAG_HIDE_ROUTE_30_NPCS                                      0x8FA
+#define FLAG_HIDE_SILVER_CHERRYGROVE                                 0x8FB
+#define FLAG_HIDE_SILVER_NEWBARKTOWN                                 0x8FC
+#define FLAG_HIDE_SSAQUA_1F_GRANDPA                                  0x8FD
+#define FLAG_HIDE_TOTODILEBALL                                       0x900
+#define FLAG_ITEM_ROUTE_29_POTION                                    0x901
+#define FLAG_MOM_VISITED                                             0x902
+#define FLAG_NIGHT_POKEMON                                           0x903
+#define FLAG_RECEIVED_FIRST_BALLS                                    0x904
+#define FLAG_RECEIVED_FIRST_POTION                                   0x905
+#define FLAG_SHOWN_ELM_TOGEPI                                        0x906
+#define FLAG_VISITED_CHERRYGROVE_CITY                                0x907
+#define FLAG_VISITED_NEWBARK_TOWN                                    0x908
+// JOHTO IMPORT END: flags
 
 #endif // GUARD_CONSTANTS_FLAGS_H

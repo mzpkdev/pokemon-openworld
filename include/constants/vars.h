@@ -338,4 +338,12 @@
 #define TESTING_VAR_UNUSED_7                (TESTING_VARS_START + 0x7)
 #endif // TESTING
 
+// JOHTO IMPORT BEGIN: vars
+#define VAR_CHERRYGROVE_CITY_STATE                                   0x40F7
+#define VAR_ECRUTEAK_CITY_THEATER                                    0x40F8
+#define VAR_GOLDENROD_CITY_STATE                                     0x40F9
+#define VAR_NEWBARKTOWN_LABSTATE                                     0x40FA
+#define VAR_NEWBARK_TOWN_STATE                                       0x40FB
+// JOHTO IMPORT END: vars
+
 #endif // GUARD_CONSTANTS_VARS_H

@@ -202,13 +202,46 @@ def test_manifest_rejects_map_section_id_mismatch(tmp_path):
         load_manifest_maps(path)
 
 
-def test_manifest_keeps_section_region_distinct_from_content_origin(tmp_path):
+def test_manifest_accepts_matching_johto_region_with_hoenn_presentation(tmp_path):
+    path = write_manifest(
+        tmp_path,
+        [map_entry(region="REGION_JOHTO")],
+        metadata=[section_entry(region="REGION_JOHTO")],
+    )
+    [entry] = load_manifest_maps(path)
+    assert entry.region == "REGION_JOHTO"
+    assert entry.section.region == "REGION_JOHTO"
+    assert entry.section.region_map_type == "REGION_MAP_HOENN"
+
+
+def test_manifest_keeps_non_johto_section_region_distinct_from_content_origin(
+    tmp_path,
+):
     path = write_manifest(
         tmp_path, [map_entry()], metadata=[section_entry(region="REGION_KANTO")]
     )
     [entry] = load_manifest_maps(path)
     assert entry.region == "REGION_HOENN"
     assert entry.section.region == "REGION_KANTO"
+
+
+@pytest.mark.parametrize(
+    ("map_region", "section_region"),
+    [
+        ("REGION_JOHTO", "REGION_HOENN"),
+        ("REGION_HOENN", "REGION_JOHTO"),
+    ],
+)
+def test_manifest_rejects_one_sided_johto_ownership(
+    tmp_path, map_region, section_region
+):
+    path = write_manifest(
+        tmp_path,
+        [map_entry(region=map_region)],
+        metadata=[section_entry(region=section_region)],
+    )
+    with pytest.raises(ValueError, match="one-sided Johto ownership"):
+        load_manifest_maps(path)
 
 
 def test_manifest_rejects_unordered_map_section_metadata(tmp_path):
@@ -243,6 +276,10 @@ def test_representatives_include_four_island_completed_scene_seed():
     assert four_island.region == "sevii45"
     assert four_island.kind == "exterior"
     assert four_island.seed_vars == ((0x4086, 1),)
+    new_bark = next(entry for entry in representatives if entry.name == "NewBarkTown")
+    assert new_bark.region == "johto"
+    assert new_bark.kind == "exterior"
+    assert new_bark.seed_vars == ()
 
 
 @pytest.mark.parametrize("declared_region", ["kanto", "sevii123", "sevii45", "sevii67"])
@@ -284,5 +321,34 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
     with pytest.raises(
         ValueError,
         match="declares kind 'interior'.*manifest layout is 'exterior'",
+    ):
+        load_representatives(representatives, maps)
+
+
+def test_johto_representative_uses_content_region_during_hoenn_presentation(
+    tmp_path,
+):
+    maps = load_manifest_maps(
+        write_manifest(
+            tmp_path,
+            [map_entry(name="NewBarkTown", region="REGION_JOHTO")],
+            layouts=[
+                layout_entry(
+                    primaryTileset="gTileset_Johto_General",
+                    secondaryTileset="gTileset_NewBarkTown",
+                    format="johto",
+                )
+            ],
+            metadata=[section_entry(region="REGION_JOHTO")],
+        )
+    )
+    representatives = write_representatives(
+        tmp_path,
+        [{"name": "NewBarkTown", "region": "hoenn", "kind": "exterior"}],
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="declares region 'hoenn'.*manifest geography is 'johto'",
     ):
         load_representatives(representatives, maps)

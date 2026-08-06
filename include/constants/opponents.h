@@ -864,7 +864,7 @@
 //       More space can be made by shifting flags around in constants/flags.h or changing how trainer flags are handled
 //       MAX_TRAINERS_COUNT can be increased but will take up additional saveblock space
 
-#define TRAINERS_COUNT_EMERALD     855
+#define TRAINERS_COUNT_EMERALD     858
 #define MAX_TRAINERS_COUNT_EMERALD 864
 
 #if IS_FRLG
@@ -875,5 +875,11 @@
 #define MAX_TRAINERS_COUNT                  MAX_TRAINERS_COUNT_EMERALD
 #endif
 #define TRAINER_PARTNER(partner)           (MAX_TRAINERS_COUNT + partner)
+
+// JOHTO IMPORT BEGIN: rival opponents
+#define TRAINER_RIVAL_CHIKORITA_1 855
+#define TRAINER_RIVAL_CYNDAQUIL_1 856
+#define TRAINER_RIVAL_TOTODILE_1 857
+// JOHTO IMPORT END: rival opponents
 
 #endif  // GUARD_CONSTANTS_OPPONENTS_H
