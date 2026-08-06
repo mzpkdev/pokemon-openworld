@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "mechanicalDonor": {
+    "repository": "evilchinesefood/PKMN-World",
+    "commit": "d40affe26e58a20f445daad84af5e45be812e69f",
+    "sourceTreeDigest": "6bca91e491e7e8304f9268aa41a4c9d629d50baa6d3150fe45d55632b6f4f762",
+    "sourceTreeFileCount": 32382
+  },
+  "contentAuthority": {
+    "repository": "PokemonHnS-Development/pokemonHnS",
+    "commit": "751823abaf677020bcd72c45fe3e7cb2b8a576e4",
+    "sourceTreeDigest": "6fc60f734085eb0ba6df3f68855cc8b91564499fb0f960eb2d7cffe3cc379703",
+    "sourceTreeFileCount": 18314,
+    "reuse": "author-approved"
+  },
+  "expectedInventory": {
+    "maps": {"count": 254, "digest": "1d4252858eb630077d5c0508958ffb648d126d6169d3e1603635f16eeb5ceb23"},
+    "layouts": {"count": 255, "digest": "cadae21f87198262d0887f550e7955057e06d301bd333d9a00ebb34fe613e6ed"},
+    "groups": {"count": 25, "digest": "8899638e82ba7b837ade8b697370092f3f936d8bb9b73ec957715fa919e5905d"},
+    "sections": {"count": 58, "digest": "ff867c67dcc0d8c728147479dac1e6b936826bc1228e20a91127659bdc6f27b1"},
+    "tilesets": {"count": 71, "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"}
+  },
+  "authority": {
+    "hnsContent": [
+      "maps", "layout-binaries", "events", "scripts-text", "encounters",
+      "section-presentation", "tileset-resources", "trainers", "art"
+    ],
+    "pkmnWorldMechanics": [
+      "johto-membership", "layout-format", "tileset-attribute-width",
+      "mixed-width-substitution", "dependency-wiring"
+    ],
+    "unclassifiedDivergence": "error"
+  },
+  "selection": {
+    "families": ["NewBarkTown", "Route29", "CherrygroveCity", "Route28"],
+    "maps": [
+      {"name":"NewBarkTown","id":"MAP_NEW_BARK_TOWN","layout":"LAYOUT_NEW_BARK_TOWN","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_JohtoTownsAndRoutes","targetLayoutIndex":785,"targetSection":209},
+      {"name":"NewBarkTown_Lab","id":"MAP_NEW_BARK_TOWN_LAB","layout":"LAYOUT_NEW_BARK_TOWN_LAB","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_IndoorNewBark","targetLayoutIndex":786,"targetSection":209},
+      {"name":"NewBarkTown_House1","id":"MAP_NEW_BARK_TOWN_HOUSE1","layout":"LAYOUT_NEW_BARK_TOWN_HOUSE1","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_IndoorNewBark","targetLayoutIndex":787,"targetSection":209},
+      {"name":"NewBarkTown_House2","id":"MAP_NEW_BARK_TOWN_HOUSE2","layout":"LAYOUT_NEW_BARK_TOWN_HOUSE2","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_IndoorNewBark","targetLayoutIndex":788,"targetSection":209},
+      {"name":"NewBarkTown_PlayersHouse_1F","id":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F","layout":"LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_1F","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_IndoorNewBark","targetLayoutIndex":789,"targetSection":209},
+      {"name":"NewBarkTown_PlayersHouse_2F","id":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F","layout":"LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_2F","section":"MAPSEC_NEW_BARK_TOWN","targetGroup":"gMapGroup_IndoorNewBark","targetLayoutIndex":790,"targetSection":209},
+      {"name":"Route29","id":"MAP_ROUTE29","layout":"LAYOUT_ROUTE29","section":"MAPSEC_ROUTE_29","targetGroup":"gMapGroup_JohtoTownsAndRoutes","targetLayoutIndex":791,"targetSection":210},
+      {"name":"Gate_Route29_Route46","id":"MAP_GATE_ROUTE29_ROUTE46","layout":"LAYOUT_GATE_ROUTE29_ROUTE46","section":"MAPSEC_ROUTE_29","targetGroup":"gMapGroup_IndoorBlackthorn","targetLayoutIndex":792,"targetSection":210},
+      {"name":"CherrygroveCity","id":"MAP_CHERRYGROVE_CITY","layout":"LAYOUT_CHERRYGROVE_CITY","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_JohtoTownsAndRoutes","targetLayoutIndex":793,"targetSection":211},
+      {"name":"CherrygroveCity_PokemonCenter","id":"MAP_CHERRYGROVE_CITY_POKEMON_CENTER","layout":"LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_IndoorCherrygrove","targetLayoutIndex":794,"targetSection":211},
+      {"name":"CherrygroveCity_Mart","id":"MAP_CHERRYGROVE_CITY_MART","layout":"LAYOUT_CHERRYGROVE_CITY_MART","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_IndoorCherrygrove","targetLayoutIndex":795,"targetSection":211},
+      {"name":"CherrygroveCity_House1","id":"MAP_CHERRYGROVE_CITY_HOUSE1","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE1","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_IndoorCherrygrove","targetLayoutIndex":796,"targetSection":211},
+      {"name":"CherrygroveCity_House2","id":"MAP_CHERRYGROVE_CITY_HOUSE2","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE2","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_IndoorCherrygrove","targetLayoutIndex":797,"targetSection":211},
+      {"name":"CherrygroveCity_House3","id":"MAP_CHERRYGROVE_CITY_HOUSE3","layout":"LAYOUT_CHERRYGROVE_CITY_HOUSE3","section":"MAPSEC_CHERRYGROVE_CITY","targetGroup":"gMapGroup_IndoorCherrygrove","targetLayoutIndex":798,"targetSection":211},
+      {"name":"Route28","id":"MAP_ROUTE28","layout":"LAYOUT_ROUTE28","section":"MAPSEC_ROUTE_28","targetGroup":"gMapGroup_MtSilver","targetLayoutIndex":799,"targetSection":212},
+      {"name":"Route28_House","id":"MAP_ROUTE28_HOUSE","layout":"LAYOUT_ROUTE28_HOUSE","section":"MAPSEC_MT_SILVER","targetGroup":"gMapGroup_MtSilver","targetLayoutIndex":800,"targetSection":213}
+    ]
+  },
+  "groupAllocations": [
+    {"name":"gMapGroup_JohtoTownsAndRoutes","targetId":75},
+    {"name":"gMapGroup_IndoorNewBark","targetId":76},
+    {"name":"gMapGroup_IndoorCherrygrove","targetId":77},
+    {"name":"gMapGroup_IndoorBlackthorn","targetId":78},
+    {"name":"gMapGroup_MtSilver","targetId":79}
+  ],
+  "sectionAllocations": [
+    {"name":"MAPSEC_NEW_BARK_TOWN","targetId":209},
+    {"name":"MAPSEC_ROUTE_29","targetId":210},
+    {"name":"MAPSEC_CHERRYGROVE_CITY","targetId":211},
+    {"name":"MAPSEC_ROUTE_28","targetId":212},
+    {"name":"MAPSEC_MT_SILVER","targetId":213}
+  ],
+  "adaptations": [
+    {"source":"NewBarkTown","path":"warp_events/4/dest_map","hns":"MAP_WORLD_HUB","mechanical":"MAP_NEW_BARK_TOWN_LAB","reason":"dormant first-slice story/debug transition"},
+    {"source":"NewBarkTown","path":"warp_events/5/dest_map","hns":"MAP_TIN_TOWER_ROOF_DAY","mechanical":"MAP_NEW_BARK_TOWN_LAB","reason":"dormant first-slice story/debug transition"},
+    {"source":"NewBarkTown","path":"warp_events/7/dest_map","hns":"MAP_WORLD_HUB","mechanical":"MAP_NEW_BARK_TOWN_LAB","reason":"dormant first-slice story/debug transition"},
+    {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/1/dest_map","hns":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F","mechanical":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F","reason":"mechanical donor fixes the downstairs return warp"},
+    {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/1/dest_warp_id","hns":"0","mechanical":"1","reason":"mechanical donor fixes the downstairs return warp"}
+  ],
+  "deferredEdges": [
+    {"source":"NewBarkTown","path":"connections/1","kind":"connection","destination":"MAP_ROUTE27"},
+    {"source":"Route29","path":"connections/2","kind":"connection","destination":"MAP_ROUTE46"},
+    {"source":"Gate_Route29_Route46","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE46"},
+    {"source":"CherrygroveCity","path":"connections/1","kind":"connection","destination":"MAP_ROUTE30"},
+    {"source":"Route28","path":"connections/0","kind":"connection","destination":"MAP_MT_SILVER_OUTSIDE"},
+    {"source":"Route28","path":"connections/1","kind":"connection","destination":"MAP_ROUTE26NORTH"},
+    {"source":"Route28","path":"warp_events/0","kind":"warp","destination":"MAP_RECEPTION_GATE"}
+  ],
+  "retainedEdges": [
+    {"source":"NewBarkTown","path":"connections/0","kind":"connection","destination":"MAP_ROUTE29"},
+    {"source":"NewBarkTown","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
+    {"source":"NewBarkTown","path":"warp_events/1","kind":"warp","destination":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F"},
+    {"source":"NewBarkTown","path":"warp_events/2","kind":"warp","destination":"MAP_NEW_BARK_TOWN_HOUSE1"},
+    {"source":"NewBarkTown","path":"warp_events/3","kind":"warp","destination":"MAP_NEW_BARK_TOWN_HOUSE2"},
+    {"source":"NewBarkTown","path":"warp_events/4","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
+    {"source":"NewBarkTown","path":"warp_events/5","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
+    {"source":"NewBarkTown","path":"warp_events/6","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
+    {"source":"NewBarkTown","path":"warp_events/7","kind":"warp","destination":"MAP_NEW_BARK_TOWN_LAB"},
+    {"source":"NewBarkTown_Lab","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"NewBarkTown_Lab","path":"warp_events/1","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"NewBarkTown_House1","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"NewBarkTown_House2","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"NewBarkTown_PlayersHouse_1F","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"NewBarkTown_PlayersHouse_1F","path":"warp_events/1","kind":"warp","destination":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F"},
+    {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/0","kind":"warp","destination":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F"},
+    {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/1","kind":"warp","destination":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F"},
+    {"source":"Route29","path":"connections/0","kind":"connection","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"Route29","path":"connections/1","kind":"connection","destination":"MAP_NEW_BARK_TOWN"},
+    {"source":"Route29","path":"warp_events/0","kind":"warp","destination":"MAP_GATE_ROUTE29_ROUTE46"},
+    {"source":"Route29","path":"warp_events/1","kind":"warp","destination":"MAP_GATE_ROUTE29_ROUTE46"},
+    {"source":"Gate_Route29_Route46","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE29"},
+    {"source":"CherrygroveCity","path":"connections/0","kind":"connection","destination":"MAP_ROUTE29"},
+    {"source":"CherrygroveCity","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY_MART"},
+    {"source":"CherrygroveCity","path":"warp_events/1","kind":"warp","destination":"MAP_CHERRYGROVE_CITY_POKEMON_CENTER"},
+    {"source":"CherrygroveCity","path":"warp_events/2","kind":"warp","destination":"MAP_CHERRYGROVE_CITY_HOUSE1"},
+    {"source":"CherrygroveCity","path":"warp_events/3","kind":"warp","destination":"MAP_CHERRYGROVE_CITY_HOUSE2"},
+    {"source":"CherrygroveCity","path":"warp_events/4","kind":"warp","destination":"MAP_CHERRYGROVE_CITY_HOUSE3"},
+    {"source":"CherrygroveCity_PokemonCenter","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"CherrygroveCity_Mart","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"CherrygroveCity_House1","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"CherrygroveCity_House2","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"CherrygroveCity_House3","path":"warp_events/0","kind":"warp","destination":"MAP_CHERRYGROVE_CITY"},
+    {"source":"Route28","path":"warp_events/1","kind":"warp","destination":"MAP_ROUTE28_HOUSE"},
+    {"source":"Route28_House","path":"warp_events/0","kind":"warp","destination":"MAP_ROUTE28"}
+  ],
+  "attributeFixtures": [
+    {
+      "role":"primary",
+      "tileset":"gTileset_Johto_NorthEast",
+      "metatiles":"data/tilesets/primary/johto_north_east/metatiles.bin",
+      "attributes":"data/tilesets/primary/johto_north_east/metatile_attributes.bin",
+      "metatilesSha256":"d3d19f9c456ec1faaa2d37e5f883057e7c17b905cffdc20d3a7bd3dc26bbb918",
+      "attributesSha256":"3b40f88ad64b4d0a04ca606f7177d560750e55b890011ef690bd9a7a75a45be9",
+      "format":"METATILE_ATTRIBUTES_EMERALD_U16"
+    },
+    {
+      "role":"secondary",
+      "tileset":"gTileset_ViridianCity",
+      "metatiles":"data/tilesets/secondary/viridian_city_frlg/metatiles.bin",
+      "attributes":"data/tilesets/secondary/viridian_city_frlg/metatile_attributes.bin",
+      "metatilesSha256":"8491038f93b038fd271a50821b51eaee2d3b3cf9aa99050632ed96306232f4e5",
+      "attributesSha256":"6e2643efb546a161feb0d3b0346fbd345f744997ddce4fe0d0379e9c51cf3d34",
+      "format":"METATILE_ATTRIBUTES_FRLG_U32"
+    }
+  ]
+}

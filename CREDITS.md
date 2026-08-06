@@ -106,6 +106,44 @@ from `pokeemerald-expansion`.
   </tbody>
 </table>
 
+## Johto import
+
+Mechanical adaptation and dependency wiring follow
+[`evilchinesefood/PKMN-World`](https://github.com/evilchinesefood/PKMN-World) at
+commit `d40affe26e58a20f445daad84af5e45be812e69f`. Johto content and its credit
+chain come from Pokémon Heart & Soul,
+[`PokemonHnS-Development/pokemonHnS`](https://github.com/PokemonHnS-Development/pokemonHnS),
+at commit `751823abaf677020bcd72c45fe3e7cb2b8a576e4` under author-approved reuse.
+
+### Pokémon Heart & Soul development
+
+- Lead developer and game director: **Lil Dill**
+- Developers: **TixoRebel**, **InfiniteBacon42**, **Exclsior**,
+  **Phantonomy**, and **DaniRainbow**
+
+### Pokémon Heart & Soul upstream assets
+
+- Engine and codebase: **pret** (`pokeemerald`), **Resetes12**
+  (Modern Emerald), and the **pokeemerald-expansion** contributors
+- Sprites: **Cesare_CBass**, **AveonTrainer**, **PurpleZaffre**, and
+  **BatimaTheBat**
+- Tilesets: **Kertra** (Crystal Advance), **Ekat99**,
+  **TheDeadHeroAlistair**, and the **Johto Redrawn Team**
+- Maps and mapping references: **Kertra** (Crystal Advance),
+  **blackfragrant** (Fire Gold), and **SkidMarc25**
+- Gameplay: **TSP (TheSmithPlays)** (Crystal Legacy)
+- Special systems and visuals: **slawter666** and **wally-217**
+  (surfing Pokémon overworlds)
+
+### Pokémon Heart & Soul playtesters
+
+**MearaTheDigger · Kingofrocks · Ferropexola · Scarred-Healer13 ·
+ShigyNinja · Liquid Justice · aktatertot · Faintful · piobrando · Shortino ·
+Chronotakular · NoVa x CerberuS · Czarwardy · Phantonomy · TeggyDave ·
+HenryChess · Inner Rhymes · Astralaria · GPie · BillyNaing · Penkachu ·
+Emma M · Casper · Marzi · leob0505 · Sayu · RavePossum · Brick · KinoKuma ·
+BlackBelt Jiraiya**
+
 ## Other Credits
 ### Mega Evolution Overworld Sprite Credits:
 - [princess-phoenix](https://www.deviantart.com/princess-phoenix)
