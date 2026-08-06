@@ -1,3 +1,5 @@
+"""Core E2E coverage for settlement travel through the debug warp menu."""
+
 from __future__ import annotations
 
 from collections import Counter
@@ -751,7 +753,7 @@ def _wait_for_field_ready(game, expected_map: tuple[int, int], context: str) -> 
     _assert_no_debug_residue(game, context)
 
 
-def test_debug_named_warp_reaches_every_settlement(game, tmp_path):
+def test_debug_warp_reaches_every_settlement(game, tmp_path):
     _assert_debug_artifacts_match_source(game)
     game.wait_for_callback("CB2_InitTitleScreen", max_frames=6_000)
     for _ in range(3_000):
