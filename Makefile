@@ -355,10 +355,10 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check build-variant-isolation-check
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -487,7 +487,19 @@ E2E_ROM := $(FILE_NAME)-debug.gba
 E2E_SYMS := $(FILE_NAME)-debug.sym
 SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
 
-_e2e-require-artifacts:
+# E2E-only parsing deliberately omits the ROM rules above. Re-enter make once
+# with the debug purpose selected so the artifacts are refreshed by the same
+# generated-source, object, link, ROM, and symbol dependency graph as a normal
+# debug build. CI may trust artifacts produced by its required build job for the
+# exact same commit; local runs always traverse the graph.
+_e2e-build-debug-artifacts:
+ifeq ($(E2E_PREBUILT_DEBUG),1)
+	@:
+else
+	+$(MAKE) DEBUG=1 $(E2E_ROM) $(E2E_SYMS)
+endif
+
+_e2e-require-artifacts: _e2e-build-debug-artifacts
 	@missing=0; \
 	for artifact in "$(E2E_ROM)" "$(E2E_SYMS)"; do \
 		if [[ ! -f "$$artifact" ]]; then \
@@ -499,6 +511,15 @@ _e2e-require-artifacts:
 		echo "Prepare the debug artifacts first with: make DEBUG=1 $(E2E_ROM) $(E2E_SYMS)" >&2; \
 		exit 1; \
 	fi
+
+build-variant-isolation-check:
+	@test -f $(FILE_NAME).sym -a -f $(FILE_NAME)-debug.sym || { \
+		echo "Build normal and debug symbol artifacts before checking variant isolation." >&2; \
+		exit 1; \
+	}
+	@! grep -Eq 'DebugAction_Util_Warp_SelectNamed|gDebugNamedWarpRegistryIdentity' $(FILE_NAME).sym
+	@grep -Eq 'DebugAction_Util_Warp_SelectNamedMapGroup' $(FILE_NAME)-debug.sym
+	@grep -Eq 'gDebugNamedWarpRegistryIdentity' $(FILE_NAME)-debug.sym
 
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)

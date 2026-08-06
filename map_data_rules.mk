@@ -10,6 +10,7 @@ MAPS_OUTDIR := $(GENERATED_ROOT)/data/maps
 LAYOUTS_OUTDIR := $(GENERATED_ROOT)/data/layouts
 INCLUDECONSTS_OUTDIR := $(GENERATED_ROOT)/include/constants
 MAP_GROUP_COUNT_OUT := $(GENERATED_ROOT)/src/data/map_group_count.h
+DEBUG_MAP_NAMES_OUT := $(GENERATED_ROOT)/src/data/debug_map_names.h
 MAP_GENERATION_STAMP := $(GENERATED_ROOT)/.map-build-policy
 INTEGRITY_MANIFEST := $(GENERATED_ROOT)/integrity-manifest.json
 MAP_SECTION_METADATA_HEADER := $(GENERATED_ROOT)/include/generated/map_section_metadata.h
@@ -51,6 +52,7 @@ MAP_GENERATED_GLOBALS := \
 	$(INCLUDECONSTS_OUTDIR)/layouts.h \
 	$(INCLUDECONSTS_OUTDIR)/map_event_ids.h \
 	$(MAP_GROUP_COUNT_OUT) \
+	$(DEBUG_MAP_NAMES_OUT) \
 	$(MAP_SECTION_METADATA_HEADER) \
 	$(MAP_SECTION_METADATA_SOURCE) \
 	$(INTEGRITY_MANIFEST)
@@ -82,7 +84,8 @@ $(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_OUTDIR
 	| $(PREPROC) -is $< charmap.txt | $(CPP) $(CPPFLAGS) -I include - \
 	| $(PREPROC) -ie $< charmap.txt | $(AS) $(ASFLAGS) -o $@
 
-$(C_BUILDDIR)/debug.o $(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)
+$(C_BUILDDIR)/debug.o: $(MAP_GROUP_COUNT_OUT) $(DEBUG_MAP_NAMES_OUT)
+$(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)
 $(C_BUILDDIR)/location_codecs.o $(C_BUILDDIR)/regions.o: $(MAP_SECTION_METADATA_HEADER) $(MAP_SECTION_METADATA_SOURCE)
 
 # Retail dialects remain useful generator diagnostics, but never inherit the

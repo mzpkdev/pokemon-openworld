@@ -13,16 +13,19 @@ sudo apt install build-essential binutils-arm-none-eabi gcc-arm-none-eabi \
   libnewlib-arm-none-eabi libpng-dev python3-venv
 ```
 
-Prepare the canonical debug ROM and symbols separately before running any suite:
+Each suite first refreshes the canonical debug ROM and symbols through the
+ordinary debug Make dependency graph. You can still build them explicitly:
 
 ```sh
 make -j"$(nproc)" -O DEBUG=1 \
   pokemon-openworld-debug.gba pokemon-openworld-debug.sym
 ```
 
-The E2E suite targets never compile or publish a ROM. They require those two
-files in the repository root and fail with a preparation command if either is
-missing. Run the Integrity suite with:
+The suite targets never publish a ROM. They verify that those two files exist
+after the dependency-graph build and fail with a preparation command if the
+build did not produce them. CI alone uses its same-commit debug artifact from
+the required build job instead of rebuilding it in every E2E matrix job. Run
+the Integrity suite with:
 
 ```sh
 make e2e-integrity
