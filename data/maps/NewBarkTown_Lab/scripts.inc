@@ -169,13 +169,13 @@ NewBarkTown_Lab_EventScript_ChikoritaBall::
 	end
 
 NewBarkTown_Lab_EventScript_ChikoritaBall_Choice::
-	callnative DisableStaticRandomizer
+	@ Static randomizer control is unavailable; dormant starter story needs no state change
 	setvar VAR_STARTER_MON, 0
 	setvar PLAYER_STARTER_SPECIES, SPECIES_CHIKORITA
 	showmonpic PLAYER_STARTER_SPECIES, 10, 3
 	playmoncry PLAYER_STARTER_SPECIES, CRY_MODE_NORMAL
 	bufferspeciesname STR_VAR_1, PLAYER_STARTER_SPECIES
-	buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES
+	bufferstring STR_VAR_2, gText_EmptyString2
 	msgbox NewBarkTown_Lab_Text_ChooseChikorita, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, NewBarkTown_Lab_EventScript_ChoseStarter
 	goto_if_eq VAR_RESULT, NO, NewBarkTown_Lab_EventScript_DeclinedStarter
@@ -191,13 +191,13 @@ NewBarkTown_Lab_EventScript_CyndaquilBall::
 	end
 
 NewBarkTown_Lab_EventScript_CyndaquilBall_Choice::
-	callnative DisableStaticRandomizer
+	@ Static randomizer control is unavailable; dormant starter story needs no state change
 	setvar VAR_STARTER_MON, 1
 	setvar PLAYER_STARTER_SPECIES, SPECIES_CYNDAQUIL
 	showmonpic PLAYER_STARTER_SPECIES, 10, 3
 	playmoncry PLAYER_STARTER_SPECIES, CRY_MODE_NORMAL
 	bufferspeciesname STR_VAR_1, PLAYER_STARTER_SPECIES
-	buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES
+	bufferstring STR_VAR_2, gText_EmptyString2
 	msgbox NewBarkTown_Lab_Text_ChooseCyndaquil, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, NewBarkTown_Lab_EventScript_ChoseStarter
 	goto_if_eq VAR_RESULT, NO, NewBarkTown_Lab_EventScript_DeclinedStarter
@@ -213,13 +213,13 @@ NewBarkTown_Lab_EventScript_TotodileBall::
 	end
 
 NewBarkTown_Lab_EventScript_TotodileBall_Choice::
-	callnative DisableStaticRandomizer
+	@ Static randomizer control is unavailable; dormant starter story needs no state change
 	setvar VAR_STARTER_MON, 2
 	setvar PLAYER_STARTER_SPECIES, SPECIES_TOTODILE
 	showmonpic PLAYER_STARTER_SPECIES, 10, 3
 	playmoncry PLAYER_STARTER_SPECIES, CRY_MODE_NORMAL
 	bufferspeciesname STR_VAR_1, PLAYER_STARTER_SPECIES
-	buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES
+	bufferstring STR_VAR_2, gText_EmptyString2
 	msgbox NewBarkTown_Lab_Text_ChooseTotodile, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, NewBarkTown_Lab_EventScript_ChoseStarter
 	goto_if_eq VAR_RESULT, NO, NewBarkTown_Lab_EventScript_DeclinedStarter
@@ -229,12 +229,12 @@ NewBarkTown_Lab_EventScript_DeclinedStarter::
 	hidemonpic
 	msgbox NewBarkTown_Lab_Text_DidntChooseStarter, MSGBOX_DEFAULT
 	closemessage
-	callnative EnableStaticRandomizer
+	@ Static randomizer control is unavailable; dormant starter story needs no state change
 	release
 	end
 
 NewBarkTown_Lab_EventScript_ChoseStarter::
-	callnative EnableStaticRandomizer
+	@ Static randomizer control is unavailable; dormant starter story needs no state change
 	hidemonpic
 	removeobject VAR_LAST_TALKED
 	msgbox NewBarkTown_Lab_Text_ChoseStarter, MSGBOX_DEFAULT
@@ -343,7 +343,7 @@ NewBarkTown_Lab_EventScript_HideChikorita::
 
 NewBarkTown_Lab_EventScript_PoliceEpisode::
 	lock
-	setmetatile 7, 1, METATILE_R26_21_Broken_Window, TRUE
+	@ Police episode and its out-of-layout broken-window metatile are outside the resident slice
 	call_if_eq VAR_STARTER_MON, 0 NewBarkTown_Lab_EventScript_HideCyndaquil
 	call_if_eq VAR_STARTER_MON, 1 NewBarkTown_Lab_EventScript_HideTotodile
 	call_if_eq VAR_STARTER_MON, 2 NewBarkTown_Lab_EventScript_HideChikorita

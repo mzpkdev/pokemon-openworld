@@ -73,6 +73,9 @@
     {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/1/dest_map","hns":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F","mechanical":"MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F","reason":"mechanical donor fixes the downstairs return warp"},
     {"source":"NewBarkTown_PlayersHouse_2F","path":"warp_events/1/dest_warp_id","hns":"0","mechanical":"1","reason":"mechanical donor fixes the downstairs return warp"}
   ],
+  "berryTreeAllocations": [
+    {"source":"Route29","path":"object_events/15/trainer_sight_or_berry_tree_id","hns":"BERRY_TREE_ORAN_1","target":"BERRY_TREE_ROUTE_29_ORAN_1","targetId":90}
+  ],
   "deferredEdges": [
     {"source":"NewBarkTown","path":"connections/1","kind":"connection","destination":"MAP_ROUTE27"},
     {"source":"Route29","path":"connections/2","kind":"connection","destination":"MAP_ROUTE46"},
@@ -183,6 +186,14 @@
     {"source":"NewBarkTown_Lab","old":"special NameRival","new":"setvar VAR_RESULT, FALSE @ rival naming UI is outside the resident slice","occurrences":1},
     {"source":"NewBarkTown","old":"BlackthornCity_Text_ElmCall","new":"Johto_Text_DeferredElmCall","occurrences":1},
     {"source":"NewBarkTown_Lab","old":"removeitem ITEM_MYSTERY_EGG","new":"@ Mystery Egg removal deferred with the out-of-scope Togepi story","occurrences":1},
+    {"source":"NewBarkTown","old":"givebp 4","new":"@ HnS Battle Point test grant is outside the resident slice","occurrences":1},
+    {"source":"NewBarkTown_Lab","old":"buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES","new":"bufferstring STR_VAR_2, gText_EmptyString2","occurrences":3},
+    {"source":"NewBarkTown_Lab","old":"callnative DisableStaticRandomizer","new":"@ Static randomizer control is unavailable; dormant starter story needs no state change","occurrences":3},
+    {"source":"NewBarkTown_Lab","old":"callnative EnableStaticRandomizer","new":"@ Static randomizer control is unavailable; dormant starter story needs no state change","occurrences":2},
+    {"source":"NewBarkTown_Lab","old":"setmetatile 7, 1, METATILE_R26_21_Broken_Window, TRUE","new":"@ Police episode and its out-of-layout broken-window metatile are outside the resident slice","occurrences":1},
+    {"source":"Route29","old":"applymovement2","new":"applymovement","occurrences":9},
+    {"source":"Route29","old":"Common_Movement_WalkUp1","new":"Common_Movement_WalkUp","occurrences":4},
+    {"source":"Route29","old":"Common_Movement_WalkDown1","new":"Common_Movement_WalkDown","occurrences":5},
     {"source":"CherrygroveCity_PokemonCenter","old":"setrespawn HEAL_LOCATION_CHERRYGROVE_CITY","new":"@ Johto respawn/save integration is deliberately deferred","occurrences":1}
   ],
   "layoutBinaryAuthorities": [

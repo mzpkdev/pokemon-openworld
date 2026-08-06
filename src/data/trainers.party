@@ -16878,14 +16878,14 @@ Kyogre
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-// JOHTO IMPORT BEGIN: rival trainers
+#if 1 /* // JOHTO IMPORT BEGIN: rival trainers */
 === TRAINER_RIVAL_CHIKORITA_1 ===
 Name: ???
 Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Battle Type: Singles
+Double Battle: No
 
 Chikorita
 Level: 5
@@ -16897,7 +16897,7 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Battle Type: Singles
+Double Battle: No
 
 Cyndaquil
 Level: 5
@@ -16909,9 +16909,10 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Battle Type: Singles
+Double Battle: No
 
 Totodile
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
-// JOHTO IMPORT END: rival trainers
+
+#endif /* // JOHTO IMPORT END: rival trainers */

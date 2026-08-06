@@ -119,7 +119,7 @@ MapBuildPolicy ParseBuildPolicy(const string &value)
 bool MapBuildPolicy::IncludesRegion(const string &region) const
 {
     if (mode == MapBuildMode::AllRegions)
-        return region == "REGION_HOENN" || region == "REGION_KANTO";
+        return region == "REGION_HOENN" || region == "REGION_KANTO" || region == "REGION_JOHTO";
     return region == DefaultRegionName(defaultDialect);
 }
 
@@ -1352,7 +1352,7 @@ static MapSectionRegistry validate_map_section_registry(
                                  "map section '" + id + "' has invalid value");
         require_product_registry(kind == "geographic" || kind == "special" || kind == "reserved",
                                  "map section '" + id + "' has unknown kind '" + kind + "'");
-        require_product_registry(region == "REGION_HOENN" || region == "REGION_KANTO",
+        require_product_registry(region == "REGION_HOENN" || region == "REGION_KANTO" || region == "REGION_JOHTO",
                                  "map section '" + id + "' has unknown region '" + region + "'");
         require_product_registry(presentation == "REGION_MAP_HOENN" || presentation == "REGION_MAP_KANTO"
                               || presentation == "REGION_MAP_SEVII123" || presentation == "REGION_MAP_SEVII45"
@@ -1657,6 +1657,7 @@ static int map_battle_scene_value(const string &name)
 static int section_region_value(const string &name)
 {
     if (name == "REGION_KANTO") return 1;
+    if (name == "REGION_JOHTO") return 2;
     if (name == "REGION_HOENN") return 3;
     FATAL_ERROR("unknown map-section region '%s'\n", name.c_str());
 }
@@ -1910,16 +1911,17 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (grouped_names.find(name) == grouped_names.end())
                 ungrouped_names.insert(name);
         }
-        require_product_registry(group_number == 75, "expected 75 groups, got " + std::to_string(group_number));
-        require_product_registry(nonempty_group_count == 75, "one or more group pointer slots would be null");
-        require_product_registry(grouped_map_count == 935,
-                                 "expected 935 grouped maps, got " + std::to_string(grouped_map_count));
-        require_product_registry(static_cast<int>(map_filepaths.size()) == 939,
-                                 "expected 939 reviewed maps, got " + std::to_string(map_filepaths.size()));
+        require_product_registry(group_number == 80, "expected 80 groups, got " + std::to_string(group_number));
+        require_product_registry(nonempty_group_count == 80, "one or more group pointer slots would be null");
+        require_product_registry(grouped_map_count == 951,
+                                 "expected 951 grouped maps, got " + std::to_string(grouped_map_count));
+        require_product_registry(static_cast<int>(map_filepaths.size()) == 955,
+                                 "expected 955 reviewed maps, got " + std::to_string(map_filepaths.size()));
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
         require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
-        require_product_registry(included_layout_count == 785,
-                                 "expected 785 layouts, got " + std::to_string(included_layout_count));
+        require_product_registry(region_counts["REGION_JOHTO"] == 16, "expected 16 Johto maps");
+        require_product_registry(included_layout_count == 801,
+                                 "expected 801 layouts, got " + std::to_string(included_layout_count));
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");
     }
@@ -1953,6 +1955,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             {"regions", Json::object {
                 {"REGION_HOENN", region_counts["REGION_HOENN"]},
                 {"REGION_KANTO", region_counts["REGION_KANTO"]},
+                {"REGION_JOHTO", region_counts["REGION_JOHTO"]},
             }},
         }},
         {"abis", Json::object {
@@ -2517,6 +2520,7 @@ int main(int argc, char *argv[]) {
              << "dialect=" << DataDialectName(policy.defaultDialect) << "\n"
              << "hoenn=" << policy.IncludesRegion("REGION_HOENN") << "\n"
              << "kanto=" << policy.IncludesRegion("REGION_KANTO") << "\n"
+             << "johto=" << policy.IncludesRegion("REGION_JOHTO") << "\n"
              << "emerald_layout=" << policy.IncludesLayout("emerald") << "\n"
              << "frlg_layout=" << policy.IncludesLayout("frlg") << "\n"
              << "johto_layout=" << policy.IncludesLayout("johto") << "\n"

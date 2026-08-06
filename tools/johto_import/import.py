@@ -1054,6 +1054,19 @@ def _trainer_materialization(
         raise ImportError("trainer presentation has an invalid targetId")
     if len(target_ids) != len(set(target_ids)):
         raise ImportError("duplicate trainer presentation targetId")
+    double_battle_values = {"Singles": "No", "Doubles": "Yes"}
+    unsupported_battle_types = sorted(
+        {
+            str(item["battleType"])
+            for item in trainers
+            if item["battleType"] not in double_battle_values
+        }
+    )
+    if unsupported_battle_types:
+        raise ImportError(
+            "unsupported trainer presentation battleType: "
+            + ", ".join(unsupported_battle_types)
+        )
 
     base_text = _without_generated_section(opponent_text, "rival opponents")
     existing = {
@@ -1101,12 +1114,97 @@ def _trainer_materialization(
         f"=== {item['id']} ===\n"
         f"Name: {item['name']}\nClass: {item['class']}\nPic: {item['pic']}\n"
         f"Gender: {item['gender']}\nMusic: {item['music']}\n"
-        f"Battle Type: {item['battleType']}\n\n{item['species']}\n"
+        f"Double Battle: {double_battle_values[item['battleType']]}\n\n{item['species']}\n"
         f"Level: {item['level']}\nIVs: {item['ivs']}"
         for item in ordered
     )
     macros = "\n".join(f"#define {item['id']} {item['targetId']}" for item in ordered)
     return parties, macros, count
+
+
+def _apply_script_substitution(
+    source: str, script: str, old: str, new: str, occurrences: int
+) -> str:
+    """Apply one manifest-scoped script rewrite, rejecting donor drift."""
+    actual = script.count(old)
+    if actual != occurrences:
+        raise ImportError(
+            f"script substitution drift: {source}/{old!r}: "
+            f"expected {occurrences}, got {actual}"
+        )
+    return script.replace(old, new)
+
+
+def _berry_tree_materialization(
+    manifest: Mapping[str, Any], berry_text: str, hns: Path
+) -> str:
+    """Validate and render target-owned berry tree IDs for imported maps."""
+    allocations = _exact_records(
+        manifest,
+        "berryTreeAllocations",
+        {"source", "path", "hns", "target", "targetId"},
+    )
+    if len(allocations) != 1:
+        raise ImportError("berry tree allocation declaration drift")
+    _require_unique(allocations, "target", "berry tree allocation")
+
+    base_text = _without_generated_section(berry_text, "berry tree allocations")
+    existing = {
+        name: int(value)
+        for name, value in re.findall(
+            r"^#define\s+(BERRY_TREE_[A-Z0-9_]+)\s+(\d+)\s*$",
+            base_text,
+            re.MULTILINE,
+        )
+        if name != "BERRY_TREES_COUNT"
+    }
+    count_matches = re.findall(
+        r"^#define\s+BERRY_TREES_COUNT\s+(\d+)\s*$", base_text, re.MULTILINE
+    )
+    if len(count_matches) != 1 or not existing:
+        raise ImportError("target berry tree allocation baseline is ambiguous")
+    count = int(count_matches[0])
+    expected_ids = list(
+        range(max(existing.values()) + 1, max(existing.values()) + 1 + len(allocations))
+    )
+    if any(not isinstance(item["targetId"], int) for item in allocations):
+        raise ImportError("berry tree allocation has an invalid targetId")
+    target_ids = sorted(item["targetId"] for item in allocations)
+    if len(target_ids) != len(set(target_ids)):
+        raise ImportError("duplicate berry tree allocation targetId")
+    if target_ids != expected_ids:
+        raise ImportError(
+            f"berry tree allocations must append at target IDs {expected_ids[0]} "
+            f"through {expected_ids[-1]}"
+        )
+    if target_ids[-1] >= count:
+        raise ImportError(f"berry tree allocations exceed target count {count}")
+
+    selected = {str(item["name"]) for item in manifest["selection"]["maps"]}
+    for item in allocations:
+        source = item["source"]
+        path = item["path"]
+        target = item["target"]
+        if (
+            source not in selected
+            or not isinstance(path, str)
+            or not re.fullmatch(
+                r"object_events/\d+/trainer_sight_or_berry_tree_id", path
+            )
+            or not isinstance(target, str)
+            or not re.fullmatch(r"BERRY_TREE_[A-Z0-9_]+", target)
+        ):
+            raise ImportError("invalid berry tree allocation declaration")
+        donor_map = _json(hns / "data/maps" / str(source) / "map.json")
+        if _pointer(donor_map, path) != item["hns"]:
+            raise ImportError(f"berry tree allocation drift: {source}/{path}")
+        if target in existing:
+            raise ImportError(f"berry tree allocation name collision: {target}")
+
+    return "\n".join(
+        f"#define {item['target']:<35} {item['targetId']}"
+        for item in sorted(allocations, key=lambda value: value["targetId"])
+    )
 
 
 def validate_materialization_adaptations(
@@ -1184,12 +1282,9 @@ def validate_materialization_adaptations(
         if key in seen_substitutions:
             raise ImportError("duplicate script substitution declaration")
         seen_substitutions.add(key)
-        actual = scripts[str(source)].count(old)
-        if actual != occurrences:
-            raise ImportError(
-                f"script substitution drift: {source}/{old!r}: expected {occurrences}, got {actual}"
-            )
-        scripts[str(source)] = scripts[str(source)].replace(old, new)
+        scripts[str(source)] = _apply_script_substitution(
+            str(source), scripts[str(source)], old, new, occurrences
+        )
 
     target_items = set(
         re.findall(
@@ -1209,7 +1304,13 @@ def validate_materialization_adaptations(
         raise ImportError(
             f"undeclared script item adaptation: {sorted(unresolved_items)[0]}"
         )
-
+    _berry_tree_materialization(
+        manifest,
+        (Path(__file__).parents[2] / "include/constants/berry.h").read_text(
+            encoding="utf-8"
+        ),
+        hns,
+    )
     layouts = _exact_records(
         manifest, "layoutBinaryAuthorities", {"source", "layout", "authority"}
     )
@@ -1399,7 +1500,14 @@ def _copy_file(source: Path, destination: Path) -> None:
     atomic_write(destination, source.read_bytes())
 
 
-def _replace_generated_section(path: Path, name: str, body: str) -> None:
+def _replace_generated_section(
+    path: Path,
+    name: str,
+    body: str,
+    *,
+    blank_line_before_end: bool = False,
+    preprocessor_markers: bool = False,
+) -> None:
     begin = f"// JOHTO IMPORT BEGIN: {name}"
     end = f"// JOHTO IMPORT END: {name}"
     text = path.read_text(encoding="utf-8")
@@ -1409,12 +1517,17 @@ def _replace_generated_section(path: Path, name: str, body: str) -> None:
         raise ImportError(f"ambiguous generated section in {path}: {name}")
     if begin_count:
         pattern = re.compile(
-            rf"(?m)^{re.escape(begin)}\n.*?^{re.escape(end)}(?:\n|$)", re.DOTALL
+            rf"(?m)^[^\n]*{re.escape(begin)}[^\n]*\n.*?"
+            rf"^[^\n]*{re.escape(end)}[^\n]*(?:\n|$)",
+            re.DOTALL,
         )
         text, replacements = pattern.subn("", text)
         if replacements != 1:
             raise ImportError(f"malformed generated section in {path}: {name}")
-    text = text.rstrip() + f"\n\n{begin}\n{body.rstrip()}\n{end}\n"
+    terminator = "\n\n" if blank_line_before_end else "\n"
+    begin_line = f"#if 1 /* {begin} */" if preprocessor_markers else begin
+    end_line = f"#endif /* {end} */" if preprocessor_markers else end
+    text = text.rstrip() + f"\n\n{begin_line}\n{body.rstrip()}{terminator}{end_line}\n"
     atomic_write(path, text.encode("utf-8"))
 
 
@@ -1498,6 +1611,9 @@ def _materialized_map(
     for rule in manifest.get("warpReindexes", []):
         if rule["source"] == name:
             _set_pointer(value, str(rule["path"]), rule["to"])
+    for rule in manifest.get("berryTreeAllocations", []):
+        if rule["source"] == name:
+            _set_pointer(value, str(rule["path"]), rule["target"])
     removed_warps = {
         str(rule["path"])
         for rule in manifest.get("warpRemovals", [])
@@ -1586,13 +1702,13 @@ def materialize_source_tree(
         )
         script = (hns / "data/maps" / name / "scripts.inc").read_text(encoding="utf-8")
         for rule in script_substitutions.get(name, []):
-            actual = script.count(str(rule["old"]))
-            if actual != rule["occurrences"]:
-                raise ImportError(
-                    f"script substitution drift: {name}/{rule['old']!r}: "
-                    f"expected {rule['occurrences']}, got {actual}"
-                )
-            script = script.replace(str(rule["old"]), str(rule["new"]))
+            script = _apply_script_substitution(
+                name,
+                script,
+                str(rule["old"]),
+                str(rule["new"]),
+                int(rule["occurrences"]),
+            )
         for source_music, target_music in music_adaptations.items():
             script = script.replace(source_music, target_music)
         script = normalize_materialized_text(script)
@@ -1747,6 +1863,16 @@ Johto_Text_DeferredElmCall::
         var_lines,
         "#endif // GUARD_CONSTANTS_VARS_H",
     )
+    berry_constants = target / "include/constants/berry.h"
+    berry_lines = _berry_tree_materialization(
+        manifest, berry_constants.read_text(encoding="utf-8"), hns
+    )
+    _replace_generated_section_before(
+        berry_constants,
+        "berry tree allocations",
+        berry_lines,
+        "#endif // GUARD_CONSTANTS_BERRY_H",
+    )
 
     opponents = target / "include/constants/opponents.h"
     opponent_text = opponents.read_text(encoding="utf-8")
@@ -1754,7 +1880,11 @@ Johto_Text_DeferredElmCall::
         manifest, opponent_text
     )
     _replace_generated_section(
-        target / "src/data/trainers.party", "rival trainers", trainers
+        target / "src/data/trainers.party",
+        "rival trainers",
+        trainers,
+        blank_line_before_end=True,
+        preprocessor_markers=True,
     )
     opponent_text = re.sub(
         r"#define TRAINERS_COUNT_EMERALD\s+\d+",

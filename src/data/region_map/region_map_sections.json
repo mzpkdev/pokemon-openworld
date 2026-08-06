@@ -1,5 +1,5 @@
 {
-  "map_section_count": 209,
+  "map_section_count": 214,
   "map_sections": [
     {
       "id": "MAPSEC_LITTLEROOT_TOWN",
@@ -3094,6 +3094,61 @@
       "y": 4,
       "width": 1,
       "height": 1
+    },
+    {
+      "id": "MAPSEC_NEW_BARK_TOWN",
+      "value": 209,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": "MAPSEC_NEW_BARK_TOWN",
+      "met_location": 209,
+      "met_location_display": "MAPSEC_NEW_BARK_TOWN",
+      "name": "NEW BARK TOWN"
+    },
+    {
+      "id": "MAPSEC_ROUTE_29",
+      "value": 210,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": "MAPSEC_ROUTE_29",
+      "met_location": 210,
+      "met_location_display": "MAPSEC_ROUTE_29",
+      "name": "ROUTE 29"
+    },
+    {
+      "id": "MAPSEC_CHERRYGROVE_CITY",
+      "value": 211,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": "MAPSEC_CHERRYGROVE_CITY",
+      "met_location": 211,
+      "met_location_display": "MAPSEC_CHERRYGROVE_CITY",
+      "name": "CHERRYGROVE CITY"
+    },
+    {
+      "id": "MAPSEC_ROUTE_28",
+      "value": 212,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": "MAPSEC_ROUTE_28",
+      "met_location": 212,
+      "met_location_display": "MAPSEC_ROUTE_28",
+      "name": "ROUTE 28"
+    },
+    {
+      "id": "MAPSEC_MT_SILVER",
+      "value": 213,
+      "kind": "geographic",
+      "region": "REGION_JOHTO",
+      "region_map_type": "REGION_MAP_HOENN",
+      "saved_location": "MAPSEC_MT_SILVER",
+      "met_location": 213,
+      "met_location_display": "MAPSEC_MT_SILVER",
+      "name": "MT. SILVER"
     }
   ]
 }

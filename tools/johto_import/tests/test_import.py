@@ -506,6 +506,53 @@ class AtomicOutputTests(unittest.TestCase):
             changed_parties.index("TRAINER_RIVAL_CHIKORITA_1"),
         )
 
+    def test_trainer_output_uses_target_parser_language_and_record_terminator(self):
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        opponent_text = (
+            "#define TRAINER_EXISTING 854\n"
+            "#define TRAINERS_COUNT_EMERALD 855\n"
+            "#define MAX_TRAINERS_COUNT_EMERALD 864\n"
+        )
+        parties, _macros, _count = johto_import._trainer_materialization(
+            manifest, opponent_text
+        )
+
+        self.assertEqual(parties.count("Double Battle: No"), 3)
+        self.assertNotIn("Battle Type:", parties)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "trainers.party"
+            output.write_text("baseline\n")
+            johto_import._replace_generated_section(
+                output,
+                "rival trainers",
+                parties,
+                blank_line_before_end=True,
+                preprocessor_markers=True,
+            )
+            self.assertIn(
+                "IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe\n\n"
+                "#endif /* // JOHTO IMPORT END: rival trainers */\n",
+                output.read_text(),
+            )
+
+    def test_trainer_output_rejects_unknown_battle_type(self):
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        manifest["trainerPresentation"][0]["battleType"] = "Rotation"
+        opponent_text = (
+            "#define TRAINER_EXISTING 854\n"
+            "#define TRAINERS_COUNT_EMERALD 855\n"
+            "#define MAX_TRAINERS_COUNT_EMERALD 864\n"
+        )
+
+        with self.assertRaisesRegex(
+            johto_import.ImportError, "unsupported trainer presentation battleType"
+        ):
+            johto_import._trainer_materialization(manifest, opponent_text)
+
     def test_materialized_text_normalization_is_focused_and_idempotent(self):
         donor_text = "label:  \n\t\n\tcommand  value \t\n\n"
         expected = "label:\n\n\tcommand  value\n"
@@ -536,6 +583,179 @@ class AtomicOutputTests(unittest.TestCase):
                     johto_import.atomic_write(output, b"new")
             self.assertEqual(output.read_bytes(), b"old")
             self.assertEqual(list(output.parent.glob(".closure.json.*.tmp")), [])
+
+
+class ScriptSubstitutionTests(unittest.TestCase):
+    def test_phase3_substitutions_materialize_supported_commands_and_labels(self):
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        scripts = {
+            "NewBarkTown": (
+                "NewBarkTown_EventScript_TestMan1::\n"
+                "\tgivebp 4\n"
+                "\tmsgbox BattleFrontier_Text_ObtainedXBattlePoints, MSGBOX_GETPOINTS\n"
+            ),
+            "NewBarkTown_Lab": "\n".join(
+                [
+                    *["\tbuffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES"] * 3,
+                    *["\tcallnative DisableStaticRandomizer"] * 3,
+                    *["\tcallnative EnableStaticRandomizer"] * 2,
+                    "\tsetmetatile 7, 1, METATILE_R26_21_Broken_Window, TRUE",
+                ]
+            ),
+            "Route29": "\n".join(
+                [
+                    *["\tapplymovement2 OBJ_EVENT_ID_CAMERA, Common_Movement_WalkUp1"]
+                    * 4,
+                    *["\tapplymovement2 OBJ_EVENT_ID_CAMERA, Common_Movement_WalkDown1"]
+                    * 4,
+                    "\tapplymovement2 OBJ_EVENT_ID_PLAYER, Common_Movement_WalkDown1",
+                ]
+            ),
+        }
+        phase3_old = {
+            "givebp 4",
+            "buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES",
+            "applymovement2",
+            "Common_Movement_WalkUp1",
+            "Common_Movement_WalkDown1",
+            "callnative DisableStaticRandomizer",
+            "callnative EnableStaticRandomizer",
+            "setmetatile 7, 1, METATILE_R26_21_Broken_Window, TRUE",
+        }
+        for rule in manifest["scriptSubstitutions"]:
+            source = rule["source"]
+            if source not in scripts or rule["old"] not in phase3_old:
+                continue
+            scripts[source] = johto_import._apply_script_substitution(
+                source,
+                scripts[source],
+                rule["old"],
+                rule["new"],
+                rule["occurrences"],
+            )
+
+        self.assertNotIn("givebp", scripts["NewBarkTown"])
+        self.assertIn(
+            "@ HnS Battle Point test grant is outside the resident slice\n"
+            "\tmsgbox BattleFrontier_Text_ObtainedXBattlePoints, MSGBOX_GETPOINTS",
+            scripts["NewBarkTown"],
+        )
+        self.assertEqual(
+            scripts["NewBarkTown_Lab"].count(
+                "bufferstring STR_VAR_2, gText_EmptyString2"
+            ),
+            3,
+        )
+        self.assertNotIn("buffermoncategory", scripts["NewBarkTown_Lab"])
+        self.assertNotIn("DisableStaticRandomizer", scripts["NewBarkTown_Lab"])
+        self.assertNotIn("EnableStaticRandomizer", scripts["NewBarkTown_Lab"])
+        self.assertNotIn("METATILE_R26_21_Broken_Window", scripts["NewBarkTown_Lab"])
+        self.assertEqual(
+            scripts["NewBarkTown_Lab"].count(
+                "Static randomizer control is unavailable; dormant starter story needs no state change"
+            ),
+            5,
+        )
+        self.assertIn(
+            "Police episode and its out-of-layout", scripts["NewBarkTown_Lab"]
+        )
+        self.assertEqual(scripts["Route29"].count("\tapplymovement "), 9)
+        self.assertNotIn("applymovement2", scripts["Route29"])
+        self.assertNotIn("Common_Movement_WalkUp1", scripts["Route29"])
+        self.assertNotIn("Common_Movement_WalkDown1", scripts["Route29"])
+
+    def test_script_substitution_count_mutation_fails_closed(self):
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "script substitution drift: Route29/'applymovement2': expected 9, got 8",
+        ):
+            johto_import._apply_script_substitution(
+                "Route29", "applymovement2\n" * 8, "applymovement2", "applymovement", 9
+            )
+
+    def test_randomizer_substitution_count_mutation_fails_closed(self):
+        with self.assertRaisesRegex(
+            johto_import.ImportError,
+            "expected 3, got 2",
+        ):
+            johto_import._apply_script_substitution(
+                "NewBarkTown_Lab",
+                "callnative DisableStaticRandomizer\n" * 2,
+                "callnative DisableStaticRandomizer",
+                "@ no-op",
+                3,
+            )
+
+
+class BerryTreeAllocationTests(unittest.TestCase):
+    BERRY_BASELINE = """\
+#define BERRY_TREE_ROUTE_123_SITRUS   88
+#define BERRY_TREE_ROUTE_123_RAWST    89
+
+// Remainder are unused
+
+#define BERRY_TREES_COUNT 128
+
+#endif // GUARD_CONSTANTS_BERRY_H
+"""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.hns = Path(self.directory.name)
+        map_dir = self.hns / "data/maps/Route29"
+        map_dir.mkdir(parents=True)
+        events = [{} for _ in range(16)]
+        events[15]["trainer_sight_or_berry_tree_id"] = "BERRY_TREE_ORAN_1"
+        (map_dir / "map.json").write_text(json.dumps({"object_events": events}))
+        self.manifest = {
+            "selection": {"maps": [{"name": "Route29"}]},
+            "berryTreeAllocations": [
+                {
+                    "source": "Route29",
+                    "path": "object_events/15/trainer_sight_or_berry_tree_id",
+                    "hns": "BERRY_TREE_ORAN_1",
+                    "target": "BERRY_TREE_ROUTE_29_ORAN_1",
+                    "targetId": 90,
+                }
+            ],
+        }
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def test_allocation_appends_at_first_unused_target_id(self):
+        self.assertEqual(
+            johto_import._berry_tree_materialization(
+                self.manifest, self.BERRY_BASELINE, self.hns
+            ),
+            "#define BERRY_TREE_ROUTE_29_ORAN_1          90",
+        )
+
+    def test_allocation_rejects_donor_drift_and_target_collisions(self):
+        drifted = copy.deepcopy(self.manifest)
+        drifted["berryTreeAllocations"][0]["hns"] = "BERRY_TREE_ORAN_2"
+        with self.assertRaisesRegex(johto_import.ImportError, "allocation drift"):
+            johto_import._berry_tree_materialization(
+                drifted, self.BERRY_BASELINE, self.hns
+            )
+
+        collided = copy.deepcopy(self.manifest)
+        collided["berryTreeAllocations"][0]["targetId"] = 89
+        with self.assertRaisesRegex(johto_import.ImportError, "must append"):
+            johto_import._berry_tree_materialization(
+                collided, self.BERRY_BASELINE, self.hns
+            )
+
+        name_collision = self.BERRY_BASELINE.replace(
+            "#define BERRY_TREE_ROUTE_123_RAWST    89",
+            "#define BERRY_TREE_ROUTE_29_ORAN_1   89",
+        )
+        with self.assertRaisesRegex(johto_import.ImportError, "name collision"):
+            johto_import._berry_tree_materialization(
+                self.manifest, name_collision, self.hns
+            )
 
 
 class GeneratedSectionTests(unittest.TestCase):
@@ -705,6 +925,7 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             "graphicsAdaptations",
             "musicAdaptations",
             "scriptSubstitutions",
+            "berryTreeAllocations",
             "layoutBinaryAuthorities",
             "tilesetAdaptations",
             "trainerPresentation",
@@ -760,6 +981,12 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         self.assertEqual(
             [edge["dest_warp_id"] for edge in materialized["Route29"]["warp_events"]],
             ["0", "0"],
+        )
+        self.assertEqual(
+            materialized["Route29"]["object_events"][15][
+                "trainer_sight_or_berry_tree_id"
+            ],
+            "BERRY_TREE_ROUTE_29_ORAN_1",
         )
         self.assertEqual(
             materialized["Route28"]["warp_events"],

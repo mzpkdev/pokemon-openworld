@@ -147,4 +147,8 @@ enum __attribute__((__packed__)) Flavor
 
 #define BERRY_TREES_COUNT 128
 
+// JOHTO IMPORT BEGIN: berry tree allocations
+#define BERRY_TREE_ROUTE_29_ORAN_1          90
+// JOHTO IMPORT END: berry tree allocations
+
 #endif // GUARD_CONSTANTS_BERRY_H

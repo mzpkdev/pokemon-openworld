@@ -86,7 +86,7 @@ class IntegrityToolTests(unittest.TestCase):
                 "mismatched value",
                 lambda manifest: manifest["maps"][0].__setitem__(
                     "regionMapSectionValue",
-                    (manifest["maps"][0]["regionMapSectionValue"] + 1) % 209,
+                    (manifest["maps"][0]["regionMapSectionValue"] + 1) % 214,
                 ),
                 "map-section name/value disagree",
             ),

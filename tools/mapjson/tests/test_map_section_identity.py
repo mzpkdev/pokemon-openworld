@@ -50,7 +50,7 @@ class MapSectionIdentityTests(unittest.TestCase):
     def test_reviewed_values_and_compact_round_trips_are_frozen(self) -> None:
         result = self.validate()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "count=209\n")
+        self.assertEqual(result.stdout, "count=214\n")
         for value, section in enumerate(self.registry["map_sections"]):
             self.assertEqual(section["value"], value)
             self.assertEqual(section["saved_location"], section["id"])
@@ -66,12 +66,10 @@ class MapSectionIdentityTests(unittest.TestCase):
 
     def test_unmarked_gaps_are_rejected(self) -> None:
         registry = self.mutated_registry()
-        registry["map_sections"][-1]["value"] = 210
-        compatibility = copy.deepcopy(self.compatibility)
-        compatibility["stable_sections"][-1]["value"] = 210
-        result = self.validate(registry, compatibility)
+        registry["map_sections"][-1]["value"] = 215
+        result = self.validate(registry)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("unmarked map-section value gap 208", result.stderr)
+        self.assertIn("unmarked map-section value gap 213", result.stderr)
 
     def test_reserved_world_values_are_strictly_validated(self) -> None:
         mutations = (["not-a-number"], [-1], [0xFFFF], [0, 0], [0])

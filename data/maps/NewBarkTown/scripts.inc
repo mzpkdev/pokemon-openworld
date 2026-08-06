@@ -167,7 +167,7 @@ NewBarkTown_EventScript_Door::
 	end
 
 NewBarkTown_EventScript_TestMan1::
-	givebp 4
+	@ HnS Battle Point test grant is outside the resident slice
 	msgbox BattleFrontier_Text_ObtainedXBattlePoints, MSGBOX_GETPOINTS
 	end
 
