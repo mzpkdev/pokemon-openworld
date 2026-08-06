@@ -79,7 +79,10 @@ INTERIOR_SECONDARY_TILESETS = {
 
 CAVE_SECONDARY_TILESETS = {
     "gTileset_Cave_Default",
+    "gTileset_Cave_DragonsDen",
     "gTileset_Cave_Frlg",
+    "gTileset_Cave_Gray",
+    "gTileset_Cave_Ice",
     "gTileset_RuinsOfAlph_B1F",
     "gTileset_SeafoamIslands",
     "gTileset_WhirlIslands",

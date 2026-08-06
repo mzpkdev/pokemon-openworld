@@ -2174,22 +2174,28 @@
   ],
   "deferredEdges": [
     {
+      "source": "EcruteakCity",
+      "path": "warp_events/14",
+      "kind": "warp",
+      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY"
+    },
+    {
+      "source": "GoldenrodCity_DepartmentStoreElevator",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DYNAMIC"
+    },
+    {
+      "source": "MahoganyTown_Shop",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROCKET_HIDEOUT_B1F"
+    },
+    {
       "source": "NewBarkTown",
       "path": "connections/1",
       "kind": "connection",
       "destination": "MAP_ROUTE27"
-    },
-    {
-      "source": "Route29",
-      "path": "connections/2",
-      "kind": "connection",
-      "destination": "MAP_ROUTE46"
-    },
-    {
-      "source": "Gate_Route29_Route46",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_ROUTE46"
     },
     {
       "source": "Route28",
@@ -2222,36 +2228,6 @@
       "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE"
     },
     {
-      "source": "Route31",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
-    },
-    {
-      "source": "GoldenrodCity_DepartmentStoreElevator",
-      "path": "warp_events/0",
-      "kind": "warp",
-      "destination": "MAP_DYNAMIC"
-    },
-    {
-      "source": "EcruteakCity",
-      "path": "connections/3",
-      "kind": "connection",
-      "destination": "MAP_ROUTE42"
-    },
-    {
-      "source": "EcruteakCity",
-      "path": "warp_events/1",
-      "kind": "warp",
-      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42"
-    },
-    {
-      "source": "EcruteakCity",
-      "path": "warp_events/14",
-      "kind": "warp",
-      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY"
-    },
-    {
       "source": "Route40",
       "path": "connections/2",
       "kind": "connection",
@@ -2266,79 +2242,49 @@
   ],
   "warpRemovals": [
     {
-      "source": "Gate_Route29_Route46",
-      "path": "warp_events/0",
-      "destination": "MAP_ROUTE46",
+      "source": "EcruteakCity",
+      "path": "warp_events/14",
+      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
-    },
-    {
-      "source": "Route28",
-      "path": "warp_events/0",
-      "destination": "MAP_RECEPTION_GATE",
-      "destWarpId": "3",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
-    },
-    {
-      "source": "Route30",
-      "path": "warp_events/0",
-      "destination": "MAP_ROUTE30_HOUSE",
-      "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
-    },
-    {
-      "source": "Route30",
-      "path": "warp_events/1",
-      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
-      "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
-    },
-    {
-      "source": "Route31",
-      "path": "warp_events/0",
-      "destination": "MAP_DARK_CAVE_SOUTH_SIDE",
-      "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     },
     {
       "source": "GoldenrodCity_DepartmentStoreElevator",
       "path": "warp_events/0",
       "destination": "MAP_DYNAMIC",
       "destWarpId": "WARP_ID_DYNAMIC",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     },
     {
-      "source": "EcruteakCity",
+      "source": "MahoganyTown_Shop",
       "path": "warp_events/1",
-      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42",
+      "destination": "MAP_ROCKET_HIDEOUT_B1F",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     },
     {
-      "source": "EcruteakCity",
-      "path": "warp_events/14",
-      "destination": "MAP_BATTLE_FRONTIER_BATTLE_TOWER_LOBBY",
+      "source": "Route28",
+      "path": "warp_events/0",
+      "destination": "MAP_RECEPTION_GATE",
+      "destWarpId": "3",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/0",
+      "destination": "MAP_ROUTE30_HOUSE",
       "destWarpId": "0",
-      "reason": "remove the reviewed deferred exit from the cumulative Phase 4 residency closure"
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
+    },
+    {
+      "source": "Route30",
+      "path": "warp_events/1",
+      "destination": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
+      "destWarpId": "0",
+      "reason": "remove the reviewed deferred exit from the cumulative Phase 5 residency closure"
     }
   ],
   "warpReindexes": [
-    {
-      "source": "Route29",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_GATE_ROUTE29_ROUTE46",
-      "from": "1",
-      "to": "0",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "Route29",
-      "path": "warp_events/1/dest_warp_id",
-      "destination": "MAP_GATE_ROUTE29_ROUTE46",
-      "from": "1",
-      "to": "0",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
     {
       "source": "Route28_House",
       "path": "warp_events/0/dest_warp_id",
@@ -2346,94 +2292,30 @@
       "from": "1",
       "to": "0",
       "reason": "reindex the retained return after reviewed deferred warp removal"
+    }
+  ],
+  "preserveSpatialUpdates": [
+    {
+      "source": "CherrygroveCity",
+      "activationBatch": "early-violet-ruins",
+      "fields": [
+        "connections"
+      ]
     },
     {
-      "source": "Gate_Route31_VioletCity",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ROUTE31",
-      "from": "1",
-      "to": "0",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
+      "source": "Gate_Route29_Route46",
+      "activationBatch": "blackthorn-ice-dark-den",
+      "fields": [
+        "warp_events"
+      ]
     },
     {
-      "source": "Route37",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "7",
-      "to": "6",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "Route37",
-      "path": "warp_events/1/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "8",
-      "to": "7",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_Gym",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "13",
-      "to": "12",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_House1",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "9",
-      "to": "8",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_House2",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "10",
-      "to": "9",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_Mart",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "12",
-      "to": "11",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_PokemonCenter",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "11",
-      "to": "10",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_SageOffice1",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "3",
-      "to": "2",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "EcruteakCity_Theater",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "6",
-      "to": "5",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
-    },
-    {
-      "source": "BurnedTower_1F",
-      "path": "warp_events/0/dest_warp_id",
-      "destination": "MAP_ECRUTEAK_CITY",
-      "from": "2",
-      "to": "1",
-      "reason": "reindex the retained return after reviewed deferred warp removal"
+      "source": "Route29",
+      "activationBatch": "blackthorn-ice-dark-den",
+      "fields": [
+        "connections",
+        "warp_events"
+      ]
     }
   ],
   "retainedEdges": [
@@ -6276,6 +6158,708 @@
       "path": "warp_events/0",
       "kind": "warp",
       "destination": "MAP_ROUTE47"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE44"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE45"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_1F"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_ENTRANCE"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_GYM"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_HOUSE1"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_HOUSE2"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_MART"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_POKEMON_CENTER"
+    },
+    {
+      "source": "BlackthornCity",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY_HOUSE3"
+    },
+    {
+      "source": "BlackthornCity_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "BlackthornCity_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "BlackthornCity_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "BlackthornCity_House3",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "BlackthornCity_Mart",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "BlackthornCity_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "DarkCave_NorthSide",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE45"
+    },
+    {
+      "source": "DarkCave_NorthSide",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
+    },
+    {
+      "source": "DarkCave_SouthSide",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE31"
+    },
+    {
+      "source": "DarkCave_SouthSide",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_NORTH_SIDE"
+    },
+    {
+      "source": "DarkCave_SouthSide",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE46"
+    },
+    {
+      "source": "DragonsDen_Cavern",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_ENTRANCE"
+    },
+    {
+      "source": "DragonsDen_Cavern",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_SHRINE"
+    },
+    {
+      "source": "DragonsDen_Entrance",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "DragonsDen_Entrance",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_ENTRANCE"
+    },
+    {
+      "source": "DragonsDen_Entrance",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_ENTRANCE"
+    },
+    {
+      "source": "DragonsDen_Entrance",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_CAVERN"
+    },
+    {
+      "source": "DragonsDen_Shrine",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DRAGONS_DEN_CAVERN"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "connections/3",
+      "kind": "connection",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "EcruteakCity",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42"
+    },
+    {
+      "source": "Gate_EcruteakCity_Route42",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Gate_EcruteakCity_Route42",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "Gate_MahoganyTown_Route43",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "Gate_MahoganyTown_Route43",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "Gate_Route29_Route46",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE46"
+    },
+    {
+      "source": "Gate_Route43",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "Gate_Route43",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "IcePath_1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE44"
+    },
+    {
+      "source": "IcePath_1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B1F"
+    },
+    {
+      "source": "IcePath_1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B1F"
+    },
+    {
+      "source": "IcePath_1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "IcePath_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_1F"
+    },
+    {
+      "source": "IcePath_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B3F"
+    },
+    {
+      "source": "IcePath_B1F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B2F"
+    },
+    {
+      "source": "IcePath_B1F",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_1F"
+    },
+    {
+      "source": "IcePath_B1F",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B2F"
+    },
+    {
+      "source": "IcePath_B2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B1F"
+    },
+    {
+      "source": "IcePath_B2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B4F"
+    },
+    {
+      "source": "IcePath_B2F",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B1F"
+    },
+    {
+      "source": "IcePath_B3F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B4F"
+    },
+    {
+      "source": "IcePath_B3F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B1F"
+    },
+    {
+      "source": "IcePath_B4F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B2F"
+    },
+    {
+      "source": "IcePath_B4F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_B3F"
+    },
+    {
+      "source": "LakeOfRage",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "LakeOfRage",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_LAKE_OF_RAGE_HOUSE2"
+    },
+    {
+      "source": "LakeOfRage",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_LAKE_OF_RAGE_HOUSE1"
+    },
+    {
+      "source": "LakeOfRageLowTide",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "LakeOfRage_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_LAKE_OF_RAGE"
+    },
+    {
+      "source": "LakeOfRage_House2",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_LAKE_OF_RAGE"
+    },
+    {
+      "source": "MahoganyTown_Gym",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "MahoganyTown_House1",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "MahoganyTown_PokemonCenter",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "MahoganyTown_Shop",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE43"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE44"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_MAHOGANY_TOWN_ROUTE43"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANY_TOWN_SHOP"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANY_TOWN_HOUSE1"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANY_TOWN_GYM"
+    },
+    {
+      "source": "Mahoganytown",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_MAHOGANY_TOWN_POKEMON_CENTER"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_2F"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "MtMortar_1F_North",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_B1F"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_ROUTE42"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/5",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_2F"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/6",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/7",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_1F_South",
+      "path": "warp_events/8",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_B1F"
+    },
+    {
+      "source": "MtMortar_2F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "MtMortar_2F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_B1F",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_NORTH"
+    },
+    {
+      "source": "MtMortar_B1F",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "Route29",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_ROUTE46"
+    },
+    {
+      "source": "Route31",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
+    },
+    {
+      "source": "Route42",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "Route42",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ECRUTEAK_CITY"
+    },
+    {
+      "source": "Route42",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ECRUTEAK_CITY_ROUTE42"
+    },
+    {
+      "source": "Route42",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "Route42",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "Route42",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_MT_MORTAR_1F_SOUTH"
+    },
+    {
+      "source": "Route43",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "Route43",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_LAKE_OF_RAGE"
+    },
+    {
+      "source": "Route43",
+      "path": "connections/2",
+      "kind": "connection",
+      "destination": "MAP_LAKE_OF_RAGE_LOW_TIDE"
+    },
+    {
+      "source": "Route43",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_MAHOGANY_TOWN_ROUTE43"
+    },
+    {
+      "source": "Route43",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_MAHOGANY_TOWN_ROUTE43"
+    },
+    {
+      "source": "Route43",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE43"
+    },
+    {
+      "source": "Route43",
+      "path": "warp_events/3",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE43"
+    },
+    {
+      "source": "Route43",
+      "path": "warp_events/4",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE43"
+    },
+    {
+      "source": "Route44",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_MAHOGANYTOWN"
+    },
+    {
+      "source": "Route44",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "Route44",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_ICE_PATH_1F"
+    },
+    {
+      "source": "Route45",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_BLACKTHORN_CITY"
+    },
+    {
+      "source": "Route45",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE46"
+    },
+    {
+      "source": "Route45",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_NORTH_SIDE"
+    },
+    {
+      "source": "Route46",
+      "path": "connections/0",
+      "kind": "connection",
+      "destination": "MAP_ROUTE45"
+    },
+    {
+      "source": "Route46",
+      "path": "connections/1",
+      "kind": "connection",
+      "destination": "MAP_ROUTE29"
+    },
+    {
+      "source": "Route46",
+      "path": "warp_events/0",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE29_ROUTE46"
+    },
+    {
+      "source": "Route46",
+      "path": "warp_events/1",
+      "kind": "warp",
+      "destination": "MAP_GATE_ROUTE29_ROUTE46"
+    },
+    {
+      "source": "Route46",
+      "path": "warp_events/2",
+      "kind": "warp",
+      "destination": "MAP_DARK_CAVE_SOUTH_SIDE"
     }
   ],
   "graphicsAdaptations": [
@@ -6497,6 +7081,18 @@
     {
       "hns": "MUS_HG_ROUTE47",
       "target": "MUS_ROUTE120"
+    },
+    {
+      "hns": "MUS_HG_DRAGONS_DEN",
+      "target": "MUS_CAVE_OF_ORIGIN"
+    },
+    {
+      "hns": "MUS_HG_ICE_PATH",
+      "target": "MUS_MT_PYRE"
+    },
+    {
+      "hns": "MUS_HG_ROUTE42",
+      "target": "MUS_ROUTE119"
     }
   ],
   "regionAssignment": {
@@ -7133,6 +7729,62 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "blackthorn",
+      "symbol": "Blackthorn",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "blackthorn_gym",
+      "symbol": "BlackthornGym",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cave_dragons_den",
+      "symbol": "Cave_DragonsDen",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "cave_ice",
+      "symbol": "Cave_Ice",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "dragons_den_shrine",
+      "symbol": "DragonsDen_Shrine",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "house_2",
+      "symbol": "House_2",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "mahogany_town",
+      "symbol": "MahoganyTown",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "layoutTilesetRemaps": [
@@ -7284,7 +7936,9 @@
     "azalea-union-ilex",
     "goldenrod-park",
     "ecruteak-towers",
-    "olivine-cianwood-whirl"
+    "olivine-cianwood-whirl",
+    "mahogany-hns",
+    "blackthorn-ice-dark-den"
   ],
   "batches": [
     {

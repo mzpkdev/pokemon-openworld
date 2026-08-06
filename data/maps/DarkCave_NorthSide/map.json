@@ -1,0 +1,36 @@
+{
+  "id": "MAP_DARK_CAVE_NORTH_SIDE",
+  "name": "DarkCave_NorthSide",
+  "layout": "LAYOUT_DARK_CAVE_NORTH_SIDE",
+  "music": "MUS_MT_PYRE",
+  "region_map_section": "MAPSEC_DARK_CAVE",
+  "requires_flash": true,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_UNDERGROUND",
+  "allow_cycling": true,
+  "allow_escaping": true,
+  "allow_running": true,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 45,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_ROUTE45",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 6,
+      "y": 38,
+      "elevation": 0,
+      "dest_map": "MAP_DARK_CAVE_SOUTH_SIDE",
+      "dest_warp_id": "1"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

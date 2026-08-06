@@ -112,6 +112,26 @@
       "name": "WhirlIslands_1F",
       "region": "johto",
       "kind": "cave"
+    },
+    {
+      "name": "LakeOfRage",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "MtMortar_1F_South",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "IcePath_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "BlackthornCity",
+      "region": "johto",
+      "kind": "exterior"
     }
   ],
   "interactions": [

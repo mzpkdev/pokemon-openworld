@@ -54,9 +54,20 @@ class MapSectionIdentityTests(unittest.TestCase):
         self.assertEqual(result.stdout, f"count={registry['map_section_count']}\n")
         for value, section in enumerate(self.registry["map_sections"]):
             self.assertEqual(section["value"], value)
-            self.assertEqual(section["saved_location"], section["id"])
-            self.assertEqual(section["met_location"], value)
-            self.assertEqual(section["met_location_display"], section["id"])
+            self.assertEqual(
+                section["saved_location"], section["id"] if value < 0xFF else None
+            )
+            self.assertEqual(section["met_location"], value if value < 0xFC else None)
+            self.assertEqual(
+                section["met_location_display"],
+                section["id"] if value < 0xFC else None,
+            )
+
+    def test_disabled_wide_section_codecs_are_emitted_as_invalid(self) -> None:
+        result = self.validate()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIsNone(self.registry["map_sections"][0xFC]["met_location"])
+        self.assertIsNone(self.registry["map_sections"][0xFF]["saved_location"])
 
     def test_duplicate_values_are_rejected(self) -> None:
         registry = self.mutated_registry()
@@ -111,7 +122,7 @@ class MapSectionIdentityTests(unittest.TestCase):
     ) -> None:
         registry = self.mutated_registry()
         compatibility = copy.deepcopy(self.compatibility)
-        synthetic_values = (253, 254, 255, 256, 300)
+        synthetic_values = (258, 259, 260, 261, 300)
         defined = {section["value"] for section in registry["map_sections"]}
         for index, value in enumerate(synthetic_values):
             registry["map_sections"].append(

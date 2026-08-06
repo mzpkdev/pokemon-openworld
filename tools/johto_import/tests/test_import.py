@@ -1367,8 +1367,22 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
         )
         selected_layouts = johto_import.active_layout_selection(manifest, lock)
-        self.assertEqual(len(selected), 155)
-        self.assertEqual(len(selected_layouts), 156)
+        self.assertEqual(len(selected), 193)
+        self.assertEqual(len(selected_layouts), 194)
+        self.assertEqual(
+            manifest["activeBatches"][-2:],
+            ["mahogany-hns", "blackthorn-ice-dark-den"],
+        )
+        selected_names = {item["name"] for item in selected}
+        self.assertTrue(set(johto_import.FALLBACK_MAPS[-3:]).isdisjoint(selected_names))
+        self.assertEqual(
+            [
+                edge
+                for edge in manifest["deferredEdges"]
+                if edge["destination"] == "MAP_ROUTE46"
+            ],
+            [],
+        )
         self.assertEqual(closure.maps, tuple(item["name"] for item in selected))
         self.assertEqual(
             closure.layouts, tuple(item["id"] for item in selected_layouts)
@@ -1426,6 +1440,7 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
         for key in (
             "graphicsAdaptations",
             "musicAdaptations",
+            "preserveSpatialUpdates",
             "scriptSubstitutions",
             "berryTreeAllocations",
             "layoutBinaryAuthorities",
@@ -1457,6 +1472,70 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
                     johto_import.validate_materialization_adaptations(
                         manifest, pkmn_world, hns
                     )
+
+    def test_preserve_spatial_updates_match_checked_output_and_touch_only_allowlisted_fields(
+        self,
+    ):
+        pkmn_world, hns = self.donor_paths()
+        if not pkmn_world.is_dir() or not hns.is_dir():
+            self.skipTest("pinned donor checkouts are unavailable")
+        repo = Path(__file__).parents[3]
+        manifest = johto_import.load_manifest(
+            Path(__file__).parents[1] / "import_manifest.json"
+        )
+        selected = {item["name"]: item for item in manifest["selection"]["maps"]}
+        declarations = manifest["preserveSpatialUpdates"]
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            before: dict[str, tuple[dict, bytes]] = {}
+            reviewed: dict[str, dict] = {}
+            for declaration in declarations:
+                name = declaration["source"]
+                source_dir = repo / "data/maps" / name
+                target_dir = target / "data/maps" / name
+                target_dir.mkdir(parents=True)
+                current = johto_import._json(source_dir / "map.json")
+                script = (source_dir / "scripts.inc").read_bytes()
+                before[name] = (copy.deepcopy(current), script)
+                reviewed[name] = johto_import._materialized_map(
+                    selected[name], pkmn_world, hns, manifest
+                )
+                for field in declaration["fields"]:
+                    self.assertEqual(current[field], reviewed[name][field])
+                    current[field] = []
+                (target_dir / "map.json").write_bytes(
+                    johto_import._dump_source(current)
+                )
+                (target_dir / "scripts.inc").write_bytes(script)
+
+            johto_import._materialize_preserved_spatial_updates(
+                target,
+                manifest["selection"]["maps"],
+                manifest,
+                pkmn_world,
+                hns,
+            )
+
+            for declaration in declarations:
+                name = declaration["source"]
+                fields = set(declaration["fields"])
+                actual = johto_import._json(target / "data/maps" / name / "map.json")
+                original, script = before[name]
+                for field in fields:
+                    self.assertEqual(actual[field], reviewed[name][field])
+                self.assertEqual(
+                    {key: value for key, value in actual.items() if key not in fields},
+                    {
+                        key: value
+                        for key, value in original.items()
+                        if key not in fields
+                    },
+                )
+                self.assertEqual(
+                    (target / "data/maps" / name / "scripts.inc").read_bytes(),
+                    script,
+                )
 
     def test_johto_day_care_is_isolated_from_target_route117_assets(self):
         repo = Path(__file__).parents[3]
@@ -1563,16 +1642,23 @@ class PinnedDonorIntegrationTests(unittest.TestCase):
             [
                 {
                     "x": 7,
+                    "y": 1,
+                    "elevation": 0,
+                    "dest_map": "MAP_ROUTE46",
+                    "dest_warp_id": "0",
+                },
+                {
+                    "x": 7,
                     "y": 9,
                     "elevation": 0,
                     "dest_map": "MAP_ROUTE29",
                     "dest_warp_id": "0",
-                }
+                },
             ],
         )
         self.assertEqual(
             [edge["dest_warp_id"] for edge in materialized["Route29"]["warp_events"]],
-            ["0", "0"],
+            ["1", "1"],
         )
         self.assertEqual(
             materialized["Route29"]["object_events"][15][

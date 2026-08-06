@@ -383,6 +383,30 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
             "gTileset_WhirlIslands",
             "cave",
         ),
+        (
+            "LakeOfRage",
+            "gTileset_Johto_NorthEast",
+            "gTileset_MahoganyTown",
+            "exterior",
+        ),
+        (
+            "MtMortar_1F_South",
+            "gTileset_Johto_NorthEast",
+            "gTileset_Cave_Gray",
+            "cave",
+        ),
+        (
+            "IcePath_1F",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Ice",
+            "cave",
+        ),
+        (
+            "BlackthornCity",
+            "gTileset_Johto_NorthEast",
+            "gTileset_Blackthorn",
+            "exterior",
+        ),
     ],
 )
 def test_johto_representative_kind_is_derived_from_known_tilesets(

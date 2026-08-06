@@ -94,6 +94,8 @@ REVIEWED_DONOR_PINS = {
 }
 
 GAMEPLAY_EVENT_KEYS = ("object_events", "coord_events", "bg_events")
+SAVED_LOCATION_INVALID = 0xFF
+MET_LOCATION_INVALID = 0xFC
 FALLBACK_MAPS = (
     "JohtoIndigoPlateau",
     "JohtoIndigoPlateau_PokemonCenter",
@@ -132,6 +134,15 @@ ATTRIBUTE_FIXTURE_KEYS = (
         "hns",
     ),
     ("whirl-cave", "LAYOUT_WHIRL_ISLANDS_1F", "secondary", "hns"),
+)
+PRESERVE_SPATIAL_UPDATE_KEYS = (
+    ("CherrygroveCity", "early-violet-ruins", ("connections",)),
+    ("Gate_Route29_Route46", "blackthorn-ice-dark-den", ("warp_events",)),
+    (
+        "Route29",
+        "blackthorn-ice-dark-den",
+        ("connections", "warp_events"),
+    ),
 )
 BATCH_GROUPS = {
     "early-violet-ruins": (
@@ -1502,6 +1513,31 @@ def _mapping(manifest: Mapping[str, Any], key: str) -> dict[str, str]:
     return result
 
 
+def _preserve_spatial_updates(
+    manifest: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    records = manifest.get("preserveSpatialUpdates")
+    if not isinstance(records, list):
+        raise ImportError("preserve spatial update allowlist drift")
+    actual: list[tuple[str, str, tuple[str, ...]]] = []
+    for item in records:
+        if not isinstance(item, dict) or not isinstance(item.get("fields"), list):
+            raise ImportError("preserve spatial update allowlist drift")
+        fields = item["fields"]
+        if any(not isinstance(field, str) for field in fields):
+            raise ImportError("preserve spatial update allowlist drift")
+        actual.append(
+            (
+                str(item.get("source")),
+                str(item.get("activationBatch")),
+                tuple(fields),
+            )
+        )
+    if actual != list(PRESERVE_SPATIAL_UPDATE_KEYS):
+        raise ImportError("preserve spatial update allowlist drift")
+    return records
+
+
 def _tilesets(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     records = _exact_records(
         manifest,
@@ -1777,6 +1813,17 @@ def validate_materialization_adaptations(
     preserved_names = {
         str(item["name"]) for item in selection if not should_materialize(item)
     }
+
+    _preserve_spatial_updates(manifest)
+    for source, activation_batch, fields in PRESERVE_SPATIAL_UPDATE_KEYS:
+        if source not in preserved_names:
+            raise ImportError(
+                f"preserve spatial update is not a preserve map: {source}"
+            )
+        if activation_batch not in BATCH_ORDER or any(
+            field not in {"connections", "warp_events"} for field in fields
+        ):
+            raise ImportError(f"invalid preserve spatial update: {source}")
 
     region = manifest.get("regionAssignment")
     if region != {"hns": None, "target": "REGION_JOHTO"}:
@@ -2329,6 +2376,31 @@ def _materialize_selected_map_trees(
         )
 
 
+def _materialize_preserved_spatial_updates(
+    target: Path,
+    selection: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    pkmn_world: Path,
+    hns: Path,
+) -> None:
+    """Apply only reviewed spatial closure fields to existing preserve maps."""
+    selected = {str(item["name"]): item for item in selection}
+    active_batches = set(manifest["activeBatches"])
+    for declaration in _preserve_spatial_updates(manifest):
+        if declaration["activationBatch"] not in active_batches:
+            continue
+        name = str(declaration["source"])
+        item = selected.get(name)
+        if item is None or should_materialize(item):
+            raise ImportError(f"invalid preserve spatial update target: {name}")
+        path = target / "data/maps" / name / "map.json"
+        current = _json(path)
+        reviewed = _materialized_map(item, pkmn_world, hns, manifest)
+        for field in declaration["fields"]:
+            current[str(field)] = copy.deepcopy(reviewed[str(field)])
+        atomic_write(path, _dump_source(current))
+
+
 def _materialized_layout(
     item: Mapping[str, Any],
     mechanical_layouts: Mapping[str, Mapping[str, Any]],
@@ -2475,9 +2547,11 @@ def _materialize_section_registry(
             "kind": "geographic",
             "region": "REGION_JOHTO",
             "region_map_type": "REGION_MAP_HOENN",
-            "saved_location": name,
-            "met_location": target_id,
-            "met_location_display": name,
+            "saved_location": (name if target_id < SAVED_LOCATION_INVALID else None),
+            "met_location": target_id if target_id < MET_LOCATION_INVALID else None,
+            "met_location_display": (
+                name if target_id < MET_LOCATION_INVALID else None
+            ),
             "name": source["name"],
         }
         for key in ("x", "y", "width", "height"):
@@ -2520,6 +2594,7 @@ def materialize_source_tree(
     ):
         return
     _materialize_selected_map_trees(target, selection, manifest, pkmn_world, hns)
+    _materialize_preserved_spatial_updates(target, selection, manifest, pkmn_world, hns)
 
     mechanical_layouts = {
         item["id"]: item

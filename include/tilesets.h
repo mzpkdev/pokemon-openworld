@@ -113,6 +113,13 @@ extern const struct Tileset gTileset_OlivineCity;
 extern const struct Tileset gTileset_PortIndoor;
 extern const struct Tileset gTileset_Route38_Farmland;
 extern const struct Tileset gTileset_WhirlIslands;
+extern const struct Tileset gTileset_Blackthorn;
+extern const struct Tileset gTileset_BlackthornGym;
+extern const struct Tileset gTileset_Cave_DragonsDen;
+extern const struct Tileset gTileset_Cave_Ice;
+extern const struct Tileset gTileset_DragonsDen_Shrine;
+extern const struct Tileset gTileset_House_2;
+extern const struct Tileset gTileset_MahoganyTown;
 #endif // HAS_JOHTO_TILESETS
 // JOHTO IMPORT END: externs
 

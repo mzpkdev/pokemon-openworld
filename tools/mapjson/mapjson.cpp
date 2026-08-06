@@ -1390,27 +1390,39 @@ static MapSectionRegistry validate_map_section_registry(
     {
         const string id = json_to_string(section, "id");
         const int value = section["value"].int_value();
-        const string savedTarget = json_to_string(section, "saved_location");
-        const auto saved = valuesById.find(savedTarget);
-        const int metCode = section["met_location"].int_value();
-        const string metDisplay = json_to_string(section, "met_location_display");
-        const auto metDisplayTarget = valuesById.find(metDisplay);
-        require_product_registry(saved != valuesById.end(),
-                                 "map section '" + id + "' has unknown saved-location target '" + savedTarget + "'");
-        require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
-                                 "map section '" + id + "' saved-location mapping collides with invalid sentinel");
-        require_product_registry(metCode >= 0 && metCode < metInvalid,
-                                 "map section '" + id + "' met-location mapping collides with reserved origin");
-        require_product_registry(metDisplayTarget != valuesById.end(),
-                                 "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
-        require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
-                                 "conflicting saved-location reverse target code " + std::to_string(saved->second));
-        require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
-                                 "conflicting met-location reverse target code " + std::to_string(metCode));
-        savedToSection[saved->second] = saved->second;
-        metToSection[metCode] = metDisplayTarget->second;
-        sectionToSaved[value] = saved->second;
-        sectionToMet[value] = metCode;
+        const Json &savedValue = section["saved_location"];
+        if (!savedValue.is_null())
+        {
+            const string savedTarget = json_to_string(section, "saved_location");
+            const auto saved = valuesById.find(savedTarget);
+            require_product_registry(saved != valuesById.end(),
+                                     "map section '" + id + "' has unknown saved-location target '" + savedTarget + "'");
+            require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
+                                     "map section '" + id + "' saved-location mapping collides with invalid sentinel");
+            require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
+                                     "conflicting saved-location reverse target code " + std::to_string(saved->second));
+            savedToSection[saved->second] = saved->second;
+            sectionToSaved[value] = saved->second;
+        }
+
+        const Json &metValue = section["met_location"];
+        const Json &metDisplayValue = section["met_location_display"];
+        require_product_registry(metValue.is_null() == metDisplayValue.is_null(),
+                                 "map section '" + id + "' has a partial met-location mapping");
+        if (!metValue.is_null())
+        {
+            const int metCode = metValue.int_value();
+            const string metDisplay = json_to_string(section, "met_location_display");
+            const auto metDisplayTarget = valuesById.find(metDisplay);
+            require_product_registry(metValue.type() == Json::Type::NUMBER && metCode >= 0 && metCode < metInvalid,
+                                     "map section '" + id + "' met-location mapping collides with reserved origin");
+            require_product_registry(metDisplayTarget != valuesById.end(),
+                                     "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
+            require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
+                                     "conflicting met-location reverse target code " + std::to_string(metCode));
+            metToSection[metCode] = metDisplayTarget->second;
+            sectionToMet[value] = metCode;
+        }
     }
 
     for (size_t i = 0; i < stable.size(); i++)
