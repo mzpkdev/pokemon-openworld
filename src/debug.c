@@ -462,14 +462,27 @@ static const u8 sDebugText_Util_WarpNumber[] = _("Entry: Warp ");
 static const u8 sDebugText_Util_WarpDestination[] = _("\nTo: ");
 static const u8 sDebugText_Util_WarpDynamic[] = _("Dynamic destination");
 static const u8 sDebugText_Util_WarpInvalid[] = _("Invalid destination ");
+enum DebugWarpRegion
+{
+    DEBUG_WARP_REGION_HOENN = REGION_MAP_HOENN,
+    DEBUG_WARP_REGION_KANTO = REGION_MAP_KANTO,
+    DEBUG_WARP_REGION_SEVII123 = REGION_MAP_SEVII123,
+    DEBUG_WARP_REGION_SEVII45 = REGION_MAP_SEVII45,
+    DEBUG_WARP_REGION_SEVII67 = REGION_MAP_SEVII67,
+    DEBUG_WARP_REGION_JOHTO,
+    DEBUG_WARP_REGION_COUNT,
+};
+
 static const u8 *const sDebugWarpRegionNames[] =
 {
-    [REGION_MAP_HOENN] = COMPOUND_STRING("Hoenn"),
-    [REGION_MAP_KANTO] = COMPOUND_STRING("Kanto"),
-    [REGION_MAP_SEVII123] = COMPOUND_STRING("Sevii Islands 1-3"),
-    [REGION_MAP_SEVII45] = COMPOUND_STRING("Sevii Islands 4-5"),
-    [REGION_MAP_SEVII67] = COMPOUND_STRING("Sevii Islands 6-7"),
+    [DEBUG_WARP_REGION_HOENN] = COMPOUND_STRING("Hoenn"),
+    [DEBUG_WARP_REGION_KANTO] = COMPOUND_STRING("Kanto"),
+    [DEBUG_WARP_REGION_SEVII123] = COMPOUND_STRING("Sevii Islands 1-3"),
+    [DEBUG_WARP_REGION_SEVII45] = COMPOUND_STRING("Sevii Islands 4-5"),
+    [DEBUG_WARP_REGION_SEVII67] = COMPOUND_STRING("Sevii Islands 6-7"),
+    [DEBUG_WARP_REGION_JOHTO] = COMPOUND_STRING("Johto"),
 };
+STATIC_ASSERT(ARRAY_COUNT(sDebugWarpRegionNames) == DEBUG_WARP_REGION_COUNT, DebugWarpRegionNamesCount);
 #else
 static const u8 sDebugText_Util_WarpToMap_SelectMapGroup[] = _("Group: {STR_VAR_1}{CLEAR_TO 90}\n{CLEAR_TO 90}\n\n{STR_VAR_3}{CLEAR_TO 90}");
 static const u8 sDebugText_Util_WarpToMap_SelectMap[] =      _("Map: {STR_VAR_1}{CLEAR_TO 90}\nMapSec:{CLEAR_TO 90}\n{STR_VAR_2}{CLEAR_TO 90}\n{STR_VAR_3}{CLEAR_TO 90}");
@@ -1546,21 +1559,23 @@ static bool32 DebugAction_Util_Warp_MapMatchesRegion(s16 mapGroup, s16 mapNum, s
     const RegionId declaredRegion = sDebugMapRegions[mapGroup][mapNum];
 
     if (declaredRegion == REGION_HOENN)
-        return region == REGION_MAP_HOENN;
+        return region == DEBUG_WARP_REGION_HOENN;
+    if (declaredRegion == REGION_JOHTO)
+        return region == DEBUG_WARP_REGION_JOHTO;
     if (declaredRegion != REGION_KANTO)
         return FALSE;
 
     switch (GetKantoSubregion(mapHeader->regionMapSectionId))
     {
     case KANTO_SUBREGION_SEVII123:
-        return region == REGION_MAP_SEVII123;
+        return region == DEBUG_WARP_REGION_SEVII123;
     case KANTO_SUBREGION_SEVII45:
-        return region == REGION_MAP_SEVII45;
+        return region == DEBUG_WARP_REGION_SEVII45;
     case KANTO_SUBREGION_SEVII67:
-        return region == REGION_MAP_SEVII67;
+        return region == DEBUG_WARP_REGION_SEVII67;
     case KANTO_SUBREGION_KANTO:
     default:
-        return region == REGION_MAP_KANTO;
+        return region == DEBUG_WARP_REGION_KANTO;
     }
 }
 
@@ -1652,7 +1667,7 @@ static void DebugAction_Util_Warp_Warp(u8 taskId)
     gTasks[taskId].tSubWindowId = AddWindow(&sDebugMenuWindowTemplateWarp);
     DrawStdWindowFrame(gTasks[taskId].tSubWindowId, FALSE);
 
-    gTasks[taskId].tRegion = REGION_MAP_HOENN;
+    gTasks[taskId].tRegion = DEBUG_WARP_REGION_HOENN;
     gTasks[taskId].tMapGroup = 0;
     gTasks[taskId].tMapNum = 0;
     gTasks[taskId].tWarp = 0;
@@ -1667,15 +1682,15 @@ static void DebugAction_Util_Warp_SelectRegion(u8 taskId)
     if (JOY_REPEAT(DPAD_UP))
     {
         gTasks[taskId].tRegion--;
-        if (gTasks[taskId].tRegion < REGION_MAP_HOENN)
-            gTasks[taskId].tRegion = REGION_MAP_SEVII67;
+        if (gTasks[taskId].tRegion < DEBUG_WARP_REGION_HOENN)
+            gTasks[taskId].tRegion = DEBUG_WARP_REGION_COUNT - 1;
         changed = TRUE;
     }
     else if (JOY_REPEAT(DPAD_DOWN))
     {
         gTasks[taskId].tRegion++;
-        if (gTasks[taskId].tRegion > REGION_MAP_SEVII67)
-            gTasks[taskId].tRegion = REGION_MAP_HOENN;
+        if (gTasks[taskId].tRegion >= DEBUG_WARP_REGION_COUNT)
+            gTasks[taskId].tRegion = DEBUG_WARP_REGION_HOENN;
         changed = TRUE;
     }
 

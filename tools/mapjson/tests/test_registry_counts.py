@@ -80,6 +80,46 @@ class ProductRegistryTests(unittest.TestCase):
             },
         )
 
+    def test_route28_is_real_johto_mixed_width_product_fixture(self) -> None:
+        source_map = json.loads((ROOT / "data/maps/Route28/map.json").read_text())
+        self.assertEqual(source_map["id"], "MAP_ROUTE28")
+        self.assertEqual(source_map["layout"], "LAYOUT_ROUTE28")
+        self.assertEqual(source_map["region"], "REGION_JOHTO")
+
+        source_layouts = {
+            entry["id"]: entry for entry in json.loads(LAYOUTS.read_text())["layouts"]
+        }
+        source = source_layouts["LAYOUT_ROUTE28"]
+        self.assertEqual(source["name"], "Route28_Layout")
+        self.assertEqual(source["format"], "johto")
+        self.assertEqual(source["primary_tileset"], "gTileset_Johto_NorthEast")
+        self.assertEqual(source["secondary_tileset"], "gTileset_ViridianCity")
+
+        product = next(
+            entry
+            for entry in self.manifest["layouts"]
+            if entry["id"] == "LAYOUT_ROUTE28"
+        )
+        self.assertEqual(product["format"], "johto")
+        self.assertEqual(product["primaryTileset"], "gTileset_Johto_NorthEast")
+        self.assertEqual(product["secondaryTileset"], "gTileset_ViridianCity")
+
+        product_map = next(
+            entry for entry in self.manifest["maps"] if entry["name"] == "Route28"
+        )
+        self.assertEqual(product_map["id"], "MAP_ROUTE28")
+        self.assertEqual(product_map["layoutId"], source_map["layout"])
+
+        tilesets = {entry["name"]: entry for entry in self.manifest["tilesets"]}
+        self.assertEqual(
+            tilesets[product["primaryTileset"]]["attributeFormat"],
+            "METATILE_ATTRIBUTES_EMERALD_U16",
+        )
+        self.assertEqual(
+            tilesets[product["secondaryTileset"]]["attributeFormat"],
+            "METATILE_ATTRIBUTES_FRLG_U32",
+        )
+
     def test_product_pointer_tables_have_no_null_placeholders_and_are_aligned(
         self,
     ) -> None:

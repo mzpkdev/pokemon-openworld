@@ -20,6 +20,7 @@ PRESENTATIONS = (
     "Sevii 1-3",
     "Sevii 4-5",
     "Sevii 6-7",
+    "Johto",
 )
 UI_REGION_NAMES = {
     "Hoenn": "Hoenn",
@@ -27,6 +28,7 @@ UI_REGION_NAMES = {
     "Sevii 1-3": "Sevii Islands 1-3",
     "Sevii 4-5": "Sevii Islands 4-5",
     "Sevii 6-7": "Sevii Islands 6-7",
+    "Johto": "Johto",
 }
 SEVII_PRESENTATIONS = {
     "REGION_MAP_SEVII123": "Sevii 1-3",
@@ -39,6 +41,7 @@ EXPECTED_COUNTS = {
     "Sevii 1-3": 3,
     "Sevii 4-5": 2,
     "Sevii 6-7": 2,
+    "Johto": 2,
 }
 SETTLEMENT_TYPES = {"MAP_TYPE_TOWN", "MAP_TYPE_CITY"}
 
@@ -81,6 +84,8 @@ EXPECTED_SETTLEMENTS = (
     ("FiveIsland_Frlg", "Five Island", "Sevii 4-5"),
     ("SevenIsland_Frlg", "Seven Island", "Sevii 6-7"),
     ("SixIsland_Frlg", "Six Island", "Sevii 6-7"),
+    ("NewBarkTown", "New Bark Town", "Johto"),
+    ("CherrygroveCity", "Cherrygrove City", "Johto"),
 )
 
 PINNED_GROUP_LABELS = {
@@ -173,6 +178,8 @@ def _presentation(map_data: dict, sections: dict[str, dict]) -> str | None:
     declared_region = map_data.get("region")
     if declared_region == "REGION_HOENN":
         return "Hoenn"
+    if declared_region == "REGION_JOHTO":
+        return "Johto"
     if declared_region != "REGION_KANTO":
         return None
     section = sections[map_data["region_map_section"]]
@@ -250,7 +257,7 @@ def _load_registry() -> tuple[
             "named-warp settlement identities/labels/regions drifted:\n"
             f"expected={EXPECTED_SETTLEMENTS!r}\nactual={actual_settlements!r}"
         )
-    if len(settlements) != 35 or dict(counts) != EXPECTED_COUNTS:
+    if len(settlements) != 37 or dict(counts) != EXPECTED_COUNTS:
         raise AssertionError(
             "named-warp settlement registry drifted: "
             f"total={len(settlements)}, counts={dict(counts)}"
@@ -783,10 +790,10 @@ def test_debug_warp_reaches_every_settlement(game, tmp_path):
         "region picker",
     )
     game.load_state(navigation_region)
-    _pulse_to_value(game, task_id, TASK_REGION, 4, "Up", "region reverse wrap")
-    _assert_region_picker(game, task_id, 4, "region reverse wrap")
-    _pulse_to_value(game, task_id, TASK_REGION, 0, "Down", "region forward wrap")
-    _assert_region_picker(game, task_id, 0, "region forward wrap")
+    game.press("Up", release_frames=2)
+    _assert_region_picker(game, task_id, 5, "Hoenn-to-Johto reverse wrap")
+    game.press("Down", release_frames=2)
+    _assert_region_picker(game, task_id, 0, "Johto-to-Hoenn forward wrap")
     _pulse_to_value(game, task_id, TASK_REGION, 1, "Down", "region Down")
     _assert_region_picker(game, task_id, 1, "region Down")
     _pulse_to_value(game, task_id, TASK_REGION, 0, "Up", "region Up")
