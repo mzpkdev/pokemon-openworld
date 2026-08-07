@@ -555,7 +555,6 @@ const u16 gObjectEventPic_Man[] = INCGFX_U16("graphics/object_events/pics/people
 const u16 gObjectEventPic_Rocker[] = INCGFX_U16("graphics/object_events/pics/people/rocker.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u16 gObjectEventPic_ProfOak[] = INCGFX_U16("graphics/object_events/pics/people/prof_oak.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u16 gObjectEventPic_Blue[] = INCGFX_U16("graphics/object_events/pics/people/blue.png", ".4bpp", "-mwidth 2 -mheight 4");
-const u16 gObjectEventPic_NurseFrlg[] = INCGFX_U16("graphics/object_events/pics/people/nurse_frlg.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u16 gObjectEventPic_CableClubReceptionist[] = INCGFX_U16("graphics/object_events/pics/people/cable_club_receptionist.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u16 gObjectEventPic_UnionRoomReceptionist[] = INCGFX_U16("graphics/object_events/pics/people/union_room_receptionist.png", ".4bpp", "-mwidth 2 -mheight 4");
 const u16 gObjectEventPic_MrFuji[] = INCGFX_U16("graphics/object_events/pics/people/mr_fuji.png", ".4bpp", "-mwidth 2 -mheight 4");

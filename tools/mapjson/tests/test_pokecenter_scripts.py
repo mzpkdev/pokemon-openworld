@@ -15,6 +15,10 @@ EVENT_SCRIPTS = ROOT / "data" / "event_scripts.s"
 FIELD_SCREEN_EFFECT = ROOT / "src" / "field_screen_effect.c"
 EVENT_SCRIPTS_HEADER = ROOT / "include" / "event_scripts.h"
 MAP_MACROS = ROOT / "asm" / "macros" / "map.inc"
+OBJECT_EVENT_GRAPHICS = ROOT / "src" / "data" / "object_events"
+NURSE_FRLG_ASSET = (
+    ROOT / "graphics" / "object_events" / "pics" / "people" / "nurse_frlg.png"
+)
 FIXTURE = Path(__file__).with_name("fixtures") / "pokecenter_contract.json"
 EMPTY_SEMANTIC_SHA256 = hashlib.sha256(b"").hexdigest()
 APPROVED_NURSE_GRAPHICS_ID = "OBJ_EVENT_GFX_NURSE"
@@ -1189,6 +1193,34 @@ class PokeCenterScriptContractTests(unittest.TestCase):
             "Text_RestoredPkmnToFullHealth_Frlg",
         ):
             self.assertNotIn(symbol, production_source, symbol)
+
+    def test_legacy_frlg_nurse_graphics_slot_uses_surviving_asset(self):
+        self.assertFalse(NURSE_FRLG_ASSET.exists())
+
+        graphics_sources = {
+            path.name: path.read_text(encoding="utf-8")
+            for path in OBJECT_EVENT_GRAPHICS.glob("*.h")
+        }
+        combined_source = "\n".join(graphics_sources.values())
+        for symbol in (
+            "gObjectEventPic_NurseFrlg",
+            "sPicTable_NurseFrlg",
+            "gObjectEventGraphicsInfo_NurseFrlg",
+        ):
+            self.assertNotIn(symbol, combined_source, symbol)
+
+        event_object_constants = (
+            ROOT / "include" / "constants" / "event_objects.h"
+        ).read_text(encoding="utf-8")
+        self.assertRegex(
+            event_object_constants,
+            r"(?m)^\s*OBJ_EVENT_GFX_NURSE_FRLG,\s*$",
+        )
+        self.assertRegex(
+            graphics_sources["object_event_graphics_info_pointers.h"],
+            r"(?m)^\s*\[OBJ_EVENT_GFX_NURSE_FRLG\]\s*=\s*"
+            r"&gObjectEventGraphicsInfo_Nurse,\s*$",
+        )
 
     def test_shared_nurse_checks_both_facilities_before_union_room(self):
         source = NURSE_SCRIPT.read_text(encoding="utf-8")
