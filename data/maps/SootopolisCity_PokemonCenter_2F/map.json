@@ -1,6 +1,7 @@
 {
   "id": "MAP_SOOTOPOLIS_CITY_POKEMON_CENTER_2F",
   "name": "SootopolisCity_PokemonCenter_2F",
+  "shared_scripts_map": "PokemonCenter_2F",
   "layout": "LAYOUT_POKEMON_CENTER_2F",
   "music": "MUS_POKE_CENTER",
   "region": "REGION_HOENN",

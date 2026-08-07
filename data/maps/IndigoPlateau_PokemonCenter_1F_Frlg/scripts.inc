@@ -1,13 +1,10 @@
 IndigoPlateau_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, IndigoPlateau_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
+	pokemon_center_1f_scripts IndigoPlateau_PokemonCenter_1F_OnTransition, HEAL_LOCATION_INDIGO_PLATEAU, IndigoPlateau_PokemonCenter_1F_TransitionHook
 
-IndigoPlateau_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_INDIGO_PLATEAU
+IndigoPlateau_PokemonCenter_1F_TransitionHook::
 	specialvar VAR_RESULT, IsNationalPokedexEnabled
 	call_if_eq VAR_RESULT, TRUE, IndigoPlateau_PokemonCenter_1F_EventScript_CheckBlockDoor
-	end
+	return
 
 IndigoPlateau_PokemonCenter_1F_EventScript_CheckBlockDoor::
 	goto_if_set FLAG_IS_CHAMPION, Common_EventScript_NopReturn
@@ -61,13 +58,6 @@ IndigoPlateau_PokemonCenter_1F_Items::
 	release
 	end
 
-IndigoPlateau_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 IndigoPlateau_PokemonCenter_1F_Text_GymGuyAdvice::
 	.string "Yo!\n"
 	.string "Champ in the making!\p"
@@ -110,4 +100,3 @@ IndigoPlateau_PokemonCenter_1F_Text_LancesCousinGymLeaderFarAway::
 	.string "From what I've heard, LANCE has\n"
 	.string "a cousin who's a GYM LEADER\l"
 	.string "somewhere far away.$"
-

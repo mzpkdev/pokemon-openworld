@@ -4,14 +4,46 @@ description: Install and cache the toolchain used to build Pokemon OpenWorld.
 runs:
   using: composite
   steps:
-    - name: Install GBA build dependencies
+    - name: Require an x64 runner
+      shell: bash
+      run: |
+        if [[ "${RUNNER_ARCH}" != "X64" ]]; then
+          echo "Unsupported runner architecture: ${RUNNER_ARCH} (expected X64)" >&2
+          exit 1
+        fi
+
+    - name: Restore Arm GNU Toolchain archive
+      id: arm-toolchain-cache
+      # actions/cache v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+      with:
+        path: ${{ runner.temp }}/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+        key: arm-gnu-toolchain-${{ runner.os }}-${{ runner.arch }}-13.2.Rel1-6cd1bbc1d9ae5731
+
+    - name: Download Arm GNU Toolchain archive
+      if: steps.arm-toolchain-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        curl --fail --location --retry 5 --retry-delay 2 \
+          --output "${RUNNER_TEMP}/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz" \
+          https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+
+    - name: Verify and extract Arm GNU Toolchain
+      shell: bash
+      run: |
+        archive="${RUNNER_TEMP}/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz"
+        echo "6cd1bbc1d9ae57312bcd169ae283153a9572bd6a8e4eeae2fedfbc33b115fdbb  ${archive}" \
+          | sha256sum --check --strict
+        tar -xJf "${archive}" -C "${RUNNER_TEMP}"
+        toolchain_bin="${RUNNER_TEMP}/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin"
+        test -d "${toolchain_bin}"
+        echo "${toolchain_bin}" >> "${GITHUB_PATH}"
+
+    - name: Install native build dependencies
       shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
-          binutils-arm-none-eabi \
-          gcc-arm-none-eabi \
-          libnewlib-arm-none-eabi \
           libpng-dev \
           pkg-config \
           python3
@@ -41,4 +73,12 @@ runs:
       shell: bash
       run: |
         arm-none-eabi-gcc --version
+        for library in libc.a libnosys.a libgcc.a; do
+          library_path="$(arm-none-eabi-gcc -print-file-name="${library}")"
+          if [[ "${library_path}" == "${library}" || ! -f "${library_path}" ]]; then
+            echo "Missing Arm toolchain library: ${library}" >&2
+            exit 1
+          fi
+          echo "${library}: ${library_path}"
+        done
         python3 --version

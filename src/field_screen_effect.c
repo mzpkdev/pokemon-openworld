@@ -1471,10 +1471,6 @@ static void Task_RushInjuredPokemonToCenter(u8 taskId)
                     StringCopy(gStringVar1, COMPOUND_STRING("PROF. BIRCH"));
                 ScriptContext_SetupScript(EventScript_AfterWhiteOutMomHeal);
             }
-            else if (IS_FRLG)
-            {
-                ScriptContext_SetupScript(EventScript_AfterWhiteOutHeal_Frlg);
-            }
             else
             {
                 ScriptContext_SetupScript(EventScript_AfterWhiteOutHeal);

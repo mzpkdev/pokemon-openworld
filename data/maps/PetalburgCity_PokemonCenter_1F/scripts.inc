@@ -1,20 +1,5 @@
 PetalburgCity_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, PetalburgCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-PetalburgCity_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_PETALBURG_CITY
-	call Common_EventScript_UpdateBrineyLocation
-	end
-
-PetalburgCity_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_PETALBURG_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
-	end
+	pokemon_center_1f_scripts PetalburgCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_PETALBURG_CITY, Common_EventScript_UpdateBrineyLocation
 
 PetalburgCity_PokemonCenter_1F_EventScript_FatMan::
 	msgbox PetalburgCity_PokemonCenter_1F_Text_PCStorageSystem, MSGBOX_NPC
@@ -91,4 +76,3 @@ PetalburgCity_PokemonCenter_1F_Text_MudkipIsWaterType:
 	.string "It's strong against the FIRE type.\p"
 	.string "But, it's weak against GRASS-type\n"
 	.string "and ELECTRIC-type POKéMON.$"
-

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "ordinaryNurses": [
+    "OldaleTown_PokemonCenter_1F",
+    "PewterCity_PokemonCenter_1F_Frlg",
+    "SevenIsland_PokemonCenter_1F_Frlg"
+  ],
+  "facilityNurses": [
+    "TrainerHill_Entrance",
+    "TrainerTower_Lobby_Frlg"
+  ],
+  "whiteoutCases": [
+    "OldaleTown_PokemonCenter_1F",
+    "PewterCity_PokemonCenter_1F_Frlg"
+  ],
+  "runtimeCases": {
+    "OldaleTown_PokemonCenter_1F": {
+      "x": 7,
+      "y": 3,
+      "direction": "Up",
+      "nurseLocalId": 1
+    },
+    "PewterCity_PokemonCenter_1F_Frlg": {
+      "x": 7,
+      "y": 3,
+      "direction": "Up",
+      "nurseLocalId": 3
+    },
+    "SevenIsland_PokemonCenter_1F_Frlg": {
+      "x": 7,
+      "y": 3,
+      "direction": "Up",
+      "nurseLocalId": 1
+    },
+    "TrainerHill_Entrance": {
+      "x": 4,
+      "y": 10,
+      "direction": "Up",
+      "nurseLocalId": 2
+    },
+    "TrainerTower_Lobby_Frlg": {
+      "x": 4,
+      "y": 10,
+      "direction": "Up",
+      "nurseLocalId": 1
+    }
+  },
+  "escalatorRoundTrip": {
+    "map": "PewterCity_PokemonCenter_1F_Frlg",
+    "x": 2,
+    "y": 6,
+    "direction": "Left",
+    "destination": "PewterCity_PokemonCenter_2F_Frlg",
+    "returnDirection": "Left"
+  }
+}

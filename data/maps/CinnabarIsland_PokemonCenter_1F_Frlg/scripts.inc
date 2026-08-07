@@ -1,18 +1,5 @@
 CinnabarIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, CinnabarIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-CinnabarIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_CINNABAR_ISLAND
-	end
-
-CinnabarIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
+	pokemon_center_1f_scripts CinnabarIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_CINNABAR_ISLAND
 
 CinnabarIsland_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox CinnabarIsland_PokemonCenter_1F_Text_VisitUnionRoom, MSGBOX_NPC
@@ -176,4 +163,3 @@ CinnabarIsland_PokemonCenter_1F_Text_OhNotDoneYet::
 CinnabarIsland_PokemonCenter_1F_Text_LetsGo::
 	.string "Well, that's it.\n"
 	.string "Let's go!$"
-

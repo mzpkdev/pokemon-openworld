@@ -1,9 +1,11 @@
 OneIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, OneIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	map_script MAP_SCRIPT_ON_LOAD, OneIsland_PokemonCenter_1F_OnLoad
-	map_script MAP_SCRIPT_ON_FRAME_TABLE, OneIsland_PokemonCenter_1F_OnFrame
-	.byte 0
+	pokemon_center_1f_scripts OneIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_ONE_ISLAND, OneIsland_PokemonCenter_1F_TransitionHook, OneIsland_PokemonCenter_1F_OnLoad, OneIsland_PokemonCenter_1F_OnFrame
+
+OneIsland_PokemonCenter_1F_TransitionHook::
+	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 6, OneIsland_PokemonCenter_1F_EventScript_SetCelioQuestDone
+	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 0, OneIsland_PokemonCenter_1F_EventScript_SetBillCelioFirstMeetingPos
+	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 2, OneIsland_PokemonCenter_1F_EventScript_SetBillCelioReadyToLeavePos
+	return
 
 OneIsland_PokemonCenter_1F_OnLoad::
 	call_if_ge VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 5, OneIsland_PokemonCenter_1F_EventScript_SetRubyMetatile
@@ -23,13 +25,6 @@ OneIsland_PokemonCenter_1F_EventScript_SetNetworkMachineOn::
 	setmetatile 14, 4, METATILE_PokemonCenterFrlg_NetworkMachine_ScreenLeft_On, 1
 	setmetatile 15, 4, METATILE_PokemonCenterFrlg_NetworkMachine_ScreenRight_On, 1
 	return
-
-OneIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_ONE_ISLAND
-	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 6, OneIsland_PokemonCenter_1F_EventScript_SetCelioQuestDone
-	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 0, OneIsland_PokemonCenter_1F_EventScript_SetBillCelioFirstMeetingPos
-	call_if_eq VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 2, OneIsland_PokemonCenter_1F_EventScript_SetBillCelioReadyToLeavePos
-	end
 
 OneIsland_PokemonCenter_1F_EventScript_SetCelioQuestDone::
 	setvar VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F, 7
@@ -173,13 +168,6 @@ OneIsland_PokemonCenter_1F_Movement_StepAsideLeft::
 	walk_left
 	walk_in_place_faster_right
 	step_end
-
-OneIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
 
 OneIsland_PokemonCenter_1F_EventScript_Bill::
 	lock
@@ -918,4 +906,3 @@ OneIsland_PokemonCenter_1F_Text_MachineLinkedWithKantoAndHoenn::
 
 OneIsland_PokemonCenter_1F_Text_ObtainedTriPass::
 	.string "Obtained the TRI-PASS!$"
-

@@ -1,21 +1,11 @@
 .equ REQUIRED_OWNED_MONS, 20
 
 Route10_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, Route10_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
+	pokemon_center_1f_scripts Route10_PokemonCenter_1F_OnTransition, HEAL_LOCATION_ROUTE10, Route10_PokemonCenter_1F_TransitionHook
 
-Route10_PokemonCenter_1F_OnTransition::
+Route10_PokemonCenter_1F_TransitionHook::
 	setworldmapflag FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F
-	setrespawn HEAL_LOCATION_ROUTE10
-	end
-
-Route10_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
+	return
 
 Route10_PokemonCenter_1F_EventScript_FatMan::
 	msgbox Route10_PokemonCenter_1F_Text_NuggetUselessSoldFor5000, MSGBOX_NPC
@@ -107,4 +97,3 @@ Route10_PokemonCenter_1F_Text_ExplainEverstone::
 	.string "to that POKéMON.\p"
 	.string "It will prevent evolution according\n"
 	.string "to the PROFESSOR.$"
-

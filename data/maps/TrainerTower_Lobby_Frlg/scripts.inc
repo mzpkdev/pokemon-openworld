@@ -93,13 +93,6 @@ TrainerTower_Lobby_EventScript_ExitChallenge::
 TrainerTower_Lobby_EventScript_EnterEnd::
 	end
 
-TrainerTower_Lobby_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 TrainerTower_Lobby_EventScript_Receptionist::
 	lock
 	faceplayer
@@ -338,4 +331,3 @@ TrainerTower_Lobby_Text_StairsTougherThanAnyBattle::
 	.string "Gasp…\p"
 	.string "Never mind battling! These stairs…\n"
 	.string "They're tougher than any battle…$"
-

@@ -1,18 +1,5 @@
 ViridianCity_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, ViridianCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-ViridianCity_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_VIRIDIAN_CITY
-	end
-
-ViridianCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
+	pokemon_center_1f_scripts ViridianCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_VIRIDIAN_CITY
 
 ViridianCity_PokemonCenter_1F_EventScript_Boy::
 	msgbox ViridianCity_PokemonCenter_1F_Text_PokeCenterInEveryTown, MSGBOX_NPC
@@ -43,4 +30,3 @@ ViridianCity_PokemonCenter_1F_Text_PokeCentersHealMons::
 	.string "hurt, or fainted POKéMON.\p"
 	.string "They make all POKéMON completely\n"
 	.string "healthy.$"
-

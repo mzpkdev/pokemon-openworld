@@ -1,20 +1,5 @@
 LavaridgeTown_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, LavaridgeTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-LavaridgeTown_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_LAVARIDGE_TOWN
-	call Common_EventScript_UpdateBrineyLocation
-	end
-
-LavaridgeTown_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_LAVARIDGE_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
-	end
+	pokemon_center_1f_scripts LavaridgeTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_LAVARIDGE_TOWN, Common_EventScript_UpdateBrineyLocation
 
 LavaridgeTown_PokemonCenter_1F_EventScript_Youngster::
 	msgbox LavaridgeTown_PokemonCenter_1F_Text_HotSpringCanInvigorate, MSGBOX_NPC
@@ -45,4 +30,3 @@ LavaridgeTown_PokemonCenter_1F_Text_TrainersShouldRestToo:
 	.string "the hot springs from here.\p"
 	.string "If POKéMON are getting rest, so too\n"
 	.string "should their TRAINERS.$"
-

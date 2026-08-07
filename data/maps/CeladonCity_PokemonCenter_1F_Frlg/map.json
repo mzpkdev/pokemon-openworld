@@ -19,7 +19,7 @@
     {
       "local_id": "LOCALID_CELADON_NURSE",
       "type": "object",
-      "graphics_id": "OBJ_EVENT_GFX_NURSE_FRLG",
+      "graphics_id": "OBJ_EVENT_GFX_NURSE",
       "x": 7,
       "y": 2,
       "elevation": 3,
@@ -28,7 +28,7 @@
       "movement_range_y": 1,
       "trainer_type": "TRAINER_TYPE_NONE",
       "trainer_sight_or_berry_tree_id": "0",
-      "script": "CeladonCity_PokemonCenter_1F_EventScript_Nurse",
+      "script": "Common_EventScript_PkmnCenterNurse_Interact",
       "flag": "0"
     },
     {

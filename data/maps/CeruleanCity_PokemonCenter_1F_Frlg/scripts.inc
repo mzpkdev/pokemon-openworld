@@ -1,18 +1,5 @@
 CeruleanCity_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, CeruleanCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-CeruleanCity_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_CERULEAN_CITY
-	end
-
-CeruleanCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
+	pokemon_center_1f_scripts CeruleanCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_CERULEAN_CITY
 
 CeruleanCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox CeruleanCity_PokemonCenter_1F_Text_EveryoneCallsBillPokemaniac, MSGBOX_NPC
@@ -60,4 +47,3 @@ CeruleanCity_PokemonCenter_1F_Text_TryTradingUpstairs::
 	.string "by trading.\p"
 	.string "The POKéMON you get in trades grow\n"
 	.string "quickly, too.$"
-

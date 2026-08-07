@@ -2117,19 +2117,6 @@ static const struct SpriteFrameImage sPicTable_GymGuy[] = {
     overworld_frame(gObjectEventPic_GymGuy, 2, 4, 8),
 };
 
-static const struct SpriteFrameImage sPicTable_NurseFrlg[] = {
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 0),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 1),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 2),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 0),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 0),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 1),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 1),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 2),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 2),
-    overworld_frame(gObjectEventPic_NurseFrlg, 2, 4, 3),
-};
-
 static const struct SpriteFrameImage sPicTable_ProfOak[] = {
     overworld_frame(gObjectEventPic_ProfOak, 2, 4, 0),
     overworld_frame(gObjectEventPic_ProfOak, 2, 4, 1),

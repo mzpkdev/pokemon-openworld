@@ -1,12 +1,9 @@
 LilycoveCity_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, LilycoveCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
+	pokemon_center_1f_scripts LilycoveCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_LILYCOVE_CITY, LilycoveCity_PokemonCenter_1F_TransitionHook
 
-LilycoveCity_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_LILYCOVE_CITY
+LilycoveCity_PokemonCenter_1F_TransitionHook::
 	goto LilycoveCity_PokemonCenter_1F_EventScript_SetLilycoveLadyGfx
-	end
+	return
 
 @ SetLilycoveLadyGfx returns TRUE if its the Contest Lady
 LilycoveCity_PokemonCenter_1F_EventScript_SetLilycoveLadyGfx::
@@ -21,14 +18,6 @@ LilycoveCity_PokemonCenter_1F_EventScript_HideContestLadyMon::
 
 LilycoveCity_PokemonCenter_1F_EventScript_ShowContestLadyMon::
 	clearflag FLAG_HIDE_LILYCOVE_POKEMON_CENTER_CONTEST_LADY_MON
-	end
-
-LilycoveCity_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_LILYCOVE_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
 	end
 
 LilycoveCity_PokemonCenter_1F_EventScript_Boy::
@@ -63,4 +52,3 @@ LilycoveCity_PokemonCenter_1F_Text_HaventSeenRottenScoundrels:
 	.string "Those rotten scoundrels who steal\n"
 	.string "POKéMON and rip off METEORITES…\p"
 	.string "I haven't seen them around recently.$"
-

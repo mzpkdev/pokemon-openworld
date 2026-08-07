@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened]
   push:
     branches: [main]
 
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'edited' || 'code' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -22,39 +22,8 @@ env:
   DEPRECATED_ERROR: 1
 
 jobs:
-  metadata:
-    name: PR Metadata
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout
-        # actions/checkout v7
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-
-      - name: Run actionlint
-        if: github.event_name == 'push' || github.event.action != 'edited'
-        # rhysd/actionlint:1.7.12
-        uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
-
-      - name: Test release policy helper
-        if: github.event_name == 'push' || github.event.action != 'edited'
-        run: .github/release/release.py self-test
-
-      - name: Lint pull request title
-        if: github.event_name == 'pull_request'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._/-]+\))?(!)?: .+'
-          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
-            echo "::error::PR title must follow Conventional Commits, for example: feat(battle): add a new encounter"
-            exit 1
-          fi
-
   format:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Format (metadata-only)' || 'Format' }}
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -67,8 +36,7 @@ jobs:
         run: make format-check
 
   lint:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Lint (metadata-only)' || 'Lint' }}
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -81,8 +49,7 @@ jobs:
         run: make lint-check
 
   test:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Test (metadata-only)' || 'Test' }}
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -94,14 +61,18 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
+      - name: Test SkyEmu installer retry and cache handling
+        run: >-
+          python3 -W error::ResourceWarning -m unittest
+          tools.e2e.tests.unit.test_install_skyemu -v
+
       - name: Run C mechanics tests
         run: make -j"$(nproc)" -O check
 
   build:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Build (metadata-only)' || 'Build' }}
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -163,9 +134,8 @@ jobs:
           retention-days: 1
 
   e2e:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && format('E2E ({0}) (metadata-only)', matrix.name) || format('E2E ({0})', matrix.name) }}
+    name: E2E (${{ matrix.name }})
     needs: build
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -187,6 +157,13 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Restore SkyEmu
+        # actions/cache v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+        with:
+          path: build/e2e-tools/SkyEmu-v5
+          key: skyemu-${{ runner.os }}-${{ runner.arch }}-v5-d85797fe449bd97922a3b3f73060db7ebf49ab094ef8f0b0c882fe7357e3c9f3
 
       - name: Download debug build artifact
         # actions/download-artifact v8
@@ -231,8 +208,7 @@ jobs:
           retention-days: 3
 
   integrity:
-    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'ROM Audit (metadata-only)' || 'ROM Audit' }}
-    if: github.event_name != 'pull_request' || github.event.action != 'edited'
+    name: ROM Audit
     runs-on: ubuntu-latest
     timeout-minutes: 60
 

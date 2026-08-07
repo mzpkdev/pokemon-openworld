@@ -1,20 +1,5 @@
 FallarborTown_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, FallarborTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-FallarborTown_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_FALLARBOR_TOWN
-	call Common_EventScript_UpdateBrineyLocation
-	end
-
-FallarborTown_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_FALLARBOR_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
-	end
+	pokemon_center_1f_scripts FallarborTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_FALLARBOR_TOWN, Common_EventScript_UpdateBrineyLocation
 
 FallarborTown_PokemonCenter_1F_EventScript_Girl::
 	msgbox FallarborTown_PokemonCenter_1F_Text_FossilManiacEdgeOfTown, MSGBOX_NPC
@@ -108,4 +93,3 @@ FallarborTown_PokemonCenter_1F_Text_PlantHardyTrees:
 	.string "In the fields of FALLARBOR, we plant\n"
 	.string "seedlings of hardy trees that thrive\l"
 	.string "even in volcanic ash.$"
-

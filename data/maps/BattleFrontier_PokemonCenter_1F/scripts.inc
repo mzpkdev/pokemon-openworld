@@ -1,19 +1,5 @@
 BattleFrontier_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, BattleFrontier_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-BattleFrontier_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_BATTLE_FRONTIER_OUTSIDE_EAST
-	end
-
-BattleFrontier_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_FRONTIER_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
-	end
+	pokemon_center_1f_scripts BattleFrontier_PokemonCenter_1F_OnTransition, HEAL_LOCATION_BATTLE_FRONTIER_OUTSIDE_EAST
 
 BattleFrontier_PokemonCenter_1F_EventScript_SchoolKid::
 	msgbox BattleFrontier_PokemonCenter_1F_Text_NeverSeenPokemon, MSGBOX_NPC
@@ -56,4 +42,3 @@ BattleFrontier_PokemonCenter_1F_Text_GoingThroughEveryChallenge:
 
 BattleFrontier_PokemonCenter_1F_Text_Skitty:
 	.string "SKITTY: Mya myaaah!$"
-
