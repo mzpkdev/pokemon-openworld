@@ -34,7 +34,14 @@
     {
       "name": "OneIsland_PokemonCenter_1F_Frlg",
       "region": "sevii123",
-      "kind": "interior"
+      "kind": "interior",
+      "seedVars": [
+        {
+          "id": 16502,
+          "value": 1,
+          "name": "VAR_MAP_SCENE_ONE_ISLAND_POKEMON_CENTER_1F"
+        }
+      ]
     },
     {
       "name": "FourIsland_Frlg",
