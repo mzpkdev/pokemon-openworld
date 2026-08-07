@@ -61,6 +61,11 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
+      - name: Test SkyEmu installer retry and cache handling
+        run: >-
+          python3 -W error::ResourceWarning -m unittest
+          tools.e2e.tests.unit.test_install_skyemu -v
+
       - name: Run C mechanics tests
         run: make -j"$(nproc)" -O check
 
@@ -152,6 +157,13 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Restore SkyEmu
+        # actions/cache v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+        with:
+          path: build/e2e-tools/SkyEmu-v5
+          key: skyemu-${{ runner.os }}-${{ runner.arch }}-v5-d85797fe449bd97922a3b3f73060db7ebf49ab094ef8f0b0c882fe7357e3c9f3
 
       - name: Download debug build artifact
         # actions/download-artifact v8
