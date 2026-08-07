@@ -1,13 +1,10 @@
 EverGrandeCity_PokemonLeague_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, EverGrandeCity_PokemonLeague_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
+	pokemon_center_1f_scripts EverGrandeCity_PokemonLeague_1F_OnTransition, HEAL_LOCATION_EVER_GRANDE_CITY_POKEMON_LEAGUE, EverGrandeCity_PokemonLeague_1F_TransitionHook
 
-EverGrandeCity_PokemonLeague_1F_OnTransition:
-	setrespawn HEAL_LOCATION_EVER_GRANDE_CITY_POKEMON_LEAGUE
+EverGrandeCity_PokemonLeague_1F_TransitionHook::
 	setflag FLAG_LANDMARK_POKEMON_LEAGUE
 	call_if_unset FLAG_ENTERED_ELITE_FOUR, EverGrandeCity_PokemonLeague_1F_EventScript_GuardsBlockDoor
-	end
+	return
 
 EverGrandeCity_PokemonLeague_1F_EventScript_GuardsBlockDoor::
 	setobjectxyperm LOCALID_LEAGUE_GUARD_1, 9, 2
@@ -126,4 +123,3 @@ EverGrandeCity_PokemonLeague_1F_Text_HaventObtainedAllBadges:
 EverGrandeCity_PokemonLeague_1F_Text_GoForth:
 	.string "TRAINER! Believe in yourself and your\n"
 	.string "POKéMON, and go forth!$"
-

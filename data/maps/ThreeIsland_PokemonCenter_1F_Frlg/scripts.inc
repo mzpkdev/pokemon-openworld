@@ -1,11 +1,5 @@
 ThreeIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, ThreeIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-ThreeIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_THREE_ISLAND
-	end
+	pokemon_center_1f_scripts ThreeIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_THREE_ISLAND
 
 ThreeIsland_PokemonCenter_1F_EventScript_Sailor::
 	msgbox ThreeIsland_PokemonCenter_1F_Text_ImpossibleToSurfBetweenIslands, MSGBOX_NPC
@@ -37,4 +31,3 @@ ThreeIsland_PokemonCenter_1F_Text_AlwaysBerriesInBerryForest::
 	.string "…That'd be wasting BERRIES?\p"
 	.string "You can always find some BERRIES\n"
 	.string "on the ground in BERRY FOREST.$"
-

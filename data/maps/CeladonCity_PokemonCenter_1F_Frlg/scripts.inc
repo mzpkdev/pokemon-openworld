@@ -1,11 +1,5 @@
 CeladonCity_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, CeladonCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-CeladonCity_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_CELADON_CITY
-	end
+	pokemon_center_1f_scripts CeladonCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_CELADON_CITY
 
 CeladonCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox CeladonCity_PokemonCenter_1F_Text_PokeFluteAwakensSleepingMons, MSGBOX_NPC
@@ -33,4 +27,3 @@ CeladonCity_PokemonCenter_1F_Text_RodeHereFromFuchsia::
 CeladonCity_PokemonCenter_1F_Text_GoToCyclingRoadIfIHadBike::
 	.string "If I had a BIKE, I would go to\n"
 	.string "CYCLING ROAD!$"
-

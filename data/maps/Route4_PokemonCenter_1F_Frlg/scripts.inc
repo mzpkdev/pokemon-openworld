@@ -1,14 +1,11 @@
 .equ MAGIKARP_PRICE, 500
 
 Route4_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, Route4_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
+	pokemon_center_1f_scripts Route4_PokemonCenter_1F_OnTransition, HEAL_LOCATION_ROUTE4, Route4_PokemonCenter_1F_TransitionHook
 
-Route4_PokemonCenter_1F_OnTransition::
+Route4_PokemonCenter_1F_TransitionHook::
 	setworldmapflag FLAG_WORLD_MAP_ROUTE4_POKEMON_CENTER_1F
-	setrespawn HEAL_LOCATION_ROUTE4
-	end
+	return
 
 Route4_PokemonCenter_1F_EventScript_Boy::
 	msgbox Route4_PokemonCenter_1F_Text_CanHaveSixMonsWithYou, MSGBOX_NPC
@@ -192,4 +189,3 @@ Route4_PokemonCenter_1F_Text_ShouldStoreMonsUsingPC::
 
 Route4_PokemonCenter_1F_Text_ItsANewspaper::
 	.string "It's a newspaper.$"
-

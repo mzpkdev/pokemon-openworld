@@ -1,12 +1,5 @@
 SlateportCity_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, SlateportCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-SlateportCity_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_SLATEPORT_CITY
-	call Common_EventScript_UpdateBrineyLocation
-	end
+	pokemon_center_1f_scripts SlateportCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_SLATEPORT_CITY, Common_EventScript_UpdateBrineyLocation
 
 SlateportCity_PokemonCenter_1F_EventScript_Sailor::
 	msgbox SlateportCity_PokemonCenter_1F_Text_RaiseDifferentTypesOfPokemon, MSGBOX_NPC
@@ -29,4 +22,3 @@ SlateportCity_PokemonCenter_1F_Text_TradedMonWithFriend:
 	.string "I trade POKéMON with my friends.\p"
 	.string "If a traded POKéMON is holding an\n"
 	.string "item, it makes me twice as happy!$"
-

@@ -1,11 +1,5 @@
 LavenderTown_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, LavenderTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-LavenderTown_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_LAVENDER_TOWN
-	end
+	pokemon_center_1f_scripts LavenderTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_LAVENDER_TOWN
 
 LavenderTown_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox LavenderTown_PokemonCenter_1F_Text_RocketsDoAnythingForMoney, MSGBOX_NPC
@@ -34,4 +28,3 @@ LavenderTown_PokemonCenter_1F_Text_PeoplePayForCuboneSkulls::
 	.string "You know how the CUBONE species\n"
 	.string "wears skulls, right?\p"
 	.string "People will pay a lot for one.$"
-

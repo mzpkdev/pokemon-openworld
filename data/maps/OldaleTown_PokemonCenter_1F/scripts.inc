@@ -1,12 +1,5 @@
 OldaleTown_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, OldaleTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-OldaleTown_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_OLDALE_TOWN
-	call Common_EventScript_UpdateBrineyLocation
-	end
+	pokemon_center_1f_scripts OldaleTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_OLDALE_TOWN, Common_EventScript_UpdateBrineyLocation
 
 OldaleTown_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox OldaleTown_PokemonCenter_1F_Text_TrainersCanUsePC, MSGBOX_NPC
@@ -51,4 +44,3 @@ OldaleTown_PokemonCenter_1F_Text_TradedInWirelessClub:
 	.string "The POKéMON WIRELESS CLUB on\n"
 	.string "the second floor was built recently.\p"
 	.string "I traded POKéMON right away.$"
-

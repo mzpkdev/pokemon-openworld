@@ -1,11 +1,5 @@
 SevenIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, SevenIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-SevenIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_SEVEN_ISLAND
-	end
+	pokemon_center_1f_scripts SevenIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_SEVEN_ISLAND
 
 SevenIsland_PokemonCenter_1F_EventScript_OldMan::
 	msgbox SevenIsland_PokemonCenter_1F_Text_EventsDependingOnConnections, MSGBOX_NPC
@@ -37,4 +31,3 @@ SevenIsland_PokemonCenter_1F_Text_DidYouRideSeagallopHere::
 SevenIsland_PokemonCenter_1F_Text_CheckOutTrainerTower::
 	.string "If you're confident, you should\n"
 	.string "check out TRAINER TOWER.$"
-

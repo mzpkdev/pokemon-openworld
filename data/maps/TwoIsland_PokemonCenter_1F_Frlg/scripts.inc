@@ -1,11 +1,5 @@
 TwoIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, TwoIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-TwoIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_TWO_ISLAND
-	end
+	pokemon_center_1f_scripts TwoIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_TWO_ISLAND
 
 TwoIsland_PokemonCenter_1F_EventScript_GBAKid::
 	msgbox TwoIsland_PokemonCenter_1F_Text_HaveYouVisitedGameCorner, MSGBOX_NPC
@@ -28,4 +22,3 @@ TwoIsland_PokemonCenter_1F_Text_OldLadyLivesOutOnCape::
 	.string "out on the cape.\p"
 	.string "She's been there since I don't know\n"
 	.string "when.$"
-

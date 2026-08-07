@@ -1,11 +1,5 @@
 SaffronCity_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, SaffronCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-SaffronCity_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_SAFFRON_CITY
-	end
+	pokemon_center_1f_scripts SaffronCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_SAFFRON_CITY
 
 SaffronCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox SaffronCity_PokemonCenter_1F_Text_SilphCoVictimOfFame, MSGBOX_NPC
@@ -47,4 +41,3 @@ SaffronCity_PokemonCenter_1F_Text_TeamRocketTookOff::
 	.string "TEAM ROCKET took off!\n"
 	.string "We can go out safely again!\l"
 	.string "That's great!$"
-

@@ -1,13 +1,9 @@
 SixIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, SixIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	map_script MAP_SCRIPT_ON_FRAME_TABLE, SixIsland_PokemonCenter_1F_OnFrame
-	.byte 0
+	pokemon_center_1f_scripts SixIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_SIX_ISLAND, SixIsland_PokemonCenter_1F_TransitionHook, , SixIsland_PokemonCenter_1F_OnFrame
 
-SixIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_SIX_ISLAND
+SixIsland_PokemonCenter_1F_TransitionHook::
 	call_if_eq VAR_MAP_SCENE_SIX_ISLAND_POKEMON_CENTER_1F, 0, SixIsland_PokemonCenter_1F_EventScript_ShowRival
-	end
+	return
 
 SixIsland_PokemonCenter_1F_EventScript_ShowRival::
 	clearflag FLAG_HIDE_SIX_ISLAND_POKECENTER_RIVAL
@@ -105,4 +101,3 @@ SixIsland_PokemonCenter_1F_Text_RivalImpossibleToGetAllMonsAroundHere::
 	.string "I may as well leave for home.\p"
 	.string "That's that, then!\n"
 	.string "Smell ya later!$"
-

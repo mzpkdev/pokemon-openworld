@@ -14,6 +14,7 @@ NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse.inc"
 EVENT_SCRIPTS = ROOT / "data" / "event_scripts.s"
 FIELD_SCREEN_EFFECT = ROOT / "src" / "field_screen_effect.c"
 EVENT_SCRIPTS_HEADER = ROOT / "include" / "event_scripts.h"
+MAP_MACROS = ROOT / "asm" / "macros" / "map.inc"
 FIXTURE = Path(__file__).with_name("fixtures") / "pokecenter_contract.json"
 EMPTY_SEMANTIC_SHA256 = hashlib.sha256(b"").hexdigest()
 APPROVED_NURSE_GRAPHICS_ID = "OBJ_EVENT_GFX_NURSE"
@@ -368,7 +369,8 @@ def _valid_1f_macro_definition(source):
         "map_script MAP_SCRIPT_ON_FRAME_TABLE, \\on_frame",
         ".endif",
         ".byte 0",
-        "\\transition::",
+        ".global \\transition",
+        "\\transition\\():",
         "setrespawn \\heal_location",
         ".ifnb \\transition_hook",
         "call \\transition_hook",
@@ -380,7 +382,7 @@ def _valid_1f_macro_definition(source):
 
 def _macro_invocation_details(map_name, source, macro_source):
     active = _active_source(source)
-    has_invocation = re.search(r"(?m)^\s*pokemon_center_1f_scripts(?:\s|$)", active)
+    all_invocations = re.findall(r"(?m)^\s*pokemon_center_1f_scripts(?:\s|$)", active)
     invocation_pattern = re.compile(
         rf"(?m)^{re.escape(map_name)}_MapScripts::\s*\n"
         r"\s*pokemon_center_1f_scripts\s+([^\n]+?)\s*$"
@@ -392,9 +394,10 @@ def _macro_invocation_details(map_name, source, macro_source):
         active,
     )
     if not invocations:
-        return False if has_invocation else None
+        return False if all_invocations else None
     if (
         len(invocations) != 1
+        or len(all_invocations) != 1
         or len(any_owner_invocations) != 1
         or not _valid_1f_macro_definition(macro_source)
     ):
@@ -559,14 +562,36 @@ def _normalize_local_script(map_name, source, macro_source="", shared_owner=None
         transition_label = match.group(1) if match else None
 
     removals = []
-    if table_span:
-        removals.append(table_span)
-
     macro_callbacks = ()
     if invocation not in (None, False):
         macro_callbacks = invocation["callbacks"]
         if invocation["hook_span"]:
             removals.append(invocation["hook_span"])
+    if table_span:
+        replacement = ""
+        if macro_callbacks:
+            callback_source = "\n".join(macro_callbacks) + "\n"
+            callback_targets = [
+                match.group(1)
+                for callback in macro_callbacks
+                if (
+                    match := re.search(
+                        rf"\b({re.escape(map_name.removesuffix('_Frlg'))}_[A-Za-z0-9_]+)$",
+                        callback,
+                    )
+                )
+            ]
+            target_spans = [
+                span
+                for target in callback_targets
+                if (span := _label_section_span(source, target))
+            ]
+            if SPECIAL_1F_TABLE_ROWS.get(map_name, ()) and target_spans:
+                callback_position = min(span[0] for span in target_spans)
+                removals.append((callback_position, callback_position, callback_source))
+            else:
+                replacement = callback_source
+        removals.append((*table_span, replacement))
 
     if transition_label:
         span = _label_section_span(source, transition_label)
@@ -616,8 +641,6 @@ def _normalize_local_script(map_name, source, macro_source="", shared_owner=None
     ]
     for start, end, replacement in sorted(normalized_removals, reverse=True):
         normalized = normalized[:start] + replacement + normalized[end:]
-    if macro_callbacks:
-        normalized = "\n".join(macro_callbacks) + "\n" + normalized
     semantic_lines = []
     for line in normalized.splitlines():
         stripped = line.strip()
@@ -792,14 +815,25 @@ def _has_active_token(source, token):
     return _has_directive(active, token) is not None
 
 
+def _has_preserved_special_token(map_name, source, token, macro_source):
+    if _has_active_token(source, token):
+        return True
+    invocation = _macro_invocation_details(map_name, source, macro_source)
+    if invocation is None or invocation is False:
+        return False
+    if token in SPECIAL_1F_TABLE_ROWS.get(map_name, ()):
+        return True
+    return (
+        token.startswith("call ")
+        and invocation["callbacks"] == (token,)
+        and invocation["hook_span"] is None
+    )
+
+
 def _repository_macro_source(name):
     declaration = re.compile(rf"(?m)^\s*\.macro\s+{re.escape(name)}(?:\s|$)")
-    for root in (ROOT / "include", ROOT / "data"):
-        for path in root.rglob("*.inc"):
-            source = path.read_text(encoding="utf-8")
-            if declaration.search(_active_source(source)):
-                return source
-    return ""
+    source = MAP_MACROS.read_text(encoding="utf-8")
+    return source if declaration.search(_active_source(source)) else ""
 
 
 def _test_1f_macro_source():
@@ -813,7 +847,8 @@ def _test_1f_macro_source():
 	map_script MAP_SCRIPT_ON_FRAME_TABLE, \on_frame
 	.endif
 	.byte 0
-\transition::
+	.global \transition
+\transition\():
 	setrespawn \heal_location
 	.ifnb \transition_hook
 	call \transition_hook
@@ -1162,7 +1197,10 @@ class PokeCenterScriptContractTests(unittest.TestCase):
             source = _script_path(map_name).read_text(encoding="utf-8")
             for token in tokens:
                 self.assertTrue(
-                    _has_active_token(source, token), f"{map_name}: {token}"
+                    _has_preserved_special_token(
+                        map_name, source, token, self.one_floor_macro_source
+                    ),
+                    f"{map_name}: {token}",
                 )
 
     def test_no_generated_artifact_is_a_reviewed_input(self):
@@ -1353,7 +1391,8 @@ Map_OnTransition::
 \tmap_script MAP_SCRIPT_ON_FRAME_TABLE, \\on_frame
 \t.endif
 \t.byte 0
-\\transition::
+\t.global \\transition
+\\transition\\():
 \tsetrespawn \\heal_location
 \t.ifnb \\transition_hook
 \tcall \\transition_hook
@@ -1486,12 +1525,29 @@ OldaleTown_PokemonCenter_1F_EventScript_Gentleman::
 OldaleTown_PokemonCenter_1F_Text_Test:
 	.string "Test$"
 """
+        callback = "call Common_EventScript_UpdateBrineyLocation"
+        macro_source = _test_1f_macro_source()
+        self.assertTrue(
+            _has_preserved_special_token(
+                "OldaleTown_PokemonCenter_1F", migrated, callback, macro_source
+            )
+        )
+        self.assertFalse(
+            _has_preserved_special_token(
+                "OldaleTown_PokemonCenter_1F",
+                migrated.replace(
+                    "Common_EventScript_UpdateBrineyLocation", "EventScript_Test"
+                ),
+                callback,
+                macro_source,
+            )
+        )
         self.assertEqual(
             _normalize_local_script("OldaleTown_PokemonCenter_1F", baseline),
             _normalize_local_script(
                 "OldaleTown_PokemonCenter_1F",
                 migrated,
-                _test_1f_macro_source(),
+                macro_source,
             ),
         )
 
@@ -1698,7 +1754,8 @@ Map_OnTransition::
 \tmap_script MAP_SCRIPT_ON_FRAME_TABLE, \\on_frame
 \t.endif
 \t.byte 0
-\\transition::
+\t.global \\transition
+\\transition\\():
 \tsetrespawn \\heal_location
 \t.ifnb \\transition_hook
 \tcall \\transition_hook
@@ -1710,6 +1767,13 @@ Map_OnTransition::
 \tpokemon_center_1f_scripts TEST_MAP_OnTransition, HEAL_LOCATION_TEST
 """
         self.assertTrue(_has_1f_shell(invocation, macro))
+        duplicate_invocation = (
+            invocation
+            + "\tpokemon_center_1f_scripts ROGUE_OnTransition, HEAL_LOCATION_TEST\n"
+        )
+        self.assertFalse(_has_1f_shell(duplicate_invocation, macro))
+        with self.assertRaisesRegex(AssertionError, "pokemon_center_1f_scripts"):
+            _normalize_local_script("TEST_MAP", duplicate_invocation, macro)
         mutated = macro.replace("\tsetrespawn", "\tsetflag FLAG_TEST\n\tsetrespawn")
         self.assertFalse(_has_1f_shell(invocation, mutated))
         with self.assertRaisesRegex(AssertionError, "pokemon_center_1f_scripts"):

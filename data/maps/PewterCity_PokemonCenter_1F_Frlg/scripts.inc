@@ -1,11 +1,5 @@
 PewterCity_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, PewterCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-PewterCity_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_PEWTER_CITY
-	end
+	pokemon_center_1f_scripts PewterCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_PEWTER_CITY
 
 PewterCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox PewterCity_PokemonCenter_1F_Text_TeamRocketMtMoonImOnPhone, MSGBOX_NPC
@@ -63,4 +57,3 @@ PewterCity_PokemonCenter_1F_Text_TradingPikachuWithKid::
 	.string "there.\p"
 	.string "I had two PIKACHU, so I figured\n"
 	.string "I might as well trade one.$"
-

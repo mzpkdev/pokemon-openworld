@@ -1,11 +1,5 @@
 SootopolisCity_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, SootopolisCity_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-SootopolisCity_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_SOOTOPOLIS_CITY
-	end
+	pokemon_center_1f_scripts SootopolisCity_PokemonCenter_1F_OnTransition, HEAL_LOCATION_SOOTOPOLIS_CITY
 
 SootopolisCity_PokemonCenter_1F_EventScript_Gentleman::
 	lock
@@ -59,4 +53,3 @@ SootopolisCity_PokemonCenter_1F_Text_AlwaysBeFriendsWithPokemon:
 SootopolisCity_PokemonCenter_1F_Text_ArentPokemonOurFriends:
 	.string "Aren't POKéMON our friends?\p"
 	.string "Why are they going wild this way?$"
-

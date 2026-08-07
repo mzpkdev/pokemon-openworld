@@ -1,11 +1,5 @@
 FourIsland_PokemonCenter_1F_Frlg_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, FourIsland_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-FourIsland_PokemonCenter_1F_OnTransition::
-	setrespawn HEAL_LOCATION_FOUR_ISLAND
-	end
+	pokemon_center_1f_scripts FourIsland_PokemonCenter_1F_OnTransition, HEAL_LOCATION_FOUR_ISLAND
 
 FourIsland_PokemonCenter_1F_EventScript_Man::
 	msgbox FourIsland_PokemonCenter_1F_Text_RareIceMonsInCave, MSGBOX_NPC
@@ -63,4 +57,3 @@ FourIsland_PokemonCenter_1F_Text_NewPokemonJournalHasntArrived::
 	.string "What's this?\p"
 	.string "The new POKéMON JOURNAL hasn't\n"
 	.string "arrived on this island?$"
-

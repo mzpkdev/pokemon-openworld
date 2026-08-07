@@ -16,6 +16,25 @@
 	.4byte \script
 	.endm
 
+	.macro pokemon_center_1f_scripts transition:req, heal_location:req, transition_hook=, on_load=, on_frame=
+	map_script MAP_SCRIPT_ON_TRANSITION, \transition
+	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
+	.ifnb \on_load
+	map_script MAP_SCRIPT_ON_LOAD, \on_load
+	.endif
+	.ifnb \on_frame
+	map_script MAP_SCRIPT_ON_FRAME_TABLE, \on_frame
+	.endif
+	.byte 0
+	.global \transition
+\transition\():
+	setrespawn \heal_location
+	.ifnb \transition_hook
+	call \transition_hook
+	.endif
+	end
+	.endm
+
 	@ Defines an entry in a map script table (for either ON_WARP_INTO_MAP_TABLE or ON_FRAME_TABLE)
 	.macro map_script_2 var:req, compare:req, script:req
 	.2byte \var

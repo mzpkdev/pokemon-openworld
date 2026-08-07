@@ -1,12 +1,5 @@
 DewfordTown_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, DewfordTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-DewfordTown_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_DEWFORD_TOWN
-	call Common_EventScript_UpdateBrineyLocation
-	end
+	pokemon_center_1f_scripts DewfordTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_DEWFORD_TOWN, Common_EventScript_UpdateBrineyLocation
 
 DewfordTown_PokemonCenter_1F_EventScript_PokefanF::
 	msgbox DewfordTown_PokemonCenter_1F_Text_StoneCavern, MSGBOX_NPC
@@ -26,4 +19,3 @@ DewfordTown_PokemonCenter_1F_Text_FaintedMonCanUseHM:
 	.string "Even if a POKéMON faints and can't\n"
 	.string "battle, it can still use a move learned\l"
 	.string "from a HIDDEN MACHINE (HM).$"
-

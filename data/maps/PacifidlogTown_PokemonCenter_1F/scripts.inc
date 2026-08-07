@@ -1,11 +1,5 @@
 PacifidlogTown_PokemonCenter_1F_MapScripts::
-	map_script MAP_SCRIPT_ON_TRANSITION, PacifidlogTown_PokemonCenter_1F_OnTransition
-	map_script MAP_SCRIPT_ON_RESUME, CableClub_OnResume
-	.byte 0
-
-PacifidlogTown_PokemonCenter_1F_OnTransition:
-	setrespawn HEAL_LOCATION_PACIFIDLOG_TOWN
-	end
+	pokemon_center_1f_scripts PacifidlogTown_PokemonCenter_1F_OnTransition, HEAL_LOCATION_PACIFIDLOG_TOWN
 
 PacifidlogTown_PokemonCenter_1F_EventScript_Girl::
 	msgbox PacifidlogTown_PokemonCenter_1F_Text_WhatColorTrainerCard, MSGBOX_NPC
@@ -37,4 +31,3 @@ PacifidlogTown_PokemonCenter_1F_Text_AncestorsLivedOnBoats:
 	.string "I understand that they lived that way\n"
 	.string "because they were searching for\l"
 	.string "something.$"
-
