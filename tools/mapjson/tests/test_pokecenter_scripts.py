@@ -1209,15 +1209,14 @@ class PokeCenterScriptContractTests(unittest.TestCase):
         ):
             self.assertNotIn(symbol, combined_source, symbol)
 
-        event_object_constants = (
-            ROOT / "include" / "constants" / "event_objects.h"
-        ).read_text(encoding="utf-8")
+        pointer_source = graphics_sources["object_event_graphics_info_pointers.h"]
         self.assertRegex(
-            event_object_constants,
-            r"(?m)^\s*OBJ_EVENT_GFX_NURSE_FRLG,\s*$",
+            pointer_source,
+            r"(?m)^STATIC_ASSERT\(OBJ_EVENT_GFX_NURSE_FRLG == 333, "
+            r"NurseFrlgGraphicsIdAbi\);$",
         )
         self.assertRegex(
-            graphics_sources["object_event_graphics_info_pointers.h"],
+            pointer_source,
             r"(?m)^\s*\[OBJ_EVENT_GFX_NURSE_FRLG\]\s*=\s*"
             r"&gObjectEventGraphicsInfo_Nurse,\s*$",
         )
