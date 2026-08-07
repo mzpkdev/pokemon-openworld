@@ -10,6 +10,11 @@ MAPS_ROOT = ROOT / "data" / "maps"
 MAP_GROUPS = MAPS_ROOT / "map_groups.json"
 HEAL_LOCATIONS = ROOT / "src" / "data" / "heal_locations.json"
 GLOBAL_POKEMON_CENTER_SCRIPTS = ROOT / "data" / "scripts" / "pokemon_center.inc"
+NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse.inc"
+FRLG_NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse_frlg.inc"
+EVENT_SCRIPTS = ROOT / "data" / "event_scripts.s"
+FIELD_SCREEN_EFFECT = ROOT / "src" / "field_screen_effect.c"
+EVENT_SCRIPTS_HEADER = ROOT / "include" / "event_scripts.h"
 FIXTURE = Path(__file__).with_name("fixtures") / "pokecenter_contract.json"
 EMPTY_SEMANTIC_SHA256 = hashlib.sha256(b"").hexdigest()
 APPROVED_NURSE_GRAPHICS_ID = "OBJ_EVENT_GFX_NURSE"
@@ -699,7 +704,16 @@ def _has_1f_shell(source, macro_source=""):
 def _has_nurse_target(source, script, nurse_local_id=None):
     active = _active_source(source)
     if script == "Common_EventScript_PkmnCenterNurse_Interact":
-        return True
+        return _section_lines(
+            _active_source(NURSE_SCRIPT.read_text(encoding="utf-8")), script
+        ) == (
+            "copyvar VAR_0x800B, VAR_LAST_TALKED",
+            "call Common_EventScript_PkmnCenterNurse",
+            "waitmessage",
+            "waitbuttonpress",
+            "release",
+            "end",
+        )
     span = _label_section_span(active, script)
     if not span:
         return False
@@ -786,30 +800,23 @@ def _cable_table(source, table_label=None):
 
 def _has_facility_exclusion(source, predicate):
     active = _active_source(source)
-    if predicate == "PlayerNotAtTrainerHillEntrance":
-        label = "EventScript_PkmnCenterNurse_CheckTrainerHillAndUnionRoom"
-        expected = (
-            "specialvar VAR_RESULT, PlayerNotAtTrainerHillEntrance",
-            "goto_if_eq VAR_RESULT, 0, EventScript_PkmnCenterNurse_ReturnPkmn",
-            "specialvar VAR_RESULT, BufferUnionRoomPlayerName",
-            "copyvar VAR_0x8008, VAR_RESULT",
-            "goto_if_eq VAR_0x8008, 0, EventScript_PkmnCenterNurse_ReturnPkmn",
-            "goto_if_eq VAR_0x8008, 1, EventScript_PkmnCenterNurse_PlayerWaitingInUnionRoom",
-            "end",
-        )
-    elif predicate == "IsPlayerNotInTrainerTowerLobby":
-        label = "EventScript_PkmnCenterNurse_CheckTrainerTowerAndUnionRoom_Frlg"
-        expected = (
-            "specialvar VAR_RESULT, IsPlayerNotInTrainerTowerLobby",
-            "goto_if_eq VAR_RESULT, FALSE, EventScript_PkmnCenterNurse_ReturnPkmn_Frlg",
-            "specialvar VAR_RESULT, BufferUnionRoomPlayerName",
-            "copyvar VAR_0x8008, VAR_RESULT",
-            "goto_if_eq VAR_0x8008, 0, EventScript_PkmnCenterNurse_ReturnPkmn_Frlg",
-            "goto_if_eq VAR_0x8008, 1, EventScript_PkmnCenterNurse_PlayerWaitingInUnionRoom_Frlg",
-            "end",
-        )
-    else:
+    if predicate not in {
+        "PlayerNotAtTrainerHillEntrance",
+        "IsPlayerNotInTrainerTowerLobby",
+    }:
         return False
+    label = "EventScript_PkmnCenterNurse_CheckTrainerHillAndUnionRoom"
+    expected = (
+        "specialvar VAR_RESULT, PlayerNotAtTrainerHillEntrance",
+        "goto_if_eq VAR_RESULT, 0, EventScript_PkmnCenterNurse_ReturnPkmn",
+        "specialvar VAR_RESULT, IsPlayerNotInTrainerTowerLobby",
+        "goto_if_eq VAR_RESULT, FALSE, EventScript_PkmnCenterNurse_ReturnPkmn",
+        "specialvar VAR_RESULT, BufferUnionRoomPlayerName",
+        "copyvar VAR_0x8008, VAR_RESULT",
+        "goto_if_eq VAR_0x8008, 0, EventScript_PkmnCenterNurse_ReturnPkmn",
+        "goto_if_eq VAR_0x8008, 1, EventScript_PkmnCenterNurse_PlayerWaitingInUnionRoom",
+        "end",
+    )
     return _section_lines(active, label) == expected
 
 
@@ -1022,20 +1029,115 @@ class PokeCenterScriptContractTests(unittest.TestCase):
                 second_floor,
             )
 
-    def test_facility_nurses_keep_union_room_exclusions(self):
-        cases = (
+    def test_shared_nurse_checks_both_facilities_before_union_room(self):
+        source = NURSE_SCRIPT.read_text(encoding="utf-8")
+        for predicate in (
+            "PlayerNotAtTrainerHillEntrance",
+            "IsPlayerNotInTrainerTowerLobby",
+        ):
+            self.assertTrue(_has_facility_exclusion(source, predicate), predicate)
+
+    def test_one_nurse_state_machine_and_exact_temporary_adapter(self):
+        nurse_source = NURSE_SCRIPT.read_text(encoding="utf-8")
+        frlg_source = FRLG_NURSE_SCRIPT.read_text(encoding="utf-8")
+        active_nurse = _active_source(nurse_source)
+        active_frlg = _active_source(frlg_source)
+
+        self.assertEqual(
+            _section_lines(active_nurse, "Common_EventScript_PkmnCenterNurse_Interact"),
             (
-                ROOT / "data" / "scripts" / "pkmn_center_nurse.inc",
-                "PlayerNotAtTrainerHillEntrance",
-            ),
-            (
-                ROOT / "data" / "scripts" / "pkmn_center_nurse_frlg.inc",
-                "IsPlayerNotInTrainerTowerLobby",
+                "copyvar VAR_0x800B, VAR_LAST_TALKED",
+                "call Common_EventScript_PkmnCenterNurse",
+                "waitmessage",
+                "waitbuttonpress",
+                "release",
+                "end",
             ),
         )
-        for path, predicate in cases:
-            source = path.read_text(encoding="utf-8")
-            self.assertTrue(_has_facility_exclusion(source, predicate), path.name)
+        self.assertEqual(
+            _section_lines(active_frlg, "EventScript_PkmnCenterNurse_Frlg"),
+            (
+                "copyvar VAR_0x800B, VAR_LAST_TALKED",
+                "call Common_EventScript_PkmnCenterNurse",
+                "waitmessage",
+                "waitbuttonpress",
+                "return",
+            ),
+        )
+        self.assertEqual(
+            re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)::?\s*$", active_frlg),
+            ["EventScript_PkmnCenterNurse_Frlg"],
+        )
+
+        combined = f"{active_nurse}\n{active_frlg}"
+        for state_machine_directive in (
+            "incrementgamestat GAME_STAT_USED_POKECENTER",
+            "special HealPlayerParty",
+            "specialvar VAR_RESULT, BufferUnionRoomPlayerName",
+        ):
+            self.assertEqual(
+                combined.count(state_machine_directive), 1, state_machine_directive
+            )
+        for preserved_feature in (
+            "specialvar VAR_RESULT, CountPlayerTrainerStars",
+            "specialvar VAR_RESULT, IsPokerusInParty",
+            "goto_if_set FLAG_NURSE_UNION_ROOM_REMINDER",
+        ):
+            self.assertIn(preserved_feature, active_nurse)
+
+    def test_non_house_whiteout_flow_is_exact_and_region_neutral(self):
+        event_source = _active_source(EVENT_SCRIPTS.read_text(encoding="utf-8"))
+        self.assertEqual(
+            _section_lines(event_source, "EventScript_AfterWhiteOutHeal"),
+            (
+                "lockall",
+                "msgbox gText_FirstShouldRestoreMonsHealth",
+                "call EventScript_PkmnCenterNurse_TakeAndHealPkmn",
+                "msgbox gText_MonsHealed",
+                "applymovement VAR_LAST_TALKED, Movement_PkmnCenterNurse_Bow",
+                "waitmovement 0",
+                "fadedefaultbgm",
+                "releaseall",
+                "end",
+            ),
+        )
+        self.assertEqual(
+            _section_lines(event_source, "EventScript_AfterWhiteOutMomHeal"),
+            (
+                "lockall",
+                "textcolor NPC_TEXT_COLOR_FEMALE",
+                "applymovement LOCALID_PLAYERS_HOUSE_1F_MOM, Common_Movement_WalkInPlaceFasterDown",
+                "waitmovement 0",
+                "msgbox gText_HadQuiteAnExperienceTakeRest",
+                "call Common_EventScript_OutOfCenterPartyHeal",
+                "msgbox gText_MomExplainHPGetPotions",
+                "fadedefaultbgm",
+                "releaseall",
+                "end",
+            ),
+        )
+        self.assertIsNone(
+            _label_section_span(
+                event_source, "EventScript_AfterWhiteOutHealMsgPreFirstBoss"
+            )
+        )
+
+        frlg_source = _active_source(FRLG_NURSE_SCRIPT.read_text(encoding="utf-8"))
+        self.assertIsNone(
+            _label_section_span(frlg_source, "EventScript_AfterWhiteOutHeal_Frlg")
+        )
+        header = EVENT_SCRIPTS_HEADER.read_text(encoding="utf-8")
+        field_source = FIELD_SCREEN_EFFECT.read_text(encoding="utf-8")
+        self.assertNotIn("EventScript_AfterWhiteOutHeal_Frlg", header)
+        self.assertNotIn("EventScript_AfterWhiteOutHeal_Frlg", field_source)
+        self.assertNotIn("else if (IS_FRLG)", field_source)
+        self.assertRegex(
+            field_source,
+            r"if \(gTasks\[taskId\]\.tIsPlayerHouse\)\s*\{[\s\S]*?"
+            r"ScriptContext_SetupScript\(EventScript_AfterWhiteOutMomHeal\);\s*\}"
+            r"\s*else\s*\{\s*"
+            r"ScriptContext_SetupScript\(EventScript_AfterWhiteOutHeal\);\s*\}",
+        )
 
     def test_special_center_callbacks_are_preserved(self):
         for map_name, tokens in SPECIAL_CENTER_TOKENS.items():
@@ -1546,6 +1648,8 @@ Map_OnTransition::
         source = """EventScript_PkmnCenterNurse_CheckTrainerHillAndUnionRoom::
 \tspecialvar VAR_RESULT, PlayerNotAtTrainerHillEntrance
 \tgoto_if_eq VAR_RESULT, 0, EventScript_PkmnCenterNurse_ReturnPkmn
+\tspecialvar VAR_RESULT, IsPlayerNotInTrainerTowerLobby
+\tgoto_if_eq VAR_RESULT, FALSE, EventScript_PkmnCenterNurse_ReturnPkmn
 \tspecialvar VAR_RESULT, BufferUnionRoomPlayerName
 \tcopyvar VAR_0x8008, VAR_RESULT
 \tgoto_if_eq VAR_0x8008, 0, EventScript_PkmnCenterNurse_ReturnPkmn

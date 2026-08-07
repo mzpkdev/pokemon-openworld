@@ -1,3 +1,11 @@
+Common_EventScript_PkmnCenterNurse_Interact::
+	copyvar VAR_0x800B, VAR_LAST_TALKED
+	call Common_EventScript_PkmnCenterNurse
+	waitmessage
+	waitbuttonpress
+	release
+	end
+
 Common_EventScript_PkmnCenterNurse::
 	lock
 	faceplayer
@@ -54,6 +62,8 @@ EventScript_PkmnCenterNurse_TakeAndHealPkmn::
 EventScript_PkmnCenterNurse_CheckTrainerHillAndUnionRoom::
 	specialvar VAR_RESULT, PlayerNotAtTrainerHillEntrance
 	goto_if_eq VAR_RESULT, 0, EventScript_PkmnCenterNurse_ReturnPkmn
+	specialvar VAR_RESULT, IsPlayerNotInTrainerTowerLobby
+	goto_if_eq VAR_RESULT, FALSE, EventScript_PkmnCenterNurse_ReturnPkmn
 	specialvar VAR_RESULT, BufferUnionRoomPlayerName
 	copyvar VAR_0x8008, VAR_RESULT
 	goto_if_eq VAR_0x8008, 0, EventScript_PkmnCenterNurse_ReturnPkmn
