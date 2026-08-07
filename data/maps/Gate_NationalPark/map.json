@@ -1,0 +1,57 @@
+{
+  "id": "MAP_GATE_NATIONAL_PARK",
+  "name": "Gate_NationalPark",
+  "layout": "LAYOUT_GATE_NATIONAL_PARK",
+  "music": "MUS_ROUTE110",
+  "region_map_section": "MAPSEC_NATIONAL_PARK",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 7,
+      "y": 13,
+      "elevation": 0,
+      "dest_map": "MAP_ROUTE35",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 7,
+      "y": 1,
+      "elevation": 0,
+      "dest_map": "MAP_NATIONAL_PARK_NORMAL",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 34,
+      "y": 7,
+      "elevation": 0,
+      "dest_map": "MAP_NATIONAL_PARK_NORMAL",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 48,
+      "y": 7,
+      "elevation": 0,
+      "dest_map": "MAP_ROUTE36",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 7,
+      "y": 0,
+      "elevation": 0,
+      "dest_map": "MAP_NATIONAL_PARK_BUG_CONTEST",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

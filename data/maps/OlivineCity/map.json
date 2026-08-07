@@ -1,0 +1,94 @@
+{
+  "id": "MAP_OLIVINE_CITY",
+  "name": "OlivineCity",
+  "layout": "LAYOUT_OLIVINE_CITY",
+  "music": "MUS_RUSTBORO",
+  "region_map_section": "MAPSEC_OLIVINE_CITY",
+  "requires_flash": false,
+  "weather": "WEATHER_RAIN",
+  "map_type": "MAP_TYPE_CITY",
+  "allow_cycling": true,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": true,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [
+    {
+      "map": "MAP_ROUTE40",
+      "offset": 32,
+      "direction": "left"
+    },
+    {
+      "map": "MAP_OLIVINE_CITY_PORT_OUTSIDE",
+      "offset": 5,
+      "direction": "down"
+    },
+    {
+      "map": "MAP_ROUTE39",
+      "offset": -6,
+      "direction": "up"
+    }
+  ],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 39,
+      "y": 49,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_LIGHTHOUSE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 11,
+      "y": 27,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_GYM",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 8,
+      "y": 43,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_CAFE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 26,
+      "y": 40,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_MART",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 27,
+      "y": 24,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_HOUSE1",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 31,
+      "y": 24,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_HOUSE2",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 19,
+      "y": 36,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_HOUSE3",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 15,
+      "y": 43,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_POKEMON_CENTER",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main]
 
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'edited' || 'code' }}
   cancel-in-progress: true
 
 env:
@@ -22,8 +22,39 @@ env:
   DEPRECATED_ERROR: 1
 
 jobs:
+  metadata:
+    name: PR Metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Run actionlint
+        if: github.event_name == 'push' || github.event.action != 'edited'
+        # rhysd/actionlint:1.7.12
+        uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+
+      - name: Test release policy helper
+        if: github.event_name == 'push' || github.event.action != 'edited'
+        run: .github/release/release.py self-test
+
+      - name: Lint pull request title
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._/-]+\))?(!)?: .+'
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "::error::PR title must follow Conventional Commits, for example: feat(battle): add a new encounter"
+            exit 1
+          fi
+
   format:
-    name: Format
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Format (metadata-only)' || 'Format' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -36,7 +67,8 @@ jobs:
         run: make format-check
 
   lint:
-    name: Lint
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Lint (metadata-only)' || 'Lint' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -49,7 +81,8 @@ jobs:
         run: make lint-check
 
   test:
-    name: Test
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Test (metadata-only)' || 'Test' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -65,7 +98,8 @@ jobs:
         run: make -j"$(nproc)" -O check
 
   build:
-    name: Build
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'Build (metadata-only)' || 'Build' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -106,6 +140,7 @@ jobs:
       - name: Stage debug build files
         run: |
           mkdir debug-release
+          cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
 
@@ -128,8 +163,9 @@ jobs:
           retention-days: 1
 
   e2e:
-    name: E2E (${{ matrix.name }})
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && format('E2E ({0}) (metadata-only)', matrix.name) || format('E2E ({0})', matrix.name) }}
     needs: build
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -195,7 +231,8 @@ jobs:
           retention-days: 3
 
   integrity:
-    name: ROM Audit
+    name: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' && 'ROM Audit (metadata-only)' || 'ROM Audit' }}
+    if: github.event_name != 'pull_request' || github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -214,6 +251,9 @@ jobs:
           mkdir -p build/integrity
           python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py' \
             2>&1 | tee build/integrity/generator-schema.log
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+            -s tools/johto_import/tests -p 'test_*.py' -q \
+            2>&1 | tee build/integrity/johto-import.log
 
       - name: Check optimized release capacity
         shell: bash

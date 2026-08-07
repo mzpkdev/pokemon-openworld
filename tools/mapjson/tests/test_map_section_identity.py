@@ -50,12 +50,24 @@ class MapSectionIdentityTests(unittest.TestCase):
     def test_reviewed_values_and_compact_round_trips_are_frozen(self) -> None:
         result = self.validate()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "count=214\n")
+        registry = json.loads(REGISTRY.read_text())
+        self.assertEqual(result.stdout, f"count={registry['map_section_count']}\n")
         for value, section in enumerate(self.registry["map_sections"]):
             self.assertEqual(section["value"], value)
-            self.assertEqual(section["saved_location"], section["id"])
-            self.assertEqual(section["met_location"], value)
-            self.assertEqual(section["met_location_display"], section["id"])
+            self.assertEqual(
+                section["saved_location"], section["id"] if value < 0xFF else None
+            )
+            self.assertEqual(section["met_location"], value if value < 0xFC else None)
+            self.assertEqual(
+                section["met_location_display"],
+                section["id"] if value < 0xFC else None,
+            )
+
+    def test_disabled_wide_section_codecs_are_emitted_as_invalid(self) -> None:
+        result = self.validate()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIsNone(self.registry["map_sections"][0xFC]["met_location"])
+        self.assertIsNone(self.registry["map_sections"][0xFF]["saved_location"])
 
     def test_duplicate_values_are_rejected(self) -> None:
         registry = self.mutated_registry()
@@ -66,10 +78,12 @@ class MapSectionIdentityTests(unittest.TestCase):
 
     def test_unmarked_gaps_are_rejected(self) -> None:
         registry = self.mutated_registry()
-        registry["map_sections"][-1]["value"] = 215
+        removed = registry["map_sections"].pop(-2)
         result = self.validate(registry)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("unmarked map-section value gap 213", result.stderr)
+        self.assertIn(
+            f"unmarked map-section value gap {removed['value']}", result.stderr
+        )
 
     def test_reserved_world_values_are_strictly_validated(self) -> None:
         mutations = (["not-a-number"], [-1], [0xFFFF], [0, 0], [0])
@@ -108,7 +122,7 @@ class MapSectionIdentityTests(unittest.TestCase):
     ) -> None:
         registry = self.mutated_registry()
         compatibility = copy.deepcopy(self.compatibility)
-        synthetic_values = (253, 254, 255, 256, 300)
+        synthetic_values = (267, 268, 269, 270, 300)
         defined = {section["value"] for section in registry["map_sections"]}
         for index, value in enumerate(synthetic_values):
             registry["map_sections"].append(

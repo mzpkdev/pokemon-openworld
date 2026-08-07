@@ -13,6 +13,22 @@ LAYOUTS = ROOT / "data" / "layouts" / "layouts.json"
 MAPS = sorted((ROOT / "data" / "maps").glob("*/map.json"))
 FONTS_SOURCE = ROOT / "src" / "fonts.c"
 DEBUG_WARP_WINDOW_WIDTH_PX = 28 * 8
+FINAL_JOHTO_FALLBACK_MAPS = {
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F",
+}
 
 
 class ProductRegistryTests(unittest.TestCase):
@@ -51,23 +67,27 @@ class ProductRegistryTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_exact_reviewed_registry_boundary(self) -> None:
+        grouped_map_count = sum(
+            len(self.groups[name]) for name in self.groups["group_order"]
+        )
+        layout_count = len(json.loads(LAYOUTS.read_text())["layouts"])
+        region_counts = {
+            region: sum(data["region"] == region for data in self.maps_by_name.values())
+            for region in ("REGION_HOENN", "REGION_KANTO", "REGION_JOHTO")
+        }
         self.assertEqual(
             self.manifest["counts"],
             {
-                "groups": 80,
-                "groupedMaps": 951,
-                "reviewedMaps": 955,
-                "layouts": 801,
-                "regions": {
-                    "REGION_HOENN": 518,
-                    "REGION_KANTO": 421,
-                    "REGION_JOHTO": 16,
-                },
+                "groups": len(self.groups["group_order"]),
+                "groupedMaps": grouped_map_count,
+                "reviewedMaps": len(self.maps_by_name),
+                "layouts": layout_count,
+                "regions": region_counts,
             },
         )
-        self.assertEqual(len(self.manifest["groups"]), 80)
-        self.assertEqual(len(self.manifest["maps"]), 951)
-        self.assertEqual(len(self.manifest["layouts"]), 801)
+        self.assertEqual(len(self.manifest["groups"]), len(self.groups["group_order"]))
+        self.assertEqual(len(self.manifest["maps"]), grouped_map_count)
+        self.assertEqual(len(self.manifest["layouts"]), layout_count)
 
     def test_only_four_reviewed_unused_houses_are_excluded(self) -> None:
         self.assertEqual(
@@ -119,6 +139,55 @@ class ProductRegistryTests(unittest.TestCase):
             tilesets[product["secondaryTileset"]]["attributeFormat"],
             "METATILE_ATTRIBUTES_FRLG_U32",
         )
+
+    def test_tin_tower_night_roof_is_the_only_mapless_johto_layout(self) -> None:
+        johto_layouts = {
+            entry["id"]
+            for entry in self.manifest["layouts"]
+            if entry["format"] == "johto"
+        }
+        referenced = {
+            entry["layoutId"]
+            for entry in self.manifest["maps"]
+            if entry["region"] == "REGION_JOHTO"
+        }
+        self.assertEqual(johto_layouts - referenced, {"LAYOUT_TIN_TOWER_ROOF_NIGHT"})
+        orphan = next(
+            entry
+            for entry in self.manifest["layouts"]
+            if entry["id"] == "LAYOUT_TIN_TOWER_ROOF_NIGHT"
+        )
+        # Product layout numbers are one-based; the importer lock is index 907.
+        self.assertEqual(orphan["number"], 908)
+
+    def test_final_johto_registry_and_fallback_shells_are_exact(self) -> None:
+        johto_maps = {
+            name
+            for name, entry in self.maps_by_name.items()
+            if entry["region"] == "REGION_JOHTO"
+        }
+        johto_layouts = {
+            entry["id"]
+            for entry in self.manifest["layouts"]
+            if entry["format"] == "johto"
+        }
+        johto_groups = {
+            group["name"] for group in self.manifest["groups"] if group["number"] >= 75
+        }
+        self.assertEqual(len(johto_maps), 254)
+        self.assertEqual(len(johto_layouts), 255)
+        self.assertEqual(len(johto_groups), 25)
+        self.assertTrue(FINAL_JOHTO_FALLBACK_MAPS <= johto_maps)
+        for name in FINAL_JOHTO_FALLBACK_MAPS:
+            source = self.maps_by_name[name]
+            self.assertEqual(source["object_events"], [], name)
+            self.assertEqual(source["coord_events"], [], name)
+            self.assertEqual(source["bg_events"], [], name)
+            self.assertEqual(
+                (ROOT / "data/maps" / name / "scripts.inc").read_text(),
+                f"{name}_MapScripts::\n\t.byte 0\n",
+                name,
+            )
 
     def test_product_pointer_tables_have_no_null_placeholders_and_are_aligned(
         self,
@@ -248,8 +317,8 @@ class ProductRegistryTests(unittest.TestCase):
             r'sDebugMapName_\d+_\d+\[\] = _\("([^"]*)"\);', self.debug_names
         )
 
-        self.assertEqual(len(group_labels), 80)
-        self.assertEqual(len(map_labels), 951)
+        self.assertEqual(len(group_labels), len(self.groups["group_order"]))
+        self.assertEqual(len(map_labels), len(self.manifest["maps"]))
         self.assertTrue(all(r"\n" not in label for label in group_labels))
         for label in map_labels:
             lines = label.split(r"\n")
@@ -313,7 +382,7 @@ class ProductRegistryTests(unittest.TestCase):
             overflowing,
             "FONT_NORMAL group labels exceed the 28-tile debug warp window",
         )
-        self.assertEqual(len(measured), 80)
+        self.assertEqual(len(measured), len(self.groups["group_order"]))
 
     def test_frlg_link_maps_keep_declared_kanto_debug_region(self) -> None:
         names = (self.output / "src/data/debug_map_names.h").read_text()

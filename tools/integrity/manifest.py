@@ -9,12 +9,116 @@ from pathlib import Path
 from typing import Any
 
 
+ROOT = Path(__file__).parents[2]
+JOHTO_MANIFEST = json.loads(
+    (ROOT / "tools/johto_import/import_manifest.json").read_text(encoding="utf-8")
+)
+JOHTO_LOCK = json.loads(
+    (ROOT / "tools/johto_import/allocation_lock.json").read_text(encoding="utf-8")
+)
+FINAL_JOHTO_COUNTS = {
+    "maps": 254,
+    "layouts": 255,
+    "groups": 25,
+    "sections": 58,
+    "tilesets": 71,
+}
+FINAL_JOHTO_FALLBACK_MAPS = (
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F",
+)
+
+
+def _validate_final_johto_source_contract() -> None:
+    batch_names = [batch["name"] for batch in JOHTO_MANIFEST["batches"]]
+    if JOHTO_MANIFEST["activeBatches"] != batch_names:
+        raise RuntimeError("integrity requires every canonical Johto batch active")
+    if tuple(JOHTO_MANIFEST["contentFallback"]["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
+        raise RuntimeError("integrity Johto fallback allowlist drift")
+    fallback_batch = next(
+        batch
+        for batch in JOHTO_MANIFEST["batches"]
+        if batch["name"] == "pkmn-world-fallback"
+    )
+    if tuple(fallback_batch["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
+        raise RuntimeError("integrity Johto fallback batch drift")
+    actual = {
+        "maps": len(JOHTO_LOCK["maps"]),
+        "layouts": len(JOHTO_LOCK["layouts"]),
+        "groups": len(JOHTO_LOCK["groups"]),
+        "sections": len(JOHTO_LOCK["sections"]),
+        "tilesets": JOHTO_MANIFEST["expectedInventory"]["tilesets"]["count"],
+    }
+    if actual != FINAL_JOHTO_COUNTS:
+        raise RuntimeError(f"integrity final Johto counts drift: {actual!r}")
+    if [item["targetId"] for item in JOHTO_LOCK["groups"]] != list(range(75, 100)):
+        raise RuntimeError("integrity Johto group allocation drift")
+    if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(range(209, 267)):
+        raise RuntimeError("integrity Johto section allocation drift")
+    if [item["targetIndex"] for item in JOHTO_LOCK["layouts"]] != list(
+        range(785, 1040)
+    ):
+        raise RuntimeError("integrity Johto layout allocation drift")
+
+
+_validate_final_johto_source_contract()
+ACTIVE_JOHTO_BATCHES = set(JOHTO_MANIFEST["activeBatches"])
+ACTIVE_JOHTO_MAPS = [
+    item for item in JOHTO_LOCK["maps"] if item["batch"] in ACTIVE_JOHTO_BATCHES
+]
+ACTIVE_JOHTO_LAYOUT_IDS = {
+    layout
+    for batch in JOHTO_MANIFEST["batches"]
+    if batch["name"] in ACTIVE_JOHTO_BATCHES
+    for layout in batch["layouts"]
+}
+ACTIVE_JOHTO_LAYOUTS = [
+    item for item in JOHTO_LOCK["layouts"] if item["id"] in ACTIVE_JOHTO_LAYOUT_IDS
+]
+INACTIVE_JOHTO_PLACEHOLDERS = [
+    item
+    for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
+    if item["activationBatch"] not in ACTIVE_JOHTO_BATCHES
+]
+ACTIVE_JOHTO_GROUPS = {item["targetGroup"] for item in ACTIVE_JOHTO_MAPS} | {
+    item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
+}
+INACTIVE_JOHTO_GROUPS = {
+    item["targetId"]: item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
+}
+ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in ACTIVE_JOHTO_MAPS}
+BASE_GROUPS = 75
+BASE_GROUPED_MAPS = 935
+BASE_REVIEWED_MAPS = 939
+BASE_LAYOUTS = 785
+BASE_MAP_SECTIONS = 209
+EXPECTED_GROUPS = BASE_GROUPS + len(ACTIVE_JOHTO_GROUPS)
+EXPECTED_GROUPED_MAPS = BASE_GROUPED_MAPS + len(ACTIVE_JOHTO_MAPS)
+EXPECTED_REVIEWED_MAPS = BASE_REVIEWED_MAPS + len(ACTIVE_JOHTO_MAPS)
+EXPECTED_LAYOUTS = BASE_LAYOUTS + len(ACTIVE_JOHTO_LAYOUTS)
+EXPECTED_MAP_SECTIONS = BASE_MAP_SECTIONS + len(ACTIVE_JOHTO_SECTIONS)
 EXPECTED_COUNTS = {
-    "groups": 80,
-    "groupedMaps": 951,
-    "reviewedMaps": 955,
-    "layouts": 801,
-    "regions": {"REGION_HOENN": 518, "REGION_KANTO": 421, "REGION_JOHTO": 16},
+    "groups": EXPECTED_GROUPS,
+    "groupedMaps": EXPECTED_GROUPED_MAPS,
+    "reviewedMaps": EXPECTED_REVIEWED_MAPS,
+    "layouts": EXPECTED_LAYOUTS,
+    "regions": {
+        "REGION_HOENN": 518,
+        "REGION_KANTO": 421,
+        "REGION_JOHTO": len(ACTIVE_JOHTO_MAPS),
+    },
 }
 EXPECTED_PRODUCT = {
     "gameVersion": "EMERALD",
@@ -95,13 +199,7 @@ def group_content_region(group_name: Any) -> str | None:
         return None
     if group_name.endswith("_Frlg"):
         return "REGION_KANTO"
-    if group_name in {
-        "gMapGroup_JohtoTownsAndRoutes",
-        "gMapGroup_IndoorNewBark",
-        "gMapGroup_IndoorCherrygrove",
-        "gMapGroup_IndoorBlackthorn",
-        "gMapGroup_MtSilver",
-    }:
+    if group_name in ACTIVE_JOHTO_GROUPS:
         return "REGION_JOHTO"
     return "REGION_HOENN"
 
@@ -134,9 +232,19 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         )
     if not isinstance(count_sentinels, dict) or not isinstance(codecs, dict):
         raise ManifestError("countSentinels and codecs must be objects")
-    if not isinstance(section_metadata, list) or len(section_metadata) != 214:
-        raise ManifestError("mapSectionMetadata must contain all 214 tuples")
-    if (len(groups), len(maps), len(layouts), len(exclusions)) != (80, 951, 801, 4):
+    if (
+        not isinstance(section_metadata, list)
+        or len(section_metadata) != EXPECTED_MAP_SECTIONS
+    ):
+        raise ManifestError(
+            f"mapSectionMetadata must contain all {EXPECTED_MAP_SECTIONS} tuples"
+        )
+    if (len(groups), len(maps), len(layouts), len(exclusions)) != (
+        EXPECTED_GROUPS,
+        EXPECTED_GROUPED_MAPS,
+        EXPECTED_LAYOUTS,
+        4,
+    ):
         raise ManifestError("manifest arrays disagree with their count sentinels")
 
     _unique(groups, "name", "groups")
@@ -148,7 +256,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     _unique(exclusions, "name", "exclusions")
     _unique(symbols, "name", "symbols")
 
-    if sorted(group["number"] for group in groups) != list(range(80)):
+    if sorted(group["number"] for group in groups) != list(range(EXPECTED_GROUPS)):
         raise ManifestError("group numbers must be contiguous from zero")
     group_counts = {group["number"]: group["mapCount"] for group in groups}
     group_regions = {
@@ -156,7 +264,13 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     }
     if any(region is None for region in group_regions.values()):
         raise ManifestError("groups must use the product map-group namespace")
-    if any(count <= 0 for count in group_counts.values()):
+    empty_groups = {
+        group["number"]: group["name"] for group in groups if group["mapCount"] == 0
+    }
+    if (
+        any(count < 0 for count in group_counts.values())
+        or empty_groups != INACTIVE_JOHTO_GROUPS
+    ):
         raise ManifestError("every product group must be non-null")
     seen_slots = {(entry["group"], entry["number"]) for entry in maps}
     expected_slots = {
@@ -166,28 +280,33 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     }
     if seen_slots != expected_slots:
         raise ManifestError("map slots are missing, duplicated, or outside their group")
-    if sorted(layout["number"] for layout in layouts) != list(range(1, 802)):
+    if sorted(layout["number"] for layout in layouts) != list(
+        range(1, EXPECTED_LAYOUTS + 1)
+    ):
         raise ManifestError("layout slots must be contiguous from one")
     expected_sentinels = {
         "groups": {
             "start": "gMapGroups",
             "end": "gMapGroupsEnd",
-            "count": 80,
+            "count": EXPECTED_GROUPS,
             "stride": 4,
         },
         "layouts": {
             "start": "gMapLayouts",
             "end": "gMapLayoutsEnd",
-            "count": 801,
+            "count": EXPECTED_LAYOUTS,
             "stride": 4,
         },
-        "mapSections": {"registry": "gMapSectionRegistry", "count": 214},
+        "mapSections": {
+            "registry": "gMapSectionRegistry",
+            "count": EXPECTED_MAP_SECTIONS,
+        },
     }
     if count_sentinels != expected_sentinels:
         raise ManifestError(f"wrong linked count sentinels: {count_sentinels!r}")
     codec_lengths = {
-        "sectionToSavedLocation": 214,
-        "sectionToMetLocation": 214,
+        "sectionToSavedLocation": EXPECTED_MAP_SECTIONS,
+        "sectionToMetLocation": EXPECTED_MAP_SECTIONS,
         "savedLocationToSection": 256,
         "metLocationToSection": 256,
     }
@@ -203,7 +322,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         ):
             raise ManifestError(f"codec {name} lacks {length} valid entries")
     _unique(section_metadata, "id", "mapSectionMetadata")
-    if [entry.get("value") for entry in section_metadata] != list(range(214)):
+    if [entry.get("value") for entry in section_metadata] != list(
+        range(EXPECTED_MAP_SECTIONS)
+    ):
         raise ManifestError("mapSectionMetadata values must be ordered and contiguous")
     region_values = {"REGION_KANTO": 1, "REGION_JOHTO": 2, "REGION_HOENN": 3}
     kind_values = {"geographic": 0, "special": 1, "reserved": 2}

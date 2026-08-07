@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from tools.e2e.tests.integrity.manifest import (
+    _representative_kind,
     integrity_manifest_path,
     load_manifest_maps,
     load_representatives,
@@ -323,6 +324,128 @@ def test_representative_rejects_kind_not_supported_by_manifest_layout(tmp_path):
         match="declares kind 'interior'.*manifest layout is 'exterior'",
     ):
         load_representatives(representatives, maps)
+
+
+@pytest.mark.parametrize(
+    ("name", "primary_tileset", "secondary_tileset", "expected_kind"),
+    [
+        (
+            "VioletCity",
+            "gTileset_Johto_General",
+            "gTileset_VioletCity",
+            "exterior",
+        ),
+        (
+            "SproutTower_1F",
+            "gTileset_Johto_Building",
+            "gTileset_PowerPlant_GeneratorRoom",
+            "interior",
+        ),
+        (
+            "RuinsOfAlph_B1F",
+            "gTileset_Johto_Building",
+            "gTileset_RuinsOfAlph_B1F",
+            "cave",
+        ),
+        (
+            "GoldenrodCity",
+            "gTileset_Johto_General",
+            "gTileset_Goldenrod",
+            "exterior",
+        ),
+        (
+            "GoldenrodCity_DepartmentStore_1F",
+            "gTileset_Johto_Building",
+            "gTileset_GoldenrodDepartmentStore",
+            "interior",
+        ),
+        (
+            "UnionCave_1F",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Default",
+            "cave",
+        ),
+        (
+            "EcruteakCity",
+            "gTileset_Johto_NorthWest",
+            "gTileset_Ecruteak_City",
+            "exterior",
+        ),
+        (
+            "OlivineCity_PortInside",
+            "gTileset_Johto_General",
+            "gTileset_PortIndoor",
+            "interior",
+        ),
+        (
+            "WhirlIslands_1F",
+            "gTileset_Johto_NorthEast",
+            "gTileset_WhirlIslands",
+            "cave",
+        ),
+        (
+            "LakeOfRage",
+            "gTileset_Johto_NorthEast",
+            "gTileset_MahoganyTown",
+            "exterior",
+        ),
+        (
+            "MtMortar_1F_South",
+            "gTileset_Johto_NorthEast",
+            "gTileset_Cave_Gray",
+            "cave",
+        ),
+        (
+            "IcePath_1F",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Ice",
+            "cave",
+        ),
+        (
+            "BlackthornCity",
+            "gTileset_Johto_NorthEast",
+            "gTileset_Blackthorn",
+            "exterior",
+        ),
+        (
+            "SafariZoneGate",
+            "gTileset_Johto_NorthEast",
+            "gTileset_SafariZoneJohto",
+            "exterior",
+        ),
+        (
+            "MtSilver_1F_WaterfallRoom",
+            "gTileset_Johto_General",
+            "gTileset_Cave_Gray",
+            "cave",
+        ),
+        (
+            "JohtoVictoryRoad_1F",
+            "gTileset_General",
+            "gTileset_Cave",
+            "cave",
+        ),
+    ],
+)
+def test_johto_representative_kind_is_derived_from_known_tilesets(
+    tmp_path, name, primary_tileset, secondary_tileset, expected_kind
+):
+    maps = load_manifest_maps(
+        write_manifest(
+            tmp_path,
+            [map_entry(name=name, region="REGION_JOHTO")],
+            layouts=[
+                layout_entry(
+                    primaryTileset=primary_tileset,
+                    secondaryTileset=secondary_tileset,
+                    format="johto",
+                )
+            ],
+            metadata=[section_entry(region="REGION_JOHTO")],
+        )
+    )
+
+    assert _representative_kind(maps[0]) == expected_kind
 
 
 def test_johto_representative_uses_content_region_during_hoenn_presentation(

@@ -67,6 +67,106 @@
       "name": "NewBarkTown",
       "region": "johto",
       "kind": "exterior"
+    },
+    {
+      "name": "VioletCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "SproutTower_1F",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "RuinsOfAlph_B1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "GoldenrodCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "GoldenrodCity_DepartmentStore_1F",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "UnionCave_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "EcruteakCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "OlivineCity_PortInside",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "WhirlIslands_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "LakeOfRage",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "MtMortar_1F_South",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "IcePath_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "BlackthornCity",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "SafariZoneGate",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "MtSilver_1F_WaterfallRoom",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "SSAqua_PlayersRoom",
+      "region": "johto",
+      "kind": "interior"
+    },
+    {
+      "name": "Route26",
+      "region": "johto",
+      "kind": "exterior"
+    },
+    {
+      "name": "TohjoFalls_Cavern",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "JohtoVictoryRoad_1F",
+      "region": "johto",
+      "kind": "cave"
+    },
+    {
+      "name": "JohtoPokemonLeague_WillsRoom",
+      "region": "johto",
+      "kind": "interior"
     }
   ],
   "interactions": [

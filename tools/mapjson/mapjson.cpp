@@ -581,10 +581,14 @@ string generate_groups_text(Json groups_data, vector<string> &invalid_maps) {
             }
         }
 
-        if (valid_maps.size() > 0) {
+        const bool reviewed_empty_group = group == "gMapGroup_IndoorSSAqua"
+            && maps.empty();
+        if (valid_maps.size() > 0 || reviewed_empty_group) {
             text << group << "::\n";
             for (string map : valid_maps)
                 text << "\t.4byte " << map << "\n";
+            if (reviewed_empty_group)
+                text << "\t.4byte " << group << "\n";
             text << "\n";
             valid_groups.push_back(group);
         }
@@ -797,14 +801,17 @@ static string generate_debug_map_names_text(const Json &groups_data,
                 valid_maps.push_back(map_name);
         }
 
-        group_has_maps.push_back(!valid_maps.empty());
+        const bool reviewed_empty_group = group_number == 96
+            && group_name == "gMapGroup_IndoorSSAqua" && valid_maps.empty()
+            && groups_data[group_name].array_items().empty();
+        group_has_maps.push_back(!valid_maps.empty() || reviewed_empty_group);
         text << "static const u8 sDebugMapGroupName_" << group_number << "[] = _(";
         text << '"' << humanize_debug_group_name(group_name) << "\");\n";
         for (size_t map_number = 0; map_number < valid_maps.size(); map_number++) {
             text << "static const u8 sDebugMapName_" << group_number << "_" << map_number << "[] = _(";
             text << '"' << humanize_debug_map_name(valid_maps[map_number]) << "\");\n";
         }
-        if (!valid_maps.empty()) {
+        if (!valid_maps.empty() || reviewed_empty_group) {
             text << "static const u8 *const sDebugMapNames_" << group_number << "[] =\n{\n";
             for (size_t map_number = 0; map_number < valid_maps.size(); map_number++)
                 text << "    sDebugMapName_" << group_number << "_" << map_number << ",\n";
@@ -1390,27 +1397,39 @@ static MapSectionRegistry validate_map_section_registry(
     {
         const string id = json_to_string(section, "id");
         const int value = section["value"].int_value();
-        const string savedTarget = json_to_string(section, "saved_location");
-        const auto saved = valuesById.find(savedTarget);
-        const int metCode = section["met_location"].int_value();
-        const string metDisplay = json_to_string(section, "met_location_display");
-        const auto metDisplayTarget = valuesById.find(metDisplay);
-        require_product_registry(saved != valuesById.end(),
-                                 "map section '" + id + "' has unknown saved-location target '" + savedTarget + "'");
-        require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
-                                 "map section '" + id + "' saved-location mapping collides with invalid sentinel");
-        require_product_registry(metCode >= 0 && metCode < metInvalid,
-                                 "map section '" + id + "' met-location mapping collides with reserved origin");
-        require_product_registry(metDisplayTarget != valuesById.end(),
-                                 "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
-        require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
-                                 "conflicting saved-location reverse target code " + std::to_string(saved->second));
-        require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
-                                 "conflicting met-location reverse target code " + std::to_string(metCode));
-        savedToSection[saved->second] = saved->second;
-        metToSection[metCode] = metDisplayTarget->second;
-        sectionToSaved[value] = saved->second;
-        sectionToMet[value] = metCode;
+        const Json &savedValue = section["saved_location"];
+        if (!savedValue.is_null())
+        {
+            const string savedTarget = json_to_string(section, "saved_location");
+            const auto saved = valuesById.find(savedTarget);
+            require_product_registry(saved != valuesById.end(),
+                                     "map section '" + id + "' has unknown saved-location target '" + savedTarget + "'");
+            require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
+                                     "map section '" + id + "' saved-location mapping collides with invalid sentinel");
+            require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
+                                     "conflicting saved-location reverse target code " + std::to_string(saved->second));
+            savedToSection[saved->second] = saved->second;
+            sectionToSaved[value] = saved->second;
+        }
+
+        const Json &metValue = section["met_location"];
+        const Json &metDisplayValue = section["met_location_display"];
+        require_product_registry(metValue.is_null() == metDisplayValue.is_null(),
+                                 "map section '" + id + "' has a partial met-location mapping");
+        if (!metValue.is_null())
+        {
+            const int metCode = metValue.int_value();
+            const string metDisplay = json_to_string(section, "met_location_display");
+            const auto metDisplayTarget = valuesById.find(metDisplay);
+            require_product_registry(metValue.type() == Json::Type::NUMBER && metCode >= 0 && metCode < metInvalid,
+                                     "map section '" + id + "' met-location mapping collides with reserved origin");
+            require_product_registry(metDisplayTarget != valuesById.end(),
+                                     "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
+            require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
+                                     "conflicting met-location reverse target code " + std::to_string(metCode));
+            metToSection[metCode] = metDisplayTarget->second;
+            sectionToMet[value] = metCode;
+        }
     }
 
     for (size_t i = 0; i < stable.size(); i++)
@@ -1746,6 +1765,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         layout_symbols_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "name"));
     int grouped_map_count = 0;
     int nonempty_group_count = 0;
+    int reviewed_empty_group_count = 0;
 
     int group_number = 0;
     for (const Json &group_value : groups_data["group_order"].array_items()) {
@@ -1810,6 +1830,10 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         if (included_count > 0) {
             nonempty_group_count++;
             required_symbols.insert(group_name);
+        } else if (group_number == 96 && group_name == "gMapGroup_IndoorSSAqua"
+                   && groups_data[group_name].array_items().empty()) {
+            reviewed_empty_group_count++;
+            required_symbols.insert(group_name);
         }
         group_records.push_back(Json::object {
             {"name", group_name},
@@ -1823,15 +1847,22 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
 
     int included_layout_count = 0;
     int layout_number = 1;
+    set<string> referenced_layout_ids;
+    for (const auto &[name, map_data] : maps_by_name)
+        referenced_layout_ids.insert(json_to_string(map_data, "layout"));
+    set<string> orphan_johto_layout_ids;
     for (const Json &layout : layouts_data["layouts"].array_items()) {
         const string format = json_to_string(layout, "format");
         GetLayoutFormatSpec(format);
         if (policy.IncludesLayout(format)) {
             const string layout_name = json_to_string(layout, "name");
+            const string layout_id = json_to_string(layout, "id");
+            if (format == "johto" && !referenced_layout_ids.count(layout_id))
+                orphan_johto_layout_ids.insert(layout_id);
             const string primary_tileset = json_to_string(layout, "primary_tileset");
             const string secondary_tileset = json_to_string(layout, "secondary_tileset");
             layout_records.push_back(Json::object {
-                {"id", json_to_string(layout, "id")},
+                {"id", layout_id},
                 {"name", layout_name},
                 {"number", layout_number},
                 {"format", format},
@@ -1911,17 +1942,23 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (grouped_names.find(name) == grouped_names.end())
                 ungrouped_names.insert(name);
         }
-        require_product_registry(group_number == 80, "expected 80 groups, got " + std::to_string(group_number));
-        require_product_registry(nonempty_group_count == 80, "one or more group pointer slots would be null");
-        require_product_registry(grouped_map_count == 951,
-                                 "expected 951 grouped maps, got " + std::to_string(grouped_map_count));
-        require_product_registry(static_cast<int>(map_filepaths.size()) == 955,
-                                 "expected 955 reviewed maps, got " + std::to_string(map_filepaths.size()));
+        const int johto_map_count = region_counts["REGION_JOHTO"];
+        const int expected_grouped_maps = 935 + johto_map_count;
+        require_product_registry(nonempty_group_count + reviewed_empty_group_count == group_number,
+                                 "one or more group pointer slots would be null");
+        require_product_registry(grouped_map_count == expected_grouped_maps,
+                                 "grouped map count disagrees with the active Johto closure");
+        require_product_registry(static_cast<int>(map_filepaths.size()) == grouped_map_count + 4,
+                                 "reviewed map count disagrees with grouped maps plus exclusions");
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
         require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
-        require_product_registry(region_counts["REGION_JOHTO"] == 16, "expected 16 Johto maps");
-        require_product_registry(included_layout_count == 801,
-                                 "expected 801 layouts, got " + std::to_string(included_layout_count));
+        require_product_registry(johto_map_count > 0, "expected an active Johto closure");
+        require_product_registry(orphan_johto_layout_ids == set<string> {
+                                     "LAYOUT_TIN_TOWER_ROOF_NIGHT",
+                                 },
+                                 "unexpected active mapless Johto layout closure");
+        require_product_registry(included_layout_count == 786 + johto_map_count,
+                                 "layout count disagrees with the active Johto closure");
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");
     }
@@ -1948,7 +1985,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             {"fileName", policy.IsProduct() ? "pokemon-openworld" : "generator-fixture"},
         }},
         {"counts", Json::object {
-            {"groups", nonempty_group_count},
+            {"groups", nonempty_group_count + reviewed_empty_group_count},
             {"groupedMaps", grouped_map_count},
             {"reviewedMaps", static_cast<int>(map_filepaths.size())},
             {"layouts", included_layout_count},

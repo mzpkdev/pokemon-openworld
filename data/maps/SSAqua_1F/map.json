@@ -1,0 +1,106 @@
+{
+  "id": "MAP_SSAQUA_1F",
+  "name": "SSAqua_1F",
+  "layout": "LAYOUT_SSAQUA_1F",
+  "music": "MUS_ABANDONED_SHIP",
+  "region_map_section": "MAPSEC_SS_AQUA",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": false,
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 29,
+      "y": 1,
+      "elevation": 0,
+      "dest_map": "MAP_OLIVINE_CITY_PORT_INSIDE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 19,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_PLAYERS_ROOM",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 23,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_NW",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 27,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_NE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 31,
+      "y": 9,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_NNE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 31,
+      "y": 17,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_SSE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 27,
+      "y": 17,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_SE",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 23,
+      "y": 17,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_SW",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 19,
+      "y": 17,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_ROOM_SSW",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 36,
+      "y": 15,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_B1F",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 8,
+      "y": 12,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_B1F",
+      "dest_warp_id": "0"
+    },
+    {
+      "x": 4,
+      "y": 16,
+      "elevation": 0,
+      "dest_map": "MAP_SSAQUA_CAPTAINS_ROOM",
+      "dest_warp_id": "0"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}

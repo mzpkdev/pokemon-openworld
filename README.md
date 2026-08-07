@@ -8,15 +8,16 @@ its own world, content, and gameplay direction.
 
 This repository contains the source code and tooling needed to build its sole
 product: one Emerald-engine `pokemon-openworld` ROM with Hoenn, mainland Kanto,
-and Sevii resident. It does not expose FireRed, LeafGreen, or separate
+Sevii, and Johto resident. It does not expose FireRed, LeafGreen, or separate
 region-specific product ROMs. You may only use ROM images in accordance with
 the laws that apply to you.
 
 ## Releases
 
 Once this release workflow is present on `main`, GitHub Releases publish the
-complete `pokemon-openworld.gba` ROM together with its map and symbol files.
-Successful `main` builds then produce public prerelease snapshots tagged
+normal `pokemon-openworld.gba` ROM together with its map and symbol files, plus
+`pokemon-openworld-debug.gba` without its debug symbols. Successful `main`
+builds then produce public prerelease snapshots tagged
 `build-<12-lowercase-hex>`, where the suffix is the start of the immutable
 source commit SHA.
 
@@ -25,6 +26,11 @@ A maintainer can promote a snapshot to a stable release by manually running the
 `build-<12-lowercase-hex>` form. Promotion reuses the snapshot's verified files
 byte for byte and publishes the stable release as latest; it does not rebuild or
 retarget either tag.
+
+Only snapshots created under this four-asset release contract are eligible for
+stable promotion. Legacy snapshots containing only the normal ROM, map, and
+symbol files remain immutable and cannot be promoted; the workflow does not
+reconstruct or repair them from expired CI artifacts.
 
 The workflow assigns the first stable release `v0.0.0`. After that it calculates
 the next version from Conventional Commits since the highest reachable stable:
@@ -47,7 +53,9 @@ normal product build emits `pokemon-openworld.gba`, `pokemon-openworld.map`, and
 make -j"$(nproc)" -O emerald syms
 ```
 
-The canonical emulator input is the isolated debug pair:
+GitHub releases contain those three normal-build files plus
+`pokemon-openworld-debug.gba`. The canonical emulator input for E2E remains the
+isolated debug pair (the debug `.sym` is a CI artifact, not a release asset):
 
 ```sh
 make -j"$(nproc)" -O DEBUG=1 \
@@ -68,12 +76,15 @@ capacity report to `build/integrity/artifact-report.json`. The Integrity E2E
 suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
 
-Here, **resident** means every registered Hoenn, mainland Kanto, and Sevii map
+Here, **resident** means every registered Hoenn, mainland Kanto, Sevii, and Johto map
 has complete structural data and can initialize. **Field-ready** is the stronger
 representative-map proof that normal scripts/events run and player control is
-restored. Neither term promises inter-region travel, Fly routing, story
-progression, or finished Kanto/Sevii story content; those behaviors are outside
-this milestone.
+restored. Johto is a load-critical spatial shell: its imported NPCs, dialogue,
+trainers, encounters, trades, services, items, HM/key-item gates, daycare,
+healing, League gameplay, progression, Fly routing, and region switching are not
+part of this milestone. HnS is the Johto content authority; exactly 14 maps absent
+from its pinned tree use the bounded PKMN-World fallback recorded by the importer.
+No residency claim promises inter-region travel or finished regional stories.
 
 ## Project reference
 

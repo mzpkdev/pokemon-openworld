@@ -70,11 +70,23 @@ REPRESENTATIVE_REGION_BY_MAP_TYPE = {
 INTERIOR_PRIMARY_TILESETS = {
     "gTileset_Building",
     "gTileset_BuildingFrlg",
+    "gTileset_Johto_Building",
+}
+
+INTERIOR_SECONDARY_TILESETS = {
+    "gTileset_PortIndoor",
 }
 
 CAVE_SECONDARY_TILESETS = {
+    "gTileset_Cave",
+    "gTileset_Cave_Default",
+    "gTileset_Cave_DragonsDen",
     "gTileset_Cave_Frlg",
+    "gTileset_Cave_Gray",
+    "gTileset_Cave_Ice",
+    "gTileset_RuinsOfAlph_B1F",
     "gTileset_SeafoamIslands",
+    "gTileset_WhirlIslands",
 }
 
 EXTERIOR_PRIMARY_TILESETS = {
@@ -82,6 +94,7 @@ EXTERIOR_PRIMARY_TILESETS = {
     "gTileset_General_Frlg",
     "gTileset_Johto_General",
     "gTileset_Johto_NorthEast",
+    "gTileset_Johto_NorthWest",
 }
 
 
@@ -438,10 +451,12 @@ def _representative_region(entry: ManifestMap) -> str:
 
 
 def _representative_kind(entry: ManifestMap) -> str:
-    if entry.primary_tileset in INTERIOR_PRIMARY_TILESETS:
-        return "interior"
     if entry.secondary_tileset in CAVE_SECONDARY_TILESETS:
         return "cave"
+    if entry.secondary_tileset in INTERIOR_SECONDARY_TILESETS:
+        return "interior"
+    if entry.primary_tileset in INTERIOR_PRIMARY_TILESETS:
+        return "interior"
     if entry.primary_tileset in EXTERIOR_PRIMARY_TILESETS:
         return "exterior"
     raise ValueError(

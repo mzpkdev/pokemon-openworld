@@ -93,6 +93,280 @@ REVIEWED_DONOR_PINS = {
     },
 }
 
+GAMEPLAY_EVENT_KEYS = ("object_events", "coord_events", "bg_events")
+SAVED_LOCATION_INVALID = 0xFF
+MET_LOCATION_INVALID = 0xFC
+FALLBACK_MAPS = (
+    "JohtoIndigoPlateau",
+    "JohtoIndigoPlateau_PokemonCenter",
+    "JohtoPokemonLeague_BrunosRoom",
+    "JohtoPokemonLeague_ChampionsRoom",
+    "JohtoPokemonLeague_HallOfFame",
+    "JohtoPokemonLeague_KarensRoom",
+    "JohtoPokemonLeague_KogasRoom",
+    "JohtoPokemonLeague_WillsRoom",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+    "MahoganyHideout_B1F",
+    "MahoganyHideout_B2F",
+    "MahoganyHideout_B3F",
+)
+FINAL_INVENTORY_COUNTS = (254, 255, 25, 58, 71)
+FALLBACK_SECTION_METADATA = (
+    "MAPSEC_JOHTO_INDIGO_PLATEAU",
+    "MAPSEC_MAHOGANY_HIDEOUT",
+)
+LAYOUT_HEADER_DECISION_KEYS = (
+    *(
+        (f"LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_{floor}F", "secondary_tileset")
+        for floor in range(1, 7)
+    ),
+    ("LAYOUT_GOLDENROD_CITY_GAME_CORNER", "secondary_tileset"),
+    ("LAYOUT_NATIONAL_PARK_NORMAL", "primary_tileset"),
+    ("LAYOUT_NATIONAL_PARK_BUG_CONTEST", "primary_tileset"),
+    ("LAYOUT_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE", "name"),
+)
+MAP_FIELD_DECISION_KEYS = (("ReceptionGate", "region_map_section"),)
+SECTION_SYMBOL_REMAP_KEYS = (
+    ("MAPSEC_VERMILION_CITY", "MAPSEC_JOHTO_VERMILION_PORT", 260),
+)
+LAYOUT_TILESET_REMAP_KEYS = (("LAYOUT_ROUTE34_DAY_CARE", "secondary_tileset"),)
+ATTRIBUTE_FIXTURE_KEYS = (
+    ("route28-primary", "LAYOUT_ROUTE28", "primary", "mechanical"),
+    ("route28-secondary", "LAYOUT_ROUTE28", "secondary", "mechanical"),
+    ("ecruteak-exterior", "LAYOUT_ECRUTEAK_CITY", "secondary", "hns"),
+    (
+        "olivine-interior",
+        "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
+        "secondary",
+        "hns",
+    ),
+    ("whirl-cave", "LAYOUT_WHIRL_ISLANDS_1F", "secondary", "hns"),
+)
+PRESERVE_SPATIAL_UPDATE_KEYS = (
+    ("CherrygroveCity", "early-violet-ruins", ("connections",)),
+    ("Gate_Route29_Route46", "blackthorn-ice-dark-den", ("warp_events",)),
+    (
+        "Route29",
+        "blackthorn-ice-dark-den",
+        ("connections", "warp_events"),
+    ),
+    ("NewBarkTown", "tohjo-league-hns", ("connections",)),
+    (
+        "Route28",
+        "tohjo-league-hns",
+        ("connections", "warp_events"),
+    ),
+    ("Route28_House", "tohjo-league-hns", ("warp_events",)),
+)
+INACTIVE_GROUP_PLACEHOLDER_KEYS = (("gMapGroup_IndoorSSAqua", 96, "aqua-vermilion"),)
+BATCH_GROUPS = {
+    "early-violet-ruins": (
+        "gMapGroup_JohtoViolet",
+        "gMapGroup_JohtoRuins",
+    ),
+    "azalea-union-ilex": (
+        "gMapGroup_JohtoAzalea",
+        "gMapGroup_IndoorAzalea",
+        "gMapGroup_JohtoUnion",
+    ),
+    "goldenrod-park": (
+        "gMapGroup_JohtoGoldenrod",
+        "gMapGroup_IndoorGoldenrod",
+    ),
+    "ecruteak-towers": (
+        "gMapGroup_JohtoEcruteak",
+        "gMapGroup_IndoorEcruteak",
+    ),
+    "olivine-cianwood-whirl": (
+        "gMapGroup_JohtoOlivine",
+        "gMapGroup_IndoorOlivine",
+        "gMapGroup_JohtoCianwood",
+        "gMapGroup_IndoorCianwood",
+    ),
+    "mahogany-hns": (
+        "gMapGroup_JohtoMahogany",
+        "gMapGroup_IndoorMahogany",
+    ),
+    "blackthorn-ice-dark-den": (
+        "gMapGroup_JohtoBlackthorn",
+        "gMapGroup_IndoorBlackthorn",
+    ),
+    "safari": ("gMapGroup_SafariZoneJohto",),
+    "mt-silver": ("gMapGroup_MtSilver",),
+    "aqua-vermilion": ("gMapGroup_IndoorSSAqua",),
+    "tohjo-league-hns": ("gMapGroup_JohtoFinal",),
+}
+BATCH_ORDER = (
+    "baseline",
+    *BATCH_GROUPS,
+    "pkmn-world-fallback",
+)
+REVIEWED_AUTHORITY_ADAPTATIONS = (
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/4/dest_map",
+        "MAP_WORLD_HUB",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/5/dest_map",
+        "MAP_TIN_TOWER_ROOF_DAY",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown",
+        "warp_events/7/dest_map",
+        "MAP_WORLD_HUB",
+        "MAP_NEW_BARK_TOWN_LAB",
+        "dormant first-slice story/debug transition",
+    ),
+    (
+        "baseline",
+        "NewBarkTown_PlayersHouse_2F",
+        "warp_events/1/dest_map",
+        "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
+        "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
+        "mechanical donor fixes the downstairs return warp",
+    ),
+    (
+        "baseline",
+        "NewBarkTown_PlayersHouse_2F",
+        "warp_events/1/dest_warp_id",
+        "0",
+        "1",
+        "mechanical donor fixes the downstairs return warp",
+    ),
+    (
+        "aqua-vermilion",
+        "SSAqua_1F",
+        "warp_events/0/dest_warp_id",
+        "1",
+        "0",
+        "mechanical donor fixes the Olivine port return to the target's only warp",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/1/dest_map",
+        "MAP_VICTORY_ROAD_KANTO_B2F",
+        "MAP_JOHTO_VICTORY_ROAD_1F",
+        "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/2/dest_map",
+        "MAP_VICTORY_ROAD_KANTO_B2F",
+        "MAP_JOHTO_VICTORY_ROAD_1F",
+        "mechanical Johto membership defers the north exit to the bounded Phase 8 fallback",
+    ),
+    (
+        "tohjo-league-hns",
+        "ReceptionGate",
+        "warp_events/4/dest_map",
+        "MAP_ROUTE22",
+        "MAP_ROUTE26NORTH",
+        "mechanical Johto membership keeps the east exit inside the active Tohjo shell",
+    ),
+    (
+        "pkmn-world-fallback",
+        "MahoganyTown_Shop",
+        "warp_events/1/dest_map",
+        "MAP_ROCKET_HIDEOUT_B1F",
+        "MAP_MAHOGANY_HIDEOUT_B1F",
+        "mechanical fallback identity restores the reverse Mahogany Hideout warp",
+    ),
+)
+REVIEWED_BATCH_INVENTORY = {
+    "baseline": (
+        "preserve",
+        "50ac109f251908580fbfaa6ba3cf3d02b43431a513554f4eb768b5305347f475",
+        "561e9888e0e9259b1fe4becc1c9c911ee1b651dfc526e1ca55e22039743d69be",
+    ),
+    "early-violet-ruins": (
+        "residency",
+        "d0f956f7e008696f18837051b0b526591c9d9b13faf42811b781582c300c3376",
+        "be788f0d25cc76b0467e10437daa0d6867c278fb81c31e4b8b03aee8af4bb6a9",
+    ),
+    "azalea-union-ilex": (
+        "residency",
+        "efb41c0b9184b9d9acb23813291ed74be6aaafa5053baffabfbfabca78f6567a",
+        "81621ffa2611d7b8cad6801bbf8eb2c278dceb1e29b63b7d32ec24112c54870c",
+    ),
+    "goldenrod-park": (
+        "residency",
+        "188c1a26eef2289ee55720fd2e1ce1abecbf8681d7446287c464d209c98cfd11",
+        "53549acb69dc2e997ceada4f28d42044652507c7ebe5572b6742acad7eb86cc6",
+    ),
+    "ecruteak-towers": (
+        "residency",
+        "8aa12a63b98ae56c90a9f5a95301d53653690f5e08f46e353fb63fc0940c17b6",
+        "f05ab024ab18dbbd2accfca35b845a92ced091b87ad6dc7e40f7e4e3c3bb5c74",
+    ),
+    "olivine-cianwood-whirl": (
+        "residency",
+        "53e53cc1e6258d0b4fd08afbdb5f41636a5dd6234b43eb41e2fb3c47bc14762a",
+        "1f246046b0b5569796d59a1344a25191c5cbc0770ccef8e71d4a89a31b169cba",
+    ),
+    "mahogany-hns": (
+        "residency",
+        "b479cb20f5a0e5623e5c3631bac59aeeaef491027b08ea8a027aff39c0ded212",
+        "defd16781bdfa30fb505c1bcb3e467d76fa38251f6d8d466cbf8ff4034284791",
+    ),
+    "blackthorn-ice-dark-den": (
+        "residency",
+        "ae7af35a2618a5b636b95bc125962a1e730dfa28ba26bf118497350fab7b70d5",
+        "14876054194e62fd5d5ca785c27d5b101e55bbf028f5b6ae7a9bf911e4516a2c",
+    ),
+    "safari": (
+        "residency",
+        "a854fc2fff0b33cda15ab65855e6f42dcbabe94fd4bc286057cf204a261fd4a1",
+        "5f42b60f00ebe851316b52ca90962550d23645cc53f535a1cfb03de44dc0ff52",
+    ),
+    "mt-silver": (
+        "residency",
+        "e812cc4163d06b01f475cbc61445a6c454bc913c5461d6bf8fe595db73f0d322",
+        "3d915bbf43fb807a66714bda2cd96d9d69e717448ae44504794a37c083b3728c",
+    ),
+    "aqua-vermilion": (
+        "residency",
+        "769df76b9e511becd67ec976bc72170f5b738b81acf86ab5d9315bc264a9dfd6",
+        "ee2c8bf5a4d95b55e18ce024d619f1c9f8ff97173dcbca46fa2dfc7e95529fc8",
+    ),
+    "tohjo-league-hns": (
+        "residency",
+        "2469e0128d53399e3f45d4d84b6d52b63b1fcb9e9b4c7af9967f39e92983189c",
+        "b879f778271d56d49475a6deee7824abbfebc15d46f709ef0ddfceef48547d2e",
+    ),
+    "pkmn-world-fallback": (
+        "residency",
+        "df4b5fc51c6fbdd65c7d791709f10c9e4ef29b5f4d38adb8a7b9aa8fa6e9bf50",
+        "a2d7aaecd003f1590fd63d7c320bbefee314b3d14f003c0aff45b527310bbdad",
+    ),
+}
+BASELINE_GROUP_IDS = {
+    "gMapGroup_JohtoTownsAndRoutes": 75,
+    "gMapGroup_IndoorNewBark": 76,
+    "gMapGroup_IndoorCherrygrove": 77,
+    "gMapGroup_IndoorBlackthorn": 78,
+    "gMapGroup_MtSilver": 79,
+}
+BASELINE_SECTION_IDS = {
+    "MAPSEC_NEW_BARK_TOWN": 209,
+    "MAPSEC_ROUTE_29": 210,
+    "MAPSEC_CHERRYGROVE_CITY": 211,
+    "MAPSEC_ROUTE_28": 212,
+    "MAPSEC_MT_SILVER": 213,
+}
+
 
 class ImportError(ValueError):
     """The donor evidence or reviewed manifest violates the import contract."""
@@ -197,6 +471,63 @@ def inventory_digest(values: Sequence[str]) -> str:
         json.dumps(sorted(values), ensure_ascii=True, separators=(",", ":")) + "\n"
     )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def ordered_inventory_digest(values: Sequence[str]) -> str:
+    encoded = json.dumps(values, ensure_ascii=True, separators=(",", ":")) + "\n"
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def materialize_resident_map(source: Mapping[str, Any]) -> dict[str, Any]:
+    value = copy.deepcopy(source)
+    for key in GAMEPLAY_EVENT_KEYS:
+        value[key] = []
+    return value
+
+
+def resident_map_script(name: str) -> str:
+    return f"{name}_MapScripts::\n\t.byte 0\n"
+
+
+def should_materialize(item: Mapping[str, Any]) -> bool:
+    return item["materialization"] == "residency"
+
+
+def materialized_tree_record(
+    root: Path,
+    selection: Sequence[Mapping[str, Any]],
+    layouts: Sequence[Mapping[str, Any]] = (),
+) -> dict[str, Any]:
+    records: list[dict[str, Any]] = []
+    relative_paths = {
+        relative
+        for item in selection
+        for relative in (
+            f"data/maps/{item['name']}/map.json",
+            f"data/maps/{item['name']}/scripts.inc",
+        )
+    }
+    if layouts:
+        registry = {
+            item["id"]: item
+            for item in _json(root / "data/layouts/layouts.json")["layouts"]
+        }
+        relative_paths.update(
+            str(registry[item["id"]][key])
+            for item in layouts
+            for key in ("blockdata_filepath", "border_filepath")
+        )
+    for relative in sorted(relative_paths):
+        path = root / relative
+        if path.is_file():
+            records.append(
+                {
+                    "path": relative,
+                    "bytes": path.stat().st_size,
+                    "sha256": _sha256(path),
+                }
+            )
+    return {"fileCount": len(records), "digest": records_digest(records)}
 
 
 def authenticate_donor(root: Path, pin: DonorPin) -> list[dict[str, Any]]:
@@ -502,6 +833,39 @@ def validate_warp_transforms(
         )
 
 
+def validate_destination_warp_bounds(
+    maps: Sequence[Mapping[str, Any]],
+    *,
+    involved_map_ids: set[str] | None = None,
+) -> None:
+    """Require numeric retained warp IDs to index an emitted destination warp."""
+    maps_by_id = {str(item["id"]): item for item in maps}
+    for source in maps:
+        source_id = str(source["id"])
+        source_name = str(source["name"])
+        for index, edge in enumerate(source.get("warp_events") or []):
+            destination_id = str(edge.get("dest_map"))
+            destination = maps_by_id.get(destination_id)
+            if destination is None or (
+                involved_map_ids is not None
+                and source_id not in involved_map_ids
+                and destination_id not in involved_map_ids
+            ):
+                continue
+            warp_id = str(edge.get("dest_warp_id"))
+            try:
+                destination_index = int(warp_id)
+            except ValueError:
+                continue
+            destination_warps = destination.get("warp_events") or []
+            if destination_index < 0 or destination_index >= len(destination_warps):
+                raise ImportError(
+                    "destination warp out of bounds: "
+                    f"{source_name}/warp_events/{index} -> {destination_id}/"
+                    f"warp_events/{warp_id} (count={len(destination_warps)})"
+                )
+
+
 def _pointer(value: Any, path: str) -> Any:
     current = value
     for part in path.split("/"):
@@ -555,24 +919,70 @@ def validate_adaptations(
     adaptations = manifest.get("adaptations", [])
     if not isinstance(hns_categories, list) or not isinstance(adaptations, list):
         raise ImportError("authority or adaptation manifest is malformed")
+    active_batches = manifest.get("activeBatches", [])
+    if not isinstance(active_batches, list):
+        raise ImportError("active batch selection is malformed")
+    canonical = {
+        (source, path): {
+            "source": source,
+            "path": path,
+            "hns": hns,
+            "mechanical": mechanical,
+            "reason": reason,
+        }
+        for activation_batch, source, path, hns, mechanical, reason in REVIEWED_AUTHORITY_ADAPTATIONS
+        if activation_batch in active_batches
+    }
+    all_canonical = {
+        (source, path): activation_batch
+        for activation_batch, source, path, _hns, _mechanical, _reason in REVIEWED_AUTHORITY_ADAPTATIONS
+    }
     exact_paths: list[str] = []
+    declared: set[tuple[str, str]] = set()
     for rule in adaptations:
+        if not isinstance(rule, Mapping):
+            raise ImportError("authority adaptation declaration is malformed")
         source = rule.get("source")
         path = rule.get("path")
-        if (
-            source not in mechanical_maps
-            or (selected_names is not None and source not in selected_names)
-            or not isinstance(path, str)
+        if not isinstance(source, str) or not isinstance(path, str):
+            raise ImportError("authority adaptation source or path is malformed")
+        key = (source, path)
+        if key in declared:
+            raise ImportError(f"duplicate adaptation path: {source}/{path}")
+        declared.add(key)
+        if source not in mechanical_maps or (
+            selected_names is not None and source not in selected_names
         ):
-            raise ImportError("adaptation names an unknown selected map or path")
+            raise ImportError(
+                f"adaptation targets an unknown or unselected map: {source}/{path}"
+            )
+        if key not in canonical:
+            if key in all_canonical:
+                raise ImportError(
+                    f"adaptation targets inactive batch {all_canonical[key]}: "
+                    f"{source}/{path}"
+                )
+            raise ImportError(f"unexpected authority adaptation: {source}/{path}")
+        expected = canonical[key]
+        if dict(rule) != expected:
+            raise ImportError(
+                f"authority adaptation declaration drift: {source}/{path}"
+            )
+        expected_hns, expected_mechanical = expected["hns"], expected["mechanical"]
         hns = _json(hns_root / "data/maps" / source / "map.json")
         actual_hns = _pointer(hns, path)
         actual_mechanical = _pointer(mechanical_maps[source], path)
-        if actual_hns != rule.get("hns") or actual_mechanical != rule.get("mechanical"):
-            raise ImportError(f"adaptation drift: {source}/{path}")
+        if actual_hns != expected_hns or actual_mechanical != expected_mechanical:
+            raise ImportError(
+                f"adaptation donor drift: {source}/{path}; "
+                f"expected hns={expected_hns!r} mechanical={expected_mechanical!r}, "
+                f"got hns={actual_hns!r} mechanical={actual_mechanical!r}"
+            )
         exact_paths.append(f"maps/{source}/{path}")
-    if len(exact_paths) != len(set(exact_paths)):
-        raise ImportError("duplicate adaptation path")
+    missing = sorted(set(canonical) - declared)
+    if missing:
+        source, path = missing[0]
+        raise ImportError(f"missing required authority adaptation: {source}/{path}")
     return AuthorityRules(
         tuple(str(item) for item in hns_categories), tuple(exact_paths)
     )
@@ -583,15 +993,30 @@ def effective_selected_maps(
     mechanical_maps: Mapping[str, Mapping[str, Any]],
     hns_root: Path,
     adaptations: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Build the authoritative HnS map view with only exact mechanical overlays."""
     effective: dict[str, dict[str, Any]] = {}
+    fallback = (
+        set(manifest.get("contentFallback", {}).get("maps", [])) if manifest else set()
+    )
     for declared in selection:
         name = str(declared["name"])
-        data = _json(hns_root / "data/maps" / name / "map.json")
+        data = (
+            copy.deepcopy(mechanical_maps[name])
+            if name in fallback
+            else _json(hns_root / "data/maps" / name / "map.json")
+        )
         if not isinstance(data, dict):
-            raise ImportError(f"HnS map is not an object: {name}")
+            raise ImportError(f"content-authority map is not an object: {name}")
         effective[name] = copy.deepcopy(data)
+    if manifest:
+        for rule in manifest.get("mapFieldDecisions", []):
+            source = str(rule["map"])
+            if source in effective:
+                effective[source][str(rule["field"])] = mechanical_maps[source][
+                    str(rule["field"])
+                ]
     for rule in adaptations:
         source = str(rule["source"])
         if source not in effective:
@@ -614,19 +1039,35 @@ def _find_layout(layouts_path: Path, layout_id: str) -> Mapping[str, Any]:
 
 def validate_content_authority(
     selection: Sequence[Mapping[str, Any]],
+    selected_layouts: Sequence[Mapping[str, Any]],
+    mechanical_maps: Mapping[str, Mapping[str, Any]],
     mechanical_layouts: Mapping[str, Mapping[str, Any]],
+    pkmn_world: Path,
     hns: Path,
+    manifest: Mapping[str, Any],
 ) -> None:
+    fallback = set(manifest["contentFallback"]["maps"])
+    decisions = {
+        (str(rule["layout"]), str(rule["field"])): rule
+        for rule in manifest["layoutHeaderDecisions"]
+    }
+    fallback_layouts = {
+        str(item["layout"]) for item in selection if str(item["name"]) in fallback
+    }
     for item in selection:
         name, layout_id = item["name"], item["layout"]
-        hns_map = _json(hns / "data/maps" / name / "map.json")
+        authority = pkmn_world if name in fallback else hns
+        source_map = _json(authority / "data/maps" / name / "map.json")
         if (
-            hns_map.get("name") != name
-            or hns_map.get("id") != item["id"]
-            or hns_map.get("layout") != layout_id
+            source_map.get("name") != name
+            or source_map.get("id") != item["id"]
+            or source_map.get("layout") != layout_id
         ):
-            raise ImportError(f"HnS content identity drift for {name}")
-        hns_layout = _find_layout(hns / "data/layouts/layouts.json", layout_id)
+            raise ImportError(f"content identity drift for {name}")
+    for item in selected_layouts:
+        layout_id = str(item["id"])
+        authority = pkmn_world if layout_id in fallback_layouts else hns
+        source_layout = _find_layout(authority / "data/layouts/layouts.json", layout_id)
         mechanical = mechanical_layouts[layout_id]
         for key in (
             "id",
@@ -636,41 +1077,69 @@ def validate_content_authority(
             "primary_tileset",
             "secondary_tileset",
         ):
-            if hns_layout.get(key) != mechanical.get(key):
+            if source_layout.get(key) != mechanical.get(key) and (
+                layout_id in fallback_layouts or (layout_id, key) not in decisions
+            ):
                 raise ImportError(
                     f"unclassified donor divergence: layouts/{layout_id}/{key}"
                 )
         for key in ("border_filepath", "blockdata_filepath"):
-            path = hns / str(hns_layout[key])
+            path = authority / str(source_layout[key])
             if not path.is_file():
-                raise ImportError(f"missing HnS layout binary: {hns_layout[key]}")
+                raise ImportError(
+                    f"missing content layout binary: {source_layout[key]}"
+                )
 
 
-def validate_route28_widths(
-    pkmn_world: Path, manifest: Mapping[str, Any]
-) -> dict[str, str]:
-    route28 = _find_layout(pkmn_world / "data/layouts/layouts.json", "LAYOUT_ROUTE28")
-    header_path = pkmn_world / "src/data/tilesets/metatiles.h"
-    try:
-        header = header_path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise ImportError(
-            f"cannot read tileset declarations {header_path}: {error}"
-        ) from error
-    declared_paths = {
-        (match.group("kind"), f"gTileset_{match.group('name')}"): match.group("path")
-        for match in TILESET_BLOB_RE.finditer(header)
-    }
-    results: dict[str, str] = {}
-    for item in manifest.get("attributeFixtures", []):
-        role = item.get("role")
-        if role not in {"primary", "secondary"}:
-            raise ImportError("Route 28 attribute fixture has an invalid role")
-        expected_tileset = route28.get(f"{role}_tileset")
+def validate_attribute_fixtures(
+    pkmn_world: Path, hns: Path, manifest: Mapping[str, Any]
+) -> dict[str, dict[str, str]]:
+    """Classify representative layout roles and verify their exact blob widths."""
+    fixtures = manifest.get("attributeFixtures", [])
+    keys = [
+        (
+            item.get("representative"),
+            item.get("layout"),
+            item.get("role"),
+            item.get("authority"),
+        )
+        for item in fixtures
+        if isinstance(item, dict)
+    ]
+    if keys != list(ATTRIBUTE_FIXTURE_KEYS):
+        raise ImportError("attribute fixture classification drift")
+
+    roots = {"mechanical": pkmn_world, "hns": hns}
+    declared_by_authority: dict[str, dict[tuple[str, str], str]] = {}
+    results: dict[str, dict[str, str]] = {}
+    for item in fixtures:
+        representative = str(item["representative"])
+        layout_id = str(item["layout"])
+        role = str(item["role"])
+        authority = str(item["authority"])
+        root = roots[authority]
+        layout = _find_layout(root / "data/layouts/layouts.json", layout_id)
+        expected_tileset = layout.get(f"{role}_tileset")
         if item.get("tileset") != expected_tileset:
             raise ImportError(
-                f"Route 28 {role} fixture does not match LAYOUT_ROUTE28 tileset"
+                f"attribute fixture role drift: {representative}/{layout_id}/{role}"
             )
+
+        if authority not in declared_by_authority:
+            header_path = root / "src/data/tilesets/metatiles.h"
+            try:
+                header = header_path.read_text(encoding="utf-8")
+            except (OSError, UnicodeError) as error:
+                raise ImportError(
+                    f"cannot read tileset declarations {header_path}: {error}"
+                ) from error
+            declared_by_authority[authority] = {
+                (match.group("kind"), f"gTileset_{match.group('name')}"): match.group(
+                    "path"
+                )
+                for match in TILESET_BLOB_RE.finditer(header)
+            }
+        declared_paths = declared_by_authority[authority]
         expected_metatiles = declared_paths.get(("Metatiles", expected_tileset))
         expected_attributes = declared_paths.get(
             ("MetatileAttributes", expected_tileset)
@@ -680,28 +1149,26 @@ def validate_route28_widths(
             or item.get("attributes") != expected_attributes
         ):
             raise ImportError(
-                f"Route 28 fixture paths do not match tileset declarations: {expected_tileset}"
+                f"attribute fixture path drift: {representative}/{expected_tileset}"
             )
-        metatiles = pkmn_world / item["metatiles"]
-        attributes = pkmn_world / item["attributes"]
-        if (
-            _sha256(metatiles) != item["metatilesSha256"]
-            or _sha256(attributes) != item["attributesSha256"]
-        ):
-            raise ImportError(
-                f"Route 28 tileset evidence hash drift: {item['tileset']}"
-            )
+        metatiles = root / str(item["metatiles"])
+        attributes = root / str(item["attributes"])
+        if _sha256(metatiles) != item.get("metatilesSha256") or _sha256(
+            attributes
+        ) != item.get("attributesSha256"):
+            raise ImportError(f"attribute fixture hash drift: {representative}")
         actual = attribute_format(metatiles.stat().st_size, attributes.stat().st_size)
-        if actual != item["format"]:
+        if actual != item.get("format"):
             raise ImportError(
-                f"wrong attribute width for {item['tileset']}: expected {item['format']}, got {actual}"
+                f"wrong attribute width for {expected_tileset}: "
+                f"expected {item.get('format')}, got {actual}"
             )
-        results[item["tileset"]] = actual
-    required = {route28["primary_tileset"], route28["secondary_tileset"]}
-    if set(results) != required or len(manifest.get("attributeFixtures", [])) != 2:
-        raise ImportError(
-            "Route 28 must declare both primary and secondary attribute fixtures"
-        )
+        results[representative] = {
+            "layout": layout_id,
+            "role": role,
+            "tileset": str(expected_tileset),
+            "format": actual,
+        }
     return results
 
 
@@ -770,7 +1237,9 @@ def validate_map_local_symbols(
 
 
 def _validate_allocations(
-    selection: Sequence[Mapping[str, Any]], manifest: Mapping[str, Any]
+    selection: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    layouts: Sequence[Mapping[str, Any]] | None = None,
 ) -> None:
     groups = manifest.get("groupAllocations", [])
     sections = manifest.get("sectionAllocations", [])
@@ -781,17 +1250,23 @@ def _validate_allocations(
             values = [item.get(key) for item in records]
             if len(values) != len(set(values)):
                 raise ImportError(f"duplicate allocation: {label} {key}")
-    layout_indices = [item.get("targetLayoutIndex") for item in selection]
+    layout_indices = [
+        item.get("targetIndex" if layouts is not None else "targetLayoutIndex")
+        for item in (layouts if layouts is not None else selection)
+    ]
     if len(layout_indices) != len(set(layout_indices)):
         raise ImportError("duplicate allocation: targetLayoutIndex")
-    if sorted(item.get("targetLayoutIndex") for item in selection) != list(
-        range(785, 801)
+    for label, values in (
+        ("layout", layout_indices),
+        ("section", [item.get("targetId") for item in sections]),
     ):
-        raise ImportError("layout allocations must occupy indices 785 through 800")
-    if sorted(item.get("targetId") for item in groups) != list(range(75, 80)):
-        raise ImportError("group allocations must occupy IDs 75 through 79")
-    if sorted(item.get("targetId") for item in sections) != list(range(209, 214)):
-        raise ImportError("section allocations must occupy IDs 209 through 213")
+        if not values or any(not isinstance(value, int) for value in values):
+            raise ImportError(f"{label} allocations must be integers")
+        if sorted(values) != list(range(min(values), min(values) + len(values))):
+            raise ImportError(f"{label} allocations must be append-only and contiguous")
+    group_ids = [item.get("targetId") for item in groups]
+    if not group_ids or any(not isinstance(value, int) for value in group_ids):
+        raise ImportError("group allocations must be integers")
     group_names = {str(item["name"]) for item in groups}
     selected_groups = {str(item.get("targetGroup")) for item in selection}
     unknown_groups = sorted(selected_groups - group_names)
@@ -799,7 +1274,10 @@ def _validate_allocations(
         raise ImportError(
             f"selected map uses unallocated targetGroup: {', '.join(unknown_groups)}"
         )
-    if selected_groups != group_names:
+    placeholder_names = {
+        str(item["name"]) for item in _inactive_group_placeholders(manifest)
+    }
+    if group_names - selected_groups != placeholder_names - selected_groups:
         raise ImportError("group allocation has no selected map")
     section_ids = {str(item["name"]): item["targetId"] for item in sections}
     for item in selection:
@@ -810,6 +1288,275 @@ def _validate_allocations(
             raise ImportError(
                 f"section allocation mismatch: {section} must map to {section_ids[section]}"
             )
+
+
+def _validate_allocation_lock(lock: Mapping[str, Any]) -> None:
+    groups = lock.get("groups", [])
+    sections = lock.get("sections", [])
+    layouts = lock.get("layouts", [])
+    locked_maps = lock.get("maps", [])
+    if (
+        len(locked_maps) != 254
+        or len(layouts) != 255
+        or len(groups) != 25
+        or len(sections) != 58
+    ):
+        raise ImportError("allocation-lock cardinality drift")
+    for label, records, key, expected in (
+        ("group", groups, "targetId", range(75, 100)),
+        ("layout", layouts, "targetIndex", range(785, 1040)),
+        ("section", sections, "targetId", range(209, 267)),
+    ):
+        values = [item.get(key) for item in records]
+        if sorted(values) != list(expected) or len(values) != len(set(values)):
+            raise ImportError(f"{label} allocation-lock drift")
+    layout_ids = [item.get("id") for item in layouts]
+    if any(not isinstance(value, str) or not value for value in layout_ids) or len(
+        layout_ids
+    ) != len(set(layout_ids)):
+        raise ImportError("layout allocation-lock ID drift")
+    group_ids = {item.get("name"): item.get("targetId") for item in groups}
+    members: dict[str, list[int]] = {}
+    for item in locked_maps:
+        group = item.get("targetGroup")
+        member = item.get("targetMember")
+        if (
+            not isinstance(group, str)
+            or not isinstance(member, int)
+            or item.get("targetGroupId") != group_ids.get(group)
+        ):
+            raise ImportError("map allocation-lock member drift")
+        members.setdefault(group, []).append(member)
+    for group, values in members.items():
+        if sorted(values) != list(range(len(values))) or len(values) != len(
+            set(values)
+        ):
+            raise ImportError(f"map allocation-lock member drift: {group}")
+    if any(
+        not isinstance(item["targetId"], int) or not 0 <= item["targetId"] <= 0xFFFE
+        for item in sections
+    ):
+        raise ImportError("section allocation exceeds MapSectionId")
+
+
+def _validate_locked_layout_inventory(
+    lock: Mapping[str, Any], discovered_layouts: Sequence[str]
+) -> None:
+    locked_layout_ids = [item.get("id") for item in lock.get("layouts", [])]
+    if set(locked_layout_ids) != set(discovered_layouts) or len(
+        locked_layout_ids
+    ) != len(discovered_layouts):
+        raise ImportError("allocation lock layouts do not partition the full inventory")
+
+
+def active_selection(
+    manifest: Mapping[str, Any], lock: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    active = manifest.get("activeBatches")
+    if (
+        not isinstance(active, list)
+        or len(active) != len(set(active))
+        or any(name not in BATCH_ORDER for name in active)
+        or active != list(BATCH_ORDER[: len(active)])
+    ):
+        raise ImportError("active batch selection drift")
+    selected = [
+        copy.deepcopy(item)
+        for item in lock.get("maps", [])
+        if item.get("batch") in active
+    ]
+    return sorted(selected, key=lambda item: item["targetLayoutIndex"])
+
+
+def active_layout_selection(
+    manifest: Mapping[str, Any], lock: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    active = set(manifest["activeBatches"])
+    batch_by_layout = {
+        layout_id: (batch["name"], batch["materialization"])
+        for batch in manifest["batches"]
+        for layout_id in batch["layouts"]
+    }
+    selected: list[dict[str, Any]] = []
+    for record in lock.get("layouts", []):
+        batch, materialization = batch_by_layout[record["id"]]
+        if batch in active:
+            selected.append(
+                copy.deepcopy(record)
+                | {"batch": batch, "materialization": materialization}
+            )
+    return sorted(selected, key=lambda item: item["targetIndex"])
+
+
+def validate_authority_decisions(
+    manifest: Mapping[str, Any],
+    mechanical_maps: Mapping[str, Mapping[str, Any]],
+    mechanical_layouts: Mapping[str, Mapping[str, Any]],
+    pkmn_world: Path,
+    hns: Path,
+) -> None:
+    fallback = manifest.get("contentFallback")
+    if fallback != {
+        "authority": "PKMN-World",
+        "reason": "absent from pinned HnS content authority",
+        "maps": list(FALLBACK_MAPS),
+    }:
+        raise ImportError("content fallback allowlist drift")
+    for name in FALLBACK_MAPS:
+        hns_path = hns / "data/maps" / name / "map.json"
+        mechanical_path = pkmn_world / "data/maps" / name / "map.json"
+        if hns_path.exists() or not mechanical_path.is_file():
+            raise ImportError(f"content fallback authority drift: {name}")
+
+    layout_decisions = manifest.get("layoutHeaderDecisions")
+    if not isinstance(layout_decisions, list) or [
+        (item.get("layout"), item.get("field")) for item in layout_decisions
+    ] != list(LAYOUT_HEADER_DECISION_KEYS):
+        raise ImportError("layout-header decision drift")
+    hns_layouts = {
+        item["id"]: item for item in _json(hns / "data/layouts/layouts.json")["layouts"]
+    }
+    for rule in layout_decisions:
+        layout, field = str(rule["layout"]), str(rule["field"])
+        if (
+            rule.get("authority") != "mechanical"
+            or hns_layouts[layout].get(field) != rule.get("hns")
+            or mechanical_layouts[layout].get(field) != rule.get("mechanical")
+            or rule.get("hns") == rule.get("mechanical")
+        ):
+            raise ImportError(f"layout-header decision drift: {layout}/{field}")
+
+    map_decisions = manifest.get("mapFieldDecisions")
+    if not isinstance(map_decisions, list) or [
+        (item.get("map"), item.get("field")) for item in map_decisions
+    ] != list(MAP_FIELD_DECISION_KEYS):
+        raise ImportError("map-field decision drift")
+    for rule in map_decisions:
+        name, field = str(rule["map"]), str(rule["field"])
+        hns_map = _json(hns / "data/maps" / name / "map.json")
+        if (
+            rule.get("authority") != "mechanical"
+            or hns_map.get(field) != rule.get("hns")
+            or mechanical_maps[name].get(field) != rule.get("mechanical")
+            or rule.get("hns") == rule.get("mechanical")
+        ):
+            raise ImportError(f"map-field decision drift: {name}/{field}")
+
+
+def validate_full_port_contract(
+    manifest: Mapping[str, Any],
+    inventory: Inventory,
+    maps: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    actual_counts = tuple(
+        len(getattr(inventory, field))
+        for field in ("maps", "layouts", "groups", "sections", "tilesets")
+    )
+    if actual_counts != FINAL_INVENTORY_COUNTS:
+        raise ImportError(
+            f"final Johto inventory count drift: expected {FINAL_INVENTORY_COUNTS}, "
+            f"got {actual_counts}"
+        )
+    if manifest.get("activeBatches") != list(BATCH_ORDER):
+        raise ImportError("final Johto import must activate every canonical batch")
+    profile = manifest.get("materializationProfile")
+    if profile != {
+        "mapScripts": "empty",
+        "retainEventKinds": ["warp_events"],
+        "stripEventKinds": list(GAMEPLAY_EVENT_KEYS),
+        "encounters": False,
+        "gameplayGlobals": False,
+    }:
+        raise ImportError("residency materialization profile drift")
+    batches = manifest.get("batches")
+    if tuple(REVIEWED_BATCH_INVENTORY) != BATCH_ORDER:
+        raise ImportError("canonical batch inventory configuration drift")
+    if not isinstance(batches, list) or [item.get("name") for item in batches] != list(
+        BATCH_ORDER
+    ):
+        raise ImportError("batch inventory order drift")
+    all_maps: list[str] = []
+    all_layouts: list[str] = []
+    for batch in batches:
+        names, layouts = batch.get("maps"), batch.get("layouts")
+        if not isinstance(names, list) or not isinstance(layouts, list):
+            raise ImportError("batch inventory is malformed")
+        expected_materialization, expected_maps, expected_layouts = (
+            REVIEWED_BATCH_INVENTORY[batch["name"]]
+        )
+        if (
+            batch.get("materialization") != expected_materialization
+            or ordered_inventory_digest(names) != expected_maps
+            or ordered_inventory_digest(layouts) != expected_layouts
+        ):
+            raise ImportError(f"canonical batch inventory drift: {batch['name']}")
+        if batch.get("mapCount") != len(names) or batch.get(
+            "mapDigest"
+        ) != inventory_digest(names):
+            raise ImportError(f"batch map digest drift: {batch['name']}")
+        if batch.get("layoutCount") != len(layouts) or batch.get(
+            "layoutDigest"
+        ) != inventory_digest(layouts):
+            raise ImportError(f"batch layout digest drift: {batch['name']}")
+        all_maps.extend(names)
+        all_layouts.extend(layouts)
+    if sorted(all_maps) != list(inventory.maps) or len(all_maps) != len(set(all_maps)):
+        raise ImportError("batch maps do not partition the full inventory")
+    if sorted(all_layouts) != list(inventory.layouts) or len(all_layouts) != len(
+        set(all_layouts)
+    ):
+        raise ImportError("batch layouts do not partition the full inventory")
+    lock_name = manifest.get("allocationLock")
+    manifest_path = manifest.get("__manifestPath")
+    if not isinstance(lock_name, str) or not isinstance(manifest_path, str):
+        raise ImportError("manifest has no allocation lock")
+    lock = _json(Path(manifest_path).parent / lock_name)
+    _validate_allocation_lock(lock)
+    _validate_locked_layout_inventory(lock, inventory.layouts)
+    locked_maps = lock.get("maps", [])
+    by_name = {item.get("name"): item for item in locked_maps}
+    if set(by_name) != set(inventory.maps):
+        raise ImportError("allocation lock map inventory drift")
+    batch_by_map = {
+        name: (batch["name"], batch["materialization"])
+        for batch in batches
+        for name in batch["maps"]
+    }
+    layout_indices = {
+        item["id"]: item["targetIndex"] for item in lock.get("layouts", [])
+    }
+    group_ids = {item["name"]: item["targetId"] for item in lock.get("groups", [])}
+    section_ids = {item["name"]: item["targetId"] for item in lock.get("sections", [])}
+    members: set[tuple[str, int]] = set()
+    for name, actual in maps.items():
+        item = by_name[name]
+        if (item.get("id"), item.get("layout"), item.get("section")) != (
+            actual.get("id"),
+            actual.get("layout"),
+            actual.get("region_map_section"),
+        ):
+            raise ImportError(f"allocation lock identity drift: {name}")
+        if (item.get("batch"), item.get("materialization")) != batch_by_map[name]:
+            raise ImportError(f"allocation lock batch drift: {name}")
+        if item.get("targetLayoutIndex") != layout_indices[item["layout"]]:
+            raise ImportError(f"allocation lock layout drift: {name}")
+        if item.get("targetGroupId") != group_ids.get(item.get("targetGroup")):
+            raise ImportError(f"allocation lock group drift: {name}")
+        if item.get("targetSection") != section_ids.get(item.get("section")):
+            raise ImportError(f"allocation lock section drift: {name}")
+        member = (item["targetGroup"], item["targetMember"])
+        if member in members:
+            raise ImportError(f"allocation lock member drift: {name}")
+        members.add(member)
+    active_selection(manifest, lock)
+    active_layout_selection(manifest, lock)
+    return lock
+
+
+def proposal_document(
+    manifest: Mapping[str, Any], lock: Mapping[str, Any]
+) -> dict[str, Any]:
+    return {"schemaVersion": 1, "batches": manifest["batches"], "allocationLock": lock}
 
 
 def _materialized_group_registry(
@@ -832,7 +1579,7 @@ def _materialized_group_registry(
         )
     members = {name: [] for name in allocation_names}
     for item in selection:
-        members[str(item["targetGroup"])].append(str(item["name"]))
+        members[str(item["targetGroup"])].append(item)
     for allocation in ordered_allocations:
         name = str(allocation["name"])
         target_id = int(allocation["targetId"])
@@ -840,7 +1587,8 @@ def _materialized_group_registry(
             raise ImportError(
                 f"map group allocation drift: {name} cannot occupy ID {target_id}"
             )
-        result[name] = members[name]
+        ordered_members = sorted(members[name], key=lambda item: item["targetMember"])
+        result[name] = [str(item["name"]) for item in ordered_members]
         order.append(name)
     result["group_order"] = order
     return {"group_order": order} | {name: result[name] for name in order}
@@ -855,14 +1603,25 @@ def build_closure(
     content_records = authenticate_donor(hns, content_pin)
     inventory, maps_by_name, layouts_by_id = discover_inventory(pkmn_world)
     validate_expected_inventory(inventory, manifest.get("expectedInventory", {}))
+    validate_full_port_contract(manifest, inventory, maps_by_name)
+    validate_authority_decisions(manifest, maps_by_name, layouts_by_id, pkmn_world, hns)
     validate_materialization_adaptations(manifest, pkmn_world, hns)
 
     selection = manifest.get("selection", {}).get("maps", [])
-    if not isinstance(selection, list) or len(selection) != 16:
-        raise ImportError("manifest selection must contain exactly 16 maps")
+    lock = _json(Path(manifest["__manifestPath"]).parent / manifest["allocationLock"])
+    selected_layout_records = active_layout_selection(manifest, lock)
+    expected_active = sum(
+        batch["mapCount"]
+        for batch in manifest["batches"]
+        if batch["name"] in manifest["activeBatches"]
+    )
+    if not isinstance(selection, list) or len(selection) != expected_active:
+        raise ImportError(
+            f"manifest selection must contain exactly {expected_active} maps"
+        )
     _require_unique(selection, "name", "selected map")
     _require_unique(selection, "id", "selected map")
-    _validate_allocations(selection, manifest)
+    _validate_allocations(selection, manifest, selected_layout_records)
     selected: list[Mapping[str, Any]] = []
     for declared in selection:
         actual = maps_by_name.get(declared["name"])
@@ -877,10 +1636,25 @@ def build_closure(
                     f"selected map identity drift: {declared['name']}/{key}"
                 )
         selected.append(actual)
-    if len({item["layout"] for item in selected}) != 16:
-        raise ImportError("selected closure must contain exactly 16 layouts")
+    expected_layouts = sum(
+        batch["layoutCount"]
+        for batch in manifest["batches"]
+        if batch["name"] in manifest["activeBatches"]
+    )
+    if len(selected_layout_records) != expected_layouts:
+        raise ImportError(
+            f"selected closure must contain exactly {expected_layouts} layouts"
+        )
 
-    validate_content_authority(selection, layouts_by_id, hns)
+    validate_content_authority(
+        selection,
+        selected_layout_records,
+        maps_by_name,
+        layouts_by_id,
+        pkmn_world,
+        hns,
+        manifest,
+    )
     selected_names = {str(item["name"]) for item in selection}
     rules = validate_adaptations(manifest, maps_by_name, hns, selected_names)
     # Exercise every exact adaptation through the same authority resolver used by apply.
@@ -888,19 +1662,37 @@ def build_closure(
         path = f"maps/{rule['source']}/{rule['path']}"
         authoritative_value(path, rule["hns"], rule["mechanical"], rules)
     effective_maps = effective_selected_maps(
-        selection, maps_by_name, hns, manifest.get("adaptations", [])
+        selection,
+        maps_by_name,
+        hns,
+        manifest.get("adaptations", []),
+        manifest,
     )
+    effective_maps = [
+        value if not should_materialize(item) else materialize_resident_map(value)
+        for item, value in zip(selection, effective_maps, strict=True)
+    ]
     validate_warp_transforms(manifest, effective_maps)
     deferred = validate_edges(
         effective_maps,
         manifest.get("retainedEdges", []),
         manifest.get("deferredEdges", []),
     )
-    widths = validate_route28_widths(pkmn_world, manifest)
-    definitions, input_records = referenced_symbols(hns, selection)
-    validate_map_local_symbols(hns, selection, definitions)
+    materialized_maps = [
+        _materialized_map(item, pkmn_world, hns, manifest) for item in selection
+    ]
+    fallback_ids = {
+        str(item["id"])
+        for item in selection
+        if str(item["name"]) in manifest["contentFallback"]["maps"]
+    }
+    validate_destination_warp_bounds(materialized_maps, involved_map_ids=fallback_ids)
+    formats = validate_attribute_fixtures(pkmn_world, hns, manifest)
+    preserved = [item for item in selection if not should_materialize(item)]
+    definitions, input_records = referenced_symbols(hns, preserved)
+    validate_map_local_symbols(hns, preserved, definitions)
 
-    selected_layouts = [layouts_by_id[item["layout"]] for item in selected]
+    selected_layouts = [layouts_by_id[item["id"]] for item in selected_layout_records]
     group_names = tuple(sorted({item["targetGroup"] for item in selection}))
     sections = tuple(sorted({item["section"] for item in selection}))
     tilesets = tuple(
@@ -914,7 +1706,7 @@ def build_closure(
     )
     closure = Closure(
         maps=tuple(item["name"] for item in selection),
-        layouts=tuple(item["layout"] for item in selection),
+        layouts=tuple(item["id"] for item in selected_layout_records),
         groups=group_names,
         sections=sections,
         tilesets=tilesets,
@@ -934,7 +1726,7 @@ def build_closure(
                 "fileCount": len(content_records),
             },
         },
-        "route28AttributeFormats": widths,
+        "attributeFormats": formats,
         "inputs": input_records,
     }
     return inventory, closure, evidence
@@ -959,8 +1751,30 @@ def _pin(manifest: Mapping[str, Any], key: str, name: str) -> DonorPin:
 
 def load_manifest(path: Path) -> dict[str, Any]:
     manifest = _json(path)
-    if not isinstance(manifest, dict) or manifest.get("schemaVersion") != 1:
+    if not isinstance(manifest, dict) or manifest.get("schemaVersion") != 3:
         raise ImportError("unsupported or malformed import manifest")
+    manifest["__manifestPath"] = str(path.resolve())
+    lock_name = manifest.get("allocationLock")
+    if not isinstance(lock_name, str):
+        raise ImportError("manifest has no allocation lock")
+    lock = _json(path.parent / lock_name)
+    selection = manifest.get("selection")
+    if not isinstance(selection, dict) or selection.get("source") != "allocationLock":
+        raise ImportError("manifest selection is malformed")
+    selection["maps"] = active_selection(manifest, lock)
+    selected_groups = {item["targetGroup"] for item in selection["maps"]}
+    selected_groups.update(
+        str(item["name"]) for item in _inactive_group_placeholders(manifest)
+    )
+    selected_sections = {item["section"] for item in selection["maps"]}
+    manifest["groupAllocations"] = sorted(
+        (item for item in lock["groups"] if item["name"] in selected_groups),
+        key=lambda item: item["targetId"],
+    )
+    manifest["sectionAllocations"] = sorted(
+        (item for item in lock["sections"] if item["name"] in selected_sections),
+        key=lambda item: item["targetId"],
+    )
     return manifest
 
 
@@ -988,6 +1802,67 @@ def _mapping(manifest: Mapping[str, Any], key: str) -> dict[str, str]:
     return result
 
 
+def _preserve_spatial_updates(
+    manifest: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    records = manifest.get("preserveSpatialUpdates")
+    if not isinstance(records, list):
+        raise ImportError("preserve spatial update allowlist drift")
+    actual: list[tuple[str, str, tuple[str, ...]]] = []
+    for item in records:
+        if not isinstance(item, dict) or not isinstance(item.get("fields"), list):
+            raise ImportError("preserve spatial update allowlist drift")
+        fields = item["fields"]
+        if any(not isinstance(field, str) for field in fields):
+            raise ImportError("preserve spatial update allowlist drift")
+        actual.append(
+            (
+                str(item.get("source")),
+                str(item.get("activationBatch")),
+                tuple(fields),
+            )
+        )
+    if actual != list(PRESERVE_SPATIAL_UPDATE_KEYS):
+        raise ImportError("preserve spatial update allowlist drift")
+    return records
+
+
+def _section_symbol_remaps(
+    manifest: Mapping[str, Any], *, required: bool = False
+) -> dict[str, str]:
+    records = manifest.get("sectionSymbolRemaps")
+    if records is None and not required:
+        return {}
+    if not isinstance(records, list):
+        raise ImportError("section symbol remap allowlist drift")
+    actual = [
+        (item.get("source"), item.get("target"), item.get("targetId"))
+        for item in records
+        if isinstance(item, dict)
+    ]
+    if actual != list(SECTION_SYMBOL_REMAP_KEYS) or any(
+        set(item) != {"source", "target", "targetId", "reason"} for item in records
+    ):
+        raise ImportError("section symbol remap allowlist drift")
+    return {str(item["source"]): str(item["target"]) for item in records}
+
+
+def _inactive_group_placeholders(
+    manifest: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    records = manifest.get("inactiveGroupPlaceholders")
+    if not isinstance(records, list):
+        raise ImportError("inactive group placeholder allowlist drift")
+    actual = [
+        (item.get("name"), item.get("targetId"), item.get("activationBatch"))
+        for item in records
+        if isinstance(item, dict)
+    ]
+    if actual != list(INACTIVE_GROUP_PLACEHOLDER_KEYS):
+        raise ImportError("inactive group placeholder allowlist drift")
+    return records
+
+
 def _tilesets(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     records = _exact_records(
         manifest,
@@ -995,15 +1870,62 @@ def _tilesets(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
         {"role", "directory", "symbol", "secondary", "paletteCount", "authority"},
     )
     _require_unique(records, "directory", "tileset adaptation")
+    _require_unique(records, "symbol", "tileset adaptation")
     for item in records:
+        target_directory = item.get("targetDirectory", item["directory"])
+        target_symbol = item.get("targetSymbol", item["symbol"])
         if (
             item["role"] not in {"primary", "secondary"}
             or not isinstance(item["secondary"], bool)
             or not isinstance(item["paletteCount"], int)
             or item["paletteCount"] <= 0
             or item["authority"] not in {"hns", "mechanical"}
+            or re.fullmatch(r"[a-z0-9_]+", str(item["directory"])) is None
+            or re.fullmatch(r"[A-Za-z0-9_]+", str(item["symbol"])) is None
+            or not isinstance(target_directory, str)
+            or re.fullmatch(r"[a-z0-9_]+", target_directory) is None
+            or not isinstance(target_symbol, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", target_symbol) is None
         ):
             raise ImportError("invalid tileset adaptation")
+    targets = [
+        {
+            "directory": str(item.get("targetDirectory", item["directory"])),
+            "symbol": str(item.get("targetSymbol", item["symbol"])),
+        }
+        for item in records
+    ]
+    _require_unique(targets, "directory", "tileset target")
+    _require_unique(targets, "symbol", "tileset target")
+    return records
+
+
+def _tileset_target_directory(item: Mapping[str, Any]) -> str:
+    return str(item.get("targetDirectory", item["directory"]))
+
+
+def _tileset_target_symbol(item: Mapping[str, Any]) -> str:
+    return str(item.get("targetSymbol", item["symbol"]))
+
+
+def _layout_tileset_remaps(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    records = _exact_records(
+        manifest,
+        "layoutTilesetRemaps",
+        {"layout", "field", "source", "target"},
+    )
+    if [(item.get("layout"), item.get("field")) for item in records] != list(
+        LAYOUT_TILESET_REMAP_KEYS
+    ):
+        raise ImportError("layout tileset remap drift")
+    if any(
+        not isinstance(item.get(key), str)
+        or not item[key]
+        or (key in {"source", "target"} and not item[key].startswith("gTileset_"))
+        for item in records
+        for key in ("layout", "field", "source", "target")
+    ):
+        raise ImportError("invalid layout tileset remap")
     return records
 
 
@@ -1213,6 +2135,21 @@ def validate_materialization_adaptations(
     """Validate every content-changing materialization rule against pinned inputs."""
     selection = manifest["selection"]["maps"]
     names = {str(item["name"]) for item in selection}
+    preserved_names = {
+        str(item["name"]) for item in selection if not should_materialize(item)
+    }
+
+    _preserve_spatial_updates(manifest)
+    _section_symbol_remaps(manifest, required=True)
+    for source, activation_batch, fields in PRESERVE_SPATIAL_UPDATE_KEYS:
+        if source not in preserved_names:
+            raise ImportError(
+                f"preserve spatial update is not a preserve map: {source}"
+            )
+        if activation_batch not in BATCH_ORDER or any(
+            field not in {"connections", "warp_events"} for field in fields
+        ):
+            raise ImportError(f"invalid preserve spatial update: {source}")
 
     region = manifest.get("regionAssignment")
     if region != {"hns": None, "target": "REGION_JOHTO"}:
@@ -1227,12 +2164,14 @@ def validate_materialization_adaptations(
     used_graphics: set[str] = set()
     used_music: set[str] = set()
     for name in sorted(names):
-        map_item = _json(hns / "data/maps" / name / "map.json")
+        map_item, script = _content_map_and_script(name, manifest, pkmn_world, hns)
         source_music = map_item.get("music")
         if isinstance(source_music, str) and source_music.startswith("MUS_HG_"):
             if source_music not in music:
                 raise ImportError(f"undeclared music adaptation: {name}/{source_music}")
             used_music.add(source_music)
+        if name not in preserved_names:
+            continue
         for event in map_item.get("object_events") or []:
             source = event.get("graphics_id")
             if not isinstance(source, str):
@@ -1244,7 +2183,6 @@ def validate_materialization_adaptations(
                         f"undeclared graphics adaptation: {name}/{source}"
                     )
                 used_graphics.add(source)
-        script = (hns / "data/maps" / name / "scripts.inc").read_text(encoding="utf-8")
         for token in set(re.findall(r"\bMUS_HG_[A-Z0-9_]+\b", script)):
             if token not in music:
                 raise ImportError(f"undeclared music adaptation: {name}/{token}")
@@ -1258,10 +2196,11 @@ def validate_materialization_adaptations(
         manifest, "scriptSubstitutions", {"source", "old", "new", "occurrences"}
     )
     seen_substitutions: set[tuple[str, str]] = set()
-    scripts = {
-        name: (hns / "data/maps" / name / "scripts.inc").read_text(encoding="utf-8")
-        for name in names
-    }
+    scripts: dict[str, str] = {}
+    for name in preserved_names:
+        _map_item, scripts[name] = _content_map_and_script(
+            name, manifest, pkmn_world, hns
+        )
     for rule in substitutions:
         source, old, new, occurrences = (
             rule["source"],
@@ -1270,7 +2209,7 @@ def validate_materialization_adaptations(
             rule["occurrences"],
         )
         if (
-            source not in names
+            source not in preserved_names
             or not isinstance(old, str)
             or not old
             or not isinstance(new, str)
@@ -1315,23 +2254,51 @@ def validate_materialization_adaptations(
         manifest, "layoutBinaryAuthorities", {"source", "layout", "authority"}
     )
     _require_unique(layouts, "source", "layout binary authority")
-    expected_layouts = {(str(item["name"]), str(item["layout"])) for item in selection}
     actual_layouts = {(str(item["source"]), str(item["layout"])) for item in layouts}
-    if actual_layouts != expected_layouts or any(
+    selected_pairs = {
+        (str(item["name"]), str(item["layout"]))
+        for item in selection
+        if not should_materialize(item)
+    }
+    if actual_layouts != selected_pairs or any(
         item["authority"] not in {"hns", "mechanical"} for item in layouts
     ):
         raise ImportError("layout binary authority declaration drift")
 
     tilesets = _tilesets(manifest)
+    remaps = _layout_tileset_remaps(manifest)
+    lock = _json(Path(manifest["__manifestPath"]).parent / manifest["allocationLock"])
+    mechanical_layouts = {
+        str(item["id"]): item
+        for item in _json(pkmn_world / "data/layouts/layouts.json")["layouts"]
+    }
     expected_tilesets = {
         str(layout[key])
         for layout in (
-            _find_layout(pkmn_world / "data/layouts/layouts.json", str(item["layout"]))
-            for item in selection
+            _materialized_layout(item, mechanical_layouts, manifest, pkmn_world, hns)
+            for item in active_layout_selection(manifest, lock)
         )
         for key in ("primary_tileset", "secondary_tileset")
     }
-    declared_tilesets = {f"gTileset_{item['symbol']}" for item in tilesets}
+    declared_tilesets = {
+        f"gTileset_{_tileset_target_symbol(item)}" for item in tilesets
+    }
+    source_to_target = {
+        f"gTileset_{item['symbol']}": f"gTileset_{_tileset_target_symbol(item)}"
+        for item in tilesets
+    }
+    hns_layouts = {
+        str(item["id"]): item
+        for item in _json(hns / "data/layouts/layouts.json")["layouts"]
+    }
+    for remap in remaps:
+        layout, field = str(remap["layout"]), str(remap["field"])
+        if (
+            hns_layouts.get(layout, {}).get(field) != remap["source"]
+            or source_to_target.get(str(remap["source"])) != remap["target"]
+            or remap["source"] == remap["target"]
+        ):
+            raise ImportError(f"layout tileset remap drift: {layout}/{field}")
     target_tileset_header = _without_generated_section(
         (Path(__file__).parents[2] / "include/tilesets.h").read_text(encoding="utf-8"),
         "externs",
@@ -1339,6 +2306,21 @@ def validate_materialization_adaptations(
     existing_tilesets = set(
         re.findall(r"\bgTileset_[A-Za-z0-9_]+\b", target_tileset_header)
     )
+    target_headers = _without_generated_section(
+        (Path(__file__).parents[2] / "src/data/tilesets/headers.h").read_text(
+            encoding="utf-8"
+        ),
+        "headers",
+    )
+    target_definitions = set(
+        re.findall(r"\bconst struct Tileset (gTileset_[A-Za-z0-9_]+)\b", target_headers)
+    )
+    collisions = declared_tilesets & (existing_tilesets | target_definitions)
+    if collisions:
+        raise ImportError(
+            f"tileset target collides with target-defined symbol: {sorted(collisions)[0]}"
+        )
+    existing_tilesets |= target_definitions
     if not declared_tilesets <= expected_tilesets or not expected_tilesets <= (
         declared_tilesets | existing_tilesets
     ):
@@ -1348,8 +2330,15 @@ def validate_materialization_adaptations(
         source = (
             authority / "data/tilesets" / str(item["role"]) / str(item["directory"])
         )
-        palettes = list((source / "palettes").glob("*.pal"))
-        if not source.is_dir() or len(palettes) != item["paletteCount"]:
+        required_assets = [
+            source / "tiles.png",
+            source / "metatiles.bin",
+            source / "metatile_attributes.bin",
+        ] + [
+            source / "palettes" / f"{index:02}.pal"
+            for index in range(item["paletteCount"])
+        ]
+        if not source.is_dir() or not all(path.is_file() for path in required_assets):
             raise ImportError(f"tileset authority drift: {item['directory']}")
 
     encounter = manifest.get("encounterAdaptations")
@@ -1395,9 +2384,12 @@ def validate_materialization_adaptations(
 
 
 def report_document(
-    inventory: Inventory, closure: Closure, evidence: Mapping[str, Any]
+    inventory: Inventory,
+    closure: Closure,
+    evidence: Mapping[str, Any],
+    materialized_tree: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    report = {
         "schemaVersion": 1,
         "inventory": {
             key: len(getattr(inventory, key))
@@ -1406,6 +2398,9 @@ def report_document(
         "closure": asdict(closure),
         "evidence": evidence,
     }
+    if materialized_tree is not None:
+        report["materializedTree"] = dict(materialized_tree)
+    return report
 
 
 def atomic_write(path: Path, payload: bytes) -> None:
@@ -1587,11 +2582,67 @@ def _copy_tree_without_generated(source: Path, destination: Path) -> None:
         _copy_file(item, destination / item.relative_to(source))
 
 
+def _tree_payload(root: Path) -> dict[str, bytes]:
+    payload: dict[str, bytes] = {}
+    for item in sorted(root.rglob("*")):
+        relative = item.relative_to(root)
+        if item.is_symlink():
+            raise ImportError(f"tileset tree contains a symlink: {item}")
+        if item.is_file() and item.suffix != ".inc" and "anim" not in relative.parts:
+            payload[relative.as_posix()] = item.read_bytes()
+    return payload
+
+
+def _copy_imported_tileset_tree(source: Path, destination: Path) -> None:
+    """Create an importer-owned tree without overwriting an existing asset tree."""
+    if destination.exists():
+        if not destination.is_dir() or _tree_payload(destination) != _tree_payload(
+            source
+        ):
+            raise ImportError(
+                f"refusing to overwrite pre-existing tileset destination: {destination}"
+            )
+        return
+    _copy_tree_without_generated(source, destination)
+
+
+def _content_authority_root(
+    name: str, manifest: Mapping[str, Any], pkmn_world: Path, hns: Path
+) -> Path:
+    return pkmn_world if name in manifest["contentFallback"]["maps"] else hns
+
+
+def _content_map_and_script(
+    name: str, manifest: Mapping[str, Any], pkmn_world: Path, hns: Path
+) -> tuple[dict[str, Any], str]:
+    authority = _content_authority_root(name, manifest, pkmn_world, hns)
+    map_item = _json(authority / "data/maps" / name / "map.json")
+    try:
+        script = (authority / "data/maps" / name / "scripts.inc").read_text(
+            encoding="utf-8"
+        )
+    except (OSError, UnicodeError) as error:
+        raise ImportError(f"cannot read content script for {name}: {error}") from error
+    return map_item, script
+
+
 def _materialized_map(
-    item: Mapping[str, Any], hns: Path, manifest: Mapping[str, Any]
+    item: Mapping[str, Any],
+    pkmn_world: Path,
+    hns: Path,
+    manifest: Mapping[str, Any],
 ) -> dict[str, Any]:
     name = str(item["name"])
-    value = _json(hns / "data/maps" / name / "map.json")
+    authority = _content_authority_root(name, manifest, pkmn_world, hns)
+    value = _json(authority / "data/maps" / name / "map.json")
+    mechanical = _json(pkmn_world / "data/maps" / name / "map.json")
+    for rule in manifest.get("mapFieldDecisions", []):
+        if rule["map"] == name:
+            value[str(rule["field"])] = mechanical[str(rule["field"])]
+    if "region_map_section" in value:
+        value["region_map_section"] = _section_symbol_remaps(manifest).get(
+            str(value["region_map_section"]), str(value["region_map_section"])
+        )
     value["region"] = manifest["regionAssignment"]["target"]
     music = _mapping(manifest, "musicAdaptations")
     value["music"] = music.get(value.get("music"), value.get("music"))
@@ -1633,10 +2684,94 @@ def _materialized_map(
     return value
 
 
+def _materialize_selected_map_trees(
+    target: Path,
+    selection: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    pkmn_world: Path,
+    hns: Path,
+) -> None:
+    for item in selection:
+        if not should_materialize(item):
+            continue
+        name = str(item["name"])
+        destination = target / "data/maps" / name
+        value = materialize_resident_map(
+            _materialized_map(item, pkmn_world, hns, manifest)
+        )
+        atomic_write(destination / "map.json", _dump_source(value))
+        atomic_write(
+            destination / "scripts.inc",
+            resident_map_script(name).encode("utf-8"),
+        )
+
+
+def _materialize_preserved_spatial_updates(
+    target: Path,
+    selection: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    pkmn_world: Path,
+    hns: Path,
+) -> None:
+    """Apply only reviewed spatial closure fields to existing preserve maps."""
+    selected = {str(item["name"]): item for item in selection}
+    active_batches = set(manifest["activeBatches"])
+    for declaration in _preserve_spatial_updates(manifest):
+        if declaration["activationBatch"] not in active_batches:
+            continue
+        name = str(declaration["source"])
+        item = selected.get(name)
+        if item is None or should_materialize(item):
+            raise ImportError(f"invalid preserve spatial update target: {name}")
+        path = target / "data/maps" / name / "map.json"
+        current = _json(path)
+        reviewed = _materialized_map(item, pkmn_world, hns, manifest)
+        for field in declaration["fields"]:
+            current[str(field)] = copy.deepcopy(reviewed[str(field)])
+        atomic_write(path, _dump_source(current))
+
+
+def _materialized_layout(
+    item: Mapping[str, Any],
+    mechanical_layouts: Mapping[str, Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    pkmn_world: Path,
+    hns: Path,
+) -> dict[str, Any]:
+    layout_id = str(item.get("layout", item.get("id")))
+    fallback_layouts = {
+        str(selected["layout"])
+        for selected in manifest["selection"]["maps"]
+        if str(selected["name"]) in manifest["contentFallback"]["maps"]
+    }
+    authority_root = pkmn_world if layout_id in fallback_layouts else hns
+    layout = copy.deepcopy(
+        _find_layout(authority_root / "data/layouts/layouts.json", layout_id)
+    )
+    for rule in manifest.get("layoutHeaderDecisions", []):
+        if rule["layout"] == layout_id:
+            layout[str(rule["field"])] = mechanical_layouts[layout_id][
+                str(rule["field"])
+            ]
+    for rule in _layout_tileset_remaps(manifest):
+        if rule["layout"] == layout_id:
+            field = str(rule["field"])
+            if layout.get(field) != rule["source"]:
+                raise ImportError(
+                    f"layout tileset remap source drift: {layout_id}/{field}"
+                )
+            layout[field] = rule["target"]
+    layout.pop("layout_version", None)
+    layout["format"] = "johto"
+    return layout
+
+
 def _tileset_graphics(manifest: Mapping[str, Any]) -> str:
     blocks: list[str] = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        role, directory, symbol = item["role"], item["directory"], item["symbol"]
+        role = item["role"]
+        directory = _tileset_target_directory(item)
+        symbol = _tileset_target_symbol(item)
         blocks.append(
             f"const u32 gTilesetTiles_{symbol}[] = INCGFX_U32("
             f'"data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\n'
@@ -1655,7 +2790,9 @@ def _tileset_graphics(manifest: Mapping[str, Any]) -> str:
 def _tileset_metatiles(manifest: Mapping[str, Any]) -> str:
     lines = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        role, directory, symbol = item["role"], item["directory"], item["symbol"]
+        role = item["role"]
+        directory = _tileset_target_directory(item)
+        symbol = _tileset_target_symbol(item)
         lines.extend(
             (
                 f'const u16 gMetatiles_{symbol}[] = INCBIN_U16("data/tilesets/{role}/{directory}/metatiles.bin");',
@@ -1670,7 +2807,7 @@ def _tileset_metatiles(manifest: Mapping[str, Any]) -> str:
 def _tileset_headers(manifest: Mapping[str, Any]) -> str:
     blocks = ["#if HAS_JOHTO_TILESETS"]
     for item in _tilesets(manifest):
-        symbol, secondary = item["symbol"], item["secondary"]
+        symbol, secondary = _tileset_target_symbol(item), item["secondary"]
         blocks.append(
             f"const struct Tileset gTileset_{symbol} =\n{{\n"
             f"    .isCompressed = TRUE,\n"
@@ -1685,61 +2822,188 @@ def _tileset_headers(manifest: Mapping[str, Any]) -> str:
     return "\n\n".join(blocks)
 
 
+def _append_layouts_at_locked_indices(
+    existing: Sequence[Mapping[str, Any]],
+    emitted: Sequence[tuple[int, Mapping[str, Any]]],
+) -> list[dict[str, Any]]:
+    result = [copy.deepcopy(dict(item)) for item in existing]
+    ordered = sorted(emitted, key=lambda item: item[0])
+    first_index = ordered[0][0] if ordered else len(result)
+    if len(result) != first_index:
+        raise ImportError(
+            "layout target baseline drift: "
+            f"expected {first_index} layouts, got {len(result)}"
+        )
+    for target_index, layout in ordered:
+        if len(result) != target_index:
+            raise ImportError(
+                f"layout allocation drift: {layout['id']} cannot occupy index {target_index}"
+            )
+        result.append(copy.deepcopy(dict(layout)))
+    return result
+
+
+def _materialize_section_registry(
+    target: Path,
+    manifest: Mapping[str, Any],
+    hns: Path,
+    pkmn_world: Path | None = None,
+) -> None:
+    """Materialize residency-owned sections at their allocation-locked values."""
+    path = target / "src/data/region_map/region_map_sections.json"
+    document = _json(path)
+    sections = document.get("map_sections")
+    if not isinstance(sections, list):
+        raise ImportError("target region-map section registry is malformed")
+    existing = {str(item.get("id")) for item in sections}
+    section_remaps = _section_symbol_remaps(manifest)
+    residency_sections = {
+        str(item["section"])
+        for item in manifest["selection"]["maps"]
+        if should_materialize(item)
+    }
+    source_document = _json(hns / "src/data/region_map/region_map_sections_johto.json")
+    source_sections = {
+        str(item["map_section"]): item
+        for item in source_document.get("map_sections", [])
+    }
+    fallback_sections: dict[str, Mapping[str, Any]] = {}
+    if pkmn_world is not None:
+        mechanical_document = _json(
+            pkmn_world / "src/data/region_map/region_map_sections.json"
+        )
+        fallback_sections = {
+            str(item["id"]): item
+            for item in mechanical_document.get("map_sections", [])
+            if item.get("id") in FALLBACK_SECTION_METADATA
+        }
+        if tuple(sorted(fallback_sections)) != tuple(sorted(FALLBACK_SECTION_METADATA)):
+            raise ImportError("PKMN-World fallback section metadata drift")
+    metadata_sources = {
+        str(item["mechanical"]): str(item["hns"])
+        for item in manifest.get("mapFieldDecisions", [])
+        if item.get("field") == "region_map_section"
+    }
+    for allocation in manifest["sectionAllocations"]:
+        name = str(allocation["name"])
+        target_name = section_remaps.get(name, name)
+        if target_name in existing and name not in residency_sections:
+            continue
+        target_id = int(allocation["targetId"])
+        source_name = metadata_sources.get(name, name)
+        source = source_sections.get(source_name)
+        if source is None and name in FALLBACK_SECTION_METADATA:
+            source = fallback_sections.get(name)
+        if source is None:
+            raise ImportError(f"HnS has no region-map section metadata for {name}")
+        emitted = {
+            "id": target_name,
+            "value": target_id,
+            "kind": "geographic",
+            "region": "REGION_JOHTO",
+            "region_map_type": "REGION_MAP_HOENN",
+            "saved_location": (
+                target_name if target_id < SAVED_LOCATION_INVALID else None
+            ),
+            "met_location": target_id if target_id < MET_LOCATION_INVALID else None,
+            "met_location_display": (
+                target_name if target_id < MET_LOCATION_INVALID else None
+            ),
+            "name": source["name"],
+        }
+        for key in ("x", "y", "width", "height"):
+            if key in source:
+                emitted[key] = source[key]
+        if target_name in existing:
+            matching_indices = [
+                index
+                for index, item in enumerate(sections)
+                if item.get("id") == target_name
+            ]
+            if matching_indices != [target_id]:
+                raise ImportError(
+                    f"section allocation drift: {name} cannot occupy ID {target_id}"
+                )
+            sections[target_id] = emitted
+        else:
+            if len(sections) != target_id:
+                raise ImportError(
+                    f"section allocation drift: {name} cannot occupy ID {target_id}"
+                )
+            sections.append(emitted)
+        existing.add(target_name)
+    document["map_section_count"] = len(sections)
+    atomic_write(
+        path,
+        (json.dumps(document, indent=2, ensure_ascii=False) + "\n").encode("utf-8"),
+    )
+
+
 def materialize_source_tree(
     target: Path, manifest: Mapping[str, Any], pkmn_world: Path, hns: Path
 ) -> None:
     selection = manifest["selection"]["maps"]
-    music_adaptations = _mapping(manifest, "musicAdaptations")
-    script_substitutions: dict[str, list[Mapping[str, Any]]] = {}
-    for rule in manifest["scriptSubstitutions"]:
-        script_substitutions.setdefault(str(rule["source"]), []).append(rule)
-    for item in selection:
-        name = str(item["name"])
-        destination = target / "data/maps" / name
-        atomic_write(
-            destination / "map.json",
-            _dump_source(_materialized_map(item, hns, manifest)),
-        )
-        script = (hns / "data/maps" / name / "scripts.inc").read_text(encoding="utf-8")
-        for rule in script_substitutions.get(name, []):
-            script = _apply_script_substitution(
-                name,
-                script,
-                str(rule["old"]),
-                str(rule["new"]),
-                int(rule["occurrences"]),
-            )
-        for source_music, target_music in music_adaptations.items():
-            script = script.replace(source_music, target_music)
-        script = normalize_materialized_text(script)
-        atomic_write(destination / "scripts.inc", script.encode("utf-8"))
+    active_batches = {
+        item["name"]: item
+        for item in manifest["batches"]
+        if item["name"] in manifest["activeBatches"]
+    }
+    if active_batches and not any(
+        should_materialize(item) for item in active_batches.values()
+    ):
+        return
+    _materialize_selected_map_trees(target, selection, manifest, pkmn_world, hns)
+    _materialize_preserved_spatial_updates(target, selection, manifest, pkmn_world, hns)
 
     mechanical_layouts = {
         item["id"]: item
         for item in _json(pkmn_world / "data/layouts/layouts.json")["layouts"]
     }
+    lock = _json(Path(manifest["__manifestPath"]).parent / manifest["allocationLock"])
+    layout_selection = active_layout_selection(manifest, lock)
     target_layouts = _json(target / "data/layouts/layouts.json")
-    selected_ids = {str(item["layout"]) for item in selection}
+    residency_layouts = [item for item in layout_selection if should_materialize(item)]
+    selected_ids = {str(item["id"]) for item in residency_layouts}
     target_layouts["layouts"] = [
         item for item in target_layouts["layouts"] if item["id"] not in selected_ids
     ]
-    for item in selection:
-        layout = copy.deepcopy(mechanical_layouts[item["layout"]])
-        layout.pop("layout_version", None)
-        layout["format"] = "johto"
-        target_layouts["layouts"].append(layout)
-        name = str(item["name"])
+    emitted_layouts: list[tuple[int, dict[str, Any]]] = []
+    for item in residency_layouts:
+        layout = _materialized_layout(
+            item, mechanical_layouts, manifest, pkmn_world, hns
+        )
+        emitted_layouts.append((int(item["targetIndex"]), layout))
+        layout_id = str(item["id"])
+        matching_map = next(
+            (selected for selected in selection if selected["layout"] == layout_id),
+            None,
+        )
         authority = next(
-            rule["authority"]
-            for rule in manifest["layoutBinaryAuthorities"]
-            if rule["source"] == name
+            (
+                rule["authority"]
+                for rule in manifest["layoutBinaryAuthorities"]
+                if matching_map is not None
+                and rule["source"] == matching_map["name"]
+                and rule["layout"] == layout_id
+            ),
+            "mechanical"
+            if matching_map is not None
+            and matching_map["name"] in manifest["contentFallback"]["maps"]
+            else "hns",
         )
         layout_source = pkmn_world if authority == "mechanical" else hns
-        for filename in ("map.bin", "border.bin"):
+        source_layout = _find_layout(
+            layout_source / "data/layouts/layouts.json", layout_id
+        )
+        for path_key in ("blockdata_filepath", "border_filepath"):
+            relative = Path(str(source_layout[path_key]))
             _copy_file(
-                layout_source / "data/layouts" / name / filename,
-                target / "data/layouts" / name / filename,
+                layout_source / relative,
+                target / relative,
             )
+    target_layouts["layouts"] = _append_layouts_at_locked_indices(
+        target_layouts["layouts"], emitted_layouts
+    )
     layout_keys = (
         "id",
         "name",
@@ -1764,13 +3028,16 @@ def materialize_source_tree(
         groups, selection, manifest["groupAllocations"]
     )
     atomic_write(target / "data/maps/map_groups.json", _dump_source(groups))
+    _materialize_section_registry(target, manifest, hns, pkmn_world)
 
     for item in _tilesets(manifest):
-        role, directory = item["role"], item["directory"]
+        role = item["role"]
+        source_directory = str(item["directory"])
+        target_directory = _tileset_target_directory(item)
         authority = pkmn_world if item["authority"] == "mechanical" else hns
-        _copy_tree_without_generated(
-            authority / "data/tilesets" / role / directory,
-            target / "data/tilesets" / role / directory,
+        _copy_imported_tileset_tree(
+            authority / "data/tilesets" / role / source_directory,
+            target / "data/tilesets" / role / target_directory,
         )
     _replace_generated_section(
         target / "src/data/tilesets/graphics.h",
@@ -1789,7 +3056,7 @@ def materialize_source_tree(
         "#if HAS_JOHTO_TILESETS\n"
         + "\n".join(
             f"extern const struct Tileset gTileset_{symbol};"
-            for symbol in (item["symbol"] for item in _tilesets(manifest))
+            for symbol in (_tileset_target_symbol(item) for item in _tilesets(manifest))
         )
         + "\n#endif // HAS_JOHTO_TILESETS"
     )
@@ -1811,6 +3078,10 @@ Johto_Text_DeferredElmCall::
 	.string "PROF. ELM will call again later.$"
 """
     _replace_generated_section(target / "data/event_scripts.s", "map scripts", includes)
+
+    profile = manifest["materializationProfile"]
+    if not profile["encounters"] and not profile["gameplayGlobals"]:
+        return
 
     target_encounters = _json(target / "src/data/wild_encounters.json")
     hns_groups = _json(hns / "src/data/wild_encounters.json")["wild_encounter_groups"]
@@ -1960,6 +3231,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="materialize the validated source closure and write its report",
     )
+    mode.add_argument(
+        "--propose",
+        type=Path,
+        metavar="PATH",
+        help="write the deterministic reviewed batch/allocation candidate",
+    )
     parser.add_argument("--pkmn-world", type=Path, required=True)
     parser.add_argument("--hns", type=Path, required=True)
     parser.add_argument(
@@ -1997,12 +3274,37 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             atomic_write(
                 args.output,
-                _dump(report_document(inventory, closure, evidence)).encode("utf-8"),
+                _dump(
+                    report_document(
+                        inventory,
+                        closure,
+                        evidence,
+                        materialized_tree_record(
+                            args.target_root,
+                            manifest["selection"]["maps"],
+                            active_layout_selection(
+                                manifest,
+                                _json(
+                                    Path(manifest["__manifestPath"]).parent
+                                    / manifest["allocationLock"]
+                                ),
+                            ),
+                        ),
+                    )
+                ).encode("utf-8"),
             )
             print(
                 f"materialized {len(closure.maps)}-map Johto closure in "
                 f"{args.target_root}; wrote validated closure report: {args.output}"
             )
+        elif args.propose:
+            lock = _json(
+                Path(manifest["__manifestPath"]).parent / manifest["allocationLock"]
+            )
+            atomic_write(
+                args.propose, _dump(proposal_document(manifest, lock)).encode("utf-8")
+            )
+            print(f"wrote deterministic Johto allocation proposal: {args.propose}")
         else:
             print(
                 "clean Johto import: "

@@ -1,0 +1,71 @@
+{
+  "id": "MAP_MT_SILVER_2F",
+  "name": "MtSilver_2F",
+  "layout": "LAYOUT_MT_SILVER_2F",
+  "music": "MUS_ABANDONED_SHIP",
+  "region_map_section": "MAPSEC_MT_SILVER",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_UNDERGROUND",
+  "allow_cycling": true,
+  "allow_escaping": true,
+  "allow_running": false,
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [],
+  "object_events": [],
+  "warp_events": [
+    {
+      "x": 25,
+      "y": 36,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_1F_WATERFALL_ROOM",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 26,
+      "y": 48,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "1"
+    },
+    {
+      "x": 35,
+      "y": 48,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "2"
+    },
+    {
+      "x": 48,
+      "y": 31,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "3"
+    },
+    {
+      "x": 48,
+      "y": 25,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "4"
+    },
+    {
+      "x": 48,
+      "y": 17,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "5"
+    },
+    {
+      "x": 25,
+      "y": 1,
+      "elevation": 0,
+      "dest_map": "MAP_MT_SILVER_SNOW",
+      "dest_warp_id": "6"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [],
+  "region": "REGION_JOHTO"
+}
