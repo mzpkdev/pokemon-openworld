@@ -7,13 +7,6 @@ SaffronCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_SAFFRON_CITY
 	end
 
-SaffronCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 SaffronCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox SaffronCity_PokemonCenter_1F_Text_SilphCoVictimOfFame, MSGBOX_NPC
 	end

@@ -7,13 +7,6 @@ TwoIsland_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_TWO_ISLAND
 	end
 
-TwoIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 TwoIsland_PokemonCenter_1F_EventScript_GBAKid::
 	msgbox TwoIsland_PokemonCenter_1F_Text_HaveYouVisitedGameCorner, MSGBOX_NPC
 	end

@@ -7,13 +7,6 @@ FourIsland_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_FOUR_ISLAND
 	end
 
-FourIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 FourIsland_PokemonCenter_1F_EventScript_Man::
 	msgbox FourIsland_PokemonCenter_1F_Text_RareIceMonsInCave, MSGBOX_NPC
 	end

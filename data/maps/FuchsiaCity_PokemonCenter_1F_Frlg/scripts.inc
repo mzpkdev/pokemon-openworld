@@ -7,13 +7,6 @@ FuchsiaCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_FUCHSIA_CITY
 	end
 
-FuchsiaCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 FuchsiaCity_PokemonCenter_1F_EventScript_Man::
 	msgbox FuchsiaCity_PokemonCenter_1F_Text_CantBecomeGoodTrainerWithOneMon, MSGBOX_NPC
 	end

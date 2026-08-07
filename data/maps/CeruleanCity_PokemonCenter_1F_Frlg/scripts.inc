@@ -7,13 +7,6 @@ CeruleanCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_CERULEAN_CITY
 	end
 
-CeruleanCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 CeruleanCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox CeruleanCity_PokemonCenter_1F_Text_EveryoneCallsBillPokemaniac, MSGBOX_NPC
 	end

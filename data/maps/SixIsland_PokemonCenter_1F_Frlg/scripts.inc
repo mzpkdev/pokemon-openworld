@@ -62,13 +62,6 @@ SixIsland_PokemonCenter_1F_Movement_PlayerWatchRivalExit::
 	walk_in_place_faster_right
 	step_end
 
-SixIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 SixIsland_PokemonCenter_1F_EventScript_Hiker::
 	msgbox SixIsland_PokemonCenter_1F_Text_SomethingHiddenOnThisIsland, MSGBOX_NPC
 	end

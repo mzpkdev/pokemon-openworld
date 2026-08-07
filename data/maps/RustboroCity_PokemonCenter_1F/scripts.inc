@@ -8,14 +8,6 @@ RustboroCity_PokemonCenter_1F_OnTransition:
 	call Common_EventScript_UpdateBrineyLocation
 	end
 
-RustboroCity_PokemonCenter_1F_EventScript_Nurse::
-	setvar VAR_0x800B, LOCALID_RUSTBORO_NURSE
-	call Common_EventScript_PkmnCenterNurse
-	waitmessage
-	waitbuttonpress
-	release
-	end
-
 RustboroCity_PokemonCenter_1F_EventScript_Man::
 	msgbox RustboroCity_PokemonCenter_1F_Text_PokemonHavePersonalities, MSGBOX_NPC
 	end

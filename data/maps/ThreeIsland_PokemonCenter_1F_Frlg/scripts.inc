@@ -7,13 +7,6 @@ ThreeIsland_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_THREE_ISLAND
 	end
 
-ThreeIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 ThreeIsland_PokemonCenter_1F_EventScript_Sailor::
 	msgbox ThreeIsland_PokemonCenter_1F_Text_ImpossibleToSurfBetweenIslands, MSGBOX_NPC
 	end

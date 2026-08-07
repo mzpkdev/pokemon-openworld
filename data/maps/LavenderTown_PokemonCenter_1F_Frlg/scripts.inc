@@ -7,13 +7,6 @@ LavenderTown_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_LAVENDER_TOWN
 	end
 
-LavenderTown_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 LavenderTown_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox LavenderTown_PokemonCenter_1F_Text_RocketsDoAnythingForMoney, MSGBOX_NPC
 	end

@@ -7,13 +7,6 @@ CinnabarIsland_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_CINNABAR_ISLAND
 	end
 
-CinnabarIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 CinnabarIsland_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox CinnabarIsland_PokemonCenter_1F_Text_VisitUnionRoom, MSGBOX_NPC
 	end

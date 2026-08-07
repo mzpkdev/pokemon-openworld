@@ -61,13 +61,6 @@ IndigoPlateau_PokemonCenter_1F_Items::
 	release
 	end
 
-IndigoPlateau_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 IndigoPlateau_PokemonCenter_1F_Text_GymGuyAdvice::
 	.string "Yo!\n"
 	.string "Champ in the making!\p"

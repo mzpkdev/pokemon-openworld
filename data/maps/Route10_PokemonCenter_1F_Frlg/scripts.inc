@@ -10,13 +10,6 @@ Route10_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_ROUTE10
 	end
 
-Route10_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 Route10_PokemonCenter_1F_EventScript_FatMan::
 	msgbox Route10_PokemonCenter_1F_Text_NuggetUselessSoldFor5000, MSGBOX_NPC
 	end

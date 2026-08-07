@@ -174,13 +174,6 @@ OneIsland_PokemonCenter_1F_Movement_StepAsideLeft::
 	walk_in_place_faster_right
 	step_end
 
-OneIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 OneIsland_PokemonCenter_1F_EventScript_Bill::
 	lock
 	goto_if_set FLAG_SEVII_DETOUR_FINISHED, OneIsland_PokemonCenter_1F_EventScript_BillGoTakeStroll

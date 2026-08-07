@@ -7,13 +7,6 @@ ViridianCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_VIRIDIAN_CITY
 	end
 
-ViridianCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 ViridianCity_PokemonCenter_1F_EventScript_Boy::
 	msgbox ViridianCity_PokemonCenter_1F_Text_PokeCenterInEveryTown, MSGBOX_NPC
 	end

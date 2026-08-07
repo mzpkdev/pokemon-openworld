@@ -7,13 +7,6 @@ PewterCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_PEWTER_CITY
 	end
 
-PewterCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 PewterCity_PokemonCenter_1F_EventScript_Gentleman::
 	msgbox PewterCity_PokemonCenter_1F_Text_TeamRocketMtMoonImOnPhone, MSGBOX_NPC
 	end

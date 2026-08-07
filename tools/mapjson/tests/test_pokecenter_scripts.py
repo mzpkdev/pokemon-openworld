@@ -11,7 +11,6 @@ MAP_GROUPS = MAPS_ROOT / "map_groups.json"
 HEAL_LOCATIONS = ROOT / "src" / "data" / "heal_locations.json"
 GLOBAL_POKEMON_CENTER_SCRIPTS = ROOT / "data" / "scripts" / "pokemon_center.inc"
 NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse.inc"
-FRLG_NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse_frlg.inc"
 EVENT_SCRIPTS = ROOT / "data" / "event_scripts.s"
 FIELD_SCREEN_EFFECT = ROOT / "src" / "field_screen_effect.c"
 EVENT_SCRIPTS_HEADER = ROOT / "include" / "event_scripts.h"
@@ -58,6 +57,13 @@ EXPECTED_FLOOR_PAIRS = {
     "ViridianCity_PokemonCenter_1F_Frlg": "ViridianCity_PokemonCenter_2F_Frlg",
 }
 EXPECTED_PAIRS = len(EXPECTED_FLOOR_PAIRS)
+FACILITY_NURSE_MAPS = {
+    "TrainerHill_Entrance",
+    "TrainerTower_Lobby_Frlg",
+}
+IMPORTED_FRLG_NURSE_MAPS = {
+    name for name in EXPECTED_FLOOR_PAIRS if name.endswith("_Frlg")
+} | {"TrainerTower_Lobby_Frlg"}
 INDIGO_NURSE_ALIAS = {
     "LOCALID_INDIGO_LEAGUE_NURSE": "LOCALID_LEAGUE_NURSE",
 }
@@ -493,41 +499,8 @@ def _validate_excluded_sections(map_name, source, macro_source="", shared_owner=
         r"(?m)^([A-Za-z0-9_]+_(?:PokemonCenter|PokemonLeague)_1F_EventScript_Nurse)::?\s*$",
         active,
     )
-    nurse_local_id = None
-    if nurse_labels and not map_name.endswith("_Frlg"):
-        nurse_local_id = _authoritative_nurse_local_id(map_name)
-    for label in nurse_labels:
-        lines = _section_lines(active, label)
-        if map_name.endswith("_Frlg"):
-            expected = (
-                "lock",
-                "faceplayer",
-                "call EventScript_PkmnCenterNurse_Frlg",
-                "release",
-                "end",
-            )
-        else:
-            expected = (
-                f"setvar VAR_0x800B, {nurse_local_id}",
-                "call Common_EventScript_PkmnCenterNurse",
-                "waitmessage",
-                "waitbuttonpress",
-                "release",
-                "end",
-            )
-        if (
-            lines is None
-            or len(lines) != len(expected)
-            or any(
-                (
-                    item.fullmatch(actual) is None
-                    if hasattr(item, "fullmatch")
-                    else item != actual
-                )
-                for item, actual in zip(expected, lines)
-            )
-        ):
-            raise AssertionError(f"{map_name}: unexpected active nurse wrapper")
+    if nurse_labels:
+        raise AssertionError(f"{map_name}: unexpected active nurse wrapper")
 
     if "_2F" in map_name and shared_owner:
         if shared_owner not in APPROVED_SHARED_2F_OWNERS:
@@ -726,23 +699,15 @@ def _has_nurse_target(source, script, nurse_local_id=None):
         "release",
         "end",
     )
-    frlg = (
-        "lock",
-        "faceplayer",
-        "call EventScript_PkmnCenterNurse_Frlg",
-        "release",
-        "end",
-    )
-    return any(
+    return (
         lines is not None
-        and len(lines) == len(expected)
+        and len(lines) == len(emerald)
         and all(
             item.fullmatch(actual) is not None
             if hasattr(item, "fullmatch")
             else item == actual
-            for item, actual in zip(expected, lines)
+            for item, actual in zip(emerald, lines)
         )
-        for expected in (emerald, frlg)
     )
 
 
@@ -1029,6 +994,81 @@ class PokeCenterScriptContractTests(unittest.TestCase):
                 second_floor,
             )
 
+    def test_every_owned_nurse_uses_the_shared_interaction_contract(self):
+        owned_maps = set(EXPECTED_FLOOR_PAIRS) | FACILITY_NURSE_MAPS
+        self.assertEqual(len(IMPORTED_FRLG_NURSE_MAPS), 20)
+
+        for map_name in sorted(owned_maps):
+            nurses = [
+                obj
+                for obj in self.maps[map_name].get("object_events", [])
+                if _is_nurse_object(obj)
+            ]
+            self.assertEqual(len(nurses), 1, map_name)
+            self.assertEqual(
+                nurses[0]["script"],
+                "Common_EventScript_PkmnCenterNurse_Interact",
+                map_name,
+            )
+            if map_name in IMPORTED_FRLG_NURSE_MAPS:
+                self.assertEqual(
+                    nurses[0]["graphics_id"], APPROVED_NURSE_GRAPHICS_ID, map_name
+                )
+
+            script_path = _script_path(map_name)
+            source = (
+                script_path.read_text(encoding="utf-8") if script_path.exists() else ""
+            )
+            self.assertNotRegex(
+                _active_source(source),
+                r"(?m)^[A-Za-z0-9_]+_EventScript_Nurse::?\s*$",
+                map_name,
+            )
+
+        cherrygrove = self.maps["CherrygroveCity_PokemonCenter"]
+        cherrygrove_nurses = [
+            obj for obj in cherrygrove.get("object_events", []) if _is_nurse_object(obj)
+        ]
+        self.assertEqual(len(cherrygrove_nurses), 1)
+        self.assertEqual(
+            cherrygrove_nurses[0]["script"],
+            "Common_EventScript_PkmnCenterNurse_Interact",
+        )
+        self.assertNotEqual(
+            cherrygrove_nurses[0]["script"],
+            "OldaleTown_PokemonCenter_1F_EventScript_Nurse",
+        )
+
+    def test_no_legacy_frlg_nurse_adapter_include_or_symbols_remain(self):
+        legacy_adapter = ROOT / "data" / "scripts" / "pkmn_center_nurse_frlg.inc"
+        self.assertFalse(legacy_adapter.exists())
+
+        production_paths = [
+            EVENT_SCRIPTS_HEADER,
+            FIELD_SCREEN_EFFECT,
+            *sorted((ROOT / "data").rglob("*.inc")),
+            *sorted((ROOT / "data").rglob("*.s")),
+        ]
+        production_source = "\n".join(
+            path.read_text(encoding="utf-8") for path in production_paths
+        )
+        self.assertNotIn("pkmn_center_nurse_frlg.inc", production_source)
+        for symbol in (
+            "EventScript_AfterWhiteOutHeal_Frlg",
+            "EventScript_PkmnCenterNurse_Frlg",
+            "EventScript_PkmnCenterNurse_HealPkmn_Frlg",
+            "EventScript_PkmnCenterNurse_TakeAndHealPkmn_Frlg",
+            "EventScript_PkmnCenterNurse_CheckTrainerTowerAndUnionRoom_Frlg",
+            "EventScript_PkmnCenterNurse_ReturnPkmn_Frlg",
+            "EventScript_PkmnCenterNurse_PlayerWaitingInUnionRoom_Frlg",
+            "EventScript_PkmnCenterNurse_Goodbye_Frlg",
+            "Text_WelcomeWantToHealPkmn_Frlg",
+            "Text_TakeYourPkmnForFewSeconds_Frlg",
+            "Text_WeHopeToSeeYouAgain_Frlg",
+            "Text_RestoredPkmnToFullHealth_Frlg",
+        ):
+            self.assertNotIn(symbol, production_source, symbol)
+
     def test_shared_nurse_checks_both_facilities_before_union_room(self):
         source = NURSE_SCRIPT.read_text(encoding="utf-8")
         for predicate in (
@@ -1037,11 +1077,9 @@ class PokeCenterScriptContractTests(unittest.TestCase):
         ):
             self.assertTrue(_has_facility_exclusion(source, predicate), predicate)
 
-    def test_one_nurse_state_machine_and_exact_temporary_adapter(self):
+    def test_one_nurse_state_machine_preserves_all_shared_behavior(self):
         nurse_source = NURSE_SCRIPT.read_text(encoding="utf-8")
-        frlg_source = FRLG_NURSE_SCRIPT.read_text(encoding="utf-8")
         active_nurse = _active_source(nurse_source)
-        active_frlg = _active_source(frlg_source)
 
         self.assertEqual(
             _section_lines(active_nurse, "Common_EventScript_PkmnCenterNurse_Interact"),
@@ -1054,29 +1092,13 @@ class PokeCenterScriptContractTests(unittest.TestCase):
                 "end",
             ),
         )
-        self.assertEqual(
-            _section_lines(active_frlg, "EventScript_PkmnCenterNurse_Frlg"),
-            (
-                "copyvar VAR_0x800B, VAR_LAST_TALKED",
-                "call Common_EventScript_PkmnCenterNurse",
-                "waitmessage",
-                "waitbuttonpress",
-                "return",
-            ),
-        )
-        self.assertEqual(
-            re.findall(r"(?m)^([A-Za-z_][A-Za-z0-9_]*)::?\s*$", active_frlg),
-            ["EventScript_PkmnCenterNurse_Frlg"],
-        )
-
-        combined = f"{active_nurse}\n{active_frlg}"
         for state_machine_directive in (
             "incrementgamestat GAME_STAT_USED_POKECENTER",
             "special HealPlayerParty",
             "specialvar VAR_RESULT, BufferUnionRoomPlayerName",
         ):
             self.assertEqual(
-                combined.count(state_machine_directive), 1, state_machine_directive
+                active_nurse.count(state_machine_directive), 1, state_machine_directive
             )
         for preserved_feature in (
             "specialvar VAR_RESULT, CountPlayerTrainerStars",
@@ -1122,10 +1144,6 @@ class PokeCenterScriptContractTests(unittest.TestCase):
             )
         )
 
-        frlg_source = _active_source(FRLG_NURSE_SCRIPT.read_text(encoding="utf-8"))
-        self.assertIsNone(
-            _label_section_span(frlg_source, "EventScript_AfterWhiteOutHeal_Frlg")
-        )
         header = EVENT_SCRIPTS_HEADER.read_text(encoding="utf-8")
         field_source = FIELD_SCREEN_EFFECT.read_text(encoding="utf-8")
         self.assertNotIn("EventScript_AfterWhiteOutHeal_Frlg", header)
@@ -1420,24 +1438,26 @@ Map_OnTransition::
     def test_emerald_nurse_wrapper_requires_maps_exact_local_id(self):
         map_name = "MauvilleCity_PokemonCenter_1F"
         script = "MauvilleCity_PokemonCenter_1F_EventScript_Nurse"
-        source = _script_path(map_name).read_text(encoding="utf-8")
         nurse_local_id = _authoritative_nurse_local_id(map_name)
+        source = f"""{script}::
+\tsetvar VAR_0x800B, {nurse_local_id}
+\tcall Common_EventScript_PkmnCenterNurse
+\twaitmessage
+\twaitbuttonpress
+\trelease
+\tend
+"""
 
         self.assertEqual(nurse_local_id, "LOCALID_MAUVILLE_NURSE")
         self.assertTrue(_has_nurse_target(source, script, nurse_local_id))
-        normalized = _normalize_local_script(
-            map_name, source, self.one_floor_macro_source
-        )
-        self.assertNotIn(script, normalized)
 
         for other_local_id in (
             "LOCALID_DEWFORD_BRINEY",
             "LOCALID_MAUVILLE_SCOTT",
+            "LOCALID_TEST_NURSE",
         ):
             mutated = source.replace(nurse_local_id, other_local_id)
             self.assertFalse(_has_nurse_target(mutated, script, nurse_local_id))
-            with self.assertRaisesRegex(AssertionError, "nurse wrapper"):
-                _normalize_local_script(map_name, mutated, self.one_floor_macro_source)
 
         self.assertTrue(
             _has_nurse_target("", "Common_EventScript_PkmnCenterNurse_Interact")

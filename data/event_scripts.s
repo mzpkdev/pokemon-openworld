@@ -1045,7 +1045,6 @@ gStdScripts_End::
 	.include "data/text/trainers_frlg.inc"
 	.include "data/text/ingame_trade_frlg.inc"
 	.include "data/scripts/flavor_text.inc"
-	.include "data/scripts/pkmn_center_nurse_frlg.inc"
 
 .endif
 

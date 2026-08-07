@@ -7,13 +7,6 @@ SevenIsland_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_SEVEN_ISLAND
 	end
 
-SevenIsland_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 SevenIsland_PokemonCenter_1F_EventScript_OldMan::
 	msgbox SevenIsland_PokemonCenter_1F_Text_EventsDependingOnConnections, MSGBOX_NPC
 	end

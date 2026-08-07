@@ -7,13 +7,6 @@ VermilionCity_PokemonCenter_1F_OnTransition::
 	setrespawn HEAL_LOCATION_VERMILION_CITY
 	end
 
-VermilionCity_PokemonCenter_1F_EventScript_Nurse::
-	lock
-	faceplayer
-	call EventScript_PkmnCenterNurse_Frlg
-	release
-	end
-
 VermilionCity_PokemonCenter_1F_EventScript_Man::
 	msgbox VermilionCity_PokemonCenter_1F_Text_PoisonedMonFaintedWhileWalking, MSGBOX_NPC
 	end
