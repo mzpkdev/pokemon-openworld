@@ -275,16 +275,10 @@ static void DebugTask_HandleMenuInput_General(u8 taskId);
 
 static void DebugAction_Util_Fly(u8 taskId);
 static void DebugAction_Util_Warp_Warp(u8 taskId);
-#ifdef DEBUG
 static void DebugAction_Util_Warp_SelectRegion(u8 taskId);
 static void DebugAction_Util_Warp_SelectNamedMapGroup(u8 taskId);
 static void DebugAction_Util_Warp_SelectNamedMap(u8 taskId);
 static void DebugAction_Util_Warp_SelectNamedWarp(u8 taskId);
-#else
-static void DebugAction_Util_Warp_SelectMapGroup(u8 taskId);
-static void DebugAction_Util_Warp_SelectMap(u8 taskId);
-static void DebugAction_Util_Warp_SelectWarp(u8 taskId);
-#endif
 static void DebugAction_Util_Weather(u8 taskId);
 static void DebugAction_Util_Weather_SelectId(u8 taskId);
 static void DebugAction_Util_WatchCredits(u8 taskId);
@@ -433,13 +427,11 @@ extern const u8 Debug_BerryWeedsDisabled[];
 extern const u8 Common_EventScript_MoveRelearner[];
 
 #include "data/map_group_count.h"
-#ifdef DEBUG
 #include "data/debug_map_names.h"
 const u8 gDebugNamedWarpRegistryIdentity[] = DEBUG_NAMED_WARP_REGISTRY_IDENTITY;
 STATIC_ASSERT(ARRAY_COUNT(sDebugMapGroupNames) == MAP_GROUPS_COUNT, DebugMapGroupNamesCount);
 STATIC_ASSERT(ARRAY_COUNT(sDebugMapNames) == MAP_GROUPS_COUNT, DebugMapNamesCount);
 STATIC_ASSERT(ARRAY_COUNT(sDebugMapRegions) == MAP_GROUPS_COUNT, DebugMapRegionsCount);
-#endif
 
 // Text
 // General
@@ -452,7 +444,6 @@ static const u8 sDebugText_Dashes[] =        _("---");
 static const u8 sDebugText_Empty[] =         _("");
 static const u8 sDebugText_Continue[] =      _("Continue…");
 // Util Menu
-#ifdef DEBUG
 static const u8 sDebugText_Util_WarpRegion[] = _("Choose region\n{STR_VAR_1}\n\nUp/Down: Select\nA: Next  B: Exit");
 static const u8 sDebugText_Util_WarpGroup[] = _("Region: {STR_VAR_1}\n\nChoose map group\n{STR_VAR_2}\n\nUp/Down: Select\nLeft/Right: Page\nA: Next  B: Back");
 static const u8 sDebugText_Util_WarpMap[] = _("Region: {STR_VAR_1}\nChoose map\n{STR_VAR_2}\n\nUp/Down: Select\nLeft/Right: Page\nA: Next  B: Back");
@@ -483,12 +474,6 @@ static const u8 *const sDebugWarpRegionNames[] =
     [DEBUG_WARP_REGION_JOHTO] = COMPOUND_STRING("Johto"),
 };
 STATIC_ASSERT(ARRAY_COUNT(sDebugWarpRegionNames) == DEBUG_WARP_REGION_COUNT, DebugWarpRegionNamesCount);
-#else
-static const u8 sDebugText_Util_WarpToMap_SelectMapGroup[] = _("Group: {STR_VAR_1}{CLEAR_TO 90}\n{CLEAR_TO 90}\n\n{STR_VAR_3}{CLEAR_TO 90}");
-static const u8 sDebugText_Util_WarpToMap_SelectMap[] =      _("Map: {STR_VAR_1}{CLEAR_TO 90}\nMapSec:{CLEAR_TO 90}\n{STR_VAR_2}{CLEAR_TO 90}\n{STR_VAR_3}{CLEAR_TO 90}");
-static const u8 sDebugText_Util_WarpToMap_SelectWarp[] =     _("Warp:{CLEAR_TO 90}\n{STR_VAR_1}{CLEAR_TO 90}\n{CLEAR_TO 90}\n{STR_VAR_3}{CLEAR_TO 90}");
-static const u8 sDebugText_Util_WarpToMap_SelMax[] =         _("{STR_VAR_1} / {STR_VAR_2}");
-#endif
 static const u8 sDebugText_Util_Weather_ID[] =               _("Weather ID: {STR_VAR_3}\n{STR_VAR_1}\n{STR_VAR_2}");
 
 //Time Menu
@@ -631,11 +616,7 @@ static const struct DebugMenuOption sDebugMenu_Actions_FollowerNPCMenu[] =
 static const struct DebugMenuOption sDebugMenu_Actions_Utilities[] =
 {
     { COMPOUND_STRING("Fly to map…"),       DebugAction_Util_Fly },
-#ifdef DEBUG
-    { COMPOUND_STRING("Warp by name…"),      DebugAction_Util_Warp_Warp },
-#else
-    { COMPOUND_STRING("Warp to map warp…"), DebugAction_Util_Warp_Warp },
-#endif
+    { COMPOUND_STRING("Warp by name…"),     DebugAction_Util_Warp_Warp },
     { COMPOUND_STRING("Set weather…"),      DebugAction_Util_Weather },
     { COMPOUND_STRING("Font Test…"),        DebugAction_ExecuteScript, Debug_EventScript_FontTest },
     { COMPOUND_STRING("Time Functions…"),   DebugAction_OpenSubMenu, sDebugMenu_Actions_TimeMenu, },
@@ -854,7 +835,6 @@ static const struct WindowTemplate sDebugMenuWindowTemplateSound =
     .baseBlock = 1,
 };
 
-#ifdef DEBUG
 static const struct WindowTemplate sDebugMenuWindowTemplateWarp =
 {
     .bg = 0,
@@ -865,7 +845,6 @@ static const struct WindowTemplate sDebugMenuWindowTemplateWarp =
     .paletteNum = 15,
     .baseBlock = 1,
 };
-#endif
 
 static bool32 Debug_SaveCallbackMenu(struct DebugMenuOption *callbackItems);
 
@@ -1486,8 +1465,6 @@ static void DebugAction_Util_Fly(u8 taskId)
 #define tWarp      data[7]
 #define tRegion    data[8]
 
-#ifdef DEBUG
-
 static void DebugAction_Util_Warp_Draw(u8 taskId, const u8 *text)
 {
     FillWindowPixelBuffer(gTasks[taskId].tSubWindowId, PIXEL_FILL(1));
@@ -1871,164 +1848,6 @@ static void DebugAction_Util_Warp_SelectNamedWarp(u8 taskId)
         DebugAction_Util_Warp_DrawMap(taskId);
     }
 }
-
-#else
-
-#define LAST_MAP_GROUP (MAP_GROUPS_COUNT - 1)
-
-static void DebugAction_Util_Warp_Warp(u8 taskId)
-{
-    u8 windowId;
-
-    ClearStdWindowAndFrame(gTasks[taskId].tWindowId, TRUE);
-    RemoveWindow(gTasks[taskId].tWindowId);
-
-    HideMapNamePopUpWindow();
-    LoadMessageBoxAndBorderGfx();
-    windowId = AddWindow(&sDebugMenuWindowTemplateExtra);
-    DrawStdWindowFrame(windowId, FALSE);
-
-    CopyWindowToVram(windowId, COPYWIN_FULL);
-
-    ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, 3);
-    ConvertIntToDecimalStringN(gStringVar2, LAST_MAP_GROUP, STR_CONV_MODE_LEADING_ZEROS, 3);
-    StringExpandPlaceholders(gStringVar1, sDebugText_Util_WarpToMap_SelMax);
-    StringCopy(gStringVar3, gText_DigitIndicator[0]);
-    StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectMapGroup);
-    AddTextPrinterParameterized(windowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-
-    gTasks[taskId].func = DebugAction_Util_Warp_SelectMapGroup;
-    gTasks[taskId].tSubWindowId = windowId;
-    gTasks[taskId].tInput = 0;
-    gTasks[taskId].tDigit = 0;
-    gTasks[taskId].tMapGroup = 0;
-    gTasks[taskId].tMapNum = 0;
-    gTasks[taskId].tWarp = 0;
-}
-
-static void DebugAction_Util_Warp_SelectMapGroup(u8 taskId)
-{
-    if (JOY_NEW(DPAD_ANY))
-    {
-        PlaySE(SE_SELECT);
-        Debug_HandleInput_Numeric(taskId, 0, LAST_MAP_GROUP, 3);
-
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, 3);
-        ConvertIntToDecimalStringN(gStringVar2, LAST_MAP_GROUP, STR_CONV_MODE_LEADING_ZEROS, 3);
-        StringExpandPlaceholders(gStringVar1, sDebugText_Util_WarpToMap_SelMax);
-        StringCopy(gStringVar3, gText_DigitIndicator[gTasks[taskId].tDigit]);
-        StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectMapGroup);
-        AddTextPrinterParameterized(gTasks[taskId].tSubWindowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-    }
-
-    if (JOY_NEW(A_BUTTON))
-    {
-        if (MAP_GROUP_COUNT[gTasks[taskId].tInput] == 0)
-        {
-            PlaySE(SE_FAILURE);
-            return;
-        }
-
-        gTasks[taskId].tMapGroup = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
-        gTasks[taskId].tDigit = 0;
-
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, (MAP_GROUP_COUNT[gTasks[taskId].tMapGroup] - 1 >= 100) ? 3 : 2);
-        ConvertIntToDecimalStringN(gStringVar2, MAP_GROUP_COUNT[gTasks[taskId].tMapGroup] - 1, STR_CONV_MODE_LEADING_ZEROS, (MAP_GROUP_COUNT[gTasks[taskId].tMapGroup] - 1 >= 100) ? 3 : 2);
-        StringExpandPlaceholders(gStringVar1, sDebugText_Util_WarpToMap_SelMax);
-        GetMapName(gStringVar2, Overworld_GetMapHeaderByGroupAndId(gTasks[taskId].tMapGroup, gTasks[taskId].tInput)->regionMapSectionId, 0);
-        StringCopy(gStringVar3, gText_DigitIndicator[gTasks[taskId].tDigit]);
-        StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectMap);
-        AddTextPrinterParameterized(gTasks[taskId].tSubWindowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-
-        gTasks[taskId].func = DebugAction_Util_Warp_SelectMap;
-    }
-    else if (JOY_NEW(B_BUTTON))
-    {
-        PlaySE(SE_SELECT);
-        DebugAction_DestroyExtraWindow(taskId);
-    }
-}
-
-static void DebugAction_Util_Warp_SelectMap(u8 taskId)
-{
-    u8 max_value = MAP_GROUP_COUNT[gTasks[taskId].tMapGroup]; //maps in the selected map group
-
-    if (JOY_NEW(DPAD_ANY))
-    {
-        PlaySE(SE_SELECT);
-        Debug_HandleInput_Numeric(taskId, 0, max_value - 1, 3);
-
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, (max_value >= 100) ? 3 : 2);
-        ConvertIntToDecimalStringN(gStringVar2, MAP_GROUP_COUNT[gTasks[taskId].tMapGroup] - 1, STR_CONV_MODE_LEADING_ZEROS, (max_value >= 100) ? 3 : 2);
-        StringExpandPlaceholders(gStringVar1, sDebugText_Util_WarpToMap_SelMax);
-        GetMapName(gStringVar2, Overworld_GetMapHeaderByGroupAndId(gTasks[taskId].tMapGroup, gTasks[taskId].tInput)->regionMapSectionId, 0);
-        StringCopy(gStringVar3, gText_DigitIndicator[gTasks[taskId].tDigit]);
-        StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectMap);
-        AddTextPrinterParameterized(gTasks[taskId].tSubWindowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-    }
-
-    if (JOY_NEW(A_BUTTON))
-    {
-        gTasks[taskId].tMapNum = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
-        gTasks[taskId].tDigit = 0;
-
-        StringCopy(gStringVar3, gText_DigitIndicator[gTasks[taskId].tDigit]);
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, 3);
-        StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectWarp);
-        AddTextPrinterParameterized(gTasks[taskId].tSubWindowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-        gTasks[taskId].func = DebugAction_Util_Warp_SelectWarp;
-    }
-    else if (JOY_NEW(B_BUTTON))
-    {
-        PlaySE(SE_SELECT);
-        DebugAction_DestroyExtraWindow(taskId);
-    }
-}
-
-static void DebugAction_Util_Warp_SelectWarp(u8 taskId)
-{
-    if (JOY_NEW(DPAD_ANY))
-    {
-        PlaySE(SE_SELECT);
-        if (JOY_NEW(DPAD_UP))
-        {
-            gTasks[taskId].tInput += sPowersOfTen[gTasks[taskId].tDigit];
-            if (gTasks[taskId].tInput > 10)
-                gTasks[taskId].tInput = 10;
-        }
-        if (JOY_NEW(DPAD_DOWN))
-        {
-            gTasks[taskId].tInput -= sPowersOfTen[gTasks[taskId].tDigit];
-            if (gTasks[taskId].tInput < 0)
-                gTasks[taskId].tInput = 0;
-        }
-
-        StringCopy(gStringVar3, gText_DigitIndicator[gTasks[taskId].tDigit]);
-        ConvertIntToDecimalStringN(gStringVar1, gTasks[taskId].tInput, STR_CONV_MODE_LEADING_ZEROS, 3);
-        StringExpandPlaceholders(gStringVar4, sDebugText_Util_WarpToMap_SelectWarp);
-        AddTextPrinterParameterized(gTasks[taskId].tSubWindowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
-    }
-
-    if (JOY_NEW(A_BUTTON))
-    {
-        gTasks[taskId].tWarp = gTasks[taskId].tInput;
-        //If there's no warp with the number available, warp to the center of the map.
-        SetWarpDestinationToMapWarp(gTasks[taskId].tMapGroup, gTasks[taskId].tMapNum, gTasks[taskId].tWarp);
-        DoWarp();
-        ResetInitialPlayerAvatarState();
-        DebugAction_DestroyExtraWindow(taskId);
-        ScriptContext_Stop();
-    }
-    else if (JOY_NEW(B_BUTTON))
-    {
-        PlaySE(SE_SELECT);
-        DebugAction_DestroyExtraWindow(taskId);
-    }
-}
-
-#endif
 
 #undef tMapGroup
 #undef tMapNum
