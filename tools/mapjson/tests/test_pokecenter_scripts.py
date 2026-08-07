@@ -58,6 +58,14 @@ EXPECTED_FLOOR_PAIRS = {
     "ViridianCity_PokemonCenter_1F_Frlg": "ViridianCity_PokemonCenter_2F_Frlg",
 }
 EXPECTED_PAIRS = len(EXPECTED_FLOOR_PAIRS)
+EXPECTED_SHARED_2F_OWNERS = {
+    second_floor: (
+        "PokemonCenter_2F_Frlg"
+        if second_floor.endswith("_Frlg")
+        else "PokemonCenter_2F"
+    )
+    for second_floor in EXPECTED_FLOOR_PAIRS.values()
+}
 FACILITY_NURSE_MAPS = {
     "TrainerHill_Entrance",
     "TrainerTower_Lobby_Frlg",
@@ -76,6 +84,12 @@ EMERALD_CABLE_HOOKS = (
     "CableClub_OnTransition",
 )
 FRLG_CABLE_HOOKS = tuple(f"{hook}_Frlg" for hook in EMERALD_CABLE_HOOKS)
+CABLE_TABLE_KINDS = (
+    "MAP_SCRIPT_ON_FRAME_TABLE",
+    "MAP_SCRIPT_ON_WARP_INTO_MAP_TABLE",
+    "MAP_SCRIPT_ON_LOAD",
+    "MAP_SCRIPT_ON_TRANSITION",
+)
 
 # These are deliberately source-level names. They make local story behavior visible
 # even though the map-table and respawn boilerplate is omitted from the digest.
@@ -282,6 +296,29 @@ def _resolve_2f_sources(
             raise AssertionError(f"{map_name}: global pokemon_center.inc is missing")
         return local_source or "", global_source, f"{shared_owner}_MapScripts"
     return local_source, local_source, f"{map_name}_MapScripts"
+
+
+def _valid_shared_2f_tables(source):
+    expected = []
+    for owner, hooks in (
+        ("PokemonCenter_2F", EMERALD_CABLE_HOOKS),
+        ("PokemonCenter_2F_Frlg", FRLG_CABLE_HOOKS),
+    ):
+        expected.append(f"{owner}_MapScripts::")
+        expected.extend(
+            f"map_script {kind}, {hook}" for kind, hook in zip(CABLE_TABLE_KINDS, hooks)
+        )
+        expected.append(".byte 0")
+    active_lines = tuple(
+        _canonical_line(line)
+        for line in _active_source(source).splitlines()
+        if line.strip()
+    )
+    return active_lines == tuple(expected)
+
+
+def _valid_shared_2f_owners(shared_owners):
+    return shared_owners == EXPECTED_SHARED_2F_OWNERS
 
 
 def _active_source(source):
@@ -1028,6 +1065,55 @@ class PokeCenterScriptContractTests(unittest.TestCase):
                 ),
                 second_floor,
             )
+
+    def test_shared_2f_owners_and_global_tables_are_exact(self):
+        expected_owners = EXPECTED_SHARED_2F_OWNERS
+        self.assertEqual(
+            sum(owner == "PokemonCenter_2F" for owner in expected_owners.values()),
+            17,
+        )
+        self.assertEqual(
+            sum(owner == "PokemonCenter_2F_Frlg" for owner in expected_owners.values()),
+            19,
+        )
+        actual_owners = {
+            second_floor: self.maps[second_floor].get("shared_scripts_map")
+            for second_floor in EXPECTED_FLOOR_PAIRS.values()
+        }
+        self.assertTrue(_valid_shared_2f_owners(actual_owners))
+
+        global_source = GLOBAL_POKEMON_CENTER_SCRIPTS.read_text(encoding="utf-8")
+        self.assertTrue(_valid_shared_2f_tables(global_source))
+
+        generic_map = next(
+            name
+            for name, owner in expected_owners.items()
+            if owner == "PokemonCenter_2F"
+        )
+        frlg_map = next(
+            name
+            for name, owner in expected_owners.items()
+            if owner == "PokemonCenter_2F_Frlg"
+        )
+        swapped_owners = dict(actual_owners)
+        swapped_owners[generic_map], swapped_owners[frlg_map] = (
+            swapped_owners[frlg_map],
+            swapped_owners[generic_map],
+        )
+        self.assertFalse(_valid_shared_2f_owners(swapped_owners))
+
+        swapped_bodies = (
+            global_source.replace("CableClub_OnFrame_Frlg", "__FRLG_FRAME__")
+            .replace("CableClub_OnFrame", "CableClub_OnFrame_Frlg")
+            .replace("__FRLG_FRAME__", "CableClub_OnFrame")
+        )
+        self.assertFalse(_valid_shared_2f_tables(swapped_bodies))
+        self.assertFalse(_valid_shared_2f_tables(global_source + "\n.byte 0\n"))
+
+        reformatted = "@ retained heading\n" + global_source.replace(
+            "\t", "    "
+        ).replace(", ", " ,   ")
+        self.assertTrue(_valid_shared_2f_tables(reformatted))
 
     def test_every_owned_nurse_uses_the_shared_interaction_contract(self):
         owned_maps = set(EXPECTED_FLOOR_PAIRS) | FACILITY_NURSE_MAPS
