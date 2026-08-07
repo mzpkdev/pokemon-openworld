@@ -14,6 +14,8 @@ NURSE_SCRIPT = ROOT / "data" / "scripts" / "pkmn_center_nurse.inc"
 EVENT_SCRIPTS = ROOT / "data" / "event_scripts.s"
 FIELD_SCREEN_EFFECT = ROOT / "src" / "field_screen_effect.c"
 EVENT_SCRIPTS_HEADER = ROOT / "include" / "event_scripts.h"
+FLAGS = ROOT / "include" / "constants" / "flags.h"
+REGION_MAP = ROOT / "src" / "region_map.c"
 MAP_MACROS = ROOT / "asm" / "macros" / "map.inc"
 OBJECT_EVENT_GRAPHICS = ROOT / "src" / "data" / "object_events"
 NURSE_FRLG_ASSET = (
@@ -77,10 +79,6 @@ FACILITY_NURSE_MAPS = {
 IMPORTED_FRLG_NURSE_MAPS = {
     name for name in EXPECTED_FLOOR_PAIRS if name.endswith("_Frlg")
 } | {"TrainerTower_Lobby_Frlg"}
-INDIGO_NURSE_ALIAS = {
-    "LOCALID_INDIGO_LEAGUE_NURSE": "LOCALID_LEAGUE_NURSE",
-}
-
 EMERALD_CABLE_HOOKS = (
     "CableClub_OnFrame",
     "CableClub_OnWarp",
@@ -995,10 +993,7 @@ class PokeCenterScriptContractTests(unittest.TestCase):
             self.assertEqual(len(respawns), 1, first_floor)
             heal = self.heal_locations[respawns[0]]
             self.assertEqual(heal["respawn_map"], first["id"], first_floor)
-            expected_respawn_npc = INDIGO_NURSE_ALIAS.get(
-                nurse["local_id"], nurse["local_id"]
-            )
-            self.assertEqual(heal["respawn_npc"], expected_respawn_npc, first_floor)
+            self.assertEqual(heal["respawn_npc"], nurse["local_id"], first_floor)
             self.assertIn(
                 heal["map"],
                 {warp["dest_map"] for warp in first["warp_events"]},
@@ -1023,9 +1018,8 @@ class PokeCenterScriptContractTests(unittest.TestCase):
                 second_floor,
             )
 
-            # One Island has its own FRLG layout id and Lavender currently uses
-            # the FRLG 1F layout id upstairs, so the reviewed map family name is
-            # the reliable cable-engine discriminator.
+            # One Island has its own FRLG layout id, so the reviewed map family
+            # name is the reliable cable-engine discriminator.
             frlg = second_floor.endswith("_Frlg")
             union_map = "MAP_UNION_ROOM_FRLG" if frlg else "MAP_UNION_ROOM"
             trade_map = "MAP_TRADE_CENTER_FRLG" if frlg else "MAP_TRADE_CENTER"
@@ -1916,11 +1910,28 @@ OldaleTown_PokemonCenter_1F_Text_Test:
             _normalize_local_script("OldaleTown_PokemonCenter_1F", injected),
         )
 
-    def test_non_indigo_heal_target_alias_is_not_permitted(self):
-        self.assertNotEqual(
-            INDIGO_NURSE_ALIAS.get("LOCALID_OLDALE_NURSE", "LOCALID_OLDALE_NURSE"),
-            "LOCALID_LEAGUE_NURSE",
-        )
+    def test_route_center_fly_flags_are_unique_persistent_flags(self):
+        flags = FLAGS.read_text(encoding="utf-8")
+        offsets = []
+        for name in (
+            "FLAG_WORLD_MAP_ROUTE4_POKEMON_CENTER_1F",
+            "FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F",
+        ):
+            match = re.search(
+                rf"^#define {name}\s+\(SYSTEM_FLAGS \+ (0x[0-9A-F]+)\)$",
+                flags,
+                re.MULTILINE,
+            )
+            self.assertIsNotNone(match, name)
+            offsets.append(int(match.group(1), 16))
+            self.assertEqual(flags.count(f"#define {name}"), 1, name)
+            self.assertIn(f"FlagGet({name})", REGION_MAP.read_text(encoding="utf-8"))
+        self.assertEqual(len(set(offsets)), len(offsets))
+        for offset in offsets:
+            self.assertNotRegex(
+                flags,
+                rf"FLAG_UNUSED_0x[0-9A-F]+\s+\(SYSTEM_FLAGS \+ 0x{offset:X}\)",
+            )
 
 
 if __name__ == "__main__":

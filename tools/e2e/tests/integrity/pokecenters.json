@@ -11,7 +11,8 @@
   ],
   "whiteoutCases": [
     "OldaleTown_PokemonCenter_1F",
-    "PewterCity_PokemonCenter_1F_Frlg"
+    "PewterCity_PokemonCenter_1F_Frlg",
+    "IndigoPlateau_PokemonCenter_1F_Frlg"
   ],
   "runtimeCases": {
     "OldaleTown_PokemonCenter_1F": {
@@ -25,6 +26,12 @@
       "y": 3,
       "direction": "Up",
       "nurseLocalId": 3
+    },
+    "IndigoPlateau_PokemonCenter_1F_Frlg": {
+      "x": 13,
+      "y": 11,
+      "direction": "Up",
+      "nurseLocalId": 2
     },
     "SevenIsland_PokemonCenter_1F_Frlg": {
       "x": 7,

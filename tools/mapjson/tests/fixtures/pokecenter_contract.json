@@ -2512,7 +2512,7 @@
       "fullMapSemanticSha256": "2e662dbe94b8edab57d084abc34974187162c2c4063cf4c14d987642daee1cbc"
     },
     "LavenderTown_PokemonCenter_2F_Frlg": {
-      "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
+      "layout": "LAYOUT_POKEMON_CENTER_2F_FRLG",
       "music": "MUS_RG_POKE_CENTER",
       "baselineNurseGraphicsId": null,
       "warps": [
@@ -2597,7 +2597,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "14aef0d1cb2c1b9ca612a7c99fbc7b1e557867db1cca904b557143b7de38334d"
+      "fullMapSemanticSha256": "49d36e8b35ff9ba82237c58234cdc0a4dbc8e235f502b2a56dc07976e0b3927d"
     },
     "LilycoveCity_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -3901,7 +3901,7 @@
           "flag": "0"
         }
       ],
-      "localSemanticSha256": "8ee7314ac655dcc8694551fd885f9ff44c9b573823e80d6f0e638ae4f7ceaf33",
+      "localSemanticSha256": "904af9bd25effa79ff635a1bd72f864e55488df433bb8288f63d08f3f4f6d357",
       "fullMapSemanticSha256": "2a3d71a94e0e71b06fe9e677b53e498bca5b231581baed4574c6c06b49c3af15"
     },
     "PewterCity_PokemonCenter_2F_Frlg": {
