@@ -60,6 +60,52 @@ def test_valid_map_load_runs_from_settled_overworld(integrity_game):
     assert result.phase is IntegrityLoadPhase.FIELD_READY
     assert result.error is IntegrityLoadError.NONE
     assert integrity_game.map_id() == (request.map_group, request.map_num)
+    assert integrity_game.read_u32(integrity_game.address("gMain")) == (
+        integrity_game.address("CB1_Overworld") | 1
+    )
+    assert integrity_game.callback_is("CB2_Overworld")
+
+    # A terminal result must mean all cleanup is finished. Submit the next
+    # request immediately so late cleanup cannot overwrite its PENDING commit.
+    next_request = IntegrityMapLoadRequest(
+        request_id=0xF0010005,
+        map_group=0,
+        map_num=9,
+        suppress_scripts=True,
+        suppress_events=True,
+    )
+    next_result = integrity_game.request_map_load(next_request, max_frames=1_200)
+
+    assert next_result.request_id == next_request.request_id
+    assert next_result.status is IntegrityLoadStatus.SUCCESS
+    assert next_result.phase is IntegrityLoadPhase.FIELD_READY
+    assert next_result.error is IntegrityLoadError.NONE
+    assert integrity_game.callback_is("CB2_Overworld")
+
+    invalid_request = IntegrityMapLoadRequest(
+        request_id=0xF0010006,
+        map_group=0xFFFF,
+        map_num=0,
+    )
+    invalid_result = integrity_game.request_map_load(invalid_request, max_frames=120)
+    assert invalid_result.status is IntegrityLoadStatus.ERROR
+    assert invalid_result.error is IntegrityLoadError.MAP_GROUP
+
+    recovery_request = IntegrityMapLoadRequest(
+        request_id=0xF0010007,
+        map_group=0,
+        map_num=9,
+        suppress_scripts=True,
+        suppress_events=True,
+    )
+    recovery_result = integrity_game.request_map_load(
+        recovery_request, max_frames=1_200
+    )
+    assert recovery_result.request_id == recovery_request.request_id
+    assert recovery_result.status is IntegrityLoadStatus.SUCCESS
+    assert recovery_result.phase is IntegrityLoadPhase.FIELD_READY
+    assert recovery_result.error is IntegrityLoadError.NONE
+    assert integrity_game.callback_is("CB2_Overworld")
 
 
 def test_suppressed_route120_load_does_not_run_on_load_scripts(integrity_game):
