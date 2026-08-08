@@ -1,6 +1,6 @@
 # RFC: Non-story regional content-port foundation
 
-- Status: Proposed
+- Status: Approved
 - Scope: Hoenn, Kanto, Sevii, Johto, and later regional content in the sole `pokemon-openworld` ROM
 - Depends on: [Multi-region world integrity](./multi-region-world-integrity.md)
 - Extends: [PKMN-World donor adaptation](./pkmn-world-donor-adaptation.md)
