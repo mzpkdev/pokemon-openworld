@@ -216,13 +216,14 @@ def _assert_load_contract(game, entry, request, result, *, exact_field_state) ->
     assert game.read_u8(layout_address + 0x18) == LAYOUT_FORMATS[entry.layout_format]
 
     if not exact_field_state:
+        callback1 = game.read_u32(game.address("gMain"))
         callback2 = game.read_u32(game.address("gMain") + 4)
-        safe_callbacks = {
-            game.address("CB2_LoadMap") | 1,
-            game.address("CB2_Overworld") | 1,
-        }
-        assert callback2 in safe_callbacks, (
-            f"{entry.name} structural load returned through unsafe callback "
+        assert callback1 == game.address("CB1_Overworld") | 1, (
+            f"{entry.name} structural load returned before callback1 settled: "
+            f"0x{callback1:08x}"
+        )
+        assert callback2 == game.address("CB2_Overworld") | 1, (
+            f"{entry.name} structural load returned before callback2 settled: "
             f"0x{callback2:08x}"
         )
         return

@@ -517,9 +517,11 @@ build-variant-isolation-check:
 		echo "Build normal and debug symbol artifacts before checking variant isolation." >&2; \
 		exit 1; \
 	}
-	@! grep -Eq 'DebugAction_Util_Warp_SelectNamed|gDebugNamedWarpRegistryIdentity' $(FILE_NAME).sym
+	@grep -Eq 'DebugAction_Util_Warp_SelectNamedMapGroup' $(FILE_NAME).sym
+	@grep -Eq 'gDebugNamedWarpRegistryIdentity' $(FILE_NAME).sym
 	@grep -Eq 'DebugAction_Util_Warp_SelectNamedMapGroup' $(FILE_NAME)-debug.sym
 	@grep -Eq 'gDebugNamedWarpRegistryIdentity' $(FILE_NAME)-debug.sym
+	@! grep -Eq 'DebugAction_Util_Warp_Select(MapGroup|Map|Warp)$$' $(FILE_NAME).sym $(FILE_NAME)-debug.sym
 
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)

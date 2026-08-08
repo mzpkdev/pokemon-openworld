@@ -106,8 +106,8 @@ void IntegrityMapLoad_Update(void)
     error = ValidateRequest(&sRequest);
     if (error != INTEGRITY_LOAD_ERROR_NONE)
     {
-        PublishResult(INTEGRITY_LOAD_ERROR, INTEGRITY_LOAD_PHASE_VALIDATE, error);
         gIntegrityMapLoadRequest.status = INTEGRITY_LOAD_ERROR;
+        PublishResult(INTEGRITY_LOAD_ERROR, INTEGRITY_LOAD_PHASE_VALIDATE, error);
         return;
     }
 
@@ -136,12 +136,14 @@ void IntegrityMapLoad_Complete(void)
     if (!sIntegrityMapLoadActive)
         return;
 
-    IntegrityMapLoad_ReportPhase(INTEGRITY_LOAD_PHASE_FIELD_READY);
-    PublishResult(INTEGRITY_LOAD_SUCCESS, INTEGRITY_LOAD_PHASE_FIELD_READY, INTEGRITY_LOAD_ERROR_NONE);
     gIntegrityMapLoadRequest.status = INTEGRITY_LOAD_SUCCESS;
     sSuppressScripts = FALSE;
     sSuppressEvents = FALSE;
     sIntegrityMapLoadActive = FALSE;
+    // The result status is the host-visible commit. Publish it only after every
+    // request and internal field is final so a new PENDING request cannot be
+    // overwritten by cleanup from this one.
+    PublishResult(INTEGRITY_LOAD_SUCCESS, INTEGRITY_LOAD_PHASE_FIELD_READY, INTEGRITY_LOAD_ERROR_NONE);
 }
 
 bool32 IntegrityMapLoad_ShouldSuppressScripts(void)

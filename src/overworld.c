@@ -2019,6 +2019,11 @@ static void CB2_LoadMap2(void)
     SetFieldVBlankCallback();
     SetMainCallback1(CB1_Overworld);
     SetMainCallback2(CB2_Overworld);
+#ifdef DEBUG
+    // Commit FIELD_READY only after the ordinary overworld callback handoff.
+    // The host may pause on any instruction after observing a terminal result.
+    IntegrityMapLoad_Complete();
+#endif
 }
 
 void CB2_ReturnToFieldContestHall(void)
@@ -2415,9 +2420,6 @@ static bool32 LoadMapInStepsLocal(u8 *state, bool32 a2)
             (*state)++;
         break;
     case 13:
-#ifdef DEBUG
-        IntegrityMapLoad_Complete();
-#endif
         return TRUE;
     }
 

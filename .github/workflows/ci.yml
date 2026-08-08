@@ -97,7 +97,7 @@ jobs:
           make -j"$(nproc)" -O DEBUG=1
           pokemon-openworld-debug.gba pokemon-openworld-debug.sym
 
-      - name: Check normal/debug symbol isolation
+      - name: Check normal/debug shared debug-menu symbols
         run: make build-variant-isolation-check
 
       - name: Check for modified tracked files
