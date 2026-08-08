@@ -1543,8 +1543,8 @@
 #define FLAG_UNUSED_0x906                           (SYSTEM_FLAGS + 0xA6) // Unused Flag
 #define FLAG_UNUSED_0x907                           (SYSTEM_FLAGS + 0xA7) // Unused Flag
 #define FLAG_UNUSED_0x908                           (SYSTEM_FLAGS + 0xA8) // Unused Flag
-#define FLAG_UNUSED_0x909                           (SYSTEM_FLAGS + 0xA9) // Unused Flag
-#define FLAG_UNUSED_0x90A                           (SYSTEM_FLAGS + 0xAA) // Unused Flag
+#define FLAG_WORLD_MAP_ROUTE4_POKEMON_CENTER_1F     (SYSTEM_FLAGS + 0xA9)
+#define FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F    (SYSTEM_FLAGS + 0xAA)
 #define FLAG_UNUSED_0x90B                           (SYSTEM_FLAGS + 0xAB) // Unused Flag
 #define FLAG_UNUSED_0x90C                           (SYSTEM_FLAGS + 0xAC) // Unused Flag
 #define FLAG_UNUSED_0x90D                           (SYSTEM_FLAGS + 0xAD) // Unused Flag
@@ -2400,8 +2400,6 @@
 #define FLAG_WORLD_MAP_FIVE_ISLAND                                  0
 #define FLAG_WORLD_MAP_SEVEN_ISLAND                                 0
 #define FLAG_WORLD_MAP_SIX_ISLAND                                   0
-#define FLAG_WORLD_MAP_ROUTE4_POKEMON_CENTER_1F                     0
-#define FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F                    0
 #define FLAG_WORLD_MAP_VIRIDIAN_FOREST                              0
 #define FLAG_WORLD_MAP_MT_MOON_1F                                   0
 #define FLAG_WORLD_MAP_SSANNE_EXTERIOR                              0
