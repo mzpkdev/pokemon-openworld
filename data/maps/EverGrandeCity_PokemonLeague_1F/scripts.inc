@@ -12,14 +12,7 @@ EverGrandeCity_PokemonLeague_1F_EventScript_GuardsBlockDoor::
 	return
 
 EverGrandeCity_PokemonLeague_1F_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart EverGrandeCity_PokemonLeague_1F_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk EverGrandeCity_PokemonLeague_1F_Pokemart
 
 	.align 2
 EverGrandeCity_PokemonLeague_1F_Pokemart:

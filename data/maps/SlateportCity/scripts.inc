@@ -475,14 +475,7 @@ SlateportCity_EventScript_AquaGrunt11::
 	end
 
 SlateportCity_EventScript_DollClerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemartdecoration SlateportCity_PokemartDecor_Dolls
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk SlateportCity_PokemartDecor_Dolls, pokemartdecoration
 
 	.align 2
 SlateportCity_PokemartDecor_Dolls:
@@ -526,14 +519,7 @@ SlateportCity_PokemartDecor:
 	pokemartlistend
 
 SlateportCity_EventScript_PowerTMClerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart SlateportCity_Pokemart_PowerTMs
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk SlateportCity_Pokemart_PowerTMs
 
 	.align 2
 SlateportCity_Pokemart_PowerTMs:

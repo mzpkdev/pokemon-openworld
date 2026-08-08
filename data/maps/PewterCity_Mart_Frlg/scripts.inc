@@ -10,14 +10,7 @@ PewterCity_Mart_EventScript_Boy::
 	end
 
 PewterCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart PewterCity_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk PewterCity_Mart_Items
 
 	.align 2
 PewterCity_Mart_Items::

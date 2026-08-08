@@ -2142,6 +2142,18 @@
 	callstd \type
 	.endm
 
+	@ Runs the standard Pokemart clerk interaction for the given product list.
+	.macro standard_mart_clerk products:req, mart_command=pokemart
+	lock
+	faceplayer
+	message gText_HowMayIServeYou
+	waitmessage
+	\mart_command \products
+	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
+	release
+	end
+	.endm
+
 	@ Gives 'amount' of the specified 'item' to the player and prints a message with fanfare.
 	@ If the player doesn't have space for all the items then as many are added as possible, the
 	@ message indicates there is no room, and VAR_RESULT is set to FALSE.

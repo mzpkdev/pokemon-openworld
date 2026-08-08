@@ -10,14 +10,7 @@ VermilionCity_Mart_EventScript_BaldingMan::
 	end
 
 VermilionCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart VermilionCity_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk VermilionCity_Mart_Items
 
 	.align 2
 VermilionCity_Mart_Items::

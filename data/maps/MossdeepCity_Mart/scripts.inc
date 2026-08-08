@@ -2,14 +2,7 @@ MossdeepCity_Mart_MapScripts::
 	.byte 0
 
 MossdeepCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart MossdeepCity_Mart_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk MossdeepCity_Mart_Pokemart
 
 	.align 2
 MossdeepCity_Mart_Pokemart:

@@ -10,14 +10,7 @@ CinnabarIsland_Mart_EventScript_Scientist::
 	end
 
 CinnabarIsland_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart CinnabarIsland_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk CinnabarIsland_Mart_Items
 
 	.align 2
 CinnabarIsland_Mart_Items::

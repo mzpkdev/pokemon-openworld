@@ -2,14 +2,7 @@ SootopolisCity_Mart_MapScripts::
 	.byte 0
 
 SootopolisCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart SootopolisCity_Mart_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk SootopolisCity_Mart_Pokemart
 
 	.align 2
 SootopolisCity_Mart_Pokemart:

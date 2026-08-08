@@ -2,14 +2,7 @@ SlateportCity_Mart_MapScripts::
 	.byte 0
 
 SlateportCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart SlateportCity_Mart_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk SlateportCity_Mart_Pokemart
 
 	.align 2
 SlateportCity_Mart_Pokemart:

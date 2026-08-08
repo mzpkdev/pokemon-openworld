@@ -36,14 +36,7 @@ IndigoPlateau_PokemonCenter_1F_EventScript_GymGuy::
 	end
 
 IndigoPlateau_PokemonCenter_1F_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart IndigoPlateau_PokemonCenter_1F_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk IndigoPlateau_PokemonCenter_1F_Items
 
 	.align 2
 IndigoPlateau_PokemonCenter_1F_Items::

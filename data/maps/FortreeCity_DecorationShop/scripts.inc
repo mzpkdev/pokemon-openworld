@@ -10,14 +10,7 @@ FortreeCity_DecorationShop_EventScript_Girl::
 	end
 
 FortreeCity_DecorationShop_EventScript_ClerkDesks::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemartdecoration FortreeCity_DecorationShop_PokemartDecor_Desks
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk FortreeCity_DecorationShop_PokemartDecor_Desks, pokemartdecoration
 
 	.align 2
 FortreeCity_DecorationShop_PokemartDecor_Desks:
@@ -32,14 +25,7 @@ FortreeCity_DecorationShop_PokemartDecor_Desks:
 	pokemartlistend
 
 FortreeCity_DecorationShop_EventScript_ClerkChairs::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemartdecoration FortreeCity_DecorationShop_PokemartDecor_Chairs
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk FortreeCity_DecorationShop_PokemartDecor_Chairs, pokemartdecoration
 
 	.align 2
 FortreeCity_DecorationShop_PokemartDecor_Chairs:
