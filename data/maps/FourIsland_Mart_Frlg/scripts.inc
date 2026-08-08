@@ -2,14 +2,7 @@ FourIsland_Mart_Frlg_MapScripts::
 	.byte 0
 
 FourIsland_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart FourIsland_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk FourIsland_Mart_Items
 
 	.align 2
 FourIsland_Mart_Items::

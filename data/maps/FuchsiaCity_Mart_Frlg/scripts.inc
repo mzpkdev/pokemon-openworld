@@ -10,14 +10,7 @@ FuchsiaCity_Mart_EventScript_Gentleman::
 	end
 
 FuchsiaCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart FuchsiaCity_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk FuchsiaCity_Mart_Items
 
 	.align 2
 FuchsiaCity_Mart_Items::

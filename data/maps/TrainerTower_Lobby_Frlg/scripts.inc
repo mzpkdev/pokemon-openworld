@@ -108,14 +108,7 @@ TrainerTower_Lobby_EventScript_ReceptionistEnd::
 	end
 
 TrainerTower_Lobby_EventScript_MartClerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart TrainerTower_Lobby_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk TrainerTower_Lobby_Mart_Items
 
 	.align 2
 TrainerTower_Lobby_Mart_Items::

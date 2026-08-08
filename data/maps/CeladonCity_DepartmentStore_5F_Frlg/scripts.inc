@@ -14,14 +14,7 @@ CeladonCity_DepartmentStore_5F_EventScript_FloorSign::
 	end
 
 CeladonCity_DepartmentStore_5F_EventScript_ClerkXItems::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart CeladonCity_DepartmentStore_5F_XItems
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk CeladonCity_DepartmentStore_5F_XItems
 
 	.align 2
 CeladonCity_DepartmentStore_5F_XItems::
@@ -37,14 +30,7 @@ CeladonCity_DepartmentStore_5F_XItems::
 	end
 
 CeladonCity_DepartmentStore_5F_EventScript_ClerkVitamins::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart CeladonCity_DepartmentStore_5F_Vitamins
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk CeladonCity_DepartmentStore_5F_Vitamins
 
 	.align 2
 CeladonCity_DepartmentStore_5F_Vitamins::

@@ -2,14 +2,7 @@ LavaridgeTown_Mart_MapScripts::
 	.byte 0
 
 LavaridgeTown_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart LavaridgeTown_Mart_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk LavaridgeTown_Mart_Pokemart
 
 	.align 2
 LavaridgeTown_Mart_Pokemart:

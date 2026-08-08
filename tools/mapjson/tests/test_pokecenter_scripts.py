@@ -193,6 +193,22 @@ SPECIAL_1F_TRANSITION_ROWS = {
     ),
 }
 
+# This clerk is local non-Pokecenter behavior covered by the semantic digest. Its
+# source was migrated to the byte-equivalent standard mart macro, so retain the
+# reviewed expanded command stream rather than accepting arbitrary macro changes.
+APPROVED_STANDARD_MART_CLERKS = {
+    "EverGrandeCity_PokemonLeague_1F": (
+        "EverGrandeCity_PokemonLeague_1F_EventScript_Clerk",
+        "EverGrandeCity_PokemonLeague_1F_Pokemart",
+        "msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT",
+    ),
+    "IndigoPlateau_PokemonCenter_1F_Frlg": (
+        "IndigoPlateau_PokemonCenter_1F_EventScript_Clerk",
+        "IndigoPlateau_PokemonCenter_1F_Items",
+        "msgbox gText_PleaseComeAgain",
+    ),
+}
+
 
 def _reviewed_maps():
     groups = json.loads(MAP_GROUPS.read_text(encoding="utf-8"))
@@ -584,12 +600,44 @@ def _validate_excluded_sections(map_name, source, macro_source="", shared_owner=
     return invocation
 
 
+def _expand_approved_standard_mart_clerk(map_name, source):
+    approved = APPROVED_STANDARD_MART_CLERKS.get(map_name)
+    if not approved:
+        return source
+    label, products, farewell = approved
+    span = _label_section_span(source, label)
+    invocation = f"standard_mart_clerk {products}"
+    if not span or _section_lines(source, label) != (invocation, ".align 2"):
+        return source
+
+    section = source[span[0] : span[1]]
+    expanded = "\n".join(
+        (
+            "lock",
+            "faceplayer",
+            "message gText_HowMayIServeYou",
+            "waitmessage",
+            f"pokemart {products}",
+            farewell,
+            "release",
+            "end",
+        )
+    )
+    section = re.sub(
+        rf"(?m)^\s*{re.escape(invocation)}\s*$",
+        expanded,
+        section,
+        count=1,
+    )
+    return source[: span[0]] + section + source[span[1] :]
+
+
 def _normalize_local_script(map_name, source, macro_source="", shared_owner=None):
     """Build a formatting- and dialogue-insensitive semantic local contract."""
     invocation = _validate_excluded_sections(
         map_name, source, macro_source, shared_owner
     )
-    source = _active_source(source)
+    source = _expand_approved_standard_mart_clerk(map_name, _active_source(source))
     table_label = f"{map_name}_MapScripts"
     table_span = _label_section_span(source, table_label)
     transition_label = None
@@ -1889,6 +1937,52 @@ Map_OnTransition::
         self.assertFalse(_has_1f_shell(invocation, mutated))
         with self.assertRaisesRegex(AssertionError, "pokemon_center_1f_scripts"):
             _normalize_local_script("TEST_MAP", invocation, mutated)
+
+    def test_approved_standard_mart_macro_matches_expanded_clerk_digest(self):
+        map_name = "EverGrandeCity_PokemonLeague_1F"
+        label = "EverGrandeCity_PokemonLeague_1F_EventScript_Clerk"
+        products = "EverGrandeCity_PokemonLeague_1F_Pokemart"
+        expanded = f"""{label}::
+\tlock
+\tfaceplayer
+\tmessage gText_HowMayIServeYou
+\twaitmessage
+\tpokemart {products}
+\tmsgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
+\trelease
+\tend
+
+\t.align 2
+{products}:
+\t.2byte ITEM_ULTRA_BALL
+\tpokemartlistend
+"""
+        migrated = expanded.replace(
+            "\tlock\n\tfaceplayer\n\tmessage gText_HowMayIServeYou\n"
+            "\twaitmessage\n\t"
+            f"pokemart {products}\n"
+            "\tmsgbox gText_PleaseComeAgain, MSGBOX_DEFAULT\n\trelease\n\tend",
+            f"\tstandard_mart_clerk {products}",
+        )
+
+        self.assertEqual(
+            _normalize_local_script(map_name, expanded),
+            _normalize_local_script(map_name, migrated),
+        )
+        self.assertNotEqual(
+            _normalize_local_script(map_name, expanded),
+            _normalize_local_script(
+                map_name,
+                migrated.replace(
+                    f"standard_mart_clerk {products}",
+                    f"standard_mart_clerk {products}, custom_mart",
+                ),
+            ),
+        )
+        self.assertNotEqual(
+            _normalize_local_script(map_name, expanded),
+            _normalize_local_script("Unapproved_PokemonCenter_1F", migrated),
+        )
 
     def test_semantic_digest_ignores_dialogue_only_changes(self):
         before = """OldaleTown_PokemonCenter_1F_EventScript_Gentleman::

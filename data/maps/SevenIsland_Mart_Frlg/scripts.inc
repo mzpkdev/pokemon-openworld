@@ -2,14 +2,7 @@ SevenIsland_Mart_Frlg_MapScripts::
 	.byte 0
 
 SevenIsland_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart SevenIsland_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk SevenIsland_Mart_Items
 
 	.align 2
 SevenIsland_Mart_Items::

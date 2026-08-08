@@ -14,14 +14,7 @@ LilycoveCity_DepartmentStore_4F_EventScript_Youngster::
 	end
 
 LilycoveCity_DepartmentStore_4F_EventScript_ClerkLeft::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart LilycoveCity_DepartmentStore_4F_Pokemart_AttackTMs
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk LilycoveCity_DepartmentStore_4F_Pokemart_AttackTMs
 
 	.align 2
 LilycoveCity_DepartmentStore_4F_Pokemart_AttackTMs:
@@ -32,14 +25,7 @@ LilycoveCity_DepartmentStore_4F_Pokemart_AttackTMs:
 	pokemartlistend
 
 LilycoveCity_DepartmentStore_4F_EventScript_ClerkRight::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart LilycoveCity_DepartmentStore_4F_Pokemart_DefenseTMs
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk LilycoveCity_DepartmentStore_4F_Pokemart_DefenseTMs
 
 	.align 2
 LilycoveCity_DepartmentStore_4F_Pokemart_DefenseTMs:

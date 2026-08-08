@@ -10,14 +10,7 @@ CeruleanCity_Mart_EventScript_Woman::
 	end
 
 CeruleanCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart CeruleanCity_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk CeruleanCity_Mart_Items
 
 	.align 2
 CeruleanCity_Mart_Items::

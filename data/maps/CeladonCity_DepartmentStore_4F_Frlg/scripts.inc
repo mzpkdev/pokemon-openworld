@@ -14,14 +14,7 @@ CeladonCity_DepartmentStore_4F_EventScript_FloorSign::
 	end
 
 CeladonCity_DepartmentStore_4F_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart CeladonCity_DepartmentStore_4F_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk CeladonCity_DepartmentStore_4F_Items
 
 	.align 2
 CeladonCity_DepartmentStore_4F_Items::

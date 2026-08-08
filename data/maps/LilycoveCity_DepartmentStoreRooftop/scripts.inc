@@ -17,14 +17,7 @@ LilycoveCity_DepartmentStoreRooftop_EventScript_HideSaleWoman::
 	return
 
 LilycoveCity_DepartmentStoreRooftop_EventScript_SaleWoman::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemartdecoration LilycoveCity_DepartmentStoreRooftop_PokemartDecor_ClearOutSale
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk LilycoveCity_DepartmentStoreRooftop_PokemartDecor_ClearOutSale, pokemartdecoration
 
 	.align 2
 LilycoveCity_DepartmentStoreRooftop_PokemartDecor_ClearOutSale:

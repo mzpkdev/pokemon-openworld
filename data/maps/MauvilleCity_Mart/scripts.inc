@@ -2,14 +2,7 @@ MauvilleCity_Mart_MapScripts::
 	.byte 0
 
 MauvilleCity_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart MauvilleCity_Mart_Pokemart
-	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
-	release
-	end
+	standard_mart_clerk MauvilleCity_Mart_Pokemart
 
 	.align 2
 MauvilleCity_Mart_Pokemart:

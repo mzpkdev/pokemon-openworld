@@ -2,14 +2,7 @@ ThreeIsland_Mart_Frlg_MapScripts::
 	.byte 0
 
 ThreeIsland_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart ThreeIsland_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk ThreeIsland_Mart_Items
 
 	.align 2
 ThreeIsland_Mart_Items::

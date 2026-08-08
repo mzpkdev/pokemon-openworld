@@ -14,14 +14,7 @@ LavenderTown_Mart_EventScript_Youngster::
 	end
 
 LavenderTown_Mart_EventScript_Clerk::
-	lock
-	faceplayer
-	message gText_HowMayIServeYou
-	waitmessage
-	pokemart LavenderTown_Mart_Items
-	msgbox gText_PleaseComeAgain
-	release
-	end
+	standard_mart_clerk LavenderTown_Mart_Items
 
 	.align 2
 LavenderTown_Mart_Items::
