@@ -266,6 +266,7 @@ def _section_units(
         item["source"]: item["target"]
         for item in descriptor.adaptations["sectionSymbolRemaps"]
     }
+    codecs = {item.section: item for item in bindings.section_persistence_codecs}
     cache: dict[str, tuple[tuple[Path, Mapping[str, Any]], ...]] = {}
     units: list[RenderUnit] = []
     for authority in descriptor.section_metadata_authorities:
@@ -304,6 +305,11 @@ def _section_units(
             else None,
             "name": source["name"],
         }
+        codec = codecs.get(authority.section)
+        if codec is not None:
+            value["saved_location"] = codec.saved_location
+            value["met_location"] = codec.met_location
+            value["met_location_display"] = codec.met_location_display
         for field in ("x", "y", "width", "height"):
             if field in source:
                 value[field] = source[field]

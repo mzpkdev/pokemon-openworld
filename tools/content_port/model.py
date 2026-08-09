@@ -137,6 +137,14 @@ class SectionMetadataAuthority:
     source_symbol: str
 
 
+@dataclass(frozen=True, order=True)
+class SectionPersistenceCodec:
+    section: str
+    saved_location: str
+    met_location: int
+    met_location_display: str
+
+
 @dataclass(frozen=True)
 class TargetBindings:
     layout_format: str
@@ -150,6 +158,7 @@ class TargetBindings:
     time_encounter_label: str
     deferred_call_label: str
     deferred_call_text: str
+    section_persistence_codecs: tuple[SectionPersistenceCodec, ...]
 
 
 @dataclass(frozen=True)

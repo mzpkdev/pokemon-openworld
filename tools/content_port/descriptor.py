@@ -19,6 +19,7 @@ from .model import (
     GeneratedSectionPolicy,
     LayoutBinaryAuthority,
     ResourceKey,
+    SectionPersistenceCodec,
     SectionMetadataAuthority,
     TargetBindings,
 )
@@ -590,8 +591,49 @@ def _load_renderer_policy(
         "timeEncounterLabel",
         "deferredCallLabel",
         "deferredCallText",
+        "sectionPersistenceCodecs",
     }
     _exact_keys(bindings, binding_keys, bindings_pointer)
+    codecs: list[SectionPersistenceCodec] = []
+    for index, raw in enumerate(
+        _array(
+            bindings["sectionPersistenceCodecs"],
+            f"{bindings_pointer}.sectionPersistenceCodecs",
+        )
+    ):
+        item_pointer = f"{bindings_pointer}.sectionPersistenceCodecs[{index}]"
+        item = _object(raw, item_pointer)
+        _exact_keys(
+            item,
+            {"section", "savedLocation", "metLocation", "metLocationDisplay"},
+            item_pointer,
+        )
+        codecs.append(
+            SectionPersistenceCodec(
+                section=_string(item["section"], f"{item_pointer}.section"),
+                saved_location=_string(
+                    item["savedLocation"], f"{item_pointer}.savedLocation"
+                ),
+                met_location=_integer(
+                    item["metLocation"], f"{item_pointer}.metLocation"
+                ),
+                met_location_display=_string(
+                    item["metLocationDisplay"],
+                    f"{item_pointer}.metLocationDisplay",
+                ),
+            )
+        )
+    codec_sections = [codec.section for codec in codecs]
+    if len(codec_sections) != len(set(codec_sections)):
+        raise ContentPortError(
+            f"{bindings_pointer}.sectionPersistenceCodecs: duplicate section"
+        )
+    unknown_codecs = sorted(set(codec_sections) - set(allocations.sections))
+    if unknown_codecs:
+        raise ContentPortError(
+            f"{bindings_pointer}.sectionPersistenceCodecs: unknown section {unknown_codecs[0]!r}"
+        )
+
     target_bindings = TargetBindings(
         layout_format=_string(
             bindings["layoutFormat"], f"{bindings_pointer}.layoutFormat"
@@ -628,6 +670,7 @@ def _load_renderer_policy(
             bindings["deferredCallText"],
             f"{bindings_pointer}.deferredCallText",
         ),
+        section_persistence_codecs=tuple(sorted(codecs)),
     )
     return (
         tuple(sorted(layout_records)),

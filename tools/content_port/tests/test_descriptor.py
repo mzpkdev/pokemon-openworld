@@ -124,6 +124,7 @@ class DescriptorTests(unittest.TestCase):
             "timeEncounterLabel": "Test_EventScript_SetTimeEncounters",
             "deferredCallLabel": "Test_Text_DeferredCall",
             "deferredCallText": "Call again later.$",
+            "sectionPersistenceCodecs": [],
         }
         dump(root / "adaptations.json", adaptations)
         dump(root / "events.json", {"schemaVersion": 1, "entries": []})

@@ -7238,6 +7238,14 @@
     "tilesetFeatureMacro": "HAS_JOHTO_TILESETS",
     "timeEncounterLabel": "Johto_EventScript_SetTimeEncounters",
     "deferredCallLabel": "Johto_Text_DeferredElmCall",
-    "deferredCallText": "PROF. ELM will call again later.$"
+    "deferredCallText": "PROF. ELM will call again later.$",
+    "sectionPersistenceCodecs": [
+      {
+        "section": "MAPSEC_JOHTO_VICTORY_ROAD",
+        "savedLocation": "MAPSEC_VICTORY_ROAD",
+        "metLocation": 70,
+        "metLocationDisplay": "MAPSEC_VICTORY_ROAD"
+      }
+    ]
   }
 }
