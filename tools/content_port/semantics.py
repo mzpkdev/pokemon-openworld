@@ -144,7 +144,10 @@ def parse_scripts(
     root: Path | str | None = None,
     opcodes: Mapping[str, Opcode] | None = None,
 ) -> ScriptProgram:
-    base = Path(root) if root is not None else Path.cwd()
+    try:
+        base = (Path(root) if root is not None else Path.cwd()).resolve(strict=True)
+    except OSError as exc:
+        raise ContentPortError(f"{root}: invalid script root: {exc}") from exc
     pending = [Path(path) for path in paths]
     visited: set[Path] = set()
     labels: dict[str, list[Instruction]] = {}
@@ -155,7 +158,12 @@ def parse_scripts(
         path = requested if requested.is_absolute() else base / requested
         try:
             resolved = path.resolve(strict=True)
+            resolved.relative_to(base)
             text = resolved.read_text(encoding="utf-8")
+        except ValueError as exc:
+            raise ContentPortError(
+                f"{path}: script source escapes authenticated root {base}"
+            ) from exc
         except OSError as exc:
             raise ContentPortError(
                 f"{path}: cannot read script include: {exc}"
@@ -163,23 +171,36 @@ def parse_scripts(
         if resolved in visited:
             continue
         visited.add(resolved)
-        display = (
-            resolved.relative_to(base.resolve()).as_posix()
-            if resolved.is_relative_to(base.resolve())
-            else resolved.as_posix()
-        )
+        display = resolved.relative_to(base).as_posix()
         for line_number, raw in enumerate(text.splitlines(), 1):
             include = INCLUDE_RE.match(raw)
             if include:
                 include_path = Path(include.group(1))
-                if not include_path.is_absolute():
-                    root_candidate = base / include_path
-                    include_path = (
-                        root_candidate
-                        if root_candidate.exists()
-                        else resolved.parent / include_path
+                if include_path.is_absolute() or ".." in include_path.parts:
+                    raise ContentPortError(
+                        f"{display}:{line_number}: unsafe script include "
+                        f"{include.group(1)!r}"
                     )
-                pending.append(include_path)
+                root_candidate = base / include_path
+                candidate = (
+                    root_candidate
+                    if root_candidate.exists()
+                    else resolved.parent / include_path
+                )
+                try:
+                    lexical = candidate.absolute()
+                    included = candidate.resolve(strict=True)
+                    included.relative_to(base)
+                except (OSError, ValueError) as exc:
+                    raise ContentPortError(
+                        f"{display}:{line_number}: script include escapes "
+                        "authenticated root"
+                    ) from exc
+                if lexical != included:
+                    raise ContentPortError(
+                        f"{display}:{line_number}: script include traverses a symlink"
+                    )
+                pending.append(included)
                 continue
             stripped = _strip_comment(raw).strip()
             if not stripped:

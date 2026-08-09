@@ -105,6 +105,7 @@ class SourceContext:
         loaders: Mapping[str, RecordLoader] | None = None,
         aliases: Mapping[ResourceKey, ResourceKey] | None = None,
         active_capabilities: Iterable[str] | None = None,
+        resource_capabilities: Mapping[ResourceKey, Iterable[str]] | None = None,
     ) -> None:
         self._records = dict(records or {})
         self._loaders = dict(loaders or {})
@@ -112,11 +113,17 @@ class SourceContext:
         self._active_capabilities = (
             None if active_capabilities is None else frozenset(active_capabilities)
         )
+        self._resource_capabilities = {
+            key: frozenset(value)
+            for key, value in (resource_capabilities or {}).items()
+        }
 
     def canonicalize(self, key: ResourceKey) -> ResourceKey:
         return self._aliases.get(key, key)
 
-    def supports(self, capability: str) -> bool:
+    def supports(self, capability: str, key: ResourceKey | None = None) -> bool:
+        if key is not None and key in self._resource_capabilities:
+            return capability in self._resource_capabilities[key]
         return (
             self._active_capabilities is None or capability in self._active_capabilities
         )
@@ -200,6 +207,48 @@ class ExpansionSourceContext(SourceContext):
                             {}, Provenance(script_path.as_posix(), f":{line_number}")
                         ),
                     )
+
+        trainer_path = root / "src/data/trainers.h"
+        party_path = root / "src/data/trainer_parties.h"
+        if party_path.is_file():
+            text = party_path.read_text(encoding="utf-8")
+            for match in re.finditer(
+                r"static\s+const\s+struct\s+\w+\s+(sParty_[A-Za-z0-9_]+)\[\]",
+                text,
+            ):
+                records[ResourceKey("party", match.group(1))] = SourceRecord(
+                    {"members": []},
+                    Provenance(party_path.as_posix(), f":{match.start()}"),
+                )
+        if trainer_path.is_file():
+            text = trainer_path.read_text(encoding="utf-8")
+            starts = list(
+                re.finditer(r"^\s*\[(TRAINER_[A-Za-z0-9_]+)\]\s*=", text, re.MULTILINE)
+            )
+            for index, match in enumerate(starts):
+                end = (
+                    starts[index + 1].start() if index + 1 < len(starts) else len(text)
+                )
+                block = text[match.start() : end]
+                party = re.search(r"\b(sParty_[A-Za-z0-9_]+)\b", block)
+                records[ResourceKey("trainer", match.group(1))] = SourceRecord(
+                    {"parties": [party.group(1)] if party else []},
+                    Provenance(trainer_path.as_posix(), f":{match.start()}"),
+                )
+        encounters_path = root / "src/data/wild_encounters.json"
+        if encounters_path.is_file():
+            document = json.loads(encounters_path.read_text(encoding="utf-8"))
+            for group in document.get("wild_encounter_groups", []):
+                for index, encounter in enumerate(group.get("encounters", [])):
+                    if not isinstance(encounter, Mapping):
+                        continue
+                    name = encounter.get("base_label") or encounter.get("map")
+                    map_name = encounter.get("map")
+                    if isinstance(name, str) and isinstance(map_name, str):
+                        records[ResourceKey("encounter", name)] = SourceRecord(
+                            {"maps": [map_name]},
+                            Provenance(encounters_path.as_posix(), f"/{name}/{index}"),
+                        )
 
         layouts_path = root / "data/layouts/layouts.json"
         if layouts_path.exists():
@@ -335,7 +384,7 @@ def extract_map_edges(
     candidates: list[SourceEdge | None] = [
         _edge(key, "layout", value.get("layout"), record, "/layout"),
         _edge(key, "encounter", value.get("encounter"), record, "/encounter")
-        if context.supports("encounters")
+        if context.supports("encounters", key)
         else None,
     ]
     for index, connection in enumerate(_array(record, "connections")):
@@ -364,7 +413,7 @@ def extract_map_edges(
                     role="warp",
                 )
             )
-    if not context.supports("events"):
+    if not context.supports("events", key):
         return tuple(edge for edge in candidates if edge is not None)
     for collection in ("object_events", "coord_events", "bg_events"):
         for index, event in enumerate(_array(record, collection)):
@@ -411,23 +460,32 @@ def extract_layout_edges(
 ) -> Iterable[SourceEdge]:
     del context
     candidates: list[SourceEdge | None] = []
+    authorities = record.value.get("_asset_authorities", {})
     for field_name in ("primary_tileset", "secondary_tileset"):
+        asset = record.value.get(field_name)
+        role = authorities.get(field_name) if isinstance(authorities, Mapping) else None
+        if isinstance(asset, str) and isinstance(role, str):
+            asset = f"{role}:{asset}"
         candidates.append(
             _edge(
                 key,
                 "asset",
-                record.value.get(field_name),
+                asset,
                 record,
                 f"/{field_name}",
                 role="tileset",
             )
         )
     for field_name in ("border_filepath", "blockdata_filepath"):
+        asset = record.value.get(field_name)
+        role = authorities.get(field_name) if isinstance(authorities, Mapping) else None
+        if isinstance(asset, str) and isinstance(role, str):
+            asset = f"{role}:{asset}"
         candidates.append(
             _edge(
                 key,
                 "asset",
-                record.value.get(field_name),
+                asset,
                 record,
                 f"/{field_name}",
                 role="layout-data",
@@ -886,11 +944,26 @@ def resolve_port_sources(
         except ContentPortError as exc:
             role = "mechanical fallback" if name in fallback else "content authority"
             raise ContentPortError(f"{role} map {name}: {exc}") from exc
-        document = _thaw(record.value)
+        selected_record = record
+        selected_role = "mechanical" if name in fallback else "content"
+        if descriptor.map_ownership[name] == "preserve":
+            target_path = target_root / "data" / "maps" / name / "map.json"
+            if target_path.is_symlink():
+                raise ContentPortError(
+                    f"preserved target map {name} must not be a symbolic link"
+                )
+            try:
+                selected_record = json_record(target_path)
+            except ContentPortError as error:
+                raise ContentPortError(
+                    f"preserved target map {name} is unavailable: {error}"
+                ) from error
+            selected_role = "target"
+        document = _thaw(selected_record.value)
         selected_maps[name] = document
-        map_authorities[name] = "mechanical" if name in fallback else "content"
+        map_authorities[name] = selected_role
         canonical = ResourceKey("map", name)
-        source_records[canonical] = SourceRecord(document, record.provenance)
+        source_records[canonical] = SourceRecord(document, selected_record.provenance)
         map_id = document.get("id")
         if isinstance(map_id, str):
             aliases[ResourceKey("map", map_id)] = canonical
@@ -920,7 +993,13 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{name}/{path}: mechanical adaptation evidence drift"
             )
-        _set_path(selected_maps[name], path, decision[mechanical_field])
+        if descriptor.map_ownership[name] == "preserve":
+            if _path_value(selected_maps[name], path) != decision[mechanical_field]:
+                raise ContentPortError(
+                    f"{name}/{path}: preserved target map differs from reviewed state"
+                )
+        else:
+            _set_path(selected_maps[name], path, decision[mechanical_field])
 
     # Map-field decisions are renderer inputs, so authenticate every declared
     # donor value here before the selected authority can affect desired state.
@@ -952,7 +1031,52 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{name}/{path}: unknown map-field authority {authority_role}"
             )
-        _set_path(selected_maps[name], path, decision[policy_field])
+        if descriptor.map_ownership[name] == "preserve":
+            if _path_value(selected_maps[name], path) != decision[policy_field]:
+                raise ContentPortError(
+                    f"{name}/{path}: preserved target map differs from reviewed state"
+                )
+        else:
+            _set_path(selected_maps[name], path, decision[policy_field])
+
+    # Reindexes are part of resolved topology, not a renderer-side mutation.
+    reindex_identities = [
+        (decision["source"], decision["path"])
+        for decision in adaptations["warpReindexes"]
+    ]
+    if len(reindex_identities) != len(set(reindex_identities)):
+        raise ContentPortError("duplicate warp reindex identity")
+    for decision in adaptations["warpReindexes"]:
+        name = decision["source"]
+        path = decision["path"]
+        if name not in selected_maps:
+            raise ContentPortError(f"warp reindex names unknown map {name}")
+        try:
+            current = _path_value(selected_maps[name], path)
+        except (KeyError, IndexError, TypeError) as error:
+            raise ContentPortError(
+                f"{name}/{path}: warp reindex path is invalid"
+            ) from error
+        if descriptor.map_ownership[name] == "preserve":
+            if current != decision["to"]:
+                raise ContentPortError(
+                    f"{name}/{path}: preserved target map lacks reviewed warp reindex"
+                )
+        else:
+            _set_path(selected_maps[name], path, decision["to"])
+
+    for name, document in selected_maps.items():
+        allocation = descriptor.allocation_index.map_allocation(name)
+        for field_name, expected in (
+            ("id", allocation.map_id),
+            ("layout", allocation.layout),
+            ("region_map_section", allocation.section),
+        ):
+            if document.get(field_name) != expected:
+                raise ContentPortError(
+                    f"{name}/{field_name}: resolved map binding differs from "
+                    "allocation authority"
+                )
 
     # Validate the authored retained/deferred inventory against the adapted maps
     # before reviewed removals are applied.
@@ -981,6 +1105,16 @@ def resolve_port_sources(
             f"reviewed world edge drift: unexpected={unexpected[:1]} stale={stale[:1]}"
         )
 
+    removal_identities = [
+        (removal["source"], removal["path"]) for removal in adaptations["warpRemovals"]
+    ]
+    if len(removal_identities) != len(set(removal_identities)):
+        raise ContentPortError("duplicate warp removal identity")
+    deferred_identities = [
+        (item["source"], item["path"]) for item in adaptations["deferredEdges"]
+    ]
+    if len(deferred_identities) != len(set(deferred_identities)):
+        raise ContentPortError("duplicate deferred edge identity")
     warp_removals_by_map: dict[str, set[int]] = {}
     for removal in adaptations["warpRemovals"]:
         name = removal["source"]
@@ -1229,17 +1363,37 @@ def resolve_port_sources(
         # The graph identity remains the authenticated donor asset. The target
         # renderer binding is validated below without replacing source authority.
 
-    source_records.update(
-        {ResourceKey("layout", key): value for key, value in selected_layouts.items()}
+    asset_fields = (
+        "primary_tileset",
+        "secondary_tileset",
+        "border_filepath",
+        "blockdata_filepath",
     )
-    for authority in (content, mechanical):
-        source_records.update(
-            {
-                key: record
-                for key, record in authority._records.items()
-                if key.domain == "asset"
-            }
+    for layout_id, record in selected_layouts.items():
+        graph_layout = _thaw(record.value)
+        graph_layout["_asset_authorities"] = {
+            field_name: layout_field_authorities[layout_id][field_name]
+            for field_name in asset_fields
+        }
+        source_records[ResourceKey("layout", layout_id)] = SourceRecord(
+            graph_layout, record.provenance
         )
+        for field_name in asset_fields:
+            asset_name = str(record.value[field_name])
+            authority_role = layout_field_authorities[layout_id][field_name]
+            qualified_key = ResourceKey("asset", f"{authority_role}:{asset_name}")
+            if qualified_key in source_records:
+                continue
+            try:
+                asset_record = contexts[authority_role].load(
+                    ResourceKey("asset", asset_name)
+                )
+            except ContentPortError as error:
+                raise ContentPortError(
+                    f"{layout_id}/{field_name}: asset is absent from its reviewed "
+                    f"{authority_role} donor"
+                ) from error
+            source_records[qualified_key] = asset_record
     # Renderer bindings are authored policy. Installed generated headers are
     # outputs and must never become authority for their own desired state.
     policy_tilesets = {
@@ -1258,6 +1412,18 @@ def resolve_port_sources(
         for decision in descriptor.capabilities
         if decision.state == CapabilityState.ENABLED
     )
+    enabled_by_map: dict[str, set[str]] = {}
+    for decision in enabled:
+        enabled_by_map.setdefault(decision.map_name, set()).add(decision.capability)
+    semantic_domains = ("trainer", "party", "encounter", "service")
+    for domain in semantic_domains:
+        source_records.update(
+            {
+                key: record
+                for key, record in content._records.items()
+                if key.domain == domain
+            }
+        )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
     explicit_dependencies = {
@@ -1282,6 +1448,19 @@ def resolve_port_sources(
         key = ResourceKey("capability", f"{decision.map_name}/{decision.capability}")
         references: dict[str, list[str]] = {"map": [decision.map_name]}
         for dependency in decision.dependencies:
+            required_capability = {
+                "trainer": "trainers",
+                "party": "trainers",
+                "encounter": "encounters",
+            }.get(dependency.domain)
+            if (
+                required_capability is not None
+                and required_capability not in enabled_by_map[decision.map_name]
+            ):
+                raise ContentPortError(
+                    f"{decision.map_name}: dependency {dependency} belongs to "
+                    f"disabled capability {required_capability}"
+                )
             references.setdefault(dependency.domain, []).append(dependency.name)
         source_records[key] = SourceRecord(
             {"references": references},
@@ -1291,14 +1470,35 @@ def resolve_port_sources(
             ),
         )
         capability_roots.append(key)
+    event_capabilities = {
+        decision.capability for decision in descriptor.capabilities
+    } - {
+        "spatial",
+        "encounters",
+        "environment-assets",
+    }
+    resource_capabilities = {
+        ResourceKey("map", name): (
+            ({"encounters"} if "encounters" in capabilities else set())
+            | ({"events"} if capabilities & event_capabilities else set())
+        )
+        for name, capabilities in enabled_by_map.items()
+    }
     context = SourceContext(
-        source_records, aliases=aliases, active_capabilities=("spatial",)
+        source_records, aliases=aliases, resource_capabilities=resource_capabilities
     )
     graph = build_source_graph(context, capability_roots)
     enabled_spatial_maps = {
         decision.map_name for decision in enabled if decision.capability == "spatial"
     }
     allowed: set[ResourceKey] = set(capability_roots) | explicit_dependencies
+    pending_explicit = list(explicit_dependencies)
+    while pending_explicit:
+        dependency = pending_explicit.pop()
+        for child in graph.dependencies.get(dependency, ()):
+            if child not in allowed:
+                allowed.add(child)
+                pending_explicit.append(child)
     allowed.update(ResourceKey("map", name) for name in enabled_spatial_maps)
     for name in enabled_spatial_maps:
         layout_key = ResourceKey("layout", str(selected_maps[name]["layout"]))
@@ -1310,9 +1510,23 @@ def resolve_port_sources(
             "border_filepath",
             "blockdata_filepath",
         ):
-            asset = _key("asset", layout.value.get(field_name))
+            raw_asset = layout.value.get(field_name)
+            authority_role = layout_field_authorities[layout_key.name][field_name]
+            asset = _key(
+                "asset",
+                f"{authority_role}:{raw_asset}" if isinstance(raw_asset, str) else None,
+            )
             if asset is not None:
                 allowed.add(asset)
+    enabled_domain_names: set[str] = set()
+    for capabilities in enabled_by_map.values():
+        if "encounters" in capabilities:
+            enabled_domain_names.add("encounter")
+        if "trainers" in capabilities:
+            enabled_domain_names.update(("trainer", "party", "asset"))
+        if capabilities & event_capabilities:
+            enabled_domain_names.update(("service", "binding", "asset"))
+    allowed.update(key for key in graph.resources if key.domain in enabled_domain_names)
     closure = close_source_graph(graph, capability_roots, frozenset(allowed))
 
     rendered_graph = world_graph_from_maps(selected_maps)
@@ -1320,9 +1534,12 @@ def resolve_port_sources(
     if not isinstance(world_policy, dict) or set(world_policy) != {
         "roots",
         "unreachableShells",
+        "gateways",
+        "dynamicWarps",
     }:
         raise ContentPortError(
-            "worldPolicy requires exact roots and unreachableShells arrays"
+            "worldPolicy requires exact roots, unreachableShells, gateways, and "
+            "dynamicWarps arrays"
         )
     if not all(isinstance(item, str) and item for item in world_policy["roots"]):
         raise ContentPortError("worldPolicy.roots must contain map names")
@@ -1355,17 +1572,62 @@ def resolve_port_sources(
         )
         in reviewed_retained
     )
-    dynamic_warps = {
+    observed_dynamic_warps = {
         edge.key: str(edge.target_warp)
         for edge in rendered_graph.edges
         if edge.kind == "warp" and not isinstance(edge.target_warp, int)
     }
+    declared_dynamic_warps: dict[str, str] = {}
+    for index, item in enumerate(world_policy["dynamicWarps"]):
+        if not isinstance(item, dict) or set(item) != {"source", "index", "token"}:
+            raise ContentPortError(
+                f"worldPolicy.dynamicWarps/{index}: malformed dynamic warp"
+            )
+        key = f"{item['source']}:warp:{item['index']}"
+        if key in declared_dynamic_warps:
+            raise ContentPortError("duplicate dynamic warp declaration")
+        declared_dynamic_warps[key] = str(item["token"])
+    if declared_dynamic_warps != observed_dynamic_warps:
+        raise ContentPortError("dynamic warp policy differs from resolved topology")
+    gateway_keys: set[str] = set()
+    for index, item in enumerate(world_policy["gateways"]):
+        if not isinstance(item, dict) or set(item) != {
+            "source",
+            "destination",
+            "kind",
+            "index",
+            "sourceRegion",
+            "targetRegion",
+        }:
+            raise ContentPortError(f"worldPolicy.gateways/{index}: malformed gateway")
+        matches = [
+            edge
+            for edge in rendered_graph.edges
+            if edge.source == item["source"]
+            and edge.target == item["destination"]
+            and edge.kind == item["kind"]
+            and edge.index == item["index"]
+        ]
+        if len(matches) != 1:
+            raise ContentPortError(
+                f"worldPolicy.gateways/{index}: stale gateway declaration"
+            )
+        edge = matches[0]
+        if (
+            rendered_graph.maps[edge.source].region != item["sourceRegion"]
+            or rendered_graph.maps[edge.target].region != item["targetRegion"]
+        ):
+            raise ContentPortError(
+                f"worldPolicy.gateways/{index}: gateway region evidence drift"
+            )
+        gateway_keys.add(edge.key)
     validate_world_graph(
         rendered_graph,
         WorldPolicy(
             reviewed_one_way=reviewed_one_way,
             deferred_exits=deferred_dynamic,
-            dynamic_warps=dynamic_warps,
+            dynamic_warps=declared_dynamic_warps,
+            inter_region_gateways=frozenset(gateway_keys),
             roots=frozenset(world_policy["roots"]),
             unreachable_shells=frozenset(world_policy["unreachableShells"])
             | frozenset(

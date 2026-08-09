@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 import os
 import json
+import shutil
 import tempfile
 from dataclasses import replace
 from pathlib import Path
@@ -146,11 +147,32 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("pokemonHnS donor checkout is not present")
         root = donor_root / "pokemonHnS"
         context = ExpansionSourceContext(
-            root, persistent_ledger="src/data/persistence/persistent_ids.json"
+            root,
+            capabilities={
+                "domain-test": {
+                    "references": {
+                        "trainer": ["TRAINER_SAWYER_1"],
+                        "encounter": ["gRoute29"],
+                        "service": ["NewBarkTown_OnTransition"],
+                    }
+                }
+            },
+            persistent_ledger="src/data/persistence/persistent_ids.json",
+            active_capabilities=("spatial", "encounters"),
         )
         graph = build_source_graph(context, [ResourceKey("map", "NewBarkTown")])
         self.assertIn(ResourceKey("layout", "LAYOUT_NEW_BARK_TOWN"), graph.resources)
         self.assertIn(ResourceKey("map", "Route29"), graph.resources)
+        domain_graph = build_source_graph(
+            context, [ResourceKey("capability", "domain-test")]
+        )
+        for key in (
+            ResourceKey("trainer", "TRAINER_SAWYER_1"),
+            ResourceKey("party", "sParty_Sawyer1"),
+            ResourceKey("encounter", "gRoute29"),
+            ResourceKey("service", "NewBarkTown_OnTransition"),
+        ):
+            self.assertIn(key, domain_graph.resources)
 
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,
@@ -169,6 +191,19 @@ class SourceGraphTests(unittest.TestCase):
             state.layout_authorities["LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"],
             "mechanical",
         )
+        content_root = descriptor.donors_by_role["content"].root.resolve()
+        for layout_name in (
+            "LAYOUT_NEW_BARK_TOWN",
+            "LAYOUT_AZALEA_TOWN",
+        ):
+            layout = state.layouts[layout_name]
+            for field_name in ("border_filepath", "blockdata_filepath"):
+                asset = ResourceKey("asset", f"content:{layout[field_name]}")
+                provenance = state.resources[asset]
+                self.assertTrue(Path(provenance.path).is_relative_to(content_root))
+                self.assertNotIn(
+                    ResourceKey("asset", str(layout[field_name])), state.resources
+                )
         overlapping = "LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"
         for donor_name in ("pokemonHnS", "PKMN-World"):
             context = ExpansionSourceContext(donor_root / donor_name)
@@ -308,11 +343,37 @@ class SourceGraphTests(unittest.TestCase):
                 replace(descriptor, adaptations=adaptations), Path(".")
             )
 
+        for collection, message in (
+            ("warpRemovals", "duplicate warp removal"),
+            ("deferredEdges", "duplicate deferred edge"),
+        ):
+            adaptations = self._mutable(descriptor.adaptations)
+            adaptations[collection].append(dict(adaptations[collection][0]))
+            with self.assertRaisesRegex(ContentPortError, message):
+                validate_port_sources(
+                    replace(descriptor, adaptations=adaptations), Path(".")
+                )
+
         decisions = list(descriptor.capabilities)
         decisions[0] = replace(
             decisions[0], dependencies=(ResourceKey("binding", "FLAG_NOT_ALLOCATED"),)
         )
         with self.assertRaisesRegex(ContentPortError, "FLAG_NOT_ALLOCATED"):
+            validate_port_sources(
+                replace(descriptor, capabilities=tuple(decisions)), Path(".")
+            )
+
+        decisions = list(descriptor.capabilities)
+        spatial_index = next(
+            index
+            for index, decision in enumerate(decisions)
+            if decision.capability == "spatial"
+        )
+        decisions[spatial_index] = replace(
+            decisions[spatial_index],
+            dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
+        )
+        with self.assertRaisesRegex(ContentPortError, "disabled capability trainers"):
             validate_port_sources(
                 replace(descriptor, capabilities=tuple(decisions)), Path(".")
             )
@@ -362,9 +423,30 @@ class SourceGraphTests(unittest.TestCase):
                 Path("src/data/persistence/persistent_ids.json").read_text()
             )
             ledger_target.write_text(json.dumps(ledger), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ContentPortError, "preserved target map NewBarkTown is unavailable"
+            ):
+                validate_port_sources(descriptor, target)
+            for name, ownership in descriptor.map_ownership.items():
+                if ownership != "preserve":
+                    continue
+                source_map = Path("data/maps") / name / "map.json"
+                target_map = target / source_map
+                target_map.parent.mkdir(parents=True)
+                shutil.copyfile(source_map, target_map)
             self.assertEqual(
                 validate_port_sources(descriptor, target).inventory["tilesets"], 71
             )
+            new_bark = target / "data/maps/NewBarkTown/map.json"
+            original_new_bark = new_bark.read_bytes()
+            broken_map = json.loads(original_new_bark)
+            broken_map["warp_events"][0]["dest_map"] = "MAP_MISSING_TARGET"
+            new_bark.write_text(json.dumps(broken_map), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ContentPortError, "reviewed world edge drift|MISSING_TARGET"
+            ):
+                validate_port_sources(descriptor, target)
+            new_bark.write_bytes(original_new_bark)
             corrupt_header = target / "src/data/tilesets/headers.h"
             corrupt_header.parent.mkdir(parents=True)
             corrupt_header.write_text("corrupt generated output\n", encoding="utf-8")
@@ -456,6 +538,175 @@ class SourceGraphTests(unittest.TestCase):
             self.assertEqual(
                 rendered[name]["warp_events"], list(state.maps[name]["warp_events"])
             )
+
+    def test_warp_reindexes_are_graph_validated_and_rendered_once(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        adaptations = self._mutable(descriptor.adaptations)
+        reindex = {
+            "source": "EcruteakCity",
+            "path": "warp_events/0/dest_warp_id",
+            "to": 999,
+        }
+        adaptations["warpReindexes"] = [reindex, dict(reindex)]
+        with self.assertRaisesRegex(ContentPortError, "duplicate warp reindex"):
+            resolve_port_sources(
+                replace(descriptor, adaptations=adaptations, legacy_report=None),
+                Path("."),
+            )
+        adaptations["warpReindexes"] = [reindex]
+        with self.assertRaisesRegex(ContentPortError, "out of bounds"):
+            resolve_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
+
+        reindex["to"] = 1
+        _, state = resolve_port_sources(
+            replace(descriptor, adaptations=adaptations), Path(".")
+        )
+        self.assertEqual(
+            state.maps["EcruteakCity"]["warp_events"][0]["dest_warp_id"], 1
+        )
+
+        from tools.content_port.materialize import _map_units
+
+        renderer_policy = self._mutable(adaptations)
+        renderer_policy["warpReindexes"][0]["to"] = 999
+        rendered = next(
+            unit.value
+            for unit in _map_units(
+                replace(descriptor, adaptations=renderer_policy), state
+            )
+            if unit.key == "map:EcruteakCity"
+        )
+        self.assertEqual(
+            rendered["warp_events"], list(state.maps["EcruteakCity"]["warp_events"])
+        )
+
+    def test_dynamic_warps_require_exact_authored_metadata(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        adaptations = self._mutable(descriptor.adaptations)
+        source = "GoldenrodCity_DepartmentStoreElevator"
+        adaptations["warpRemovals"] = [
+            item for item in adaptations["warpRemovals"] if item["source"] != source
+        ]
+        dynamic_edge = next(
+            item for item in adaptations["deferredEdges"] if item["source"] == source
+        )
+        adaptations["deferredEdges"].remove(dynamic_edge)
+        adaptations["retainedEdges"].append(dynamic_edge)
+        with self.assertRaisesRegex(ContentPortError, "dynamic warp policy"):
+            resolve_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
+        adaptations["worldPolicy"]["dynamicWarps"] = [
+            {"source": source, "index": 0, "token": "WARP_ID_DYNAMIC"}
+        ]
+        resolve_port_sources(
+            replace(descriptor, adaptations=adaptations, legacy_report=None), Path(".")
+        )
+        adaptations["worldPolicy"]["dynamicWarps"][0]["token"] = "WRONG_TOKEN"
+        with self.assertRaisesRegex(ContentPortError, "dynamic warp policy"):
+            resolve_port_sources(
+                replace(descriptor, adaptations=adaptations, legacy_report=None),
+                Path("."),
+            )
+
+    def test_gateway_policy_binds_edges_and_regions(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        content_root = descriptor.donors_by_role["content"].root.resolve()
+        real_context = ExpansionSourceContext
+
+        def regional_context(root, **kwargs):
+            context = real_context(root, **kwargs)
+            if Path(root).resolve() == content_root:
+                for name, region in (
+                    ("EcruteakCity", "REGION_A"),
+                    ("Gate_EcruteakCity_Route38", "REGION_B"),
+                ):
+                    key = ResourceKey("map", name)
+                    record = context._records[key]
+                    value = self._mutable(record.value)
+                    value["region"] = region
+                    context._records[key] = SourceRecord(value, record.provenance)
+            return context
+
+        with patch(
+            "tools.content_port.sources.ExpansionSourceContext",
+            side_effect=regional_context,
+        ):
+            with self.assertRaisesRegex(ContentPortError, "declared gateway"):
+                resolve_port_sources(descriptor, Path("."))
+            adaptations = self._mutable(descriptor.adaptations)
+            adaptations["worldPolicy"]["gateways"] = [
+                {
+                    "source": "EcruteakCity",
+                    "destination": "Gate_EcruteakCity_Route38",
+                    "kind": "warp",
+                    "index": 0,
+                    "sourceRegion": "REGION_A",
+                    "targetRegion": "REGION_B",
+                },
+                {
+                    "source": "Gate_EcruteakCity_Route38",
+                    "destination": "EcruteakCity",
+                    "kind": "warp",
+                    "index": 0,
+                    "sourceRegion": "REGION_B",
+                    "targetRegion": "REGION_A",
+                },
+            ]
+            resolve_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
+            adaptations["worldPolicy"]["gateways"][0]["destination"] = "Typo"
+            with self.assertRaisesRegex(ContentPortError, "stale gateway"):
+                resolve_port_sources(
+                    replace(descriptor, adaptations=adaptations), Path(".")
+                )
+
+    def test_map_bindings_must_match_allocation_authority(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        content_root = descriptor.donors_by_role["content"].root.resolve()
+        real_context = ExpansionSourceContext
+        for field_name, replacement_value in (
+            ("id", "MAP_AZALEA_TOWN"),
+            ("layout", "LAYOUT_AZALEA_TOWN"),
+            ("region_map_section", "MAPSEC_AZALEA_TOWN"),
+        ):
+            with self.subTest(field=field_name):
+
+                def drifted_context(root, **kwargs):
+                    context = real_context(root, **kwargs)
+                    if Path(root).resolve() == content_root:
+                        key = ResourceKey("map", "EcruteakCity")
+                        record = context._records[key]
+                        value = self._mutable(record.value)
+                        value[field_name] = replacement_value
+                        context._records[key] = SourceRecord(value, record.provenance)
+                    return context
+
+                with (
+                    patch(
+                        "tools.content_port.sources.ExpansionSourceContext",
+                        side_effect=drifted_context,
+                    ),
+                    self.assertRaisesRegex(ContentPortError, "allocation authority"),
+                ):
+                    resolve_port_sources(descriptor, Path("."))
 
 
 if __name__ == "__main__":

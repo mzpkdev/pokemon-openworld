@@ -44,6 +44,31 @@ class SemanticsTests(unittest.TestCase):
         ):
             analyze_entry(program, "Entry")
 
+    def test_includes_cannot_escape_authenticated_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            root = parent / "donor"
+            root.mkdir()
+            external = parent / "external.inc"
+            external.write_text("External::\n end\n", encoding="utf-8")
+            main = root / "main.inc"
+            cases = {
+                "parent": "../external.inc",
+                "absolute": external.as_posix(),
+                "symlink": "external-link.inc",
+            }
+            (root / "external-link.inc").symlink_to(external)
+            for label, include in cases.items():
+                with self.subTest(label=label):
+                    main.write_text(
+                        f'.include "{include}"\nEntry::\n end\n', encoding="utf-8"
+                    )
+                    with self.assertRaisesRegex(
+                        ContentPortError,
+                        "unsafe script include|authenticated root|symlink",
+                    ):
+                        parse_scripts([main], root=root)
+
     def test_effect_ownership_is_exact_and_story_rejected(self) -> None:
         program = self._program("Entry::\n setflag FLAG_STORY\n end\n")
         effect = analyze_entry(program, "Entry")
