@@ -127,17 +127,25 @@ TEST("Pokemon met-location serialization preserves compact codes and special ori
     EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), metLocation);
     EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_LITTLEROOT_TOWN);
 
+    metLocation = EncodeMetLocation(MAPSEC_JOHTO_VICTORY_ROAD);
+    SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), EncodeMetLocation(MAPSEC_VICTORY_ROAD));
+    EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_VICTORY_ROAD);
+
     metLocation = METLOC_SPECIAL_EGG;
     SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
     EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_SPECIAL_EGG);
+    EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_INVALID);
 
     metLocation = METLOC_IN_GAME_TRADE;
     SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
     EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_IN_GAME_TRADE);
+    EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_INVALID);
 
     metLocation = METLOC_FATEFUL_ENCOUNTER;
     SetMonData(&mon, MON_DATA_MET_LOCATION, &metLocation);
     EXPECT_EQ(GetMonData(&mon, MON_DATA_MET_LOCATION), METLOC_FATEFUL_ENCOUNTER);
+    EXPECT_EQ(DecodeMetLocation(metLocation), MAPSEC_INVALID);
 }
 
 TEST("Hyper Training increases stats without affecting IVs")

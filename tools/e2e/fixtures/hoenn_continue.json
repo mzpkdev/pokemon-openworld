@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "file": "hoenn_continue.sav",
+    "sha256": "b912fe76db8fd2e2858aba3c719208121a3546e2c7eecfb2729b19688f7a6605",
+    "sourceCommit": "135b32ca92"
+  },
+  "review": {
+    "method": "Direct parsing of the source-commit fixture's complete valid flash slot; expectations were recorded independently of the task build.",
+    "playerName": "MAY",
+    "sourcePlayTime": {"hours": 0, "minutes": 0, "seconds": 19}
+  },
+  "semanticExpectations": {
+    "identity": {
+      "playerNameEncodedHex": "c7bbd3ff00000000",
+      "gender": 1,
+      "trainerIdHex": "0000247d"
+    },
+    "checkpoint": {
+      "position": [10, 10],
+      "locationHex": "0009ff00ffffffff",
+      "continueWarpHex": "0000000000000000"
+    },
+    "story": {
+      "flags": {
+        "FLAG_RESCUED_BIRCH": false,
+        "FLAG_ADVENTURE_STARTED": false,
+        "FLAG_DEFEATED_RIVAL_ROUTE103": false,
+        "FLAG_SYS_POKEMON_GET": false,
+        "FLAG_SYS_POKEDEX_GET": false,
+        "FLAG_RECEIVED_POKEDEX_FROM_BIRCH": false
+      },
+      "vars": {
+        "VAR_LITTLEROOT_TOWN_STATE": 0,
+        "VAR_OLDALE_TOWN_STATE": 0,
+        "VAR_ROUTE101_STATE": 0,
+        "VAR_BIRCH_LAB_STATE": 0,
+        "VAR_LITTLEROOT_RIVAL_STATE": 0,
+        "VAR_LITTLEROOT_INTRO_STATE": 0
+      }
+    },
+    "party": {
+      "count": 0,
+      "firstRecordHex": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff0000000000000000000000000000",
+      "firstRecordMeaning": "empty-slot-with-mail-sentinel",
+      "pokemonProvenance": "absent",
+      "firstPokemon": null
+    },
+    "box": {
+      "currentBox": 0,
+      "firstRecordHex": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "firstRecordMeaning": "empty-box-slot",
+      "pokemonProvenance": "absent",
+      "firstPokemon": null
+    },
+    "daycare": {
+      "recordHex": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "meaning": "both-mon-slots-empty; no egg; zero step counter"
+    },
+    "facilitySession": {
+      "challengeStatus": 0,
+      "levelModeAndPauseBits": 0,
+      "selectedPartyHex": "000000000000",
+      "currentBattle": 0,
+      "meaning": "no active or paused Battle Frontier challenge"
+    }
+  }
+}

@@ -1104,6 +1104,28 @@ static void SaveTowerChallenge(void)
     SaveGameFrontier();
 }
 
+#ifdef DEBUG
+bool8 Debug_StartAndPauseTowerChallenge(u8 levelMode)
+{
+    u16 savedAction = gSpecialVar_0x8005;
+
+    if (levelMode >= FRONTIER_LVL_MODE_COUNT)
+        return FALSE;
+
+    VarSet(VAR_FRONTIER_FACILITY, FRONTIER_FACILITY_TOWER);
+    VarSet(VAR_FRONTIER_BATTLE_MODE, FRONTIER_MODE_SINGLES);
+    gSaveBlock2Ptr->frontier.lvlMode = levelMode;
+    InitTowerChallenge();
+
+    // This is the same completion path used by the tower's pause/save script.
+    gSpecialVar_0x8005 = CHALLENGE_STATUS_PAUSED;
+    SaveTowerChallenge();
+    gSpecialVar_0x8005 = savedAction;
+    return gSaveBlock2Ptr->frontier.challengeStatus == CHALLENGE_STATUS_PAUSED
+        && gSaveBlock2Ptr->frontier.challengePaused;
+}
+#endif
+
 static void BattleTowerNop1(void)
 {
 

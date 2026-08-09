@@ -839,6 +839,40 @@
     }
   ],
   "reserved_map_section_values": [],
+  "reviewed_codecs": {
+    "exact": {
+      "first": 0,
+      "last": 251
+    },
+    "aliases": [
+      {
+        "id": "MAPSEC_JOHTO_VICTORY_ROAD",
+        "saved_location": "MAPSEC_VICTORY_ROAD",
+        "met_location": 70,
+        "met_location_display": "MAPSEC_VICTORY_ROAD"
+      }
+    ]
+  },
+  "persistent_consumer_sources": [
+    "src/data/wild_encounters.json",
+    "src/data/heal_locations.json",
+    "src/data/region_map/city_map_entries.h",
+    "src/battle_setup.c",
+    "src/daycare.c",
+    "src/heal_location.c",
+    "src/battle_arena.c",
+    "src/battle_dome.c",
+    "src/battle_factory.c",
+    "src/battle_frontier.c",
+    "src/battle_palace.c",
+    "src/battle_pike.c",
+    "src/battle_pyramid.c",
+    "src/battle_tower.c",
+    "src/tv.c",
+    "src/save_location.c",
+    "src/egg_hatch.c",
+    "src/overworld.c"
+  ],
   "saved_location": {
     "invalid_code": 255,
     "frozen_round_trip": {

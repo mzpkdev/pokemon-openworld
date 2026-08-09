@@ -5,6 +5,21 @@
 #include "generated/map_section_metadata.h"
 
 #include "data/map_section_metadata.inc.c"
+#include "data/persistence/location_codecs.inc.c"
+
+#define SAVED_LOCATION_BINDING(code, section) [code] = section,
+const MapSectionId gSavedLocationToMapSection[256] =
+{
+    PERSISTENT_SAVED_LOCATION_BINDINGS(SAVED_LOCATION_BINDING)
+};
+#undef SAVED_LOCATION_BINDING
+
+#define MET_LOCATION_BINDING(code, section) [code] = section,
+const MapSectionId gMetLocationToMapSection[256] =
+{
+    PERSISTENT_MET_LOCATION_BINDINGS(MET_LOCATION_BINDING)
+};
+#undef MET_LOCATION_BINDING
 
 const struct MapSectionRegistry gMapSectionRegistry =
 {

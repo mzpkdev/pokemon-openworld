@@ -43,6 +43,7 @@
 #include "data.h"
 #include "vs_seeker.h"
 #include "item.h"
+#include "persistent_ids.h"
 #include "script.h"
 #include "field_name_box.h"
 #include "wild_encounter_ow.h"
@@ -1010,14 +1011,14 @@ static void TryUpdateGymLeaderRematchFromTrainer(void)
         UpdateGymLeaderRematch();
 }
 
-static u16 GetTrainerAFlag(void)
+static bool32 GetTrainerAFlag(u16 *flag)
 {
-    return TRAINER_FLAGS_START + TRAINER_BATTLE_PARAM.opponentA;
+    return PersistentId_GetTrainerDefeatFlag(TRAINER_BATTLE_PARAM.opponentA, flag);
 }
 
-static u16 GetTrainerBFlag(void)
+static bool32 GetTrainerBFlag(u16 *flag)
 {
-    return TRAINER_FLAGS_START + TRAINER_BATTLE_PARAM.opponentB;
+    return PersistentId_GetTrainerDefeatFlag(TRAINER_BATTLE_PARAM.opponentB, flag);
 }
 
 static bool32 IsPlayerDefeated(u32 battleOutcome)
@@ -1228,7 +1229,11 @@ void SetUpTwoTrainersBattle(void)
 bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 {
     TrainerBattleParameter *temp = (TrainerBattleParameter*)(data + OPCODE_OFFSET);
-    return FlagGet(TRAINER_FLAGS_START + temp->params.opponentA);
+    u16 flag;
+
+    if (!PersistentId_GetTrainerDefeatFlag(temp->params.opponentA, &flag))
+        return FALSE;
+    return FlagGet(flag);
 }
 
 bool32 GetRematchFromScriptPointer(const u8 *data)
@@ -1268,39 +1273,59 @@ u8 GetRivalBattleFlags(void)
 
 bool8 GetTrainerFlag(void)
 {
+    u16 flag;
+
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
         return GetBattlePyramidTrainerFlag(gSelectedObjectEvent);
     else if (InTrainerHill())
         return GetHillTrainerFlag(gSelectedObjectEvent);
+    else if (GetTrainerAFlag(&flag))
+        return FlagGet(flag);
     else
-        return FlagGet(GetTrainerAFlag());
+        return FALSE;
 }
 
 static void SetBattledTrainersFlags(void)
 {
-    if (TRAINER_BATTLE_PARAM.opponentB != 0)
-        FlagSet(GetTrainerBFlag());
-    FlagSet(GetTrainerAFlag());
+    u16 flag;
+
+    if (TRAINER_BATTLE_PARAM.opponentB != 0 && GetTrainerBFlag(&flag))
+        FlagSet(flag);
+    if (GetTrainerAFlag(&flag))
+        FlagSet(flag);
 }
 
 static void UNUSED SetBattledTrainerFlag(void)
 {
-    FlagSet(GetTrainerAFlag());
+    u16 flag;
+
+    if (GetTrainerAFlag(&flag))
+        FlagSet(flag);
 }
 
 bool8 HasTrainerBeenFought(u16 trainerId)
 {
-    return FlagGet(TRAINER_FLAGS_START + trainerId);
+    u16 flag;
+
+    if (!PersistentId_GetTrainerDefeatFlag(trainerId, &flag))
+        return FALSE;
+    return FlagGet(flag);
 }
 
 void SetTrainerFlag(u16 trainerId)
 {
-    FlagSet(TRAINER_FLAGS_START + trainerId);
+    u16 flag;
+
+    if (PersistentId_GetTrainerDefeatFlag(trainerId, &flag))
+        FlagSet(flag);
 }
 
 void ClearTrainerFlag(u16 trainerId)
 {
-    FlagClear(TRAINER_FLAGS_START + trainerId);
+    u16 flag;
+
+    if (PersistentId_GetTrainerDefeatFlag(trainerId, &flag))
+        FlagClear(flag);
 }
 
 void BattleSetup_StartTrainerBattle(void)

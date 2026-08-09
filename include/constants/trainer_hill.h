@@ -63,4 +63,6 @@
 #define HILL_FLOOR_HEIGHT_MARGIN  5
 #define HILL_FLOOR_HEIGHT        (HILL_FLOOR_HEIGHT_MAIN + HILL_FLOOR_HEIGHT_MARGIN)
 
+#include "constants/persistent_trainer_hill.inc.h"
+
 #endif

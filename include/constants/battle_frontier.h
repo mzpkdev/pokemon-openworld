@@ -130,4 +130,6 @@
 // CreateFacilityMonFlags
 #define FLAG_FRONTIER_MON_FACTORY       (1 << 0)
 
+#include "constants/persistent_facilities.inc.h"
+
 #endif // GUARD_CONSTANTS_BATTLE_FRONTIER_H

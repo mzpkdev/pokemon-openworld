@@ -67,14 +67,34 @@ ABI sentinels, and the ROM/EWRAM/IWRAM capacity contract with:
 
 ```sh
 python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py'
+python3 -m unittest discover -s tools/persistence/tests -p 'test_*.py'
+make save-contract-check
 make integrity-check
+make -j"$(nproc)" -O integrity-check-all-purposes
 make e2e-integrity
 ```
 
-`make integrity-check` writes the machine-readable linked-artifact and
-capacity report to `build/integrity/artifact-report.json`. The Integrity E2E
+`make save-contract-check` measures the current ARM ABI and compares it with the
+frozen contract. `make integrity-check` writes the current normal, debug, or
+release linked-artifact report to `build/integrity/<purpose>.json`.
+`make integrity-check-all-purposes` replaces
+`build/integrity/purposes/` with exactly five reports: `normal.json`,
+`debug.json`, `release.json`, `test-runner.json`, and `headless-test.json`. Each
+records the save-contract digest and capacity evidence, and all five validate
+their own purpose-specific linked target-compiler ABI table. The Integrity E2E
 suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
+
+The five baseline-usage records are reproducibly measured from the frozen commit
+in an exported clean tree (never from the current worktree) with:
+
+```sh
+python3 tools/persistence/contract.py seed-budgets \
+  --baseline b47a41e9e4635cc40a8003249f9425578e257e1e \
+  --contract tools/integrity/save_contract.json \
+  --rom-max 33554432 --ewram-max 262144 --iwram-max 32768 \
+  --release-rom-headroom-min 2708917
+```
 
 Here, **resident** means every registered Hoenn, mainland Kanto, Sevii, and Johto map
 has complete structural data and can initialize. **Field-ready** is the stronger

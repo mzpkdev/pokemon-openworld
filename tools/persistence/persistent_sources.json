@@ -1,0 +1,61 @@
+{
+  "sources": [
+    {"id": "contract-checkpoints", "kind": "frozen-contract", "contractDomain": "checkpoints", "domains": ["checkpoints"], "storage": "warp-id"},
+    {"id": "contract-destinations", "kind": "frozen-contract", "contractDomain": "destinations", "domains": ["destinations"], "storage": "u32-id"},
+    {"id": "contract-facilities", "kind": "frozen-contract", "contractDomain": "facilities", "domains": ["facilities"], "storage": "u32-id"},
+    {"id": "contract-flags", "kind": "frozen-contract", "contractDomain": "flags", "domains": ["flags"], "storage": "flag-id"},
+    {"id": "contract-game-stats", "kind": "frozen-contract", "contractDomain": "gameStats", "domains": ["gameStats"], "storage": "u32-id"},
+    {"id": "contract-met-locations", "kind": "frozen-contract", "contractDomain": "metLocations", "domains": ["metLocations"], "storage": "u8-location"},
+    {"id": "contract-reward-state", "kind": "frozen-contract", "contractDomain": "rewardState", "domains": ["rewardState"], "storage": "flag-id"},
+    {"id": "contract-saved-locations", "kind": "frozen-contract", "contractDomain": "savedLocations", "domains": ["savedLocations"], "storage": "u16-location"},
+    {"id": "contract-trade-state", "kind": "frozen-contract", "contractDomain": "tradeState", "domains": ["tradeState"], "storage": "u8-id"},
+    {"id": "contract-trainer-ids", "kind": "frozen-contract", "contractDomain": "trainerIds", "domains": ["trainerIds"], "storage": "u32-id"},
+    {"id": "contract-vars", "kind": "frozen-contract", "contractDomain": "vars", "domains": ["vars"], "storage": "u16-id"},
+    {"id": "heal-locations", "kind": "json-symbol-list", "path": "src/data/heal_locations.json", "listKey": "heal_locations", "symbolField": "id", "noneSymbol": "HEAL_LOCATION_NONE", "domains": ["checkpoints"], "storage": "heal-location-id"},
+    {"id": "battle-frontier-facilities", "kind": "explicit-source", "path": "include/constants/battle_frontier.h", "domains": ["facilities"], "storage": "u8-id"}
+  ],
+  "explicitAllocations": [
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_TOWER", "value": 0, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_DOME", "value": 1, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_PALACE", "value": 2, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_ARENA", "value": 3, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_FACTORY", "value": 4, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_PIKE", "value": 5, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FRONTIER_FACILITY_PYRAMID", "value": 6, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_TOWER", "value": 0, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_DOME", "value": 1, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_PALACE", "value": 2, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_ARENA", "value": 3, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_FACTORY", "value": 4, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_PIKE_SINGLE", "value": 5, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_PIKE_DOUBLE", "value": 6, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_PYRAMID", "value": 7, "source": "battle-frontier-facilities"},
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_TRAINER_HILL", "value": 8, "source": "battle-frontier-facilities"}
+  ],
+  "storages": [
+    {"id": "flag-id", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": []},
+    {"id": "heal-location-id", "width": 8, "signed": false, "sentinel": 255, "sentinelSymbols": []},
+    {"id": "saveblock1.flags", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": []},
+    {"id": "u8-id", "width": 8, "signed": false, "sentinel": 255, "sentinelSymbols": []},
+    {"id": "u8-location", "width": 8, "signed": false, "sentinel": 255, "sentinelSymbols": ["METLOC_FATEFUL_ENCOUNTER"]},
+    {"id": "u16-id", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": []},
+    {"id": "u16-location", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": ["MAPSEC_INVALID", "MAPSEC_NONE"]},
+    {"id": "u32-id", "width": 32, "signed": false, "sentinel": 4294967295, "sentinelSymbols": []},
+    {"id": "warp-id", "width": 8, "signed": true, "sentinel": -1, "sentinelSymbols": ["WARP_ID_NONE"]}
+  ],
+  "consumerSchemas": [
+    {"domain": "checkpoints", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["\\b(?P<symbol>HEAL_LOCATION_[A-Za-z0-9_]+)\\b", "\\b(?P<symbol>WARP_ID_(?:NONE|SECRET_BASE|DYNAMIC))\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["HEAL_LOCATION_", "WARP_ID_"]}},
+    {"domain": "destinations", "paths": ["src/region_map.c", "src/**/*.json"], "patterns": ["\\b(?P<symbol>FLAG_(?:LANDMARK|WORLD_MAP)_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FLAG_LANDMARK_", "FLAG_WORLD_MAP_", "MAPSEC_"]}},
+    {"domain": "facilities", "paths": ["src/battle_frontier.c", "src/frontier_util.c", "src/trainer_hill.c", "data/**/*.s", "data/**/*.inc"], "patterns": ["\\b(?P<symbol>FRONTIER_FACILITY_(?:TOWER|DOME|PALACE|ARENA|FACTORY|PIKE|PYRAMID))\\b", "\\b(?P<symbol>HILL_MODE_[A-Za-z0-9_]+)\\b", "\\b(?P<symbol>FACILITY_BATTLE_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FRONTIER_FACILITY_", "FACILITY_BATTLE_", "HILL_MODE_"]}},
+    {"domain": "flags", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Flag(?:Get|Set|Clear|Toggle)\\(\\s*(?P<symbol>FLAG_(?!TEXT_SPEED_INSTANT\\b)[A-Za-z0-9_]+)", "^\\s*(?:setflag|clearflag|checkflag)\\s+(?P<symbol>FLAG_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FLAG_"], "exclude": ["FLAG_TEXT_SPEED_INSTANT"]}},
+    {"domain": "gameStats", "paths": ["src/**/*.c", "data/**/*.s", "data/**/*.inc"], "patterns": ["(?:Get|Set|Increment)GameStat\\(\\s*(?P<symbol>GAME_STAT_[A-Za-z0-9_]+)", "^\\s*incrementgamestat\\s+(?P<symbol>GAME_STAT_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["GAME_STAT_"]}},
+    {"domain": "metLocations", "paths": ["src/**/*.c", "include/**/*.h"], "patterns": ["\\b(?P<symbol>METLOC_(?:EGG|IN_GAME_TRADE|FATEFUL_ENCOUNTER))\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["METLOC_"]}},
+    {"domain": "rewardState", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Flag(?:Get|Set|Clear|Toggle)\\(\\s*(?P<symbol>FLAG_(?:RECEIVED|GOT|REWARD)_[A-Za-z0-9_]+)", "^\\s*(?:setflag|clearflag|checkflag)\\s+(?P<symbol>FLAG_(?:RECEIVED|GOT|REWARD)_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FLAG_RECEIVED_", "FLAG_GOT_", "FLAG_REWARD_"]}},
+    {"domain": "savedLocations", "paths": ["src/location_codecs.c", "src/region_map.c"], "patterns": ["\\b(?P<symbol>MAPSEC_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["MAPSEC_"]}},
+    {"domain": "tradeState", "paths": ["src/data/trade.h", "src/**/*.c", "data/**/*.s", "data/**/*.inc"], "patterns": ["\\b(?P<symbol>INGAME_TRADE_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["INGAME_TRADE_"]}},
+    {"domain": "trainerIds", "paths": ["data/**/*.inc", "data/**/*.s", "src/**/*.c"], "patterns": ["^\\s*trainerbattle(?:_[A-Za-z0-9_]+)?\\s+(?P<symbol>TRAINER_(?!BATTLE_)[A-Za-z0-9_]+)\\b", "^\\s*(?:settrainerflag|cleartrainerflag)\\s+(?P<symbol>TRAINER_(?!BATTLE_)[A-Za-z0-9_]+)\\b", "opponent[AB]\\s*=\\s*(?P<symbol>TRAINER_(?!BATTLE_)[A-Za-z0-9_]+)"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["TRAINER_"], "opcodes": ["settrainerflag", "cleartrainerflag"], "opcodePrefixes": ["trainerbattle"], "excludePrefixes": ["TRAINER_BATTLE_"]}},
+    {"domain": "vars", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Var(?:Get|Set)\\(\\s*(?P<symbol>VAR_[A-Za-z0-9_]+)", "^\\s*(?:setvar|addvar|subvar|copyvar|copyvarifnotzero|setorcopyvar|specialvar)\\s+(?P<symbol>VAR_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["VAR_"]}}
+  ],
+  "locationCodecs": {"path": "src/data/region_map/region_map_sections.json", "consumerFacade": "src/data/persistence/location_codecs.inc.c"},
+  "trainerDefeat": {"count": 858, "flagBase": 1280}
+}

@@ -58,4 +58,6 @@
 #define NUM_USED_GAME_STATS                   53
 #define NUM_GAME_STATS                        64
 
+#include "constants/persistent_game_stats.inc.h"
+
 #endif // GUARD_CONSTANTS_GAME_STAT_H

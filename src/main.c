@@ -27,6 +27,8 @@
 #include "constants/rgb.h"
 #ifdef DEBUG
 #include "integrity_map_load.h"
+#include "integrity_capture.h"
+#include "debug_save_scenario.h"
 #endif
 
 static void VBlankIntr(void);
@@ -142,6 +144,8 @@ void AgbMainLoop(void)
 
 #ifdef DEBUG
         IntegrityMapLoad_Update();
+        IntegrityCapture_Update();
+        DebugSaveScenario_Update();
 #endif
 
         if (gSoftResetDisabled == FALSE

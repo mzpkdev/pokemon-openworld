@@ -144,7 +144,7 @@ override HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
 
 # Pick our active variables
 override ROM := $(ROM_NAME)
-ifneq (,$(filter $(TESTELF),$(MAKECMDGOALS)))
+ifneq (,$(filter $(TESTELF) $(HEADLESSELF),$(MAKECMDGOALS)))
   TEST := 1
 endif
 ifeq ($(DEBUG),1)
@@ -160,7 +160,7 @@ ifeq ($(RELEASE),1)
     $(error RELEASE=1 and TEST=1 are mutually exclusive)
   endif
 endif
-ifneq (,$(filter $(TESTELF),$(MAKECMDGOALS)))
+ifneq (,$(filter $(TESTELF) $(HEADLESSELF),$(MAKECMDGOALS)))
   ifneq (1,$(words $(MAKECMDGOALS)))
     $(error $(TESTELF) must be run as a standalone goal)
   endif
@@ -179,6 +179,26 @@ endif
 override ELF := $(ROM:.gba=.elf)
 override MAP := $(ROM:.gba=.map)
 override SYM := $(ROM:.gba=.sym)
+
+# Select a private live-ABI/evidence tree for the active compiler purpose.  The
+# aggregate target sets this explicitly for the two TESTING=1 artifacts because
+# they intentionally share an object directory while carrying distinct evidence.
+ifeq ($(origin SAVE_ABI_PURPOSE),undefined)
+ifeq ($(TEST),1)
+ifneq (,$(filter check $(HEADLESSELF),$(MAKECMDGOALS)))
+SAVE_ABI_PURPOSE := headless-test
+else
+SAVE_ABI_PURPOSE := test-runner
+endif
+else ifeq ($(RELEASE),1)
+SAVE_ABI_PURPOSE := release
+else ifeq ($(DEBUG),1)
+SAVE_ABI_PURPOSE := debug
+else
+SAVE_ABI_PURPOSE := normal
+endif
+endif
+SAVE_ABI_DIR := $(BUILD_DIR)/save-contract/$(SAVE_ABI_PURPOSE)
 
 # Commonly used directories
 C_SUBDIR = src
@@ -200,7 +220,7 @@ SHELL := bash -o pipefail
 ASFLAGS := -mcpu=arm7tdmi -march=armv4t -meabi=5 --defsym MODERN=1 --defsym $(GAME_VERSION)=1 --defsym ALL_REGIONS=$(ALL_REGIONS)
 
 SOURCE_INCLUDE_DIR := include
-INCLUDE_DIRS := $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include $(SOURCE_INCLUDE_DIR)
+INCLUDE_DIRS := $(SAVE_ABI_DIR)/include $(GENERATED_ROOT)/src $(GENERATED_ROOT)/include $(SOURCE_INCLUDE_DIR)
 GENERATED_CONSTANT_INCLUDE_DIR := $(GENERATED_ROOT)/include/constants
 CPP_INCLUDE_DIRS := $(GENERATED_CONSTANT_INCLUDE_DIR) $(INCLUDE_DIRS)
 INCLUDE_CPP_ARGS := $(CPP_INCLUDE_DIRS:%=-iquote %)
@@ -355,10 +375,10 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check build-variant-isolation-check
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -438,19 +458,17 @@ $(OBJ_DIR)/ld_script_test.ld: $(LD_SCRIPT_TEST)
 
 $(TESTELF): $(OBJ_DIR)/ld_script_test.ld $(OBJS) $(TEST_OBJS) libagbsyscall tools check-tools
 	@echo "cd $(OBJ_DIR) && $(LD) -T ld_script_test.ld -o ../../$@ <objects> <test-objects> <lib>"
-	@cd $(OBJ_DIR) && $(LD) $(TESTLDFLAGS) -T ld_script_test.ld -o ../../$@ $(OBJS_REL) $(TEST_OBJS_REL) $(LIB)
+	@cd $(OBJ_DIR) && $(LD) $(TESTLDFLAGS) --undefined=gSaveAbiEvidence -T ld_script_test.ld -o ../../$@ $(OBJS_REL) $(TEST_OBJS_REL) $(LIB)
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) -d0 --silent
 	$(PATCHELF) $(TESTELF) gTestRunnerArgv "$(TESTS:%*=%)\0"
 
-ifeq ($(GITHUB_REPOSITORY_OWNER),rh-hideout)
 TEST_SKIP_IS_FAIL := \x01
-else
-TEST_SKIP_IS_FAIL := \x00
-endif
 
-check: $(TESTELF)
-	@cp $< $(HEADLESSELF)
+$(HEADLESSELF): $(TESTELF)
+	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
+
+check: save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
 
 RUFF_VENV := $(BUILD_DIR)/ruff-venv
@@ -548,16 +566,56 @@ e2e-integrity: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
 	$(E2E_PYTHON) tools/e2e/run.py integrity
 
-INTEGRITY_REPORT := $(BUILD_DIR)/integrity/artifact-report.json
 CAPACITY_POLICY := tools/integrity/capacity_policy.json
+SAVE_CONTRACT := tools/integrity/save_contract.json
+LIVE_SAVE_ABI := $(SAVE_ABI_DIR)/live-save-abi.json
+LINKED_SAVE_ABI := $(SAVE_ABI_DIR)/include/save_abi_evidence.inc
+ifeq ($(RELEASE),1)
+INTEGRITY_PURPOSE := release
+else ifeq ($(DEBUG),1)
+INTEGRITY_PURPOSE := debug
+else
+INTEGRITY_PURPOSE := normal
+endif
+INTEGRITY_REPORT ?= $(BUILD_DIR)/integrity/$(INTEGRITY_PURPOSE).json
+PURPOSE_REPORT_DIR := $(BUILD_DIR)/integrity/purposes
 
-integrity-check: $(CAPACITY_POLICY)
-	$(MAKE) $(ROM) $(SYM)
+$(LIVE_SAVE_ABI): $(SAVE_CONTRACT) tools/persistence/contract.py tools/persistence/abi_anchor.c src/record_mixing.c $(shell find include -type f -name '*.h')
+	@mkdir -p $(dir $(LIVE_SAVE_ABI))
+	python3 tools/persistence/contract.py validate-contract --contract $(SAVE_CONTRACT)
+	python3 tools/persistence/contract.py measure-abi --tree . --purpose $(SAVE_ABI_PURPOSE) --output $(LIVE_SAVE_ABI)
+	python3 tools/persistence/contract.py validate --contract $(SAVE_CONTRACT) --abi $(LIVE_SAVE_ABI) --purpose $(SAVE_ABI_PURPOSE)
+
+$(LINKED_SAVE_ABI): $(LIVE_SAVE_ABI)
+	python3 tools/persistence/contract.py generate-abi-evidence --abi $(LIVE_SAVE_ABI) --output $@
+
+$(C_BUILDDIR)/save_abi.o: $(LINKED_SAVE_ABI)
+
+save-contract-check: $(LINKED_SAVE_ABI)
+
+integrity-check: $(CAPACITY_POLICY) save-contract-check
+	+$(MAKE) $(ROM) $(SYM)
 	@mkdir -p $(dir $(INTEGRITY_REPORT))
 	python3 tools/integrity/validate_artifact.py \
 		--rom $(ROM) --map $(MAP) --sym $(SYM) \
 		--manifest $(INTEGRITY_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
+		--save-contract $(SAVE_CONTRACT) --purpose $(INTEGRITY_PURPOSE) \
 		--output $(INTEGRITY_REPORT)
+
+integrity-check-all-purposes:
+	@rm -rf $(PURPOSE_REPORT_DIR)
+	@mkdir -p $(PURPOSE_REPORT_DIR)
+	+$(MAKE) integrity-check SAVE_ABI_PURPOSE=normal INTEGRITY_PURPOSE=normal INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/normal.json
+	+$(MAKE) DEBUG=1 integrity-check SAVE_ABI_PURPOSE=debug INTEGRITY_PURPOSE=debug INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/debug.json
+	+$(MAKE) RELEASE=1 integrity-check SAVE_ABI_PURPOSE=release INTEGRITY_PURPOSE=release INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/release.json
+	+$(MAKE) SAVE_ABI_PURPOSE=test-runner $(TESTELF)
+	python3 tools/integrity/validate_artifact.py --elf $(TESTELF) --purpose test-runner \
+		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/test-runner.json
+	+$(MAKE) SAVE_ABI_PURPOSE=headless-test $(HEADLESSELF)
+	python3 tools/integrity/validate_artifact.py --elf $(HEADLESSELF) --purpose headless-test \
+		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/headless-test.json
+	python3 tools/persistence/contract.py validate-budgets \
+		--contract $(SAVE_CONTRACT) --reports $(PURPOSE_REPORT_DIR)
 
 # Other rules
 rom: $(ROM)
@@ -569,6 +627,7 @@ syms: $(SYM)
 
 clean: tidy clean-tools clean-check-tools clean-generated clean-assets
 	@$(MAKE) clean -C libagbsyscall
+	@rm -rf $(BUILD_DIR)/integrity/purposes $(BUILD_DIR)/save-contract
 
 clean-assets:
 	rm -rf $(ASSETS_DIR_NAME)
@@ -781,7 +840,7 @@ libagbsyscall:
 
 # Enable LTO LDFLAGS if set
 ifneq ($(LTO),0)
-LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections
+LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence
 LDFLAGS += -Xlinker -flto=auto
 $(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall
 	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs>"
@@ -789,7 +848,7 @@ $(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 else
 # Output .map file, memory usage readout and gc sections to clean-up unused data
-LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections
+LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence
 $(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall
 	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$@ $(OBJS_REL) $(LIB) | cat
 	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs> | cat"

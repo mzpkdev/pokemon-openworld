@@ -1,0 +1,227 @@
+from __future__ import annotations
+
+import copy
+import json
+from pathlib import Path
+import tempfile
+import subprocess
+import unittest
+
+from tools.persistence.contract import ContractError, canonical_bytes
+from tools.persistence.ledger import (
+    render,
+    seed_ledger,
+    validate_consumer_references,
+    validate_frozen_bindings,
+    validate_ledger,
+    validate_location_codecs,
+)
+
+
+ROOT = Path(__file__).parents[3]
+
+
+class PersistentIdTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.contract = json.loads((ROOT / "tools/integrity/save_contract.json").read_text())
+        cls.sources = json.loads((ROOT / "tools/persistence/persistent_sources.json").read_text())
+        cls.ledger = json.loads((ROOT / "src/data/persistence/persistent_ids.json").read_text())
+
+    def mutated(self):
+        return copy.deepcopy(self.ledger)
+
+    def test_seed_and_generation_are_byte_identical(self):
+        first = seed_ledger(self.contract, self.sources, ROOT)
+        second = seed_ledger(self.contract, self.sources, ROOT)
+        self.assertEqual(canonical_bytes(first), canonical_bytes(second))
+        self.assertEqual(canonical_bytes(first), (ROOT / "src/data/persistence/persistent_ids.json").read_bytes())
+        with tempfile.TemporaryDirectory() as left_tmp, tempfile.TemporaryDirectory() as right_tmp:
+            left, right = Path(left_tmp), Path(right_tmp)
+            render(first, self.sources, left)
+            render(second, self.sources, right)
+            for relative in ("src/data/persistence/trainer_defeat_flags.inc.c",
+                             "src/data/persistence/location_codecs.inc.c",
+                             "include/constants/heal_locations.h",
+                             "include/constants/persistent_bindings.h",
+                             "include/constants/persistent_flags.inc.h",
+                             "include/constants/persistent_vars.inc.h",
+                             "include/constants/persistent_game_stats.inc.h",
+                             "include/constants/persistent_maps.inc.h",
+                             "include/constants/persistent_facilities.inc.h",
+                             "include/constants/persistent_locations.inc.h",
+                             "include/constants/persistent_opponents.inc.h",
+                             "include/constants/persistent_trainer_special.inc.h",
+                             "include/constants/persistent_trainer_hill.inc.h"):
+                self.assertEqual((left / relative).read_bytes(), (right / relative).read_bytes())
+
+    def test_public_constant_facades_resolve_through_ledger_values(self):
+        cases = {
+            "persistent_flags.inc.h": ("flags", "FLAG_RECEIVED_FIRST_POTION"),
+            "persistent_vars.inc.h": ("vars", "VAR_TRAINER_BATTLE_OPPONENT_A"),
+            "persistent_game_stats.inc.h": ("gameStats", "GAME_STAT_SAVED_GAME"),
+            "persistent_maps.inc.h": ("checkpoints", "WARP_ID_DYNAMIC"),
+            "persistent_facilities.inc.h": ("facilities", "FRONTIER_FACILITY_TOWER"),
+            "persistent_locations.inc.h": ("savedLocations", "MAPSEC_LITTLEROOT_TOWN"),
+            "persistent_opponents.inc.h": ("trainerIds", "TRAINER_RIVAL_TOTODILE_1"),
+            "persistent_trainer_special.inc.h": ("trainerIds", "TRAINER_UNION_ROOM"),
+            "persistent_trainer_hill.inc.h": ("facilities", "HILL_MODE_EXPERT"),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            bindings = (output / "include/constants/persistent_bindings.h").read_text()
+            for filename, (domain, symbol) in cases.items():
+                facade = (output / "include/constants" / filename).read_text()
+                domain_macro = __import__("re").sub(r"(?<!^)(?=[A-Z])", "_", domain).upper()
+                macro = f"PERSISTENT_{domain_macro}_{symbol}"
+                entry = next(item for item in self.ledger["entries"]
+                             if item["domain"] == domain and item["symbol"] == symbol)
+                with self.subTest(filename=filename, symbol=symbol):
+                    self.assertIn(f"#undef {symbol}\n#define {symbol} {macro}\n", facade)
+                    self.assertIn(f"#define {macro} {entry['value']}\n", bindings)
+
+    def test_grouped_generation_recovers_a_missing_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "generated"
+            target = output / "src/data/persistence/location_codecs.inc.c"
+            command = ["make", "-f", "persistent_id_rules.mk", f"GENERATED_ROOT={output}", str(target)]
+            subprocess.run(command, cwd=ROOT, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            target.unlink()
+            subprocess.run(command, cwd=ROOT, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.assertTrue(target.is_file())
+
+    def test_heal_header_is_preprocessor_only_for_assembler(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            header = (output / "include/constants/heal_locations.h").read_text()
+        self.assertNotIn("enum", header)
+        self.assertNotIn("{", header)
+        self.assertNotIn("}", header)
+        for item in (item for item in self.ledger["entries"] if item["source"] == "heal-locations"):
+            self.assertIn(f"#define {item['symbol']} {item['value']}\n", header)
+
+    def test_every_frozen_binding_rejects_a_value_mutation(self):
+        # Exercise every published symbol without thousands of deep copies. Each
+        # in-place mutation is restored before the next subtest.
+        entries = self.ledger["entries"]
+        for item in entries:
+            if item["state"]["kind"] not in {"published-binding", "trainer-defeat-flag"}:
+                continue
+            old = item["value"]
+            item["value"] = old + 1
+            with self.subTest(domain=item["domain"], symbol=item["symbol"]), self.assertRaises(ContractError):
+                validate_frozen_bindings(entries, self.contract)
+            item["value"] = old
+
+    def test_every_domain_rejects_an_unallocated_live_consumer(self):
+        entries = self.ledger["entries"]
+        for schema in self.sources["consumerSchemas"]:
+            referenced = None
+            for glob in schema["paths"]:
+                for path in ROOT.glob(glob):
+                    if not path.is_file():
+                        continue
+                    text = path.read_text(encoding="utf-8", errors="ignore")
+                    for pattern in schema["patterns"]:
+                        match = __import__("re").search(pattern, text, __import__("re").MULTILINE)
+                        if match is not None:
+                            referenced = match.group("symbol")
+                            break
+                    if referenced is not None:
+                        break
+                if referenced is not None:
+                    break
+            with self.subTest(domain=schema["domain"]):
+                self.assertIsNotNone(referenced, "consumer schema did not scan a real reference")
+                reduced = [item for item in entries
+                           if item["domain"] == schema["domain"] and item["symbol"] != referenced]
+                with self.assertRaisesRegex(ContractError, "unallocated"):
+                    validate_consumer_references(reduced, [schema], ROOT)
+
+    def test_script_opcodes_reject_unallocated_persistent_tokens(self):
+        cases = {
+            "flags": "FLAG_TUTOR_DOUBLE_EDGE",       # setflag
+            "vars": "VAR_0x8005",                   # setvar/copyvar
+            "gameStats": "GAME_STAT_WATCHED_TV",   # incrementgamestat
+            "facilities": "FACILITY_BATTLE_DOME",  # dofacilitytrainerbattle
+            "trainerIds": "TRAINER_JOSH",           # settrainerflag
+        }
+        for domain, symbol in cases.items():
+            schema = next(item for item in self.sources["consumerSchemas"]
+                          if item["domain"] == domain)
+            reduced = [item for item in self.ledger["entries"]
+                       if item["domain"] == domain and item["symbol"] != symbol]
+            with self.subTest(domain=domain, symbol=symbol), self.assertRaisesRegex(ContractError, "unallocated"):
+                validate_consumer_references(reduced, [schema], ROOT)
+
+    def test_all_saved_and_met_code_bindings_reject_mutation(self):
+        for codec in ("saved", "met"):
+            for record in self.ledger["locationCodecs"][codec]:
+                ledger = self.mutated()
+                ledger["locationCodecs"][codec][record["code"]]["sectionValue"] ^= 1
+                with self.subTest(codec=codec, code=record["code"]), self.assertRaisesRegex(ContractError, "locationCodecs"):
+                    validate_location_codecs(ledger["locationCodecs"], self.sources, ROOT)
+
+    def test_duplicate_symbol_is_rejected(self):
+        ledger = self.mutated()
+        first, second = ledger["entries"][:2]
+        second["domain"], second["symbol"] = first["domain"], first["symbol"]
+        with self.assertRaisesRegex(ContractError, "duplicate symbol"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_duplicate_value_without_alias_is_rejected(self):
+        ledger = self.mutated()
+        group = next(item for item in ledger["entries"] if item["alias"] is not None)
+        group["alias"] = None
+        with self.assertRaisesRegex(ContractError, "canonical owner"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_unauthorized_alias_is_rejected(self):
+        ledger = self.mutated()
+        item = next(item for item in ledger["entries"] if item["alias"] is not None)
+        item["alias"]["owner"] = "contract-vars"
+        with self.assertRaisesRegex(ContractError, "unauthorized alias"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_deleted_published_binding_is_rejected(self):
+        ledger = self.mutated()
+        index = next(i for i, item in enumerate(ledger["entries"])
+                     if item["state"]["kind"] == "published-binding" and item["alias"] is None)
+        ledger["entries"].pop(index)
+        with self.assertRaises(ContractError):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_sentinel_collision_is_rejected(self):
+        ledger = self.mutated()
+        item = next(item for item in ledger["entries"] if item["storage"] == "flag-id")
+        item["value"] = 0xFFFF
+        with self.assertRaisesRegex(ContractError, "sentinel collision"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_storage_overflow_is_rejected(self):
+        ledger = self.mutated()
+        item = next(item for item in ledger["entries"] if item["storage"] == "u8-id")
+        item["value"] = 256
+        with self.assertRaisesRegex(ContractError, "width/storage overflow"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_unallocated_source_reference_is_rejected(self):
+        ledger = self.mutated()
+        ledger["entries"][0]["source"] = "missing-source"
+        with self.assertRaisesRegex(ContractError, "unallocated source reference"):
+            validate_ledger(ledger, self.contract, self.sources, ROOT)
+
+    def test_trainer_table_preserves_every_old_defeat_bit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            table = (output / "src/data/persistence/trainer_defeat_flags.inc.c").read_text()
+        for trainer_id in range(858):
+            with self.subTest(trainer_id=trainer_id):
+                self.assertIn(f"[{trainer_id}] = 0x{0x500 + trainer_id:04X},", table)
+
+
+if __name__ == "__main__":
+    unittest.main()

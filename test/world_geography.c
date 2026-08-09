@@ -117,3 +117,40 @@ TEST("Reviewed synthetic wide sections cross world and compact registry APIs")
     EXPECT_EQ(EncodeSavedLocationWithRegistry(252, &registry), SAVED_LOCATION_INVALID);
     EXPECT_EQ(EncodeMetLocationWithRegistry(252, &registry), MET_LOCATION_INVALID);
 }
+
+TEST("Published compact locations and reviewed wide identities round trip canonically")
+{
+    MapSectionId section;
+
+    for (section = 0; section <= MAPSEC_TRAINER_HILL; section++)
+    {
+        EXPECT_EQ(EncodeSavedLocation(section), section);
+        EXPECT_EQ(DecodeSavedLocation(EncodeSavedLocation(section)), section);
+        EXPECT_EQ(EncodeMetLocation(section), section);
+        EXPECT_EQ(DecodeMetLocation(EncodeMetLocation(section)), section);
+    }
+
+    EXPECT_EQ(EncodeSavedLocation(MAPSEC_NEW_BARK_TOWN), 209);
+    EXPECT_EQ(DecodeSavedLocation(209), MAPSEC_NEW_BARK_TOWN);
+    EXPECT_EQ(EncodeMetLocation(MAPSEC_MT_MORTAR), 251);
+    EXPECT_EQ(DecodeMetLocation(251), MAPSEC_MT_MORTAR);
+}
+
+TEST("Johto Victory Road uses the canonical Victory Road compact identity")
+{
+    EXPECT_EQ(EncodeSavedLocation(MAPSEC_JOHTO_VICTORY_ROAD), EncodeSavedLocation(MAPSEC_VICTORY_ROAD));
+    EXPECT_EQ(EncodeSavedLocation(MAPSEC_JOHTO_VICTORY_ROAD), 70);
+    EXPECT_EQ(DecodeSavedLocation(EncodeSavedLocation(MAPSEC_JOHTO_VICTORY_ROAD)), MAPSEC_VICTORY_ROAD);
+    EXPECT_EQ(EncodeMetLocation(MAPSEC_JOHTO_VICTORY_ROAD), EncodeMetLocation(MAPSEC_VICTORY_ROAD));
+    EXPECT_EQ(EncodeMetLocation(MAPSEC_JOHTO_VICTORY_ROAD), 70);
+    EXPECT_EQ(DecodeMetLocation(EncodeMetLocation(MAPSEC_JOHTO_VICTORY_ROAD)), MAPSEC_VICTORY_ROAD);
+}
+
+TEST("Invalid compact codes and special met origins have no map section owner")
+{
+    EXPECT_EQ(DecodeSavedLocation(SAVED_LOCATION_INVALID), MAPSEC_INVALID);
+    EXPECT_EQ(DecodeMetLocation(MET_LOCATION_INVALID), MAPSEC_INVALID);
+    EXPECT_EQ(DecodeMetLocation(METLOC_SPECIAL_EGG), MAPSEC_INVALID);
+    EXPECT_EQ(DecodeMetLocation(METLOC_IN_GAME_TRADE), MAPSEC_INVALID);
+    EXPECT_EQ(DecodeMetLocation(METLOC_FATEFUL_ENCOUNTER), MAPSEC_INVALID);
+}

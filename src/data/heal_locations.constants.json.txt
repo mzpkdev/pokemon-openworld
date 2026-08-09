@@ -1,14 +1,9 @@
 #ifndef GUARD_CONSTANTS_HEAL_LOCATIONS_H
 #define GUARD_CONSTANTS_HEAL_LOCATIONS_H
 
-{{ doNotModifyHeader }}
-
-enum {
-    HEAL_LOCATION_NONE,
-## for heal_location in heal_locations
-    {{ heal_location.id }},
-## endfor
-    NUM_HEAL_LOCATIONS
-};
+// Stable assignments are generated from src/data/persistence/persistent_ids.json.
+// Keeping the retired order-derived template visibly unusable prevents it from
+// silently becoming a second assignment authority.
+#error "generate heal-location constants through persistent_id_rules.mk"
 
 #endif // GUARD_CONSTANTS_HEAL_LOCATIONS_H

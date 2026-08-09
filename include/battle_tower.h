@@ -44,5 +44,8 @@ bool32 ValidateBattleTowerRecord(u8 recordId); // unused
 void TrySetLinkBattleTowerEnemyPartyLevel(void);
 void FillTentTrainerParty(u8 monsCount);
 
+#ifdef DEBUG
+bool8 Debug_StartAndPauseTowerChallenge(u8 levelMode);
+#endif
 
 #endif //GUARD_BATTLE_TOWER_H

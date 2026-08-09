@@ -74,6 +74,9 @@
 #include "test/battle.h"
 #include "follower_npc.h"
 #include "load_save.h"
+#ifdef DEBUG
+#include "integrity_capture.h"
+#endif
 
 // Helper for accessing command arguments and advancing gBattlescriptCurrInstr.
 //
@@ -10022,6 +10025,14 @@ static void Cmd_handleballthrow(void)
         if (gBattleResults.catchAttempts[ballId] < 255)
             gBattleResults.catchAttempts[ballId]++;
 
+#ifdef DEBUG
+        if (IntegrityCapture_ConsumeGuaranteedThrow(gLastUsedItem))
+        {
+            FinalizeCapture();
+            return;
+        }
+#endif
+
         gBattleSpritesDataPtr->animationData->isCriticalCapture = FALSE;
         gBattleSpritesDataPtr->animationData->criticalCaptureSuccess = FALSE;
 
@@ -10197,7 +10208,8 @@ static void Cmd_givecaughtmon(void)
                 break;
         }
 
-        if (GiveCapturedMonToPlayer(caughtMon) != MON_GIVEN_TO_PARTY
+        u8 giveResult = GiveCapturedMonToPlayer(caughtMon);
+        if (giveResult != MON_GIVEN_TO_PARTY
          && gBattleCommunication[MULTISTRING_CHOOSER] != B_MSG_SWAPPED_INTO_PARTY)
         {
             if (!ShouldShowBoxWasFullMessage())
@@ -10226,6 +10238,10 @@ static void Cmd_givecaughtmon(void)
         gBattleResults.caughtMonSpecies = GetMonData(caughtMon, MON_DATA_SPECIES);
         GetMonData(caughtMon, MON_DATA_NICKNAME, gBattleResults.caughtMonNick);
         gBattleResults.caughtMonBall = GetMonData(caughtMon, MON_DATA_POKEBALL);
+
+#ifdef DEBUG
+        IntegrityCapture_Complete(caughtMon, emptySlot, giveResult == MON_GIVEN_TO_PARTY);
+#endif
 
         gSelectedMonPartyId = PARTY_SIZE;
         gBattleCommunication[MULTIUSE_STATE] = 0;
@@ -13889,4 +13905,3 @@ void BS_RestoreStatChangeQueue(void)
     ClearOtherStatChangeValues(gBattlerAttacker);
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
-

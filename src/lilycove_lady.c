@@ -77,6 +77,17 @@ void InitLilycoveLady(void)
     }
 }
 
+#ifdef DEBUG
+void Debug_InitLilycoveLadyDeterministically(void)
+{
+    // NewGameInitData normally starts from ClearSav1. The scenario changes
+    // trainer identity after Quickstart, so clear the tagged union before
+    // replaying its normal identity-selected initializer.
+    memset(&gSaveBlock1Ptr->lilycoveLady, 0, sizeof(gSaveBlock1Ptr->lilycoveLady));
+    InitLilycoveLady();
+}
+#endif
+
 void ResetLilycoveLadyForRecordMix(void)
 {
     switch (GetLilycoveLadyId())

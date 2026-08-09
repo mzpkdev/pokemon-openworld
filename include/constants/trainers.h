@@ -548,4 +548,6 @@ enum TrainerClassID
 #define TRAINER_MON_FEMALE        2
 #define TRAINER_MON_RANDOM_GENDER 3
 
+#include "constants/persistent_trainer_special.inc.h"
+
 #endif  // GUARD_TRAINERS_H

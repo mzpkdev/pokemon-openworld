@@ -27,4 +27,6 @@ enum
 // use the given coordinates rather than the coordinates of a target warp.
 #define WARP_ID_NONE (-1)
 
+#include "constants/persistent_maps.inc.h"
+
 #endif  // GUARD_CONSTANTS_MAPS_H

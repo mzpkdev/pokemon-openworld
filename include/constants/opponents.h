@@ -882,4 +882,6 @@
 #define TRAINER_RIVAL_TOTODILE_1 857
 // JOHTO IMPORT END: rival opponents
 
+#include "constants/persistent_opponents.inc.h"
+
 #endif  // GUARD_CONSTANTS_OPPONENTS_H
