@@ -387,8 +387,15 @@ class CliTests(unittest.TestCase):
                         "sections": [],
                         "tilesets": [],
                         "deferred_edges": [],
+                        "symbols": ["Map_Script"],
                     },
-                    "evidence": {"graphDigest": "c" * 64},
+                    "evidence": {
+                        "graphDigest": "c" * 64,
+                        "attributeFormats": {"fixture": {"format": "U16"}},
+                        "inputs": [
+                            {"path": "map.json", "bytes": 1, "sha256": "d" * 64}
+                        ],
+                    },
                 }
 
         expected = {
@@ -402,9 +409,11 @@ class CliTests(unittest.TestCase):
                 "sections": [],
                 "tilesets": [],
                 "deferred_edges": [],
-                "symbols": [],
+                "symbols": ["Map_Script"],
             },
             "evidence": {
+                "attributeFormats": {"fixture": {"format": "U16"}},
+                "inputs": [{"path": "map.json", "bytes": 1, "sha256": "d" * 64}],
                 "donors": {
                     "mechanical": {
                         "commit": donor.commit,
@@ -416,7 +425,7 @@ class CliTests(unittest.TestCase):
                         "sourceTreeDigest": donor.tree_digest,
                         "fileCount": donor.file_count,
                     },
-                }
+                },
             },
         }
         comparison = self.repo / "expected.json"
@@ -460,6 +469,41 @@ class CliTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ContentPortError, "closure field maps"):
                 check_port(self.repo, "fixture", self.repo, compare_report=comparison)
+
+        for field, mutated in (
+            ("symbols", ["Mutated_Script"]),
+            ("attributeFormats", {"fixture": {"format": "U32"}}),
+            ("inputs", [{"path": "map.json", "bytes": 2, "sha256": "d" * 64}]),
+        ):
+            expected["closure"]["maps"] = ["Map"]
+            if field == "symbols":
+                expected["closure"][field] = mutated
+            else:
+                expected["closure"]["symbols"] = ["Map_Script"]
+                expected["evidence"][field] = mutated
+            comparison.write_bytes(canonical(expected))
+            with (
+                patch(
+                    "tools.content_port.descriptor.load_port",
+                    return_value=SimpleNamespace(
+                        donors_by_role={"mechanical": object(), "content": object()}
+                    ),
+                ),
+                patch(
+                    "tools.content_port.donors.authenticate_donors",
+                    return_value=(donor, donor),
+                ),
+                patch(
+                    "tools.content_port.sources.validate_port_sources",
+                    return_value=Contract(),
+                ),
+            ):
+                with self.assertRaisesRegex(ContentPortError, field):
+                    check_port(
+                        self.repo, "fixture", self.repo, compare_report=comparison
+                    )
+            if field != "symbols":
+                expected["evidence"][field] = Contract().to_report()["evidence"][field]
 
     def test_check_propagates_source_drift(self) -> None:
         with (

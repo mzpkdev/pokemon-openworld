@@ -110,6 +110,7 @@ def _compare_equivalence(
         "groups",
         "sections",
         "tilesets",
+        "symbols",
         "deferred_edges",
     )
     for field in shared_closure:
@@ -121,8 +122,11 @@ def _compare_equivalence(
     expected_evidence = expected.get("evidence")
     if not isinstance(actual_evidence, dict) or not isinstance(expected_evidence, dict):
         raise ContentPortError("comparison reports require evidence objects")
-    if not equivalent(actual_evidence.get("donors"), expected_evidence.get("donors")):
-        raise ContentPortError(f"content-port donor evidence differs from {source}")
+    for field in ("attributeFormats", "inputs", "donors"):
+        if not equivalent(actual_evidence.get(field), expected_evidence.get(field)):
+            raise ContentPortError(
+                f"content-port evidence field {field} differs from {source}"
+            )
 
 
 def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path) -> str:

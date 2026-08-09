@@ -158,6 +158,17 @@ class SourceGraphTests(unittest.TestCase):
         self.assertEqual(evidence.inventory["maps"], 254)
         self.assertEqual(evidence.inventory["layouts"], 255)
         self.assertEqual(state.map_authorities["JohtoVictoryRoad_1F"], "mechanical")
+        self.assertEqual(
+            state.layout_authorities["LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"],
+            "mechanical",
+        )
+        overlapping = "LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"
+        for donor_name in ("pokemonHnS", "PKMN-World"):
+            context = ExpansionSourceContext(donor_root / donor_name)
+            self.assertEqual(
+                context.load(ResourceKey("layout", overlapping)).value["id"],
+                overlapping,
+            )
         with self.assertRaises(TypeError):
             state.maps["NewBarkTown"]["layout"] = "MUTATED"
         adaptations = {key: value for key, value in descriptor.adaptations.items()}
@@ -178,6 +189,29 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+
+        authorities = list(descriptor.layout_binary_authorities)
+        mechanical_index = next(
+            index
+            for index, authority in enumerate(authorities)
+            if authority.layout == "LAYOUT_JOHTO_VICTORY_ROAD_1F"
+        )
+        authorities[mechanical_index] = replace(
+            authorities[mechanical_index], source_role="content"
+        )
+        with self.assertRaisesRegex(ContentPortError, "source map.*content donor"):
+            validate_port_sources(
+                replace(descriptor, layout_binary_authorities=tuple(authorities)),
+                Path("."),
+            )
+
+        authorities = list(descriptor.layout_binary_authorities)
+        authorities.append(authorities[0])
+        with self.assertRaisesRegex(ContentPortError, "uniquely cover"):
+            validate_port_sources(
+                replace(descriptor, layout_binary_authorities=tuple(authorities)),
+                Path("."),
+            )
 
         renamed_donors = {
             role: replace(pin, name=f"role-{role}")
@@ -249,6 +283,21 @@ class SourceGraphTests(unittest.TestCase):
         legacy["closure"]["maps"].pop()
         with self.assertRaisesRegex(ContentPortError, "required legacy baseline"):
             validate_port_sources(replace(descriptor, legacy_report=legacy), Path("."))
+
+        for section, field in (
+            ("closure", "symbols"),
+            ("evidence", "attributeFormats"),
+            ("evidence", "inputs"),
+        ):
+            legacy = self._mutable(descriptor.legacy_report)
+            if isinstance(legacy[section][field], list):
+                legacy[section][field].pop()
+            else:
+                legacy[section][field].pop(next(iter(legacy[section][field])))
+            with self.assertRaisesRegex(ContentPortError, field):
+                validate_port_sources(
+                    replace(descriptor, legacy_report=legacy), Path(".")
+                )
 
         with tempfile.TemporaryDirectory() as temporary:
             target = Path(temporary)

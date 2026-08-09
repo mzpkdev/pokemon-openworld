@@ -69,7 +69,7 @@ class ContractEvidence:
             {
                 "inventory": dict(self.inventory),
                 "closure": {key: _thaw(value) for key, value in self.closure.items()},
-                "evidence": dict(self.evidence),
+                "evidence": _thaw(self.evidence),
             }
         )
 
@@ -661,6 +661,156 @@ def _inventory_digest(values: Iterable[str]) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
+_INCLUDE_RE = re.compile(r'^\s*\.include\s+"([^"]+)"', re.MULTILINE)
+_LABEL_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)::?", re.MULTILINE)
+_TILESET_BLOB_RE = re.compile(
+    r'g(?P<kind>Metatiles|MetatileAttributes)_(?P<name>\w+)\[\].*?"(?P<path>[^"]+)"'
+)
+
+
+def _referenced_inputs(
+    root: Path, map_names: Iterable[str]
+) -> tuple[tuple[str, ...], tuple[Mapping[str, object], ...]]:
+    """Rebuild the legacy recursive symbol and byte-evidence closure."""
+    pending: list[Path] = []
+    for name in map_names:
+        map_path = root / "data" / "maps" / name / "map.json"
+        pending.append(map_path)
+        for sibling_name in ("scripts.inc", "text.inc"):
+            sibling = map_path.with_name(sibling_name)
+            if sibling.is_file():
+                pending.append(sibling)
+    root = root.resolve()
+    seen: set[Path] = set()
+    symbols: set[str] = set()
+    records: dict[str, Mapping[str, object]] = {}
+    while pending:
+        path = pending.pop()
+        try:
+            resolved = path.resolve(strict=True)
+            relative = resolved.relative_to(root).as_posix()
+        except (OSError, ValueError) as error:
+            raise ContentPortError(
+                f"missing or escaping referenced input: {path}"
+            ) from error
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        try:
+            data = resolved.read_bytes()
+            text = data.decode("utf-8")
+        except (OSError, UnicodeError) as error:
+            raise ContentPortError(
+                f"cannot read referenced input {relative}: {error}"
+            ) from error
+        if resolved.suffix.lower() != ".json":
+            symbols.update(_LABEL_RE.findall(text))
+        records[relative] = MappingProxyType(
+            {
+                "path": relative,
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
+        for include in _INCLUDE_RE.findall(text):
+            included = root / include
+            if not included.is_file():
+                raise ContentPortError(
+                    f"missing recursively referenced input: {include}"
+                )
+            pending.append(included)
+    return tuple(sorted(symbols)), tuple(records[key] for key in sorted(records))
+
+
+def _attribute_format(metatile_bytes: int, attribute_bytes: int) -> str:
+    count, remainder = divmod(metatile_bytes, 16)
+    if remainder or not count:
+        raise ContentPortError("metatile blob is not an integral metatile set")
+    if attribute_bytes == count * 2:
+        return "METATILE_ATTRIBUTES_EMERALD_U16"
+    if attribute_bytes == count * 4:
+        return "METATILE_ATTRIBUTES_FRLG_U32"
+    raise ContentPortError("attribute blob width does not match metatile count")
+
+
+def _attribute_fixture_evidence(
+    fixtures: Iterable[Mapping[str, object]],
+    donor_fields: Mapping[str, str],
+    contexts: Mapping[str, ExpansionSourceContext],
+    donor_roots: Mapping[str, Path],
+) -> Mapping[str, Mapping[str, str]]:
+    field_roles = {field: role for role, field in donor_fields.items()}
+    declared_by_role: dict[str, dict[tuple[str, str], str]] = {}
+    results: dict[str, Mapping[str, str]] = {}
+    for item in fixtures:
+        representative = str(item["representative"])
+        layout_id = str(item["layout"])
+        tileset_role = str(item["role"])
+        policy_authority = str(item["authority"])
+        source_role = field_roles.get(policy_authority)
+        if source_role is None or source_role not in contexts:
+            raise ContentPortError(
+                f"attribute fixture {representative} names unknown donor authority"
+            )
+        layout = contexts[source_role].load(ResourceKey("layout", layout_id)).value
+        expected_tileset = layout.get(f"{tileset_role}_tileset")
+        if item.get("tileset") != expected_tileset:
+            raise ContentPortError(
+                f"attribute fixture role drift: {representative}/{layout_id}/{tileset_role}"
+            )
+        if source_role not in declared_by_role:
+            header_path = donor_roots[source_role] / "src/data/tilesets/metatiles.h"
+            try:
+                header = header_path.read_text(encoding="utf-8")
+            except (OSError, UnicodeError) as error:
+                raise ContentPortError(
+                    f"cannot read tileset declarations {header_path}: {error}"
+                ) from error
+            declared_by_role[source_role] = {
+                (match.group("kind"), f"gTileset_{match.group('name')}"): match.group(
+                    "path"
+                )
+                for match in _TILESET_BLOB_RE.finditer(header)
+            }
+        declarations = declared_by_role[source_role]
+        if item.get("metatiles") != declarations.get(
+            ("Metatiles", str(expected_tileset))
+        ) or item.get("attributes") != declarations.get(
+            ("MetatileAttributes", str(expected_tileset))
+        ):
+            raise ContentPortError(
+                f"attribute fixture path drift: {representative}/{expected_tileset}"
+            )
+        metatiles = donor_roots[source_role] / str(item["metatiles"])
+        attributes = donor_roots[source_role] / str(item["attributes"])
+        try:
+            metatile_data = metatiles.read_bytes()
+            attribute_data = attributes.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"cannot read attribute fixture {representative}: {error}"
+            ) from error
+        if hashlib.sha256(metatile_data).hexdigest() != item.get(
+            "metatilesSha256"
+        ) or hashlib.sha256(attribute_data).hexdigest() != item.get("attributesSha256"):
+            raise ContentPortError(f"attribute fixture hash drift: {representative}")
+        actual_format = _attribute_format(len(metatile_data), len(attribute_data))
+        if actual_format != item.get("format"):
+            raise ContentPortError(
+                f"wrong attribute width for {expected_tileset}: expected "
+                f"{item.get('format')}, got {actual_format}"
+            )
+        results[representative] = MappingProxyType(
+            {
+                "layout": layout_id,
+                "role": tileset_role,
+                "tileset": str(expected_tileset),
+                "format": actual_format,
+            }
+        )
+    return MappingProxyType(dict(sorted(results.items())))
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -682,12 +832,16 @@ def resolve_port_sources(
     from .world_graph import WorldPolicy, validate_world_graph, world_graph_from_maps
 
     target_root = Path(repo)
+    donor_pins = descriptor.donors_by_role
+    donor_roots = {role: pin.root for role, pin in donor_pins.items()}
+    contexts = {
+        role: ExpansionSourceContext(pin.root, active_capabilities=("spatial",))
+        for role, pin in donor_pins.items()
+    }
     mechanical_pin = descriptor.donor("mechanical")
     content_pin = descriptor.donor("content")
-    mechanical = ExpansionSourceContext(
-        mechanical_pin.root, active_capabilities=("spatial",)
-    )
-    content = ExpansionSourceContext(content_pin.root, active_capabilities=("spatial",))
+    mechanical = contexts["mechanical"]
+    content = contexts["content"]
 
     adaptations = _thaw(descriptor.adaptations)
     donor_fields = adaptations.get("donorFieldRoles")
@@ -839,48 +993,55 @@ def resolve_port_sources(
         for index in sorted(indexes, reverse=True):
             del selected_maps[name][field_name][index]
 
-    # Resolve every allocated map/layout and build the mixed-authority layout set.
+    # Resolve each layout from its exact typed authority. The source map proves
+    # that the reviewed layout identity belongs to that donor and source.
     selected_layouts: dict[str, SourceRecord] = {}
     layout_authorities: dict[str, str] = {}
     for name, document in selected_maps.items():
         descriptor.allocation_index.map_slot(name)
         layout_id = str(document["layout"])
         descriptor.allocation_index.layout_slot(layout_id)
-        for authority_role, authority in (
-            ("content", content),
-            ("mechanical", mechanical),
-        ):
-            try:
-                record = authority.load(ResourceKey("layout", layout_id))
-                selected_layouts.setdefault(layout_id, record)
-                layout_authorities.setdefault(layout_id, authority_role)
-                break
-            except ContentPortError:
-                continue
-        else:
+    allocated_layouts = set(descriptor.allocation_index.layouts)
+    declared_layouts = {item.layout for item in descriptor.layout_binary_authorities}
+    if declared_layouts != allocated_layouts or len(declared_layouts) != len(
+        descriptor.layout_binary_authorities
+    ):
+        raise ContentPortError(
+            "layout binary authorities must uniquely cover every allocated layout"
+        )
+    for authority in descriptor.layout_binary_authorities:
+        context = contexts.get(authority.source_role)
+        if context is None:
             raise ContentPortError(
-                f"{name}: layout {layout_id} is absent from both donors"
+                f"{authority.layout}: unknown layout source role {authority.source_role}"
             )
-    # The lock contains one alternate layout not selected by a map header.
-    for layout_id in descriptor.allocation_index.layouts:
-        if layout_id in selected_layouts:
-            continue
-        for authority_role, authority in (
-            ("content", content),
-            ("mechanical", mechanical),
-        ):
+        if authority.source != authority.layout:
             try:
-                selected_layouts[layout_id] = authority.load(
-                    ResourceKey("layout", layout_id)
+                source_map = context.load(ResourceKey("map", authority.source))
+            except ContentPortError as error:
+                raise ContentPortError(
+                    f"{authority.layout}: source map {authority.source} is absent from "
+                    f"the {authority.source_role} donor"
+                ) from error
+            if source_map.value.get("layout") != authority.layout:
+                raise ContentPortError(
+                    f"{authority.layout}: source map {authority.source} in the "
+                    f"{authority.source_role} donor resolves layout "
+                    f"{source_map.value.get('layout')!r}"
                 )
-                layout_authorities[layout_id] = authority_role
-                break
-            except ContentPortError:
-                continue
-        else:
+        try:
+            record = context.load(ResourceKey("layout", authority.layout))
+        except ContentPortError as error:
             raise ContentPortError(
-                f"allocated layout {layout_id} is absent from both donors"
+                f"{authority.layout}: layout is absent from its reviewed "
+                f"{authority.source_role} donor"
+            ) from error
+        if authority.layout in selected_layouts:
+            raise ContentPortError(
+                f"{authority.layout}: overlapping layout binary authorities"
             )
+        selected_layouts[authority.layout] = record
+        layout_authorities[authority.layout] = authority.source_role
 
     for layout_id, record in list(selected_layouts.items()):
         selected_layouts[layout_id] = SourceRecord(
@@ -927,7 +1088,7 @@ def resolve_port_sources(
     # Renderer bindings are authored policy. Installed generated headers are
     # outputs and must never become authority for their own desired state.
     policy_tilesets = {
-        f"gTileset_{item.get('targetSymbol', item['symbol'])}"
+        f"gTileset_{item['targetSymbol'] if 'targetSymbol' in item else item['symbol']}"
         for item in adaptations["tilesetAdaptations"]
     }
     for decision in adaptations["layoutTilesetRemaps"]:
@@ -1100,6 +1261,15 @@ def resolve_port_sources(
             }
         )
     )
+    preserved_maps = tuple(
+        name
+        for name, ownership in descriptor.map_ownership.items()
+        if ownership == "preserve"
+    )
+    symbols, legacy_inputs = _referenced_inputs(content_pin.root, preserved_maps)
+    attribute_formats = _attribute_fixture_evidence(
+        adaptations["attributeFixtures"], donor_fields, contexts, donor_roots
+    )
     inventory = MappingProxyType(
         {
             "maps": len(maps_in_closure),
@@ -1133,6 +1303,7 @@ def resolve_port_sources(
             "groups": tuple(sorted(descriptor.allocation_index.groups)),
             "sections": tuple(sorted(descriptor.allocation_index.sections)),
             "tilesets": tilesets,
+            "symbols": symbols,
             "deferred_edges": tuple(
                 sorted(
                     (item["source"], item["kind"], item["destination"])
@@ -1145,10 +1316,15 @@ def resolve_port_sources(
     legacy = descriptor.legacy_report
     legacy_inventory = legacy.get("inventory")
     legacy_closure = legacy.get("closure")
-    if not isinstance(legacy_inventory, Mapping) or not isinstance(
-        legacy_closure, Mapping
+    legacy_evidence = legacy.get("evidence")
+    if (
+        not isinstance(legacy_inventory, Mapping)
+        or not isinstance(legacy_closure, Mapping)
+        or not isinstance(legacy_evidence, Mapping)
     ):
-        raise ContentPortError("required legacy baseline lacks inventory or closure")
+        raise ContentPortError(
+            "required legacy baseline lacks inventory, closure, or evidence"
+        )
     if dict(inventory) != dict(legacy_inventory):
         raise ContentPortError(
             "current inventory differs from required legacy baseline"
@@ -1159,17 +1335,33 @@ def resolve_port_sources(
         "groups",
         "sections",
         "tilesets",
+        "symbols",
         "deferred_edges",
     ):
         if _thaw(closure_report[field_name]) != _thaw(legacy_closure.get(field_name)):
             raise ContentPortError(
                 f"current closure field {field_name} differs from required legacy baseline"
             )
-    provenance_roots = (
-        ("content", content_pin.root.resolve()),
-        ("mechanical", mechanical_pin.root.resolve()),
-        ("target", target_root.resolve()),
-    )
+    actual_legacy_evidence = {
+        "attributeFormats": _thaw(attribute_formats),
+        "inputs": _thaw(legacy_inputs),
+        "donors": {
+            role: {
+                "commit": pin.commit,
+                "sourceTreeDigest": pin.tree_digest,
+                "fileCount": pin.file_count,
+            }
+            for role, pin in donor_pins.items()
+        },
+    }
+    for field_name, value in actual_legacy_evidence.items():
+        if value != _thaw(legacy_evidence.get(field_name)):
+            raise ContentPortError(
+                f"current evidence field {field_name} differs from required legacy baseline"
+            )
+    provenance_roots = tuple(
+        (role, root.resolve()) for role, root in sorted(donor_roots.items())
+    ) + (("target", target_root.resolve()),)
 
     def stable_provenance(value: Provenance) -> str:
         if value.path.startswith("<"):
@@ -1193,6 +1385,8 @@ def resolve_port_sources(
             "resourceCount": len(closure),
             "edgeCount": len(graph.edges),
             "enabledCapabilityCount": len(enabled),
+            "attributeFormats": attribute_formats,
+            "inputs": legacy_inputs,
         }
     )
     contract = ContractEvidence(inventory, closure_report, evidence)
@@ -1203,9 +1397,7 @@ def resolve_port_sources(
         ),
         map_authorities=MappingProxyType(dict(map_authorities)),
         layout_authorities=MappingProxyType(dict(layout_authorities)),
-        donor_roots=MappingProxyType(
-            {"mechanical": mechanical_pin.root, "content": content_pin.root}
-        ),
+        donor_roots=MappingProxyType(dict(donor_roots)),
         resources=graph.resources,
         inventory=MappingProxyType(dict(inventory_values)),
     )
