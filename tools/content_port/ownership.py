@@ -471,6 +471,8 @@ def _write_unit(root: Path, port: str, unit: OwnershipUnit, payload: bytes) -> N
     path = safe_repo_path(root, unit.path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if unit.kind == "file":
+        if path.exists() and path.read_bytes() == payload:
+            return
         _atomic_write(path, payload)
         return
     if not path.exists():
@@ -499,12 +501,16 @@ def _write_unit(root: Path, port: str, unit: OwnershipUnit, payload: bytes) -> N
                 _atomic_write(path, content + separator + payload)
                 return
             start, finish, _ = _owned_section_span(content, port, unit.name or "")
+            if content[start:finish] == payload:
+                return
             _atomic_write(path, content[:start] + payload + content[finish:])
             return
         document = json.loads(content)
     records = _registry_container(document, unit.registry or "")
     record = json.loads(payload)
     if isinstance(records, dict):
+        if unit.key in records and canonical_json(records[unit.key or ""]) == payload:
+            return
         records[unit.key or ""] = record
     elif isinstance(records, list):
         try:
@@ -512,10 +518,9 @@ def _write_unit(root: Path, port: str, unit: OwnershipUnit, payload: bytes) -> N
         except ContentPortError:
             records.append(record)
         else:
+            if canonical_json(records[index]) == payload:
+                return
             records[index] = record
-        records.sort(
-            key=lambda item: json.dumps(item, sort_keys=True, ensure_ascii=False)
-        )
     else:
         raise ContentPortError(
             f"registry {unit.registry!r} is not keyed in {unit.path}"

@@ -120,6 +120,78 @@ class OwnershipTests(unittest.TestCase):
             result = json.loads((root / "registry.json").read_text())
             self.assertEqual(result, {"records": {"hand": {"value": 1}, "new": record}})
 
+    def test_registry_replacement_preserves_semantic_list_order(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = {
+                "records": [
+                    {"id": "last", "value": 1},
+                    {"id": "owned", "value": 2},
+                    {"id": "first", "value": 3},
+                ]
+            }
+            (root / "registry.json").write_bytes(canonical_json(document))
+            old_record = canonical_json(document["records"][1])
+            old = OwnershipManifest(
+                "test",
+                (
+                    OwnershipUnit(
+                        "registry-record",
+                        "registry.json",
+                        content_sha256(old_record),
+                        registry="records",
+                        key="owned",
+                    ),
+                ),
+            )
+            replacement = {"id": "owned", "value": 4}
+            desired = OwnershipManifest(
+                "test",
+                (
+                    OwnershipUnit(
+                        "registry-record",
+                        "registry.json",
+                        content_sha256(canonical_json(replacement)),
+                        registry="records",
+                        key="owned",
+                    ),
+                ),
+            )
+            reconcile_owned(
+                root,
+                old,
+                desired,
+                {("registry-record", "registry.json", "records", "owned"): replacement},
+            )
+            result = json.loads((root / "registry.json").read_text())
+            self.assertEqual(
+                [record["id"] for record in result["records"]],
+                ["last", "owned", "first"],
+            )
+
+    def test_unchanged_registry_record_preserves_exact_file_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            original = b'{"records": [{"id": "owned", "value": 2}]}\n'
+            path = root / "registry.json"
+            path.write_bytes(original)
+            record = {"id": "owned", "value": 2}
+            unit = OwnershipUnit(
+                "registry-record",
+                "registry.json",
+                content_sha256(canonical_json(record)),
+                registry="records",
+                key="owned",
+            )
+            manifest = OwnershipManifest("test", (unit,))
+            reconcile_owned(
+                root,
+                manifest,
+                manifest,
+                {("registry-record", "registry.json", "records", "owned"): record},
+            )
+            self.assertEqual(path.read_bytes(), original)
+
     def test_invalid_paths_symlinks_duplicates_and_overlap_fail(self) -> None:
         digest = content_sha256(b"x")
         with self.assertRaisesRegex(ContentPortError, "unsafe owned path"):
