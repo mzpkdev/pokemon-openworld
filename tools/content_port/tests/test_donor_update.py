@@ -197,12 +197,20 @@ class DonorUpdateTests(unittest.TestCase):
         }
         references = _policy_references(policy, "mechanical")
         self.assertEqual(
-            [reference["semanticIdentity"] for reference in references],
+            [
+                reference["semanticIdentity"]
+                for reference in references
+                if reference.get("recordType") is None
+            ],
             ["layout:LAYOUT_TEST.border_width"],
         )
         base_references = _policy_references(policy, "content")
         self.assertEqual(
-            [reference["semanticIdentity"] for reference in base_references],
+            [
+                reference["semanticIdentity"]
+                for reference in base_references
+                if reference.get("recordType") is None
+            ],
             ["layout:LAYOUT_TEST.border_width"],
         )
         self.assertEqual(base_references[0]["authority"], "content")
@@ -214,14 +222,20 @@ class DonorUpdateTests(unittest.TestCase):
             references=references,
         )
         self.assertEqual(
-            [change["semanticIdentity"] for change in report["authorityChanges"]],
+            [
+                change["semanticIdentity"]
+                for change in report["authorityChanges"]
+                if change["semanticIdentity"] == "layout:LAYOUT_TEST.border_width"
+            ],
             ["layout:LAYOUT_TEST.border_width"],
         )
-        self.assertNotEqual(
-            report["authorityChanges"][0]["oldHash"],
-            report["authorityChanges"][0]["newHash"],
+        field_change = next(
+            change
+            for change in report["authorityChanges"]
+            if change["semanticIdentity"] == "layout:LAYOUT_TEST.border_width"
         )
-        self.assertIsNone(report["authorityChanges"][0]["oldHash"])
+        self.assertNotEqual(field_change["oldHash"], field_change["newHash"])
+        self.assertIsNone(field_change["oldHash"])
 
     def test_explicit_map_adaptations_report_nested_removal_and_null_drift(
         self,
@@ -330,6 +344,107 @@ class DonorUpdateTests(unittest.TestCase):
         }
         self.assertTrue(transformed_content_paths.issubset(content_identities))
 
+    def test_complete_selected_records_emit_field_level_migration_evidence(
+        self,
+    ) -> None:
+        map_path = self.repo / "data/maps/TestMap/map.json"
+        layout_path = self.repo / "data/layouts/layouts.json"
+        section_path = self.repo / "src/data/region_map/test.json"
+        for path in (map_path, layout_path, section_path):
+            path.parent.mkdir(parents=True, exist_ok=True)
+        map_path.write_text(
+            json.dumps(
+                {
+                    "id": "MAP_TEST",
+                    "layout": "LAYOUT_TEST",
+                    "weather": "WEATHER_NONE",
+                }
+            )
+        )
+        layout_path.write_text(
+            json.dumps(
+                {
+                    "layouts": [
+                        {
+                            "id": "LAYOUT_TEST",
+                            "width": 10,
+                            "blockdata_filepath": "data/layouts/old.bin",
+                        }
+                    ]
+                }
+            )
+        )
+        section_path.write_text(
+            json.dumps(
+                {
+                    "map_sections": [
+                        {
+                            "id": "MAPSEC_TEST",
+                            "name": "Old Name",
+                            "x": 1,
+                            "y": 2,
+                            "width": 3,
+                            "height": 4,
+                        }
+                    ]
+                }
+            )
+        )
+        old_commit = make_commit(self.repo, "selected records old")
+        map_document = json.loads(map_path.read_text())
+        map_document["weather"] = "WEATHER_RAIN"
+        map_path.write_text(json.dumps(map_document))
+        layout_document = json.loads(layout_path.read_text())
+        layout_document["layouts"][0]["width"] = 11
+        layout_document["layouts"][0]["blockdata_filepath"] = "data/layouts/new.bin"
+        layout_path.write_text(json.dumps(layout_document))
+        section_document = json.loads(section_path.read_text())
+        section_document["map_sections"][0]["name"] = "New Name"
+        section_document["map_sections"][0]["x"] = 5
+        section_path.write_text(json.dumps(section_document))
+        new_commit = make_commit(self.repo, "selected records new")
+        policy = {
+            "donorFieldRoles": {"content": "hns", "mechanical": "mechanical"},
+            "contentFallback": {"maps": []},
+            "layoutBinaryAuthorities": [
+                {
+                    "layout": "LAYOUT_TEST",
+                    "source": "TestMap",
+                    "sourceRole": "content",
+                }
+            ],
+            "layoutFieldAuthorities": [],
+            "sectionMetadataAuthorities": [
+                {
+                    "section": "MAPSEC_TEST",
+                    "sourceRole": "content",
+                    "sourceSymbol": "MAPSEC_TEST",
+                }
+            ],
+        }
+        allocations = {"maps": [{"name": "TestMap"}]}
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("selected-old", old_commit),
+            new_tree=self.worktree("selected-new", new_commit),
+            references=_policy_references(policy, "content", allocations),
+        )
+        changes = {
+            change["semanticIdentity"]: change for change in report["authorityChanges"]
+        }
+        for identity in (
+            "map:TestMap.weather",
+            "layout:LAYOUT_TEST.width",
+            "layout:LAYOUT_TEST.blockdata_filepath",
+            "section:MAPSEC_TEST.name",
+            "section:MAPSEC_TEST.x",
+        ):
+            with self.subTest(identity=identity):
+                self.assertIn(identity, changes)
+                self.assertEqual(changes[identity]["authority"], "content")
+                self.assertEqual(changes[identity]["reviewerDisposition"], "pending")
+
     def test_asset_policy_fails_closed_on_permission_and_metadata(self) -> None:
         for permission in ("blocked", "unknown"):
             with self.subTest(permission=permission):
@@ -435,9 +550,14 @@ class DonorUpdateTests(unittest.TestCase):
         donor_root.mkdir()
         git(self.repo, "worktree", "add", str(donor_root / "donor"), self.old_commit)
         output = host / "build/content-port/fixture/donor-migration.json"
-        with mock.patch(
-            "tools.content_port.update.run_review_commands",
-            return_value=tuple(passed_evidence()),
+        with (
+            mock.patch(
+                "tools.content_port.update.run_review_commands",
+                return_value=tuple(passed_evidence()),
+            ),
+            mock.patch(
+                "tools.content_port.update._validate_target_pin"
+            ) as target_check,
         ):
             result = run_donor_update(
                 host,
@@ -452,6 +572,7 @@ class DonorUpdateTests(unittest.TestCase):
         candidate = json.loads(output.read_text())
         self.assertEqual(candidate["decision"], "candidate")
         self.assertEqual(candidate["donor"], "content")
+        target_check.assert_called_once()
 
     def test_finalize_links_reviewed_content_address_without_editing_port(self) -> None:
         (self.repo / "data.json").write_text(
@@ -529,9 +650,13 @@ class DonorUpdateTests(unittest.TestCase):
         before = port_path.read_bytes()
         candidate = self.root / "donor-migration.json"
         candidate.write_bytes(canonical_bytes(report))
-        record, proposal = finalize_migration(
-            candidate, port_dir, donor_root=self.root, repo=Path.cwd()
-        )
+        with mock.patch(
+            "tools.content_port.update._validate_target_pin"
+        ) as target_check:
+            record, proposal = finalize_migration(
+                candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+            )
+        target_check.assert_called_once()
         self.assertEqual(record.name, migration_filename(report))
         self.assertEqual(record.read_bytes(), canonical_bytes(report))
         self.assertEqual(port_path.read_bytes(), before)
@@ -548,9 +673,10 @@ class DonorUpdateTests(unittest.TestCase):
         with self.assertRaisesRegex(
             DonorUpdateError, "predecessor is not the published pin"
         ):
-            finalize_migration(
-                candidate, port_dir, donor_root=self.root, repo=Path.cwd()
-            )
+            with mock.patch("tools.content_port.update._validate_target_pin"):
+                finalize_migration(
+                    candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+                )
 
         for field in ("changedPaths", "assets"):
             fabricated = copy.deepcopy(report)
@@ -607,6 +733,73 @@ class DonorUpdateTests(unittest.TestCase):
         (port_dir / "port.json").write_text('{"donors":{}}')
         with self.assertRaisesRegex(DonorUpdateError, "review is incomplete"):
             finalize_migration(candidate, port_dir)
+
+        report["authorityChanges"] = []
+        for permission in ("blocked", "unknown"):
+            report["assets"] = [
+                {
+                    "key": "unpublishable-art",
+                    "permission": permission,
+                    "reviewerDisposition": "accepted",
+                }
+            ]
+            candidate.write_bytes(canonical_bytes(report))
+            with (
+                self.subTest(permission=permission),
+                self.assertRaisesRegex(DonorUpdateError, f"permission is {permission}"),
+            ):
+                finalize_migration(candidate, port_dir)
+
+    def test_finalize_fails_before_publication_when_target_pin_is_invalid(self) -> None:
+        (self.repo / "data.json").write_text(json.dumps({"changed": True}))
+        new_commit = make_commit(self.repo, "target")
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("target-check-old", self.old_commit),
+            new_tree=self.worktree("target-check-new", new_commit),
+            tests=passed_evidence(),
+        )
+        report["decision"] = "reviewed"
+        candidate = self.root / "target-check.json"
+        candidate.write_bytes(canonical_bytes(report))
+        port_dir = self.root / "target-port"
+        port_dir.mkdir()
+        port = {
+            "donors": {
+                "content": {
+                    "name": "fixture",
+                    "repository": "owner/repo",
+                    **report["from"],
+                    "excludePaths": [],
+                    "genesis": dict(report["from"]),
+                    "root": "donor",
+                    "migration": None,
+                }
+            }
+        }
+        (port_dir / "port.json").write_bytes(canonical_bytes(port))
+        (port_dir / "assets.json").write_bytes(
+            canonical_bytes({"schemaVersion": 1, "assets": []})
+        )
+        (port_dir / "adaptations.json").write_bytes(
+            canonical_bytes({"schemaVersion": 1})
+        )
+
+        with (
+            mock.patch(
+                "tools.content_port.update._validate_target_pin",
+                side_effect=DonorUpdateError("target pin production check failed"),
+            ),
+            self.assertRaisesRegex(
+                DonorUpdateError, "target pin production check failed"
+            ),
+        ):
+            finalize_migration(
+                candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+            )
+        self.assertFalse((port_dir / "migrations").exists())
+        self.assertFalse(candidate.with_name("donor-port-update.json").exists())
 
     def test_fabricated_empty_review_requires_authenticated_trees(self) -> None:
         report = {

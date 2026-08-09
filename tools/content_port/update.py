@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import shutil
 import subprocess
 import tempfile
 from typing import Iterable, Mapping, Sequence
@@ -194,6 +195,53 @@ def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> objec
     return matches[0].get(field, _MISSING)
 
 
+def _layout_record_value(blob: bytes | None, layout_id: str) -> object:
+    if blob is None:
+        return _MISSING
+    try:
+        layouts = json.loads(blob)["layouts"]
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise DonorUpdateError("donor layout registry is malformed") from error
+    matches = [
+        item
+        for item in layouts
+        if isinstance(item, dict) and item.get("id") == layout_id
+    ]
+    if not matches:
+        return _MISSING
+    if len(matches) != 1:
+        raise DonorUpdateError(f"donor layout registry duplicates {layout_id}")
+    return matches[0]
+
+
+def _section_record_value(tree: Path, symbol: str) -> object:
+    records: list[Mapping[str, object]] = []
+    for path in sorted((tree / "src/data/region_map").glob("*.json")):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise DonorUpdateError(
+                f"cannot inspect donor section metadata {path}"
+            ) from error
+        if not isinstance(document, Mapping):
+            raise DonorUpdateError(f"donor section metadata is malformed: {path}")
+        values = document.get("map_sections", [])
+        if not isinstance(values, list):
+            raise DonorUpdateError(f"donor section metadata is malformed: {path}")
+        records.extend(
+            item
+            for item in values
+            if isinstance(item, Mapping)
+            and item.get("id", item.get("map_section")) == symbol
+        )
+    distinct = {canonical_bytes(record) for record in records}
+    if not records:
+        return _MISSING
+    if len(distinct) != 1:
+        raise DonorUpdateError(f"donor section metadata duplicates {symbol}")
+    return records[0]
+
+
 def _value_hash(value: object) -> str | None:
     if value is _MISSING:
         return None
@@ -226,8 +274,45 @@ def _authority_changes(
             raise DonorUpdateError(f"{pointer}.jsonPointer: expected a string")
         layout_id = reference.get("layoutId")
         field = reference.get("field")
-        old_blob = _read_blob(old_tree, old.commit, source_path)
-        new_blob = _read_blob(new_tree, new.commit, source_path)
+        record_type = reference.get("recordType")
+        if record_type == "section":
+            section_symbol = reference.get("sectionSymbol")
+            if not isinstance(section_symbol, str):
+                raise DonorUpdateError(f"{pointer}.sectionSymbol: expected a string")
+            old_record = _section_record_value(old_tree, section_symbol)
+            new_record = _section_record_value(new_tree, section_symbol)
+        else:
+            old_blob = _read_blob(old_tree, old.commit, source_path)
+            new_blob = _read_blob(new_tree, new.commit, source_path)
+            if record_type == "map":
+                old_record = _field_value(old_blob, "")
+                new_record = _field_value(new_blob, "")
+            elif record_type == "layout" and isinstance(layout_id, str):
+                old_record = _layout_record_value(old_blob, layout_id)
+                new_record = _layout_record_value(new_blob, layout_id)
+            else:
+                old_record = new_record = None
+        if record_type in {"map", "layout", "section"}:
+            old_fields = old_record if isinstance(old_record, Mapping) else {}
+            new_fields = new_record if isinstance(new_record, Mapping) else {}
+            for field_name in sorted(set(old_fields) | set(new_fields)):
+                old_value = old_fields.get(field_name, _MISSING)
+                new_value = new_fields.get(field_name, _MISSING)
+                if old_value == new_value:
+                    continue
+                token = str(field_name).replace("~", "~0").replace("/", "~1")
+                changes.append(
+                    {
+                        "authority": authority,
+                        "jsonPointer": f"/{token}",
+                        "newHash": _value_hash(new_value),
+                        "oldHash": _value_hash(old_value),
+                        "reviewerDisposition": "pending",
+                        "semanticIdentity": f"{semantic_identity}.{field_name}",
+                        "sourcePath": source_path,
+                    }
+                )
+            continue
         if isinstance(layout_id, str) and isinstance(field, str):
             old_value = _layout_field_value(old_blob, layout_id, field)
             new_value = _layout_field_value(new_blob, layout_id, field)
@@ -247,7 +332,21 @@ def _authority_changes(
                 "sourcePath": source_path,
             }
         )
-    return changes
+    unique: dict[tuple[object, ...], dict[str, object]] = {}
+    for change in changes:
+        identity = (
+            change["authority"],
+            change["semanticIdentity"],
+            change["sourcePath"],
+            change["jsonPointer"],
+        )
+        previous = unique.get(identity)
+        if previous is not None and previous != change:
+            raise DonorUpdateError(
+                f"conflicting authority evidence for {change['semanticIdentity']}"
+            )
+        unique[identity] = change
+    return [unique[identity] for identity in sorted(unique, key=lambda item: str(item))]
 
 
 def validate_assets(
@@ -595,6 +694,96 @@ def run_review_commands(repo: Path) -> tuple[Mapping[str, object], ...]:
     return tuple(evidence)
 
 
+def _validate_target_pin(
+    repo: Path,
+    port_dir: Path,
+    donor_root: Path,
+    donor: str,
+    report: Mapping[str, object],
+) -> None:
+    """Run production source and materialization validation at a proposed pin."""
+
+    try:
+        port = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError("cannot load target-pin port policy") from error
+    if not isinstance(port, dict) or not isinstance(port.get("donors"), dict):
+        raise DonorUpdateError("target-pin port policy has no donors object")
+    target = _pin_identity(report.get("to"), "$.to")
+    if donor not in port["donors"]:
+        raise DonorUpdateError(f"target-pin port policy has no donor role {donor!r}")
+
+    with tempfile.TemporaryDirectory(prefix="content-port-target-pin-") as directory:
+        temporary = Path(directory)
+        temporary_port = temporary / "ports" / port_dir.name
+        temporary_donors = temporary / "donors"
+        shutil.copytree(port_dir, temporary_port)
+        temporary_donors.mkdir()
+        worktrees: list[tuple[Path, Path]] = []
+        try:
+            for role, raw in sorted(port["donors"].items()):
+                if not isinstance(raw, dict):
+                    raise DonorUpdateError(f"invalid donor record {role!r}")
+                root = raw.get("root")
+                commit = target["commit"] if role == donor else raw.get("commit")
+                if not isinstance(root, str) or not isinstance(commit, str):
+                    raise DonorUpdateError(f"invalid donor record {role!r}")
+                checkout = (donor_root / root).resolve()
+                worktree = temporary_donors / root
+                worktree.parent.mkdir(parents=True, exist_ok=True)
+                _run_git(
+                    checkout,
+                    "worktree",
+                    "add",
+                    "--detach",
+                    str(worktree),
+                    commit,
+                )
+                worktrees.append((checkout, worktree))
+
+            proposed = dict(port)
+            proposed_donors = {role: dict(raw) for role, raw in port["donors"].items()}
+            proposed_record = proposed_donors[donor]
+            proposed_record.update(target)
+            # The temporary descriptor represents the proposed pin as its own
+            # reviewed baseline. The real predecessor linkage remains enforced
+            # independently by finalize_migration and descriptor-chain loading.
+            proposed_record["genesis"] = dict(target)
+            proposed_record["migration"] = None
+            proposed["donors"] = proposed_donors
+            (temporary_port / "port.json").write_bytes(canonical_bytes(proposed))
+
+            from .descriptor import load_port
+            from .donors import authenticate_donors
+            from .materialize import derive_desired_state
+            from .sources import validate_port_sources
+
+            descriptor = load_port(temporary_port, temporary_donors)
+            authenticate_donors(descriptor.donors, require_git=True)
+            validate_port_sources(descriptor, repo)
+            derive_desired_state(descriptor, repo)
+        except ContentPortError as error:
+            raise DonorUpdateError(
+                f"target pin production check failed: {error}"
+            ) from error
+        finally:
+            for checkout, worktree in reversed(worktrees):
+                if worktree.exists():
+                    subprocess.run(
+                        (
+                            "git",
+                            "-C",
+                            str(checkout),
+                            "worktree",
+                            "remove",
+                            "--force",
+                            str(worktree),
+                        ),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+
+
 def finalize_migration(
     candidate: Path,
     port_dir: Path,
@@ -654,6 +843,7 @@ def finalize_migration(
     if not isinstance(root, str):
         raise DonorUpdateError(f"donor {donor}: port policy has invalid root")
     verify_migration_evidence(report, port_dir, donor_root / root)
+    _validate_target_pin(repo, port_dir, donor_root, donor, report)
 
     digest = migration_digest(report)
     record_path = port_dir / "migrations" / f"{digest}.json"
@@ -800,8 +990,27 @@ def _descriptor_donor_record(
     return record
 
 
+def _allocation_policy(
+    port_dir: Path, port_document: Mapping[str, object]
+) -> Mapping[str, object] | None:
+    filename = port_document.get("allocationLock")
+    if filename is None:
+        return None
+    if not isinstance(filename, str) or PurePosixPath(filename).name != filename:
+        raise DonorUpdateError("port descriptor has invalid allocationLock")
+    try:
+        document = json.loads((port_dir / filename).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError("cannot load migration allocation policy") from error
+    if not isinstance(document, Mapping):
+        raise DonorUpdateError("migration allocation policy is invalid")
+    return document
+
+
 def _policy_references(
-    adaptations: Mapping[str, object], donor: str
+    adaptations: Mapping[str, object],
+    donor: str,
+    allocations: Mapping[str, object] | None = None,
 ) -> tuple[Mapping[str, object], ...]:
     """Translate donor-backed authority decisions into field comparisons."""
 
@@ -831,6 +1040,26 @@ def _policy_references(
         raw_fallback = fallback_policy.get("maps", [])
         if isinstance(raw_fallback, (list, tuple)):
             fallback_maps = {name for name in raw_fallback if isinstance(name, str)}
+    if allocations is not None:
+        allocation_maps = allocations.get("maps", [])
+        if isinstance(allocation_maps, list):
+            for item in allocation_maps:
+                if not isinstance(item, Mapping):
+                    continue
+                source = item.get("name")
+                if not isinstance(source, str):
+                    continue
+                selected_role = "mechanical" if source in fallback_maps else "content"
+                if donor == selected_role:
+                    references.append(
+                        {
+                            "authority": donor,
+                            "jsonPointer": "",
+                            "recordType": "map",
+                            "semanticIdentity": f"map:{source}",
+                            "sourcePath": f"data/maps/{source}/map.json",
+                        }
+                    )
     for policy_key in (
         "warpReindexes",
         "warpRemovals",
@@ -894,6 +1123,26 @@ def _policy_references(
         )
     field_authorities = adaptations.get("layoutFieldAuthorities", [])
     binary_authorities = adaptations.get("layoutBinaryAuthorities", [])
+    if isinstance(binary_authorities, (list, tuple)):
+        for layout_policy in binary_authorities:
+            if (
+                not isinstance(layout_policy, Mapping)
+                or layout_policy.get("sourceRole") != donor
+            ):
+                continue
+            layout_id = layout_policy.get("layout")
+            if not isinstance(layout_id, str):
+                continue
+            references.append(
+                {
+                    "authority": donor,
+                    "jsonPointer": f"/layouts/@{layout_id}",
+                    "layoutId": layout_id,
+                    "recordType": "layout",
+                    "semanticIdentity": f"layout:{layout_id}",
+                    "sourcePath": "data/layouts/layouts.json",
+                }
+            )
     if isinstance(field_authorities, (list, tuple)) and isinstance(
         binary_authorities, (list, tuple)
     ):
@@ -929,6 +1178,28 @@ def _policy_references(
                         "sourcePath": "data/layouts/layouts.json",
                     }
                 )
+    section_authorities = adaptations.get("sectionMetadataAuthorities", [])
+    if isinstance(section_authorities, (list, tuple)):
+        for section_policy in section_authorities:
+            if (
+                not isinstance(section_policy, Mapping)
+                or section_policy.get("sourceRole") != donor
+            ):
+                continue
+            section = section_policy.get("section")
+            symbol = section_policy.get("sourceSymbol")
+            if not isinstance(section, str) or not isinstance(symbol, str):
+                continue
+            references.append(
+                {
+                    "authority": donor,
+                    "jsonPointer": "",
+                    "recordType": "section",
+                    "sectionSymbol": symbol,
+                    "semanticIdentity": f"section:{section}",
+                    "sourcePath": "src/data/region_map",
+                }
+            )
     unique: list[Mapping[str, object]] = []
     seen: set[tuple[object, ...]] = set()
     for reference in references:
@@ -941,6 +1212,8 @@ def _policy_references(
                 "semanticIdentity",
                 "layoutId",
                 "field",
+                "recordType",
+                "sectionSymbol",
             )
         )
         if identity not in seen:
@@ -994,6 +1267,7 @@ def verify_migration_evidence(
     ):
         raise DonorUpdateError("migration comparison policy is invalid")
     record = _descriptor_donor_record(port_document, donor)
+    allocations_document = _allocation_policy(port_dir, port_document)
     excluded_paths = record.get("excludePaths")
     if not isinstance(excluded_paths, list) or not all(
         isinstance(path, str) for path in excluded_paths
@@ -1027,7 +1301,9 @@ def verify_migration_evidence(
                 str(new_tree),
                 str(target["commit"]),
             )
-            references = _policy_references(adaptations_document, donor)
+            references = _policy_references(
+                adaptations_document, donor, allocations_document
+            )
             recomputed = build_migration(
                 donor=donor,
                 repository=repository,
@@ -1094,6 +1370,7 @@ def run_donor_update(
     ):
         raise DonorUpdateError(f"invalid port policy {port!r}")
     record = _descriptor_donor_record(port_document, donor)
+    allocations_document = _allocation_policy(port_dir, port_document)
     root = record.get("root")
     commit = record.get("commit")
     repository = record.get("repository")
@@ -1130,9 +1407,10 @@ def run_donor_update(
                 checkout, "worktree", "add", "--detach", str(old_tree), str(commit)
             )
             _run_git(checkout, "worktree", "add", "--detach", str(new_tree), revision)
-            references = _policy_references(adaptations_document, donor)
-            write_candidate_migration(
-                output,
+            references = _policy_references(
+                adaptations_document, donor, allocations_document
+            )
+            report = build_migration(
                 donor=donor,
                 repository=str(repository),
                 old_tree=old_tree,
@@ -1142,6 +1420,12 @@ def run_donor_update(
                 tests=run_review_commands(repo),
                 predecessor=record.get("migration"),
                 excluded_paths=excluded_paths,
+            )
+            _validate_target_pin(repo, port_dir, donor_root, donor, report)
+            _atomic_write(
+                output,
+                canonical_bytes(report),
+                f"after-donor-update-write:{output.name}",
             )
         finally:
             for tree in (old_tree, new_tree):
