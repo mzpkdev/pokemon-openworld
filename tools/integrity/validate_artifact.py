@@ -92,7 +92,9 @@ def expected_save_abi_values(
         validate_contract(contract)
         return abi_evidence_values_for_purpose(contract, purpose)
     except (ContractError, KeyError, TypeError, ValueError) as error:
-        raise ValidationError(f"save contract ABI evidence is incomplete: {error}") from error
+        raise ValidationError(
+            f"save contract ABI evidence is incomplete: {error}"
+        ) from error
 
 
 def validate_linked_save_abi(
@@ -115,7 +117,9 @@ def validate_linked_save_abi(
     actual = struct.unpack_from(f"<{count}I", rom, offset + 8)
     for (name, wanted), value in zip(expected, actual):
         if value != wanted:
-            raise ValidationError(f"linked save ABI drift: {name} is {value}, expected {wanted}")
+            raise ValidationError(
+                f"linked save ABI drift: {name} is {value}, expected {wanted}"
+            )
     evidence = rom[offset:end]
     return {
         "symbol": "gSaveAbiEvidence",
@@ -128,13 +132,19 @@ def validate_linked_save_abi(
 def parse_elf_symbols(text: str) -> dict[str, tuple[int, int]]:
     symbols: dict[str, tuple[int, int]] = {}
     pattern = re.compile(
-        r"^\s*\d+:\s+(?P<address>[0-9a-fA-F]+)\s+(?P<size>\d+)\s+"
+        r"^\s*\d+:\s+(?P<address>[0-9a-fA-F]{1,8})\s+"
+        r"(?P<size>(?:0[xX][0-9a-fA-F]{1,8}|\d{1,10}))\s+"
         r"\S+\s+\S+\s+\S+\s+\S+\s+(?P<name>\S+)\s*$",
         re.MULTILINE,
     )
     for match in pattern.finditer(text):
+        size_token = match.group("size")
+        size = int(size_token, 16 if size_token[:2].lower() == "0x" else 10)
+        if size > 0xFFFFFFFF:
+            continue
         symbols[match.group("name")] = (
-            int(match.group("address"), 16), int(match.group("size")),
+            int(match.group("address"), 16),
+            size,
         )
     return symbols
 
@@ -157,7 +167,8 @@ def validate_elf_linked_save_abi(
         )
     section = next(
         (
-            item for item in sections
+            item
+            for item in sections
             if item["type"] != "NOBITS"
             and item["address"] <= address
             and address + symbol_size <= item["address"] + item["size"]
@@ -188,14 +199,16 @@ def parse_elf_sections(text: str) -> list[dict[str, Any]]:
         re.MULTILINE,
     )
     for match in pattern.finditer(text):
-        sections.append({
-            "name": match.group("name"),
-            "type": match.group("type"),
-            "address": int(match.group("address"), 16),
-            "offset": int(match.group("offset"), 16),
-            "size": int(match.group("size"), 16),
-            "flags": match.group("flags"),
-        })
+        sections.append(
+            {
+                "name": match.group("name"),
+                "type": match.group("type"),
+                "address": int(match.group("address"), 16),
+                "offset": int(match.group("offset"), 16),
+                "size": int(match.group("size"), 16),
+                "flags": match.group("flags"),
+            }
+        )
     if not sections:
         raise ValidationError("ELF section table is empty or unreadable")
     return sections
@@ -205,30 +218,43 @@ def measure_elf_capacity(elf_path: Path) -> dict[str, int]:
     try:
         result = subprocess.run(
             ["arm-none-eabi-readelf", "-SW", str(elf_path)],
-            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
         )
     except FileNotFoundError as error:
-        raise ValidationError("required tool not found: arm-none-eabi-readelf") from error
+        raise ValidationError(
+            "required tool not found: arm-none-eabi-readelf"
+        ) from error
     except subprocess.CalledProcessError as error:
-        raise ValidationError(f"cannot inspect ELF {elf_path}: {error.stderr.strip()}") from error
+        raise ValidationError(
+            f"cannot inspect ELF {elf_path}: {error.stderr.strip()}"
+        ) from error
     sections = parse_elf_sections(result.stdout)
     by_name = {section["name"]: section for section in sections}
     required = (".ewram", ".ewram.sbss", ".iwram", ".iwram.bss")
     missing = [name for name in required if name not in by_name]
     if missing:
-        raise ValidationError(f"ELF lacks required memory sections: {', '.join(missing)}")
+        raise ValidationError(
+            f"ELF lacks required memory sections: {', '.join(missing)}"
+        )
 
     def range_bytes(origin: int, limit: int, *, loadable: bool = False) -> int:
         candidates = [
-            section for section in sections
-            if "A" in section["flags"] and origin <= section["address"] < limit
+            section
+            for section in sections
+            if "A" in section["flags"]
+            and origin <= section["address"] < limit
             and (not loadable or section["type"] != "NOBITS")
         ]
         if not candidates:
             raise ValidationError(f"ELF has no allocatable sections at 0x{origin:08x}")
         end = max(section["address"] + section["size"] for section in candidates)
         if end > limit:
-            raise ValidationError(f"ELF section range exceeds memory ending at 0x{limit:08x}")
+            raise ValidationError(
+                f"ELF section range exceeds memory ending at 0x{limit:08x}"
+            )
         return end - origin
 
     return {
@@ -245,11 +271,17 @@ def purpose_limits(contract: dict[str, Any]) -> dict[str, Any]:
     limits = budgets.get("limits")
     baselines = budgets.get("baselines")
     purposes = {"normal", "debug", "release", "test-runner", "headless-test"}
-    if not isinstance(limits, dict) or not isinstance(baselines, dict) or set(baselines) != purposes:
+    if (
+        not isinstance(limits, dict)
+        or not isinstance(baselines, dict)
+        or set(baselines) != purposes
+    ):
         raise ValidationError("save contract purpose budgets are incomplete")
     expected_limits = {
-        "romBytes": ROM_LIMIT, "ewramBytes": EWRAM_LIMIT,
-        "iwramBytes": IWRAM_LIMIT, "releaseHeadroomBytes": REQUIRED_HEADROOM_FLOOR_BYTES,
+        "romBytes": ROM_LIMIT,
+        "ewramBytes": EWRAM_LIMIT,
+        "iwramBytes": IWRAM_LIMIT,
+        "releaseHeadroomBytes": REQUIRED_HEADROOM_FLOOR_BYTES,
     }
     if limits != expected_limits:
         raise ValidationError("save contract purpose limits drift from hardware policy")
@@ -273,8 +305,13 @@ def enforce_purpose_usage(
         )
     for field in ("romBytes", "ewramBytes", "iwramBytes"):
         if usage[field] <= 0 or usage[field] > limits[field]:
-            raise ValidationError(f"{purpose} {field} use is outside budget: {usage[field]}")
-    if purpose == "release" and limits["romBytes"] - usage["romBytes"] < limits["releaseHeadroomBytes"]:
+            raise ValidationError(
+                f"{purpose} {field} use is outside budget: {usage[field]}"
+            )
+    if (
+        purpose == "release"
+        and limits["romBytes"] - usage["romBytes"] < limits["releaseHeadroomBytes"]
+    ):
         raise ValidationError(
             f"release ROM headroom {limits['romBytes'] - usage['romBytes']} is below required "
             f"{limits['releaseHeadroomBytes']}"
@@ -289,20 +326,35 @@ def validate_elf_artifact(
     try:
         metadata = subprocess.run(
             ["arm-none-eabi-readelf", "-SWs", str(elf_path)],
-            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
         ).stdout
     except FileNotFoundError as error:
-        raise ValidationError("required tool not found: arm-none-eabi-readelf") from error
+        raise ValidationError(
+            "required tool not found: arm-none-eabi-readelf"
+        ) from error
     except subprocess.CalledProcessError as error:
-        raise ValidationError(f"cannot inspect ELF {elf_path}: {error.stderr.strip()}") from error
+        raise ValidationError(
+            f"cannot inspect ELF {elf_path}: {error.stderr.strip()}"
+        ) from error
     linked_save_abi = validate_elf_linked_save_abi(
-        elf_path, parse_elf_sections(metadata), parse_elf_symbols(metadata), contract, purpose
+        elf_path,
+        parse_elf_sections(metadata),
+        parse_elf_symbols(metadata),
+        contract,
+        purpose,
     )
     result = enforce_purpose_usage(
         purpose, measure_elf_capacity(elf_path), contract, elf_path
     )
-    return {"schemaVersion": 1, "artifact": str(elf_path), **result,
-            "saveContract": {"sha256": digest, "linkedAbi": linked_save_abi}}
+    return {
+        "schemaVersion": 1,
+        "artifact": str(elf_path),
+        **result,
+        "saveContract": {"sha256": digest, "linkedAbi": linked_save_abi},
+    }
 
 
 def load_capacity_policy(path: Path) -> dict[str, Any]:
@@ -837,9 +889,7 @@ def validate_artifact(
     for entry in manifest["symbols"]:
         require_rom_address(entry["name"], symbols[entry["name"]] & ~1, rom_end)
 
-    linked_save_abi = validate_linked_save_abi(
-        rom, symbols, save_contract, purpose
-    )
+    linked_save_abi = validate_linked_save_abi(rom, symbols, save_contract, purpose)
 
     validate_group_slots(rom, manifest, symbols, rom_end)
     validate_layouts(rom, manifest, symbols, rom_end)
@@ -879,7 +929,11 @@ def validate_artifact(
 
     purpose_budget = enforce_purpose_usage(
         purpose,
-        {"romBytes": linked_bytes, "ewramBytes": ewram_bytes, "iwramBytes": iwram_bytes},
+        {
+            "romBytes": linked_bytes,
+            "ewramBytes": ewram_bytes,
+            "iwramBytes": iwram_bytes,
+        },
         save_contract,
         rom_path,
     )
@@ -919,11 +973,13 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--elf", type=Path)
     parser.add_argument(
-        "--purpose", choices=("normal", "debug", "release", "test-runner", "headless-test"),
+        "--purpose",
+        choices=("normal", "debug", "release", "test-runner", "headless-test"),
         default="normal",
     )
     parser.add_argument(
-        "--save-contract", type=Path,
+        "--save-contract",
+        type=Path,
         default=Path("tools/integrity/save_contract.json"),
     )
     parser.add_argument(
@@ -936,16 +992,25 @@ def main() -> int:
     try:
         if args.elf:
             if any((args.rom, args.map, args.sym, args.manifest)):
-                parser.error("--elf cannot be combined with --rom/--map/--sym/--manifest")
+                parser.error(
+                    "--elf cannot be combined with --rom/--map/--sym/--manifest"
+                )
             if args.purpose not in ("test-runner", "headless-test"):
                 parser.error("--elf requires a test-runner or headless-test purpose")
             report = validate_elf_artifact(args.elf, args.purpose, args.save_contract)
         else:
             if not all((args.rom, args.map, args.sym, args.manifest)):
-                parser.error("--rom, --map, --sym, and --manifest are required together")
+                parser.error(
+                    "--rom, --map, --sym, and --manifest are required together"
+                )
             report = validate_artifact(
-                args.rom, args.map, args.sym, args.manifest, args.capacity_policy,
-                args.save_contract, args.purpose,
+                args.rom,
+                args.map,
+                args.sym,
+                args.manifest,
+                args.capacity_policy,
+                args.save_contract,
+                args.purpose,
             )
     except (ManifestError, ValidationError, OSError) as error:
         print(f"integrity validation failed: {error}", file=sys.stderr)

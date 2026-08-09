@@ -11,13 +11,14 @@ from tools.e2e.save_journey import (
     representative_runtime_semantics,
     representative_saved_semantics,
     run_save_scenario,
-    runtime_semantics,
     save_from_start_menu,
 )
 
 
 FIXTURE_MANIFEST = Path(__file__).parents[2] / "fixtures" / "hoenn_continue.json"
-POPULATED_FIXTURE_MANIFEST = Path(__file__).parents[2] / "fixtures" / "hoenn_populated.json"
+POPULATED_FIXTURE_MANIFEST = (
+    Path(__file__).parents[2] / "fixtures" / "hoenn_populated.json"
+)
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 VAR_E2E_PERSISTENCE_SENTINEL = 0x40FF
 SPECIES_PIKACHU = 25
@@ -72,7 +73,9 @@ def test_existing_hoenn_save_continues(game_from_hoenn_save):
     assert game_from_hoenn_save.battery_snapshot().semantics() == expected
 
 
-def test_populated_historical_save_preserves_reviewed_state(game_from_populated_hoenn_save):
+def test_populated_historical_save_preserves_reviewed_state(
+    game_from_populated_hoenn_save,
+):
     document = json.loads(POPULATED_FIXTURE_MANIFEST.read_text())
     image = SaveImage.from_path(
         POPULATED_FIXTURE_MANIFEST.parent / document["fixture"]["file"]
@@ -155,7 +158,10 @@ def test_fresh_save_persists_representative_state_after_cold_restart(game):
     assert expected["party"]["tradedPokemon"]["species"] == SPECIES_SEEDOT
     assert expected["party"]["tradedPokemon"]["metLocation"] == 254
     assert expected["box"]["pokemon"]["species"] == SPECIES_EEVEE
-    assert {expected["daycare"]["parent1"]["species"], expected["daycare"]["parent2"]["species"]} == {
+    assert {
+        expected["daycare"]["parent1"]["species"],
+        expected["daycare"]["parent2"]["species"],
+    } == {
         SPECIES_DITTO,
         SPECIES_EEVEE,
     }

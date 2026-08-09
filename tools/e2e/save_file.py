@@ -231,9 +231,7 @@ class SaveImage:
             return bool(value & (1 << (flag_id % 8)))
 
         def saved_var(var_id: int) -> int:
-            return struct.unpack_from(
-                "<H", block1, 0x139C + (var_id - 0x4000) * 2
-            )[0]
+            return struct.unpack_from("<H", block1, 0x139C + (var_id - 0x4000) * 2)[0]
 
         party_record = block1[0x238 : 0x238 + 100]
         box_record = storage[4 : 4 + 80]
@@ -283,7 +281,9 @@ class SaveImage:
             "box": {
                 "currentBox": storage[0],
                 "firstRecordHex": box_record.hex(),
-                "firstRecordMeaning": "empty-box-slot" if box_pokemon is None else "occupied-box-slot",
+                "firstRecordMeaning": "empty-box-slot"
+                if box_pokemon is None
+                else "occupied-box-slot",
                 "pokemonProvenance": "absent" if box_pokemon is None else "encoded",
                 "firstPokemon": box_pokemon,
             },

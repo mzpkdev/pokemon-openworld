@@ -24,9 +24,15 @@ ROOT = Path(__file__).parents[3]
 class PersistentIdTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.contract = json.loads((ROOT / "tools/integrity/save_contract.json").read_text())
-        cls.sources = json.loads((ROOT / "tools/persistence/persistent_sources.json").read_text())
-        cls.ledger = json.loads((ROOT / "src/data/persistence/persistent_ids.json").read_text())
+        cls.contract = json.loads(
+            (ROOT / "tools/integrity/save_contract.json").read_text()
+        )
+        cls.sources = json.loads(
+            (ROOT / "tools/persistence/persistent_sources.json").read_text()
+        )
+        cls.ledger = json.loads(
+            (ROOT / "src/data/persistence/persistent_ids.json").read_text()
+        )
 
     def mutated(self):
         return copy.deepcopy(self.ledger)
@@ -35,25 +41,35 @@ class PersistentIdTests(unittest.TestCase):
         first = seed_ledger(self.contract, self.sources, ROOT)
         second = seed_ledger(self.contract, self.sources, ROOT)
         self.assertEqual(canonical_bytes(first), canonical_bytes(second))
-        self.assertEqual(canonical_bytes(first), (ROOT / "src/data/persistence/persistent_ids.json").read_bytes())
-        with tempfile.TemporaryDirectory() as left_tmp, tempfile.TemporaryDirectory() as right_tmp:
+        self.assertEqual(
+            canonical_bytes(first),
+            (ROOT / "src/data/persistence/persistent_ids.json").read_bytes(),
+        )
+        with (
+            tempfile.TemporaryDirectory() as left_tmp,
+            tempfile.TemporaryDirectory() as right_tmp,
+        ):
             left, right = Path(left_tmp), Path(right_tmp)
             render(first, self.sources, left)
             render(second, self.sources, right)
-            for relative in ("src/data/persistence/trainer_defeat_flags.inc.c",
-                             "src/data/persistence/location_codecs.inc.c",
-                             "include/constants/heal_locations.h",
-                             "include/constants/persistent_bindings.h",
-                             "include/constants/persistent_flags.inc.h",
-                             "include/constants/persistent_vars.inc.h",
-                             "include/constants/persistent_game_stats.inc.h",
-                             "include/constants/persistent_maps.inc.h",
-                             "include/constants/persistent_facilities.inc.h",
-                             "include/constants/persistent_locations.inc.h",
-                             "include/constants/persistent_opponents.inc.h",
-                             "include/constants/persistent_trainer_special.inc.h",
-                             "include/constants/persistent_trainer_hill.inc.h"):
-                self.assertEqual((left / relative).read_bytes(), (right / relative).read_bytes())
+            for relative in (
+                "src/data/persistence/trainer_defeat_flags.inc.c",
+                "src/data/persistence/location_codecs.inc.c",
+                "include/constants/heal_locations.h",
+                "include/constants/persistent_bindings.h",
+                "include/constants/persistent_flags.inc.h",
+                "include/constants/persistent_vars.inc.h",
+                "include/constants/persistent_game_stats.inc.h",
+                "include/constants/persistent_maps.inc.h",
+                "include/constants/persistent_facilities.inc.h",
+                "include/constants/persistent_locations.inc.h",
+                "include/constants/persistent_opponents.inc.h",
+                "include/constants/persistent_trainer_special.inc.h",
+                "include/constants/persistent_trainer_hill.inc.h",
+            ):
+                self.assertEqual(
+                    (left / relative).read_bytes(), (right / relative).read_bytes()
+                )
 
     def test_public_constant_facades_resolve_through_ledger_values(self):
         cases = {
@@ -73,22 +89,47 @@ class PersistentIdTests(unittest.TestCase):
             bindings = (output / "include/constants/persistent_bindings.h").read_text()
             for filename, (domain, symbol) in cases.items():
                 facade = (output / "include/constants" / filename).read_text()
-                domain_macro = __import__("re").sub(r"(?<!^)(?=[A-Z])", "_", domain).upper()
+                domain_macro = (
+                    __import__("re").sub(r"(?<!^)(?=[A-Z])", "_", domain).upper()
+                )
                 macro = f"PERSISTENT_{domain_macro}_{symbol}"
-                entry = next(item for item in self.ledger["entries"]
-                             if item["domain"] == domain and item["symbol"] == symbol)
+                entry = next(
+                    item
+                    for item in self.ledger["entries"]
+                    if item["domain"] == domain and item["symbol"] == symbol
+                )
                 with self.subTest(filename=filename, symbol=symbol):
-                    self.assertIn(f"#undef {symbol}\n#define {symbol} {macro}\n", facade)
+                    self.assertIn(
+                        f"#undef {symbol}\n#define {symbol} {macro}\n", facade
+                    )
                     self.assertIn(f"#define {macro} {entry['value']}\n", bindings)
 
     def test_grouped_generation_recovers_a_missing_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "generated"
             target = output / "src/data/persistence/location_codecs.inc.c"
-            command = ["make", "-f", "persistent_id_rules.mk", f"GENERATED_ROOT={output}", str(target)]
-            subprocess.run(command, cwd=ROOT, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command = [
+                "make",
+                "-f",
+                "persistent_id_rules.mk",
+                f"GENERATED_ROOT={output}",
+                str(target),
+            ]
+            subprocess.run(
+                command,
+                cwd=ROOT,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             target.unlink()
-            subprocess.run(command, cwd=ROOT, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                command,
+                cwd=ROOT,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             self.assertTrue(target.is_file())
 
     def test_heal_header_is_preprocessor_only_for_assembler(self):
@@ -99,7 +140,11 @@ class PersistentIdTests(unittest.TestCase):
         self.assertNotIn("enum", header)
         self.assertNotIn("{", header)
         self.assertNotIn("}", header)
-        for item in (item for item in self.ledger["entries"] if item["source"] == "heal-locations"):
+        for item in (
+            item
+            for item in self.ledger["entries"]
+            if item["source"] == "heal-locations"
+        ):
             self.assertIn(f"#define {item['symbol']} {item['value']}\n", header)
 
     def test_every_frozen_binding_rejects_a_value_mutation(self):
@@ -107,11 +152,17 @@ class PersistentIdTests(unittest.TestCase):
         # in-place mutation is restored before the next subtest.
         entries = self.ledger["entries"]
         for item in entries:
-            if item["state"]["kind"] not in {"published-binding", "trainer-defeat-flag"}:
+            if item["state"]["kind"] not in {
+                "published-binding",
+                "trainer-defeat-flag",
+            }:
                 continue
             old = item["value"]
             item["value"] = old + 1
-            with self.subTest(domain=item["domain"], symbol=item["symbol"]), self.assertRaises(ContractError):
+            with (
+                self.subTest(domain=item["domain"], symbol=item["symbol"]),
+                self.assertRaises(ContractError),
+            ):
                 validate_frozen_bindings(entries, self.contract)
             item["value"] = old
 
@@ -125,7 +176,9 @@ class PersistentIdTests(unittest.TestCase):
                         continue
                     text = path.read_text(encoding="utf-8", errors="ignore")
                     for pattern in schema["patterns"]:
-                        match = __import__("re").search(pattern, text, __import__("re").MULTILINE)
+                        match = __import__("re").search(
+                            pattern, text, __import__("re").MULTILINE
+                        )
                         if match is not None:
                             referenced = match.group("symbol")
                             break
@@ -134,26 +187,41 @@ class PersistentIdTests(unittest.TestCase):
                 if referenced is not None:
                     break
             with self.subTest(domain=schema["domain"]):
-                self.assertIsNotNone(referenced, "consumer schema did not scan a real reference")
-                reduced = [item for item in entries
-                           if item["domain"] == schema["domain"] and item["symbol"] != referenced]
+                self.assertIsNotNone(
+                    referenced, "consumer schema did not scan a real reference"
+                )
+                reduced = [
+                    item
+                    for item in entries
+                    if item["domain"] == schema["domain"]
+                    and item["symbol"] != referenced
+                ]
                 with self.assertRaisesRegex(ContractError, "unallocated"):
                     validate_consumer_references(reduced, [schema], ROOT)
 
     def test_script_opcodes_reject_unallocated_persistent_tokens(self):
         cases = {
-            "flags": "FLAG_TUTOR_DOUBLE_EDGE",       # setflag
-            "vars": "VAR_0x8005",                   # setvar/copyvar
-            "gameStats": "GAME_STAT_WATCHED_TV",   # incrementgamestat
+            "flags": "FLAG_TUTOR_DOUBLE_EDGE",  # setflag
+            "vars": "VAR_0x8005",  # setvar/copyvar
+            "gameStats": "GAME_STAT_WATCHED_TV",  # incrementgamestat
             "facilities": "FACILITY_BATTLE_DOME",  # dofacilitytrainerbattle
-            "trainerIds": "TRAINER_JOSH",           # settrainerflag
+            "trainerIds": "TRAINER_JOSH",  # settrainerflag
         }
         for domain, symbol in cases.items():
-            schema = next(item for item in self.sources["consumerSchemas"]
-                          if item["domain"] == domain)
-            reduced = [item for item in self.ledger["entries"]
-                       if item["domain"] == domain and item["symbol"] != symbol]
-            with self.subTest(domain=domain, symbol=symbol), self.assertRaisesRegex(ContractError, "unallocated"):
+            schema = next(
+                item
+                for item in self.sources["consumerSchemas"]
+                if item["domain"] == domain
+            )
+            reduced = [
+                item
+                for item in self.ledger["entries"]
+                if item["domain"] == domain and item["symbol"] != symbol
+            ]
+            with (
+                self.subTest(domain=domain, symbol=symbol),
+                self.assertRaisesRegex(ContractError, "unallocated"),
+            ):
                 validate_consumer_references(reduced, [schema], ROOT)
 
     def test_all_saved_and_met_code_bindings_reject_mutation(self):
@@ -161,8 +229,13 @@ class PersistentIdTests(unittest.TestCase):
             for record in self.ledger["locationCodecs"][codec]:
                 ledger = self.mutated()
                 ledger["locationCodecs"][codec][record["code"]]["sectionValue"] ^= 1
-                with self.subTest(codec=codec, code=record["code"]), self.assertRaisesRegex(ContractError, "locationCodecs"):
-                    validate_location_codecs(ledger["locationCodecs"], self.sources, ROOT)
+                with (
+                    self.subTest(codec=codec, code=record["code"]),
+                    self.assertRaisesRegex(ContractError, "locationCodecs"),
+                ):
+                    validate_location_codecs(
+                        ledger["locationCodecs"], self.sources, ROOT
+                    )
 
     def test_duplicate_symbol_is_rejected(self):
         ledger = self.mutated()
@@ -187,8 +260,11 @@ class PersistentIdTests(unittest.TestCase):
 
     def test_deleted_published_binding_is_rejected(self):
         ledger = self.mutated()
-        index = next(i for i, item in enumerate(ledger["entries"])
-                     if item["state"]["kind"] == "published-binding" and item["alias"] is None)
+        index = next(
+            i
+            for i, item in enumerate(ledger["entries"])
+            if item["state"]["kind"] == "published-binding" and item["alias"] is None
+        )
         ledger["entries"].pop(index)
         with self.assertRaises(ContractError):
             validate_ledger(ledger, self.contract, self.sources, ROOT)
@@ -217,7 +293,9 @@ class PersistentIdTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
             render(self.ledger, self.sources, output)
-            table = (output / "src/data/persistence/trainer_defeat_flags.inc.c").read_text()
+            table = (
+                output / "src/data/persistence/trainer_defeat_flags.inc.c"
+            ).read_text()
         for trainer_id in range(858):
             with self.subTest(trainer_id=trainer_id):
                 self.assertIn(f"[{trainer_id}] = 0x{0x500 + trainer_id:04X},", table)

@@ -109,15 +109,11 @@ def _inspect_party_provenance(
     game, party_index: int, request_id: int
 ) -> ProvenanceResult:
     address = game.address("gIntegrityProvenanceRequest")
-    payload = struct.pack(
-        "<IBBH", request_id, party_index, CaptureStatus.IDLE, 0
-    )
+    payload = struct.pack("<IBBH", request_id, party_index, CaptureStatus.IDLE, 0)
     assert len(payload) == PROVENANCE_REQUEST_SIZE
     game.pause()
     game.write(address, payload)
-    game.write_u8(
-        address + PROVENANCE_REQUEST_STATUS_OFFSET, CaptureStatus.PENDING
-    )
+    game.write_u8(address + PROVENANCE_REQUEST_STATUS_OFFSET, CaptureStatus.PENDING)
     game.resume()
 
     for _ in range(120):
@@ -134,9 +130,9 @@ def _inspect_party_provenance(
             CaptureStatus(fields[5]),
             fields[6],
         )
-        if (
-            result.request_id == request_id
-            and result.status in (CaptureStatus.SUCCESS, CaptureStatus.ERROR)
+        if result.request_id == request_id and result.status in (
+            CaptureStatus.SUCCESS,
+            CaptureStatus.ERROR,
         ):
             assert result.party_index == party_index
             return result
@@ -148,10 +144,12 @@ def _catch_through_battle_bag(game, request_id: int) -> CaptureResult:
     _start_capture(game, request_id)
     game.wait_for_callback("BattleMainCB2", max_frames=1_800)
     game.advance_until(
-        lambda: game.read_u32(game.address("gBattlerControllerFuncs"))
-        in tuple(
-            address | 1
-            for address in game.symbols.addresses("HandleInputChooseAction")
+        lambda: (
+            game.read_u32(game.address("gBattlerControllerFuncs"))
+            in tuple(
+                address | 1
+                for address in game.symbols.addresses("HandleInputChooseAction")
+            )
         ),
         description="wild battle action menu",
         max_pulses=600,
@@ -197,9 +195,11 @@ def _give_egg(game) -> int:
         game.press("Down", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
-        lambda: game.pointer("sDebugMenuListData")
-        and game.read_u32(game.pointer("sDebugMenuListData") + 4)
-        == game.address("sDebugMenu_Actions_Give"),
+        lambda: (
+            game.pointer("sDebugMenuListData")
+            and game.read_u32(game.pointer("sDebugMenuListData") + 4)
+            == game.address("sDebugMenu_Actions_Give")
+        ),
         description="Give X debug submenu",
         max_frames=300,
     )
@@ -229,9 +229,11 @@ def _hatch_egg_through_debug_script(game, egg_index: int) -> None:
         game.press("Down", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
-        lambda: game.pointer("sDebugMenuListData")
-        and game.read_u32(game.pointer("sDebugMenuListData") + 4)
-        == game.address("sDebugMenu_Actions_Party"),
+        lambda: (
+            game.pointer("sDebugMenuListData")
+            and game.read_u32(game.pointer("sDebugMenuListData") + 4)
+            == game.address("sDebugMenu_Actions_Party")
+        ),
         description="Party debug submenu",
         max_frames=300,
     )
@@ -276,7 +278,9 @@ def _poison_summary_memo(game, expected_name: str) -> bytes:
     return expected
 
 
-def _open_summary_and_assert_display(game, party_index: int, expected_name: str) -> None:
+def _open_summary_and_assert_display(
+    game, party_index: int, expected_name: str
+) -> None:
     expected = _poison_summary_memo(game, expected_name)
     game.press("Start", release_frames=20)
     game.wait_until(
@@ -311,8 +315,9 @@ def _open_summary_and_assert_display(game, party_index: int, expected_name: str)
     # the buffer was poisoned immediately before opening, this cannot pass on
     # text left behind by the previous summary.
     game.wait_until(
-        lambda: expected
-        in game.read(game.address("gStringVar4"), SUMMARY_MEMO_BUFFER_SIZE),
+        lambda: (
+            expected in game.read(game.address("gStringVar4"), SUMMARY_MEMO_BUFFER_SIZE)
+        ),
         description=f"rendered summary memo containing {expected_name}",
         max_frames=1_200,
     )
@@ -361,9 +366,7 @@ def test_summary_memo_poison_rejects_stale_display_text():
     assert expected not in game.read(0, SUMMARY_MEMO_BUFFER_SIZE)
 
 
-@pytest.mark.parametrize(
-    "map_name,map_section,expected_code,expected_display", CASES
-)
+@pytest.mark.parametrize("map_name,map_section,expected_code,expected_display", CASES)
 def test_catch_hatch_summary_survives_cold_restart(
     integrity_game, map_name, map_section, expected_code, expected_display
 ):
@@ -372,8 +375,7 @@ def test_catch_hatch_summary_survives_cold_restart(
         add_party_through_debug_menu(integrity_game)
 
     maps = {
-        entry.name: entry
-        for entry in load_manifest_maps(integrity_manifest_path())
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
     destination = maps[map_name]
     loaded = integrity_game.request_map_load(
@@ -389,9 +391,7 @@ def test_catch_hatch_summary_survives_cold_restart(
     assert loaded.status is IntegrityLoadStatus.SUCCESS
     integrity_game.wait_for_controls_unlocked(max_frames=1_200)
 
-    caught = _catch_through_battle_bag(
-        integrity_game, 0xF4210000 | expected_code
-    )
+    caught = _catch_through_battle_bag(integrity_game, 0xF4210000 | expected_code)
     assert caught.map_section == map_section
     assert caught.met_location == expected_code
     assert caught.species == SPECIES_ZIGZAGOON
@@ -406,9 +406,12 @@ def test_catch_hatch_summary_survives_cold_restart(
     _hatch_egg_through_debug_script(integrity_game, egg_index)
 
     # These are the exact tables used by CreateMon/EggHatch and summary text.
-    assert integrity_game.read_u8(
-        integrity_game.address("gMapSectionToMetLocation") + map_section
-    ) == expected_code
+    assert (
+        integrity_game.read_u8(
+            integrity_game.address("gMapSectionToMetLocation") + map_section
+        )
+        == expected_code
+    )
     assert integrity_game.read_u16(
         integrity_game.address("gMetLocationToMapSection") + expected_code * 2
     ) == (0 if expected_code == 0 else 70)

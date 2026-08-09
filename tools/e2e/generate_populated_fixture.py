@@ -23,10 +23,16 @@ from tools.e2e.skyemu import SkyEmuSession, Symbols
 
 
 SOURCE_COMMIT = "135b32ca92"
-INSTRUMENTED_ROM_SHA256 = "b68fc2d33a3a6446da2af055be27e04b3ab7ef1ccba540395a9c44d9937ab07f"
+INSTRUMENTED_ROM_SHA256 = (
+    "b68fc2d33a3a6446da2af055be27e04b3ab7ef1ccba540395a9c44d9937ab07f"
+)
 # Updated only when the reviewed, canonical source overlay intentionally changes.
-INSTRUMENTATION_PATCH_SHA256 = "9ccc7ce7aca9bd1e1d3c30bc0571b80d42b176902b7f70bf10a8d6483f2333cd"
-POPULATED_SAVE_SHA256 = "6ea2d26f4b431543c31c50015678b5c8fc4c3b60d41aba6c7311fd064234448c"
+INSTRUMENTATION_PATCH_SHA256 = (
+    "9ccc7ce7aca9bd1e1d3c30bc0571b80d42b176902b7f70bf10a8d6483f2333cd"
+)
+POPULATED_SAVE_SHA256 = (
+    "6ea2d26f4b431543c31c50015678b5c8fc4c3b60d41aba6c7311fd064234448c"
+)
 ORACLE_PATH = Path("tools/e2e/fixtures/hoenn_populated_oracle.json")
 OVERLAY_FILES = (
     "include/battle_tower.h",
@@ -67,7 +73,9 @@ def _git_file(source_tree: Path, commit: str, path: str) -> bytes:
     ).stdout
 
 
-def instrumentation_overlay(source_tree: Path) -> tuple[dict[str, bytes], dict[str, bytes]]:
+def instrumentation_overlay(
+    source_tree: Path,
+) -> tuple[dict[str, bytes], dict[str, bytes]]:
     """Return historical bases and the exact tracked-source overlay to apply."""
     bases: dict[str, bytes] = {}
     overlay: dict[str, bytes] = {}
@@ -133,7 +141,9 @@ def _export_source(source_tree: Path, destination: Path) -> None:
         raise subprocess.CalledProcessError(process.returncode, process.args)
 
 
-def build_instrumented_source(source_tree: Path, destination: Path) -> tuple[Path, Path]:
+def build_instrumented_source(
+    source_tree: Path, destination: Path
+) -> tuple[Path, Path]:
     bases, overlay = instrumentation_overlay(source_tree)
     digest = overlay_sha256(bases, overlay)
     if digest != INSTRUMENTATION_PATCH_SHA256:
@@ -150,7 +160,13 @@ def build_instrumented_source(source_tree: Path, destination: Path) -> tuple[Pat
     # build system's explicit acknowledgement for source archives.
     (destination / ".histignore").touch()
     subprocess.run(
-        ["make", "-j2", "DEBUG=1", "pokemon-openworld-debug.gba", "pokemon-openworld-debug.sym"],
+        [
+            "make",
+            "-j2",
+            "DEBUG=1",
+            "pokemon-openworld-debug.gba",
+            "pokemon-openworld-debug.sym",
+        ],
         cwd=destination,
         check=True,
         stdout=subprocess.DEVNULL,
@@ -166,7 +182,9 @@ def build_instrumented_source(source_tree: Path, destination: Path) -> tuple[Pat
     return rom, symbols
 
 
-def verify_reviewed_oracle(image, result, oracle: dict, *, semantic_decoder=representative_saved_semantics) -> dict:
+def verify_reviewed_oracle(
+    image, result, oracle: dict, *, semantic_decoder=representative_saved_semantics
+) -> dict:
     """Reject capture/parser drift; never derive or update the reviewed oracle."""
     blocks = {
         "saveBlock1": image.active_slot.save_block1,
@@ -224,7 +242,9 @@ def publish_fixture(output: Path, image, result, oracle: dict) -> dict:
         staged_save = staging / save_path.name
         staged_manifest = staging / output.name
         staged_save.write_bytes(image.data)
-        staged_manifest.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+        staged_manifest.write_text(
+            json.dumps(document, indent=2, sort_keys=True) + "\n"
+        )
 
         # Reparse the staged flash and manifest before either tracked
         # destination is touched. This catches truncation/serialization drift.

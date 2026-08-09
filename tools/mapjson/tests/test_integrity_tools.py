@@ -14,6 +14,7 @@ from tools.integrity.validate_artifact import (
     enforce_purpose_usage,
     load_capacity_policy,
     parse_elf_sections,
+    parse_elf_symbols,
     validate_elf_linked_save_abi,
     validate_linked_save_abi,
     validate_group_slots,
@@ -136,7 +137,9 @@ class IntegrityToolTests(unittest.TestCase):
         expected = expected_save_abi_values(contract, "normal")
         rom = bytearray(8 + len(expected) * 4)
         struct.pack_into("<II", rom, 0, 0x53414249, 1)
-        struct.pack_into(f"<{len(expected)}I", rom, 8, *(value for _, value in expected))
+        struct.pack_into(
+            f"<{len(expected)}I", rom, 8, *(value for _, value in expected)
+        )
         evidence = validate_linked_save_abi(
             rom, {"gSaveAbiEvidence": ROM_BASE}, contract, "normal"
         )
@@ -226,6 +229,28 @@ class IntegrityToolTests(unittest.TestCase):
                     path, [section], symbols, contract, purpose
                 )
 
+    def test_elf_symbols_accept_decimal_and_hexadecimal_sizes(self) -> None:
+        symbols = parse_elf_symbols(
+            "   112: 08000100   132 OBJECT  GLOBAL DEFAULT   10 gDecimalEvidence\n"
+            "404007: 08d4f010 0x2076c OBJECT  GLOBAL DEFAULT   10 gSaveAbiEvidence\n"
+            "404008: 08d6f77c 0X20 OBJECT  LOCAL  HIDDEN    10 gUpperHexSize\n"
+        )
+        self.assertEqual(symbols["gDecimalEvidence"], (0x08000100, 132))
+        self.assertEqual(symbols["gSaveAbiEvidence"], (0x08D4F010, 0x2076C))
+        self.assertEqual(symbols["gUpperHexSize"], (0x08D6F77C, 0x20))
+
+    def test_elf_symbols_reject_malformed_or_out_of_range_fields(self) -> None:
+        symbols = parse_elf_symbols(
+            "1: 08000100 -1 OBJECT GLOBAL DEFAULT 10 gNegativeSize\n"
+            "2: 08000100 0x20z OBJECT GLOBAL DEFAULT 10 gMalformedSize\n"
+            "3: 08000100 0x100000000 OBJECT GLOBAL DEFAULT 10 gOverflowSize\n"
+            "4: 100000000 32 OBJECT GLOBAL DEFAULT 10 gOverflowAddress\n"
+            "5: 08000100 32 OBJECT GLOBAL DEFAULT 10 extra gUnexpectedField\n"
+            "6: 08000100 32 OBJECT GLOBAL DEFAULT 10 gValidSymbol\n"
+            "7: 08000100 4294967296 OBJECT GLOBAL DEFAULT 10 gDecimalOverflow\n"
+        )
+        self.assertEqual(symbols, {"gValidSymbol": (0x08000100, 32)})
+
     def test_elf_sections_and_five_purpose_hardware_budgets(self) -> None:
         sections = parse_elf_sections(
             "  [ 1] .text PROGBITS 08000000 001000 000100 00  AX  0 0 4\n"
@@ -234,12 +259,16 @@ class IntegrityToolTests(unittest.TestCase):
             "  [ 4] .iwram PROGBITS 03000000 001130 000020 00  WA  0 0 4\n"
             "  [ 5] .iwram.bss NOBITS 03000020 001150 000010 00  WA  0 0 4\n"
         )
-        self.assertEqual([section["name"] for section in sections],
-                         [".text", ".ewram", ".ewram.sbss", ".iwram", ".iwram.bss"])
+        self.assertEqual(
+            [section["name"] for section in sections],
+            [".text", ".ewram", ".ewram.sbss", ".iwram", ".iwram.bss"],
+        )
         contract = json.loads(SAVE_CONTRACT.read_text())
         for purpose in ("normal", "debug", "release", "test-runner", "headless-test"):
             usage = {"romBytes": 1, "ewramBytes": 1, "iwramBytes": 1}
-            self.assertEqual(enforce_purpose_usage(purpose, usage, contract)["purpose"], purpose)
+            self.assertEqual(
+                enforce_purpose_usage(purpose, usage, contract)["purpose"], purpose
+            )
             with self.assertRaisesRegex(ValidationError, "outside budget"):
                 enforce_purpose_usage(
                     purpose,

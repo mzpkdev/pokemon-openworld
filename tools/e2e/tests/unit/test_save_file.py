@@ -47,7 +47,10 @@ def test_populated_historical_fixture_matches_independent_semantics():
     assert manifest["fixture"]["sourceRomSha256"] == INSTRUMENTED_ROM_SHA256
     result = SaveScenarioResult(**fields)
     oracle = json.loads((FIXTURES / "hoenn_populated_oracle.json").read_text())
-    assert verify_reviewed_oracle(image, result, oracle) == manifest["semanticExpectations"]
+    assert (
+        verify_reviewed_oracle(image, result, oracle)
+        == manifest["semanticExpectations"]
+    )
 
 
 def test_parser_drift_cannot_rewrite_reviewed_historical_oracle():

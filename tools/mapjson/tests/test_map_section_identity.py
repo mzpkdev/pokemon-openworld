@@ -210,7 +210,9 @@ class MapSectionIdentityTests(unittest.TestCase):
             compatibility["persistent_consumer_sources"].append(str(consumer))
             result = self.validate(compatibility=compatibility)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("names unknown map section 'MAPSEC_NOT_REGISTERED'", result.stderr)
+        self.assertIn(
+            "names unknown map section 'MAPSEC_NOT_REGISTERED'", result.stderr
+        )
 
     def test_persistent_consumer_inventory_cannot_drop_a_source(self) -> None:
         compatibility = copy.deepcopy(self.compatibility)

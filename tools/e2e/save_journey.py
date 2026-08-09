@@ -121,9 +121,9 @@ def run_save_scenario(game, request: SaveScenarioRequest) -> SaveScenarioResult:
         result = SaveScenarioResult.unpack(
             game.read(game.address("gSaveScenarioResult"), SAVE_SCENARIO_SIZE)
         )
-        if (
-            result.request_id == request.request_id
-            and result.status in (SaveScenarioStatus.SUCCESS, SaveScenarioStatus.ERROR)
+        if result.request_id == request.request_id and result.status in (
+            SaveScenarioStatus.SUCCESS,
+            SaveScenarioStatus.ERROR,
         ):
             if result.status == SaveScenarioStatus.ERROR:
                 detail = SAVE_SCENARIO_ERRORS.get(result.error, "unknown")
@@ -191,7 +191,7 @@ def _representative_semantics(
         "reward": {"item": result.reward_item, "quantity": reward_quantity},
         "checkpoint": {
             "id": result.checkpoint_id,
-            "lastHealLocationHex": block1[0x1C : 0x24].hex(),
+            "lastHealLocationHex": block1[0x1C:0x24].hex(),
         },
         "trainer": {
             "id": result.trainer_flag,
@@ -203,7 +203,9 @@ def _representative_semantics(
     }
 
 
-def representative_runtime_semantics(game, result: SaveScenarioResult) -> dict[str, Any]:
+def representative_runtime_semantics(
+    game, result: SaveScenarioResult
+) -> dict[str, Any]:
     def read_region(address: int, size: int) -> bytes:
         # SkyEmu's debug transport encodes byte addresses in the query string.
         return b"".join(
@@ -284,7 +286,9 @@ def runtime_semantics(game) -> dict[str, Any]:
         "box": {
             "currentBox": game.read_u8(storage),
             "firstRecordHex": box_record.hex(),
-            "firstRecordMeaning": "empty-box-slot" if box_pokemon is None else "occupied-box-slot",
+            "firstRecordMeaning": "empty-box-slot"
+            if box_pokemon is None
+            else "occupied-box-slot",
             "pokemonProvenance": "absent" if box_pokemon is None else "encoded",
             "firstPokemon": box_pokemon,
         },
@@ -365,7 +369,9 @@ def save_from_start_menu(game):
     try:
         save_index = actions.index(MENU_ACTION_SAVE)
     except ValueError as error:
-        raise AssertionError(f"start menu has no Save action: {actions.hex()}") from error
+        raise AssertionError(
+            f"start menu has no Save action: {actions.hex()}"
+        ) from error
     cursor = game.read_u8(game.address("sStartMenuCursorPos"))
     for _ in range((save_index - cursor) % count):
         game.press("Down", release_frames=4)

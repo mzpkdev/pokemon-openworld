@@ -17,9 +17,7 @@ from tools.e2e.save_journey import (
 
 
 def _request():
-    return SaveScenarioRequest(
-        0x12345678, 25, 133, 132, 133, 273, 135, 1, 20, 0, 0, 64
-    )
+    return SaveScenarioRequest(0x12345678, 25, 133, 132, 133, 273, 135, 1, 20, 0, 0, 64)
 
 
 def test_request_layout_keeps_status_as_last_commit_byte():
@@ -37,7 +35,9 @@ def test_host_commits_status_last_and_correlates_result():
             self.result = bytes(SAVE_SCENARIO_SIZE)
 
         def address(self, symbol):
-            return {"gSaveScenarioRequest": 0x1000, "gSaveScenarioResult": 0x2000}[symbol]
+            return {"gSaveScenarioRequest": 0x1000, "gSaveScenarioResult": 0x2000}[
+                symbol
+            ]
 
         def pause(self):
             self.writes.append(("pause",))
