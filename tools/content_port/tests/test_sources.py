@@ -6,6 +6,7 @@ import json
 import tempfile
 from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import ResourceKey
@@ -371,6 +372,84 @@ class SourceGraphTests(unittest.TestCase):
             ledger_target.write_text(json.dumps(ledger), encoding="utf-8")
             with self.assertRaisesRegex(ContentPortError, "collision"):
                 validate_port_sources(descriptor, target)
+
+    def test_warp_removals_are_resolved_once_for_graph_and_renderer(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        content_root = descriptor.donors_by_role["content"].root.resolve()
+        real_context = ExpansionSourceContext
+        original_context = real_context(content_root)
+        source_record = original_context.load(ResourceKey("map", "EcruteakCity"))
+        document = self._mutable(source_record.value)
+        gym_warp = dict(document["warp_events"][13])
+        document["warp_events"].insert(14, gym_warp)
+
+        def context_with_duplicate(root, **kwargs):
+            context = real_context(root, **kwargs)
+            if Path(root).resolve() == content_root:
+                context._records[ResourceKey("map", "EcruteakCity")] = SourceRecord(
+                    document, source_record.provenance
+                )
+            return context
+
+        adaptations = self._mutable(descriptor.adaptations)
+        for collection in ("deferredEdges", "warpRemovals"):
+            battle_frontier = next(
+                item
+                for item in adaptations[collection]
+                if item["source"] == "EcruteakCity" and item["path"] == "warp_events/14"
+            )
+            battle_frontier["path"] = "warp_events/15"
+        adaptations["retainedEdges"].append(
+            {
+                "source": "EcruteakCity",
+                "path": "warp_events/14",
+                "kind": "warp",
+                "destination": gym_warp["dest_map"],
+            }
+        )
+        adaptations["warpRemovals"].append(
+            {
+                "source": "EcruteakCity",
+                "path": "warp_events/13",
+                "destination": gym_warp["dest_map"],
+                "destWarpId": str(gym_warp["dest_warp_id"]),
+                "reason": "test exact-index removal with an identical following warp",
+            }
+        )
+        with patch(
+            "tools.content_port.sources.ExpansionSourceContext",
+            side_effect=context_with_duplicate,
+        ):
+            _, state = resolve_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
+
+        ecruteak_warps = state.maps["EcruteakCity"]["warp_events"]
+        self.assertEqual(ecruteak_warps[13]["dest_map"], gym_warp["dest_map"])
+        self.assertEqual(
+            sum(warp["dest_map"] == gym_warp["dest_map"] for warp in ecruteak_warps),
+            1,
+        )
+        self.assertEqual(
+            state.maps["GoldenrodCity_DepartmentStoreElevator"]["warp_events"], ()
+        )
+
+        from tools.content_port.materialize import _map_units
+
+        rendered = {
+            unit.key.removeprefix("map:"): unit.value
+            for unit in _map_units(replace(descriptor, adaptations=adaptations), state)
+            if unit.key.startswith("map:")
+        }
+        for name in ("EcruteakCity", "GoldenrodCity_DepartmentStoreElevator"):
+            self.assertEqual(
+                rendered[name]["warp_events"], list(state.maps[name]["warp_events"])
+            )
 
 
 if __name__ == "__main__":

@@ -981,7 +981,7 @@ def resolve_port_sources(
             f"reviewed world edge drift: unexpected={unexpected[:1]} stale={stale[:1]}"
         )
 
-    removals_by_map: dict[str, list[int]] = {}
+    warp_removals_by_map: dict[str, set[int]] = {}
     for removal in adaptations["warpRemovals"]:
         name = removal["source"]
         index = int(removal["path"].split("/")[-1])
@@ -998,19 +998,7 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{name}/{removal['path']}: warp removal preimage drift"
             )
-        removals_by_map.setdefault(name, []).append(index)
-    for name, indexes in removals_by_map.items():
-        for index in sorted(indexes, reverse=True):
-            if (
-                not str(selected_maps[name]["warp_events"][index]["dest_warp_id"])
-                .lstrip("-")
-                .isdigit()
-            ):
-                # Dynamic warps have no static destination dependency. Keep the
-                # authored slot so incoming return-warp indices remain valid and
-                # require its separate dynamic/deferred policy below.
-                continue
-            del selected_maps[name]["warp_events"][index]
+        warp_removals_by_map.setdefault(name, set()).add(index)
     deferred_removals: dict[tuple[str, str], list[int]] = {}
     explicit_removals = {
         (item["source"], item["path"]) for item in adaptations["warpRemovals"]
@@ -1023,8 +1011,75 @@ def resolve_port_sources(
             int(raw_index)
         )
     for (name, field_name), indexes in deferred_removals.items():
+        if field_name == "warp_events":
+            warp_removals_by_map.setdefault(name, set()).update(indexes)
+            continue
         for index in sorted(indexes, reverse=True):
             del selected_maps[name][field_name][index]
+
+    # Warp indices are positional identities. Close removals over incoming
+    # references to deleted slots, then shift every surviving destination index
+    # exactly once against the authenticated pre-removal arrays.
+    map_aliases = {
+        alias: name
+        for name, document in selected_maps.items()
+        for alias in (name, str(document.get("id", name)))
+    }
+    changed = True
+    while changed:
+        changed = False
+        for source, document in selected_maps.items():
+            removed = warp_removals_by_map.setdefault(source, set())
+            for index, warp in enumerate(document.get("warp_events", []) or []):
+                if index in removed:
+                    continue
+                destination = map_aliases.get(str(warp.get("dest_map")))
+                raw_target = str(warp.get("dest_warp_id"))
+                if destination is None or not raw_target.lstrip("-").isdigit():
+                    continue
+                target_index = int(raw_target)
+                destination_removals = warp_removals_by_map.get(destination, set())
+                if target_index not in destination_removals:
+                    continue
+                destination_warps = (
+                    selected_maps[destination].get("warp_events", []) or []
+                )
+                successor = next(
+                    (
+                        candidate
+                        for candidate in range(target_index + 1, len(destination_warps))
+                        if candidate not in destination_removals
+                    ),
+                    None,
+                )
+                if (
+                    successor is not None
+                    and destination_warps[successor] == destination_warps[target_index]
+                ):
+                    continue
+                removed.add(index)
+                changed = True
+    for source, document in selected_maps.items():
+        removed = warp_removals_by_map.get(source, set())
+        resolved_warps: list[dict[str, Any]] = []
+        for index, warp in enumerate(document.get("warp_events", []) or []):
+            if index in removed:
+                continue
+            resolved = dict(warp)
+            destination = map_aliases.get(str(resolved.get("dest_map")))
+            raw_target = resolved.get("dest_warp_id")
+            rendered_target = str(raw_target)
+            if destination is not None and rendered_target.lstrip("-").isdigit():
+                target_index = int(rendered_target)
+                target_index -= sum(
+                    removed_index < target_index
+                    for removed_index in warp_removals_by_map.get(destination, set())
+                )
+                resolved["dest_warp_id"] = (
+                    str(target_index) if isinstance(raw_target, str) else target_index
+                )
+            resolved_warps.append(resolved)
+        document["warp_events"] = resolved_warps
 
     # Resolve each layout from its exact typed authority. The source map proves
     # that the reviewed layout identity belongs to that donor and source.
@@ -1312,7 +1367,12 @@ def resolve_port_sources(
             deferred_exits=deferred_dynamic,
             dynamic_warps=dynamic_warps,
             roots=frozenset(world_policy["roots"]),
-            unreachable_shells=frozenset(world_policy["unreachableShells"]),
+            unreachable_shells=frozenset(world_policy["unreachableShells"])
+            | frozenset(
+                name
+                for name, indexes in warp_removals_by_map.items()
+                if indexes and not selected_maps[name].get("warp_events")
+            ),
         ),
     )
 
