@@ -44,9 +44,20 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
 
       - name: Lint Python
         run: make lint-check
+
+      - name: Validate append-only persistent allocations
+        env:
+          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: >-
+          python3 -m tools.persistence.ledger validate
+          --published-baseline-ref "$PERSISTENT_BASELINE_REF"
+          --require-published-baseline
+          --allow-published-baseline-bootstrap
 
   donor-contracts:
     name: Donor Contracts

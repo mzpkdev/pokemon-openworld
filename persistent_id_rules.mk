@@ -2,6 +2,7 @@
 # in the policy-specific build tree and cannot become a second authority.
 PERSISTENT_ID_LEDGER := src/data/persistence/persistent_ids.json
 PERSISTENT_ID_SOURCES := tools/persistence/persistent_sources.json
+PERSISTENT_ID_PUBLICATIONS := tools/persistence/published_allocations.json
 PERSISTENT_ID_GENERATOR := tools/persistence/ledger.py
 PERSISTENT_HEAL_SOURCE := src/data/heal_locations.json
 PERSISTENT_LOCATION_SOURCE := src/data/region_map/region_map_sections.json
@@ -19,6 +20,7 @@ PERSISTENT_ID_OUTPUTS := $(PERSISTENT_ID_TABLE) $(PERSISTENT_HEAL_CONSTANTS) $(P
 AUTO_GEN_TARGETS += $(PERSISTENT_ID_OUTPUTS)
 
 $(PERSISTENT_ID_OUTPUTS) &: $(PERSISTENT_ID_LEDGER) $(PERSISTENT_ID_SOURCES) \
+		$(PERSISTENT_ID_PUBLICATIONS) \
 		tools/integrity/save_contract.json $(PERSISTENT_ID_GENERATOR) \
 		$(PERSISTENT_HEAL_SOURCE) $(PERSISTENT_LOCATION_SOURCE) $(PERSISTENT_FACILITY_SOURCE) \
 		include/constants/opponents.h include/constants/trainers.h include/constants/trainer_hill.h \
