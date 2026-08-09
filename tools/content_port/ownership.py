@@ -260,7 +260,9 @@ def _section_span(content: bytes, port: str, name: str) -> tuple[int, int, bytes
     finish = end_positions[0] + len(end)
     if end_positions[0] <= marker_start:
         raise ContentPortError(f"section {port}:{name} has reversed markers")
-    while finish < len(content) and content[finish : finish + 1] in {b"\r", b"\n"}:
+    if content[finish : finish + 1] == b"\r":
+        finish += 1
+    if content[finish : finish + 1] == b"\n":
         finish += 1
     return start, finish, content[start:finish]
 

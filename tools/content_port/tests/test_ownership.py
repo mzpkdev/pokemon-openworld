@@ -23,6 +23,23 @@ def file_unit(path: str, content: bytes) -> OwnershipUnit:
 
 
 class OwnershipTests(unittest.TestCase):
+    def test_owned_section_excludes_unowned_blank_separator(self) -> None:
+        from tools.content_port.ownership import extract_owned_content
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "fixture.h"
+            section = (
+                b"// CONTENT PORT BEGIN fixture:generated\n"
+                b"value\n"
+                b"// CONTENT PORT END fixture:generated\n"
+            )
+            path.write_bytes(section + b"\nhand_owned\n")
+            unit = OwnershipUnit(
+                "section", "fixture.h", content_sha256(section), name="generated"
+            )
+            self.assertEqual(extract_owned_content(root, "fixture", unit), section)
+
     def test_checked_johto_manifest_matches_tree_and_asset_ledger(self) -> None:
         root = Path(__file__).resolve().parents[3]
         port = root / "tools/content_port/ports/johto"
