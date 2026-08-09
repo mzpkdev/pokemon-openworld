@@ -234,52 +234,6 @@
       "authority": "hns"
     }
   ],
-  "preserveSpatialUpdates": [
-    {
-      "source": "CherrygroveCity",
-      "activationBatch": "early-violet-ruins",
-      "fields": [
-        "connections"
-      ]
-    },
-    {
-      "source": "Gate_Route29_Route46",
-      "activationBatch": "blackthorn-ice-dark-den",
-      "fields": [
-        "warp_events"
-      ]
-    },
-    {
-      "source": "Route29",
-      "activationBatch": "blackthorn-ice-dark-den",
-      "fields": [
-        "connections",
-        "warp_events"
-      ]
-    },
-    {
-      "source": "NewBarkTown",
-      "activationBatch": "tohjo-league-hns",
-      "fields": [
-        "connections"
-      ]
-    },
-    {
-      "source": "Route28",
-      "activationBatch": "tohjo-league-hns",
-      "fields": [
-        "connections",
-        "warp_events"
-      ]
-    },
-    {
-      "source": "Route28_House",
-      "activationBatch": "tohjo-league-hns",
-      "fields": [
-        "warp_events"
-      ]
-    }
-  ],
   "contentFallback": {
     "authority": "PKMN-World",
     "reason": "absent from pinned HnS content authority",
@@ -6121,152 +6075,6 @@
       "target": "MUS_SLATEPORT"
     }
   ],
-  "scriptSubstitutions": [
-    {
-      "source": "Route28_House",
-      "old": "ITEM_TM_STEEL_WING",
-      "new": "ITEM_TM47",
-      "occurrences": 1
-    },
-    {
-      "source": "CherrygroveCity_Mart",
-      "old": "pokemart 0",
-      "new": "pokemart Cherrygrove_Pokemart_Pokemart",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown",
-      "old": "SetTimeEncounters",
-      "new": "Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "Route29",
-      "old": "SetTimeEncounters",
-      "new": "Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "CherrygroveCity",
-      "old": "SetTimeEncounters",
-      "new": "Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "Route28",
-      "old": "SetTimeEncounters",
-      "new": "Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown",
-      "old": "callnative SetTimeBasedEncounters",
-      "new": "call Johto_EventScript_SetTimeEncounters",
-      "occurrences": 2
-    },
-    {
-      "source": "Route29",
-      "old": "callnative SetTimeBasedEncounters",
-      "new": "call Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "CherrygroveCity",
-      "old": "callnative SetTimeBasedEncounters",
-      "new": "call Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "Route28",
-      "old": "callnative SetTimeBasedEncounters",
-      "new": "call Johto_EventScript_SetTimeEncounters",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "specialvar VAR_RESULT, IsNuzlockeNicknamingActive",
-      "new": "setvar VAR_RESULT, FALSE @ unavailable optional mode; preserve normal nickname path",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "specialvar VAR_RESULT, CheckTogepi",
-      "new": "setvar VAR_RESULT, FALSE @ Togepi story is outside the resident slice",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "special NameRival",
-      "new": "setvar VAR_RESULT, FALSE @ rival naming UI is outside the resident slice",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown",
-      "old": "BlackthornCity_Text_ElmCall",
-      "new": "Johto_Text_DeferredElmCall",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "removeitem ITEM_MYSTERY_EGG",
-      "new": "@ Mystery Egg removal deferred with the out-of-scope Togepi story",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown",
-      "old": "givebp 4",
-      "new": "@ HnS Battle Point test grant is outside the resident slice",
-      "occurrences": 1
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "buffermoncategory STR_VAR_2, PLAYER_STARTER_SPECIES",
-      "new": "bufferstring STR_VAR_2, gText_EmptyString2",
-      "occurrences": 3
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "callnative DisableStaticRandomizer",
-      "new": "@ Static randomizer control is unavailable; dormant starter story needs no state change",
-      "occurrences": 3
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "callnative EnableStaticRandomizer",
-      "new": "@ Static randomizer control is unavailable; dormant starter story needs no state change",
-      "occurrences": 2
-    },
-    {
-      "source": "NewBarkTown_Lab",
-      "old": "setmetatile 7, 1, METATILE_R26_21_Broken_Window, TRUE",
-      "new": "@ Police episode and its out-of-layout broken-window metatile are outside the resident slice",
-      "occurrences": 1
-    },
-    {
-      "source": "Route29",
-      "old": "applymovement2",
-      "new": "applymovement",
-      "occurrences": 9
-    },
-    {
-      "source": "Route29",
-      "old": "Common_Movement_WalkUp1",
-      "new": "Common_Movement_WalkUp",
-      "occurrences": 4
-    },
-    {
-      "source": "Route29",
-      "old": "Common_Movement_WalkDown1",
-      "new": "Common_Movement_WalkDown",
-      "occurrences": 5
-    },
-    {
-      "source": "CherrygroveCity_PokemonCenter",
-      "old": "setrespawn HEAL_LOCATION_CHERRYGROVE_CITY",
-      "new": "@ Johto respawn/save integration is deliberately deferred",
-      "occurrences": 1
-    }
-  ],
   "tilesetAdaptations": [
     {
       "role": "primary",
@@ -6767,25 +6575,6 @@
       "authority": "hns"
     }
   ],
-  "encounterAdaptations": {
-    "dayNight": "retain paired HnS base labels; unsuffixed is the configured fallback and _Night is TIME_NIGHT",
-    "water12To5": {
-      "sourceIndices": [
-        0,
-        3,
-        7,
-        9,
-        11
-      ],
-      "targetWeights": [
-        60,
-        30,
-        5,
-        4,
-        1
-      ]
-    }
-  },
   "trainerPresentation": [
     {
       "id": "TRAINER_RIVAL_CHIKORITA_1",
@@ -6869,14 +6658,12 @@
     "encounters": false,
     "gameplayGlobals": false
   },
-  "regionAssignment": {
-    "hns": null,
-    "target": "REGION_JOHTO"
-  },
   "worldPolicy": {
     "roots": [
       "NewBarkTown"
     ],
+    "gateways": [],
+    "dynamicWarps": [],
     "unreachableShells": [
       "GoldenrodCity_DepartmentStore_7FNight",
       "MtSilver_SummitNight",

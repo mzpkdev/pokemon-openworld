@@ -64,26 +64,5 @@
       "count": 71,
       "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"
     }
-  },
-  "authority": {
-    "content": [
-      "maps",
-      "layout-binaries",
-      "events",
-      "scripts-text",
-      "encounters",
-      "section-presentation",
-      "tileset-resources",
-      "trainers",
-      "art"
-    ],
-    "mechanical": [
-      "johto-membership",
-      "layout-format",
-      "tileset-attribute-width",
-      "mixed-width-substitution",
-      "dependency-wiring"
-    ],
-    "unclassifiedDivergence": "error"
   }
 }

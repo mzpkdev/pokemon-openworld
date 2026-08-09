@@ -40,7 +40,6 @@ PORT_KEYS = {
     "legacyReport",
     "donors",
     "expectedInventory",
-    "authority",
 }
 DONOR_KEYS = {
     "name",
@@ -54,7 +53,6 @@ DONOR_KEYS = {
     "excludePaths",
 }
 INVENTORY_DOMAINS = {"maps", "layouts", "groups", "sections", "tilesets"}
-AUTHORITY_KEYS = {"content", "mechanical", "unclassifiedDivergence"}
 CAPABILITY_KEYS = {"schemaVersion", "capabilities", "maps"}
 MAP_POLICY_KEYS = {"map", "ownership", "capabilities"}
 ADAPTATION_KEYS = {
@@ -65,21 +63,17 @@ ADAPTATION_KEYS = {
     "sectionSymbolRemaps",
     "layoutTilesetRemaps",
     "attributeFixtures",
-    "preserveSpatialUpdates",
     "contentFallback",
     "retainedEdges",
     "deferredEdges",
     "graphicsAdaptations",
     "musicAdaptations",
-    "scriptSubstitutions",
     "tilesetAdaptations",
-    "encounterAdaptations",
     "trainerPresentation",
     "warpReindexes",
     "warpRemovals",
     "berryTreeAllocations",
     "materializationProfile",
-    "regionAssignment",
     "worldPolicy",
     "donorFieldRoles",
     "layoutBinaryAuthorities",
@@ -201,6 +195,79 @@ def _integer(value: object, pointer: str, *, positive: bool = False) -> int:
     return value
 
 
+def _boolean(value: object, pointer: str) -> bool:
+    if not isinstance(value, bool):
+        raise ContentPortError(f"{pointer}: expected a boolean")
+    return value
+
+
+def _string_array(value: object, pointer: str) -> tuple[str, ...]:
+    return tuple(
+        _string(item, f"{pointer}[{index}]")
+        for index, item in enumerate(_array(value, pointer))
+    )
+
+
+def _policy_record(
+    value: object,
+    pointer: str,
+    required: set[str],
+    optional: set[str] | None = None,
+) -> Mapping[str, Any]:
+    item = _object(value, pointer)
+    allowed = required | (optional or set())
+    unknown = sorted(set(item) - allowed)
+    missing = sorted(required - set(item))
+    if unknown:
+        raise ContentPortError(f"{pointer}: unknown field {unknown[0]!r}")
+    if missing:
+        raise ContentPortError(f"{pointer}: missing field {missing[0]!r}")
+    return item
+
+
+def _policy_records(
+    document: Mapping[str, Any],
+    field: str,
+    pointer: str,
+    required: set[str],
+    optional: set[str] | None = None,
+) -> tuple[tuple[Mapping[str, Any], str], ...]:
+    family_pointer = f"{pointer}.{field}"
+    return tuple(
+        (
+            _policy_record(
+                raw,
+                f"{family_pointer}[{index}]",
+                required,
+                optional,
+            ),
+            f"{family_pointer}[{index}]",
+        )
+        for index, raw in enumerate(_array(document[field], family_pointer))
+    )
+
+
+def _unique_policy_records(
+    document: Mapping[str, Any],
+    family: str,
+    pointer: str,
+    identity_fields: tuple[str, ...],
+) -> None:
+    seen: dict[tuple[object, ...], str] = {}
+    family_pointer = f"{pointer}.{family}"
+    for index, raw in enumerate(_array(document[family], family_pointer)):
+        item = _object(raw, f"{family_pointer}[{index}]")
+        identity = tuple(item[field] for field in identity_fields)
+        item_pointer = f"{family_pointer}[{index}]"
+        if identity in seen:
+            label = "/".join(identity_fields)
+            raise ContentPortError(
+                f"{item_pointer}.{identity_fields[-1]}: duplicate {label} identity; "
+                f"first declared at {seen[identity]}"
+            )
+        seen[identity] = item_pointer
+
+
 def _safe_child(root: Path, value: object, pointer: str) -> Path:
     name = _string(value, pointer)
     path = PurePath(name)
@@ -228,6 +295,328 @@ def _thaw(value: object) -> object:
     return value
 
 
+def _validate_adaptation_policy(value: object, pointer: str) -> None:
+    document = _object(value, pointer)
+    _exact_keys(document, ADAPTATION_KEYS, pointer)
+    if _integer(document["schemaVersion"], f"{pointer}.schemaVersion") != 1:
+        raise ContentPortError(
+            f"{pointer}.schemaVersion: unsupported adaptation schema"
+        )
+
+    donor_pointer = f"{pointer}.donorFieldRoles"
+    donor_fields = _object(document["donorFieldRoles"], donor_pointer)
+    _exact_keys(donor_fields, {"content", "mechanical"}, donor_pointer)
+    for role in ("content", "mechanical"):
+        _string(donor_fields[role], f"{donor_pointer}.{role}")
+    policy_fields = set(donor_fields.values())
+    if len(policy_fields) != len(donor_fields):
+        raise ContentPortError(
+            f"{donor_pointer}: donor policy field names must be unique"
+        )
+    content_field = donor_fields["content"]
+
+    for item, item_pointer in _policy_records(
+        document,
+        "adaptations",
+        pointer,
+        {"source", "path", "reason"} | policy_fields,
+    ):
+        for field in {"source", "path", "reason"} | policy_fields:
+            _string(item[field], f"{item_pointer}.{field}")
+
+    for family, identity_field in (
+        ("layoutHeaderDecisions", "layout"),
+        ("mapFieldDecisions", "map"),
+    ):
+        for item, item_pointer in _policy_records(
+            document,
+            family,
+            pointer,
+            {identity_field, "field", "authority"} | policy_fields,
+        ):
+            for field in {identity_field, "field", "authority"} | policy_fields:
+                _string(item[field], f"{item_pointer}.{field}")
+            if item["authority"] not in donor_fields:
+                raise ContentPortError(
+                    f"{item_pointer}.authority: unknown donor role "
+                    f"{item['authority']!r}"
+                )
+
+    string_record_families = {
+        "sectionSymbolRemaps": {"source", "target", "reason"},
+        "layoutTilesetRemaps": {"layout", "field", "source", "target"},
+        "retainedEdges": {"source", "path", "kind", "destination"},
+        "deferredEdges": {"source", "path", "kind", "destination"},
+        "musicAdaptations": {content_field, "target"},
+        "warpRemovals": {
+            "source",
+            "path",
+            "destination",
+            "destWarpId",
+            "reason",
+        },
+        "berryTreeAllocations": {"source", "path", content_field, "target"},
+    }
+    for family, fields in string_record_families.items():
+        for item, item_pointer in _policy_records(document, family, pointer, fields):
+            for field in fields:
+                _string(item[field], f"{item_pointer}.{field}")
+            if family in {"retainedEdges", "deferredEdges"} and item["kind"] not in {
+                "connection",
+                "warp",
+            }:
+                raise ContentPortError(
+                    f"{item_pointer}.kind: expected 'connection' or 'warp'"
+                )
+
+    fixture_fields = {
+        "representative",
+        "layout",
+        "role",
+        "tileset",
+        "metatiles",
+        "attributes",
+        "metatilesSha256",
+        "attributesSha256",
+        "format",
+        "authority",
+    }
+    for item, item_pointer in _policy_records(
+        document, "attributeFixtures", pointer, fixture_fields
+    ):
+        for field in fixture_fields:
+            _string(item[field], f"{item_pointer}.{field}")
+        for field in ("metatilesSha256", "attributesSha256"):
+            if not DIGEST_RE.fullmatch(item[field]):
+                raise ContentPortError(
+                    f"{item_pointer}.{field}: expected 64 lowercase hex"
+                )
+        if item["role"] not in {"primary", "secondary"}:
+            raise ContentPortError(
+                f"{item_pointer}.role: expected 'primary' or 'secondary'"
+            )
+        if item["authority"] not in policy_fields:
+            raise ContentPortError(
+                f"{item_pointer}.authority: unknown donor policy field "
+                f"{item['authority']!r}"
+            )
+
+    fallback_pointer = f"{pointer}.contentFallback"
+    fallback = _policy_record(
+        document["contentFallback"],
+        fallback_pointer,
+        {"authority", "reason", "maps"},
+    )
+    _string(fallback["authority"], f"{fallback_pointer}.authority")
+    _string(fallback["reason"], f"{fallback_pointer}.reason")
+    _string_array(fallback["maps"], f"{fallback_pointer}.maps")
+
+    for item, item_pointer in _policy_records(
+        document,
+        "graphicsAdaptations",
+        pointer,
+        {content_field, "target"},
+        {"reason"},
+    ):
+        for field in set(item):
+            _string(item[field], f"{item_pointer}.{field}")
+
+    tileset_required = {
+        "role",
+        "directory",
+        "symbol",
+        "secondary",
+        "paletteCount",
+        "authority",
+    }
+    tileset_aliases = {"targetDirectory", "targetSymbol"}
+    seen_tilesets: dict[str, str] = {}
+    for item, item_pointer in _policy_records(
+        document,
+        "tilesetAdaptations",
+        pointer,
+        tileset_required,
+        tileset_aliases,
+    ):
+        for field in ("role", "directory", "symbol", "authority"):
+            _string(item[field], f"{item_pointer}.{field}")
+        present_aliases = set(item) & tileset_aliases
+        if present_aliases and present_aliases != tileset_aliases:
+            missing = sorted(tileset_aliases - present_aliases)
+            raise ContentPortError(f"{item_pointer}: missing field {missing[0]!r}")
+        for field in present_aliases:
+            _string(item[field], f"{item_pointer}.{field}")
+        effective_symbol = item.get("targetSymbol", item["symbol"])
+        if effective_symbol in seen_tilesets:
+            identity_field = "targetSymbol" if "targetSymbol" in item else "symbol"
+            raise ContentPortError(
+                f"{item_pointer}.{identity_field}: duplicate rendered tileset identity; "
+                f"first declared at {seen_tilesets[effective_symbol]}"
+            )
+        seen_tilesets[effective_symbol] = item_pointer
+        secondary = _boolean(item["secondary"], f"{item_pointer}.secondary")
+        _integer(item["paletteCount"], f"{item_pointer}.paletteCount", positive=True)
+        expected_secondary = item["role"] == "secondary"
+        if item["role"] not in {"primary", "secondary"}:
+            raise ContentPortError(
+                f"{item_pointer}.role: expected 'primary' or 'secondary'"
+            )
+        if secondary != expected_secondary:
+            raise ContentPortError(
+                f"{item_pointer}.secondary: must match the tileset role"
+            )
+        if item["authority"] not in policy_fields:
+            raise ContentPortError(
+                f"{item_pointer}.authority: unknown donor policy field "
+                f"{item['authority']!r}"
+            )
+
+    trainer_fields = {
+        "id",
+        "name",
+        "class",
+        "pic",
+        "gender",
+        "music",
+        "battleType",
+        "species",
+        "level",
+        "ivs",
+    }
+    for item, item_pointer in _policy_records(
+        document, "trainerPresentation", pointer, trainer_fields
+    ):
+        for field in trainer_fields - {"level"}:
+            _string(item[field], f"{item_pointer}.{field}")
+        _integer(item["level"], f"{item_pointer}.level", positive=True)
+
+    for item, item_pointer in _policy_records(
+        document, "warpReindexes", pointer, {"source", "path", "to"}
+    ):
+        _string(item["source"], f"{item_pointer}.source")
+        _string(item["path"], f"{item_pointer}.path")
+        target = item["to"]
+        if isinstance(target, str):
+            _string(target, f"{item_pointer}.to")
+        else:
+            _integer(target, f"{item_pointer}.to")
+
+    profile_pointer = f"{pointer}.materializationProfile"
+    profile = _policy_record(
+        document["materializationProfile"],
+        profile_pointer,
+        {
+            "mapScripts",
+            "retainEventKinds",
+            "stripEventKinds",
+            "encounters",
+            "gameplayGlobals",
+        },
+    )
+    _string(profile["mapScripts"], f"{profile_pointer}.mapScripts")
+    _string_array(profile["retainEventKinds"], f"{profile_pointer}.retainEventKinds")
+    _string_array(profile["stripEventKinds"], f"{profile_pointer}.stripEventKinds")
+    _boolean(profile["encounters"], f"{profile_pointer}.encounters")
+    _boolean(profile["gameplayGlobals"], f"{profile_pointer}.gameplayGlobals")
+
+    world_pointer = f"{pointer}.worldPolicy"
+    world = _policy_record(
+        document["worldPolicy"],
+        world_pointer,
+        {"roots", "unreachableShells", "gateways", "dynamicWarps"},
+    )
+    _string_array(world["roots"], f"{world_pointer}.roots")
+    _string_array(world["unreachableShells"], f"{world_pointer}.unreachableShells")
+    gateway_fields = {
+        "source",
+        "destination",
+        "kind",
+        "index",
+        "sourceRegion",
+        "targetRegion",
+    }
+    for index, raw in enumerate(_array(world["gateways"], f"{world_pointer}.gateways")):
+        item_pointer = f"{world_pointer}.gateways[{index}]"
+        item = _policy_record(raw, item_pointer, gateway_fields)
+        for field in gateway_fields - {"index"}:
+            _string(item[field], f"{item_pointer}.{field}")
+        _integer(item["index"], f"{item_pointer}.index")
+
+    dynamic_warp_pointer = f"{world_pointer}.dynamicWarps"
+    for index, raw in enumerate(_array(world["dynamicWarps"], dynamic_warp_pointer)):
+        item_pointer = f"{dynamic_warp_pointer}[{index}]"
+        item = _policy_record(raw, item_pointer, {"source", "index", "token"})
+        _string(item["source"], f"{item_pointer}.source")
+        _integer(item["index"], f"{item_pointer}.index")
+        _string(item["token"], f"{item_pointer}.token")
+
+    unique_families = {
+        "adaptations": ("source", "path"),
+        "layoutHeaderDecisions": ("layout", "field"),
+        "mapFieldDecisions": ("map", "field"),
+        "sectionSymbolRemaps": ("source",),
+        "layoutTilesetRemaps": ("layout", "field"),
+        "attributeFixtures": ("representative",),
+        "retainedEdges": ("source", "path"),
+        "deferredEdges": ("source", "path"),
+        "graphicsAdaptations": (content_field,),
+        "musicAdaptations": (content_field,),
+        "trainerPresentation": ("id",),
+        "warpReindexes": ("source", "path"),
+        "warpRemovals": ("source", "path"),
+        "berryTreeAllocations": ("source", "path"),
+    }
+    for family, identity_fields in unique_families.items():
+        _unique_policy_records(document, family, pointer, identity_fields)
+
+    classified_edges: dict[tuple[object, object], str] = {}
+    for family in ("retainedEdges", "deferredEdges"):
+        for index, raw in enumerate(document[family]):
+            item = _object(raw, f"{pointer}.{family}[{index}]")
+            identity = (item["source"], item["path"])
+            item_pointer = f"{pointer}.{family}[{index}]"
+            if identity in classified_edges:
+                raise ContentPortError(
+                    f"{item_pointer}.path: edge is already classified at "
+                    f"{classified_edges[identity]}"
+                )
+            classified_edges[identity] = item_pointer
+
+    transform_paths: dict[tuple[object, object], str] = {}
+    for family in (
+        "adaptations",
+        "warpReindexes",
+        "warpRemovals",
+        "berryTreeAllocations",
+    ):
+        for index, raw in enumerate(document[family]):
+            item = _object(raw, f"{pointer}.{family}[{index}]")
+            identity = (item["source"], item["path"])
+            item_pointer = f"{pointer}.{family}[{index}]"
+            if identity in transform_paths:
+                raise ContentPortError(
+                    f"{item_pointer}.path: transform path is already declared at "
+                    f"{transform_paths[identity]}"
+                )
+            transform_paths[identity] = item_pointer
+
+    for family, values, identity_fields in (
+        ("gateways", world["gateways"], ("source", "kind", "index")),
+        ("dynamicWarps", world["dynamicWarps"], ("source", "index")),
+    ):
+        seen: dict[tuple[object, ...], str] = {}
+        for index, raw in enumerate(values):
+            item = _object(raw, f"{world_pointer}.{family}[{index}]")
+            identity = tuple(item[field] for field in identity_fields)
+            item_pointer = f"{world_pointer}.{family}[{index}]"
+            if identity in seen:
+                raise ContentPortError(
+                    f"{item_pointer}.{identity_fields[-1]}: duplicate world edge "
+                    f"identity; first declared at {seen[identity]}"
+                )
+            seen[identity] = item_pointer
+
+
 def forbid_numeric_policy(value: object, pointer: str = "$") -> None:
     """Reject placement fields outside the allocation lock at any depth."""
     if isinstance(value, dict):
@@ -249,7 +638,6 @@ class PortDescriptor:
     donors: tuple[DonorPin, ...]
     donors_by_role: Mapping[str, DonorPin]
     expected_inventory: Mapping[str, Mapping[str, object]]
-    authority: Mapping[str, object]
     allocation_index: AllocationIndex
     capabilities: tuple[CapabilityDecision, ...]
     map_ownership: Mapping[str, str]
@@ -468,28 +856,6 @@ def _load_inventory(value: object, pointer: str) -> Mapping[str, Mapping[str, ob
         if not DIGEST_RE.fullmatch(digest):
             raise ContentPortError(f"{item_pointer}.digest: expected 64 lowercase hex")
         result[domain] = MappingProxyType({"count": count, "digest": digest})
-    return MappingProxyType(result)
-
-
-def _load_authority(value: object, pointer: str) -> Mapping[str, object]:
-    document = _object(value, pointer)
-    _exact_keys(document, AUTHORITY_KEYS, pointer)
-    result: dict[str, object] = {}
-    for field in ("content", "mechanical"):
-        values = tuple(
-            _string(item, f"{pointer}.{field}[{index}]")
-            for index, item in enumerate(_array(document[field], f"{pointer}.{field}"))
-        )
-        if not values or len(values) != len(set(values)):
-            raise ContentPortError(
-                f"{pointer}.{field}: authority entries must be non-empty and unique"
-            )
-        result[field] = values
-    if document["unclassifiedDivergence"] != "error":
-        raise ContentPortError(
-            f"{pointer}.unclassifiedDivergence: fail-closed policy must be 'error'"
-        )
-    result["unclassifiedDivergence"] = "error"
     return MappingProxyType(result)
 
 
@@ -944,6 +1310,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         ADAPTATION_KEYS,
         "$",
     )
+    _validate_adaptation_policy(_thaw(adaptations), "$")
     events = _load_policy(
         _safe_child(port_dir, root["eventPolicy"], "$.eventPolicy"), None, "$"
     )
@@ -985,7 +1352,6 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         expected_inventory=_load_inventory(
             root["expectedInventory"], "$.expectedInventory"
         ),
-        authority=_load_authority(root["authority"], "$.authority"),
         allocation_index=allocation_index,
         capabilities=capabilities,
         map_ownership=ownership,

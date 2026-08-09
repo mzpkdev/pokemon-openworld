@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import copy
 import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -29,6 +31,320 @@ def dump(path: Path, value: object) -> None:
 
 
 class DescriptorTests(unittest.TestCase):
+    @staticmethod
+    def adaptation_policy_cases():
+        digest = "a" * 64
+        return (
+            (
+                "donorFieldRoles",
+                {"content": "content", "mechanical": "mechanical"},
+                "content",
+                "mechanical",
+                7,
+                "$.donorFieldRoles",
+                "mechanical",
+            ),
+            (
+                "adaptations",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0/dest_map",
+                    "content": "MAP_OLD",
+                    "mechanical": "MAP_NEW",
+                    "reason": "reviewed correction",
+                },
+                "reason",
+                "source",
+                7,
+                "$.adaptations[0]",
+                "source",
+            ),
+            (
+                "layoutHeaderDecisions",
+                {
+                    "layout": "LAYOUT_TEST",
+                    "field": "secondary_tileset",
+                    "content": "gTileset_Old",
+                    "mechanical": "gTileset_New",
+                    "authority": "mechanical",
+                },
+                "field",
+                "layout",
+                [],
+                "$.layoutHeaderDecisions[0]",
+                "layout",
+            ),
+            (
+                "mapFieldDecisions",
+                {
+                    "map": "TestMap",
+                    "field": "region_map_section",
+                    "content": "MAPSEC_OLD",
+                    "mechanical": "MAPSEC_NEW",
+                    "authority": "mechanical",
+                },
+                "field",
+                "map",
+                None,
+                "$.mapFieldDecisions[0]",
+                "map",
+            ),
+            (
+                "sectionSymbolRemaps",
+                {
+                    "source": "MAPSEC_OLD",
+                    "target": "MAPSEC_NEW",
+                    "reason": "avoid collision",
+                },
+                "reason",
+                "target",
+                False,
+                "$.sectionSymbolRemaps[0]",
+                "target",
+            ),
+            (
+                "layoutTilesetRemaps",
+                {
+                    "layout": "LAYOUT_TEST",
+                    "field": "secondary_tileset",
+                    "source": "gTileset_Old",
+                    "target": "gTileset_New",
+                },
+                "target",
+                "field",
+                3,
+                "$.layoutTilesetRemaps[0]",
+                "field",
+            ),
+            (
+                "attributeFixtures",
+                {
+                    "representative": "test-primary",
+                    "layout": "LAYOUT_TEST",
+                    "role": "primary",
+                    "tileset": "gTileset_Test",
+                    "metatiles": "data/tilesets/test/metatiles.bin",
+                    "attributes": "data/tilesets/test/attributes.bin",
+                    "metatilesSha256": digest,
+                    "attributesSha256": digest,
+                    "format": "METATILE_ATTRIBUTES_EMERALD_U16",
+                    "authority": "content",
+                },
+                "format",
+                "metatilesSha256",
+                "not-a-digest",
+                "$.attributeFixtures[0]",
+                "metatilesSha256",
+            ),
+            (
+                "contentFallback",
+                {
+                    "authority": "mechanical",
+                    "reason": "content donor is missing the map",
+                    "maps": [],
+                },
+                "reason",
+                "maps",
+                [7],
+                "$.contentFallback",
+                "maps[0]",
+            ),
+            (
+                "retainedEdges",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0",
+                    "kind": "warp",
+                    "destination": "MAP_OTHER",
+                },
+                "destination",
+                "kind",
+                7,
+                "$.retainedEdges[0]",
+                "kind",
+            ),
+            (
+                "deferredEdges",
+                {
+                    "source": "TestMap",
+                    "path": "connections/0",
+                    "kind": "connection",
+                    "destination": "MAP_OTHER",
+                },
+                "destination",
+                "path",
+                [],
+                "$.deferredEdges[0]",
+                "path",
+            ),
+            (
+                "graphicsAdaptations",
+                {"content": "OBJ_EVENT_GFX_OLD", "target": "OBJ_EVENT_GFX_NEW"},
+                "target",
+                "content",
+                7,
+                "$.graphicsAdaptations[0]",
+                "content",
+            ),
+            (
+                "musicAdaptations",
+                {"content": "MUS_OLD", "target": "MUS_NEW"},
+                "target",
+                "content",
+                None,
+                "$.musicAdaptations[0]",
+                "content",
+            ),
+            (
+                "tilesetAdaptations",
+                {
+                    "role": "primary",
+                    "directory": "test",
+                    "symbol": "Test",
+                    "secondary": False,
+                    "paletteCount": 16,
+                    "authority": "content",
+                },
+                "directory",
+                "secondary",
+                "false",
+                "$.tilesetAdaptations[0]",
+                "secondary",
+            ),
+            (
+                "trainerPresentation",
+                {
+                    "id": "TRAINER_TEST",
+                    "name": "Test",
+                    "class": "Rival",
+                    "pic": "Wally",
+                    "gender": "Male",
+                    "music": "Male",
+                    "battleType": "Singles",
+                    "species": "Chikorita",
+                    "level": 5,
+                    "ivs": "0 HP",
+                },
+                "ivs",
+                "level",
+                0,
+                "$.trainerPresentation[0]",
+                "level",
+            ),
+            (
+                "warpReindexes",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0/dest_warp_id",
+                    "to": 1,
+                },
+                "to",
+                "to",
+                [],
+                "$.warpReindexes[0]",
+                "to",
+            ),
+            (
+                "warpRemovals",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0",
+                    "destination": "MAP_OTHER",
+                    "destWarpId": "0",
+                    "reason": "deferred exit",
+                },
+                "reason",
+                "destWarpId",
+                0,
+                "$.warpRemovals[0]",
+                "destWarpId",
+            ),
+            (
+                "berryTreeAllocations",
+                {
+                    "source": "TestMap",
+                    "path": "object_events/0/trainer_sight_or_berry_tree_id",
+                    "content": "BERRY_TREE_OLD",
+                    "target": "BERRY_TREE_TEST",
+                },
+                "target",
+                "content",
+                {},
+                "$.berryTreeAllocations[0]",
+                "content",
+            ),
+            (
+                "materializationProfile",
+                {
+                    "mapScripts": "empty",
+                    "retainEventKinds": ["warp_events"],
+                    "stripEventKinds": ["object_events"],
+                    "encounters": False,
+                    "gameplayGlobals": False,
+                },
+                "mapScripts",
+                "encounters",
+                "false",
+                "$.materializationProfile",
+                "encounters",
+            ),
+            (
+                "worldPolicy",
+                {
+                    "roots": ["TestMap"],
+                    "unreachableShells": [],
+                    "gateways": [],
+                    "dynamicWarps": [],
+                },
+                "roots",
+                "roots",
+                [7],
+                "$.worldPolicy",
+                "roots[0]",
+            ),
+            (
+                "worldGateway",
+                {
+                    "source": "TestMap",
+                    "destination": "OtherMap",
+                    "kind": "warp",
+                    "index": 0,
+                    "sourceRegion": "REGION_TEST",
+                    "targetRegion": "REGION_OTHER",
+                },
+                "targetRegion",
+                "index",
+                True,
+                "$.worldPolicy.gateways[0]",
+                "index",
+            ),
+            (
+                "worldDynamicWarp",
+                {"source": "TestMap", "index": 0, "token": "WARP_ID_DYNAMIC"},
+                "token",
+                "index",
+                True,
+                "$.worldPolicy.dynamicWarps[0]",
+                "index",
+            ),
+        )
+
+    @staticmethod
+    def install_adaptation_family(
+        document: dict[str, object], family: str, sample: object
+    ) -> object:
+        if family == "worldGateway":
+            document["worldPolicy"]["gateways"] = [sample]  # type: ignore[index]
+            return document["worldPolicy"]["gateways"][0]  # type: ignore[index]
+        if family == "worldDynamicWarp":
+            document["worldPolicy"]["dynamicWarps"] = [sample]  # type: ignore[index]
+            return document["worldPolicy"]["dynamicWarps"][0]  # type: ignore[index]
+        if isinstance(document[family], list):
+            document[family] = [sample]
+            return document[family][0]  # type: ignore[index]
+        document[family] = sample
+        return document[family]
+
     def test_checked_port_declares_every_map_and_capability(self):
         port_dir = Path(__file__).parents[1] / "ports" / "johto"
         descriptor = load_port(port_dir, port_dir / "unused-donor-root")
@@ -74,7 +390,33 @@ class DescriptorTests(unittest.TestCase):
         }
         dump(root / "capabilities.json", capabilities)
         adaptations = {key: [] for key in ADAPTATION_KEYS}
-        adaptations["schemaVersion"] = 1
+        adaptations.update(
+            {
+                "schemaVersion": 1,
+                "donorFieldRoles": {
+                    "content": "content",
+                    "mechanical": "mechanical",
+                },
+                "contentFallback": {
+                    "authority": "mechanical",
+                    "reason": "content donor has no fallback maps",
+                    "maps": [],
+                },
+                "materializationProfile": {
+                    "mapScripts": "empty",
+                    "retainEventKinds": ["warp_events"],
+                    "stripEventKinds": ["object_events"],
+                    "encounters": False,
+                    "gameplayGlobals": False,
+                },
+                "worldPolicy": {
+                    "roots": ["TestMap"],
+                    "unreachableShells": [],
+                    "gateways": [],
+                    "dynamicWarps": [],
+                },
+            }
+        )
         adaptations["layoutBinaryAuthorities"] = [
             {
                 "layout": "LAYOUT_TEST",
@@ -208,11 +550,6 @@ class DescriptorTests(unittest.TestCase):
                 domain: {"count": 1, "digest": "5" * 64}
                 for domain in ("maps", "layouts", "groups", "sections", "tilesets")
             },
-            "authority": {
-                "content": ["map-fields"],
-                "mechanical": ["layout-format"],
-                "unclassifiedDivergence": "error",
-            },
         }
         dump(root / "port.json", port)
         return port
@@ -340,8 +677,6 @@ class DescriptorTests(unittest.TestCase):
                 "destinations",
             )
             with self.assertRaises(TypeError):
-                descriptor.authority["new"] = ()  # type: ignore[index]
-            with self.assertRaises(TypeError):
                 descriptor.donors_by_role["other"] = descriptor.donors[0]  # type: ignore[index]
 
     def test_donor_roles_are_explicit_and_extensible(self):
@@ -428,6 +763,227 @@ class DescriptorTests(unittest.TestCase):
                 mutation(document)
                 dump(path, document)
                 with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_every_adaptation_family_rejects_unknown_fields(self):
+        typo = "reviewedButTypoedField"
+        for (
+            family,
+            sample,
+            _missing,
+            _field,
+            _bad,
+            pointer,
+            _type_path,
+        ) in self.adaptation_policy_cases():
+            with (
+                self.subTest(family=family),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                target = self.install_adaptation_family(
+                    document,
+                    family,
+                    copy.deepcopy(sample),  # type: ignore[arg-type]
+                )
+                target[typo] = True  # type: ignore[index]
+                dump(path, document)
+
+                message = re.escape(f"{pointer}: unknown field {typo!r}")
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_every_adaptation_family_rejects_missing_fields(self):
+        for (
+            family,
+            sample,
+            missing,
+            _field,
+            _bad,
+            pointer,
+            _type_path,
+        ) in self.adaptation_policy_cases():
+            with (
+                self.subTest(family=family),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                target = self.install_adaptation_family(
+                    document,
+                    family,
+                    copy.deepcopy(sample),  # type: ignore[arg-type]
+                )
+                target.pop(missing)  # type: ignore[union-attr]
+                dump(path, document)
+
+                message = re.escape(f"{pointer}: missing field {missing!r}")
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_every_adaptation_family_rejects_ill_typed_fields(self):
+        for (
+            family,
+            sample,
+            _missing,
+            field,
+            bad,
+            pointer,
+            type_path,
+        ) in self.adaptation_policy_cases():
+            with (
+                self.subTest(family=family),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                target = self.install_adaptation_family(
+                    document,
+                    family,
+                    copy.deepcopy(sample),  # type: ignore[arg-type]
+                )
+                target[field] = bad  # type: ignore[index]
+                dump(path, document)
+
+                message = re.escape(f"{pointer}.{type_path}:")
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_tileset_target_aliases_are_an_exact_pair(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_port(root)
+            path = root / "adaptations.json"
+            document = read_json(path)
+            document["tilesetAdaptations"] = [  # type: ignore[index]
+                {
+                    "role": "secondary",
+                    "directory": "test",
+                    "symbol": "Test",
+                    "targetSymbol": "PortTest",
+                    "secondary": True,
+                    "paletteCount": 16,
+                    "authority": "content",
+                }
+            ]
+            dump(path, document)
+
+            with self.assertRaisesRegex(
+                ContentPortError,
+                re.escape("$.tilesetAdaptations[0]: missing field 'targetDirectory'"),
+            ):
+                load_port(root, root / "donors")
+
+    def test_transform_and_identity_records_reject_duplicates(self):
+        samples = {
+            family: sample for family, sample, *_rest in self.adaptation_policy_cases()
+        }
+        cases = (
+            ("adaptations", "path"),
+            ("layoutHeaderDecisions", "field"),
+            ("mapFieldDecisions", "field"),
+            ("sectionSymbolRemaps", "source"),
+            ("layoutTilesetRemaps", "field"),
+            ("attributeFixtures", "representative"),
+            ("retainedEdges", "path"),
+            ("deferredEdges", "path"),
+            ("graphicsAdaptations", "content"),
+            ("musicAdaptations", "content"),
+            ("tilesetAdaptations", "symbol"),
+            ("trainerPresentation", "id"),
+            ("warpReindexes", "path"),
+            ("warpRemovals", "path"),
+            ("berryTreeAllocations", "path"),
+            ("worldGateway", "index"),
+            ("worldDynamicWarp", "index"),
+        )
+        for family, identity_field in cases:
+            with (
+                self.subTest(family=family),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                sample = copy.deepcopy(samples[family])
+                self.install_adaptation_family(document, family, sample)
+                if family == "worldGateway":
+                    records = document["worldPolicy"]["gateways"]  # type: ignore[index]
+                    pointer = "$.worldPolicy.gateways[1]"
+                elif family == "worldDynamicWarp":
+                    records = document["worldPolicy"]["dynamicWarps"]  # type: ignore[index]
+                    pointer = "$.worldPolicy.dynamicWarps[1]"
+                else:
+                    records = document[family]
+                    pointer = f"$.{family}[1]"
+                records.append(copy.deepcopy(sample))  # type: ignore[union-attr]
+                dump(path, document)
+
+                with self.assertRaisesRegex(
+                    ContentPortError,
+                    re.escape(f"{pointer}.{identity_field}:"),
+                ):
+                    load_port(root, root / "donors")
+
+    def test_edge_classifications_and_transform_paths_are_exclusive(self):
+        cases = (
+            (
+                "retainedEdges",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0",
+                    "kind": "warp",
+                    "destination": "MAP_OTHER",
+                },
+                "deferredEdges",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0",
+                    "kind": "warp",
+                    "destination": "MAP_OTHER",
+                },
+                "$.deferredEdges[0].path: edge is already classified",
+            ),
+            (
+                "adaptations",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0/dest_warp_id",
+                    "content": "0",
+                    "mechanical": "1",
+                    "reason": "reviewed correction",
+                },
+                "warpReindexes",
+                {
+                    "source": "TestMap",
+                    "path": "warp_events/0/dest_warp_id",
+                    "to": 1,
+                },
+                "$.warpReindexes[0].path: transform path is already declared",
+            ),
+        )
+        for first_family, first, second_family, second, message in cases:
+            with (
+                self.subTest(first=first_family, second=second_family),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                self.install_adaptation_family(document, first_family, first)
+                self.install_adaptation_family(document, second_family, second)
+                dump(path, document)
+
+                with self.assertRaisesRegex(ContentPortError, re.escape(message)):
                     load_port(root, root / "donors")
 
     def test_loads_exact_reviewed_content_addressed_migration(self):
