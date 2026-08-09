@@ -921,6 +921,38 @@ def resolve_port_sources(
             )
         _set_path(selected_maps[name], path, decision[mechanical_field])
 
+    # Map-field decisions are renderer inputs, so authenticate every declared
+    # donor value here before the selected authority can affect desired state.
+    for decision in adaptations["mapFieldDecisions"]:
+        name = decision["map"]
+        path = decision["field"]
+        if name not in selected_maps:
+            raise ContentPortError(f"map-field decision names unknown map {name}")
+        for source_role, policy_field in donor_fields.items():
+            context = contexts.get(source_role)
+            if context is None:
+                raise ContentPortError(
+                    f"{name}/{path}: unknown map-field donor role {source_role}"
+                )
+            try:
+                source_record = context.load(ResourceKey("map", name))
+                actual = _path_value(source_record.value, path)
+            except (ContentPortError, KeyError, IndexError, TypeError) as error:
+                raise ContentPortError(
+                    f"{name}/{path}: cannot resolve {source_role} map-field evidence"
+                ) from error
+            if actual != decision[policy_field]:
+                raise ContentPortError(
+                    f"{name}/{path}: {source_role} map-field evidence drift"
+                )
+        authority_role = decision["authority"]
+        policy_field = donor_fields.get(authority_role)
+        if policy_field is None:
+            raise ContentPortError(
+                f"{name}/{path}: unknown map-field authority {authority_role}"
+            )
+        _set_path(selected_maps[name], path, decision[policy_field])
+
     # Validate the authored retained/deferred inventory against the adapted maps
     # before reviewed removals are applied.
     actual_edges: set[tuple[str, str, str, str]] = set()

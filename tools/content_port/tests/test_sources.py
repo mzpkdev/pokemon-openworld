@@ -34,10 +34,16 @@ class SourceGraphTests(unittest.TestCase):
 
     def _donor_root(self) -> Path | None:
         repo_root = Path(__file__).resolve().parents[3]
-        candidates = (
-            repo_root / ".references",
-            repo_root.parents[2] / ".references",
-            Path("/tmp/content-port-donors.ATzdJy"),
+        configured = os.environ.get("CONTENT_PORT_DONOR_ROOT")
+        candidates = tuple(
+            path
+            for path in (
+                Path(configured) if configured else None,
+                repo_root / ".references",
+                repo_root.parents[2] / ".references",
+                Path("/tmp/content-port-donors.ATzdJy"),
+            )
+            if path is not None
         )
         return next(
             (
@@ -242,6 +248,22 @@ class SourceGraphTests(unittest.TestCase):
             ContentPortError, "layout authority evidence drift"
         ):
             validate_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
+
+        adaptations = self._mutable(descriptor.adaptations)
+        decision = next(
+            item
+            for item in adaptations["mapFieldDecisions"]
+            if item["map"] == "ReceptionGate" and item["field"] == "region_map_section"
+        )
+        decision["mechanical"] = "MAPSEC_NEW_BARK_TOWN"
+        with self.assertRaisesRegex(
+            ContentPortError, "mechanical map-field evidence drift"
+        ):
+            from tools.content_port.materialize import derive_desired_state
+
+            derive_desired_state(
                 replace(descriptor, adaptations=adaptations), Path(".")
             )
 
