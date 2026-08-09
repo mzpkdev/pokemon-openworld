@@ -592,6 +592,8 @@ def _load_renderer_policy(
         "deferredCallLabel",
         "deferredCallText",
         "sectionPersistenceCodecs",
+        "flagExports",
+        "varExports",
     }
     _exact_keys(bindings, binding_keys, bindings_pointer)
     codecs: list[SectionPersistenceCodec] = []
@@ -634,6 +636,17 @@ def _load_renderer_policy(
             f"{bindings_pointer}.sectionPersistenceCodecs: unknown section {unknown_codecs[0]!r}"
         )
 
+    def exports(field: str) -> tuple[str, ...]:
+        values = tuple(
+            _string(item, f"{bindings_pointer}.{field}[{index}]")
+            for index, item in enumerate(
+                _array(bindings[field], f"{bindings_pointer}.{field}")
+            )
+        )
+        if len(values) != len(set(values)):
+            raise ContentPortError(f"{bindings_pointer}.{field}: duplicate symbol")
+        return values
+
     target_bindings = TargetBindings(
         layout_format=_string(
             bindings["layoutFormat"], f"{bindings_pointer}.layoutFormat"
@@ -671,6 +684,8 @@ def _load_renderer_policy(
             f"{bindings_pointer}.deferredCallText",
         ),
         section_persistence_codecs=tuple(sorted(codecs)),
+        flag_exports=exports("flagExports"),
+        var_exports=exports("varExports"),
     )
     return (
         tuple(sorted(layout_records)),

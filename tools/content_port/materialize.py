@@ -20,7 +20,6 @@ from .sources import PortSourceState, resolve_port_sources
 _DEFINE_RE = re.compile(
     r"^#define\s+([A-Z][A-Z0-9_]+)\s+(0x[0-9A-Fa-f]+|\d+)", re.MULTILINE
 )
-_SYMBOL_RE = re.compile(r"\b(?:FLAG|VAR|TRAINER|BERRY_TREE)_[A-Z0-9_]+\b")
 
 
 def _thaw(value: Any) -> Any:
@@ -326,38 +325,16 @@ def _section_units(
     return units
 
 
-def _referenced_target_symbols(descriptor: PortDescriptor, repo: Path) -> set[str]:
-    text = ""
-    for name, mode in descriptor.map_ownership.items():
-        if mode != "preserve":
-            continue
-        for leaf in ("map.json", "scripts.inc"):
-            path = repo / "data/maps" / name / leaf
-            if path.is_file():
-                text += path.read_text(encoding="utf-8", errors="replace")
-    return set(_SYMBOL_RE.findall(text))
-
-
 def _binding_body(
     descriptor: PortDescriptor, state: PortSourceState, repo: Path, kind: str
 ) -> str:
+    del state
     prefix = "FLAG_" if kind == "flag-bindings" else "VAR_"
-    filename = "flags.h" if prefix == "FLAG_" else "vars.h"
-    donor_text = _read_source(
-        state.donor_roots["content"], f"include/constants/{filename}", kind
-    ).decode()
-    donor_symbols = {
-        name: int(value, 0)
-        for name, value in _DEFINE_RE.findall(donor_text)
-        if name.startswith(prefix)
-    }
     ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
     domain = "flags" if prefix == "FLAG_" else "vars"
-    selected = sorted(
-        name
-        for name in _referenced_target_symbols(descriptor, repo) & donor_symbols.keys()
-        if ledger.resolve(name, domain=domain).value != donor_symbols[name]
-    )
+    bindings = descriptor.target_bindings
+    assert bindings is not None
+    selected = bindings.flag_exports if domain == "flags" else bindings.var_exports
     return "\n".join(
         f"#define {name:<60} 0x{ledger.resolve(name, domain=domain).value:X}"
         for name in selected

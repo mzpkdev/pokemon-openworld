@@ -159,6 +159,8 @@ class TargetBindings:
     deferred_call_label: str
     deferred_call_text: str
     section_persistence_codecs: tuple[SectionPersistenceCodec, ...]
+    flag_exports: tuple[str, ...]
+    var_exports: tuple[str, ...]
 
 
 @dataclass(frozen=True)

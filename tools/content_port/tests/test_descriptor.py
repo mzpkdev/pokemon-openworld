@@ -125,6 +125,8 @@ class DescriptorTests(unittest.TestCase):
             "deferredCallLabel": "Test_Text_DeferredCall",
             "deferredCallText": "Call again later.$",
             "sectionPersistenceCodecs": [],
+            "flagExports": [],
+            "varExports": [],
         }
         dump(root / "adaptations.json", adaptations)
         dump(root / "events.json", {"schemaVersion": 1, "entries": []})
