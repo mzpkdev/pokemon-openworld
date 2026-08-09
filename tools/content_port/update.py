@@ -840,6 +840,42 @@ def _policy_references(
                 "sourcePath": "data/layouts/layouts.json",
             }
         )
+    field_authorities = adaptations.get("layoutFieldAuthorities", [])
+    binary_authorities = adaptations.get("layoutBinaryAuthorities", [])
+    if isinstance(field_authorities, (list, tuple)) and isinstance(
+        binary_authorities, (list, tuple)
+    ):
+        for field_policy in field_authorities:
+            if not isinstance(field_policy, Mapping):
+                continue
+            field = field_policy.get("field")
+            layout_role = field_policy.get("layoutRole")
+            source_role = field_policy.get("sourceRole")
+            if (
+                source_role != donor
+                or not isinstance(field, str)
+                or not isinstance(layout_role, str)
+            ):
+                continue
+            for layout_policy in binary_authorities:
+                if (
+                    not isinstance(layout_policy, Mapping)
+                    or layout_policy.get("sourceRole") != layout_role
+                ):
+                    continue
+                layout_id = layout_policy.get("layout")
+                if not isinstance(layout_id, str):
+                    continue
+                references.append(
+                    {
+                        "authority": source_role,
+                        "field": field,
+                        "jsonPointer": f"/layouts/@{layout_id}/{field}",
+                        "layoutId": layout_id,
+                        "semanticIdentity": f"layout:{layout_id}.{field}",
+                        "sourcePath": "data/layouts/layouts.json",
+                    }
+                )
     return tuple(references)
 
 

@@ -22,6 +22,7 @@ from tools.content_port.update import (
     validate_assets,
     validate_reviewed_migration,
     verify_migration_evidence,
+    _policy_references,
 )
 
 
@@ -147,6 +148,73 @@ class DonorUpdateTests(unittest.TestCase):
             "map:Route.section",
         )
         self.assertIsNone(report["assets"][0]["newHash"])
+
+    def test_layout_field_authority_is_included_in_mechanical_migration(self) -> None:
+        registry = self.repo / "data/layouts/layouts.json"
+        registry.parent.mkdir(parents=True)
+        registry.write_text(
+            json.dumps(
+                {
+                    "layouts": [
+                        {"id": "LAYOUT_TEST", "border_width": 1},
+                        {"id": "LAYOUT_MECHANICAL", "border_width": 3},
+                    ]
+                }
+            )
+        )
+        old_commit = make_commit(self.repo, "layout old")
+        registry.write_text(
+            json.dumps(
+                {
+                    "layouts": [
+                        {"id": "LAYOUT_TEST", "border_width": 2},
+                        {"id": "LAYOUT_MECHANICAL", "border_width": 4},
+                    ]
+                }
+            )
+        )
+        new_commit = make_commit(self.repo, "layout new")
+        policy = {
+            "layoutFieldAuthorities": [
+                {
+                    "field": "border_width",
+                    "layoutRole": "content",
+                    "sourceRole": "mechanical",
+                }
+            ],
+            "layoutBinaryAuthorities": [
+                {
+                    "layout": "LAYOUT_TEST",
+                    "source": "Test",
+                    "sourceRole": "content",
+                },
+                {
+                    "layout": "LAYOUT_MECHANICAL",
+                    "source": "Mechanical",
+                    "sourceRole": "mechanical",
+                },
+            ],
+        }
+        references = _policy_references(policy, "mechanical")
+        self.assertEqual(
+            [reference["semanticIdentity"] for reference in references],
+            ["layout:LAYOUT_TEST.border_width"],
+        )
+        report = build_migration(
+            donor="mechanical",
+            repository="owner/repo",
+            old_tree=self.worktree("layout-old", old_commit),
+            new_tree=self.worktree("layout-new", new_commit),
+            references=references,
+        )
+        self.assertEqual(
+            [change["semanticIdentity"] for change in report["authorityChanges"]],
+            ["layout:LAYOUT_TEST.border_width"],
+        )
+        self.assertNotEqual(
+            report["authorityChanges"][0]["oldHash"],
+            report["authorityChanges"][0]["newHash"],
+        )
 
     def test_asset_policy_fails_closed_on_permission_and_metadata(self) -> None:
         for permission in ("blocked", "unknown"):
