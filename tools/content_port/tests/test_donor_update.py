@@ -149,14 +149,14 @@ class DonorUpdateTests(unittest.TestCase):
         )
         self.assertIsNone(report["assets"][0]["newHash"])
 
-    def test_layout_field_authority_is_included_in_mechanical_migration(self) -> None:
+    def test_layout_field_authority_is_included_for_supplier_and_base(self) -> None:
         registry = self.repo / "data/layouts/layouts.json"
         registry.parent.mkdir(parents=True)
         registry.write_text(
             json.dumps(
                 {
                     "layouts": [
-                        {"id": "LAYOUT_TEST", "border_width": 1},
+                        {"id": "LAYOUT_TEST"},
                         {"id": "LAYOUT_MECHANICAL", "border_width": 3},
                     ]
                 }
@@ -200,6 +200,12 @@ class DonorUpdateTests(unittest.TestCase):
             [reference["semanticIdentity"] for reference in references],
             ["layout:LAYOUT_TEST.border_width"],
         )
+        base_references = _policy_references(policy, "content")
+        self.assertEqual(
+            [reference["semanticIdentity"] for reference in base_references],
+            ["layout:LAYOUT_TEST.border_width"],
+        )
+        self.assertEqual(base_references[0]["authority"], "content")
         report = build_migration(
             donor="mechanical",
             repository="owner/repo",
@@ -215,6 +221,7 @@ class DonorUpdateTests(unittest.TestCase):
             report["authorityChanges"][0]["oldHash"],
             report["authorityChanges"][0]["newHash"],
         )
+        self.assertIsNone(report["authorityChanges"][0]["oldHash"])
 
     def test_asset_policy_fails_closed_on_permission_and_metadata(self) -> None:
         for permission in ("blocked", "unknown"):

@@ -186,11 +186,11 @@ def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> objec
     ]
     if not matches:
         return None
-    if len(matches) != 1 or field not in matches[0]:
+    if len(matches) != 1:
         raise DonorUpdateError(
             f"donor layout registry has invalid {layout_id}.{field} authority"
         )
-    return matches[0][field]
+    return matches[0].get(field)
 
 
 def _value_hash(value: object) -> str | None:
@@ -852,9 +852,10 @@ def _policy_references(
             layout_role = field_policy.get("layoutRole")
             source_role = field_policy.get("sourceRole")
             if (
-                source_role != donor
+                not isinstance(source_role, str)
                 or not isinstance(field, str)
                 or not isinstance(layout_role, str)
+                or donor not in {layout_role, source_role}
             ):
                 continue
             for layout_policy in binary_authorities:
@@ -868,7 +869,7 @@ def _policy_references(
                     continue
                 references.append(
                     {
-                        "authority": source_role,
+                        "authority": donor,
                         "field": field,
                         "jsonPointer": f"/layouts/@{layout_id}/{field}",
                         "layoutId": layout_id,
