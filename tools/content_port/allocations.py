@@ -8,6 +8,7 @@ from types import MappingProxyType
 from typing import Any
 
 from .errors import ContentPortError
+from .model import MapAllocation
 
 
 def _object(value: object, pointer: str) -> Mapping[str, Any]:
@@ -50,12 +51,15 @@ def _unique(values: Sequence[object], pointer: str) -> None:
 
 @dataclass(frozen=True)
 class AllocationIndex:
-    maps: Mapping[str, tuple[str, int, int]]
+    maps: Mapping[str, MapAllocation]
     layouts: Mapping[str, int]
     groups: Mapping[str, int]
     sections: Mapping[str, int]
 
     def map_slot(self, name: str) -> tuple[str, int, int]:
+        return self.map_allocation(name).map_slot
+
+    def map_allocation(self, name: str) -> MapAllocation:
         try:
             return self.maps[name]
         except KeyError as error:
@@ -128,7 +132,7 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
         "section",
         "targetSection",
     }
-    maps: dict[str, tuple[str, int, int]] = {}
+    maps: dict[str, MapAllocation] = {}
     map_ids: list[str] = []
     map_slots: list[tuple[str, int]] = []
     records = _array(root["maps"], f"{pointer}.maps")
@@ -179,7 +183,19 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
             raise ContentPortError(
                 f"{item_pointer}.targetSection: section allocation mismatch"
             )
-        maps[name] = (group, numbers["targetGroupId"], numbers["targetMember"])
+        maps[name] = MapAllocation(
+            name=name,
+            map_id=strings["id"],
+            batch=strings["batch"],
+            materialization=strings["materialization"],
+            target_group=group,
+            target_group_id=numbers["targetGroupId"],
+            target_member=numbers["targetMember"],
+            layout=layout,
+            target_layout_index=numbers["targetLayoutIndex"],
+            section=section,
+            target_section=numbers["targetSection"],
+        )
         map_ids.append(strings["id"])
         map_slots.append((group, numbers["targetMember"]))
     _unique(map_ids, f"{pointer}.maps.id")

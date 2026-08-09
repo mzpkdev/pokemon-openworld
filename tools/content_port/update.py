@@ -41,6 +41,15 @@ MIGRATION_KEYS = {
     "tests",
     "to",
 }
+REQUIRED_REVIEW_COMMANDS = (
+    (
+        "python3",
+        "-m",
+        "unittest",
+        "tools.content_port.tests.test_ci_contract",
+        "-q",
+    ),
+)
 
 
 class DonorUpdateError(ContentPortError):
@@ -162,6 +171,27 @@ def _field_value(blob: bytes | None, pointer: str | None) -> object:
     return _json_pointer(document, pointer)
 
 
+def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> object:
+    if blob is None:
+        return None
+    try:
+        layouts = json.loads(blob)["layouts"]
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise DonorUpdateError("donor layout registry is malformed") from error
+    matches = [
+        item
+        for item in layouts
+        if isinstance(item, dict) and item.get("id") == layout_id
+    ]
+    if not matches:
+        return None
+    if len(matches) != 1 or field not in matches[0]:
+        raise DonorUpdateError(
+            f"donor layout registry has invalid {layout_id}.{field} authority"
+        )
+    return matches[0][field]
+
+
 def _value_hash(value: object) -> str | None:
     if value is None:
         return None
@@ -192,12 +222,16 @@ def _authority_changes(
             raise DonorUpdateError(f"{pointer}.authority: expected a non-empty string")
         if json_pointer is not None and not isinstance(json_pointer, str):
             raise DonorUpdateError(f"{pointer}.jsonPointer: expected a string")
-        old_value = _field_value(
-            _read_blob(old_tree, old.commit, source_path), json_pointer
-        )
-        new_value = _field_value(
-            _read_blob(new_tree, new.commit, source_path), json_pointer
-        )
+        layout_id = reference.get("layoutId")
+        field = reference.get("field")
+        old_blob = _read_blob(old_tree, old.commit, source_path)
+        new_blob = _read_blob(new_tree, new.commit, source_path)
+        if isinstance(layout_id, str) and isinstance(field, str):
+            old_value = _layout_field_value(old_blob, layout_id, field)
+            new_value = _layout_field_value(new_blob, layout_id, field)
+        else:
+            old_value = _field_value(old_blob, json_pointer)
+            new_value = _field_value(new_blob, json_pointer)
         if old_value == new_value:
             continue
         changes.append(
@@ -361,7 +395,7 @@ def build_migration(
     new_tree: Path,
     references: Iterable[Mapping[str, object]] = (),
     assets: Mapping[str, object] | None = None,
-    tests: Iterable[str] = (),
+    tests: Iterable[Mapping[str, object]] = (),
 ) -> dict[str, object]:
     """Build a deterministic, non-authoritative donor migration candidate."""
 
@@ -369,14 +403,28 @@ def build_migration(
     new = identify_tree(new_tree)
     old_paths = set(old.files)
     new_paths = set(new.files)
-    changed_paths = sorted(
-        path for path in old_paths & new_paths if old.files[path] != new.files[path]
-    )
+    added_paths = [
+        {"newSha256": new.files[path].split(" ", 1)[1], "path": path}
+        for path in sorted(new_paths - old_paths)
+    ]
+    removed_paths = [
+        {"oldSha256": old.files[path].split(" ", 1)[1], "path": path}
+        for path in sorted(old_paths - new_paths)
+    ]
+    changed_paths = [
+        {
+            "newSha256": new.files[path].split(" ", 1)[1],
+            "oldSha256": old.files[path].split(" ", 1)[1],
+            "path": path,
+        }
+        for path in sorted(old_paths & new_paths)
+        if old.files[path] != new.files[path]
+    ]
     asset_specs = (
         validate_assets(assets, require_redistributable=False) if assets else ()
     )
     report: dict[str, object] = {
-        "addedPaths": sorted(new_paths - old_paths),
+        "addedPaths": added_paths,
         "assets": _asset_changes(old_tree, new_tree, old, new, asset_specs),
         "authorityChanges": _authority_changes(
             old_tree, new_tree, old, new, references
@@ -388,10 +436,13 @@ def build_migration(
             "fileCount": old.file_count,
             "treeDigest": old.digest,
         },
-        "removedPaths": sorted(old_paths - new_paths),
+        "removedPaths": removed_paths,
         "repository": repository,
         "schemaVersion": SCHEMA_VERSION,
-        "tests": sorted(set(tests)),
+        "tests": sorted(
+            (dict(test) for test in tests),
+            key=lambda test: tuple(test.get("command", [])),
+        ),
         "to": {
             "commit": new.commit,
             "fileCount": new.file_count,
@@ -481,15 +532,56 @@ def _validate_reviewed_contents(report: Mapping[str, object]) -> None:
                     f"asset {change.get('key')}: permission is {change.get('permission')}"
                 )
     tests = report.get("tests")
-    if (
-        not isinstance(tests, list)
-        or not tests
-        or not all(isinstance(test, str) and test for test in tests)
-    ):
+    if not isinstance(tests, list):
         raise DonorUpdateError("$.tests: reviewed migration needs recorded tests")
+    commands: list[tuple[str, ...]] = []
+    for index, evidence in enumerate(tests):
+        if not isinstance(evidence, dict) or set(evidence) != {"command", "result"}:
+            raise DonorUpdateError(f"$.tests[{index}]: expected exact command evidence")
+        command = evidence["command"]
+        if (
+            not isinstance(command, list)
+            or not command
+            or not all(isinstance(part, str) and part for part in command)
+            or evidence["result"] != "passed"
+        ):
+            raise DonorUpdateError(f"$.tests[{index}]: test evidence is not passing")
+        commands.append(tuple(command))
+    if tuple(sorted(commands)) != tuple(sorted(REQUIRED_REVIEW_COMMANDS)):
+        raise DonorUpdateError("$.tests: required donor migration commands are missing")
 
 
-def finalize_migration(candidate: Path, port_dir: Path) -> tuple[Path, Path]:
+def run_review_commands(repo: Path) -> tuple[Mapping[str, object], ...]:
+    evidence: list[Mapping[str, object]] = []
+    for command in REQUIRED_REVIEW_COMMANDS:
+        try:
+            result = subprocess.run(
+                command,
+                cwd=repo,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+        except OSError as error:
+            raise DonorUpdateError(
+                f"cannot run migration review command: {' '.join(command)}"
+            ) from error
+        if result.returncode:
+            detail = result.stderr.decode(errors="replace").splitlines()[-20:]
+            raise DonorUpdateError(
+                f"migration review command failed: {' '.join(command)}\n"
+                + "\n".join(detail)
+            )
+        evidence.append({"command": list(command), "result": "passed"})
+    return tuple(evidence)
+
+
+def finalize_migration(
+    candidate: Path,
+    port_dir: Path,
+    donor_root: Path | None = None,
+    repo: Path | None = None,
+) -> tuple[Path, Path]:
     """Publish a human-reviewed record and an exact, non-mutating pin proposal."""
 
     try:
@@ -514,6 +606,11 @@ def finalize_migration(candidate: Path, port_dir: Path) -> tuple[Path, Path]:
     if source["commit"] == target["commit"]:
         raise DonorUpdateError(f"donor {donor}: reviewed migration is a no-op")
     _validate_reviewed_contents(report)
+    if repo is None:
+        repo = port_dir.resolve().parents[3]
+    repo = repo.resolve()
+    if list(run_review_commands(repo)) != report["tests"]:
+        raise DonorUpdateError("$.tests: recorded command evidence is stale")
     if not isinstance(port, dict) or not isinstance(port.get("donors"), dict):
         raise DonorUpdateError("port policy has no donors object")
     current = port["donors"].get(donor)
@@ -524,6 +621,14 @@ def finalize_migration(candidate: Path, port_dir: Path) -> tuple[Path, Path]:
     for field in ("commit", "treeDigest", "fileCount"):
         if current.get(field) != source[field]:
             raise DonorUpdateError(f"donor {donor}: candidate source {field} is stale")
+    if donor_root is None:
+        donor_root = Path(
+            os.environ.get("CONTENT_PORT_DONOR_ROOT", repo / ".references")
+        )
+    root = current.get("root")
+    if not isinstance(root, str):
+        raise DonorUpdateError(f"donor {donor}: port policy has invalid root")
+    verify_migration_evidence(report, port_dir, donor_root / root)
 
     digest = migration_digest(report)
     record_path = port_dir / "migrations" / f"{digest}.json"
@@ -563,6 +668,9 @@ def validate_reviewed_migration(
     to_tree_digest: str | None = None,
     to_file_count: int | None = None,
     expected_assets: Mapping[str, Mapping[str, object]] | None = None,
+    port_dir: Path | None = None,
+    donor_checkout: Path | None = None,
+    review_repo: Path | None = None,
 ) -> None:
     """Require an exact reviewed record for a descriptor pin transition."""
 
@@ -599,26 +707,34 @@ def validate_reviewed_migration(
     if report.get("decision") not in REVIEW_DECISIONS:
         raise DonorUpdateError(f"donor {donor}: unknown review decision")
     _validate_reviewed_contents(report)
-    if expected_assets is None:
-        return
-    changes = report.get("assets")
-    if not isinstance(changes, list):
-        raise DonorUpdateError(f"donor {donor}: migration assets are missing")
-    for index, change in enumerate(changes):
-        if not isinstance(change, dict) or not isinstance(change.get("key"), str):
-            raise DonorUpdateError(f"donor {donor}: invalid asset change {index}")
-        key = str(change["key"])
-        expected = expected_assets.get(key)
-        if expected is None:
-            raise DonorUpdateError(f"donor {donor}: unclassified asset {key}")
-        if change.get("conversionCommand") != expected.get("conversionCommand"):
-            raise DonorUpdateError(f"asset {key}: conversion command drift")
-        if change.get("permission") != expected.get("permission"):
-            raise DonorUpdateError(f"asset {key}: permission review is stale")
-        if change.get("permission") != "redistributable":
-            raise DonorUpdateError(
-                f"asset {key}: permission is {change.get('permission')}"
-            )
+    if review_repo is None:
+        review_repo = Path(__file__).resolve().parents[2]
+    if list(run_review_commands(review_repo)) != report["tests"]:
+        raise DonorUpdateError("$.tests: recorded command evidence is stale")
+    if expected_assets is not None:
+        changes = report.get("assets")
+        if not isinstance(changes, list):
+            raise DonorUpdateError(f"donor {donor}: migration assets are missing")
+        for index, change in enumerate(changes):
+            if not isinstance(change, dict) or not isinstance(change.get("key"), str):
+                raise DonorUpdateError(f"donor {donor}: invalid asset change {index}")
+            key = str(change["key"])
+            expected = expected_assets.get(key)
+            if expected is None:
+                raise DonorUpdateError(f"donor {donor}: unclassified asset {key}")
+            if change.get("conversionCommand") != expected.get("conversionCommand"):
+                raise DonorUpdateError(f"asset {key}: conversion command drift")
+            if change.get("permission") != expected.get("permission"):
+                raise DonorUpdateError(f"asset {key}: permission review is stale")
+            if change.get("permission") != "redistributable":
+                raise DonorUpdateError(
+                    f"asset {key}: permission is {change.get('permission')}"
+                )
+    if port_dir is None or donor_checkout is None:
+        raise DonorUpdateError(
+            f"donor {donor}: reviewed migration needs authenticated from/to trees"
+        )
+    verify_migration_evidence(report, port_dir, donor_checkout)
 
 
 def load_reviewed_migration(
@@ -658,29 +774,8 @@ def _descriptor_donor_record(
     return record
 
 
-def _layout_index(tree: Path, layout_id: str) -> int:
-    commit = _run_git(tree, "rev-parse", "HEAD^{commit}")
-    blob = _read_blob(tree, commit, "data/layouts/layouts.json")
-    if blob is None:
-        raise DonorUpdateError("donor has no data/layouts/layouts.json")
-    try:
-        layouts = json.loads(blob)["layouts"]
-    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
-        raise DonorUpdateError("donor layout registry is malformed") from error
-    matches = [
-        index
-        for index, item in enumerate(layouts)
-        if isinstance(item, dict) and item.get("id") == layout_id
-    ]
-    if len(matches) != 1:
-        raise DonorUpdateError(
-            f"donor layout registry does not contain exactly one {layout_id}"
-        )
-    return matches[0]
-
-
 def _policy_references(
-    adaptations: Mapping[str, object], donor: str, old_tree: Path
+    adaptations: Mapping[str, object], donor: str
 ) -> tuple[Mapping[str, object], ...]:
     """Translate donor-backed authority decisions into field comparisons."""
 
@@ -710,16 +805,122 @@ def _policy_references(
         field = decision.get("field")
         if not isinstance(layout_id, str) or not isinstance(field, str):
             continue
-        index = _layout_index(old_tree, layout_id)
         references.append(
             {
                 "authority": decision.get("authority", "content"),
-                "jsonPointer": f"/layouts/{index}/{field}",
+                "field": field,
+                "jsonPointer": f"/layouts/@{layout_id}/{field}",
+                "layoutId": layout_id,
                 "semanticIdentity": f"layout:{layout_id}.{field}",
                 "sourcePath": "data/layouts/layouts.json",
             }
         )
     return tuple(references)
+
+
+def _without_disposition(changes: object, pointer: str) -> list[dict[str, object]]:
+    if not isinstance(changes, list):
+        raise DonorUpdateError(f"{pointer}: expected a list")
+    result: list[dict[str, object]] = []
+    for index, change in enumerate(changes):
+        if not isinstance(change, dict):
+            raise DonorUpdateError(f"{pointer}[{index}]: expected an object")
+        result.append(
+            {
+                key: value
+                for key, value in change.items()
+                if key != "reviewerDisposition"
+            }
+        )
+    return result
+
+
+def verify_migration_evidence(
+    report: Mapping[str, object], port_dir: Path, donor_checkout: Path
+) -> None:
+    """Recompute every claimed drift field from the two authenticated commits."""
+
+    donor = report.get("donor")
+    repository = report.get("repository")
+    source = _pin_identity(report.get("from"), "$.from")
+    target = _pin_identity(report.get("to"), "$.to")
+    if not isinstance(donor, str) or not isinstance(repository, str):
+        raise DonorUpdateError("migration has invalid donor identity")
+    try:
+        assets_document = json.loads(
+            (port_dir / "assets.json").read_text(encoding="utf-8")
+        )
+        adaptations_document = json.loads(
+            (port_dir / "adaptations.json").read_text(encoding="utf-8")
+        )
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError("cannot load migration comparison policy") from error
+    if not isinstance(assets_document, dict) or not isinstance(
+        adaptations_document, dict
+    ):
+        raise DonorUpdateError("migration comparison policy is invalid")
+    assets = validate_assets(assets_document, require_redistributable=False)
+    filtered_assets = {
+        "schemaVersion": SCHEMA_VERSION,
+        "assets": [asset for asset in assets if asset.get("donor") == donor],
+    }
+    with tempfile.TemporaryDirectory(
+        prefix="content-port-migration-verify-"
+    ) as directory:
+        temporary = Path(directory)
+        old_tree = temporary / "old"
+        new_tree = temporary / "new"
+        try:
+            _run_git(
+                donor_checkout,
+                "worktree",
+                "add",
+                "--detach",
+                str(old_tree),
+                str(source["commit"]),
+            )
+            _run_git(
+                donor_checkout,
+                "worktree",
+                "add",
+                "--detach",
+                str(new_tree),
+                str(target["commit"]),
+            )
+            references = _policy_references(adaptations_document, donor)
+            recomputed = build_migration(
+                donor=donor,
+                repository=repository,
+                old_tree=old_tree,
+                new_tree=new_tree,
+                references=references,
+                assets=filtered_assets,
+                tests=report.get("tests", ()),  # type: ignore[arg-type]
+            )
+        finally:
+            for tree in (old_tree, new_tree):
+                if tree.exists():
+                    subprocess.run(
+                        (
+                            "git",
+                            "-C",
+                            str(donor_checkout),
+                            "worktree",
+                            "remove",
+                            "--force",
+                            str(tree),
+                        ),
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+    for field in ("from", "to", "addedPaths", "removedPaths", "changedPaths"):
+        if report.get(field) != recomputed[field]:
+            raise DonorUpdateError(f"migration {field} evidence is fabricated or stale")
+    for field in ("authorityChanges", "assets"):
+        actual = _without_disposition(report.get(field), f"$.{field}")
+        expected = _without_disposition(recomputed[field], f"recomputed.{field}")
+        if actual != expected:
+            raise DonorUpdateError(f"migration {field} evidence is fabricated or stale")
 
 
 def run_donor_update(
@@ -782,7 +983,7 @@ def run_donor_update(
                 checkout, "worktree", "add", "--detach", str(old_tree), str(commit)
             )
             _run_git(checkout, "worktree", "add", "--detach", str(new_tree), revision)
-            references = _policy_references(adaptations_document, donor, old_tree)
+            references = _policy_references(adaptations_document, donor)
             write_candidate_migration(
                 output,
                 donor=donor,
@@ -791,10 +992,7 @@ def run_donor_update(
                 new_tree=new_tree,
                 references=references,
                 assets=filtered_assets,
-                tests=(
-                    "python3 -m tools.content_port check "
-                    f"--port {port} --donor-root {donor_root}",
-                ),
+                tests=run_review_commands(repo),
             )
         finally:
             for tree in (old_tree, new_tree):

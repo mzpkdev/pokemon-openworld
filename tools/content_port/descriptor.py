@@ -12,7 +12,16 @@ from typing import Any
 
 from .allocations import AllocationIndex, load_allocation_index
 from .errors import ContentPortError
-from .model import CapabilityDecision, CapabilityState, DonorPin, ResourceKey
+from .model import (
+    CapabilityDecision,
+    CapabilityState,
+    DonorPin,
+    GeneratedSectionPolicy,
+    LayoutBinaryAuthority,
+    ResourceKey,
+    SectionMetadataAuthority,
+    TargetBindings,
+)
 
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -66,6 +75,11 @@ ADAPTATION_KEYS = {
     "materializationProfile",
     "regionAssignment",
     "worldPolicy",
+    "donorFieldRoles",
+    "layoutBinaryAuthorities",
+    "generatedSections",
+    "sectionMetadataAuthorities",
+    "targetBindings",
 }
 MIGRATION_KEYS = {
     "addedPaths",
@@ -92,6 +106,12 @@ NUMERIC_POLICY_FIELDS = {
     "targetSection",
     "groupAllocations",
     "sectionAllocations",
+}
+RENDER_POLICY_KEYS = {
+    "layoutBinaryAuthorities",
+    "generatedSections",
+    "sectionMetadataAuthorities",
+    "targetBindings",
 }
 
 
@@ -204,6 +224,7 @@ def forbid_numeric_policy(value: object, pointer: str = "$") -> None:
 class PortDescriptor:
     path: Path
     donors: tuple[DonorPin, ...]
+    donors_by_role: Mapping[str, DonorPin]
     expected_inventory: Mapping[str, Mapping[str, object]]
     authority: Mapping[str, object]
     allocation_index: AllocationIndex
@@ -213,6 +234,18 @@ class PortDescriptor:
     events: Mapping[str, object]
     assets: Mapping[str, object]
     legacy_report: Mapping[str, object]
+    layout_binary_authorities: tuple[LayoutBinaryAuthority, ...]
+    generated_sections: tuple[GeneratedSectionPolicy, ...]
+    section_metadata_authorities: tuple[SectionMetadataAuthority, ...]
+    target_bindings: TargetBindings
+
+    def donor(self, role: str) -> DonorPin:
+        try:
+            return self.donors_by_role[role]
+        except KeyError as error:
+            raise ContentPortError(
+                f"port descriptor has no donor role {role!r}"
+            ) from error
 
 
 def _migration_pin(value: object, pointer: str) -> tuple[str, str, int]:
@@ -238,6 +271,7 @@ def _validate_migration(
     commit: str,
     tree_digest: str,
     file_count: int,
+    donor_checkout: Path,
 ) -> None:
     from .update import migration_digest, validate_reviewed_migration
 
@@ -281,6 +315,8 @@ def _validate_migration(
         to_commit=commit,
         to_tree_digest=tree_digest,
         to_file_count=file_count,
+        port_dir=port_dir,
+        donor_checkout=donor_checkout,
     )
     if (target_commit, target_digest, target_count) != (
         commit,
@@ -292,13 +328,15 @@ def _validate_migration(
 
 def _load_donors(
     value: object, donor_root: Path, port_dir: Path, pointer: str
-) -> tuple[DonorPin, ...]:
+) -> Mapping[str, DonorPin]:
     donors = _object(value, pointer)
-    _exact_keys(donors, {"mechanical", "content"}, pointer)
-    result: list[DonorPin] = []
-    for role in ("mechanical", "content"):
+    if not donors:
+        raise ContentPortError(f"{pointer}: at least one donor role is required")
+    result: dict[str, DonorPin] = {}
+    for role, raw in donors.items():
+        _string(role, f"{pointer} role")
         item_pointer = f"{pointer}.{role}"
-        item = _object(donors[role], item_pointer)
+        item = _object(raw, item_pointer)
         _exact_keys(item, DONOR_KEYS, item_pointer)
         commit = _string(item["commit"], f"{item_pointer}.commit")
         digest = _string(item["treeDigest"], f"{item_pointer}.treeDigest")
@@ -329,6 +367,7 @@ def _load_donors(
         file_count = _integer(
             item["fileCount"], f"{item_pointer}.fileCount", positive=True
         )
+        checkout = donor_root.joinpath(*relative.parts)
         if migration_value is not None:
             _validate_migration(
                 port_dir,
@@ -339,21 +378,22 @@ def _load_donors(
                 commit=commit,
                 tree_digest=digest,
                 file_count=file_count,
+                donor_checkout=checkout,
             )
-        result.append(
-            DonorPin(
-                name=name,
-                repository=repository,
-                commit=commit,
-                tree_digest=digest,
-                file_count=file_count,
-                root=donor_root.joinpath(*relative.parts),
-                migration=migration_value,
-            )
+        result[role] = DonorPin(
+            name=name,
+            repository=repository,
+            commit=commit,
+            tree_digest=digest,
+            file_count=file_count,
+            root=checkout,
+            migration=migration_value,
         )
-    if len({pin.name for pin in result}) != len(result):
+    if len({pin.name for pin in result.values()}) != len(result):
         raise ContentPortError(f"{pointer}: duplicate donor name")
-    return tuple(result)
+    if len({pin.root for pin in result.values()}) != len(result):
+        raise ContentPortError(f"{pointer}: duplicate donor checkout")
+    return MappingProxyType(result)
 
 
 def _load_inventory(value: object, pointer: str) -> Mapping[str, Mapping[str, object]]:
@@ -392,6 +432,209 @@ def _load_authority(value: object, pointer: str) -> Mapping[str, object]:
         )
     result["unclassifiedDivergence"] = "error"
     return MappingProxyType(result)
+
+
+def _relative_path(value: object, pointer: str) -> str:
+    rendered = _string(value, pointer)
+    path = PurePath(rendered)
+    if (
+        path.is_absolute()
+        or ".." in path.parts
+        or path.as_posix() != rendered
+        or rendered.endswith("/")
+    ):
+        raise ContentPortError(f"{pointer}: unsafe repository-relative path")
+    return rendered
+
+
+def _load_renderer_policy(
+    value: object,
+    allocations: AllocationIndex,
+    donor_roles: set[str],
+    pointer: str = "$",
+) -> tuple[
+    tuple[LayoutBinaryAuthority, ...],
+    tuple[GeneratedSectionPolicy, ...],
+    tuple[SectionMetadataAuthority, ...],
+    TargetBindings,
+]:
+    document = _object(value, pointer)
+
+    layout_records: list[LayoutBinaryAuthority] = []
+    for index, raw in enumerate(
+        _array(
+            document["layoutBinaryAuthorities"], f"{pointer}.layoutBinaryAuthorities"
+        )
+    ):
+        item_pointer = f"{pointer}.layoutBinaryAuthorities[{index}]"
+        item = _object(raw, item_pointer)
+        _exact_keys(item, {"layout", "source", "sourceRole"}, item_pointer)
+        record = LayoutBinaryAuthority(
+            layout=_string(item["layout"], f"{item_pointer}.layout"),
+            source=_string(item["source"], f"{item_pointer}.source"),
+            source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
+        )
+        if record.source_role not in donor_roles:
+            raise ContentPortError(
+                f"{item_pointer}.sourceRole: unknown donor role {record.source_role!r}"
+            )
+        layout_records.append(record)
+    layout_ids = [record.layout for record in layout_records]
+    if len(layout_ids) != len(set(layout_ids)):
+        raise ContentPortError(f"{pointer}.layoutBinaryAuthorities: duplicate layout")
+    if set(layout_ids) != set(allocations.layouts):
+        missing = sorted(set(allocations.layouts) - set(layout_ids))
+        extra = sorted(set(layout_ids) - set(allocations.layouts))
+        raise ContentPortError(
+            "$.layoutBinaryAuthorities: must cover every allocated layout; "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+
+    generated_records: list[GeneratedSectionPolicy] = []
+    allowed_symbols = {
+        "map-scripts",
+        "berry-bindings",
+        "flag-bindings",
+        "trainer-bindings",
+        "var-bindings",
+        "tileset-externs",
+        "tileset-graphics",
+        "tileset-headers",
+        "tileset-metatiles",
+        "trainer-parties",
+    }
+    for index, raw in enumerate(
+        _array(document["generatedSections"], f"{pointer}.generatedSections")
+    ):
+        item_pointer = f"{pointer}.generatedSections[{index}]"
+        item = _object(raw, item_pointer)
+        _exact_keys(item, {"key", "path", "sourceRole", "sourceSymbol"}, item_pointer)
+        record = GeneratedSectionPolicy(
+            key=_string(item["key"], f"{item_pointer}.key"),
+            path=_relative_path(item["path"], f"{item_pointer}.path"),
+            source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
+            source_symbol=_string(item["sourceSymbol"], f"{item_pointer}.sourceSymbol"),
+        )
+        allowed_roles = donor_roles | {"policy", "target-bindings"}
+        if record.source_role not in allowed_roles:
+            raise ContentPortError(
+                f"{item_pointer}.sourceRole: unknown source role {record.source_role!r}"
+            )
+        if record.source_symbol not in allowed_symbols:
+            raise ContentPortError(
+                f"{item_pointer}.sourceSymbol: unknown generated source"
+            )
+        generated_records.append(record)
+    for field, values in (
+        ("key", [record.key for record in generated_records]),
+        (
+            "path/sourceSymbol",
+            [(record.path, record.source_symbol) for record in generated_records],
+        ),
+        ("sourceSymbol", [record.source_symbol for record in generated_records]),
+    ):
+        if len(values) != len(set(values)):
+            raise ContentPortError(f"{pointer}.generatedSections: duplicate {field}")
+    if set(record.source_symbol for record in generated_records) != allowed_symbols:
+        missing = sorted(
+            allowed_symbols - {record.source_symbol for record in generated_records}
+        )
+        raise ContentPortError(
+            f"{pointer}.generatedSections: missing renderer source {missing[0]!r}"
+        )
+
+    section_records: list[SectionMetadataAuthority] = []
+    for index, raw in enumerate(
+        _array(
+            document["sectionMetadataAuthorities"],
+            f"{pointer}.sectionMetadataAuthorities",
+        )
+    ):
+        item_pointer = f"{pointer}.sectionMetadataAuthorities[{index}]"
+        item = _object(raw, item_pointer)
+        _exact_keys(item, {"section", "sourceRole", "sourceSymbol"}, item_pointer)
+        record = SectionMetadataAuthority(
+            section=_string(item["section"], f"{item_pointer}.section"),
+            source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
+            source_symbol=_string(item["sourceSymbol"], f"{item_pointer}.sourceSymbol"),
+        )
+        if record.source_role not in donor_roles:
+            raise ContentPortError(
+                f"{item_pointer}.sourceRole: unknown donor role {record.source_role!r}"
+            )
+        section_records.append(record)
+    section_ids = [record.section for record in section_records]
+    if len(section_ids) != len(set(section_ids)):
+        raise ContentPortError(
+            f"{pointer}.sectionMetadataAuthorities: duplicate section"
+        )
+    if set(section_ids) != set(allocations.sections):
+        missing = sorted(set(allocations.sections) - set(section_ids))
+        extra = sorted(set(section_ids) - set(allocations.sections))
+        raise ContentPortError(
+            "$.sectionMetadataAuthorities: must cover every allocated section; "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+
+    bindings_pointer = f"{pointer}.targetBindings"
+    bindings = _object(document["targetBindings"], bindings_pointer)
+    binding_keys = {
+        "layoutFormat",
+        "sectionKind",
+        "region",
+        "regionMapType",
+        "savedLocationInvalid",
+        "metLocationInvalid",
+        "berryTreeBase",
+        "tilesetFeatureMacro",
+        "timeEncounterLabel",
+        "deferredCallLabel",
+        "deferredCallText",
+    }
+    _exact_keys(bindings, binding_keys, bindings_pointer)
+    target_bindings = TargetBindings(
+        layout_format=_string(
+            bindings["layoutFormat"], f"{bindings_pointer}.layoutFormat"
+        ),
+        section_kind=_string(
+            bindings["sectionKind"], f"{bindings_pointer}.sectionKind"
+        ),
+        region=_string(bindings["region"], f"{bindings_pointer}.region"),
+        region_map_type=_string(
+            bindings["regionMapType"], f"{bindings_pointer}.regionMapType"
+        ),
+        saved_location_invalid=_integer(
+            bindings["savedLocationInvalid"], f"{bindings_pointer}.savedLocationInvalid"
+        ),
+        met_location_invalid=_integer(
+            bindings["metLocationInvalid"], f"{bindings_pointer}.metLocationInvalid"
+        ),
+        berry_tree_base=_integer(
+            bindings["berryTreeBase"], f"{bindings_pointer}.berryTreeBase"
+        ),
+        tileset_feature_macro=_string(
+            bindings["tilesetFeatureMacro"],
+            f"{bindings_pointer}.tilesetFeatureMacro",
+        ),
+        time_encounter_label=_string(
+            bindings["timeEncounterLabel"],
+            f"{bindings_pointer}.timeEncounterLabel",
+        ),
+        deferred_call_label=_string(
+            bindings["deferredCallLabel"],
+            f"{bindings_pointer}.deferredCallLabel",
+        ),
+        deferred_call_text=_string(
+            bindings["deferredCallText"],
+            f"{bindings_pointer}.deferredCallText",
+        ),
+    )
+    return (
+        tuple(sorted(layout_records)),
+        tuple(sorted(generated_records)),
+        tuple(sorted(section_records)),
+        target_bindings,
+    )
 
 
 def _dependency(value: object, pointer: str) -> ResourceKey:
@@ -468,13 +711,20 @@ def _load_capabilities(
 
 
 def _load_policy(
-    path: Path, expected_keys: set[str] | None, pointer: str
+    path: Path,
+    expected_keys: set[str] | None,
+    pointer: str,
 ) -> Mapping[str, object]:
     value = _object(read_json(path), pointer)
     if value.get("schemaVersion") != 1:
         raise ContentPortError(f"{pointer}.schemaVersion: unsupported policy schema")
     if expected_keys is not None:
-        _exact_keys(value, expected_keys, pointer)
+        unknown = sorted(set(value) - expected_keys)
+        missing = sorted(expected_keys - set(value))
+        if unknown:
+            raise ContentPortError(f"{pointer}: unknown field {unknown[0]!r}")
+        if missing:
+            raise ContentPortError(f"{pointer}: missing field {missing[0]!r}")
     forbid_numeric_policy(value, pointer)
     return _freeze(dict(value))  # type: ignore[return-value]
 
@@ -529,9 +779,23 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     legacy = _load_policy(
         _safe_child(port_dir, root["legacyReport"], "$.legacyReport"), None, "$"
     )
+    donors_by_role = _load_donors(
+        root["donors"], donor_root.resolve(), port_dir, "$.donors"
+    )
+    required_roles = {"content", "mechanical"}
+    if not required_roles.issubset(donors_by_role):
+        missing = sorted(required_roles - set(donors_by_role))
+        raise ContentPortError(f"$.donors: missing authority donor role {missing[0]!r}")
+    (
+        layout_binary_authorities,
+        generated_sections,
+        section_metadata_authorities,
+        target_bindings,
+    ) = _load_renderer_policy(_thaw(adaptations), allocation_index, set(donors_by_role))
     return PortDescriptor(
         path=port_path,
-        donors=_load_donors(root["donors"], donor_root.resolve(), port_dir, "$.donors"),
+        donors=tuple(donors_by_role.values()),
+        donors_by_role=donors_by_role,
         expected_inventory=_load_inventory(
             root["expectedInventory"], "$.expectedInventory"
         ),
@@ -543,4 +807,8 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         events=events,
         assets=assets,
         legacy_report=legacy,
+        layout_binary_authorities=layout_binary_authorities,
+        generated_sections=generated_sections,
+        section_metadata_authorities=section_metadata_authorities,
+        target_bindings=target_bindings,
     )

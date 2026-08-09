@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import ctypes
+import errno
 import hashlib
 import json
 import os
@@ -230,19 +232,63 @@ def _publish_artifacts(output_dir: Path, artifacts: Mapping[str, bytes]) -> None
             with path.open("rb") as stream:
                 os.fsync(stream.fileno())
             checkpoint(f"after-bundle-fsync:{name}")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        if output_dir.is_symlink():
-            raise ContentPortError(f"bundle output cannot be a symlink: {output_dir}")
-        for name in BUNDLE_FILES:
-            destination = output_dir / name
-            if destination.exists() and destination.is_symlink():
+        _fsync_directory(temporary)
+        if output_dir.exists() or output_dir.is_symlink():
+            if output_dir.is_symlink() or not output_dir.is_dir():
                 raise ContentPortError(
-                    f"bundle artifact cannot be a symlink: {destination}"
+                    f"bundle output must be a real directory: {output_dir}"
                 )
-            os.replace(temporary / name, destination)
+            _exchange_directories(temporary, output_dir)
+        else:
+            os.rename(temporary, output_dir)
+        _fsync_directory(output_dir.parent)
+        for name in BUNDLE_FILES:
             checkpoint(f"after-bundle-rename:{name}")
     finally:
         shutil.rmtree(temporary, ignore_errors=True)
+
+
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _exchange_directories(left: Path, right: Path) -> None:
+    """Atomically exchange two same-filesystem directories on Linux."""
+
+    renameat2 = getattr(ctypes.CDLL(None, use_errno=True), "renameat2", None)
+    if renameat2 is None:
+        raise ContentPortError(
+            "atomic bundle replacement requires renameat2(RENAME_EXCHANGE)"
+        )
+    renameat2.argtypes = (
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_uint,
+    )
+    renameat2.restype = ctypes.c_int
+    result = renameat2(
+        -100,
+        os.fsencode(left),
+        -100,
+        os.fsencode(right),
+        2,
+    )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number in (errno.ENOSYS, errno.EINVAL, errno.EOPNOTSUPP):
+        raise ContentPortError(
+            "filesystem does not support atomic bundle directory exchange"
+        )
+    raise ContentPortError(
+        f"cannot atomically publish bundle: {os.strerror(error_number)}"
+    )
 
 
 def bundle_digest(output_dir: Path) -> str:

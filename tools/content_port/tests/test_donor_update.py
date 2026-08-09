@@ -7,9 +7,11 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 from tools.content_port.update import (
     DonorUpdateError,
+    REQUIRED_REVIEW_COMMANDS,
     build_migration,
     canonical_bytes,
     finalize_migration,
@@ -19,6 +21,7 @@ from tools.content_port.update import (
     run_donor_update,
     validate_assets,
     validate_reviewed_migration,
+    verify_migration_evidence,
 )
 
 
@@ -36,6 +39,13 @@ def make_commit(repo: Path, message: str) -> str:
     git(repo, "add", ".")
     git(repo, "commit", "-m", message)
     return git(repo, "rev-parse", "HEAD")
+
+
+def passed_evidence() -> list[dict[str, object]]:
+    return [
+        {"command": list(command), "result": "passed"}
+        for command in REQUIRED_REVIEW_COMMANDS
+    ]
 
 
 class DonorUpdateTests(unittest.TestCase):
@@ -127,9 +137,11 @@ class DonorUpdateTests(unittest.TestCase):
             ),
             assets=self.asset_policy(),
         )
-        self.assertEqual(report["addedPaths"], ["added.txt"])
-        self.assertEqual(report["removedPaths"], ["asset.bin"])
-        self.assertEqual(report["changedPaths"], ["data.json"])
+        self.assertEqual(report["addedPaths"][0]["path"], "added.txt")
+        self.assertEqual(report["removedPaths"][0]["path"], "asset.bin")
+        self.assertEqual(report["changedPaths"][0]["path"], "data.json")
+        self.assertEqual(len(report["changedPaths"][0]["oldSha256"]), 64)
+        self.assertEqual(len(report["changedPaths"][0]["newSha256"]), 64)
         self.assertEqual(
             report["authorityChanges"][0]["semanticIdentity"],
             "map:Route.section",
@@ -167,7 +179,7 @@ class DonorUpdateTests(unittest.TestCase):
 
         changed = copy.deepcopy(report)
         changed["from"]["commit"] = "e" * 40
-        changed["tests"] = ["python3 -m unittest"]
+        changed["tests"] = passed_evidence()
         changed["assets"] = [
             {
                 "key": "route-art",
@@ -235,14 +247,18 @@ class DonorUpdateTests(unittest.TestCase):
         donor_root.mkdir()
         git(self.repo, "worktree", "add", str(donor_root / "donor"), self.old_commit)
         output = host / "build/content-port/fixture/donor-migration.json"
-        result = run_donor_update(
-            host,
-            "fixture",
-            donor_root,
-            "content",
-            self.old_commit,
-            output,
-        )
+        with mock.patch(
+            "tools.content_port.update.run_review_commands",
+            return_value=tuple(passed_evidence()),
+        ):
+            result = run_donor_update(
+                host,
+                "fixture",
+                donor_root,
+                "content",
+                self.old_commit,
+                output,
+            )
         self.assertEqual(result, output)
         self.assertEqual(policy_path.read_bytes(), before)
         candidate = json.loads(output.read_text())
@@ -253,28 +269,33 @@ class DonorUpdateTests(unittest.TestCase):
         (self.repo / "data.json").write_text(
             json.dumps({"maps": {"Route": {"section": "NEW"}}})
         )
+        (self.repo / "asset.bin").write_bytes(b"new asset")
         new_commit = make_commit(self.repo, "new")
         old = self.worktree("old", self.old_commit)
         new = self.worktree("new", new_commit)
+        asset_policy = self.asset_policy()
+        asset_policy["assets"][0]["donor"] = "content"
         report = build_migration(
             donor="content",
             repository="owner/repo",
             old_tree=old,
             new_tree=new,
-            references=(
-                {
-                    "sourcePath": "data.json",
-                    "jsonPointer": "/maps/Route/section",
-                    "semanticIdentity": "map:Route.section",
-                    "authority": "content",
-                },
-            ),
-            tests=("python3 -m unittest",),
+            assets=asset_policy,
+            tests=passed_evidence(),
         )
         candidate_digest = migration_digest(report)
         report["decision"] = "reviewed"
-        report["authorityChanges"][0]["reviewerDisposition"] = "accepted"
+        report["assets"][0]["reviewerDisposition"] = "accepted"
         self.assertNotEqual(candidate_digest, migration_digest(report))
+        fabricated_tests = copy.deepcopy(report)
+        fabricated_tests["tests"] = [{"command": ["true"], "result": "passed"}]
+        with self.assertRaisesRegex(DonorUpdateError, "required.*commands"):
+            validate_reviewed_migration(
+                fabricated_tests,
+                donor="content",
+                from_commit=self.old_commit,
+                to_commit=new_commit,
+            )
 
         port_dir = self.root / "port"
         port_dir.mkdir()
@@ -284,17 +305,43 @@ class DonorUpdateTests(unittest.TestCase):
                     "name": "fixture",
                     "repository": "owner/repo",
                     **report["from"],
-                    "root": "fixture",
+                    "root": "donor",
                     "migration": None,
                 }
             }
         }
         port_path = port_dir / "port.json"
         port_path.write_bytes(canonical_bytes(port))
+        (port_dir / "assets.json").write_bytes(canonical_bytes(asset_policy))
+        (port_dir / "adaptations.json").write_bytes(
+            canonical_bytes(
+                {
+                    "schemaVersion": 1,
+                    "mapFieldDecisions": [],
+                    "layoutHeaderDecisions": [],
+                    "layoutTilesetRemaps": [],
+                }
+            )
+        )
+        validate_reviewed_migration(
+            report,
+            donor="content",
+            repository="owner/repo",
+            from_commit=str(report["from"]["commit"]),
+            from_tree_digest=str(report["from"]["treeDigest"]),
+            from_file_count=int(report["from"]["fileCount"]),
+            to_commit=str(report["to"]["commit"]),
+            to_tree_digest=str(report["to"]["treeDigest"]),
+            to_file_count=int(report["to"]["fileCount"]),
+            port_dir=port_dir,
+            donor_checkout=self.repo,
+        )
         before = port_path.read_bytes()
         candidate = self.root / "donor-migration.json"
         candidate.write_bytes(canonical_bytes(report))
-        record, proposal = finalize_migration(candidate, port_dir)
+        record, proposal = finalize_migration(
+            candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+        )
         self.assertEqual(record.name, migration_filename(report))
         self.assertEqual(record.read_bytes(), canonical_bytes(report))
         self.assertEqual(port_path.read_bytes(), before)
@@ -303,6 +350,30 @@ class DonorUpdateTests(unittest.TestCase):
         self.assertEqual(
             update["proposedDonorRecord"]["commit"], report["to"]["commit"]
         )
+
+        for field in ("changedPaths", "assets"):
+            fabricated = copy.deepcopy(report)
+            fabricated[field] = []
+            with (
+                self.subTest(fabricated=field),
+                self.assertRaisesRegex(DonorUpdateError, "fabricated or stale"),
+            ):
+                verify_migration_evidence(fabricated, port_dir, self.repo)
+
+        shallow = self.root / "target-only"
+        subprocess.run(
+            (
+                "git",
+                "clone",
+                "-q",
+                "--depth=1",
+                f"file://{self.repo}",
+                str(shallow),
+            ),
+            check=True,
+        )
+        with self.assertRaisesRegex(DonorUpdateError, "cannot inspect donor checkout"):
+            verify_migration_evidence(report, port_dir, shallow)
 
     def test_finalize_rejects_pending_disposition(self) -> None:
         report = {
@@ -320,7 +391,7 @@ class DonorUpdateTests(unittest.TestCase):
             "removedPaths": [],
             "repository": "owner/repo",
             "schemaVersion": 1,
-            "tests": ["test"],
+            "tests": passed_evidence(),
             "to": {
                 "commit": "c" * 40,
                 "fileCount": 1,
@@ -334,6 +405,37 @@ class DonorUpdateTests(unittest.TestCase):
         (port_dir / "port.json").write_text('{"donors":{}}')
         with self.assertRaisesRegex(DonorUpdateError, "review is incomplete"):
             finalize_migration(candidate, port_dir)
+
+    def test_fabricated_empty_review_requires_authenticated_trees(self) -> None:
+        report = {
+            "addedPaths": [],
+            "assets": [],
+            "authorityChanges": [],
+            "changedPaths": [],
+            "decision": "reviewed",
+            "donor": "content",
+            "from": {
+                "commit": "a" * 40,
+                "fileCount": 1,
+                "treeDigest": "b" * 64,
+            },
+            "removedPaths": [],
+            "repository": "owner/repo",
+            "schemaVersion": 1,
+            "tests": passed_evidence(),
+            "to": {
+                "commit": "c" * 40,
+                "fileCount": 1,
+                "treeDigest": "d" * 64,
+            },
+        }
+        with self.assertRaisesRegex(DonorUpdateError, "authenticated from/to trees"):
+            validate_reviewed_migration(
+                report,
+                donor="content",
+                from_commit="a" * 40,
+                to_commit="c" * 40,
+            )
 
 
 class CheckedAssetLedgerTests(unittest.TestCase):

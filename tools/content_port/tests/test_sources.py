@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 import os
 import json
-import shutil
 import tempfile
 from dataclasses import replace
 from pathlib import Path
@@ -17,6 +16,7 @@ from tools.content_port.sources import (
     SourceRecord,
     Provenance,
     build_source_graph,
+    resolve_port_sources,
     validate_port_sources,
 )
 
@@ -154,9 +154,12 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
-        evidence = validate_port_sources(descriptor, Path("."))
+        evidence, state = resolve_port_sources(descriptor, Path("."))
         self.assertEqual(evidence.inventory["maps"], 254)
         self.assertEqual(evidence.inventory["layouts"], 255)
+        self.assertEqual(state.map_authorities["JohtoVictoryRoad_1F"], "mechanical")
+        with self.assertRaises(TypeError):
+            state.maps["NewBarkTown"]["layout"] = "MUTATED"
         adaptations = {key: value for key, value in descriptor.adaptations.items()}
         policy = dict(adaptations["worldPolicy"])
         policy["unreachableShells"] = tuple(policy["unreachableShells"]) + (
@@ -175,6 +178,22 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+
+        renamed_donors = {
+            role: replace(pin, name=f"role-{role}")
+            for role, pin in descriptor.donors_by_role.items()
+        }
+        renamed = validate_port_sources(
+            replace(descriptor, donors_by_role=renamed_donors), Path(".")
+        )
+        self.assertEqual(renamed.inventory["maps"], 254)
+
+        adaptations = self._mutable(descriptor.adaptations)
+        adaptations["contentFallback"]["maps"].append("NewBarkTown")
+        with self.assertRaisesRegex(ContentPortError, "exists in the content donor"):
+            validate_port_sources(
+                replace(descriptor, adaptations=adaptations), Path(".")
+            )
 
         adaptations = self._mutable(descriptor.adaptations)
         adaptations["adaptations"][0]["hns"] = "MAP_MUTATED"
@@ -205,7 +224,7 @@ class SourceGraphTests(unittest.TestCase):
         decisions[0] = replace(
             decisions[0], dependencies=(ResourceKey("binding", "FLAG_NOT_ALLOCATED"),)
         )
-        with self.assertRaisesRegex(ContentPortError, "binding:FLAG_NOT_ALLOCATED"):
+        with self.assertRaisesRegex(ContentPortError, "FLAG_NOT_ALLOCATED"):
             validate_port_sources(
                 replace(descriptor, capabilities=tuple(decisions)), Path(".")
             )
@@ -217,21 +236,42 @@ class SourceGraphTests(unittest.TestCase):
                 replace(descriptor, adaptations=adaptations), Path(".")
             )
 
+        expected_inventory = {
+            key: dict(value) for key, value in descriptor.expected_inventory.items()
+        }
+        expected_inventory["maps"]["digest"] = "0" * 64
+        with self.assertRaisesRegex(ContentPortError, "maps inventory digest"):
+            validate_port_sources(
+                replace(descriptor, expected_inventory=expected_inventory), Path(".")
+            )
+
+        legacy = self._mutable(descriptor.legacy_report)
+        legacy["closure"]["maps"].pop()
+        with self.assertRaisesRegex(ContentPortError, "required legacy baseline"):
+            validate_port_sources(replace(descriptor, legacy_report=legacy), Path("."))
+
         with tempfile.TemporaryDirectory() as temporary:
             target = Path(temporary)
             ledger_target = target / "src/data/persistence/persistent_ids.json"
-            headers_target = target / "src/data/tilesets/headers.h"
             ledger_target.parent.mkdir(parents=True)
-            headers_target.parent.mkdir(parents=True)
             ledger = json.loads(
                 Path("src/data/persistence/persistent_ids.json").read_text()
+            )
+            ledger_target.write_text(json.dumps(ledger), encoding="utf-8")
+            self.assertEqual(
+                validate_port_sources(descriptor, target).inventory["tilesets"], 71
+            )
+            corrupt_header = target / "src/data/tilesets/headers.h"
+            corrupt_header.parent.mkdir(parents=True)
+            corrupt_header.write_text("corrupt generated output\n", encoding="utf-8")
+            self.assertEqual(
+                validate_port_sources(descriptor, target).inventory["tilesets"], 71
             )
             first = ledger["entries"][0]
             duplicate = dict(first)
             duplicate["symbol"] = "MUTATED_COLLISION"
             ledger["entries"].append(duplicate)
             ledger_target.write_text(json.dumps(ledger), encoding="utf-8")
-            shutil.copyfile("src/data/tilesets/headers.h", headers_target)
             with self.assertRaisesRegex(ContentPortError, "collision"):
                 validate_port_sources(descriptor, target)
 

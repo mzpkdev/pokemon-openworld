@@ -66,6 +66,7 @@ jobs:
           ref: 751823abaf677020bcd72c45fe3e7cb2b8a576e4
           path: .references/pokemonHnS
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Checkout PKMN-World mechanical donor
         # actions/checkout v7
@@ -75,6 +76,7 @@ jobs:
           ref: d40affe26e58a20f445daad84af5e45be812e69f
           path: .references/PKMN-World
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Authenticate donors and run contracts
         shell: bash

@@ -33,7 +33,8 @@ class OwnershipTests(unittest.TestCase):
         owned_assets = {
             unit.path
             for unit in manifest.units
-            if unit.kind == "file" and unit.path.startswith("data/tilesets/")
+            if unit.kind == "file"
+            and unit.path.startswith(("data/tilesets/", "data/layouts/"))
         }
         self.assertEqual(owned_assets, expected_assets)
 

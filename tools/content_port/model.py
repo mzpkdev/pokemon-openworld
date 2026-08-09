@@ -64,6 +64,94 @@ class DonorEvidence:
     file_count: int
 
 
+@dataclass(frozen=True, order=True)
+class MapAllocation:
+    """One complete authored map placement; no renderer derives these values."""
+
+    name: str
+    map_id: str
+    batch: str
+    materialization: str
+    target_group: str
+    target_group_id: int
+    target_member: int
+    layout: str
+    target_layout_index: int
+    section: str
+    target_section: int
+
+    def __post_init__(self) -> None:
+        for field in (
+            "name",
+            "map_id",
+            "batch",
+            "target_group",
+            "layout",
+            "section",
+        ):
+            value = getattr(self, field)
+            if not isinstance(value, str) or not value or value.strip() != value:
+                raise ContentPortError(
+                    f"map allocation {field} must be a non-empty string"
+                )
+        if self.materialization not in {"preserve", "residency"}:
+            raise ContentPortError(
+                f"map allocation has unknown materialization {self.materialization!r}"
+            )
+        for field in (
+            "target_group_id",
+            "target_member",
+            "target_layout_index",
+            "target_section",
+        ):
+            value = getattr(self, field)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ContentPortError(
+                    f"map allocation {field} must be a non-negative integer"
+                )
+
+    @property
+    def map_slot(self) -> tuple[str, int, int]:
+        return (self.target_group, self.target_group_id, self.target_member)
+
+
+@dataclass(frozen=True, order=True)
+class LayoutBinaryAuthority:
+    layout: str
+    source: str
+    source_role: str
+
+
+@dataclass(frozen=True, order=True)
+class GeneratedSectionPolicy:
+    key: str
+    path: str
+    source_role: str
+    source_symbol: str
+
+
+@dataclass(frozen=True, order=True)
+class SectionMetadataAuthority:
+    section: str
+    source_role: str
+    source_symbol: str
+
+
+@dataclass(frozen=True)
+class TargetBindings:
+    layout_format: str
+    section_kind: str
+    region: str
+    region_map_type: str
+    saved_location_invalid: int
+    met_location_invalid: int
+    berry_tree_base: int
+    tileset_feature_macro: str
+    time_encounter_label: str
+    deferred_call_label: str
+    deferred_call_text: str
+
+
 @dataclass(frozen=True)
 class CapabilityDecision:
     map_name: str

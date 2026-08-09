@@ -176,6 +176,16 @@ def render_generated_section(
     if b"\x00" in body:
         raise ContentPortError(f"{unit.key}: generated text section contains NUL")
     begin, end = section_markers(context.port, name)
+    marker_style = unit.options.get("markerStyle", "comment")
+    if marker_style == "preprocessor":
+        content = b"#if 1 /* " + begin + b" */\n"
+        content += body
+        if body and not body.endswith(b"\n"):
+            content += b"\n"
+        content += b"#endif /* " + end + b" */\n"
+        return (OwnedOutput("section", unit.path, content, name=name),)
+    if marker_style != "comment":
+        raise ContentPortError(f"{unit.key}: unknown section marker style")
     comment = unit.options.get("comment", "//")
     if not isinstance(comment, str) or "\n" in comment or "\r" in comment:
         raise ContentPortError(f"{unit.key}: invalid section comment prefix")

@@ -74,6 +74,19 @@ class ContractEvidence:
         )
 
 
+@dataclass(frozen=True)
+class PortSourceState:
+    """Immutable, authority-resolved inputs consumed by renderers."""
+
+    maps: Mapping[str, Mapping[str, Any]]
+    layouts: Mapping[str, Mapping[str, Any]]
+    map_authorities: Mapping[str, str]
+    layout_authorities: Mapping[str, str]
+    donor_roots: Mapping[str, Path]
+    resources: Mapping[ResourceKey, Provenance]
+    inventory: Mapping[str, tuple[str, ...]]
+
+
 class RecordLoader(Protocol):
     def __call__(self, key: ResourceKey) -> SourceRecord: ...
 
@@ -605,6 +618,16 @@ def _thaw(value: Any) -> Any:
     return copy.deepcopy(value)
 
 
+def _freeze_state(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType(
+            {key: _freeze_state(child) for key, child in value.items()}
+        )
+    if isinstance(value, list | tuple):
+        return tuple(_freeze_state(child) for child in value)
+    return value
+
+
 def _path_value(document: Mapping[str, Any], path: str) -> Any:
     current: Any = document
     for part in path.split("/"):
@@ -631,9 +654,16 @@ def _canonical_digest(values: Iterable[str]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def validate_port_sources(
+def _inventory_digest(values: Iterable[str]) -> str:
+    payload = (
+        json.dumps(sorted(values), separators=(",", ":"), ensure_ascii=True) + "\n"
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
-) -> ContractEvidence:
+) -> tuple[ContractEvidence, PortSourceState]:
     """Close and validate every enabled resource in a loaded ``PortDescriptor``.
 
     Donor selection and policy live in the descriptor. This generic entry point
@@ -652,22 +682,26 @@ def validate_port_sources(
     from .world_graph import WorldPolicy, validate_world_graph, world_graph_from_maps
 
     target_root = Path(repo)
-    mechanical_pin = next(
-        (pin for pin in descriptor.donors if "PKMN" in pin.name), None
-    )
-    content_pin = next(
-        (pin for pin in descriptor.donors if "PKMN" not in pin.name), None
-    )
-    if mechanical_pin is None or content_pin is None:
-        raise ContentPortError(
-            "port graph requires one content and one mechanical donor"
-        )
+    mechanical_pin = descriptor.donor("mechanical")
+    content_pin = descriptor.donor("content")
     mechanical = ExpansionSourceContext(
         mechanical_pin.root, active_capabilities=("spatial",)
     )
     content = ExpansionSourceContext(content_pin.root, active_capabilities=("spatial",))
 
     adaptations = _thaw(descriptor.adaptations)
+    donor_fields = adaptations.get("donorFieldRoles")
+    if not isinstance(donor_fields, dict) or set(donor_fields) != {
+        "content",
+        "mechanical",
+    }:
+        raise ContentPortError(
+            "donorFieldRoles must name content and mechanical policy fields"
+        )
+    content_field = donor_fields["content"]
+    mechanical_field = donor_fields["mechanical"]
+    if not all(isinstance(value, str) and value for value in donor_fields.values()):
+        raise ContentPortError("donorFieldRoles values must be field names")
     fallback = set(adaptations["contentFallback"]["maps"])
     map_names = tuple(descriptor.map_ownership)
     if fallback - set(map_names):
@@ -676,12 +710,22 @@ def validate_port_sources(
         )
 
     selected_maps: dict[str, dict[str, Any]] = {}
+    map_authorities: dict[str, str] = {}
     source_records: dict[ResourceKey, SourceRecord] = {}
     aliases: dict[ResourceKey, ResourceKey] = {}
     input_evidence: list[str] = []
     for name in map_names:
         authority = mechanical if name in fallback else content
         authority_root = mechanical_pin.root if name in fallback else content_pin.root
+        if name in fallback:
+            try:
+                content.load(ResourceKey("map", name))
+            except ContentPortError:
+                pass
+            else:
+                raise ContentPortError(
+                    f"fallback map {name} exists in the content donor; mechanical authority is forbidden"
+                )
         try:
             record = authority.load(ResourceKey("map", name))
         except ContentPortError as exc:
@@ -689,6 +733,7 @@ def validate_port_sources(
             raise ContentPortError(f"{role} map {name}: {exc}") from exc
         document = _thaw(record.value)
         selected_maps[name] = document
+        map_authorities[name] = "mechanical" if name in fallback else "content"
         canonical = ResourceKey("map", name)
         source_records[canonical] = SourceRecord(document, record.provenance)
         map_id = document.get("id")
@@ -714,13 +759,13 @@ def validate_port_sources(
         path = decision["path"]
         actual_content = _path_value(content_record.value, path)
         actual_mechanical = _path_value(mechanical_record.value, path)
-        if actual_content != decision["hns"]:
+        if actual_content != decision[content_field]:
             raise ContentPortError(f"{name}/{path}: content adaptation preimage drift")
-        if actual_mechanical != decision["mechanical"]:
+        if actual_mechanical != decision[mechanical_field]:
             raise ContentPortError(
                 f"{name}/{path}: mechanical adaptation evidence drift"
             )
-        _set_path(selected_maps[name], path, decision["mechanical"])
+        _set_path(selected_maps[name], path, decision[mechanical_field])
 
     # Validate the authored retained/deferred inventory against the adapted maps
     # before reviewed removals are applied.
@@ -796,14 +841,19 @@ def validate_port_sources(
 
     # Resolve every allocated map/layout and build the mixed-authority layout set.
     selected_layouts: dict[str, SourceRecord] = {}
+    layout_authorities: dict[str, str] = {}
     for name, document in selected_maps.items():
         descriptor.allocation_index.map_slot(name)
         layout_id = str(document["layout"])
         descriptor.allocation_index.layout_slot(layout_id)
-        for authority in (content, mechanical):
+        for authority_role, authority in (
+            ("content", content),
+            ("mechanical", mechanical),
+        ):
             try:
                 record = authority.load(ResourceKey("layout", layout_id))
                 selected_layouts.setdefault(layout_id, record)
+                layout_authorities.setdefault(layout_id, authority_role)
                 break
             except ContentPortError:
                 continue
@@ -815,11 +865,15 @@ def validate_port_sources(
     for layout_id in descriptor.allocation_index.layouts:
         if layout_id in selected_layouts:
             continue
-        for authority in (content, mechanical):
+        for authority_role, authority in (
+            ("content", content),
+            ("mechanical", mechanical),
+        ):
             try:
                 selected_layouts[layout_id] = authority.load(
                     ResourceKey("layout", layout_id)
                 )
+                layout_authorities[layout_id] = authority_role
                 break
             except ContentPortError:
                 continue
@@ -839,16 +893,16 @@ def validate_port_sources(
             field_name
         ]
         if (
-            content_value != decision["hns"]
-            or mechanical_value != decision["mechanical"]
+            content_value != decision[content_field]
+            or mechanical_value != decision[mechanical_field]
         ):
             raise ContentPortError(
                 f"{layout_id}/{field_name}: layout authority evidence drift"
             )
         selected_layouts[layout_id].value[field_name] = (
-            decision["hns"]
+            decision[content_field]
             if decision["authority"] == "content"
-            else decision["mechanical"]
+            else decision[mechanical_field]
         )
     for decision in adaptations["layoutTilesetRemaps"]:
         layout_id, field_name = decision["layout"], decision["field"]
@@ -870,24 +924,17 @@ def validate_port_sources(
                 if key.domain == "asset"
             }
         )
-    # Target-side remap symbols are valid only when the renderer can bind them.
-    target_headers = target_root / "src/data/tilesets/headers.h"
-    if target_headers.exists():
-        for line_number, line in enumerate(
-            target_headers.read_text(encoding="utf-8").splitlines(), 1
-        ):
-            match = re.search(r"\b(gTileset_[A-Za-z0-9_]+)\b\s*(?::|=)", line)
-            if match:
-                source_records.setdefault(
-                    ResourceKey("asset", match.group(1)),
-                    SourceRecord(
-                        {}, Provenance(target_headers.as_posix(), f":{line_number}")
-                    ),
-                )
+    # Renderer bindings are authored policy. Installed generated headers are
+    # outputs and must never become authority for their own desired state.
+    policy_tilesets = {
+        f"gTileset_{item.get('targetSymbol', item['symbol'])}"
+        for item in adaptations["tilesetAdaptations"]
+    }
     for decision in adaptations["layoutTilesetRemaps"]:
-        if ResourceKey("asset", decision["target"]) not in source_records:
+        if decision["target"] not in policy_tilesets:
             raise ContentPortError(
-                f"{decision['layout']}: target tileset binding {decision['target']} is missing"
+                f"{decision['layout']}: target tileset binding {decision['target']} "
+                "is missing from typed policy"
             )
 
     enabled = tuple(
@@ -895,6 +942,25 @@ def validate_port_sources(
         for decision in descriptor.capabilities
         if decision.state == CapabilityState.ENABLED
     )
+    ledger_path = target_root / "src/data/persistence/persistent_ids.json"
+    ledger = load_binding_index(ledger_path)
+    explicit_dependencies = {
+        dependency for decision in enabled for dependency in decision.dependencies
+    }
+    for dependency in sorted(explicit_dependencies):
+        if dependency.domain != "binding":
+            continue
+        binding_domain = (
+            "flags"
+            if dependency.name.startswith("FLAG_")
+            else "vars"
+            if dependency.name.startswith("VAR_")
+            else None
+        )
+        ledger.resolve(dependency.name, domain=binding_domain)
+        source_records[dependency] = SourceRecord(
+            {}, Provenance(ledger_path.as_posix(), f"/{dependency.name}")
+        )
     capability_roots: list[ResourceKey] = []
     for decision in enabled:
         key = ResourceKey("capability", f"{decision.map_name}/{decision.capability}")
@@ -913,14 +979,25 @@ def validate_port_sources(
         source_records, aliases=aliases, active_capabilities=("spatial",)
     )
     graph = build_source_graph(context, capability_roots)
-    closure = close_source_graph(graph, capability_roots, frozenset(graph.resources))
-
-    # Loading validates collision/alias state even though residency activates no
-    # script-owned persistent binding.
-    ledger = load_binding_index(
-        target_root / "src/data/persistence/persistent_ids.json"
-    )
-    del ledger
+    enabled_spatial_maps = {
+        decision.map_name for decision in enabled if decision.capability == "spatial"
+    }
+    allowed: set[ResourceKey] = set(capability_roots) | explicit_dependencies
+    allowed.update(ResourceKey("map", name) for name in enabled_spatial_maps)
+    for name in enabled_spatial_maps:
+        layout_key = ResourceKey("layout", str(selected_maps[name]["layout"]))
+        allowed.add(layout_key)
+        layout = selected_layouts[layout_key.name]
+        for field_name in (
+            "primary_tileset",
+            "secondary_tileset",
+            "border_filepath",
+            "blockdata_filepath",
+        ):
+            asset = _key("asset", layout.value.get(field_name))
+            if asset is not None:
+                allowed.add(asset)
+    closure = close_source_graph(graph, capability_roots, frozenset(allowed))
 
     rendered_graph = world_graph_from_maps(selected_maps)
     world_policy = adaptations.get("worldPolicy")
@@ -993,7 +1070,22 @@ def validate_port_sources(
                 f"enabled event entry {entry.name} has no donor script source"
             )
         program = parse_scripts(scripts, root=content_pin.root)
-        validate_effects(entry, analyze_entry(program, entry.name), effect_policy)
+        effects = analyze_entry(program, entry.name)
+        validate_effects(entry, effects, effect_policy)
+        for effect in effects:
+            if (
+                effect.kind not in {"state-read", "state-write"}
+                or effect.operand is None
+            ):
+                continue
+            binding_domain = (
+                "flags"
+                if effect.operand.startswith("FLAG_")
+                else "vars"
+                if effect.operand.startswith("VAR_")
+                else None
+            )
+            ledger.resolve(effect.operand, domain=binding_domain)
 
     maps_in_closure = tuple(
         name for name in map_names if ResourceKey("map", name) in closure
@@ -1017,10 +1109,22 @@ def validate_port_sources(
             "tilesets": len(tilesets),
         }
     )
+    inventory_values: Mapping[str, tuple[str, ...]] = {
+        "maps": tuple(maps_in_closure),
+        "layouts": tuple(layouts_in_closure),
+        "groups": tuple(descriptor.allocation_index.groups),
+        "sections": tuple(descriptor.allocation_index.sections),
+        "tilesets": tilesets,
+    }
     for domain, expected in descriptor.expected_inventory.items():
         if inventory[domain] != expected["count"]:
             raise ContentPortError(
                 f"{domain} inventory count {inventory[domain]} != reviewed {expected['count']}"
+            )
+        actual_digest = _inventory_digest(inventory_values[domain])
+        if actual_digest != expected["digest"]:
+            raise ContentPortError(
+                f"{domain} inventory digest {actual_digest} != reviewed {expected['digest']}"
             )
     closure_report = MappingProxyType(
         {
@@ -1038,6 +1142,29 @@ def validate_port_sources(
             "resources": tuple(str(key) for key in closure),
         }
     )
+    legacy = descriptor.legacy_report
+    legacy_inventory = legacy.get("inventory")
+    legacy_closure = legacy.get("closure")
+    if not isinstance(legacy_inventory, Mapping) or not isinstance(
+        legacy_closure, Mapping
+    ):
+        raise ContentPortError("required legacy baseline lacks inventory or closure")
+    if dict(inventory) != dict(legacy_inventory):
+        raise ContentPortError(
+            "current inventory differs from required legacy baseline"
+        )
+    for field_name in (
+        "maps",
+        "layouts",
+        "groups",
+        "sections",
+        "tilesets",
+        "deferred_edges",
+    ):
+        if _thaw(closure_report[field_name]) != _thaw(legacy_closure.get(field_name)):
+            raise ContentPortError(
+                f"current closure field {field_name} differs from required legacy baseline"
+            )
     provenance_roots = (
         ("content", content_pin.root.resolve()),
         ("mechanical", mechanical_pin.root.resolve()),
@@ -1068,4 +1195,25 @@ def validate_port_sources(
             "enabledCapabilityCount": len(enabled),
         }
     )
-    return ContractEvidence(inventory, closure_report, evidence)
+    contract = ContractEvidence(inventory, closure_report, evidence)
+    state = PortSourceState(
+        maps=_freeze_state(selected_maps),
+        layouts=_freeze_state(
+            {name: record.value for name, record in selected_layouts.items()}
+        ),
+        map_authorities=MappingProxyType(dict(map_authorities)),
+        layout_authorities=MappingProxyType(dict(layout_authorities)),
+        donor_roots=MappingProxyType(
+            {"mechanical": mechanical_pin.root, "content": content_pin.root}
+        ),
+        resources=graph.resources,
+        inventory=MappingProxyType(dict(inventory_values)),
+    )
+    return contract, state
+
+
+def validate_port_sources(
+    descriptor: PortDescriptor, repo: Path | str
+) -> ContractEvidence:
+    """Validate a port and return its deterministic contract evidence."""
+    return resolve_port_sources(descriptor, repo)[0]

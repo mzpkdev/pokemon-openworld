@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 from typing import Mapping, Sequence
@@ -55,7 +56,8 @@ def check_port(
     from .sources import validate_port_sources
 
     descriptor = load_port(_port_dir(repo, port), donor_root.resolve())
-    evidence = authenticate_donors(descriptor.donors)
+    roles = tuple(descriptor.donors_by_role)
+    evidence = authenticate_donors(descriptor.donors_by_role[role] for role in roles)
     contract = validate_port_sources(descriptor, repo)
     body = dict(contract.to_report())
     contract_evidence = dict(body["evidence"])
@@ -65,7 +67,7 @@ def check_port(
             "sourceTreeDigest": actual.tree_digest,
             "fileCount": actual.file_count,
         }
-        for role, actual in zip(("mechanical", "content"), evidence, strict=True)
+        for role, actual in zip(roles, evidence, strict=True)
     }
     body["evidence"] = contract_evidence
     report: dict[str, object] = {
@@ -124,28 +126,28 @@ def _compare_equivalence(
 
 
 def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path) -> str:
-    """Build a checked convergence bundle from the currently authored ownership."""
+    """Compile authenticated donor inputs into a checked desired-state bundle."""
 
     require_no_active_transaction(repo)
     from .bundle import build_bundle
-    from .ownership import OwnershipManifest, extract_owned_content
+    from .descriptor import load_port
+    from .materialize import derive_desired_state
+    from .ownership import OwnershipManifest
 
     report = check_port(repo, port, donor_root)
-    manifest_path = _port_dir(repo, port) / "ownership.json"
-    manifest = OwnershipManifest.load(manifest_path)
-    payloads: dict[tuple[str, ...], object] = {
-        unit.identity: extract_owned_content(repo, manifest.port, unit)
-        for unit in manifest.units
-    }
+    port_dir = _port_dir(repo, port)
+    descriptor = load_port(port_dir, donor_root.resolve())
+    previous = OwnershipManifest.load(port_dir / "ownership.json")
+    desired, payloads = derive_desired_state(descriptor, repo)
     artifacts = build_bundle(
         repo,
         output,
-        manifest,
+        desired,
         payloads,
         {
             "contract": report,
         },
-        previous=manifest,
+        previous=previous,
     )
     return artifacts.sha256
 
@@ -192,6 +194,13 @@ def parser() -> argparse.ArgumentParser:
     migration_finalize.add_argument("--repo", type=_repo, default=Path.cwd())
     migration_finalize.add_argument("--candidate", type=Path, required=True)
     migration_finalize.add_argument("--port-dir", type=Path, required=True)
+    migration_finalize.add_argument(
+        "--donor-root",
+        type=Path,
+        default=Path(os.environ["CONTENT_PORT_DONOR_ROOT"])
+        if "CONTENT_PORT_DONOR_ROOT" in os.environ
+        else None,
+    )
 
     guard = commands.add_parser(
         "transaction-check", help="refuse while an apply transaction is active"
@@ -250,7 +259,12 @@ def run(argv: Sequence[str] | None = None) -> int:
         require_no_active_transaction(args.repo)
         from .update import finalize_migration
 
-        finalize_migration(args.candidate.resolve(), args.port_dir.resolve())
+        finalize_migration(
+            args.candidate.resolve(),
+            args.port_dir.resolve(),
+            donor_root=args.donor_root.resolve() if args.donor_root else None,
+            repo=args.repo,
+        )
     elif args.command == "transaction-check":
         require_no_active_transaction(args.repo)
     else:  # pragma: no cover - argparse makes this unreachable

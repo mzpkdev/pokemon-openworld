@@ -8,9 +8,33 @@ from tools.content_port import (
     ContentPortError,
     ResourceKey,
 )
+from tools.content_port.model import MapAllocation
 
 
 class ModelTests(unittest.TestCase):
+    def test_map_allocation_is_immutable_and_validated(self):
+        fields = {
+            "name": "TestMap",
+            "map_id": "MAP_TEST",
+            "batch": "fixture",
+            "materialization": "residency",
+            "target_group": "gMapGroup_Test",
+            "target_group_id": 4,
+            "target_member": 0,
+            "layout": "LAYOUT_TEST",
+            "target_layout_index": 12,
+            "section": "MAPSEC_TEST",
+            "target_section": 9,
+        }
+        allocation = MapAllocation(**fields)
+        self.assertEqual(allocation.map_slot, ("gMapGroup_Test", 4, 0))
+        with self.assertRaises((AttributeError, TypeError)):
+            allocation.target_member = 1  # type: ignore[misc]
+        with self.assertRaisesRegex(ContentPortError, "unknown materialization"):
+            MapAllocation(**(fields | {"materialization": "implicit"}))
+        with self.assertRaisesRegex(ContentPortError, "non-negative integer"):
+            MapAllocation(**(fields | {"target_section": True}))
+
     def test_capability_states_are_exact_and_unknown_values_fail(self):
         self.assertEqual(
             CapabilityState.parse("enabled", "$.state"), CapabilityState.ENABLED

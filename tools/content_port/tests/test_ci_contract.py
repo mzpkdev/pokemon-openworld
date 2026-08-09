@@ -38,7 +38,8 @@ class CiContractTests(unittest.TestCase):
                 rf"repository: {re.escape(repository)}\n"
                 rf"          ref: {revision}\n"
                 rf"          path: {re.escape(path)}\n"
-                r"          persist-credentials: false"
+                r"          persist-credentials: false\n"
+                r"          fetch-depth: 0"
             )
             self.assertRegex(self.workflow, checkout)
 
@@ -82,6 +83,10 @@ class CiContractTests(unittest.TestCase):
                 self.assertRegex(self.makefile, re.compile(pattern, re.MULTILINE))
         self.assertIn(
             "python3 -m tools.content_port transaction-check --repo .",
+            self.makefile,
+        )
+        self.assertIn(
+            "if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then",
             self.makefile,
         )
 

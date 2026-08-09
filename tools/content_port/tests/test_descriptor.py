@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
 from tools.content_port.descriptor import ADAPTATION_KEYS, load_port, read_json
 from tools.content_port.errors import ContentPortError
-from tools.content_port.update import canonical_bytes, migration_digest
+from tools.content_port.update import (
+    REQUIRED_REVIEW_COMMANDS,
+    build_migration,
+    canonical_bytes,
+    identify_tree,
+    migration_digest,
+)
 
 from tools.content_port.tests.test_allocations import allocation_document
 
@@ -63,6 +70,61 @@ class DescriptorTests(unittest.TestCase):
         dump(root / "capabilities.json", capabilities)
         adaptations = {key: [] for key in ADAPTATION_KEYS}
         adaptations["schemaVersion"] = 1
+        adaptations["layoutBinaryAuthorities"] = [
+            {
+                "layout": "LAYOUT_TEST",
+                "source": "TestMap",
+                "sourceRole": "content",
+            }
+        ]
+        adaptations["generatedSections"] = [
+            {
+                "key": key,
+                "path": path,
+                "sourceRole": "policy",
+                "sourceSymbol": symbol,
+            }
+            for key, path, symbol in (
+                ("map scripts", "data/event_scripts.s", "map-scripts"),
+                (
+                    "berry tree allocations",
+                    "include/constants/berry.h",
+                    "berry-bindings",
+                ),
+                ("flags", "include/constants/flags.h", "flag-bindings"),
+                (
+                    "rival opponents",
+                    "include/constants/opponents.h",
+                    "trainer-bindings",
+                ),
+                ("vars", "include/constants/vars.h", "var-bindings"),
+                ("externs", "include/tilesets.h", "tileset-externs"),
+                ("graphics", "src/data/tilesets/graphics.h", "tileset-graphics"),
+                ("headers", "src/data/tilesets/headers.h", "tileset-headers"),
+                ("metatiles", "src/data/tilesets/metatiles.h", "tileset-metatiles"),
+                ("rival trainers", "src/data/trainers.party", "trainer-parties"),
+            )
+        ]
+        adaptations["sectionMetadataAuthorities"] = [
+            {
+                "section": "MAPSEC_TEST",
+                "sourceRole": "content",
+                "sourceSymbol": "MAPSEC_TEST",
+            }
+        ]
+        adaptations["targetBindings"] = {
+            "layoutFormat": "test",
+            "sectionKind": "geographic",
+            "region": "REGION_TEST",
+            "regionMapType": "REGION_MAP_TEST",
+            "savedLocationInvalid": 255,
+            "metLocationInvalid": 252,
+            "berryTreeBase": 90,
+            "tilesetFeatureMacro": "HAS_TEST_TILESETS",
+            "timeEncounterLabel": "Test_EventScript_SetTimeEncounters",
+            "deferredCallLabel": "Test_Text_DeferredCall",
+            "deferredCallText": "Call again later.$",
+        }
         dump(root / "adaptations.json", adaptations)
         dump(root / "events.json", {"schemaVersion": 1, "entries": []})
         dump(root / "assets.json", {"schemaVersion": 1, "assets": []})
@@ -112,28 +174,58 @@ class DescriptorTests(unittest.TestCase):
         self, root: Path, port: dict[str, object], mutation=None
     ) -> tuple[str, dict[str, object]]:
         pin = port["donors"]["mechanical"]  # type: ignore[index]
-        report: dict[str, object] = {
-            "addedPaths": [],
-            "assets": [],
-            "authorityChanges": [],
-            "changedPaths": ["data/maps/TestMap/map.json"],
-            "decision": "reviewed",
-            "donor": "mechanical",
-            "from": {
-                "commit": "6" * 40,
-                "fileCount": 1,
-                "treeDigest": "7" * 64,
-            },
-            "removedPaths": [],
-            "repository": pin["repository"],
-            "schemaVersion": 1,
-            "tests": ["python3 -m unittest fixture"],
-            "to": {
-                "commit": pin["commit"],
-                "fileCount": pin["fileCount"],
-                "treeDigest": pin["treeDigest"],
-            },
-        }
+        donor = root / "donors/mechanical"
+        donor.mkdir(parents=True)
+        subprocess.run(("git", "init", "-q"), cwd=donor, check=True)
+        subprocess.run(
+            ("git", "config", "user.name", "Descriptor Test"),
+            cwd=donor,
+            check=True,
+        )
+        subprocess.run(
+            ("git", "config", "user.email", "descriptor@example.invalid"),
+            cwd=donor,
+            check=True,
+        )
+        (donor / "evidence.txt").write_text("old\n")
+        subprocess.run(("git", "add", "."), cwd=donor, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "old"), cwd=donor, check=True)
+        source = identify_tree(donor)
+        (donor / "evidence.txt").write_text("new\n")
+        subprocess.run(("git", "add", "."), cwd=donor, check=True)
+        subprocess.run(("git", "commit", "-q", "-m", "new"), cwd=donor, check=True)
+        target = identify_tree(donor)
+        pin.update(
+            commit=target.commit,
+            treeDigest=target.digest,
+            fileCount=target.file_count,
+        )
+        old_tree = root / "old-donor"
+        subprocess.run(
+            (
+                "git",
+                "-C",
+                str(donor),
+                "worktree",
+                "add",
+                "-q",
+                "--detach",
+                str(old_tree),
+                source.commit,
+            ),
+            check=True,
+        )
+        report = build_migration(
+            donor="mechanical",
+            repository=str(pin["repository"]),
+            old_tree=old_tree,
+            new_tree=donor,
+            tests=(
+                {"command": list(command), "result": "passed"}
+                for command in REQUIRED_REVIEW_COMMANDS
+            ),
+        )
+        report["decision"] = "reviewed"
         if mutation is not None:
             mutation(report, pin)
         digest = migration_digest(report)
@@ -152,8 +244,80 @@ class DescriptorTests(unittest.TestCase):
             self.assertEqual(descriptor.allocation_index.layout_slot("LAYOUT_TEST"), 12)
             self.assertEqual(len(descriptor.capabilities), 2)
             self.assertEqual(descriptor.donors[0].root, root / "donors/mechanical")
+            self.assertIs(descriptor.donor("mechanical"), descriptor.donors[0])
+            self.assertEqual(
+                descriptor.allocation_index.map_allocation("TestMap").layout,
+                "LAYOUT_TEST",
+            )
+            self.assertEqual(len(descriptor.generated_sections), 10)
             with self.assertRaises(TypeError):
                 descriptor.authority["new"] = ()  # type: ignore[index]
+            with self.assertRaises(TypeError):
+                descriptor.donors_by_role["other"] = descriptor.donors[0]  # type: ignore[index]
+
+    def test_donor_roles_are_explicit_and_extensible(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            extra = dict(port["donors"]["content"])  # type: ignore[index]
+            extra.update(name="reference", root="reference")
+            port["donors"]["reference"] = extra  # type: ignore[index]
+            dump(root / "port.json", port)
+            descriptor = load_port(root, root / "donors")
+            self.assertEqual(
+                set(descriptor.donors_by_role), {"mechanical", "content", "reference"}
+            )
+            self.assertEqual(descriptor.donor("reference").name, "reference")
+            with self.assertRaisesRegex(ContentPortError, "no donor role 'missing'"):
+                descriptor.donor("missing")
+
+            del port["donors"]["content"]  # type: ignore[index]
+            dump(root / "port.json", port)
+            with self.assertRaisesRegex(
+                ContentPortError, "missing authority donor role 'content'"
+            ):
+                load_port(root, root / "donors")
+
+    def test_renderer_policy_is_exact_and_complete(self):
+        cases = (
+            (
+                lambda document: document.update(layoutBinaryAuthorities=[]),
+                "must cover every allocated layout",
+            ),
+            (
+                lambda document: document["sectionMetadataAuthorities"][0].update(
+                    sourceRole="missing"
+                ),
+                "unknown donor role 'missing'",
+            ),
+            (
+                lambda document: document.update(
+                    generatedSections=document["generatedSections"][:-1]
+                ),
+                "missing renderer source",
+            ),
+            (
+                lambda document: document["targetBindings"].update(extra=True),
+                "unknown field 'extra'",
+            ),
+            (
+                lambda document: document.pop("targetBindings"),
+                "missing field 'targetBindings'",
+            ),
+        )
+        for mutation, message in cases:
+            with (
+                self.subTest(message=message),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                mutation(document)
+                dump(path, document)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
 
     def test_loads_exact_reviewed_content_addressed_migration(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -191,7 +355,7 @@ class DescriptorTests(unittest.TestCase):
             ),
             (
                 lambda report, _pin: report.update(tests=[]),
-                "reviewed migration needs recorded tests",
+                "required donor migration commands are missing",
             ),
             (
                 lambda report, _pin: report.update(

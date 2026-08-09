@@ -424,7 +424,9 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(donors=()),
+                return_value=SimpleNamespace(
+                    donors_by_role={"mechanical": object(), "content": object()}
+                ),
             ),
             patch(
                 "tools.content_port.donors.authenticate_donors",
@@ -443,7 +445,9 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(donors=()),
+                return_value=SimpleNamespace(
+                    donors_by_role={"mechanical": object(), "content": object()}
+                ),
             ),
             patch(
                 "tools.content_port.donors.authenticate_donors",
@@ -461,7 +465,7 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(donors=()),
+                return_value=SimpleNamespace(donors_by_role={}),
             ),
             patch("tools.content_port.donors.authenticate_donors", return_value=()),
             patch(

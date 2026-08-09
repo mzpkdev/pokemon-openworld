@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from tools.content_port.bundle import BUNDLE_FILES, _publish_artifacts
 from tools.content_port.faults import InjectedFault
 from tools.content_port.errors import ContentPortError
 from tools.content_port.tests.test_cli import TransactionRepository, git
@@ -259,6 +260,57 @@ class FaultInjectionTests(unittest.TestCase):
             self.assertEqual((repo / "alpha.txt").read_bytes(), b"beta\n")
         finally:
             temporary.cleanup()
+
+    def test_bundle_publication_is_never_a_mixed_generation(self) -> None:
+        old = {name: f"old:{name}\n".encode() for name in BUNDLE_FILES}
+        new = {name: f"new:{name}\n".encode() for name in BUNDLE_FILES}
+        checkpoints = [
+            *(f"after-bundle-fsync:{name}" for name in BUNDLE_FILES),
+            *(f"after-bundle-rename:{name}" for name in BUNDLE_FILES),
+        ]
+        for fault in checkpoints:
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / "bundle"
+                _publish_artifacts(output, old)
+                with patch.dict(
+                    os.environ,
+                    {
+                        "CONTENT_PORT_FAULT_AT": fault,
+                        "CONTENT_PORT_FAULT_ACTION": "raise",
+                    },
+                    clear=False,
+                ):
+                    with self.assertRaises(InjectedFault):
+                        _publish_artifacts(output, new)
+                visible = {name: (output / name).read_bytes() for name in BUNDLE_FILES}
+                self.assertIn(visible, (old, new))
+
+    def test_first_bundle_publication_is_absent_or_complete_at_every_fault(
+        self,
+    ) -> None:
+        new = {name: f"new:{name}\n".encode() for name in BUNDLE_FILES}
+        checkpoints = [
+            *(f"after-bundle-fsync:{name}" for name in BUNDLE_FILES),
+            *(f"after-bundle-rename:{name}" for name in BUNDLE_FILES),
+        ]
+        for fault in checkpoints:
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / "bundle"
+                with patch.dict(
+                    os.environ,
+                    {
+                        "CONTENT_PORT_FAULT_AT": fault,
+                        "CONTENT_PORT_FAULT_ACTION": "raise",
+                    },
+                    clear=False,
+                ):
+                    with self.assertRaises(InjectedFault):
+                        _publish_artifacts(output, new)
+                if output.exists():
+                    visible = {
+                        name: (output / name).read_bytes() for name in BUNDLE_FILES
+                    }
+                    self.assertEqual(visible, new)
 
 
 if __name__ == "__main__":

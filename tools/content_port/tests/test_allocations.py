@@ -35,11 +35,40 @@ class AllocationTests(unittest.TestCase):
     def test_exposes_numeric_placements_only_through_immutable_index(self):
         index = load_allocation_index(allocation_document())
         self.assertEqual(index.map_slot("TestMap"), ("gMapGroup_Test", 4, 0))
+        allocation = index.map_allocation("TestMap")
+        self.assertEqual(
+            (
+                allocation.name,
+                allocation.map_id,
+                allocation.batch,
+                allocation.materialization,
+                allocation.target_group,
+                allocation.target_group_id,
+                allocation.target_member,
+                allocation.layout,
+                allocation.target_layout_index,
+                allocation.section,
+                allocation.target_section,
+            ),
+            (
+                "TestMap",
+                "MAP_TEST",
+                "fixture",
+                "residency",
+                "gMapGroup_Test",
+                4,
+                0,
+                "LAYOUT_TEST",
+                12,
+                "MAPSEC_TEST",
+                9,
+            ),
+        )
         self.assertEqual(index.layout_slot("LAYOUT_TEST"), 12)
         self.assertEqual(index.group_slot("gMapGroup_Test"), 4)
         self.assertEqual(index.section_slot("MAPSEC_TEST"), 9)
         with self.assertRaises(TypeError):
-            index.maps["Other"] = ("gMapGroup_Test", 4, 1)  # type: ignore[index]
+            index.maps["Other"] = allocation  # type: ignore[index]
         with self.assertRaisesRegex(ContentPortError, "has no map Missing"):
             index.map_slot("Missing")
 

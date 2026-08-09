@@ -20,6 +20,13 @@ record. Apply that proposal to `port.json` only after review, then commit it wit
 the record and asset-policy changes. `blocked` and `unknown` assets cannot be
 finalized or bundled.
 
+The donor checkout used for finalization and CI must resolve both the source and
+target commits. Finalization checks out both commits in disposable worktrees,
+recomputes every added, removed, and changed path with blob hashes, recomputes
+all authority-field and asset impacts, reruns the required command evidence, and
+rejects any omitted or fabricated report entry. CI therefore uses full public
+donor history instead of a single-commit shallow checkout.
+
 The committed pin is authoritative only when its exact source and target commits
 match the reviewed record. Publication remains a normal reviewed Git commit;
 the content-port tool never moves a branch or creates a commit.

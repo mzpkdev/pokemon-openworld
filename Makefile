@@ -484,7 +484,9 @@ CONTENT_PORT_DONOR_ROOT ?= .references
 CONTENT_PORT_OUTPUT ?= $(BUILD_DIR)/content-port/$(CONTENT_PORT)
 
 content-port-transaction-check:
-	@python3 -m tools.content_port transaction-check --repo .
+	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+		python3 -m tools.content_port transaction-check --repo .; \
+	fi
 
 content-port-test: content-port-transaction-check
 	CONTENT_PORT_DONOR_ROOT=$(CONTENT_PORT_DONOR_ROOT) \
