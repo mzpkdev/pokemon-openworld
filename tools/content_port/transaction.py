@@ -8,6 +8,8 @@ one another.  HEAD and refs are read-only throughout this module.
 from __future__ import annotations
 
 import base64
+from contextlib import contextmanager
+import fcntl
 import hashlib
 import hmac
 import json
@@ -19,7 +21,7 @@ import tempfile
 import uuid
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Iterator, Mapping
 
 from .errors import ContentPortError
 from .faults import checkpoint
@@ -29,6 +31,8 @@ STATE_DIRECTORY = "content-port-transaction"
 GUARD_FILENAME = "guard.json"
 JOURNAL_FILENAME = "journal.json"
 LOCK_FILENAME = "creation.lock"
+IDENTITY_FILENAME = "identity.json"
+LIFETIME_LOCK_FILENAME = "lifetime.lock"
 SCHEMA_VERSION = 1
 
 
@@ -60,10 +64,27 @@ def transaction_paths(repo: Path) -> tuple[Path, Path, Path]:
     return state, state / GUARD_FILENAME, state / JOURNAL_FILENAME
 
 
+@contextmanager
+def transaction_lifetime_lock(repo: Path, *, exclusive: bool) -> Iterator[None]:
+    state, _, _ = transaction_paths(repo.resolve())
+    state.mkdir(parents=True, exist_ok=True)
+    path = state / LIFETIME_LOCK_FILENAME
+    descriptor = os.open(path, os.O_RDWR | os.O_CREAT | os.O_CLOEXEC, 0o644)
+    try:
+        fcntl.flock(
+            descriptor,
+            (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH),
+        )
+        yield
+    finally:
+        os.close(descriptor)
+
+
 def guard_active(repo: Path) -> bool:
     state, guard, journal = transaction_paths(repo)
     lock = state / LOCK_FILENAME
-    return any(_path_present(path) for path in (guard, journal, lock))
+    identity = state / IDENTITY_FILENAME
+    return any(_path_present(path) for path in (guard, journal, lock, identity))
 
 
 def _path_present(path: Path) -> bool:
@@ -73,32 +94,98 @@ def _path_present(path: Path) -> bool:
 def require_no_active_transaction(repo: Path) -> None:
     if guard_active(repo):
         raise ContentPortError(
-            "active content-port apply transaction; run "
+            "active content-port apply transaction; wait for any running apply, then run "
             "`python3 -m tools.content_port resume --repo .` or "
             "`python3 -m tools.content_port recover --repo .`"
         )
 
 
-def _acquire_creation_lock(state: Path, transaction_id: str) -> Path:
+def _acquire_creation_lock(state: Path, transaction_id: str) -> tuple[Path, int]:
     lock = state / LOCK_FILENAME
     payload = {
         "schemaVersion": SCHEMA_VERSION,
         "transactionId": transaction_id,
+        "lockProtocol": "flock-v1",
     }
+    temporary = state / f".{LOCK_FILENAME}.{transaction_id}.{uuid.uuid4().hex}.tmp"
+    descriptor = os.open(
+        temporary, os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC, 0o644
+    )
     try:
-        descriptor = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
-    except FileExistsError as error:
-        raise ContentPortError(
-            "another content-port transaction is being created"
-        ) from error
-    with os.fdopen(descriptor, "wb") as stream:
-        stream.write(
-            (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        os.write(
+            descriptor,
+            (
+                json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n"
+            ).encode(),
         )
-        stream.flush()
-        os.fsync(stream.fileno())
-    _fsync_directory(state)
-    return lock
+        os.fsync(descriptor)
+        try:
+            os.link(temporary, lock)
+        except FileExistsError as error:
+            raise ContentPortError(
+                "another content-port transaction is being created"
+            ) from error
+        _fsync_directory(state)
+        return lock, descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _claim_orphaned_creation_lock(lock: Path) -> int:
+    flags = os.O_RDWR | os.O_CLOEXEC | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(lock, flags)
+    except OSError as error:
+        raise ContentPortError(
+            "transaction creation lock is not a safe regular file"
+        ) from error
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ContentPortError("transaction creation lock is not a regular file")
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ContentPortError(
+                "content-port apply transaction is still being created; wait for it to finish"
+            ) from error
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        try:
+            payload = json.loads(os.read(descriptor, 65536).decode("utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ContentPortError(
+                "transaction creation lock liveness cannot be established"
+            ) from error
+        if not isinstance(payload, dict) or payload.get("lockProtocol") != "flock-v1":
+            raise ContentPortError(
+                "transaction creation lock liveness cannot be established"
+            )
+        opened = os.fstat(descriptor)
+        current = lock.stat(follow_symlinks=False)
+        if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino):
+            raise ContentPortError("transaction creation lock changed while opening it")
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _release_creation_lock(lock: Path, descriptor: int, *, remove: bool) -> None:
+    try:
+        if remove:
+            opened = os.fstat(descriptor)
+            current = lock.stat(follow_symlinks=False)
+            if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino):
+                raise ContentPortError(
+                    "transaction creation lock changed while it was held"
+                )
+            lock.unlink()
+            _fsync_directory(lock.parent)
+    finally:
+        os.close(descriptor)
 
 
 def require_clean_task_worktree(repo: Path) -> None:
@@ -294,6 +381,7 @@ def _capture_preimages(
     for item in expected:
         raw = str(item["path"])
         path = _safe_path(repo, raw)
+        index_entry = _index_entry(repo, raw)
         if path.exists():
             if not path.is_file():
                 raise ContentPortError(f"owned path is not a regular file: {raw}")
@@ -305,10 +393,11 @@ def _capture_preimages(
                     "mode": f"{_mode_for_path(path):06o}",
                     "sha256": _sha256(content),
                     "content": _encode(content),
+                    "index": index_entry,
                 }
             )
         else:
-            result.append({"path": raw, "exists": False})
+            result.append({"path": raw, "exists": False, "index": index_entry})
     return result
 
 
@@ -405,6 +494,190 @@ def _publish_guard(path: Path, journal: Mapping[str, Any]) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def _locked_marker_payload(transaction_id: str, kind: str) -> bytes:
+    return (
+        json.dumps(
+            {
+                "schemaVersion": SCHEMA_VERSION,
+                "transactionId": transaction_id,
+                "lockProtocol": "flock-v1",
+                "kind": kind,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    ).encode()
+
+
+def _create_locked_marker(path: Path, transaction_id: str, kind: str) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.parent / f".{path.name}.{transaction_id}.{uuid.uuid4().hex}.tmp"
+    descriptor = os.open(
+        temporary, os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC, 0o644
+    )
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        os.write(descriptor, _locked_marker_payload(transaction_id, kind))
+        os.fsync(descriptor)
+        os.link(temporary, path)
+        _fsync_directory(path.parent)
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _claim_locked_marker(path: Path, transaction_id: str, kind: str) -> int:
+    flags = os.O_RDWR | os.O_CLOEXEC | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+    except OSError as error:
+        raise ContentPortError(f"cannot open guarded Git {kind} lock") from error
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise ContentPortError(f"guarded Git {kind} lock is not a regular file")
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ContentPortError(
+                "another process is operating on the active content-port transaction"
+            ) from error
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        try:
+            payload = json.loads(os.read(descriptor, 65536).decode("utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ContentPortError(
+                f"existing Git {kind} lock is not owned by this transaction"
+            ) from error
+        if (
+            not isinstance(payload, dict)
+            or payload.get("lockProtocol") != "flock-v1"
+            or payload.get("transactionId") != transaction_id
+            or payload.get("kind") != kind
+        ):
+            raise ContentPortError(
+                f"existing Git {kind} lock is not owned by this transaction"
+            )
+        opened = os.fstat(descriptor)
+        current = path.stat(follow_symlinks=False)
+        if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino):
+            raise ContentPortError(f"guarded Git {kind} lock changed while opening")
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _publish_identity_marker(path: Path, journal: Mapping[str, Any]) -> bool:
+    if _path_present(path):
+        value = _read_json(path)
+        if value.get("transactionId") != journal.get("transactionId"):
+            raise ContentPortError("Git identity lock marker does not match journal")
+        return False
+    _write_json(
+        path,
+        {
+            "schemaVersion": SCHEMA_VERSION,
+            "transactionId": journal["transactionId"],
+            "head": journal["head"],
+            "branchRef": journal.get(
+                "branchRef", f"refs/heads/{journal.get('branch')}"
+            ),
+        },
+    )
+    return True
+
+
+@dataclass
+class _GitIdentityLease:
+    transaction_id: str
+    marker: Path
+    locks: list[tuple[Path, int, bool]]
+
+    def release(self, *, remove: bool) -> None:
+        error: BaseException | None = None
+        for path, descriptor, _ in reversed(self.locks):
+            try:
+                _release_creation_lock(path, descriptor, remove=remove)
+            except BaseException as caught:
+                error = error or caught
+        self.locks.clear()
+        if remove and error is None and _path_present(self.marker):
+            value = _read_json(self.marker)
+            if value.get("transactionId") != self.transaction_id:
+                raise ContentPortError(
+                    "Git identity lock marker changed while it was held"
+                )
+            self.marker.unlink()
+            _fsync_directory(self.marker.parent)
+        if error is not None:
+            raise error
+
+
+def _acquire_git_identity(transaction: "ApplyTransaction") -> _GitIdentityLease:
+    transaction_id = str(transaction.journal["transactionId"])
+    marker = transaction.state / IDENTITY_FILENAME
+    marker_created = _publish_identity_marker(marker, transaction.journal)
+    branch_ref = transaction.journal.get(
+        "branchRef", f"refs/heads/{transaction.journal.get('branch')}"
+    )
+    paths = (
+        (_git_path(transaction.repo, "HEAD.lock"), "HEAD"),
+        (_git_path(transaction.repo, f"{branch_ref}.lock"), "task branch"),
+    )
+    acquired: list[tuple[Path, int, bool]] = []
+    try:
+        for path, kind in paths:
+            existed = _path_present(path)
+            if existed:
+                descriptor = _claim_locked_marker(path, transaction_id, kind)
+            else:
+                try:
+                    descriptor = _create_locked_marker(path, transaction_id, kind)
+                except FileExistsError:
+                    existed = True
+                    descriptor = _claim_locked_marker(path, transaction_id, kind)
+            acquired.append((path, descriptor, existed))
+        return _GitIdentityLease(transaction_id, marker, acquired)
+    except BaseException:
+        for path, descriptor, existed in reversed(acquired):
+            _release_creation_lock(path, descriptor, remove=not existed)
+        if marker_created and not any(existed for _, _, existed in acquired):
+            marker.unlink(missing_ok=True)
+            _fsync_directory(marker.parent)
+        raise
+
+
+@contextmanager
+def _hold_git_identity(transaction: "ApplyTransaction") -> Iterator[None]:
+    lease = _acquire_git_identity(transaction)
+    try:
+        yield
+    except BaseException as error:
+        identity_changed = isinstance(error, ContentPortError) and str(error).startswith(
+            "HEAD or task branch changed"
+        )
+        if identity_changed:
+            preserve = False
+        else:
+            try:
+                preserve = transaction._publication_state_changed()
+            except BaseException:
+                preserve = True
+        lease.release(remove=not preserve)
+        raise
+    else:
+        completed = not _path_present(transaction.guard) and not _path_present(
+            transaction.journal_path
+        )
+        lease.release(remove=True)
+        if completed:
+            checkpoint("after-guard-remove")
+
+
 @dataclass
 class ApplyTransaction:
     repo: Path
@@ -412,6 +685,13 @@ class ApplyTransaction:
     guard: Path
     journal_path: Path
     journal: dict[str, Any]
+    creation_lock_descriptor: int | None = None
+
+    def __del__(self) -> None:
+        descriptor = self.creation_lock_descriptor
+        if descriptor is not None:
+            self.creation_lock_descriptor = None
+            os.close(descriptor)
 
     @classmethod
     def create(
@@ -426,13 +706,16 @@ class ApplyTransaction:
         state, guard, journal_path = transaction_paths(repo)
         state.mkdir(parents=True, exist_ok=True)
         transaction_id = uuid.uuid4().hex
-        lock = _acquire_creation_lock(state, transaction_id)
+        lock, lock_descriptor = _acquire_creation_lock(state, transaction_id)
         snapshot: Path | None = None
         try:
             if _path_present(guard) or _path_present(journal_path):
                 raise ContentPortError("another content-port transaction is active")
             if _git(repo, "status", "--porcelain=v1", "-z", "--untracked-files=all"):
                 raise ContentPortError("apply requires a clean index and working tree")
+            head = _git(repo, "rev-parse", "HEAD").decode().strip()
+            branch = _git(repo, "branch", "--show-current").decode().strip()
+            branch_ref = _git(repo, "symbolic-ref", "HEAD").decode().strip()
             snapshot = _snapshot_bundle(bundle, state, transaction_id)
             digest = require_bundle_digest(snapshot, expected_sha256)
             verified = verify_bundle(snapshot)
@@ -451,7 +734,6 @@ class ApplyTransaction:
             if baseline_manifest is not None:
                 verify_owned_baseline(repo, baseline_manifest)
             report = _read_bundle_report(snapshot / "report.json")
-            head = _git(repo, "rev-parse", "HEAD").decode().strip()
             if report.get("baseCommit") != head:
                 raise ContentPortError(
                     f"bundle base commit {report.get('baseCommit')} does not match HEAD {head}"
@@ -501,7 +783,8 @@ class ApplyTransaction:
                 "transactionId": transaction_id,
                 "repo": str(repo),
                 "head": head,
-                "branch": _git(repo, "branch", "--show-current").decode().strip(),
+                "branch": branch,
+                "branchRef": branch_ref,
                 "bundleDigest": digest,
                 "indexSha256": _sha256(index),
                 "index": _encode(index),
@@ -512,11 +795,23 @@ class ApplyTransaction:
                 "expectedManifestSha256": _sha256(desired_manifest_bytes),
                 "completed": [],
             }
+            if (
+                _git(repo, "rev-parse", "HEAD").decode().strip() != head
+                or _git(repo, "branch", "--show-current").decode().strip() != branch
+                or _git(repo, "symbolic-ref", "HEAD").decode().strip() != branch_ref
+            ):
+                raise ContentPortError("HEAD or task branch changed during apply setup")
             _seal_journal(journal)
-            return cls(repo, state, guard, journal_path, journal)
+            return cls(
+                repo,
+                state,
+                guard,
+                journal_path,
+                journal,
+                lock_descriptor,
+            )
         except BaseException:
-            lock.unlink(missing_ok=True)
-            _fsync_directory(state)
+            _release_creation_lock(lock, lock_descriptor, remove=True)
             raise
         finally:
             if snapshot is not None:
@@ -527,37 +822,48 @@ class ApplyTransaction:
         repo = repo.resolve()
         state, guard, journal_path = transaction_paths(repo)
         lock = state / LOCK_FILENAME
+        lock_descriptor: int | None = None
         if not _path_present(guard) and not _path_present(journal_path):
             raise ContentPortError("no recoverable content-port apply transaction")
+        if _path_present(lock):
+            lock_descriptor = _claim_orphaned_creation_lock(lock)
         if not journal_path.is_file():
+            if lock_descriptor is not None:
+                _release_creation_lock(lock, lock_descriptor, remove=False)
             raise ContentPortError(
                 "transaction creation was interrupted before the journal; run recover"
             )
-        journal = _read_json(journal_path)
-        _verify_journal(journal)
-        if not _path_present(guard):
-            _publish_guard(guard, journal)
-        if not guard.is_file() or guard.is_symlink():
-            raise ContentPortError("transaction guard is not a regular file")
         try:
-            guard_value = _read_json(guard)
-        except ContentPortError:
-            if not lock.is_file() or lock.is_symlink():
-                raise
-            lock_value = _read_json(lock)
-            if lock_value.get("transactionId") != journal.get("transactionId"):
-                raise
-            guard.unlink()
-            _fsync_directory(state)
-            _publish_guard(guard, journal)
-            guard_value = _read_json(guard)
-        if guard_value.get("transactionId") != journal.get("transactionId"):
-            raise ContentPortError("transaction guard does not match its journal")
-        transaction = cls(repo, state, guard, journal_path, journal)
-        transaction.verify_identity()
-        lock.unlink(missing_ok=True)
-        _fsync_directory(state)
-        return transaction
+            journal = _read_json(journal_path)
+            _verify_journal(journal)
+            if lock_descriptor is not None:
+                lock_value = _read_json(lock)
+                if lock_value.get("transactionId") != journal.get("transactionId"):
+                    raise ContentPortError(
+                        "transaction creation lock does not match its journal"
+                    )
+            if not _path_present(guard):
+                _publish_guard(guard, journal)
+            if not guard.is_file() or guard.is_symlink():
+                raise ContentPortError("transaction guard is not a regular file")
+            try:
+                guard_value = _read_json(guard)
+            except ContentPortError:
+                if lock_descriptor is None:
+                    raise
+                guard.unlink()
+                _fsync_directory(state)
+                _publish_guard(guard, journal)
+                guard_value = _read_json(guard)
+            if guard_value.get("transactionId") != journal.get("transactionId"):
+                raise ContentPortError("transaction guard does not match its journal")
+            if lock_descriptor is not None:
+                _release_creation_lock(lock, lock_descriptor, remove=True)
+                lock_descriptor = None
+            return cls(repo, state, guard, journal_path, journal)
+        finally:
+            if lock_descriptor is not None:
+                _release_creation_lock(lock, lock_descriptor, remove=False)
 
     @property
     def units(self) -> tuple[dict[str, Any], ...]:
@@ -568,25 +874,106 @@ class ApplyTransaction:
 
     def acquire_guard(self) -> None:
         lock = self.state / LOCK_FILENAME
+        descriptor = self.creation_lock_descriptor
+        if descriptor is None:
+            raise ContentPortError("transaction creation lock is not held")
         lock_value = _read_json(lock)
         if lock_value.get("transactionId") != self.journal["transactionId"]:
             raise ContentPortError(
                 "transaction creation lock does not match its journal"
             )
         _publish_guard(self.guard, self.journal)
-        lock.unlink()
-        _fsync_directory(self.state)
+        self.creation_lock_descriptor = None
+        _release_creation_lock(lock, descriptor, remove=True)
 
     def verify_identity(self) -> None:
         head = _git(self.repo, "rev-parse", "HEAD").decode().strip()
         branch = _git(self.repo, "branch", "--show-current").decode().strip()
-        if head != self.journal.get("head") or branch != self.journal.get("branch"):
+        branch_ref = _git(self.repo, "symbolic-ref", "HEAD").decode().strip()
+        expected_branch_ref = self.journal.get(
+            "branchRef", f"refs/heads/{self.journal.get('branch')}"
+        )
+        if (
+            head != self.journal.get("head")
+            or branch != self.journal.get("branch")
+            or branch_ref != expected_branch_ref
+        ):
             raise ContentPortError(
                 "HEAD or task branch changed during the active transaction"
             )
 
+    def _preimages_by_path(self) -> dict[str, Mapping[str, Any]]:
+        return {str(item["path"]): item for item in self.journal["preimages"]}
+
+    def _unit_states(
+        self, unit: Mapping[str, Any]
+    ) -> tuple[
+        tuple[bool, str | None, str | None],
+        dict[str, Any] | None,
+        tuple[bool, str | None, str | None],
+        dict[str, Any] | None,
+    ]:
+        raw = str(unit["path"])
+        preimage = self._preimages_by_path()[raw]
+        preimage_index = preimage.get("index")
+        if preimage_index is not None and not isinstance(preimage_index, dict):
+            raise ContentPortError(f"invalid journaled index preimage: {raw}")
+        expected_index = (
+            {"mode": str(unit["mode"]), "oid": str(unit["oid"])}
+            if unit["exists"]
+            else None
+        )
+        return (
+            _snapshot_expected(preimage),
+            preimage_index,
+            _snapshot_expected(unit),
+            expected_index,
+        )
+
+    def _require_known_unit_state(
+        self, unit: Mapping[str, Any], *, operation: str
+    ) -> None:
+        raw = str(unit["path"])
+        preimage, preimage_index, expected, expected_index = self._unit_states(unit)
+        actual = _snapshot_path(self.repo, raw)
+        actual_index = _index_entry(self.repo, raw)
+        if actual not in (preimage, expected) or actual_index not in (
+            preimage_index,
+            expected_index,
+        ):
+            raise ContentPortError(
+                f"refusing to {operation} over changed transaction state: {raw}; "
+                "preserve the edit elsewhere and restore the interrupted state before retrying"
+            )
+
+    def _require_known_transaction_state(self, *, operation: str) -> None:
+        try:
+            self._verify_no_unowned_changes()
+        except ContentPortError as error:
+            raise ContentPortError(
+                f"refusing to {operation} over changed transaction state; "
+                "preserve the edit elsewhere and restore the interrupted state before retrying: "
+                f"{error}"
+            ) from error
+        for unit in self.units:
+            self._require_known_unit_state(unit, operation=operation)
+
+    def _publication_state_changed(self) -> bool:
+        if self.journal["completed"]:
+            return True
+        for unit in self.units:
+            raw = str(unit["path"])
+            preimage, preimage_index, _, _ = self._unit_states(unit)
+            if (
+                _snapshot_path(self.repo, raw) != preimage
+                or _index_entry(self.repo, raw) != preimage_index
+            ):
+                return True
+        return False
+
     def apply_unit(self, unit: Mapping[str, Any]) -> None:
         raw = str(unit["path"])
+        self._require_known_unit_state(unit, operation="apply")
         path = _safe_path(self.repo, raw)
         if unit["exists"]:
             content = _decode(str(unit["content"]))
@@ -598,6 +985,12 @@ class ApplyTransaction:
             path.unlink()
             _fsync_directory(path.parent)
         checkpoint(f"after-apply:{raw}")
+
+        if _snapshot_path(self.repo, raw) != _snapshot_expected(unit):
+            raise ContentPortError(
+                f"owned path changed before index publication: {raw}"
+            )
+        self._require_known_unit_state(unit, operation="apply")
 
         if unit["exists"]:
             _git(
@@ -678,9 +1071,10 @@ class ApplyTransaction:
         _fsync_directory(self.state)
         self.journal_path.unlink(missing_ok=True)
         _fsync_directory(self.state)
-        checkpoint("after-guard-remove")
 
-    def run(self) -> None:
+    def _run_locked(self) -> None:
+        self.verify_identity()
+        self._require_known_transaction_state(operation="apply")
         completed = set(self.journal["completed"])
         for unit in self.units:
             if unit["path"] in completed:
@@ -690,51 +1084,62 @@ class ApplyTransaction:
         self.verify_expected_tree()
         self.release_guard()
 
+    def run(self) -> None:
+        with _hold_git_identity(self):
+            self._run_locked()
+
     def resume(self) -> None:
-        self.verify_identity()
-        self._verify_no_unowned_changes()
-        completed = set(self.journal["completed"])
-        preimages = {item["path"]: item for item in self.journal["preimages"]}
-        for unit in self.units:
-            raw = unit["path"]
-            actual = _snapshot_path(self.repo, raw)
-            expected = _snapshot_expected(unit)
-            preimage = _snapshot_expected(preimages[raw])
-            if raw in completed and actual != expected:
-                raise ContentPortError(
-                    f"completed owned path changed during interruption: {raw}"
-                )
-            if raw not in completed and actual not in (preimage, expected):
-                raise ContentPortError(
-                    f"incomplete owned path changed during interruption: {raw}"
-                )
-        self.run()
+        with _hold_git_identity(self):
+            self.verify_identity()
+            self._verify_no_unowned_changes()
+            completed = set(self.journal["completed"])
+            preimages = {item["path"]: item for item in self.journal["preimages"]}
+            for unit in self.units:
+                raw = unit["path"]
+                actual = _snapshot_path(self.repo, raw)
+                expected = _snapshot_expected(unit)
+                preimage = _snapshot_expected(preimages[raw])
+                if raw in completed and actual != expected:
+                    raise ContentPortError(
+                        f"completed owned path changed during interruption: {raw}"
+                    )
+                if raw not in completed and actual not in (preimage, expected):
+                    raise ContentPortError(
+                        f"incomplete owned path changed during interruption: {raw}"
+                    )
+            self._run_locked()
 
     def recover(self) -> None:
-        self.verify_identity()
-        for unit in reversed(self.journal["preimages"]):
-            raw = str(unit["path"])
-            path = _safe_path(self.repo, raw)
-            if unit["exists"]:
-                _atomic_write(
-                    path, _decode(str(unit["content"])), int(str(unit["mode"]), 8)
-                )
-            elif path.exists():
-                if not path.is_file():
-                    raise ContentPortError(
-                        f"refusing to recover over non-file path: {raw}"
+        with _hold_git_identity(self):
+            self.verify_identity()
+            self._require_known_transaction_state(operation="recover")
+            index = _decode(str(self.journal["index"]))
+            if _sha256(index) != self.journal["indexSha256"]:
+                raise ContentPortError("journaled index preimage checksum mismatch")
+            for unit in reversed(self.journal["preimages"]):
+                raw = str(unit["path"])
+                path = _safe_path(self.repo, raw)
+                if unit["exists"]:
+                    _atomic_write(
+                        path,
+                        _decode(str(unit["content"])),
+                        int(str(unit["mode"]), 8),
                     )
-                path.unlink()
-                _fsync_directory(path.parent)
-            checkpoint(f"after-recover:{raw}")
-        index_path = _git_path(self.repo, "index")
-        index = _decode(str(self.journal["index"]))
-        if _sha256(index) != self.journal["indexSha256"]:
-            raise ContentPortError("journaled index preimage checksum mismatch")
-        _atomic_write(index_path, index)
-        if _git(self.repo, "status", "--porcelain=v1", "-z", "--untracked-files=all"):
-            raise ContentPortError("recovery did not reproduce the clean preimage")
-        self.release_guard()
+                elif path.exists():
+                    if not path.is_file():
+                        raise ContentPortError(
+                            f"refusing to recover over non-file path: {raw}"
+                        )
+                    path.unlink()
+                    _fsync_directory(path.parent)
+                checkpoint(f"after-recover:{raw}")
+            index_path = _git_path(self.repo, "index")
+            _atomic_write(index_path, index)
+            if _git(
+                self.repo, "status", "--porcelain=v1", "-z", "--untracked-files=all"
+            ):
+                raise ContentPortError("recovery did not reproduce the clean preimage")
+            self.release_guard()
 
 
 def _snapshot_path(repo: Path, raw: str) -> tuple[bool, str | None, str | None]:
@@ -756,26 +1161,66 @@ def _snapshot_expected(unit: Mapping[str, Any]) -> tuple[bool, str | None, str |
 
 
 def apply_bundle(repo: Path, bundle: Path, expected_sha256: str) -> None:
-    transaction = ApplyTransaction.create(repo, bundle, expected_sha256)
-    transaction.write_and_fsync_preimage()
-    checkpoint("after-journal-fsync")
-    transaction.acquire_guard()
-    checkpoint("after-guard-create")
-    transaction.run()
+    with transaction_lifetime_lock(repo, exclusive=True):
+        transaction = ApplyTransaction.create(repo, bundle, expected_sha256)
+        transaction.write_and_fsync_preimage()
+        checkpoint("after-journal-fsync")
+        transaction.acquire_guard()
+        checkpoint("after-guard-create")
+        transaction.run()
 
 
 def resume_transaction(repo: Path) -> None:
-    ApplyTransaction.open(repo).resume()
+    with transaction_lifetime_lock(repo, exclusive=True):
+        ApplyTransaction.open(repo).resume()
 
 
-def recover_transaction(repo: Path) -> None:
+def _release_completed_identity(repo: Path, state: Path, marker: Path) -> None:
+    value = _read_json(marker)
+    transaction_id = value.get("transactionId")
+    branch_ref = value.get("branchRef")
+    if not isinstance(transaction_id, str) or not isinstance(branch_ref, str):
+        raise ContentPortError("completed Git identity lock marker is corrupt")
+    acquired: list[tuple[Path, int]] = []
+    try:
+        for path, kind in (
+            (_git_path(repo, "HEAD.lock"), "HEAD"),
+            (_git_path(repo, f"{branch_ref}.lock"), "task branch"),
+        ):
+            if _path_present(path):
+                acquired.append(
+                    (path, _claim_locked_marker(path, transaction_id, kind))
+                )
+        while acquired:
+            path, descriptor = acquired.pop()
+            _release_creation_lock(path, descriptor, remove=True)
+        marker.unlink()
+        _fsync_directory(state)
+    finally:
+        for _, descriptor in acquired:
+            os.close(descriptor)
+
+
+def _recover_transaction_locked(repo: Path) -> None:
     repo = repo.resolve()
     state, guard, journal = transaction_paths(repo)
     lock = state / LOCK_FILENAME
+    identity = state / IDENTITY_FILENAME
+    if (
+        _path_present(identity)
+        and not _path_present(lock)
+        and not _path_present(guard)
+        and not _path_present(journal)
+    ):
+        _release_completed_identity(repo, state, identity)
+        return
     if _path_present(lock) and not _path_present(guard) and not _path_present(journal):
-        if not lock.is_file():
-            raise ContentPortError("transaction creation lock is not a regular file")
-        lock.unlink()
-        _fsync_directory(state)
+        descriptor = _claim_orphaned_creation_lock(lock)
+        _release_creation_lock(lock, descriptor, remove=True)
         return
     ApplyTransaction.open(repo).recover()
+
+
+def recover_transaction(repo: Path) -> None:
+    with transaction_lifetime_lock(repo, exclusive=True):
+        _recover_transaction_locked(repo)

@@ -1,3 +1,17 @@
+ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
+_CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
+.PHONY: __content-port-build-lock
+__content-port-build-lock:
+	@state="$$(git rev-parse --path-format=absolute --git-path content-port-transaction)"; \
+	mkdir -p "$$state"; \
+	python3 -c 'import fcntl, os, subprocess, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); raise SystemExit(subprocess.call(sys.argv[2:]))' \
+		"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS)
+
+%: __content-port-build-lock
+	@:
+
+else
+
 # Product identity is deliberately closed.  Diagnostic map dialects are exposed
 # only by the generator-fixture-* targets below; they can never select a link.
 ifeq ($(origin GAME_VERSION),command line)
@@ -897,3 +911,5 @@ emerald: all
 # Symbol file (`make syms`)
 $(SYM): $(ELF) | content-port-transaction-check
 	$(OBJDUMP) -t $< | sort -u | grep -E "^0[2389]" | $(PERL) -p -e 's/^(\w{8}) (\w).{6} \S+\t(\w{8}) (\S+)$$/\1 \2 \3 \4/g' > $@
+
+endif
