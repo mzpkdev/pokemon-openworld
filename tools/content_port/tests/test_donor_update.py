@@ -223,6 +223,108 @@ class DonorUpdateTests(unittest.TestCase):
         )
         self.assertIsNone(report["authorityChanges"][0]["oldHash"])
 
+    def test_explicit_map_adaptations_report_nested_removal_and_null_drift(
+        self,
+    ) -> None:
+        source = self.repo / "data/maps/NewBarkTown/map.json"
+        source.parent.mkdir(parents=True)
+        source.write_text(
+            json.dumps(
+                {
+                    "warp_events": [
+                        {},
+                        {},
+                        {},
+                        {},
+                        {"dest_map": "MAP_OLD"},
+                    ],
+                    "metadata": {"removed": "present"},
+                }
+            )
+        )
+        old_commit = make_commit(self.repo, "adaptation old")
+        source.write_text(
+            json.dumps(
+                {
+                    "warp_events": [
+                        {},
+                        {},
+                        {},
+                        {},
+                        {"dest_map": "MAP_NEW"},
+                    ],
+                    "metadata": {"nullable": None},
+                }
+            )
+        )
+        new_commit = make_commit(self.repo, "adaptation new")
+        policy = {
+            "donorFieldRoles": {"content": "hns", "mechanical": "mechanical"},
+            "adaptations": [
+                {
+                    "source": "NewBarkTown",
+                    "path": "warp_events/4/dest_map",
+                },
+                {"source": "NewBarkTown", "path": "metadata/removed"},
+                {"source": "NewBarkTown", "path": "metadata/nullable"},
+            ],
+        }
+        references = _policy_references(policy, "content")
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("adaptation-old", old_commit),
+            new_tree=self.worktree("adaptation-new", new_commit),
+            references=references,
+        )
+        changes = {
+            change["semanticIdentity"]: change for change in report["authorityChanges"]
+        }
+        nested = changes["map:NewBarkTown.warp_events/4/dest_map"]
+        self.assertIsNotNone(nested["oldHash"])
+        self.assertIsNotNone(nested["newHash"])
+        removed = changes["map:NewBarkTown.metadata/removed"]
+        self.assertIsNotNone(removed["oldHash"])
+        self.assertIsNone(removed["newHash"])
+        nullable = changes["map:NewBarkTown.metadata/nullable"]
+        self.assertIsNone(nullable["oldHash"])
+        self.assertEqual(
+            nullable["newHash"], hashlib.sha256(canonical_bytes(None)).hexdigest()
+        )
+        self.assertTrue(
+            all(
+                change["reviewerDisposition"] == "pending"
+                for change in changes.values()
+            )
+        )
+
+    def test_real_policy_inventories_every_explicit_map_transform(self) -> None:
+        policy = json.loads(
+            Path("tools/content_port/ports/johto/adaptations.json").read_text()
+        )
+        expected_adaptations = {
+            f"map:{item['source']}.{item['path']}" for item in policy["adaptations"]
+        }
+        self.assertEqual(len(expected_adaptations), 10)
+        for donor in ("content", "mechanical"):
+            identities = {
+                reference["semanticIdentity"]
+                for reference in _policy_references(policy, donor)
+            }
+            self.assertTrue(expected_adaptations.issubset(identities))
+
+        transformed_content_paths = {
+            f"map:{item['source']}.{item['path']}"
+            for key in ("warpReindexes", "warpRemovals", "berryTreeAllocations")
+            for item in policy[key]
+            if item["source"] not in set(policy["contentFallback"]["maps"])
+        }
+        content_identities = {
+            reference["semanticIdentity"]
+            for reference in _policy_references(policy, "content")
+        }
+        self.assertTrue(transformed_content_paths.issubset(content_identities))
+
     def test_asset_policy_fails_closed_on_permission_and_metadata(self) -> None:
         for permission in ("blocked", "unknown"):
             with self.subTest(permission=permission):

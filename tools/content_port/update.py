@@ -27,6 +27,7 @@ SUPPORT_STATES = frozenset(
 )
 REVIEW_DECISIONS = frozenset(("candidate", "reviewed", "rejected"))
 REVIEWED_DISPOSITIONS = frozenset(("accepted", "adapted"))
+_MISSING = object()
 MIGRATION_KEYS = {
     "addedPaths",
     "assets",
@@ -151,16 +152,16 @@ def _json_pointer(value: object, pointer: str) -> object:
         elif isinstance(current, list) and token.isdecimal():
             index = int(token)
             if index >= len(current):
-                raise DonorUpdateError(f"JSON pointer does not exist: {pointer}")
+                return _MISSING
             current = current[index]
         else:
-            raise DonorUpdateError(f"JSON pointer does not exist: {pointer}")
+            return _MISSING
     return current
 
 
 def _field_value(blob: bytes | None, pointer: str | None) -> object:
     if blob is None:
-        return None
+        return _MISSING
     if pointer is None:
         return hashlib.sha256(blob).hexdigest()
     try:
@@ -174,7 +175,7 @@ def _field_value(blob: bytes | None, pointer: str | None) -> object:
 
 def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> object:
     if blob is None:
-        return None
+        return _MISSING
     try:
         layouts = json.loads(blob)["layouts"]
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
@@ -185,16 +186,16 @@ def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> objec
         if isinstance(item, dict) and item.get("id") == layout_id
     ]
     if not matches:
-        return None
+        return _MISSING
     if len(matches) != 1:
         raise DonorUpdateError(
             f"donor layout registry has invalid {layout_id}.{field} authority"
         )
-    return matches[0].get(field)
+    return matches[0].get(field, _MISSING)
 
 
 def _value_hash(value: object) -> str | None:
-    if value is None:
+    if value is _MISSING:
         return None
     return hashlib.sha256(canonical_bytes(value)).hexdigest()
 
@@ -805,8 +806,50 @@ def _policy_references(
     """Translate donor-backed authority decisions into field comparisons."""
 
     references: list[Mapping[str, object]] = []
+    donor_fields = adaptations.get("donorFieldRoles", {})
+
+    def add_map_reference(source: object, path: object, authority: str) -> None:
+        if not isinstance(source, str) or not isinstance(path, str):
+            return
+        references.append(
+            {
+                "authority": authority,
+                "jsonPointer": f"/{path}",
+                "semanticIdentity": f"map:{source}.{path}",
+                "sourcePath": f"data/maps/{source}/map.json",
+            }
+        )
+
+    if isinstance(donor_fields, Mapping) and donor in donor_fields:
+        for decision in adaptations.get("adaptations", []):
+            if isinstance(decision, Mapping):
+                add_map_reference(decision.get("source"), decision.get("path"), donor)
+
+    fallback_policy = adaptations.get("contentFallback", {})
+    fallback_maps: set[str] = set()
+    if isinstance(fallback_policy, Mapping):
+        raw_fallback = fallback_policy.get("maps", [])
+        if isinstance(raw_fallback, (list, tuple)):
+            fallback_maps = {name for name in raw_fallback if isinstance(name, str)}
+    for policy_key in ("warpReindexes", "warpRemovals", "berryTreeAllocations"):
+        for decision in adaptations.get(policy_key, []):
+            if not isinstance(decision, Mapping):
+                continue
+            source = decision.get("source")
+            selected_role = (
+                "mechanical"
+                if isinstance(source, str) and source in fallback_maps
+                else "content"
+            )
+            if donor == selected_role:
+                add_map_reference(source, decision.get("path"), donor)
+
     for decision in adaptations.get("mapFieldDecisions", []):
-        if not isinstance(decision, dict):
+        if (
+            not isinstance(decision, dict)
+            or not isinstance(donor_fields, Mapping)
+            or donor not in donor_fields
+        ):
             continue
         map_name = decision.get("map")
         field = decision.get("field")
@@ -814,13 +857,17 @@ def _policy_references(
             continue
         references.append(
             {
-                "authority": decision.get("authority", "content"),
+                "authority": donor,
                 "jsonPointer": f"/{field}",
                 "semanticIdentity": f"map:{map_name}.{field}",
                 "sourcePath": f"data/maps/{map_name}/map.json",
             }
         )
-    layout_decisions = list(adaptations.get("layoutHeaderDecisions", []))
+    layout_decisions = (
+        list(adaptations.get("layoutHeaderDecisions", []))
+        if isinstance(donor_fields, Mapping) and donor in donor_fields
+        else []
+    )
     if donor == "content":
         layout_decisions.extend(adaptations.get("layoutTilesetRemaps", []))
     for decision in layout_decisions:
@@ -832,7 +879,7 @@ def _policy_references(
             continue
         references.append(
             {
-                "authority": decision.get("authority", "content"),
+                "authority": donor,
                 "field": field,
                 "jsonPointer": f"/layouts/@{layout_id}/{field}",
                 "layoutId": layout_id,
