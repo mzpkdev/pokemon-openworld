@@ -82,6 +82,7 @@ jobs:
         shell: bash
         env:
           CONTENT_PORT_REQUIRE_DONORS: "1"
+          CONTENT_PORT_DONOR_ROOT: .references
         run: |
           set -o pipefail
           mkdir -p build/content-port
@@ -89,13 +90,14 @@ jobs:
           make content-port-transaction-check || status=$?
           if (( status == 0 )); then
             PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-              -s tools/content_port/tests/donor -p 'test_*.py' -q \
+              -s tools/content_port/tests -p 'test_*.py' -q \
               2>&1 | tee build/content-port/donor-contract.log || status=$?
           fi
-          if (( status == 0 )); then
-            PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-              tools.content_port.tests.test_cli.CliTests.test_check_rejects_loadable_unknown_asset_permission \
-              -q 2>&1 | tee -a build/content-port/donor-contract.log || status=$?
+          if (( status == 0 )) && grep -Eq 'skipped=[1-9][0-9]*' \
+            build/content-port/donor-contract.log; then
+            printf '%s\n' 'Donor Contracts requires zero skipped tests.' \
+              | tee -a build/content-port/donor-contract.log
+            status=1
           fi
           if (( status == 0 )); then
             python3 -m tools.content_port check --port johto \

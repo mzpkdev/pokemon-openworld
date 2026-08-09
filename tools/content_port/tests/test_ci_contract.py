@@ -46,9 +46,11 @@ class CiContractTests(unittest.TestCase):
     def test_required_mode_commands_and_failure_artifact_are_pinned(self) -> None:
         required_fragments = (
             'CONTENT_PORT_REQUIRE_DONORS: "1"',
+            "CONTENT_PORT_DONOR_ROOT: .references",
             "make content-port-transaction-check",
-            "-s tools/content_port/tests/donor -p 'test_*.py' -q",
-            "test_check_rejects_loadable_unknown_asset_permission",
+            "-s tools/content_port/tests -p 'test_*.py' -q",
+            "grep -Eq 'skipped=[1-9][0-9]*'",
+            "Donor Contracts requires zero skipped tests.",
             "python3 -m tools.content_port check --port johto",
             "--donor-root .references",
             "--write-report build/content-port/donor-contract.json",
@@ -59,6 +61,7 @@ class CiContractTests(unittest.TestCase):
         for fragment in required_fragments:
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, self.workflow)
+        self.assertNotIn("-s tools/content_port/tests/donor", self.workflow)
 
     def test_legacy_importer_is_not_a_ci_authority(self) -> None:
         self.assertNotIn("tools/johto_import", self.workflow)

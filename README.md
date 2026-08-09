@@ -140,7 +140,9 @@ publishes generated output.
 The production `check` command enforces that permission gate before donor source
 validation. Consequently the required `Donor Contracts` job cannot pass while a
 blocked or unknown asset remains in the emitted asset ledger, even when those
-bytes are already present in the repository.
+bytes are already present in the repository. That job runs the complete
+content-port suite against both authenticated checkouts and treats any skipped
+test as a failure before running the explicit production check.
 
 Donor authentication includes ordinary files by default, including ROM and
 linker outputs. A donor may omit only the exact safe relative paths authored in
