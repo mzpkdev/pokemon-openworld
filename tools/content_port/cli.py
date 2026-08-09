@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
 import sys
+from types import MappingProxyType
 from typing import Mapping, Sequence
 
 from .errors import ContentPortError
@@ -52,26 +54,41 @@ def check_port(
 
     require_no_active_transaction(repo)
     from .descriptor import load_port
-    from .donors import authenticate_donors
+    from .donors import authenticated_donor_snapshot
     from .sources import validate_port_sources
     from .update import validate_assets
 
     descriptor = load_port(_port_dir(repo, port), donor_root.resolve())
     validate_assets(descriptor.assets, require_redistributable=True)
-    roles = tuple(descriptor.donors_by_role)
-    evidence = authenticate_donors(descriptor.donors_by_role[role] for role in roles)
-    contract = validate_port_sources(descriptor, repo)
-    body = dict(contract.to_report())
-    contract_evidence = dict(body["evidence"])
-    contract_evidence["donors"] = {
-        role: {
-            "commit": actual.commit,
-            "sourceTreeDigest": actual.tree_digest,
-            "fileCount": actual.file_count,
+    with authenticated_donor_snapshot(descriptor.donors) as snapshots:
+        snapshot_by_name = {pin.name: pin for pin in snapshots}
+        expected_names = {pin.name for pin in descriptor.donors}
+        if set(snapshot_by_name) != expected_names:
+            raise ContentPortError(
+                "authenticated donor snapshot does not match descriptor"
+            )
+        snapshot_descriptor = replace(
+            descriptor,
+            donors=tuple(snapshot_by_name[pin.name] for pin in descriptor.donors),
+            donors_by_role=MappingProxyType(
+                {
+                    role: snapshot_by_name[pin.name]
+                    for role, pin in descriptor.donors_by_role.items()
+                }
+            ),
+        )
+        contract = validate_port_sources(snapshot_descriptor, repo)
+        body = dict(contract.to_report())
+        contract_evidence = dict(body["evidence"])
+        contract_evidence["donors"] = {
+            role: {
+                "commit": pin.commit,
+                "sourceTreeDigest": pin.tree_digest,
+                "fileCount": pin.file_count,
+            }
+            for role, pin in snapshot_descriptor.donors_by_role.items()
         }
-        for role, actual in zip(roles, evidence, strict=True)
-    }
-    body["evidence"] = contract_evidence
+        body["evidence"] = contract_evidence
     report: dict[str, object] = {
         "schemaVersion": 1,
         "producer": "tools.content_port",
@@ -138,13 +155,17 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
     from .bundle import build_bundle
     from .descriptor import load_port
     from .materialize import derive_desired_state
-    from .ownership import OwnershipManifest
+    from .worktree import detached_worktree, git, require_clean_worktree
 
-    report = check_port(repo, port, donor_root)
-    port_dir = _port_dir(repo, port)
-    descriptor = load_port(port_dir, donor_root.resolve())
-    previous = OwnershipManifest.load(port_dir / "ownership.json")
-    desired, payloads = derive_desired_state(descriptor, repo)
+    require_clean_worktree(repo)
+    raw_revision = git(repo, ["rev-parse", "--verify", "HEAD^{commit}"], text=True)
+    assert isinstance(raw_revision, str)
+    revision = raw_revision.strip()
+    with detached_worktree(repo, revision) as source:
+        report = check_port(source, port, donor_root)
+        port_dir = _port_dir(source, port)
+        descriptor = load_port(port_dir, donor_root.resolve())
+        desired, payloads = derive_desired_state(descriptor, source)
     artifacts = build_bundle(
         repo,
         output,
@@ -153,7 +174,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
         {
             "contract": report,
         },
-        previous=previous,
+        revision=revision,
     )
     return artifacts.sha256
 

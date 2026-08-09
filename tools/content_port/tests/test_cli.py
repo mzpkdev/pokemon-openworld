@@ -3,17 +3,26 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
 from types import SimpleNamespace
+from typing import Iterator, Mapping
 import unittest
-from contextlib import redirect_stderr
+from contextlib import contextmanager, redirect_stderr
+from dataclasses import dataclass
 from unittest.mock import patch
 
-from tools.content_port.cli import check_port, main, parser
+from tools.content_port.cli import _bundle_current_state, check_port, main, parser
+from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
-from tools.content_port.model import DonorEvidence
+from tools.content_port.model import DonorPin
+from tools.content_port.ownership import (
+    OwnershipManifest,
+    OwnershipUnit,
+    content_sha256,
+)
 from tools.content_port.update import validate_assets
 from tools.content_port.transaction import (
     canonical_bundle_digest,
@@ -35,6 +44,20 @@ def canonical(value: object) -> bytes:
     return (
         json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
     ).encode()
+
+
+@dataclass(frozen=True)
+class CheckDescriptor:
+    assets: Mapping[str, object]
+    donors: tuple[DonorPin, ...]
+    donors_by_role: Mapping[str, DonorPin]
+
+
+@contextmanager
+def passthrough_donor_snapshot(
+    pins: tuple[DonorPin, ...],
+) -> Iterator[tuple[DonorPin, ...]]:
+    yield pins
 
 
 class TransactionRepository:
@@ -174,6 +197,129 @@ class CliTests(unittest.TestCase):
             "transaction-check",
         ):
             self.assertIn(command, help_text)
+
+    def test_bundle_keeps_compiler_desired_state_separate_from_preimage(self) -> None:
+        desired_unit = OwnershipUnit("file", "new.txt", content_sha256(b"new\n"))
+        desired = OwnershipManifest("fixture", (desired_unit,))
+        payloads = {desired_unit.identity: b"new\n"}
+        report = {"inventory": {"maps": 1}}
+        output = self.repo.parent / "output"
+        descriptor = object()
+        revision = git(self.repo, "rev-parse", "HEAD").strip()
+        with (
+            patch("tools.content_port.cli.check_port", return_value=report) as check,
+            patch(
+                "tools.content_port.descriptor.load_port", return_value=descriptor
+            ) as load,
+            patch(
+                "tools.content_port.materialize.derive_desired_state",
+                return_value=(desired, payloads),
+            ) as derive,
+            patch(
+                "tools.content_port.bundle.build_bundle",
+                return_value=SimpleNamespace(sha256="a" * 64),
+            ) as build,
+        ):
+            digest = _bundle_current_state(
+                self.repo, "fixture", self.repo.parent, output
+            )
+
+        self.assertEqual(digest, "a" * 64)
+        source = check.call_args.args[0]
+        self.assertNotEqual(source, self.repo)
+        self.assertFalse(source.exists())
+        self.assertEqual(
+            load.call_args.args[0],
+            source / "tools/content_port/ports/fixture",
+        )
+        derive.assert_called_once_with(descriptor, source)
+        build.assert_called_once_with(
+            self.repo,
+            output,
+            desired,
+            payloads,
+            {"contract": report},
+            revision=revision,
+        )
+
+    def test_bundle_keeps_captured_base_when_branch_advances_during_derivation(
+        self,
+    ) -> None:
+        desired = OwnershipManifest("fixture", ())
+        report = {"inventory": {"maps": 1}}
+        descriptor = object()
+        revision = git(self.repo, "rev-parse", "HEAD").strip()
+        source_roots: list[Path] = []
+
+        def derive(_descriptor: object, source: Path):
+            source_roots.append(source)
+            self.assertEqual(git(source, "rev-parse", "HEAD").strip(), revision)
+            (self.repo / "advance.txt").write_bytes(b"advance\n")
+            git(self.repo, "add", "advance.txt")
+            git(self.repo, "commit", "-q", "-m", "advance branch")
+            return desired, {}
+
+        with (
+            patch("tools.content_port.cli.check_port", return_value=report),
+            patch("tools.content_port.descriptor.load_port", return_value=descriptor),
+            patch(
+                "tools.content_port.materialize.derive_desired_state",
+                side_effect=derive,
+            ),
+            patch(
+                "tools.content_port.bundle.build_bundle",
+                return_value=SimpleNamespace(sha256="b" * 64),
+            ) as build,
+        ):
+            self.assertEqual(
+                _bundle_current_state(
+                    self.repo, "fixture", self.repo.parent, self.repo.parent / "output"
+                ),
+                "b" * 64,
+            )
+
+        self.assertNotEqual(git(self.repo, "rev-parse", "HEAD").strip(), revision)
+        self.assertEqual(len(source_roots), 1)
+        self.assertNotEqual(source_roots[0], self.repo)
+        self.assertFalse(source_roots[0].exists())
+        self.assertEqual(build.call_args.kwargs["revision"], revision)
+
+    def test_bundle_derivation_ignores_transient_caller_edit_and_restore(self) -> None:
+        target = self.repo / "target.txt"
+        target.write_bytes(b"stable\n")
+        git(self.repo, "add", "target.txt")
+        git(self.repo, "commit", "-q", "-m", "target input")
+        revision = git(self.repo, "rev-parse", "HEAD").strip()
+        desired = OwnershipManifest("fixture", ())
+
+        def derive(_descriptor: object, source: Path):
+            target.write_bytes(b"transient\n")
+            self.assertEqual((source / "target.txt").read_bytes(), b"stable\n")
+            target.write_bytes(b"stable\n")
+            return desired, {}
+
+        with (
+            patch("tools.content_port.cli.check_port", return_value={}),
+            patch("tools.content_port.descriptor.load_port", return_value=object()),
+            patch(
+                "tools.content_port.materialize.derive_desired_state",
+                side_effect=derive,
+            ),
+            patch(
+                "tools.content_port.bundle.build_bundle",
+                return_value=SimpleNamespace(sha256="c" * 64),
+            ) as build,
+        ):
+            self.assertEqual(
+                _bundle_current_state(
+                    self.repo, "fixture", self.repo.parent, self.repo.parent / "output"
+                ),
+                "c" * 64,
+            )
+
+        self.assertEqual(target.read_bytes(), b"stable\n")
+        self.assertEqual(git(self.repo, "status", "--porcelain=v1"), "")
+        self.assertEqual(build.call_args.kwargs["revision"], revision)
 
     def test_apply_stages_binary_bundle_without_moving_head_or_ref(self) -> None:
         bundle = self.fixture.bundle(binary=True)
@@ -375,7 +521,12 @@ class CliTests(unittest.TestCase):
         self.assertFalse(guard_active(self.repo))
 
     def test_check_runs_real_source_validation_and_meaningful_compare(self) -> None:
-        donor = DonorEvidence("donor", "a" * 40, "b" * 64, 1)
+        donor = DonorPin("donor", "example/donor", "a" * 40, "b" * 64, 1, self.repo)
+        descriptor = CheckDescriptor(
+            assets={"schemaVersion": 1, "assets": ()},
+            donors=(donor,),
+            donors_by_role={"mechanical": donor, "content": donor},
+        )
 
         class Contract:
             def to_report(self) -> dict[str, object]:
@@ -434,14 +585,11 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(
-                    assets={"schemaVersion": 1, "assets": ()},
-                    donors_by_role={"mechanical": object(), "content": object()},
-                ),
+                return_value=descriptor,
             ),
             patch(
-                "tools.content_port.donors.authenticate_donors",
-                return_value=(donor, donor),
+                "tools.content_port.donors.authenticated_donor_snapshot",
+                side_effect=passthrough_donor_snapshot,
             ),
             patch(
                 "tools.content_port.sources.validate_port_sources",
@@ -456,14 +604,11 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(
-                    assets={"schemaVersion": 1, "assets": ()},
-                    donors_by_role={"mechanical": object(), "content": object()},
-                ),
+                return_value=descriptor,
             ),
             patch(
-                "tools.content_port.donors.authenticate_donors",
-                return_value=(donor, donor),
+                "tools.content_port.donors.authenticated_donor_snapshot",
+                side_effect=passthrough_donor_snapshot,
             ),
             patch(
                 "tools.content_port.sources.validate_port_sources",
@@ -488,14 +633,11 @@ class CliTests(unittest.TestCase):
             with (
                 patch(
                     "tools.content_port.descriptor.load_port",
-                    return_value=SimpleNamespace(
-                        assets={"schemaVersion": 1, "assets": ()},
-                        donors_by_role={"mechanical": object(), "content": object()},
-                    ),
+                    return_value=descriptor,
                 ),
                 patch(
-                    "tools.content_port.donors.authenticate_donors",
-                    return_value=(donor, donor),
+                    "tools.content_port.donors.authenticated_donor_snapshot",
+                    side_effect=passthrough_donor_snapshot,
                 ),
                 patch(
                     "tools.content_port.sources.validate_port_sources",
@@ -509,15 +651,83 @@ class CliTests(unittest.TestCase):
             if field != "symbols":
                 expected["evidence"][field] = Contract().to_report()["evidence"][field]
 
+    def test_check_uses_immutable_donor_snapshot_during_validation(self) -> None:
+        donor_root = self.repo.parent / "donor"
+        donor_root.mkdir()
+        git(donor_root, "init", "-q")
+        git(donor_root, "config", "user.name", "Content Port Test")
+        git(donor_root, "config", "user.email", "content-port@example.invalid")
+        donor_file = donor_root / "source.txt"
+        donor_file.write_bytes(b"stable\n")
+        git(donor_root, "add", "source.txt")
+        git(donor_root, "commit", "-q", "-m", "donor")
+        records = source_tree_records(donor_root)
+        donor = DonorPin(
+            "donor",
+            "example/donor",
+            git(donor_root, "rev-parse", "HEAD").strip(),
+            records_digest(records),
+            len(records),
+            donor_root,
+        )
+        descriptor = CheckDescriptor(
+            assets={"schemaVersion": 1, "assets": ()},
+            donors=(donor,),
+            donors_by_role={"content": donor},
+        )
+
+        class Contract:
+            def to_report(self) -> dict[str, object]:
+                return {"evidence": {"inputs": []}}
+
+        def validate(snapshot_descriptor: CheckDescriptor, _repo: Path) -> Contract:
+            snapshot = snapshot_descriptor.donors_by_role["content"]
+            self.assertFalse(os.path.samefile(snapshot.root, donor.root))
+            donor_file.write_bytes(b"transient\n")
+            try:
+                self.assertEqual(
+                    (snapshot.root / "source.txt").read_bytes(), b"stable\n"
+                )
+            finally:
+                donor_file.write_bytes(b"stable\n")
+            return Contract()
+
+        with (
+            patch("tools.content_port.descriptor.load_port", return_value=descriptor),
+            patch(
+                "tools.content_port.sources.validate_port_sources",
+                side_effect=validate,
+            ),
+        ):
+            report = check_port(self.repo, "fixture", donor_root)
+
+        self.assertEqual(
+            report["evidence"]["donors"],
+            {
+                "content": {
+                    "commit": donor.commit,
+                    "sourceTreeDigest": donor.tree_digest,
+                    "fileCount": donor.file_count,
+                }
+            },
+        )
+        self.assertEqual(git(donor_root, "status", "--porcelain=v1"), "")
+
     def test_check_propagates_source_drift(self) -> None:
+        descriptor = CheckDescriptor(
+            assets={"schemaVersion": 1, "assets": ()},
+            donors=(),
+            donors_by_role={},
+        )
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(
-                    assets={"schemaVersion": 1, "assets": ()}, donors_by_role={}
-                ),
+                return_value=descriptor,
             ),
-            patch("tools.content_port.donors.authenticate_donors", return_value=()),
+            patch(
+                "tools.content_port.donors.authenticated_donor_snapshot",
+                side_effect=passthrough_donor_snapshot,
+            ),
             patch(
                 "tools.content_port.sources.validate_port_sources",
                 side_effect=ContentPortError("source preimage drift"),
@@ -543,19 +753,18 @@ class CliTests(unittest.TestCase):
         }
         policy = {"schemaVersion": 1, "assets": (asset,)}
         validate_assets(policy, require_redistributable=False)
+        descriptor = CheckDescriptor(assets=policy, donors=(), donors_by_role={})
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(assets=policy, donors_by_role={}),
+                return_value=descriptor,
             ),
-            patch(
-                "tools.content_port.donors.authenticate_donors", return_value=()
-            ) as authenticate,
+            patch("tools.content_port.donors.authenticated_donor_snapshot") as snapshot,
             patch("tools.content_port.sources.validate_port_sources"),
             self.assertRaisesRegex(ContentPortError, "permission is unknown"),
         ):
             check_port(self.repo, "fixture", self.repo)
-        authenticate.assert_not_called()
+        snapshot.assert_not_called()
 
 
 if __name__ == "__main__":

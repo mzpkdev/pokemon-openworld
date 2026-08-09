@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -15,6 +16,7 @@ from tools.content_port.errors import ContentPortError
 from tools.content_port.ownership import (
     OwnershipManifest,
     OwnershipUnit,
+    canonical_json,
     content_sha256,
 )
 
@@ -68,6 +70,259 @@ class BundleTests(unittest.TestCase):
         (root / "base.txt").write_text("base\n")
         run(root, "git", "add", "base.txt")
         run(root, "git", "commit", "-q", "-m", "base")
+
+    def install_manifest(self, root: Path, manifest: OwnershipManifest) -> None:
+        path = root / f"tools/content_port/ports/{manifest.port}/ownership.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(canonical_json(manifest.to_json()))
+        run(root, "git", "add", "--all", ".")
+        run(root, "git", "commit", "-q", "-m", "installed ownership")
+
+    def apply_bundle_patch(self, root: Path, patch: Path, destination: Path) -> Path:
+        run(root.parent, "git", "clone", "-q", str(root), str(destination))
+        run(destination, "git", "apply", "--binary", str(patch))
+        return destination
+
+    def test_bundle_removes_stale_installed_units_of_every_kind(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            repo = base / "repo"
+            repo.mkdir()
+            self.make_repo(repo)
+            stale_section = (
+                b"// CONTENT PORT BEGIN test:stale\n"
+                b"generated\n"
+                b"// CONTENT PORT END test:stale\n"
+            )
+            stale_record = {"id": "stale", "value": 1}
+            (repo / "stale.bin").write_bytes(b"stale\n")
+            (repo / "shared.h").write_bytes(stale_section + b"hand\n")
+            (repo / "registry.json").write_bytes(
+                canonical_json(
+                    {"records": {"hand": {"value": 2}, "stale": stale_record}}
+                )
+            )
+            installed = OwnershipManifest(
+                "test",
+                (
+                    OwnershipUnit("file", "stale.bin", content_sha256(b"stale\n")),
+                    OwnershipUnit(
+                        "section",
+                        "shared.h",
+                        content_sha256(stale_section),
+                        name="stale",
+                    ),
+                    OwnershipUnit(
+                        "registry-record",
+                        "registry.json",
+                        content_sha256(canonical_json(stale_record)),
+                        registry="records",
+                        key="stale",
+                    ),
+                ),
+            )
+            self.install_manifest(repo, installed)
+
+            artifacts = build_bundle(
+                repo,
+                base / "bundle",
+                OwnershipManifest("test", ()),
+                {},
+                validation_commands=[],
+            )
+            applied = self.apply_bundle_patch(repo, artifacts.patch, base / "applied")
+
+            self.assertFalse((applied / "stale.bin").exists())
+            self.assertEqual((applied / "shared.h").read_bytes(), b"hand\n")
+            self.assertEqual(
+                json.loads((applied / "registry.json").read_text()),
+                {"records": {"hand": {"value": 2}}},
+            )
+            self.assertEqual(
+                OwnershipManifest.load(
+                    applied / "tools/content_port/ports/test/ownership.json"
+                ),
+                OwnershipManifest("test", ()),
+            )
+
+    def test_bundle_adds_desired_units_absent_from_installed_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            repo = base / "repo"
+            repo.mkdir()
+            self.make_repo(repo)
+            self.install_manifest(repo, OwnershipManifest("test", ()))
+            section = (
+                b"// CONTENT PORT BEGIN test:new\n"
+                b"generated\n"
+                b"// CONTENT PORT END test:new\n"
+            )
+            record = {"id": "new", "value": 3}
+            desired = OwnershipManifest(
+                "test",
+                (
+                    OwnershipUnit("file", "new.bin", content_sha256(b"new\n")),
+                    OwnershipUnit(
+                        "section",
+                        "new.h",
+                        content_sha256(section),
+                        name="new",
+                    ),
+                    OwnershipUnit(
+                        "registry-record",
+                        "new.json",
+                        content_sha256(canonical_json(record)),
+                        registry="records",
+                        key="new",
+                    ),
+                ),
+            )
+            payloads = {
+                ("file", "new.bin"): b"new\n",
+                ("section", "new.h", "new"): section,
+                ("registry-record", "new.json", "records", "new"): record,
+            }
+
+            artifacts = build_bundle(
+                repo,
+                base / "bundle",
+                desired,
+                payloads,
+                validation_commands=[],
+            )
+            applied = self.apply_bundle_patch(repo, artifacts.patch, base / "applied")
+
+            self.assertEqual((applied / "new.bin").read_bytes(), b"new\n")
+            self.assertEqual((applied / "new.h").read_bytes(), section)
+            self.assertEqual(
+                json.loads((applied / "new.json").read_text()),
+                {"records": {"new": record}},
+            )
+            self.assertEqual(
+                OwnershipManifest.load(
+                    applied / "tools/content_port/ports/test/ownership.json"
+                ),
+                desired,
+            )
+
+    def test_bundle_refuses_to_claim_existing_unowned_units(self) -> None:
+        section = (
+            b"// CONTENT PORT BEGIN test:new\nhand\n// CONTENT PORT END test:new\n"
+        )
+        replacement_section = section.replace(b"hand", b"generated")
+        cases = (
+            (
+                "file",
+                "hand.txt",
+                b"hand\n",
+                OwnershipUnit("file", "hand.txt", content_sha256(b"generated\n")),
+                b"generated\n",
+            ),
+            (
+                "section",
+                "hand.h",
+                section,
+                OwnershipUnit(
+                    "section",
+                    "hand.h",
+                    content_sha256(replacement_section),
+                    name="new",
+                ),
+                replacement_section,
+            ),
+            (
+                "registry-record",
+                "hand.json",
+                canonical_json({"records": {"new": {"id": "new", "value": "hand"}}}),
+                OwnershipUnit(
+                    "registry-record",
+                    "hand.json",
+                    content_sha256(canonical_json({"id": "new", "value": "generated"})),
+                    registry="records",
+                    key="new",
+                ),
+                {"id": "new", "value": "generated"},
+            ),
+        )
+        for kind, relative, preimage, unit, payload in cases:
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                repo = base / "repo"
+                repo.mkdir()
+                self.make_repo(repo)
+                (repo / relative).write_bytes(preimage)
+                self.install_manifest(repo, OwnershipManifest("test", ()))
+
+                with self.assertRaisesRegex(
+                    ContentPortError, "refuses to claim unowned existing"
+                ):
+                    build_bundle(
+                        repo,
+                        base / "bundle",
+                        OwnershipManifest("test", (unit,)),
+                        {unit.identity: payload},
+                        validation_commands=[],
+                    )
+
+                self.assertEqual((repo / relative).read_bytes(), preimage)
+                self.assertFalse((base / "bundle").exists())
+                self.assertEqual(
+                    subprocess.check_output(["git", "status", "--porcelain"], cwd=repo),
+                    b"",
+                )
+
+    def test_bundle_reads_validation_policy_from_its_fixed_revision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            repo = base / "repo"
+            repo.mkdir()
+            self.make_repo(repo)
+            payload = b"asset\n"
+            target = "data/tilesets/test/asset.bin"
+            unit = OwnershipUnit("file", target, content_sha256(payload))
+            policy = {
+                "schemaVersion": 1,
+                "assets": [
+                    {
+                        "key": target,
+                        "source": "donor",
+                        "donor": "fixture",
+                        "sourcePath": "asset.bin",
+                        "semanticTarget": target,
+                        "sourceSha256": unit.sha256,
+                        "targetSha256": unit.sha256,
+                        "conversionCommand": ["copy-bytes"],
+                        "permission": "redistributable",
+                        "license": "fixture permission",
+                        "permissionEvidence": "fixture",
+                        "capability": "environment-assets",
+                        "supportState": "enabled",
+                    }
+                ],
+            }
+            asset_path = repo / "tools/content_port/ports/test/assets.json"
+            asset_path.parent.mkdir(parents=True)
+            asset_path.write_bytes(canonical_json(policy))
+            self.install_manifest(repo, OwnershipManifest("test", ()))
+            revision = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+            ).strip()
+            policy["assets"][0]["targetSha256"] = content_sha256(b"other\n")
+            asset_path.write_bytes(canonical_json(policy))
+            run(repo, "git", "add", asset_path.relative_to(repo).as_posix())
+            run(repo, "git", "commit", "-q", "-m", "advance policy")
+
+            artifacts = build_bundle(
+                repo,
+                base / "bundle",
+                OwnershipManifest("test", (unit,)),
+                {unit.identity: payload},
+                validation_commands=[],
+                revision=revision,
+            )
+
+            report = json.loads(artifacts.report.read_text())
+            self.assertEqual(report["baseCommit"], revision)
 
     def test_binary_bundle_is_deterministic_and_does_not_touch_caller(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -138,49 +138,46 @@ def build_bundle(
     payloads: Mapping[tuple[str, ...], object],
     report: Mapping[str, object] | None = None,
     *,
-    previous: OwnershipManifest | None = None,
     validation_commands: Sequence[Sequence[str]] | None = None,
     revision: str = "HEAD",
     checked_manifest_path: str | None = None,
     prepare: Callable[[Path], None] | None = None,
 ) -> BundleArtifacts:
-    """Build all artifacts from a complete validated detached desired state."""
+    """Build desired artifacts against installed ownership in the base revision."""
 
     repo = repo.resolve(strict=True)
     require_clean_worktree(repo)
     checked_manifest_path = checked_manifest_path or (
         f"tools/content_port/ports/{desired.port}/ownership.json"
     )
-    asset_path = repo / f"tools/content_port/ports/{desired.port}/assets.json"
-    if asset_path.is_file():
-        try:
-            asset_document = json.loads(asset_path.read_text())
-        except (OSError, json.JSONDecodeError) as error:
-            raise ContentPortError(
-                f"cannot load asset policy {asset_path}: {error}"
-            ) from error
-        if not isinstance(asset_document, dict):
-            raise ContentPortError(f"asset policy must be an object: {asset_path}")
-        validate_asset_ownership(desired, asset_document)
     if output_dir.exists() and output_dir.is_symlink():
         raise ContentPortError(f"bundle output cannot be a symlink: {output_dir}")
-    commands = (
-        tuple(tuple(part for part in command) for command in validation_commands)
-        if validation_commands is not None
-        else project_validation_commands(repo)
-    )
     with detached_worktree(repo, revision) as staging:
+        asset_path = staging / f"tools/content_port/ports/{desired.port}/assets.json"
+        if asset_path.is_file():
+            try:
+                asset_document = json.loads(asset_path.read_text())
+            except (OSError, json.JSONDecodeError) as error:
+                raise ContentPortError(
+                    f"cannot load asset policy {asset_path}: {error}"
+                ) from error
+            if not isinstance(asset_document, dict):
+                raise ContentPortError(f"asset policy must be an object: {asset_path}")
+            validate_asset_ownership(desired, asset_document)
+        commands = (
+            tuple(tuple(part for part in command) for command in validation_commands)
+            if validation_commands is not None
+            else project_validation_commands(staging)
+        )
         manifest_path = staging / checked_manifest_path
-        baseline = previous
-        if baseline is None:
-            baseline = (
-                OwnershipManifest.load(manifest_path)
-                if manifest_path.exists()
-                else OwnershipManifest(desired.port, ())
-            )
+        installed = (
+            OwnershipManifest.load(manifest_path)
+            if manifest_path.exists()
+            else OwnershipManifest(desired.port, ())
+        )
         if prepare is not None:
             prepare(staging)
-        reconcile_owned(staging, baseline, desired, payloads)
+        reconcile_owned(staging, installed, desired, payloads)
         desired.write(manifest_path)
         desired_patch = deterministic_patch(staging)
         run_validation_commands(staging, commands)

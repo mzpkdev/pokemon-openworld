@@ -373,6 +373,72 @@ def verify_owned_baseline(root: Path, manifest: OwnershipManifest) -> None:
             )
 
 
+def verify_desired_claims(
+    root: Path, installed: OwnershipManifest, desired: OwnershipManifest
+) -> None:
+    """Refuse newly desired identities that would seize existing unowned content."""
+
+    if installed.port != desired.port:
+        raise ContentPortError("cannot compare ownership manifests for different ports")
+    installed_identities = set(installed.by_identity)
+    for unit in desired.units:
+        if unit.identity in installed_identities:
+            continue
+        path = safe_repo_path(root, unit.path)
+        if not path.exists():
+            continue
+        if unit.kind == "file":
+            raise ContentPortError(
+                f"refuses to claim unowned existing file {unit.path}"
+            )
+        try:
+            content = path.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"cannot inspect desired ownership path {unit.path}: {error}"
+            ) from error
+        if unit.kind == "section":
+            begin, end = section_markers(desired.port, unit.name or "")
+            legacy_begin, legacy_end = _legacy_section_markers(
+                desired.port, unit.name or ""
+            )
+            if any(
+                _all_positions(content, marker)
+                for marker in (begin, end, legacy_begin, legacy_end)
+            ):
+                raise ContentPortError(
+                    "refuses to claim unowned existing section "
+                    f"{unit.name!r} in {unit.path}"
+                )
+            continue
+        try:
+            document = json.loads(content)
+        except json.JSONDecodeError as error:
+            raise ContentPortError(
+                f"owned registry {unit.path} is not valid JSON: {error}"
+            ) from error
+        records = _registry_container(document, unit.registry or "")
+        if isinstance(records, dict):
+            exists = unit.key in records
+        elif isinstance(records, list):
+            exists = any(
+                isinstance(record, dict)
+                and any(
+                    record.get(field) == unit.key for field in ("key", "id", "name")
+                )
+                for record in records
+            )
+        else:
+            raise ContentPortError(
+                f"registry {unit.registry!r} is not keyed in {unit.path}"
+            )
+        if exists:
+            raise ContentPortError(
+                "refuses to claim unowned existing registry record "
+                f"{unit.key!r} in {unit.path}"
+            )
+
+
 def require_exact_file_ownership(
     manifest: OwnershipManifest, paths: Iterable[str], *, label: str = "emitted files"
 ) -> None:
@@ -420,6 +486,7 @@ def reconcile_owned(
             "cannot reconcile ownership manifests for different ports"
         )
     verify_owned_baseline(root, previous)
+    verify_desired_claims(root, previous, desired)
     desired_by_id = desired.by_identity
     if set(payloads) != set(desired_by_id):
         missing = sorted(set(desired_by_id) - set(payloads))
