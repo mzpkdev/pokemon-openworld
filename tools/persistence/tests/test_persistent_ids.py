@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+import re
 import tempfile
 import subprocess
 import unittest
@@ -21,6 +22,31 @@ from tools.persistence.ledger import (
 
 
 ROOT = Path(__file__).parents[3]
+
+
+def _numeric_macro_match(text: str, symbol: str) -> re.Match[str]:
+    pattern = re.compile(
+        rf"(?m)^[ \t]*#define[ \t]+{re.escape(symbol)}[ \t]+"
+        r"(?P<value>0[xX][0-9A-Fa-f]+|[0-9]+)[ \t]*(?://[^\r\n]*)?$"
+    )
+    matches = list(pattern.finditer(text))
+    if len(matches) != 1:
+        raise AssertionError(f"expected exactly one numeric macro for {symbol}")
+    return matches[0]
+
+
+def _numeric_macro_value(text: str, symbol: str) -> int:
+    return int(_numeric_macro_match(text, symbol).group("value"), 0)
+
+
+def _replace_numeric_macro(
+    text: str, symbol: str, *, expected: int, replacement: int
+) -> str:
+    match = _numeric_macro_match(text, symbol)
+    if int(match.group("value"), 0) != expected:
+        raise AssertionError(f"expected {symbol} to equal {expected}")
+    start, end = match.span("value")
+    return f"{text[:start]}{replacement}{text[end:]}"
 
 
 class PersistentIdTests(unittest.TestCase):
@@ -257,12 +283,13 @@ class PersistentIdTests(unittest.TestCase):
         )
         berry_entry["value"] = 91
         berry_source["value"] = 91
-        header = (ROOT / "include/constants/berry.h").read_text()
-        header = header.replace(
-            "#define BERRY_TREE_ROUTE_29_ORAN_1          90",
-            "#define BERRY_TREE_ROUTE_29_ORAN_1          91",
+        header = _replace_numeric_macro(
+            (ROOT / "include/constants/berry.h").read_text(),
+            berry_symbol,
+            expected=90,
+            replacement=91,
         )
-        self.assertIn("BERRY_TREE_ROUTE_29_ORAN_1          91", header)
+        self.assertEqual(_numeric_macro_value(header, berry_symbol), 91)
         self.assertEqual(berry_entry["value"], berry_source["value"])
 
         with self.assertRaisesRegex(
@@ -289,20 +316,33 @@ class PersistentIdTests(unittest.TestCase):
             for item in sources["explicitAllocations"]
             if item["symbol"] == berry_symbol
         )["value"] = 91
-        header = (
-            (ROOT / "include/constants/berry.h")
-            .read_text()
-            .replace(
-                "#define BERRY_TREE_ROUTE_29_ORAN_1          90",
-                "#define BERRY_TREE_ROUTE_29_ORAN_1          91",
-            )
+        header = _replace_numeric_macro(
+            (ROOT / "include/constants/berry.h").read_text(),
+            berry_symbol,
+            expected=90,
+            replacement=91,
         )
-        self.assertIn("BERRY_TREE_ROUTE_29_ORAN_1          91", header)
+        self.assertEqual(_numeric_macro_value(header, berry_symbol), 91)
         validate_published_allocations(ledger["entries"], current)
         with self.assertRaisesRegex(
             ContractError, r"entries\[1\]: published allocation history changed"
         ):
             validate_published_allocation_history(current, self.published_allocations)
+
+    def test_berry_macro_mutation_is_independent_of_rendered_spacing(self):
+        symbol = "BERRY_TREE_ROUTE_29_ORAN_1"
+        installed = (ROOT / "include/constants/berry.h").read_text()
+        compiler_rendered = f"#define {symbol:<40} 90\n"
+        for label, header in (
+            ("installed", installed),
+            ("compiler-rendered", compiler_rendered),
+        ):
+            with self.subTest(header=label):
+                self.assertEqual(_numeric_macro_value(header, symbol), 90)
+                mutated = _replace_numeric_macro(
+                    header, symbol, expected=90, replacement=91
+                )
+                self.assertEqual(_numeric_macro_value(mutated, symbol), 91)
 
     def test_published_allocation_history_is_append_only(self):
         previous = self.published_allocations
