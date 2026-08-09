@@ -23,7 +23,7 @@ from tools.content_port.ownership import (
     OwnershipUnit,
     content_sha256,
 )
-from tools.content_port.update import validate_assets
+from tools.content_port.update import canonical_bytes, validate_assets
 from tools.content_port.transaction import (
     canonical_bundle_digest,
     guard_active,
@@ -523,7 +523,7 @@ class CliTests(unittest.TestCase):
     def test_check_runs_real_source_validation_and_meaningful_compare(self) -> None:
         donor = DonorPin("donor", "example/donor", "a" * 40, "b" * 64, 1, self.repo)
         descriptor = CheckDescriptor(
-            assets={"schemaVersion": 1, "assets": ()},
+            assets={"schemaVersion": 1, "permissionRecords": {}, "assets": ()},
             donors=(donor,),
             donors_by_role={"mechanical": donor, "content": donor},
         )
@@ -671,7 +671,7 @@ class CliTests(unittest.TestCase):
             donor_root,
         )
         descriptor = CheckDescriptor(
-            assets={"schemaVersion": 1, "assets": ()},
+            assets={"schemaVersion": 1, "permissionRecords": {}, "assets": ()},
             donors=(donor,),
             donors_by_role={"content": donor},
         )
@@ -715,7 +715,7 @@ class CliTests(unittest.TestCase):
 
     def test_check_propagates_source_drift(self) -> None:
         descriptor = CheckDescriptor(
-            assets={"schemaVersion": 1, "assets": ()},
+            assets={"schemaVersion": 1, "permissionRecords": {}, "assets": ()},
             donors=(),
             donors_by_role={},
         )
@@ -737,6 +737,17 @@ class CliTests(unittest.TestCase):
                 check_port(self.repo, "fixture", self.repo)
 
     def test_check_rejects_loadable_unknown_asset_permission(self) -> None:
+        evidence = self.repo / "permission.txt"
+        evidence.write_text("fixture permission\n")
+        permission_record = {
+            "decision": "reviewed",
+            "path": "permission.txt",
+            "permission": "unknown",
+            "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+        }
+        permission_digest = hashlib.sha256(
+            canonical_bytes(permission_record)
+        ).hexdigest()
         asset = {
             "key": "fixture-art",
             "source": "content",
@@ -747,12 +758,20 @@ class CliTests(unittest.TestCase):
             "targetSha256": "a" * 64,
             "conversionCommand": ("copy-bytes",),
             "permission": "unknown",
-            "permissionEvidence": "CREDITS.md#fixture",
+            "permissionEvidence": permission_digest,
             "capability": "environment-assets",
             "supportState": "enabled",
         }
-        policy = {"schemaVersion": 1, "assets": (asset,)}
-        validate_assets(policy, require_redistributable=False)
+        policy = {
+            "schemaVersion": 1,
+            "permissionRecords": {permission_digest: permission_record},
+            "assets": (asset,),
+        }
+        validate_assets(
+            policy,
+            evidence_root=self.repo,
+            require_redistributable=False,
+        )
         descriptor = CheckDescriptor(assets=policy, donors=(), donors_by_role={})
         with (
             patch(

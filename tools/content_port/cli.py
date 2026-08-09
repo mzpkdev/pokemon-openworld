@@ -59,7 +59,11 @@ def check_port(
     from .update import validate_assets
 
     descriptor = load_port(_port_dir(repo, port), donor_root.resolve())
-    validate_assets(descriptor.assets, require_redistributable=True)
+    validate_assets(
+        descriptor.assets,
+        evidence_root=repo,
+        require_redistributable=True,
+    )
     with authenticated_donor_snapshot(descriptor.donors) as snapshots:
         snapshot_by_name = {pin.name: pin for pin in snapshots}
         expected_names = {pin.name for pin in descriptor.donors}

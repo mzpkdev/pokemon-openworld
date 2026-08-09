@@ -74,13 +74,20 @@ def project_validation_commands(repo: Path) -> tuple[tuple[str, ...], ...]:
 
 
 def validate_asset_ownership(
-    manifest: OwnershipManifest, asset_document: Mapping[str, object]
+    manifest: OwnershipManifest,
+    asset_document: Mapping[str, object],
+    *,
+    evidence_root: Path,
 ) -> None:
     """Require every redistributable asset and only ledgered asset paths."""
 
     from .update import validate_assets
 
-    assets = validate_assets(asset_document, require_redistributable=True)
+    assets = validate_assets(
+        asset_document,
+        evidence_root=evidence_root,
+        require_redistributable=True,
+    )
     expected: dict[str, str] = {}
     for asset in assets:
         path = asset["semanticTarget"]
@@ -163,7 +170,11 @@ def build_bundle(
                 ) from error
             if not isinstance(asset_document, dict):
                 raise ContentPortError(f"asset policy must be an object: {asset_path}")
-            validate_asset_ownership(desired, asset_document)
+            validate_asset_ownership(
+                desired,
+                asset_document,
+                evidence_root=staging,
+            )
         commands = (
             tuple(tuple(part for part in command) for command in validation_commands)
             if validation_commands is not None

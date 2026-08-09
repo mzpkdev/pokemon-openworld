@@ -49,6 +49,15 @@ def passed_evidence() -> list[dict[str, object]]:
     ]
 
 
+def empty_policy() -> dict[str, object]:
+    return {
+        "assets": {"schemaVersion": 1, "permissionRecords": {}, "assets": []},
+        "excludedPaths": [],
+        "references": [],
+        "schemaVersion": 1,
+    }
+
+
 class DonorUpdateTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -73,8 +82,20 @@ class DonorUpdateTests(unittest.TestCase):
         return path
 
     def asset_policy(self, permission: str = "redistributable") -> dict[str, object]:
+        evidence = self.root / "permission.txt"
+        evidence.write_text("reviewed fixture permission\n")
+        permission_record = {
+            "decision": "reviewed",
+            "path": "permission.txt",
+            "permission": permission,
+            "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+        }
+        permission_digest = hashlib.sha256(
+            canonical_bytes(permission_record)
+        ).hexdigest()
         return {
             "schemaVersion": 1,
+            "permissionRecords": {permission_digest: permission_record},
             "assets": [
                 {
                     "key": "route-art",
@@ -87,7 +108,7 @@ class DonorUpdateTests(unittest.TestCase):
                     "conversionCommand": ["python3", "convert.py", "asset.bin"],
                     "permission": permission,
                     "license": "author permission",
-                    "permissionEvidence": "CREDITS.md#johto-import",
+                    "permissionEvidence": permission_digest,
                     "capability": "environment-assets",
                     "supportState": "enabled",
                 }
@@ -137,6 +158,7 @@ class DonorUpdateTests(unittest.TestCase):
                 },
             ),
             assets=self.asset_policy(),
+            evidence_root=self.root,
         )
         self.assertEqual(report["addedPaths"][0]["path"], "added.txt")
         self.assertEqual(report["removedPaths"][0]["path"], "asset.bin")
@@ -451,11 +473,106 @@ class DonorUpdateTests(unittest.TestCase):
                 with self.assertRaisesRegex(
                     DonorUpdateError, f"asset route-art: permission is {permission}"
                 ):
-                    validate_assets(self.asset_policy(permission))
+                    validate_assets(
+                        self.asset_policy(permission), evidence_root=self.root
+                    )
         malformed = self.asset_policy()
         del malformed["assets"][0]["conversionCommand"]
         with self.assertRaisesRegex(DonorUpdateError, "missing fields"):
-            validate_assets(malformed)
+            validate_assets(malformed, evidence_root=self.root)
+
+        for mutation, message in (
+            (
+                lambda policy: policy["assets"][0].__setitem__(
+                    "permissionEvidence", "0" * 64
+                ),
+                "unknown permission record",
+            ),
+            (
+                lambda policy: next(
+                    iter(policy["permissionRecords"].values())
+                ).__setitem__("sha256", "0" * 64),
+                "permission record digest is stale",
+            ),
+            (
+                lambda policy: policy["permissionRecords"].__setitem__(
+                    hashlib.sha256(
+                        canonical_bytes(
+                            {
+                                **next(iter(policy["permissionRecords"].values())),
+                                "path": "missing.txt",
+                            }
+                        )
+                    ).hexdigest(),
+                    {
+                        **policy["permissionRecords"].pop(
+                            next(iter(policy["permissionRecords"]))
+                        ),
+                        "path": "missing.txt",
+                    },
+                ),
+                "permission evidence is missing",
+            ),
+        ):
+            policy = self.asset_policy()
+            mutation(policy)
+            with self.assertRaisesRegex(DonorUpdateError, message):
+                validate_assets(policy, evidence_root=self.root)
+
+    def test_historical_migration_uses_immutable_embedded_policy(self) -> None:
+        map_path = self.repo / "data/maps/TestMap/map.json"
+        map_path.parent.mkdir(parents=True)
+        map_path.write_text(json.dumps({"weather": "SUN"}))
+        old_commit = make_commit(self.repo, "weather old")
+        map_path.write_text(json.dumps({"weather": "RAIN"}))
+        new_commit = make_commit(self.repo, "weather new")
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("weather-old", old_commit),
+            new_tree=self.worktree("weather-new", new_commit),
+            references=(
+                {
+                    "authority": "content",
+                    "jsonPointer": "/weather",
+                    "semanticIdentity": "map:TestMap.weather",
+                    "sourcePath": "data/maps/TestMap/map.json",
+                },
+            ),
+        )
+        report["decision"] = "reviewed"
+        report["authorityChanges"][0]["reviewerDisposition"] = "accepted"
+        port_dir = self.root / "historical-port"
+        port_dir.mkdir()
+        # Current policy deliberately no longer contains the weather decision.
+        (port_dir / "adaptations.json").write_text(
+            json.dumps({"schemaVersion": 1, "mapFieldDecisions": []})
+        )
+        verify_migration_evidence(
+            report,
+            port_dir,
+            self.repo,
+            evidence_root=self.root,
+        )
+
+        tampered = copy.deepcopy(report)
+        tampered["policy"]["references"] = []
+        with self.assertRaisesRegex(DonorUpdateError, "fabricated or stale"):
+            verify_migration_evidence(
+                tampered,
+                port_dir,
+                self.repo,
+                evidence_root=self.root,
+            )
+        missing = copy.deepcopy(report)
+        del missing["policy"]
+        with self.assertRaisesRegex(DonorUpdateError, "policy snapshot"):
+            verify_migration_evidence(
+                missing,
+                port_dir,
+                self.repo,
+                evidence_root=self.root,
+            )
 
     def test_reviewed_record_rejects_stale_pin_and_conversion_drift(self) -> None:
         old = self.worktree("old", self.old_commit)
@@ -510,7 +627,7 @@ class DonorUpdateTests(unittest.TestCase):
         host = self.root / "host"
         port = host / "tools/content_port/ports/fixture"
         port.mkdir(parents=True)
-        assets = {"schemaVersion": 1, "assets": []}
+        assets = {"schemaVersion": 1, "permissionRecords": {}, "assets": []}
         (port / "assets.json").write_bytes(canonical_bytes(assets))
         (port / "adaptations.json").write_bytes(
             canonical_bytes(
@@ -591,6 +708,7 @@ class DonorUpdateTests(unittest.TestCase):
             new_tree=new,
             assets=asset_policy,
             tests=passed_evidence(),
+            evidence_root=self.root,
         )
         candidate_digest = migration_digest(report)
         report["decision"] = "reviewed"
@@ -646,6 +764,7 @@ class DonorUpdateTests(unittest.TestCase):
             to_file_count=int(report["to"]["fileCount"]),
             port_dir=port_dir,
             donor_checkout=self.repo,
+            evidence_root=self.root,
         )
         before = port_path.read_bytes()
         candidate = self.root / "donor-migration.json"
@@ -654,7 +773,11 @@ class DonorUpdateTests(unittest.TestCase):
             "tools.content_port.update._validate_target_pin"
         ) as target_check:
             record, proposal = finalize_migration(
-                candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+                candidate,
+                port_dir,
+                donor_root=self.root,
+                repo=Path.cwd(),
+                evidence_root=self.root,
             )
         target_check.assert_called_once()
         self.assertEqual(record.name, migration_filename(report))
@@ -716,6 +839,7 @@ class DonorUpdateTests(unittest.TestCase):
                 "treeDigest": "b" * 64,
             },
             "predecessor": None,
+            "policy": empty_policy(),
             "removedPaths": [],
             "repository": "owner/repo",
             "schemaVersion": 1,
@@ -780,7 +904,7 @@ class DonorUpdateTests(unittest.TestCase):
         }
         (port_dir / "port.json").write_bytes(canonical_bytes(port))
         (port_dir / "assets.json").write_bytes(
-            canonical_bytes({"schemaVersion": 1, "assets": []})
+            canonical_bytes({"schemaVersion": 1, "permissionRecords": {}, "assets": []})
         )
         (port_dir / "adaptations.json").write_bytes(
             canonical_bytes({"schemaVersion": 1})
@@ -815,6 +939,7 @@ class DonorUpdateTests(unittest.TestCase):
                 "treeDigest": "b" * 64,
             },
             "predecessor": None,
+            "policy": empty_policy(),
             "removedPaths": [],
             "repository": "owner/repo",
             "schemaVersion": 1,
@@ -839,7 +964,7 @@ class CheckedAssetLedgerTests(unittest.TestCase):
         policy = json.loads(
             Path("tools/content_port/ports/johto/assets.json").read_text()
         )
-        assets = validate_assets(policy)
+        assets = validate_assets(policy, evidence_root=Path.cwd())
         declared = {str(asset["semanticTarget"]) for asset in assets}
         roots = {
             Path(target).parent.parent
@@ -863,7 +988,10 @@ class CheckedAssetLedgerTests(unittest.TestCase):
                 self.assertEqual(asset["targetSha256"], digest)
                 self.assertEqual(asset["sourceSha256"], digest)
                 self.assertEqual(asset["conversionCommand"], ["copy-bytes"])
-                self.assertEqual(asset["permissionEvidence"], "CREDITS.md#johto-import")
+                self.assertEqual(
+                    asset["permissionEvidence"],
+                    "0efc89c74162ec6967f3a7b0acf9a8e639f6ec2289ec316bb284673ec45bce05",
+                )
 
 
 if __name__ == "__main__":

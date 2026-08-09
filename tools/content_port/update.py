@@ -38,6 +38,7 @@ MIGRATION_KEYS = {
     "donor",
     "from",
     "predecessor",
+    "policy",
     "removedPaths",
     "repository",
     "schemaVersion",
@@ -352,6 +353,7 @@ def _authority_changes(
 def validate_assets(
     document: Mapping[str, object],
     *,
+    evidence_root: Path | None = None,
     require_redistributable: bool = True,
 ) -> tuple[Mapping[str, object], ...]:
     """Validate complete asset provenance and permission metadata."""
@@ -371,11 +373,71 @@ def validate_assets(
         "capability",
         "supportState",
     }
+    if set(document) != {"schemaVersion", "permissionRecords", "assets"}:
+        raise DonorUpdateError("assets.json: expected exact asset policy fields")
     assets = document.get("assets")
-    if document.get("schemaVersion") != SCHEMA_VERSION or not isinstance(
-        assets, (list, tuple)
+    permission_records = document.get("permissionRecords")
+    if (
+        document.get("schemaVersion") != SCHEMA_VERSION
+        or not isinstance(assets, (list, tuple))
+        or not isinstance(permission_records, Mapping)
     ):
-        raise DonorUpdateError("assets.json: expected schemaVersion 1 and assets list")
+        raise DonorUpdateError(
+            "assets.json: expected schemaVersion 1, permissionRecords, and assets"
+        )
+    if evidence_root is None:
+        raise DonorUpdateError("assets.json: permission evidence root is required")
+    evidence_root = evidence_root.resolve()
+    validated_permissions: dict[str, str] = {}
+    for key, raw in sorted(permission_records.items()):
+        pointer = f"$.permissionRecords.{key}"
+        if (
+            not isinstance(key, str)
+            or len(key) != 64
+            or any(character not in "0123456789abcdef" for character in key)
+        ):
+            raise DonorUpdateError(f"{pointer}: expected content-addressed record key")
+        if not isinstance(raw, Mapping) or set(raw) != {
+            "decision",
+            "path",
+            "permission",
+            "sha256",
+        }:
+            raise DonorUpdateError(f"{pointer}: expected exact permission record")
+        if raw["decision"] != "reviewed":
+            raise DonorUpdateError(f"{pointer}.decision: permission is not reviewed")
+        if hashlib.sha256(canonical_bytes(raw)).hexdigest() != key:
+            raise DonorUpdateError(f"{pointer}: permission record digest is stale")
+        permission = raw["permission"]
+        if permission not in PERMISSION_STATES:
+            raise DonorUpdateError(f"{pointer}.permission: unknown permission state")
+        relative = _safe_source_path(raw["path"], f"{pointer}.path")
+        digest = raw["sha256"]
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise DonorUpdateError(f"{pointer}.sha256: expected lowercase SHA-256")
+        evidence_path = evidence_root / PurePosixPath(relative)
+        try:
+            resolved_evidence = evidence_path.resolve(strict=True)
+            resolved_evidence.relative_to(evidence_root)
+        except (OSError, ValueError) as error:
+            raise DonorUpdateError(
+                f"{pointer}.path: permission evidence is missing"
+            ) from error
+        if resolved_evidence != evidence_path or not evidence_path.is_file():
+            raise DonorUpdateError(f"{pointer}.path: permission evidence is missing")
+        try:
+            actual_digest = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+        except OSError as error:
+            raise DonorUpdateError(
+                f"{pointer}.path: cannot read permission evidence"
+            ) from error
+        if actual_digest != digest:
+            raise DonorUpdateError(f"{pointer}.sha256: permission evidence is stale")
+        validated_permissions[key] = str(permission)
     seen: set[str] = set()
     result: list[Mapping[str, object]] = []
     for index, asset in enumerate(assets):
@@ -443,6 +505,16 @@ def validate_assets(
             raise DonorUpdateError(
                 f"{pointer}.permissionEvidence: expected a non-empty string"
             )
+        evidence_key = str(asset["permissionEvidence"])
+        evidence_permission = validated_permissions.get(evidence_key)
+        if evidence_permission is None:
+            raise DonorUpdateError(
+                f"{pointer}.permissionEvidence: unknown permission record"
+            )
+        if permission != evidence_permission:
+            raise DonorUpdateError(
+                f"{pointer}.permission: differs from reviewed permission record"
+            )
         if require_redistributable and permission != "redistributable":
             raise DonorUpdateError(f"asset {key}: permission is {permission}")
         support_state = asset["supportState"]
@@ -451,6 +523,14 @@ def validate_assets(
                 f"{pointer}.supportState: unknown state {support_state!r}"
             )
         result.append(asset)
+    unused_permissions = sorted(
+        set(validated_permissions)
+        - {str(asset["permissionEvidence"]) for asset in result}
+    )
+    if unused_permissions:
+        raise DonorUpdateError(
+            f"assets.json: unused permission record {unused_permissions[0]!r}"
+        )
     return tuple(result)
 
 
@@ -490,6 +570,77 @@ def _asset_changes(
     return changes
 
 
+def _migration_policy(
+    value: object,
+    *,
+    evidence_root: Path,
+) -> tuple[tuple[Mapping[str, object], ...], Mapping[str, object], tuple[str, ...]]:
+    if not isinstance(value, Mapping) or set(value) != {
+        "assets",
+        "excludedPaths",
+        "references",
+        "schemaVersion",
+    }:
+        raise DonorUpdateError("$.policy: expected exact migration policy snapshot")
+    if value.get("schemaVersion") != SCHEMA_VERSION:
+        raise DonorUpdateError("$.policy.schemaVersion: unsupported policy snapshot")
+    references = value.get("references")
+    excluded_paths = value.get("excludedPaths")
+    assets = value.get("assets")
+    if (
+        not isinstance(references, (list, tuple))
+        or not all(isinstance(reference, Mapping) for reference in references)
+        or not isinstance(excluded_paths, (list, tuple))
+        or not all(isinstance(path, str) for path in excluded_paths)
+        or not isinstance(assets, Mapping)
+    ):
+        raise DonorUpdateError("$.policy: invalid migration policy snapshot")
+    validate_assets(
+        assets,
+        evidence_root=evidence_root,
+        require_redistributable=False,
+    )
+    return tuple(references), assets, tuple(excluded_paths)
+
+
+def _build_policy_snapshot(
+    references: Iterable[Mapping[str, object]],
+    assets: Mapping[str, object] | None,
+    excluded_paths: Iterable[str],
+) -> Mapping[str, object]:
+    asset_policy: Mapping[str, object] = assets or {
+        "schemaVersion": SCHEMA_VERSION,
+        "permissionRecords": {},
+        "assets": [],
+    }
+    value = {
+        "assets": asset_policy,
+        "excludedPaths": sorted(excluded_paths),
+        "references": sorted(
+            (dict(reference) for reference in references),
+            key=canonical_bytes,
+        ),
+        "schemaVersion": SCHEMA_VERSION,
+    }
+    return json.loads(canonical_bytes(value))
+
+
+def _filter_asset_policy(
+    document: Mapping[str, object], assets: Sequence[Mapping[str, object]]
+) -> Mapping[str, object]:
+    permission_records = document.get("permissionRecords")
+    if not isinstance(permission_records, Mapping):
+        raise DonorUpdateError("assets.json: permissionRecords must be an object")
+    evidence_keys = {str(asset["permissionEvidence"]) for asset in assets}
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "permissionRecords": {
+            key: permission_records[key] for key in sorted(evidence_keys)
+        },
+        "assets": list(assets),
+    }
+
+
 def build_migration(
     *,
     donor: str,
@@ -501,9 +652,12 @@ def build_migration(
     tests: Iterable[Mapping[str, object]] = (),
     predecessor: str | None = None,
     excluded_paths: Iterable[str] = (),
+    evidence_root: Path | None = None,
 ) -> dict[str, object]:
     """Build a deterministic, non-authoritative donor migration candidate."""
 
+    references = tuple(references)
+    excluded_paths = tuple(excluded_paths)
     old = identify_tree(old_tree, excluded_paths=excluded_paths)
     new = identify_tree(new_tree, excluded_paths=excluded_paths)
     old_paths = set(old.files)
@@ -525,9 +679,13 @@ def build_migration(
         for path in sorted(old_paths & new_paths)
         if old.files[path] != new.files[path]
     ]
-    asset_specs = (
-        validate_assets(assets, require_redistributable=False) if assets else ()
-    )
+    asset_specs = ()
+    if assets:
+        asset_specs = validate_assets(
+            assets,
+            evidence_root=evidence_root,
+            require_redistributable=False,
+        )
     report: dict[str, object] = {
         "addedPaths": added_paths,
         "assets": _asset_changes(old_tree, new_tree, old, new, asset_specs),
@@ -542,6 +700,7 @@ def build_migration(
             "treeDigest": old.digest,
         },
         "predecessor": predecessor,
+        "policy": _build_policy_snapshot(references, assets, excluded_paths),
         "removedPaths": removed_paths,
         "repository": repository,
         "schemaVersion": SCHEMA_VERSION,
@@ -789,6 +948,7 @@ def finalize_migration(
     port_dir: Path,
     donor_root: Path | None = None,
     repo: Path | None = None,
+    evidence_root: Path | None = None,
 ) -> tuple[Path, Path]:
     """Publish a human-reviewed record and an exact, non-mutating pin proposal."""
 
@@ -818,6 +978,8 @@ def finalize_migration(
     if repo is None:
         repo = port_dir.resolve().parents[3]
     repo = repo.resolve()
+    if evidence_root is None:
+        evidence_root = repo
     if list(run_review_commands(repo)) != report["tests"]:
         raise DonorUpdateError("$.tests: recorded command evidence is stale")
     if not isinstance(port, dict) or not isinstance(port.get("donors"), dict):
@@ -842,7 +1004,12 @@ def finalize_migration(
     root = current.get("root")
     if not isinstance(root, str):
         raise DonorUpdateError(f"donor {donor}: port policy has invalid root")
-    verify_migration_evidence(report, port_dir, donor_root / root)
+    verify_migration_evidence(
+        report,
+        port_dir,
+        donor_root / root,
+        evidence_root=evidence_root,
+    )
     _validate_target_pin(repo, port_dir, donor_root, donor, report)
 
     digest = migration_digest(report)
@@ -886,6 +1053,7 @@ def validate_reviewed_migration(
     port_dir: Path | None = None,
     donor_checkout: Path | None = None,
     review_repo: Path | None = None,
+    evidence_root: Path | None = None,
 ) -> None:
     """Require an exact reviewed record for a descriptor pin transition."""
 
@@ -925,6 +1093,8 @@ def validate_reviewed_migration(
     _validate_reviewed_contents(report)
     if review_repo is None:
         review_repo = Path(__file__).resolve().parents[2]
+    if evidence_root is None:
+        evidence_root = review_repo
     if list(run_review_commands(review_repo)) != report["tests"]:
         raise DonorUpdateError("$.tests: recorded command evidence is stale")
     if expected_assets is not None:
@@ -950,7 +1120,12 @@ def validate_reviewed_migration(
         raise DonorUpdateError(
             f"donor {donor}: reviewed migration needs authenticated from/to trees"
         )
-    verify_migration_evidence(report, port_dir, donor_checkout)
+    verify_migration_evidence(
+        report,
+        port_dir,
+        donor_checkout,
+        evidence_root=evidence_root,
+    )
 
 
 def load_reviewed_migration(
@@ -1240,7 +1415,11 @@ def _without_disposition(changes: object, pointer: str) -> list[dict[str, object
 
 
 def verify_migration_evidence(
-    report: Mapping[str, object], port_dir: Path, donor_checkout: Path
+    report: Mapping[str, object],
+    port_dir: Path,
+    donor_checkout: Path,
+    *,
+    evidence_root: Path | None = None,
 ) -> None:
     """Recompute every claimed drift field from the two authenticated commits."""
 
@@ -1250,34 +1429,11 @@ def verify_migration_evidence(
     target = _pin_identity(report.get("to"), "$.to")
     if not isinstance(donor, str) or not isinstance(repository, str):
         raise DonorUpdateError("migration has invalid donor identity")
-    try:
-        assets_document = json.loads(
-            (port_dir / "assets.json").read_text(encoding="utf-8")
-        )
-        adaptations_document = json.loads(
-            (port_dir / "adaptations.json").read_text(encoding="utf-8")
-        )
-        port_document = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise DonorUpdateError("cannot load migration comparison policy") from error
-    if (
-        not isinstance(assets_document, dict)
-        or not isinstance(adaptations_document, dict)
-        or not isinstance(port_document, dict)
-    ):
-        raise DonorUpdateError("migration comparison policy is invalid")
-    record = _descriptor_donor_record(port_document, donor)
-    allocations_document = _allocation_policy(port_dir, port_document)
-    excluded_paths = record.get("excludePaths")
-    if not isinstance(excluded_paths, list) or not all(
-        isinstance(path, str) for path in excluded_paths
-    ):
-        raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
-    assets = validate_assets(assets_document, require_redistributable=False)
-    filtered_assets = {
-        "schemaVersion": SCHEMA_VERSION,
-        "assets": [asset for asset in assets if asset.get("donor") == donor],
-    }
+    if evidence_root is None:
+        evidence_root = port_dir.resolve().parent
+    references, filtered_assets, excluded_paths = _migration_policy(
+        report.get("policy"), evidence_root=evidence_root
+    )
     with tempfile.TemporaryDirectory(
         prefix="content-port-migration-verify-"
     ) as directory:
@@ -1301,9 +1457,6 @@ def verify_migration_evidence(
                 str(new_tree),
                 str(target["commit"]),
             )
-            references = _policy_references(
-                adaptations_document, donor, allocations_document
-            )
             recomputed = build_migration(
                 donor=donor,
                 repository=repository,
@@ -1314,6 +1467,7 @@ def verify_migration_evidence(
                 tests=report.get("tests", ()),  # type: ignore[arg-type]
                 predecessor=report.get("predecessor"),  # type: ignore[arg-type]
                 excluded_paths=excluded_paths,
+                evidence_root=evidence_root,
             )
         finally:
             for tree in (old_tree, new_tree):
@@ -1331,7 +1485,14 @@ def verify_migration_evidence(
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
                     )
-    for field in ("from", "to", "addedPaths", "removedPaths", "changedPaths"):
+    for field in (
+        "from",
+        "to",
+        "policy",
+        "addedPaths",
+        "removedPaths",
+        "changedPaths",
+    ):
         if report.get(field) != recomputed[field]:
             raise DonorUpdateError(f"migration {field} evidence is fabricated or stale")
     for field in ("authorityChanges", "assets"):
@@ -1388,15 +1549,15 @@ def run_donor_update(
     ):
         raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
 
-    asset_records = validate_assets(assets_document, require_redistributable=False)
-    filtered_assets = {
-        "schemaVersion": assets_document.get("schemaVersion"),
-        "assets": [
-            asset
-            for asset in asset_records
-            if isinstance(asset, dict) and asset.get("donor") in (donor, name)
-        ],
-    }
+    asset_records = validate_assets(
+        assets_document,
+        evidence_root=repo,
+        require_redistributable=False,
+    )
+    filtered_assets = _filter_asset_policy(
+        assets_document,
+        [asset for asset in asset_records if asset.get("donor") in (donor, name)],
+    )
 
     with tempfile.TemporaryDirectory(prefix="content-port-donor-update-") as directory:
         temporary = Path(directory)
@@ -1420,6 +1581,7 @@ def run_donor_update(
                 tests=run_review_commands(repo),
                 predecessor=record.get("migration"),
                 excluded_paths=excluded_paths,
+                evidence_root=repo,
             )
             _validate_target_pin(repo, port_dir, donor_root, donor, report)
             _atomic_write(

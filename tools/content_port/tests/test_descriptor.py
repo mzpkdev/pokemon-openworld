@@ -504,7 +504,10 @@ class DescriptorTests(unittest.TestCase):
         }
         dump(root / "adaptations.json", adaptations)
         dump(root / "events.json", {"schemaVersion": 1, "entries": []})
-        dump(root / "assets.json", {"schemaVersion": 1, "assets": []})
+        dump(
+            root / "assets.json",
+            {"schemaVersion": 1, "permissionRecords": {}, "assets": []},
+        )
         dump(root / "legacy_report.json", {"schemaVersion": 1, "inventory": {}})
         port = {
             "schemaVersion": 1,

@@ -91,6 +91,7 @@ MIGRATION_KEYS = {
     "donor",
     "from",
     "predecessor",
+    "policy",
     "removedPaths",
     "repository",
     "schemaVersion",
@@ -1316,14 +1317,25 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     )
     assets = _load_policy(
         _safe_child(port_dir, root["assetPolicy"], "$.assetPolicy"),
-        {"schemaVersion", "assets"},
+        {"schemaVersion", "permissionRecords", "assets"},
         "$",
     )
     # Asset policy has domain-specific field and permission validation in the
     # donor-governance module. Blocked entries remain loadable by design.
     from .update import validate_assets
 
-    validate_assets(_thaw(assets), require_redistributable=False)  # type: ignore[arg-type]
+    validate_assets(  # type: ignore[arg-type]
+        _thaw(assets),
+        evidence_root=next(
+            (
+                candidate
+                for candidate in (port_dir, *port_dir.parents)
+                if (candidate / ".git").exists()
+            ),
+            port_dir,
+        ),
+        require_redistributable=False,
+    )
     legacy = (
         _load_policy(
             _safe_child(port_dir, root["legacyReport"], "$.legacyReport"), None, "$"

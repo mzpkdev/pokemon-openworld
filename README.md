@@ -137,6 +137,12 @@ exact `donor-port-update.json` proposal without editing `port.json`. The tool
 never moves a branch or creates a commit; only the resulting reviewed Git commit
 publishes generated output.
 
+Migration records embed the canonical authority references, asset recipe, and
+donor exclusions used for their evidence, so later policy edits cannot redefine
+history. Asset permission labels are backed by reviewed content-addressed
+evidence records: descriptor loading, `check`, migration validation, and bundle
+creation all re-hash the exact repository evidence file.
+
 The production `check` command enforces that permission gate before donor source
 validation. Consequently the required `Donor Contracts` job cannot pass while a
 blocked or unknown asset remains in the emitted asset ledger, even when those

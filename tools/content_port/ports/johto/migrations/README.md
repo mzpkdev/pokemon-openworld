@@ -36,6 +36,18 @@ all authority-field and asset impacts, reruns the required command evidence, and
 rejects any omitted or fabricated report entry. CI therefore uses full public
 donor history instead of a single-commit shallow checkout.
 
+Every migration embeds the canonical authority references, asset recipe, and
+donor exclusions used to produce its evidence. Historical records are always
+recomputed from that immutable snapshot; later edits to `adaptations.json` or
+`assets.json` cannot redefine old evidence. The separate proposed-target check
+still loads the current policy and materializes it against the proposed pin.
+
+Asset `permissionEvidence` names an exact record in `assets.json`. Each record
+must have a `reviewed` decision, an explicit permission, a safe repository path,
+and the SHA-256 of that file's exact bytes. Loading, checking, migration review,
+and bundle creation all resolve and hash the evidence again. Missing, changed,
+unreviewed, blocked, or unknown evidence fails closed.
+
 The committed pin is authoritative only when its exact target matches the head
 record and the complete predecessor chain reaches the authored genesis identity.
 Publication remains a normal reviewed Git commit; the content-port tool never

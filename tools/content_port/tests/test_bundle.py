@@ -19,6 +19,7 @@ from tools.content_port.ownership import (
     canonical_json,
     content_sha256,
 )
+from tools.content_port.update import canonical_bytes
 
 
 def run(root: Path, *command: str) -> None:
@@ -29,6 +30,15 @@ def run(root: Path, *command: str) -> None:
 
 class BundleTests(unittest.TestCase):
     def test_asset_ledger_and_ownership_are_exact(self) -> None:
+        evidence_root = Path.cwd()
+        evidence_digest = content_sha256((evidence_root / "CREDITS.md").read_bytes())
+        permission_record = {
+            "decision": "reviewed",
+            "path": "CREDITS.md",
+            "permission": "redistributable",
+            "sha256": evidence_digest,
+        }
+        permission_digest = content_sha256(canonical_bytes(permission_record))
         digest = content_sha256(b"asset")
         unit = OwnershipUnit("file", "data/tilesets/test/asset.bin", digest)
         manifest = OwnershipManifest("test", (unit,))
@@ -43,12 +53,16 @@ class BundleTests(unittest.TestCase):
             "conversionCommand": ["copy-bytes"],
             "permission": "redistributable",
             "license": "fixture permission",
-            "permissionEvidence": "fixture",
+            "permissionEvidence": permission_digest,
             "capability": "environment-assets",
             "supportState": "enabled",
         }
-        policy = {"schemaVersion": 1, "assets": [asset]}
-        validate_asset_ownership(manifest, policy)
+        policy = {
+            "schemaVersion": 1,
+            "permissionRecords": {permission_digest: permission_record},
+            "assets": [asset],
+        }
+        validate_asset_ownership(manifest, policy, evidence_root=evidence_root)
         with self.assertRaisesRegex(ContentPortError, "hash differs"):
             validate_asset_ownership(
                 OwnershipManifest(
@@ -56,12 +70,17 @@ class BundleTests(unittest.TestCase):
                     (OwnershipUnit("file", unit.path, content_sha256(b"different")),),
                 ),
                 policy,
+                evidence_root=evidence_root,
             )
         extra = OwnershipUnit(
             "file", "data/tilesets/test/unledgered.bin", content_sha256(b"extra")
         )
         with self.assertRaisesRegex(ContentPortError, "unledgered"):
-            validate_asset_ownership(OwnershipManifest("test", (unit, extra)), policy)
+            validate_asset_ownership(
+                OwnershipManifest("test", (unit, extra)),
+                policy,
+                evidence_root=evidence_root,
+            )
 
     def make_repo(self, root: Path) -> None:
         run(root, "git", "init", "-q")
@@ -278,10 +297,20 @@ class BundleTests(unittest.TestCase):
             repo.mkdir()
             self.make_repo(repo)
             payload = b"asset\n"
+            permission_path = repo / "PERMISSION.txt"
+            permission_path.write_text("reviewed fixture permission\n")
+            permission_record = {
+                "decision": "reviewed",
+                "path": "PERMISSION.txt",
+                "permission": "redistributable",
+                "sha256": content_sha256(permission_path.read_bytes()),
+            }
+            permission_digest = content_sha256(canonical_bytes(permission_record))
             target = "data/tilesets/test/asset.bin"
             unit = OwnershipUnit("file", target, content_sha256(payload))
             policy = {
                 "schemaVersion": 1,
+                "permissionRecords": {permission_digest: permission_record},
                 "assets": [
                     {
                         "key": target,
@@ -294,7 +323,7 @@ class BundleTests(unittest.TestCase):
                         "conversionCommand": ["copy-bytes"],
                         "permission": "redistributable",
                         "license": "fixture permission",
-                        "permissionEvidence": "fixture",
+                        "permissionEvidence": permission_digest,
                         "capability": "environment-assets",
                         "supportState": "enabled",
                     }
