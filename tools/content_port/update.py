@@ -831,7 +831,12 @@ def _policy_references(
         raw_fallback = fallback_policy.get("maps", [])
         if isinstance(raw_fallback, (list, tuple)):
             fallback_maps = {name for name in raw_fallback if isinstance(name, str)}
-    for policy_key in ("warpReindexes", "warpRemovals", "berryTreeAllocations"):
+    for policy_key in (
+        "warpReindexes",
+        "warpRemovals",
+        "berryTreeAllocations",
+        "deferredEdges",
+    ):
         for decision in adaptations.get(policy_key, []):
             if not isinstance(decision, Mapping):
                 continue
@@ -924,7 +929,24 @@ def _policy_references(
                         "sourcePath": "data/layouts/layouts.json",
                     }
                 )
-    return tuple(references)
+    unique: list[Mapping[str, object]] = []
+    seen: set[tuple[object, ...]] = set()
+    for reference in references:
+        identity = tuple(
+            reference.get(field)
+            for field in (
+                "authority",
+                "sourcePath",
+                "jsonPointer",
+                "semanticIdentity",
+                "layoutId",
+                "field",
+            )
+        )
+        if identity not in seen:
+            seen.add(identity)
+            unique.append(reference)
+    return tuple(unique)
 
 
 def _without_disposition(changes: object, pointer: str) -> list[dict[str, object]]:

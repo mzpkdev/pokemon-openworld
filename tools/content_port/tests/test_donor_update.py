@@ -315,7 +315,12 @@ class DonorUpdateTests(unittest.TestCase):
 
         transformed_content_paths = {
             f"map:{item['source']}.{item['path']}"
-            for key in ("warpReindexes", "warpRemovals", "berryTreeAllocations")
+            for key in (
+                "warpReindexes",
+                "warpRemovals",
+                "berryTreeAllocations",
+                "deferredEdges",
+            )
             for item in policy[key]
             if item["source"] not in set(policy["contentFallback"]["maps"])
         }
