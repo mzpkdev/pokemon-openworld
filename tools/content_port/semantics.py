@@ -18,6 +18,18 @@ from .errors import ContentPortError
 LABEL_RE = re.compile(r"^\s*([A-Za-z_.$][A-Za-z0-9_.$]*)::?\s*(?:@.*)?$")
 INCLUDE_RE = re.compile(r'^\s*\.include\s+"([^"]+)"')
 COMMAND_RE = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(.*?)\s*$")
+EFFECT_KINDS = frozenset(
+    {
+        "state-read",
+        "state-write",
+        "special",
+        "movement",
+        "warp",
+        "callback",
+        "side-effect",
+    }
+)
+ENTRY_CLASSIFICATIONS = frozenset({"enabled", "story-owned", "deferred", "unsupported"})
 
 
 @dataclass(frozen=True, order=True)
@@ -85,46 +97,100 @@ def _split_operands(text: str) -> tuple[str, ...]:
     return tuple(value for value in values if value)
 
 
+def _json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ContentPortError(f"duplicate JSON field {key!r}")
+        result[key] = value
+    return result
+
+
+def _read_json(source: Path, description: str) -> object:
+    try:
+        return json.loads(
+            source.read_text(encoding="utf-8"), object_pairs_hook=_json_object
+        )
+    except (OSError, json.JSONDecodeError, ContentPortError) as exc:
+        raise ContentPortError(f"{source}: invalid {description}: {exc}") from exc
+
+
+def _exact_object(value: object, keys: set[str], pointer: str) -> Mapping[str, object]:
+    if not isinstance(value, dict):
+        raise ContentPortError(f"{pointer}: must be an object")
+    unknown = sorted(set(value) - keys)
+    missing = sorted(keys - set(value))
+    if unknown:
+        raise ContentPortError(f"{pointer}: unknown field {unknown[0]!r}")
+    if missing:
+        raise ContentPortError(f"{pointer}: missing field {missing[0]!r}")
+    return value
+
+
+def _nonempty_string(value: object, pointer: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise ContentPortError(f"{pointer}: must be a non-empty string")
+    return value
+
+
 def load_opcodes(path: Path | str | None = None) -> Mapping[str, Opcode]:
     source = (
         Path(path) if path is not None else Path(__file__).with_name("opcodes.json")
     )
-    try:
-        document = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ContentPortError(f"{source}: invalid opcode inventory: {exc}") from exc
-    if not isinstance(document, dict):
-        raise ContentPortError(f"{source}: opcode inventory must be an object")
+    document = _exact_object(
+        _read_json(source, "opcode inventory"),
+        {"schemaVersion", "opcodes"},
+        str(source),
+    )
+    if type(document["schemaVersion"]) is not int or document["schemaVersion"] != 1:
+        raise ContentPortError(f"{source}/schemaVersion: unsupported opcode schema")
+    inventory = document["opcodes"]
+    if not isinstance(inventory, dict) or not inventory:
+        raise ContentPortError(f"{source}/opcodes: must be a non-empty object")
     result: dict[str, Opcode] = {}
-    for command, spec in document.items():
-        if not isinstance(spec, dict):
-            raise ContentPortError(f"{source}/{command}: opcode must be an object")
-        effects: list[tuple[str, int | None]] = []
-        for effect in spec.get("effects", []):
-            if not isinstance(effect, dict) or effect.get("kind") not in {
-                "state-read",
-                "state-write",
-                "special",
-                "movement",
-                "warp",
-                "callback",
-                "side-effect",
-            }:
-                raise ContentPortError(f"{source}/{command}/effects: invalid effect")
-            operand = effect.get("operand")
-            if operand is not None and (not isinstance(operand, int) or operand < 0):
-                raise ContentPortError(
-                    f"{source}/{command}/effects: invalid operand index"
-                )
-            effects.append((effect["kind"], operand))
-        calls = spec.get("calls", [])
-        if not isinstance(calls, list) or any(
-            not isinstance(item, int) or item < 0 for item in calls
-        ):
-            raise ContentPortError(f"{source}/{command}/calls: invalid call operand")
-        result[command] = Opcode(
-            tuple(effects), tuple(calls), bool(spec.get("terminal", False))
+    for command, raw_spec in inventory.items():
+        _nonempty_string(command, f"{source}/opcodes command")
+        spec = _exact_object(
+            raw_spec,
+            {"effects", "calls", "terminal"},
+            f"{source}/opcodes/{command}",
         )
+        raw_effects = spec["effects"]
+        if not isinstance(raw_effects, list):
+            raise ContentPortError(
+                f"{source}/opcodes/{command}/effects: must be a list"
+            )
+        effects: list[tuple[str, int | None]] = []
+        for index, raw_effect in enumerate(raw_effects):
+            effect = _exact_object(
+                raw_effect,
+                {"kind", "operand"},
+                f"{source}/opcodes/{command}/effects/{index}",
+            )
+            if effect["kind"] not in EFFECT_KINDS:
+                raise ContentPortError(
+                    f"{source}/opcodes/{command}/effects/{index}/kind: invalid effect"
+                )
+            operand = effect["operand"]
+            if operand is not None and (type(operand) is not int or operand < 0):
+                raise ContentPortError(
+                    f"{source}/opcodes/{command}/effects/{index}/operand: "
+                    "invalid operand index"
+                )
+            effects.append((str(effect["kind"]), operand))
+        calls = spec["calls"]
+        if not isinstance(calls, list) or any(
+            type(item) is not int or item < 0 for item in calls
+        ):
+            raise ContentPortError(
+                f"{source}/opcodes/{command}/calls: invalid call operand"
+            )
+        terminal = spec["terminal"]
+        if type(terminal) is not bool:
+            raise ContentPortError(
+                f"{source}/opcodes/{command}/terminal: must be a boolean"
+            )
+        result[command] = Opcode(tuple(effects), tuple(calls), terminal)
     return result
 
 
@@ -352,40 +418,61 @@ def load_event_policy(
     path: Path | str,
 ) -> tuple[Mapping[str, EventEntry], Mapping[EffectKey, str]]:
     source = Path(path)
-    try:
-        document = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ContentPortError(f"{source}: invalid event policy: {exc}") from exc
-    if not isinstance(document, dict):
-        raise ContentPortError(f"{source}: event policy must be an object")
+    document = _exact_object(
+        _read_json(source, "event policy"),
+        {"schemaVersion", "entries", "effects"},
+        str(source),
+    )
+    if type(document["schemaVersion"]) is not int or document["schemaVersion"] != 1:
+        raise ContentPortError(f"{source}/schemaVersion: unsupported event schema")
+    raw_entries = document["entries"]
+    if not isinstance(raw_entries, list):
+        raise ContentPortError(f"{source}/entries: must be a list")
     entries: dict[str, EventEntry] = {}
-    for index, raw in enumerate(document.get("entries", [])):
-        try:
-            entry = EventEntry(
-                str(raw["name"]), str(raw["capability"]), str(raw["classification"])
-            )
-        except (KeyError, TypeError) as exc:
+    for index, raw in enumerate(raw_entries):
+        item = _exact_object(
+            raw, {"name", "capability", "classification"}, f"{source}/entries/{index}"
+        )
+        entry = EventEntry(
+            _nonempty_string(item["name"], f"{source}/entries/{index}/name"),
+            _nonempty_string(
+                item["capability"], f"{source}/entries/{index}/capability"
+            ),
+            _nonempty_string(
+                item["classification"], f"{source}/entries/{index}/classification"
+            ),
+        )
+        if entry.classification not in ENTRY_CLASSIFICATIONS:
             raise ContentPortError(
-                f"{source}/entries/{index}: malformed event entry"
-            ) from exc
+                f"{source}/entries/{index}/classification: unknown classification"
+            )
         if entry.name in entries:
             raise ContentPortError(
                 f"{source}/entries/{index}: duplicate event entry {entry.name}"
             )
         entries[entry.name] = entry
     policy: dict[EffectKey, str] = {}
-    for index, raw in enumerate(document.get("effects", [])):
-        try:
-            key = (
-                str(raw["kind"]),
-                str(raw["command"]),
-                str(raw["operand"]) if raw.get("operand") is not None else None,
-            )
-            owner = str(raw["owner"])
-        except (KeyError, TypeError) as exc:
-            raise ContentPortError(
-                f"{source}/effects/{index}: malformed effect policy"
-            ) from exc
+    raw_effects = document["effects"]
+    if not isinstance(raw_effects, list):
+        raise ContentPortError(f"{source}/effects: must be a list")
+    for index, raw in enumerate(raw_effects):
+        item = _exact_object(
+            raw,
+            {"kind", "command", "operand", "owner"},
+            f"{source}/effects/{index}",
+        )
+        kind = _nonempty_string(item["kind"], f"{source}/effects/{index}/kind")
+        if kind not in EFFECT_KINDS:
+            raise ContentPortError(f"{source}/effects/{index}/kind: invalid effect")
+        operand = item["operand"]
+        if operand is not None:
+            operand = _nonempty_string(operand, f"{source}/effects/{index}/operand")
+        key = (
+            kind,
+            _nonempty_string(item["command"], f"{source}/effects/{index}/command"),
+            operand,
+        )
+        owner = _nonempty_string(item["owner"], f"{source}/effects/{index}/owner")
         if key in policy:
             raise ContentPortError(
                 f"{source}/effects/{index}: duplicate effect policy {key}"

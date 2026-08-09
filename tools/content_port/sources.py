@@ -92,6 +92,64 @@ class RecordLoader(Protocol):
     def __call__(self, key: ResourceKey) -> SourceRecord: ...
 
 
+def _c_braced_value(text: str, start: int, path: Path, identity: str) -> str:
+    opening = text.find("{", start)
+    if opening < 0:
+        raise ContentPortError(f"{path}: {identity} has no initializer")
+    depth = 0
+    for index in range(opening, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[opening + 1 : index]
+    raise ContentPortError(f"{path}: {identity} has an unterminated initializer")
+
+
+def _direct_c_brace_blocks(text: str) -> tuple[str, ...]:
+    result: list[str] = []
+    depth = 0
+    opening = 0
+    for index, char in enumerate(text):
+        if char == "{":
+            if depth == 0:
+                opening = index
+            depth += 1
+        elif char == "}" and depth:
+            depth -= 1
+            if depth == 0:
+                result.append(text[opening + 1 : index])
+    return tuple(result)
+
+
+def _c_scalar(text: str, field: str, prefix: str) -> str | None:
+    match = re.search(
+        rf"\.{re.escape(field)}\s*=\s*({re.escape(prefix)}[A-Z0-9_]+)", text
+    )
+    return match.group(1) if match else None
+
+
+def _c_list(text: str, field: str, prefix: str) -> list[str]:
+    match = re.search(rf"\.{re.escape(field)}\s*=\s*\{{([^}}]*)\}}", text, re.DOTALL)
+    if match is None:
+        return []
+    return re.findall(rf"\b{re.escape(prefix)}[A-Z0-9_]+\b", match.group(1))
+
+
+def _add_native_leaf(
+    records: dict[ResourceKey, SourceRecord],
+    domain: str,
+    name: str,
+    path: Path,
+    match: re.Match[str],
+) -> None:
+    records.setdefault(
+        ResourceKey(domain, name),
+        SourceRecord({}, Provenance(path.as_posix(), f":{match.start()}")),
+    )
+
+
 class SourceContext:
     """Resource loader with deterministic, path-rich failures.
 
@@ -187,7 +245,12 @@ class ExpansionSourceContext(SourceContext):
                         records.setdefault(
                             service,
                             SourceRecord(
-                                {},
+                                {
+                                    "script_path": script_path.relative_to(
+                                        root
+                                    ).as_posix(),
+                                    "script_root": root.as_posix(),
+                                },
                                 Provenance(script_path.as_posix(), f":{line_number}"),
                             ),
                         )
@@ -200,11 +263,14 @@ class ExpansionSourceContext(SourceContext):
             ):
                 match = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)::?\s*(?:@.*)?$", line)
                 if match:
-                    service = ResourceKey("service", match.group(1))
                     records.setdefault(
-                        service,
+                        ResourceKey("service", match.group(1)),
                         SourceRecord(
-                            {}, Provenance(script_path.as_posix(), f":{line_number}")
+                            {
+                                "script_path": script_path.relative_to(root).as_posix(),
+                                "script_root": root.as_posix(),
+                            },
+                            Provenance(script_path.as_posix(), f":{line_number}"),
                         ),
                     )
 
@@ -212,12 +278,36 @@ class ExpansionSourceContext(SourceContext):
         party_path = root / "src/data/trainer_parties.h"
         if party_path.is_file():
             text = party_path.read_text(encoding="utf-8")
-            for match in re.finditer(
-                r"static\s+const\s+struct\s+\w+\s+(sParty_[A-Za-z0-9_]+)\[\]",
-                text,
-            ):
+            starts = list(
+                re.finditer(
+                    r"static\s+const\s+struct\s+\w+\s+"
+                    r"(sParty_[A-Za-z0-9_]+)\[\]\s*=",
+                    text,
+                )
+            )
+            for match in starts:
+                body = _c_braced_value(text, match.end(), party_path, match.group(1))
+                members: list[dict[str, Any]] = []
+                for member_body in _direct_c_brace_blocks(body):
+                    species = _c_scalar(member_body, "species", "SPECIES_")
+                    if species is None:
+                        continue
+                    held_item = _c_scalar(member_body, "heldItem", "ITEM_")
+                    moves = _c_list(member_body, "moves", "MOVE_")
+                    members.append(
+                        {
+                            "species": species,
+                            "held_item": held_item,
+                            "moves": moves,
+                        }
+                    )
+                    _add_native_leaf(records, "species", species, party_path, match)
+                    if held_item is not None:
+                        _add_native_leaf(records, "item", held_item, party_path, match)
+                    for move in moves:
+                        _add_native_leaf(records, "move", move, party_path, match)
                 records[ResourceKey("party", match.group(1))] = SourceRecord(
-                    {"members": []},
+                    {"members": members},
                     Provenance(party_path.as_posix(), f":{match.start()}"),
                 )
         if trainer_path.is_file():
@@ -230,9 +320,30 @@ class ExpansionSourceContext(SourceContext):
                     starts[index + 1].start() if index + 1 < len(starts) else len(text)
                 )
                 block = text[match.start() : end]
-                party = re.search(r"\b(sParty_[A-Za-z0-9_]+)\b", block)
+                parties = sorted(set(re.findall(r"\b(sParty_[A-Za-z0-9_]+)\b", block)))
+                trainer_pic = _c_scalar(block, "trainerPic", "TRAINER_PIC_")
+                encounter_music = _c_scalar(
+                    block, "encounterMusic_gender", "TRAINER_ENCOUNTER_MUSIC_"
+                )
+                trainer_class = _c_scalar(block, "trainerClass", "TRAINER_CLASS_")
+                items = _c_list(block, "items", "ITEM_")
+                for asset in (trainer_pic, encounter_music):
+                    if asset is not None:
+                        _add_native_leaf(records, "asset", asset, trainer_path, match)
+                if trainer_class is not None:
+                    _add_native_leaf(
+                        records, "trainer-class", trainer_class, trainer_path, match
+                    )
+                for item in items:
+                    _add_native_leaf(records, "item", item, trainer_path, match)
                 records[ResourceKey("trainer", match.group(1))] = SourceRecord(
-                    {"parties": [party.group(1)] if party else []},
+                    {
+                        "parties": parties,
+                        "trainer_pic": trainer_pic,
+                        "encounter_music": encounter_music,
+                        "trainer_class": trainer_class,
+                        "items": items,
+                    },
                     Provenance(trainer_path.as_posix(), f":{match.start()}"),
                 )
         encounters_path = root / "src/data/wild_encounters.json"
@@ -245,8 +356,37 @@ class ExpansionSourceContext(SourceContext):
                     name = encounter.get("base_label") or encounter.get("map")
                     map_name = encounter.get("map")
                     if isinstance(name, str) and isinstance(map_name, str):
+                        species = sorted(
+                            {
+                                mon["species"]
+                                for habitat in (
+                                    "land_mons",
+                                    "water_mons",
+                                    "fishing_mons",
+                                    "rock_smash_mons",
+                                )
+                                for mon in (
+                                    encounter.get(habitat, {}).get("mons", [])
+                                    if isinstance(encounter.get(habitat), Mapping)
+                                    else []
+                                )
+                                if isinstance(mon, Mapping)
+                                and isinstance(mon.get("species"), str)
+                            }
+                        )
+                        for symbol in species:
+                            records.setdefault(
+                                ResourceKey("species", symbol),
+                                SourceRecord(
+                                    {},
+                                    Provenance(
+                                        encounters_path.as_posix(),
+                                        f"/{name}/{index}/species",
+                                    ),
+                                ),
+                            )
                         records[ResourceKey("encounter", name)] = SourceRecord(
-                            {"maps": [map_name]},
+                            {"maps": [map_name], "species": species},
                             Provenance(encounters_path.as_posix(), f"/{name}/{index}"),
                         )
 
@@ -507,7 +647,13 @@ def extract_trainer_edges(
             edge = _edge(key, "party", party, record, f"/parties/{index}", role="party")
             if edge:
                 result.append(edge)
-    for field_name in ("front_pic", "back_pic", "palette", "encounter_music"):
+    for field_name in (
+        "front_pic",
+        "back_pic",
+        "palette",
+        "trainer_pic",
+        "encounter_music",
+    ):
         edge = _edge(
             key,
             "asset",
@@ -518,6 +664,27 @@ def extract_trainer_edges(
         )
         if edge:
             result.append(edge)
+    for field_name, domain in (("trainer_class", "trainer-class"), ("items", "item")):
+        values = record.value.get(field_name, ())
+        if isinstance(values, str):
+            values = [values]
+        if values is None:
+            continue
+        if not isinstance(values, Iterable) or isinstance(values, (bytes, Mapping)):
+            raise ContentPortError(
+                f"{record.provenance.path}/{field_name}: must be a string or list"
+            )
+        for index, value in enumerate(values):
+            edge = _edge(
+                key,
+                domain,
+                value,
+                record,
+                f"/{field_name}/{index}",
+                role=field_name,
+            )
+            if edge:
+                result.append(edge)
     return tuple(result)
 
 
@@ -542,6 +709,33 @@ def extract_party_edges(
             )
             if edge:
                 result.append(edge)
+        for field_name, domain in (
+            ("species", "species"),
+            ("held_item", "item"),
+            ("item", "item"),
+            ("moves", "move"),
+        ):
+            values = member.get(field_name)
+            if values is None:
+                continue
+            if isinstance(values, str):
+                values = [values]
+            if not isinstance(values, Iterable) or isinstance(values, (bytes, Mapping)):
+                raise ContentPortError(
+                    f"{record.provenance.path}/members/{index}/{field_name}: "
+                    "must be a string or list"
+                )
+            for value_index, value in enumerate(values):
+                edge = _edge(
+                    key,
+                    domain,
+                    value,
+                    record,
+                    f"/members/{index}/{field_name}/{value_index}",
+                    role=field_name,
+                )
+                if edge:
+                    result.append(edge)
     return tuple(result)
 
 
@@ -562,6 +756,22 @@ def extract_encounter_edges(
             f"/maps/{index}",
             prefixes=("MAP_",),
             role="encounter-map",
+        )
+        if edge:
+            result.append(edge)
+    species = record.value.get("species", ())
+    if isinstance(species, str):
+        species = [species]
+    if not isinstance(species, Iterable) or isinstance(species, (bytes, Mapping)):
+        raise ContentPortError(f"{record.provenance.path}/species: must be a list")
+    for index, name in enumerate(species):
+        edge = _edge(
+            key,
+            "species",
+            name,
+            record,
+            f"/species/{index}",
+            role="encounter-species",
         )
         if edge:
             result.append(edge)
@@ -594,7 +804,104 @@ def extract_service_edges(
     context: SourceContext, key: ResourceKey, record: SourceRecord
 ) -> Iterable[SourceEdge]:
     del context
-    return _generic_declared_edges(key, record)
+    result = list(_generic_declared_edges(key, record))
+    instructions = record.value.get("instructions")
+    script_path = record.value.get("script_path")
+    script_root = record.value.get("script_root")
+    if (
+        instructions is None
+        and isinstance(script_path, str)
+        and isinstance(script_root, str)
+    ):
+        from .semantics import parse_scripts
+
+        program = parse_scripts([script_path], root=script_root, opcodes={})
+        native = program.labels.get(key.name)
+        if native is None:
+            raise ContentPortError(
+                f"{record.provenance.path}: indexed script label {key.name} is missing"
+            )
+        instructions = [
+            {
+                "command": instruction.command,
+                "operands": list(instruction.operands),
+                "scope": instruction.scope,
+                "line": instruction.line,
+            }
+            for instruction in native
+        ]
+    if instructions is None:
+        instructions = []
+    if not isinstance(instructions, list):
+        raise ContentPortError(f"{record.provenance.path}/instructions: must be a list")
+    if not instructions:
+        return tuple(result)
+    from .semantics import load_opcodes
+
+    opcodes = load_opcodes()
+    for index, instruction in enumerate(instructions):
+        if not isinstance(instruction, Mapping):
+            raise ContentPortError(
+                f"{record.provenance.path}/instructions/{index}: must be an object"
+            )
+        command = instruction.get("command")
+        operands = instruction.get("operands")
+        scope = instruction.get("scope")
+        if (
+            not isinstance(command, str)
+            or not isinstance(operands, list)
+            or not all(isinstance(value, str) for value in operands)
+            or not isinstance(scope, str)
+        ):
+            raise ContentPortError(
+                f"{record.provenance.path}/instructions/{index}: malformed instruction"
+            )
+        opcode = opcodes.get(command)
+        if opcode is None:
+            line = instruction.get("line", "?")
+            raise ContentPortError(
+                f"{record.provenance.path}:{line}: unknown script opcode {command}"
+            )
+        for call_index in opcode.calls:
+            if call_index >= len(operands):
+                raise ContentPortError(
+                    f"{record.provenance.path}/instructions/{index}: "
+                    f"{command} lacks label operand {call_index}"
+                )
+            target = operands[call_index]
+            if target.startswith("."):
+                target = f"{scope}{target}"
+            edge = _edge(
+                key,
+                "service",
+                target,
+                record,
+                f"/instructions/{index}/operands/{call_index}",
+                role="script-call",
+            )
+            if edge:
+                result.append(edge)
+        for kind, operand_index in opcode.effects:
+            if operand_index is None or operand_index >= len(operands):
+                continue
+            operand = operands[operand_index]
+            if kind in {"state-read", "state-write"} and operand.startswith(
+                ("FLAG_", "VAR_")
+            ):
+                domain, role = "binding", kind
+            else:
+                continue
+            edge = _edge(
+                key,
+                domain,
+                operand,
+                record,
+                f"/instructions/{index}/operands/{operand_index}",
+                role=role,
+            )
+            if edge:
+                result.append(edge)
+    return tuple(result)
 
 
 def extract_asset_edges(
@@ -636,6 +943,10 @@ EXTRACTORS: Mapping[
     "asset": extract_asset_edges,
     "capability": extract_capability_edges,
     "binding": extract_binding_edges,
+    "species": extract_binding_edges,
+    "move": extract_binding_edges,
+    "item": extract_binding_edges,
+    "trainer-class": extract_binding_edges,
 }
 
 

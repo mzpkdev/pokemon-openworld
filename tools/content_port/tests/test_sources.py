@@ -173,6 +173,122 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("service", "NewBarkTown_OnTransition"),
         ):
             self.assertIn(key, domain_graph.resources)
+        for key in (
+            ResourceKey("species", "SPECIES_GEODUDE"),
+            ResourceKey("asset", "TRAINER_PIC_HIKER"),
+            ResourceKey("asset", "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_2"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_HIKER"),
+        ):
+            self.assertIn(key, domain_graph.resources)
+
+    def test_native_trainer_party_encounter_and_script_edges_are_not_leaves(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "src/data").mkdir(parents=True)
+            (root / "data/maps/Town").mkdir(parents=True)
+            (root / "src/data/trainer_parties.h").write_text(
+                """static const struct TrainerMonItemCustomMoves sParty_Test[] = {
+    {.species = SPECIES_PIKACHU, .heldItem = ITEM_ORAN_BERRY,
+     .moves = {MOVE_THUNDERBOLT, MOVE_QUICK_ATTACK}}
+};
+""",
+                encoding="utf-8",
+            )
+            (root / "src/data/trainers.h").write_text(
+                """[TRAINER_TEST] = {
+ .trainerClass = TRAINER_CLASS_ACE,
+ .encounterMusic_gender = TRAINER_ENCOUNTER_MUSIC_HG_BOY_1,
+ .trainerPic = TRAINER_PIC_ACE,
+ .items = {ITEM_POTION},
+ .party = ITEM_CUSTOM_MOVES(sParty_Test),
+};
+""",
+                encoding="utf-8",
+            )
+            (root / "data/maps/Town/map.json").write_text(
+                json.dumps({"name": "Town", "id": "MAP_TOWN"}), encoding="utf-8"
+            )
+            (root / "data/maps/Town/scripts.inc").write_text(
+                "Entry::\n call Helper\n setflag FLAG_TEST\n end\nHelper::\n return\n",
+                encoding="utf-8",
+            )
+            encounter = {
+                "wild_encounter_groups": [
+                    {
+                        "encounters": [
+                            {
+                                "map": "MAP_TOWN",
+                                "base_label": "gTown",
+                                "land_mons": {"mons": [{"species": "SPECIES_RATTATA"}]},
+                            }
+                        ]
+                    }
+                ]
+            }
+            (root / "src/data/wild_encounters.json").write_text(
+                json.dumps(encounter), encoding="utf-8"
+            )
+            ledger = root / "ledger.json"
+            ledger.write_text(
+                json.dumps({"entries": [{"symbol": "FLAG_TEST"}]}),
+                encoding="utf-8",
+            )
+            context = ExpansionSourceContext(
+                root,
+                capabilities={
+                    "native": {
+                        "references": {
+                            "trainer": ["TRAINER_TEST"],
+                            "encounter": ["gTown"],
+                            "service": ["Entry"],
+                        }
+                    }
+                },
+                persistent_ledger=ledger,
+                active_capabilities=("trainers", "encounters", "events"),
+            )
+            graph = build_source_graph(context, [ResourceKey("capability", "native")])
+            expected = {
+                ResourceKey("party", "sParty_Test"),
+                ResourceKey("species", "SPECIES_PIKACHU"),
+                ResourceKey("species", "SPECIES_RATTATA"),
+                ResourceKey("move", "MOVE_THUNDERBOLT"),
+                ResourceKey("move", "MOVE_QUICK_ATTACK"),
+                ResourceKey("item", "ITEM_ORAN_BERRY"),
+                ResourceKey("item", "ITEM_POTION"),
+                ResourceKey("asset", "TRAINER_PIC_ACE"),
+                ResourceKey("asset", "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1"),
+                ResourceKey("trainer-class", "TRAINER_CLASS_ACE"),
+                ResourceKey("service", "Helper"),
+                ResourceKey("binding", "FLAG_TEST"),
+            }
+            self.assertTrue(expected <= set(graph.resources))
+
+            (root / "data/maps/Town/scripts.inc").write_text(
+                "Entry::\n call MissingService\n end\n", encoding="utf-8"
+            )
+            broken = ExpansionSourceContext(
+                root,
+                capabilities={"native": {"references": {"service": ["Entry"]}}},
+                persistent_ledger=ledger,
+                active_capabilities=("events",),
+            )
+            with self.assertRaisesRegex(ContentPortError, "service:MissingService"):
+                build_source_graph(broken, [ResourceKey("capability", "native")])
+
+            (root / "data/maps/Town/scripts.inc").write_text(
+                "Entry::\n setflag FLAG_UNALLOCATED\n end\n", encoding="utf-8"
+            )
+            broken = ExpansionSourceContext(
+                root,
+                capabilities={"native": {"references": {"service": ["Entry"]}}},
+                persistent_ledger=ledger,
+                active_capabilities=("events",),
+            )
+            with self.assertRaisesRegex(ContentPortError, "binding:FLAG_UNALLOCATED"):
+                build_source_graph(broken, [ResourceKey("capability", "native")])
 
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,7 @@ from tools.content_port.semantics import (
     EventEntry,
     analyze_entry,
     load_event_policy,
+    load_opcodes,
     parse_scripts,
     validate_effects,
 )
@@ -96,6 +98,70 @@ class SemanticsTests(unittest.TestCase):
             policy[("state-read", "goto_if_eq", "VAR_NEWBARK_TOWN_STATE")],
             "story-owned",
         )
+
+    def test_opcode_schema_is_exact_required_versioned_and_typed(self) -> None:
+        valid = {
+            "schemaVersion": 1,
+            "opcodes": {"end": {"effects": [], "calls": [], "terminal": False}},
+        }
+        mutations = {
+            "version": lambda value: value.update(schemaVersion=999),
+            "missing effects": lambda value: value["opcodes"]["end"].pop("effects"),
+            "missing calls": lambda value: value["opcodes"]["end"].pop("calls"),
+            "coerced boolean": lambda value: value["opcodes"]["end"].update(
+                terminal="false"
+            ),
+            "unknown nested": lambda value: value["opcodes"]["end"].update(effectz=[]),
+            "unknown top": lambda value: value.update(entries=[]),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                document = json.loads(json.dumps(valid))
+                mutate(document)
+                path = Path(directory) / "opcodes.json"
+                path.write_text(json.dumps(document), encoding="utf-8")
+                with self.assertRaises(ContentPortError):
+                    load_opcodes(path)
+
+    def test_event_policy_schema_rejects_misspellings_unknowns_and_coercion(
+        self,
+    ) -> None:
+        valid = {
+            "schemaVersion": 1,
+            "entries": [
+                {
+                    "name": "Entry",
+                    "capability": "ambient",
+                    "classification": "enabled",
+                }
+            ],
+            "effects": [
+                {
+                    "kind": "state-read",
+                    "command": "checkflag",
+                    "operand": "FLAG_TEST",
+                    "owner": "ambient",
+                }
+            ],
+        }
+        mutations = {
+            "version": lambda value: value.update(schemaVersion=999),
+            "misspelled entries": lambda value: value.update(
+                entires=value.pop("entries")
+            ),
+            "unknown entry": lambda value: value["entries"][0].update(extra=False),
+            "missing entry field": lambda value: value["entries"][0].pop("capability"),
+            "unknown effect": lambda value: value["effects"][0].update(extra=False),
+            "coerced string": lambda value: value["entries"][0].update(name=False),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                document = json.loads(json.dumps(valid))
+                mutate(document)
+                path = Path(directory) / "events.json"
+                path.write_text(json.dumps(document), encoding="utf-8")
+                with self.assertRaises(ContentPortError):
+                    load_event_policy(path)
 
 
 if __name__ == "__main__":
