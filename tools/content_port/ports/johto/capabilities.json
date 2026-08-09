@@ -1,0 +1,4591 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    "spatial",
+    "ambient-actors",
+    "interactions",
+    "trainers",
+    "encounters",
+    "pickups-rewards",
+    "shops-services",
+    "healing-checkpoints",
+    "trades",
+    "facilities",
+    "travel-presentation",
+    "environment-assets"
+  ],
+  "maps": [
+    {
+      "map": "NewBarkTown",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NewBarkTown_Lab",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NewBarkTown_House1",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NewBarkTown_House2",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_1F",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_2F",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route29",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_Route29_Route46",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity_PokemonCenter",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity_Mart",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity_House1",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity_House2",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CherrygroveCity_House3",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route28",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route28_House",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route30",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route31",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route32",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_Mart",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VioletCity_TrainerSchool",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SproutTower_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SproutTower_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SproutTower_3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route32_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_Route31_VioletCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route32",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route36",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_Lab",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom4",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route33",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route34",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IlexForest",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown_KurtsHouse",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown_Mart",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "AzaleaTown_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route34_DayCare",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_AzaleaTown_IlexForest",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_IlexForest_Route34",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "UnionCave_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "UnionCave_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "UnionCave_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SlowpokeWell_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SlowpokeWell_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route35",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route36",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route37",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NationalPark_Normal",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "NationalPark_BugContest",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_GoldenrodCity_Route35",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_NationalPark",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_BikeShop",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_BillsHouse",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreBasement",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreElevator",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_4F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_5F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_6F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7FNight",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_FlowerShop",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_GameCorner",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_House3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_4F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_5F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_TrainStation",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_UndergroundEntrance",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_UndergroundStorage",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_UndergroundSwitches",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "GoldenrodCity_UndergroundTunnel",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route38",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route39",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BellchimeTrail",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_EcruteakCity_Route38",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_Mart",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_SageOffice1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_SageOffice2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EcruteakCity_Theater",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route39_Barn",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route39_FarmHouse",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BurnedTower_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_4F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_5F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_6F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_7F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_8F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_9F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TinTower_RoofDay",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route40",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route41",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_Route40_TrainerHill_Courtyard",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_Cafe",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_House3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_Lighthouse",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_Mart",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_PortInside",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_B1F_Inner",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_B3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_Descent",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "WhirlIslands_LugiaChamber",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route47",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route48",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodGym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodHouse1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodHouse2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodHouse3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodPokecenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CianwoodShop",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CliffEdgeCave",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "CliffEdgeGate",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "EmbeddedTower",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Mahoganytown",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route42",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route43",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route44",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "LakeOfRage",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "LakeOfRageLowTide",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyTown_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyTown_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyTown_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyTown_Shop",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_EcruteakCity_Route42",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_MahoganyTown_Route43",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Gate_Route43",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "LakeOfRage_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "LakeOfRage_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtMortar_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtMortar_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route45",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route46",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_Gym",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_House3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_Mart",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "BlackthornCity_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IcePath_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IcePath_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IcePath_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IcePath_B3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "IcePath_B4F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "DragonsDen_Entrance",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "DragonsDen_Shrine",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "DarkCave_SouthSide",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZoneGate",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZoneGate_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZoneGate_SafariZoneEntrance",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZoneIndoor",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Enterance",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Low_Left",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Low_Mid",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Low_Right",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Top_Mid",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone_Top_Right",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SafariZone3",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_Outside",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_Snow",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_SummitDay",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_SummitNight",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MtSilver_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_CaptainsRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_PlayersRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomNW",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomNE",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomNNE",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomSSW",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomSSE",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomSE",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "SSAqua_RoomSW",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "VermilionCity_PortInside",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route26",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route26North",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route26_House1",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route26_House2",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route27",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route27_House",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route30_House",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "Route30_MrPokemonsHouse",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "TohjoFalls_GiovanniRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "ReceptionGate",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoIndigoPlateau",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoIndigoPlateau_PokemonCenter",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_BrunosRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_ChampionsRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_HallOfFame",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_KarensRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_KogasRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoPokemonLeague_WillsRoom",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyHideout_B1F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyHideout_B2F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    },
+    {
+      "map": "MahoganyHideout_B3F",
+      "ownership": "rendered",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "deferred",
+        "interactions": "deferred",
+        "trainers": "deferred",
+        "encounters": "deferred",
+        "pickups-rewards": "deferred",
+        "shops-services": "deferred",
+        "healing-checkpoints": "deferred",
+        "trades": "deferred",
+        "facilities": "deferred",
+        "travel-presentation": "deferred",
+        "environment-assets": "enabled"
+      }
+    }
+  ]
+}

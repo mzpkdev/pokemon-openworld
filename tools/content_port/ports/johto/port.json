@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "allocationLock": "allocation_lock.json",
+  "capabilityPolicy": "capabilities.json",
+  "eventPolicy": "events.json",
+  "adaptations": "adaptations.json",
+  "assetPolicy": "assets.json",
+  "legacyReport": "legacy_report.json",
+  "donors": {
+    "mechanical": {
+      "name": "PKMN-World",
+      "repository": "evilchinesefood/PKMN-World",
+      "commit": "d40affe26e58a20f445daad84af5e45be812e69f",
+      "treeDigest": "6bca91e491e7e8304f9268aa41a4c9d629d50baa6d3150fe45d55632b6f4f762",
+      "fileCount": 32382,
+      "root": "PKMN-World",
+      "migration": null
+    },
+    "content": {
+      "name": "Pokemon Heart & Soul",
+      "repository": "PokemonHnS-Development/pokemonHnS",
+      "commit": "751823abaf677020bcd72c45fe3e7cb2b8a576e4",
+      "treeDigest": "6fc60f734085eb0ba6df3f68855cc8b91564499fb0f960eb2d7cffe3cc379703",
+      "fileCount": 18314,
+      "root": "pokemonHnS",
+      "migration": null
+    }
+  },
+  "expectedInventory": {
+    "maps": {
+      "count": 254,
+      "digest": "1d4252858eb630077d5c0508958ffb648d126d6169d3e1603635f16eeb5ceb23"
+    },
+    "layouts": {
+      "count": 255,
+      "digest": "cadae21f87198262d0887f550e7955057e06d301bd333d9a00ebb34fe613e6ed"
+    },
+    "groups": {
+      "count": 25,
+      "digest": "8899638e82ba7b837ade8b697370092f3f936d8bb9b73ec957715fa919e5905d"
+    },
+    "sections": {
+      "count": 58,
+      "digest": "ff867c67dcc0d8c728147479dac1e6b936826bc1228e20a91127659bdc6f27b1"
+    },
+    "tilesets": {
+      "count": 71,
+      "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"
+    }
+  },
+  "authority": {
+    "content": [
+      "maps",
+      "layout-binaries",
+      "events",
+      "scripts-text",
+      "encounters",
+      "section-presentation",
+      "tileset-resources",
+      "trainers",
+      "art"
+    ],
+    "mechanical": [
+      "johto-membership",
+      "layout-format",
+      "tileset-attribute-width",
+      "mixed-width-substitution",
+      "dependency-wiring"
+    ],
+    "unclassifiedDivergence": "error"
+  }
+}
