@@ -392,6 +392,44 @@ class FaultInjectionTests(unittest.TestCase):
         finally:
             temporary.cleanup()
 
+    def test_non_dry_run_make_flags_cannot_bypass_build_lock(self) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        commands = (
+            ["make", "--no-print-directory", "content-port-transaction-check"],
+            [
+                "make",
+                "--silent",
+                "--keep-going",
+                "-rR",
+                "content-port-transaction-check",
+            ],
+        )
+
+        for command in commands:
+            with self.subTest(flags=command[1:-1]):
+                process: subprocess.Popen[str] | None = None
+                try:
+                    with transaction_lifetime_lock(repo, exclusive=True):
+                        process = subprocess.Popen(
+                            command,
+                            cwd=repo,
+                            text=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                        )
+                        with self.assertRaises(subprocess.TimeoutExpired):
+                            process.wait(timeout=0.25)
+                    stdout, stderr = process.communicate(timeout=5.0)
+                    self.assertEqual(
+                        process.returncode,
+                        0,
+                        msg=f"stdout:\n{stdout}\nstderr:\n{stderr}",
+                    )
+                finally:
+                    if process is not None and process.poll() is None:
+                        process.terminate()
+                        process.wait(timeout=5.0)
+
     def test_ref_cannot_move_between_identity_check_and_publication(self) -> None:
         temporary, repo, fixture, bundle, digest = self._fixture()
         try:

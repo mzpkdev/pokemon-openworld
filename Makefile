@@ -1,8 +1,15 @@
-# GNU Make always executes recipe lines containing $(MAKE), even in dry-run mode.
-# Entering the lifetime-lock wrapper from `make -n` would therefore turn an
-# inspection into a real build.  Dry runs do not publish build outputs, so keep
-# them in this Make process and let the product rules render their recipes.
-ifneq (,$(findstring n,$(firstword $(MAKEFLAGS))))
+# GNU Make puts its compact short-option word first in MAKEFLAGS.  Long options
+# retain their leading dashes, so exclude those before looking for the exact
+# dry-run flag; for example, --no-print-directory is not `-n`.
+_CONTENT_PORT_FIRST_MAKEFLAG := $(firstword $(MAKEFLAGS))
+_CONTENT_PORT_SHORT_MAKEFLAGS := $(filter-out -%,$(_CONTENT_PORT_FIRST_MAKEFLAG))
+ifneq (,$(findstring =,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
+_CONTENT_PORT_SHORT_MAKEFLAGS :=
+endif
+# GNU Make always executes recipe lines containing $(MAKE), even in dry-run
+# mode.  Dry runs do not publish build outputs, so keep them in this Make
+# process and let the product rules render their recipes.
+ifneq (,$(findstring n,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
 CONTENT_PORT_BUILD_LOCK_HELD := 1
 endif
 
