@@ -272,13 +272,15 @@ def validate_assets(
         "supportState",
     }
     assets = document.get("assets")
-    if document.get("schemaVersion") != SCHEMA_VERSION or not isinstance(assets, list):
+    if document.get("schemaVersion") != SCHEMA_VERSION or not isinstance(
+        assets, (list, tuple)
+    ):
         raise DonorUpdateError("assets.json: expected schemaVersion 1 and assets list")
     seen: set[str] = set()
     result: list[Mapping[str, object]] = []
     for index, asset in enumerate(assets):
         pointer = f"$.assets[{index}]"
-        if not isinstance(asset, dict):
+        if not isinstance(asset, Mapping):
             raise DonorUpdateError(f"{pointer}: expected an object")
         unknown = sorted(set(asset) - allowed_keys)
         if unknown:
@@ -322,7 +324,7 @@ def validate_assets(
                 raise DonorUpdateError(f"{pointer}.{field}: expected lowercase SHA-256")
         command = asset["conversionCommand"]
         if (
-            not isinstance(command, list)
+            not isinstance(command, (list, tuple))
             or not command
             or not all(isinstance(part, str) and part for part in command)
         ):

@@ -137,6 +137,11 @@ exact `donor-port-update.json` proposal without editing `port.json`. The tool
 never moves a branch or creates a commit; only the resulting reviewed Git commit
 publishes generated output.
 
+The production `check` command enforces that permission gate before donor source
+validation. Consequently the required `Donor Contracts` job cannot pass while a
+blocked or unknown asset remains in the emitted asset ledger, even when those
+bytes are already present in the repository.
+
 Donor authentication includes ordinary files by default, including ROM and
 linker outputs. A donor may omit only the exact safe relative paths authored in
 its `excludePaths` policy; generic authentication contains no donor-specific

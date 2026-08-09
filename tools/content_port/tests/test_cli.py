@@ -14,6 +14,7 @@ from unittest.mock import patch
 from tools.content_port.cli import check_port, main, parser
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import DonorEvidence
+from tools.content_port.update import validate_assets
 from tools.content_port.transaction import (
     canonical_bundle_digest,
     guard_active,
@@ -434,7 +435,8 @@ class CliTests(unittest.TestCase):
             patch(
                 "tools.content_port.descriptor.load_port",
                 return_value=SimpleNamespace(
-                    donors_by_role={"mechanical": object(), "content": object()}
+                    assets={"schemaVersion": 1, "assets": ()},
+                    donors_by_role={"mechanical": object(), "content": object()},
                 ),
             ),
             patch(
@@ -455,7 +457,8 @@ class CliTests(unittest.TestCase):
             patch(
                 "tools.content_port.descriptor.load_port",
                 return_value=SimpleNamespace(
-                    donors_by_role={"mechanical": object(), "content": object()}
+                    assets={"schemaVersion": 1, "assets": ()},
+                    donors_by_role={"mechanical": object(), "content": object()},
                 ),
             ),
             patch(
@@ -486,7 +489,8 @@ class CliTests(unittest.TestCase):
                 patch(
                     "tools.content_port.descriptor.load_port",
                     return_value=SimpleNamespace(
-                        donors_by_role={"mechanical": object(), "content": object()}
+                        assets={"schemaVersion": 1, "assets": ()},
+                        donors_by_role={"mechanical": object(), "content": object()},
                     ),
                 ),
                 patch(
@@ -509,7 +513,9 @@ class CliTests(unittest.TestCase):
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
-                return_value=SimpleNamespace(donors_by_role={}),
+                return_value=SimpleNamespace(
+                    assets={"schemaVersion": 1, "assets": ()}, donors_by_role={}
+                ),
             ),
             patch("tools.content_port.donors.authenticate_donors", return_value=()),
             patch(
@@ -519,6 +525,37 @@ class CliTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ContentPortError, "source preimage drift"):
                 check_port(self.repo, "fixture", self.repo)
+
+    def test_check_rejects_loadable_unknown_asset_permission(self) -> None:
+        asset = {
+            "key": "fixture-art",
+            "source": "content",
+            "donor": "content",
+            "sourcePath": "asset.bin",
+            "semanticTarget": "graphics/fixture/asset.bin",
+            "sourceSha256": "a" * 64,
+            "targetSha256": "a" * 64,
+            "conversionCommand": ("copy-bytes",),
+            "permission": "unknown",
+            "permissionEvidence": "CREDITS.md#fixture",
+            "capability": "environment-assets",
+            "supportState": "enabled",
+        }
+        policy = {"schemaVersion": 1, "assets": (asset,)}
+        validate_assets(policy, require_redistributable=False)
+        with (
+            patch(
+                "tools.content_port.descriptor.load_port",
+                return_value=SimpleNamespace(assets=policy, donors_by_role={}),
+            ),
+            patch(
+                "tools.content_port.donors.authenticate_donors", return_value=()
+            ) as authenticate,
+            patch("tools.content_port.sources.validate_port_sources"),
+            self.assertRaisesRegex(ContentPortError, "permission is unknown"),
+        ):
+            check_port(self.repo, "fixture", self.repo)
+        authenticate.assert_not_called()
 
 
 if __name__ == "__main__":

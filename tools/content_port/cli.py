@@ -54,8 +54,10 @@ def check_port(
     from .descriptor import load_port
     from .donors import authenticate_donors
     from .sources import validate_port_sources
+    from .update import validate_assets
 
     descriptor = load_port(_port_dir(repo, port), donor_root.resolve())
+    validate_assets(descriptor.assets, require_redistributable=True)
     roles = tuple(descriptor.donors_by_role)
     evidence = authenticate_donors(descriptor.donors_by_role[role] for role in roles)
     contract = validate_port_sources(descriptor, repo)

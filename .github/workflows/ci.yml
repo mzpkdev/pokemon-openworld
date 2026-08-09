@@ -93,6 +93,11 @@ jobs:
               2>&1 | tee build/content-port/donor-contract.log || status=$?
           fi
           if (( status == 0 )); then
+            PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+              tools.content_port.tests.test_cli.CliTests.test_check_rejects_loadable_unknown_asset_permission \
+              -q 2>&1 | tee -a build/content-port/donor-contract.log || status=$?
+          fi
+          if (( status == 0 )); then
             python3 -m tools.content_port check --port johto \
               --donor-root .references \
               --write-report build/content-port/donor-contract.json || status=$?

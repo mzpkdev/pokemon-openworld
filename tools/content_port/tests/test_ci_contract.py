@@ -48,6 +48,7 @@ class CiContractTests(unittest.TestCase):
             'CONTENT_PORT_REQUIRE_DONORS: "1"',
             "make content-port-transaction-check",
             "-s tools/content_port/tests/donor -p 'test_*.py' -q",
+            "test_check_rejects_loadable_unknown_asset_permission",
             "python3 -m tools.content_port check --port johto",
             "--donor-root .references",
             "--write-report build/content-port/donor-contract.json",
