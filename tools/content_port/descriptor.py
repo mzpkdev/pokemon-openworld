@@ -19,6 +19,7 @@ from .model import (
     DonorPin,
     GeneratedSectionPolicy,
     LayoutBinaryAuthority,
+    LayoutFieldAuthority,
     PersistentBindingRef,
     ResourceKey,
     SectionPersistenceCodec,
@@ -82,6 +83,7 @@ ADAPTATION_KEYS = {
     "worldPolicy",
     "donorFieldRoles",
     "layoutBinaryAuthorities",
+    "layoutFieldAuthorities",
     "generatedSections",
     "sectionMetadataAuthorities",
     "targetBindings",
@@ -115,10 +117,25 @@ NUMERIC_POLICY_FIELDS = {
 }
 RENDER_POLICY_KEYS = {
     "layoutBinaryAuthorities",
+    "layoutFieldAuthorities",
     "generatedSections",
     "sectionMetadataAuthorities",
     "targetBindings",
 }
+GENERATED_AUTHORITY_CONTRACT = MappingProxyType(
+    {
+        "map-scripts": ("allocation-lock", "target-contract"),
+        "berry-bindings": ("persistence-ledger", "port-policy"),
+        "flag-bindings": ("persistence-ledger", "target-contract"),
+        "trainer-bindings": ("persistence-ledger", "port-policy"),
+        "var-bindings": ("persistence-ledger", "target-contract"),
+        "tileset-externs": ("port-policy", "target-contract"),
+        "tileset-graphics": ("port-policy", "target-contract"),
+        "tileset-headers": ("port-policy", "target-contract"),
+        "tileset-metatiles": ("port-policy", "target-contract"),
+        "trainer-parties": ("port-policy",),
+    }
+)
 
 
 class _DuplicateKey(Exception):
@@ -241,6 +258,7 @@ class PortDescriptor:
     assets: Mapping[str, object]
     legacy_report: Mapping[str, object]
     layout_binary_authorities: tuple[LayoutBinaryAuthority, ...]
+    layout_field_authorities: tuple[LayoutFieldAuthority, ...]
     generated_sections: tuple[GeneratedSectionPolicy, ...]
     section_metadata_authorities: tuple[SectionMetadataAuthority, ...]
     target_bindings: TargetBindings
@@ -495,6 +513,7 @@ def _load_renderer_policy(
     pointer: str = "$",
 ) -> tuple[
     tuple[LayoutBinaryAuthority, ...],
+    tuple[LayoutFieldAuthority, ...],
     tuple[GeneratedSectionPolicy, ...],
     tuple[SectionMetadataAuthority, ...],
     TargetBindings,
@@ -531,40 +550,80 @@ def _load_renderer_policy(
             f"missing={missing[:1]}, extra={extra[:1]}"
         )
 
+    layout_field_records: list[LayoutFieldAuthority] = []
+    allowed_layout_fields = {"border_height", "border_width"}
+    for index, raw in enumerate(
+        _array(document["layoutFieldAuthorities"], f"{pointer}.layoutFieldAuthorities")
+    ):
+        item_pointer = f"{pointer}.layoutFieldAuthorities[{index}]"
+        item = _object(raw, item_pointer)
+        _exact_keys(item, {"field", "layoutRole", "sourceRole"}, item_pointer)
+        record = LayoutFieldAuthority(
+            field=_string(item["field"], f"{item_pointer}.field"),
+            layout_role=_string(item["layoutRole"], f"{item_pointer}.layoutRole"),
+            source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
+        )
+        if record.field not in allowed_layout_fields:
+            raise ContentPortError(
+                f"{item_pointer}.field: unsupported layout field {record.field!r}"
+            )
+        for field, role in (
+            ("layoutRole", record.layout_role),
+            ("sourceRole", record.source_role),
+        ):
+            if role not in donor_roles:
+                raise ContentPortError(
+                    f"{item_pointer}.{field}: unknown donor role {role!r}"
+                )
+        if record.layout_role == record.source_role:
+            raise ContentPortError(
+                f"{item_pointer}: layout and field source roles must differ"
+            )
+        layout_field_records.append(record)
+    layout_field_keys = [
+        (record.layout_role, record.field) for record in layout_field_records
+    ]
+    if len(layout_field_keys) != len(set(layout_field_keys)):
+        raise ContentPortError(
+            f"{pointer}.layoutFieldAuthorities: duplicate layout-role field"
+        )
+    if {record.field for record in layout_field_records} != allowed_layout_fields:
+        missing = sorted(
+            allowed_layout_fields - {record.field for record in layout_field_records}
+        )
+        raise ContentPortError(
+            f"{pointer}.layoutFieldAuthorities: missing field {missing[0]!r}"
+        )
+
     generated_records: list[GeneratedSectionPolicy] = []
-    allowed_symbols = {
-        "map-scripts",
-        "berry-bindings",
-        "flag-bindings",
-        "trainer-bindings",
-        "var-bindings",
-        "tileset-externs",
-        "tileset-graphics",
-        "tileset-headers",
-        "tileset-metatiles",
-        "trainer-parties",
-    }
     for index, raw in enumerate(
         _array(document["generatedSections"], f"{pointer}.generatedSections")
     ):
         item_pointer = f"{pointer}.generatedSections[{index}]"
         item = _object(raw, item_pointer)
-        _exact_keys(item, {"key", "path", "sourceRole", "sourceSymbol"}, item_pointer)
-        record = GeneratedSectionPolicy(
-            key=_string(item["key"], f"{item_pointer}.key"),
-            path=_relative_path(item["path"], f"{item_pointer}.path"),
-            source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
-            source_symbol=_string(item["sourceSymbol"], f"{item_pointer}.sourceSymbol"),
-        )
-        allowed_roles = donor_roles | {"policy", "target-bindings"}
-        if record.source_role not in allowed_roles:
-            raise ContentPortError(
-                f"{item_pointer}.sourceRole: unknown source role {record.source_role!r}"
-            )
-        if record.source_symbol not in allowed_symbols:
+        _exact_keys(item, {"authorities", "key", "path", "sourceSymbol"}, item_pointer)
+        source_symbol = _string(item["sourceSymbol"], f"{item_pointer}.sourceSymbol")
+        if source_symbol not in GENERATED_AUTHORITY_CONTRACT:
             raise ContentPortError(
                 f"{item_pointer}.sourceSymbol: unknown generated source"
             )
+        authorities = tuple(
+            _string(value, f"{item_pointer}.authorities[{authority_index}]")
+            for authority_index, value in enumerate(
+                _array(item["authorities"], f"{item_pointer}.authorities")
+            )
+        )
+        expected_authorities = GENERATED_AUTHORITY_CONTRACT[source_symbol]
+        if authorities != expected_authorities:
+            raise ContentPortError(
+                f"{item_pointer}.authorities: must exactly match generated source contract"
+            )
+        record = GeneratedSectionPolicy(
+            key=_string(item["key"], f"{item_pointer}.key"),
+            path=_relative_path(item["path"], f"{item_pointer}.path"),
+            source_symbol=source_symbol,
+            authorities=authorities,
+        )
         generated_records.append(record)
     for field, values in (
         ("key", [record.key for record in generated_records]),
@@ -576,9 +635,12 @@ def _load_renderer_policy(
     ):
         if len(values) != len(set(values)):
             raise ContentPortError(f"{pointer}.generatedSections: duplicate {field}")
-    if set(record.source_symbol for record in generated_records) != allowed_symbols:
+    if set(record.source_symbol for record in generated_records) != set(
+        GENERATED_AUTHORITY_CONTRACT
+    ):
         missing = sorted(
-            allowed_symbols - {record.source_symbol for record in generated_records}
+            set(GENERATED_AUTHORITY_CONTRACT)
+            - {record.source_symbol for record in generated_records}
         )
         raise ContentPortError(
             f"{pointer}.generatedSections: missing renderer source {missing[0]!r}"
@@ -746,6 +808,7 @@ def _load_renderer_policy(
     )
     return (
         tuple(sorted(layout_records)),
+        tuple(sorted(layout_field_records)),
         tuple(sorted(generated_records)),
         tuple(sorted(section_records)),
         target_bindings,
@@ -903,6 +966,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         raise ContentPortError(f"$.donors: missing authority donor role {missing[0]!r}")
     (
         layout_binary_authorities,
+        layout_field_authorities,
         generated_sections,
         section_metadata_authorities,
         target_bindings,
@@ -923,6 +987,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         assets=assets,
         legacy_report=legacy,
         layout_binary_authorities=layout_binary_authorities,
+        layout_field_authorities=layout_field_authorities,
         generated_sections=generated_sections,
         section_metadata_authorities=section_metadata_authorities,
         target_bindings=target_bindings,

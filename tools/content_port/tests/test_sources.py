@@ -196,6 +196,32 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
 
+        _, resolved = resolve_port_sources(descriptor, Path("."))
+        new_bark = resolved.layouts["LAYOUT_NEW_BARK_TOWN"]
+        self.assertEqual(resolved.layout_authorities["LAYOUT_NEW_BARK_TOWN"], "content")
+        self.assertEqual(new_bark["width"], 30)
+        self.assertEqual(new_bark["border_width"], 0)
+        self.assertEqual(new_bark["border_height"], 0)
+        self.assertEqual(
+            resolved.layout_field_authorities["LAYOUT_NEW_BARK_TOWN"]["width"],
+            "content",
+        )
+        self.assertEqual(
+            resolved.layout_field_authorities["LAYOUT_NEW_BARK_TOWN"]["border_width"],
+            "mechanical",
+        )
+
+        missing_border_rule = tuple(
+            authority
+            for authority in descriptor.layout_field_authorities
+            if authority.field != "border_width"
+        )
+        with self.assertRaisesRegex(ContentPortError, "unresolved layout field"):
+            resolve_port_sources(
+                replace(descriptor, layout_field_authorities=missing_border_rule),
+                Path("."),
+            )
+
         authorities = list(descriptor.layout_binary_authorities)
         mechanical_index = next(
             index

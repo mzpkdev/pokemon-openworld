@@ -6899,16 +6899,20 @@
     ]
   },
   "generatedSections": [
-    {"key": "map scripts", "path": "data/event_scripts.s", "sourceRole": "policy", "sourceSymbol": "map-scripts"},
-    {"key": "berry tree allocations", "path": "include/constants/berry.h", "sourceRole": "target-bindings", "sourceSymbol": "berry-bindings"},
-    {"key": "flags", "path": "include/constants/flags.h", "sourceRole": "content", "sourceSymbol": "flag-bindings"},
-    {"key": "rival opponents", "path": "include/constants/opponents.h", "sourceRole": "policy", "sourceSymbol": "trainer-bindings"},
-    {"key": "vars", "path": "include/constants/vars.h", "sourceRole": "content", "sourceSymbol": "var-bindings"},
-    {"key": "externs", "path": "include/tilesets.h", "sourceRole": "policy", "sourceSymbol": "tileset-externs"},
-    {"key": "graphics", "path": "src/data/tilesets/graphics.h", "sourceRole": "policy", "sourceSymbol": "tileset-graphics"},
-    {"key": "headers", "path": "src/data/tilesets/headers.h", "sourceRole": "policy", "sourceSymbol": "tileset-headers"},
-    {"key": "metatiles", "path": "src/data/tilesets/metatiles.h", "sourceRole": "policy", "sourceSymbol": "tileset-metatiles"},
-    {"key": "rival trainers", "path": "src/data/trainers.party", "sourceRole": "policy", "sourceSymbol": "trainer-parties"}
+    {"authorities": ["allocation-lock", "target-contract"], "key": "map scripts", "path": "data/event_scripts.s", "sourceSymbol": "map-scripts"},
+    {"authorities": ["persistence-ledger", "port-policy"], "key": "berry tree allocations", "path": "include/constants/berry.h", "sourceSymbol": "berry-bindings"},
+    {"authorities": ["persistence-ledger", "target-contract"], "key": "flags", "path": "include/constants/flags.h", "sourceSymbol": "flag-bindings"},
+    {"authorities": ["persistence-ledger", "port-policy"], "key": "rival opponents", "path": "include/constants/opponents.h", "sourceSymbol": "trainer-bindings"},
+    {"authorities": ["persistence-ledger", "target-contract"], "key": "vars", "path": "include/constants/vars.h", "sourceSymbol": "var-bindings"},
+    {"authorities": ["port-policy", "target-contract"], "key": "externs", "path": "include/tilesets.h", "sourceSymbol": "tileset-externs"},
+    {"authorities": ["port-policy", "target-contract"], "key": "graphics", "path": "src/data/tilesets/graphics.h", "sourceSymbol": "tileset-graphics"},
+    {"authorities": ["port-policy", "target-contract"], "key": "headers", "path": "src/data/tilesets/headers.h", "sourceSymbol": "tileset-headers"},
+    {"authorities": ["port-policy", "target-contract"], "key": "metatiles", "path": "src/data/tilesets/metatiles.h", "sourceSymbol": "tileset-metatiles"},
+    {"authorities": ["port-policy"], "key": "rival trainers", "path": "src/data/trainers.party", "sourceSymbol": "trainer-parties"}
+  ],
+  "layoutFieldAuthorities": [
+    {"field": "border_height", "layoutRole": "content", "sourceRole": "mechanical"},
+    {"field": "border_width", "layoutRole": "content", "sourceRole": "mechanical"}
   ],
   "layoutBinaryAuthorities": [
     {"layout":"LAYOUT_NEW_BARK_TOWN","source":"NewBarkTown","sourceRole":"content"},

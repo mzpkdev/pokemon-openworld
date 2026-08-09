@@ -10,7 +10,7 @@ import re
 from typing import Any, Iterable, Mapping
 
 from .bindings import load_binding_index
-from .descriptor import PortDescriptor
+from .descriptor import GENERATED_AUTHORITY_CONTRACT, PortDescriptor
 from .donors import authenticate_donors
 from .errors import ContentPortError
 from .ownership import OwnershipManifest, safe_repo_path
@@ -187,23 +187,9 @@ def _layout_units(
         (item["layout"], item["field"]): item["target"]
         for item in descriptor.adaptations["layoutTilesetRemaps"]
     }
-    mechanical_document = json.loads(
-        _read_source(
-            state.donor_roots["mechanical"],
-            "data/layouts/layouts.json",
-            "mechanical layout format",
-        )
-    )
-    mechanical_layouts = {
-        item["id"]: item for item in mechanical_document.get("layouts", [])
-    }
     units: list[RenderUnit] = []
     for layout_id in descriptor.allocation_index.layouts:
         value = _thaw(state.layouts[layout_id])
-        mechanical = mechanical_layouts.get(layout_id, {})
-        for field in ("border_width", "border_height"):
-            if field not in value and field in mechanical:
-                value[field] = mechanical[field]
         for field in ("primary_tileset", "secondary_tileset"):
             replacement = remaps.get((layout_id, field))
             if replacement is not None:
@@ -491,6 +477,11 @@ def _generated_units(
 ) -> list[RenderUnit]:
     units: list[RenderUnit] = []
     for policy in descriptor.generated_sections:
+        expected_authorities = GENERATED_AUTHORITY_CONTRACT.get(policy.source_symbol)
+        if policy.authorities != expected_authorities:
+            raise ContentPortError(
+                f"{policy.source_symbol}: generated authority contract drift"
+            )
         options = (
             {"markerStyle": "preprocessor"}
             if policy.source_symbol == "trainer-parties"

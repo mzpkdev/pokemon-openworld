@@ -82,6 +82,17 @@ class MaterializeTests(unittest.TestCase):
                 )
             ]
             self.assertEqual(victory_road["met_location"], 70)
+            new_bark = first_payloads[
+                (
+                    "registry-record",
+                    "data/layouts/layouts.json",
+                    "layouts",
+                    "LAYOUT_NEW_BARK_TOWN",
+                )
+            ]
+            self.assertEqual(new_bark["width"], 30)
+            self.assertEqual(new_bark["border_width"], 0)
+            self.assertEqual(new_bark["border_height"], 0)
             self.assertRegex(
                 first_payloads[
                     ("section", "include/constants/berry.h", "berry tree allocations")
@@ -115,6 +126,27 @@ class MaterializeTests(unittest.TestCase):
                 derive_desired_state(descriptor, ROOT)
         finally:
             route30.write_bytes(original)
+
+    def test_mechanical_layout_border_drift_fails_authentication(self) -> None:
+        descriptor = self.descriptor()
+        donor = descriptor.donors_by_role["mechanical"].root
+        layouts = donor / "data/layouts/layouts.json"
+        original = layouts.read_bytes()
+        document = json.loads(original)
+        new_bark = next(
+            item for item in document["layouts"] if item["id"] == "LAYOUT_NEW_BARK_TOWN"
+        )
+        self.assertEqual(new_bark["border_width"], 0)
+        new_bark["border_width"] = 1
+        self.addCleanup(layouts.write_bytes, original)
+        try:
+            layouts.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(
+                ContentPortError, "source-tree digest mismatch"
+            ):
+                derive_desired_state(descriptor, ROOT)
+        finally:
+            layouts.write_bytes(original)
 
     def test_victory_road_codec_requires_a_ledger_binding(self) -> None:
         descriptor = self.descriptor()
@@ -216,6 +248,29 @@ class MaterializeTests(unittest.TestCase):
                 self.assertRaisesRegex(ContentPortError, "has no ledger binding"),
             ):
                 derive_desired_state(descriptor, repo)
+
+    def test_generated_section_authority_contract_is_enforced_in_production(
+        self,
+    ) -> None:
+        descriptor = self.descriptor()
+        evidence, state = resolve_port_sources(descriptor, ROOT)
+        policies = tuple(
+            replace(policy, authorities=("mechanical",))
+            if policy.source_symbol == "flag-bindings"
+            else policy
+            for policy in descriptor.generated_sections
+        )
+        with (
+            patch(
+                "tools.content_port.materialize.resolve_port_sources",
+                return_value=(evidence, state),
+            ),
+            patch(
+                "tools.content_port.materialize.authenticate_donors", return_value=()
+            ),
+            self.assertRaisesRegex(ContentPortError, "authority contract drift"),
+        ):
+            derive_desired_state(replace(descriptor, generated_sections=policies), ROOT)
 
     def test_donor_asset_mutation_fails_closed(self) -> None:
         descriptor = self.descriptor()

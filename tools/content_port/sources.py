@@ -82,6 +82,7 @@ class PortSourceState:
     layouts: Mapping[str, Mapping[str, Any]]
     map_authorities: Mapping[str, str]
     layout_authorities: Mapping[str, str]
+    layout_field_authorities: Mapping[str, Mapping[str, str]]
     donor_roots: Mapping[str, Path]
     resources: Mapping[ResourceKey, Provenance]
     inventory: Mapping[str, tuple[str, ...]]
@@ -1079,6 +1080,53 @@ def resolve_port_sources(
         selected_layouts[layout_id] = SourceRecord(
             _thaw(record.value), record.provenance
         )
+    layout_field_authorities: dict[str, dict[str, str]] = {
+        layout_id: {field: layout_authorities[layout_id] for field in record.value}
+        for layout_id, record in selected_layouts.items()
+    }
+    applied_field_rules: set[tuple[str, str]] = set()
+    for authority in descriptor.layout_field_authorities:
+        matching_layouts = sorted(
+            layout_id
+            for layout_id, role in layout_authorities.items()
+            if role == authority.layout_role
+        )
+        if not matching_layouts:
+            raise ContentPortError(
+                f"layout field authority {authority.layout_role}/{authority.field} "
+                "matches no allocated layout"
+            )
+        source_context = contexts[authority.source_role]
+        for layout_id in matching_layouts:
+            selected = selected_layouts[layout_id].value
+            if authority.field in selected:
+                raise ContentPortError(
+                    f"{layout_id}/{authority.field}: field authority expects the "
+                    f"{authority.layout_role} donor field to be absent"
+                )
+            try:
+                source_layout = source_context.load(
+                    ResourceKey("layout", layout_id)
+                ).value
+            except ContentPortError as error:
+                raise ContentPortError(
+                    f"{layout_id}/{authority.field}: field authority source layout is "
+                    f"absent from the {authority.source_role} donor"
+                ) from error
+            if authority.field not in source_layout:
+                raise ContentPortError(
+                    f"{layout_id}/{authority.field}: field authority is absent from "
+                    f"the {authority.source_role} donor"
+                )
+            selected[authority.field] = _thaw(source_layout[authority.field])
+            layout_field_authorities[layout_id][authority.field] = authority.source_role
+            applied_field_rules.add((authority.layout_role, authority.field))
+    declared_field_rules = {
+        (authority.layout_role, authority.field)
+        for authority in descriptor.layout_field_authorities
+    }
+    if applied_field_rules != declared_field_rules:
+        raise ContentPortError("layout field authorities were not applied exactly")
     for decision in adaptations["layoutHeaderDecisions"]:
         layout_id, field_name = decision["layout"], decision["field"]
         content_value = content.load(ResourceKey("layout", layout_id)).value[field_name]
@@ -1097,6 +1145,26 @@ def resolve_port_sources(
             if decision["authority"] == "content"
             else decision[mechanical_field]
         )
+        layout_field_authorities[layout_id][field_name] = decision["authority"]
+    required_layout_fields = {
+        "blockdata_filepath",
+        "border_filepath",
+        "border_height",
+        "border_width",
+        "height",
+        "id",
+        "name",
+        "primary_tileset",
+        "secondary_tileset",
+        "width",
+    }
+    for layout_id, record in selected_layouts.items():
+        missing_fields = sorted(required_layout_fields - set(record.value))
+        if missing_fields:
+            raise ContentPortError(
+                f"{layout_id}: unresolved layout field {missing_fields[0]!r}; "
+                "exact field authority is required"
+            )
     for decision in adaptations["layoutTilesetRemaps"]:
         layout_id, field_name = decision["layout"], decision["field"]
         if selected_layouts[layout_id].value[field_name] != decision["source"]:
@@ -1429,6 +1497,12 @@ def resolve_port_sources(
         ),
         map_authorities=MappingProxyType(dict(map_authorities)),
         layout_authorities=MappingProxyType(dict(layout_authorities)),
+        layout_field_authorities=MappingProxyType(
+            {
+                layout_id: MappingProxyType(dict(sorted(fields.items())))
+                for layout_id, fields in sorted(layout_field_authorities.items())
+            }
+        ),
         donor_roots=MappingProxyType(dict(donor_roots)),
         resources=graph.resources,
         inventory=MappingProxyType(dict(inventory_values)),

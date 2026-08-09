@@ -124,11 +124,18 @@ class LayoutBinaryAuthority:
 
 
 @dataclass(frozen=True, order=True)
+class LayoutFieldAuthority:
+    field: str
+    layout_role: str
+    source_role: str
+
+
+@dataclass(frozen=True, order=True)
 class GeneratedSectionPolicy:
     key: str
     path: str
-    source_role: str
     source_symbol: str
+    authorities: tuple[str, ...]
 
 
 @dataclass(frozen=True, order=True)

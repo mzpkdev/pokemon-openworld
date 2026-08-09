@@ -6,7 +6,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.content_port.descriptor import ADAPTATION_KEYS, load_port, read_json
+from tools.content_port.descriptor import (
+    ADAPTATION_KEYS,
+    GENERATED_AUTHORITY_CONTRACT,
+    load_port,
+    read_json,
+)
 from tools.content_port.errors import ContentPortError
 from tools.content_port.update import (
     REQUIRED_REVIEW_COMMANDS,
@@ -77,11 +82,19 @@ class DescriptorTests(unittest.TestCase):
                 "sourceRole": "content",
             }
         ]
+        adaptations["layoutFieldAuthorities"] = [
+            {
+                "field": field,
+                "layoutRole": "content",
+                "sourceRole": "mechanical",
+            }
+            for field in ("border_height", "border_width")
+        ]
         adaptations["generatedSections"] = [
             {
+                "authorities": list(GENERATED_AUTHORITY_CONTRACT[symbol]),
                 "key": key,
                 "path": path,
-                "sourceRole": "policy",
                 "sourceSymbol": symbol,
             }
             for key, path, symbol in (
@@ -302,6 +315,7 @@ class DescriptorTests(unittest.TestCase):
                 descriptor.allocation_index.map_allocation("TestMap").layout,
                 "LAYOUT_TEST",
             )
+            self.assertEqual(len(descriptor.layout_field_authorities), 2)
             self.assertEqual(len(descriptor.generated_sections), 10)
             self.assertEqual(
                 descriptor.target_bindings.berry_tree_binding.symbol,
@@ -352,6 +366,24 @@ class DescriptorTests(unittest.TestCase):
                     sourceRole="missing"
                 ),
                 "unknown donor role 'missing'",
+            ),
+            (
+                lambda document: document.update(
+                    layoutFieldAuthorities=document["layoutFieldAuthorities"][:-1]
+                ),
+                "missing field 'border_width'",
+            ),
+            (
+                lambda document: document["generatedSections"][2].update(
+                    authorities=["mechanical"]
+                ),
+                "must exactly match generated source contract",
+            ),
+            (
+                lambda document: document["generatedSections"][2].update(
+                    sourceRole="mechanical"
+                ),
+                "unknown field 'sourceRole'",
             ),
             (
                 lambda document: document.update(
