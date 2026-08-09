@@ -1,3 +1,11 @@
+# GNU Make always executes recipe lines containing $(MAKE), even in dry-run mode.
+# Entering the lifetime-lock wrapper from `make -n` would therefore turn an
+# inspection into a real build.  Dry runs do not publish build outputs, so keep
+# them in this Make process and let the product rules render their recipes.
+ifneq (,$(findstring n,$(firstword $(MAKEFLAGS))))
+CONTENT_PORT_BUILD_LOCK_HELD := 1
+endif
+
 ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
 _CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 .PHONY: __content-port-build-lock
@@ -21,7 +29,7 @@ __content-port-build-lock:
 		$(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
 	fi
 
-%: __content-port-build-lock
+%:: __content-port-build-lock
 	@:
 
 else
