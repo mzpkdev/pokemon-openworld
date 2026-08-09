@@ -657,9 +657,9 @@ def _hold_git_identity(transaction: "ApplyTransaction") -> Iterator[None]:
     try:
         yield
     except BaseException as error:
-        identity_changed = isinstance(error, ContentPortError) and str(error).startswith(
-            "HEAD or task branch changed"
-        )
+        identity_changed = isinstance(error, ContentPortError) and str(
+            error
+        ).startswith("HEAD or task branch changed")
         if identity_changed:
             preserve = False
         else:
