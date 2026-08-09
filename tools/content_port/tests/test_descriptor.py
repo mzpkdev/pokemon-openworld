@@ -117,14 +117,33 @@ class DescriptorTests(unittest.TestCase):
             "sectionKind": "geographic",
             "region": "REGION_TEST",
             "regionMapType": "REGION_MAP_TEST",
-            "savedLocationInvalid": 255,
-            "metLocationInvalid": 252,
-            "berryTreeBase": 90,
+            "savedLocationInvalidBinding": {
+                "domain": "savedLocations",
+                "symbol": "MAPSEC_ICE_PATH",
+            },
+            "metLocationInvalidBinding": {
+                "domain": "destinations",
+                "symbol": "MAPSEC_BLACKTHORN_CITY",
+            },
+            "berryTreeBinding": {
+                "domain": "berryTrees",
+                "symbol": "BERRY_TREE_ROUTE_29_ORAN_1",
+            },
             "tilesetFeatureMacro": "HAS_TEST_TILESETS",
             "timeEncounterLabel": "Test_EventScript_SetTimeEncounters",
             "deferredCallLabel": "Test_Text_DeferredCall",
             "deferredCallText": "Call again later.$",
-            "sectionPersistenceCodecs": [],
+            "sectionPersistenceCodecs": [
+                {
+                    "section": "MAPSEC_TEST",
+                    "savedLocation": "MAPSEC_TEST",
+                    "metLocationBinding": {
+                        "domain": "destinations",
+                        "symbol": "MAPSEC_TEST",
+                    },
+                    "metLocationDisplay": "MAPSEC_TEST",
+                }
+            ],
             "flagExports": [],
             "varExports": [],
         }
@@ -147,6 +166,11 @@ class DescriptorTests(unittest.TestCase):
                     "commit": "1" * 40,
                     "treeDigest": "2" * 64,
                     "fileCount": 2,
+                    "genesis": {
+                        "commit": "1" * 40,
+                        "fileCount": 2,
+                        "treeDigest": "2" * 64,
+                    },
                     "root": "mechanical",
                     "migration": None,
                 },
@@ -156,6 +180,11 @@ class DescriptorTests(unittest.TestCase):
                     "commit": "3" * 40,
                     "treeDigest": "4" * 64,
                     "fileCount": 3,
+                    "genesis": {
+                        "commit": "3" * 40,
+                        "fileCount": 3,
+                        "treeDigest": "4" * 64,
+                    },
                     "root": "content",
                     "migration": None,
                 },
@@ -174,7 +203,12 @@ class DescriptorTests(unittest.TestCase):
         return port
 
     def attach_migration(
-        self, root: Path, port: dict[str, object], mutation=None
+        self,
+        root: Path,
+        port: dict[str, object],
+        mutation=None,
+        *,
+        from_after_genesis: bool = False,
     ) -> tuple[str, dict[str, object]]:
         pin = port["donors"]["mechanical"]  # type: ignore[index]
         donor = root / "donors/mechanical"
@@ -193,11 +227,25 @@ class DescriptorTests(unittest.TestCase):
         (donor / "evidence.txt").write_text("old\n")
         subprocess.run(("git", "add", "."), cwd=donor, check=True)
         subprocess.run(("git", "commit", "-q", "-m", "old"), cwd=donor, check=True)
-        source = identify_tree(donor)
+        genesis = identify_tree(donor)
+        if from_after_genesis:
+            (donor / "evidence.txt").write_text("middle\n")
+            subprocess.run(("git", "add", "."), cwd=donor, check=True)
+            subprocess.run(
+                ("git", "commit", "-q", "-m", "middle"), cwd=donor, check=True
+            )
+            source = identify_tree(donor)
+        else:
+            source = genesis
         (donor / "evidence.txt").write_text("new\n")
         subprocess.run(("git", "add", "."), cwd=donor, check=True)
         subprocess.run(("git", "commit", "-q", "-m", "new"), cwd=donor, check=True)
         target = identify_tree(donor)
+        pin["genesis"] = {
+            "commit": genesis.commit,
+            "fileCount": genesis.file_count,
+            "treeDigest": genesis.digest,
+        }
         pin.update(
             commit=target.commit,
             treeDigest=target.digest,
@@ -253,6 +301,16 @@ class DescriptorTests(unittest.TestCase):
                 "LAYOUT_TEST",
             )
             self.assertEqual(len(descriptor.generated_sections), 10)
+            self.assertEqual(
+                descriptor.target_bindings.berry_tree_binding.symbol,
+                "BERRY_TREE_ROUTE_29_ORAN_1",
+            )
+            self.assertEqual(
+                descriptor.target_bindings.section_persistence_codecs[
+                    0
+                ].met_location_binding.domain,
+                "destinations",
+            )
             with self.assertRaises(TypeError):
                 descriptor.authority["new"] = ()  # type: ignore[index]
             with self.assertRaises(TypeError):
@@ -304,6 +362,10 @@ class DescriptorTests(unittest.TestCase):
                 "unknown field 'extra'",
             ),
             (
+                lambda document: document["targetBindings"].update(berryTreeBase=90),
+                "unknown field 'berryTreeBase'",
+            ),
+            (
                 lambda document: document.pop("targetBindings"),
                 "missing field 'targetBindings'",
             ),
@@ -330,6 +392,82 @@ class DescriptorTests(unittest.TestCase):
             descriptor = load_port(root, root / "donors")
             self.assertEqual(descriptor.donors[0].migration, digest)
 
+    def test_hand_installed_record_cannot_skip_published_predecessor(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            self.attach_migration(root, port, from_after_genesis=True)
+            with self.assertRaisesRegex(
+                ContentPortError, "does not start at genesis pin"
+            ):
+                load_port(root, root / "donors")
+
+    def test_unlinked_pin_must_equal_authored_genesis(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            port["donors"]["mechanical"]["commit"] = "9" * 40  # type: ignore[index]
+            dump(root / "port.json", port)
+            with self.assertRaisesRegex(
+                ContentPortError, "unlinked pin differs from genesis"
+            ):
+                load_port(root, root / "donors")
+
+    def test_content_addressed_predecessor_chain_reaches_genesis(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            first_digest, _ = self.attach_migration(root, port)
+            donor = root / "donors/mechanical"
+            first = identify_tree(donor)
+            first_tree = root / "first-pin"
+            subprocess.run(
+                (
+                    "git",
+                    "-C",
+                    str(donor),
+                    "worktree",
+                    "add",
+                    "-q",
+                    "--detach",
+                    str(first_tree),
+                    first.commit,
+                ),
+                check=True,
+            )
+            (donor / "evidence.txt").write_text("newer\n")
+            subprocess.run(("git", "add", "."), cwd=donor, check=True)
+            subprocess.run(
+                ("git", "commit", "-q", "-m", "newer"), cwd=donor, check=True
+            )
+            second = identify_tree(donor)
+            report = build_migration(
+                donor="mechanical",
+                repository="example/mechanical",
+                old_tree=first_tree,
+                new_tree=donor,
+                tests=(
+                    {"command": list(command), "result": "passed"}
+                    for command in REQUIRED_REVIEW_COMMANDS
+                ),
+                predecessor=first_digest,
+            )
+            report["decision"] = "reviewed"
+            second_digest = migration_digest(report)
+            (root / "migrations" / f"{second_digest}.json").write_bytes(
+                canonical_bytes(report)
+            )
+            pin = port["donors"]["mechanical"]  # type: ignore[index]
+            pin.update(
+                commit=second.commit,
+                treeDigest=second.digest,
+                fileCount=second.file_count,
+                migration=second_digest,
+            )
+            dump(root / "port.json", port)
+            descriptor = load_port(root, root / "donors")
+            self.assertEqual(descriptor.donors[0].migration, second_digest)
+
     def test_missing_stale_and_unreviewed_migrations_fail_closed(self):
         cases = (
             (
@@ -350,7 +488,7 @@ class DescriptorTests(unittest.TestCase):
             ),
             (
                 lambda report, _pin: report["to"].update(treeDigest="8" * 64),
-                "migration target treeDigest is stale",
+                "migration target pin is stale",
             ),
             (
                 lambda report, pin: report["from"].update(commit=pin["commit"]),

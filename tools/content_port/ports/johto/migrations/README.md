@@ -20,6 +20,15 @@ record. Apply that proposal to `port.json` only after review, then commit it wit
 the record and asset-policy changes. `blocked` and `unknown` assets cannot be
 finalized or bundled.
 
+Each donor record authors an immutable `genesis` identity for its initial
+published pin. Every migration records the digest of the currently published
+migration as `predecessor`; the first migration uses `null`. Descriptor loading
+walks that content-addressed chain backwards, requires every target to equal the
+next record's source, and requires the first source to equal `genesis`. A current
+pin with no migration must equal `genesis`. Consequently, installing a valid
+reviewed record whose source is merely some resolvable donor commit cannot skip
+the previously published chain.
+
 The donor checkout used for finalization and CI must resolve both the source and
 target commits. Finalization checks out both commits in disposable worktrees,
 recomputes every added, removed, and changed path with blob hashes, recomputes
@@ -27,6 +36,7 @@ all authority-field and asset impacts, reruns the required command evidence, and
 rejects any omitted or fabricated report entry. CI therefore uses full public
 donor history instead of a single-commit shallow checkout.
 
-The committed pin is authoritative only when its exact source and target commits
-match the reviewed record. Publication remains a normal reviewed Git commit;
-the content-port tool never moves a branch or creates a commit.
+The committed pin is authoritative only when its exact target matches the head
+record and the complete predecessor chain reaches the authored genesis identity.
+Publication remains a normal reviewed Git commit; the content-port tool never
+moves a branch or creates a commit.

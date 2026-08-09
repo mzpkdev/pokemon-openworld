@@ -35,6 +35,7 @@ MIGRATION_KEYS = {
     "decision",
     "donor",
     "from",
+    "predecessor",
     "removedPaths",
     "repository",
     "schemaVersion",
@@ -396,6 +397,7 @@ def build_migration(
     references: Iterable[Mapping[str, object]] = (),
     assets: Mapping[str, object] | None = None,
     tests: Iterable[Mapping[str, object]] = (),
+    predecessor: str | None = None,
 ) -> dict[str, object]:
     """Build a deterministic, non-authoritative donor migration candidate."""
 
@@ -436,6 +438,7 @@ def build_migration(
             "fileCount": old.file_count,
             "treeDigest": old.digest,
         },
+        "predecessor": predecessor,
         "removedPaths": removed_paths,
         "repository": repository,
         "schemaVersion": SCHEMA_VERSION,
@@ -485,6 +488,18 @@ def migration_digest(report: Mapping[str, object]) -> str:
 
 def migration_filename(report: Mapping[str, object]) -> str:
     return f"{migration_digest(report)}.json"
+
+
+def _migration_link(value: object, pointer: str) -> str | None:
+    if value is None:
+        return None
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise DonorUpdateError(f"{pointer}: expected null or lowercase SHA-256")
+    return value
 
 
 def _pin_identity(value: object, pointer: str) -> Mapping[str, object]:
@@ -597,6 +612,7 @@ def finalize_migration(
         raise DonorUpdateError("migration candidate has unsupported schemaVersion")
     if report.get("decision") != "reviewed":
         raise DonorUpdateError("migration candidate is not reviewed")
+    _migration_link(report.get("predecessor"), "$.predecessor")
     donor = report.get("donor")
     repository = report.get("repository")
     if not isinstance(donor, str) or not isinstance(repository, str):
@@ -618,6 +634,11 @@ def finalize_migration(
         raise DonorUpdateError(f"port policy has no donor role {donor!r}")
     if current.get("repository") != repository:
         raise DonorUpdateError(f"donor {donor}: repository differs from port policy")
+    predecessor = report.get("predecessor")
+    if predecessor != current.get("migration"):
+        raise DonorUpdateError(
+            f"donor {donor}: migration predecessor is not the published pin"
+        )
     for field in ("commit", "treeDigest", "fileCount"):
         if current.get(field) != source[field]:
             raise DonorUpdateError(f"donor {donor}: candidate source {field} is stale")
@@ -678,6 +699,7 @@ def validate_reviewed_migration(
         raise DonorUpdateError("migration record has unsupported schemaVersion")
     if report.get("decision") != "reviewed":
         raise DonorUpdateError(f"donor {donor}: migration record is not reviewed")
+    _migration_link(report.get("predecessor"), "$.predecessor")
     if report.get("donor") != donor:
         raise DonorUpdateError(f"donor {donor}: migration record names another donor")
     if repository is not None and report.get("repository") != repository:
@@ -896,6 +918,7 @@ def verify_migration_evidence(
                 references=references,
                 assets=filtered_assets,
                 tests=report.get("tests", ()),  # type: ignore[arg-type]
+                predecessor=report.get("predecessor"),  # type: ignore[arg-type]
             )
         finally:
             for tree in (old_tree, new_tree):
@@ -993,6 +1016,7 @@ def run_donor_update(
                 references=references,
                 assets=filtered_assets,
                 tests=run_review_commands(repo),
+                predecessor=record.get("migration"),
             )
         finally:
             for tree in (old_tree, new_tree):

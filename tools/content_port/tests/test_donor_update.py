@@ -236,6 +236,11 @@ class DonorUpdateTests(unittest.TestCase):
                     "commit": self.old_commit,
                     "treeDigest": "0" * 64,
                     "fileCount": 2,
+                    "genesis": {
+                        "commit": self.old_commit,
+                        "treeDigest": "0" * 64,
+                        "fileCount": 2,
+                    },
                     "root": "donor",
                 }
             },
@@ -305,6 +310,7 @@ class DonorUpdateTests(unittest.TestCase):
                     "name": "fixture",
                     "repository": "owner/repo",
                     **report["from"],
+                    "genesis": dict(report["from"]),
                     "root": "donor",
                     "migration": None,
                 }
@@ -350,6 +356,17 @@ class DonorUpdateTests(unittest.TestCase):
         self.assertEqual(
             update["proposedDonorRecord"]["commit"], report["to"]["commit"]
         )
+        self.assertEqual(update["proposedDonorRecord"]["genesis"], report["from"])
+
+        stale_predecessor = copy.deepcopy(report)
+        stale_predecessor["predecessor"] = "f" * 64
+        candidate.write_bytes(canonical_bytes(stale_predecessor))
+        with self.assertRaisesRegex(
+            DonorUpdateError, "predecessor is not the published pin"
+        ):
+            finalize_migration(
+                candidate, port_dir, donor_root=self.root, repo=Path.cwd()
+            )
 
         for field in ("changedPaths", "assets"):
             fabricated = copy.deepcopy(report)
@@ -388,6 +405,7 @@ class DonorUpdateTests(unittest.TestCase):
                 "fileCount": 1,
                 "treeDigest": "b" * 64,
             },
+            "predecessor": None,
             "removedPaths": [],
             "repository": "owner/repo",
             "schemaVersion": 1,
@@ -419,6 +437,7 @@ class DonorUpdateTests(unittest.TestCase):
                 "fileCount": 1,
                 "treeDigest": "b" * 64,
             },
+            "predecessor": None,
             "removedPaths": [],
             "repository": "owner/repo",
             "schemaVersion": 1,
