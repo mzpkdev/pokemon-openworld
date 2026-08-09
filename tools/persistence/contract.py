@@ -40,6 +40,12 @@ PUBLISHED_BINDING_DOMAINS = frozenset(
         "gameStats",
     )
 )
+NON_PERSISTENT_CONFIG_BINDINGS = frozenset(
+    (
+        "FLAG_DEBUG_NO_TRAINER_SIGHT",
+        "FLAG_DEBUG_NO_WILD_ENCOUNTERS",
+    )
+)
 ABI_PURPOSES = ("normal", "debug", "release", "test-runner", "headless-test")
 ROOT_TYPES = (
     "SaveBlock1",
@@ -324,11 +330,7 @@ def _structural_layout(
             visiting.remove(name)
             return {"kind": kind, "anonymous": value}
         if kind == "typedef":
-            return {
-                "kind": "typedef",
-                "name": desc.get("name"),
-                "target": describe(desc["target"]),
-            }
+            return describe(desc["target"])
         if kind == "array":
             return {
                 "kind": "array",
@@ -337,6 +339,12 @@ def _structural_layout(
             }
         if kind == "pointer":
             return {"kind": "pointer", "size": desc.get("size", 4)}
+        if kind == "base":
+            return {
+                "kind": "base",
+                "size": desc.get("size", 0),
+                "encoding": desc.get("encoding", 0),
+            }
         return dict(sorted(desc.items()))
 
     def normalize(value: dict[str, Any]) -> dict[str, Any]:
@@ -385,16 +393,18 @@ def _canonicalize_anonymous_layouts(
                 return {"kind": kind, "anonymousFingerprint": fingerprint_layout(name)}
             return {"kind": kind, "name": name}
         if kind == "typedef":
-            return {
-                "kind": "typedef",
-                "name": desc.get("name"),
-                "target": fingerprint_desc(desc["target"]),
-            }
+            return fingerprint_desc(desc["target"])
         if kind == "array":
             return {
                 "kind": "array",
                 "dimensions": desc["dimensions"],
                 "element": fingerprint_desc(desc["element"]),
+            }
+        if kind == "base":
+            return {
+                "kind": "base",
+                "size": desc.get("size", 0),
+                "encoding": desc.get("encoding", 0),
             }
         return dict(sorted(desc.items()))
 
@@ -622,8 +632,6 @@ class DwarfLayouts:
             value = (
                 self._describe(unit_index, ref) if ref is not None else {"kind": "void"}
             )
-            if tag == "DW_TAG_typedef" and _die_name(die):
-                return {"kind": "typedef", "name": _die_name(die), "target": value}
             return value
         if tag in ("DW_TAG_structure_type", "DW_TAG_union_type"):
             return {
@@ -668,7 +676,6 @@ class DwarfLayouts:
             encoding = die["attrs"].get("DW_AT_encoding")
             return {
                 "kind": "base",
-                "name": _die_name(die) or "<anonymous>",
                 "size": _attr_int(die["attrs"].get("DW_AT_byte_size", "0")),
                 "encoding": _attr_int(encoding) if encoding is not None else 0,
             }
@@ -814,7 +821,7 @@ def _bindings(values: dict[str, int]) -> dict[str, list[dict[str, Any]]]:
         entries = [
             {"symbol": name, "value": value}
             for name, value in values.items()
-            if name.startswith(prefixes)
+            if name.startswith(prefixes) and name not in NON_PERSISTENT_CONFIG_BINDINGS
         ]
         result[domain] = sorted(
             entries, key=lambda item: (item["value"], item["symbol"])
@@ -1178,9 +1185,8 @@ def _validate_measured_abi_shape(
             raise ContractError(f"{path}: expected type descriptor")
         kind = value.get("kind")
         schemas = {
-            "typedef": {"kind", "name", "target"},
             "array": {"kind", "dimensions", "element"},
-            "base": {"kind", "name", "size", "encoding"},
+            "base": {"kind", "size", "encoding"},
             "enum": {"kind", "name", "size"},
             "pointer": {"kind", "size", "target"},
             "struct": {"kind", "name"},
@@ -1194,11 +1200,9 @@ def _validate_measured_abi_shape(
             or set(value) != schemas[kind]
         ):
             raise ContractError(f"{path}: invalid {kind!r} descriptor keys")
-        if kind in ("typedef", "base", "enum", "struct", "union"):
+        if kind in ("enum", "struct", "union"):
             string(value["name"], f"{path}.name")
-        if kind == "typedef":
-            descriptor(value["target"], f"{path}.target")
-        elif kind == "array":
+        if kind == "array":
             dimensions = value["dimensions"]
             if not isinstance(dimensions, list) or not dimensions:
                 raise ContractError(f"{path}.dimensions: expected non-empty list")
@@ -1285,6 +1289,11 @@ def _validate_measured_abi_shape(
                 raise ContractError(f"{path}: entries are not uniquely sorted")
             previous = order
             symbols.append(symbol)
+            if symbol in NON_PERSISTENT_CONFIG_BINDINGS:
+                raise ContractError(
+                    f"{entry_path}.symbol: compile-configuration control is not a "
+                    "persistent binding"
+                )
         if binding_symbols is not None and symbols != binding_symbols[domain]:
             raise ContractError(f"{path}: published symbol shape changed")
 
@@ -1348,11 +1357,7 @@ def abi_evidence_values(abi: dict[str, Any]) -> list[tuple[str, int]]:
         kind = desc.get("kind")
         identity = string_facts(kind, f"{path}.kind")
         if kind == "typedef":
-            return (
-                identity
-                + string_facts(desc.get("name"), f"{path}.typedef.name")
-                + type_facts(desc["target"], f"{path}.typedef.target")
-            )
+            return type_facts(desc["target"], path)
         if kind == "array":
             facts = []
             cardinality = 1
@@ -1372,11 +1377,7 @@ def abi_evidence_values(abi: dict[str, Any]) -> list[tuple[str, int]]:
         if kind == "base":
             size = uint(desc.get("size"), 0xFFFF, f"{path}.base.size")
             encoding = uint(desc.get("encoding"), 0xFFFF, f"{path}.base.encoding")
-            return (
-                identity
-                + string_facts(desc.get("name"), f"{path}.base.name")
-                + [(f"{path}.base.sizeEncoding", (size << 16) | encoding)]
-            )
+            return identity + [(f"{path}.base.sizeEncoding", (size << 16) | encoding)]
         if kind == "enum":
             size = uint(desc.get("size"), 0xFFFFFFFF, f"{path}.enum.size")
             return (

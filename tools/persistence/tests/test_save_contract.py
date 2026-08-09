@@ -13,6 +13,7 @@ from tools.persistence.contract import (
     ABI_PURPOSES,
     CONTRACT_METADATA_KEYS,
     ContractError,
+    NON_PERSISTENT_CONFIG_BINDINGS,
     canonical_bytes,
     compare,
     abi_evidence_values,
@@ -26,6 +27,7 @@ from tools.persistence.contract import (
     _source_evidence,
     _purpose_defines,
     _canonicalize_anonymous_layouts,
+    _bindings,
     _parse_dwarf,
     DwarfLayouts,
 )
@@ -410,9 +412,136 @@ class SaveContractTests(unittest.TestCase):
         self.assertEqual(plain, annotated)
         self.assertEqual(plain, indirect)
         self.assertEqual(plain, nested_forms)
-        self.assertEqual(
-            plain, {"kind": "base", "name": "u8", "size": 1, "encoding": 8}
-        )
+        self.assertEqual(plain, {"kind": "base", "size": 1, "encoding": 8})
+
+    def test_scalar_typedef_wrappers_and_die_sharing_are_abi_transparent(self):
+        def unit(size: int, encoding: int, form: str):
+            dies = {
+                0x10: {
+                    "offset": 0x10,
+                    "tag": "DW_TAG_structure_type",
+                    "attrs": {
+                        "DW_AT_name": "SaveBlock1",
+                        "DW_AT_byte_size": str(size * 2),
+                    },
+                    "children": [0x20, 0x30],
+                },
+                0x20: {
+                    "offset": 0x20,
+                    "tag": "DW_TAG_member",
+                    "attrs": {
+                        "DW_AT_name": "first",
+                        "DW_AT_data_member_location": "0",
+                    },
+                    "children": [],
+                },
+                0x30: {
+                    "offset": 0x30,
+                    "tag": "DW_TAG_member",
+                    "attrs": {
+                        "DW_AT_name": "second",
+                        "DW_AT_data_member_location": str(size),
+                    },
+                    "children": [],
+                },
+            }
+
+            def base(offset: int, spelling: str):
+                dies[offset] = {
+                    "offset": offset,
+                    "tag": "DW_TAG_base_type",
+                    "attrs": {
+                        "DW_AT_name": spelling,
+                        "DW_AT_byte_size": str(size),
+                        "DW_AT_encoding": str(encoding),
+                    },
+                    "children": [],
+                }
+
+            def typedef(offset: int, name: str, target: int):
+                dies[offset] = {
+                    "offset": offset,
+                    "tag": "DW_TAG_typedef",
+                    "attrs": {"DW_AT_name": name, "DW_AT_type": f"<0x{target:x}>"},
+                    "children": [],
+                }
+
+            if form == "direct":
+                base(0x80, "producer scalar spelling")
+                member_types = (0x80, 0x80)
+            elif form == "public":
+                base(0x80, "compiler base spelling")
+                typedef(0x60, "PublicScalar", 0x80)
+                member_types = (0x60, 0x60)
+            elif form == "nested-shared":
+                base(0x80, "__compiler_scalar")
+                typedef(0x60, "__private_scalar_t", 0x80)
+                typedef(0x50, "PublicScalar", 0x60)
+                member_types = (0x50, 0x50)
+            elif form == "nested-duplicated":
+                base(0x80, "__compiler_scalar_a")
+                typedef(0x60, "__private_scalar_a_t", 0x80)
+                typedef(0x50, "PublicScalarA", 0x60)
+                base(0x180, "__compiler_scalar_b")
+                typedef(0x160, "__private_scalar_b_t", 0x180)
+                typedef(0x150, "PublicScalarB", 0x160)
+                member_types = (0x50, 0x150)
+            else:
+                self.fail(f"unknown scalar graph form: {form}")
+            dies[0x20]["attrs"]["DW_AT_type"] = f"<0x{member_types[0]:x}>"
+            dies[0x30]["attrs"]["DW_AT_type"] = f"<0x{member_types[1]:x}>"
+            return dies
+
+        forms = ("direct", "public", "nested-shared", "nested-duplicated")
+        with mock.patch("tools.persistence.contract.ROOT_TYPES", ("SaveBlock1",)):
+            for encoding in (5, 7):
+                for size in (1, 2, 4, 8):
+                    layouts = [
+                        DwarfLayouts([unit(size, encoding, form)]).collect()[0]
+                        for form in forms
+                    ]
+                    expected = canonical_bytes(layouts[0])
+                    for form, layout in zip(forms[1:], layouts[1:]):
+                        with self.subTest(size=size, encoding=encoding, form=form):
+                            self.assertEqual(expected, canonical_bytes(layout))
+
+                    frozen = minimal_contract()
+                    frozen["structs"]["SaveBlock1"] = copy.deepcopy(
+                        layouts[0]["SaveBlock1"]
+                    )
+                    evidence = [
+                        {"path": path, "value": value}
+                        for path, value in abi_evidence_values(frozen)
+                    ]
+                    frozen["purposeAbiEvidence"] = {
+                        purpose: copy.deepcopy(evidence) for purpose in ABI_PURPOSES
+                    }
+                    for form, layout in zip(forms, layouts):
+                        actual = {
+                            key: copy.deepcopy(value)
+                            for key, value in frozen.items()
+                            if key not in CONTRACT_METADATA_KEYS
+                        }
+                        actual["structs"]["SaveBlock1"] = copy.deepcopy(
+                            layout["SaveBlock1"]
+                        )
+                        for purpose in ABI_PURPOSES:
+                            with self.subTest(
+                                size=size,
+                                encoding=encoding,
+                                form=form,
+                                purpose=purpose,
+                            ):
+                                validate_abi(frozen, actual, purpose)
+
+                    changed_size = DwarfLayouts(
+                        [unit(size + 1, encoding, "nested-shared")]
+                    ).collect()[0]
+                    changed_encoding = DwarfLayouts(
+                        [unit(size, encoding + 1, "nested-shared")]
+                    ).collect()[0]
+                    self.assertNotEqual(expected, canonical_bytes(changed_size))
+                    self.assertNotEqual(expected, canonical_bytes(changed_encoding))
 
     def test_arm_compile_defines_are_purpose_specific(self):
         expected = {
@@ -548,7 +677,7 @@ class SaveContractTests(unittest.TestCase):
             "type": {
                 "kind": "array",
                 "dimensions": [54, 2],
-                "element": {"kind": "base", "name": "u8", "size": 1, "encoding": 8},
+                "element": {"kind": "base", "size": 1, "encoding": 8},
             },
         }
         contract["structs"]["SaveBlock1"]["members"] = [first]
@@ -587,16 +716,7 @@ class SaveContractTests(unittest.TestCase):
                 "type": {
                     "kind": "array",
                     "dimensions": [3, 5],
-                    "element": {
-                        "kind": "typedef",
-                        "name": "Element",
-                        "target": {
-                            "kind": "base",
-                            "name": "u16",
-                            "size": 2,
-                            "encoding": 7,
-                        },
-                    },
+                    "element": {"kind": "base", "size": 2, "encoding": 7},
                 },
             },
             {
@@ -630,8 +750,8 @@ class SaveContractTests(unittest.TestCase):
         mutations = [(member, "offset") for member in members] + [
             (members[0]["type"]["dimensions"], 0),
             (members[0]["type"]["dimensions"], 1),
-            (members[0]["type"]["element"]["target"], "size"),
-            (members[0]["type"]["element"]["target"], "encoding"),
+            (members[0]["type"]["element"], "size"),
+            (members[0]["type"]["element"], "encoding"),
             (members[1]["type"], "size"),
             (members[2]["type"], "size"),
         ]
@@ -759,16 +879,7 @@ class SaveContractTests(unittest.TestCase):
                 "offset": 0,
                 "bitOffset": 0,
                 "bitSize": 1,
-                "type": {
-                    "kind": "typedef",
-                    "name": "ByteAlias",
-                    "target": {
-                        "kind": "base",
-                        "name": "unsigned char",
-                        "size": 1,
-                        "encoding": 8,
-                    },
-                },
+                "type": {"kind": "base", "size": 1, "encoding": 8},
             },
             {
                 "name": "choices",
@@ -789,11 +900,7 @@ class SaveContractTests(unittest.TestCase):
                 "type": {
                     "kind": "pointer",
                     "size": 4,
-                    "target": {
-                        "kind": "typedef",
-                        "name": "TargetAlias",
-                        "target": {"kind": "void"},
-                    },
+                    "target": {"kind": "void"},
                 },
             },
             {
@@ -846,23 +953,17 @@ class SaveContractTests(unittest.TestCase):
             "bit-size-too-large": replace(
                 "$.structs.SaveBlock1.members[0].bitSize", 0x100
             ),
-            "typedef-name": replace(
-                "$.structs.SaveBlock1.members[0].type.name", "RenamedAlias"
-            ),
-            "base-name": replace(
-                "$.structs.SaveBlock1.members[0].type.target.name", "signed char"
-            ),
             "base-size-negative": replace(
-                "$.structs.SaveBlock1.members[0].type.target.size", -1
+                "$.structs.SaveBlock1.members[0].type.size", -1
             ),
             "base-size-too-large": replace(
-                "$.structs.SaveBlock1.members[0].type.target.size", 0x10000
+                "$.structs.SaveBlock1.members[0].type.size", 0x10000
             ),
             "encoding-negative": replace(
-                "$.structs.SaveBlock1.members[0].type.target.encoding", -1
+                "$.structs.SaveBlock1.members[0].type.encoding", -1
             ),
             "encoding-too-large": replace(
-                "$.structs.SaveBlock1.members[0].type.target.encoding", 0x10000
+                "$.structs.SaveBlock1.members[0].type.encoding", 0x10000
             ),
             "dimension-negative": replace(
                 "$.structs.SaveBlock1.members[1].type.dimensions[0]", -1
@@ -888,11 +989,8 @@ class SaveContractTests(unittest.TestCase):
             "pointer-size-too-large": replace(
                 "$.structs.SaveBlock1.members[2].type.size", 0x100000000
             ),
-            "pointer-target-typedef-name": replace(
-                "$.structs.SaveBlock1.members[2].type.target.name", "OtherTarget"
-            ),
             "pointer-target-kind": replace(
-                "$.structs.SaveBlock1.members[2].type.target.target.kind", "function"
+                "$.structs.SaveBlock1.members[2].type.target.kind", "function"
             ),
             "struct-name": replace(
                 "$.structs.SaveBlock1.members[3].type.name", "ChoiceUnion"
@@ -978,7 +1076,6 @@ class SaveContractTests(unittest.TestCase):
 
         descriptor_paths = self._schema_descriptor_paths()
         required_by_kind = {
-            "typedef": "target",
             "array": "dimensions",
             "base": "encoding",
             "enum": "size",
@@ -1066,8 +1163,7 @@ class SaveContractTests(unittest.TestCase):
     def _schema_descriptor_paths():
         base = ("structs", "SaveBlock1", "members")
         return {
-            "typedef": (*base, 0, "type"),
-            "base": (*base, 0, "type", "target"),
+            "base": (*base, 0, "type"),
             "array": (*base, 1, "type"),
             "enum": (*base, 1, "type", "element"),
             "pointer": (*base, 2, "type"),
@@ -1104,16 +1200,7 @@ class SaveContractTests(unittest.TestCase):
                     {
                         "name": "scalar",
                         "offset": 0,
-                        "type": {
-                            "kind": "typedef",
-                            "name": "Byte",
-                            "target": {
-                                "kind": "base",
-                                "name": "unsigned char",
-                                "size": 1,
-                                "encoding": 8,
-                            },
-                        },
+                        "type": {"kind": "base", "size": 1, "encoding": 8},
                     },
                     {
                         "name": "choices",
@@ -1383,6 +1470,36 @@ class SaveContractTests(unittest.TestCase):
                 ),
             ):
                 seed_from_commit(repo, "baseline")
+
+    def test_debug_configuration_flags_are_not_published_bindings(self):
+        normal = {
+            "FLAG_REAL_SAVE_STATE": 7,
+            "FLAG_DEBUG_NO_WILD_ENCOUNTERS": 0,
+            "FLAG_DEBUG_NO_TRAINER_SIGHT": 0,
+        }
+        debug = {
+            **normal,
+            "FLAG_DEBUG_NO_WILD_ENCOUNTERS": 0x8FE,
+            "FLAG_DEBUG_NO_TRAINER_SIGHT": 0x8FF,
+        }
+        self.assertEqual(_bindings(normal), _bindings(debug))
+        symbols = {item["symbol"] for item in _bindings(debug)["flags"]}
+        self.assertEqual(symbols, {"FLAG_REAL_SAVE_STATE"})
+
+    def test_contract_rejects_debug_configuration_flags_as_persistent(self):
+        for symbol in NON_PERSISTENT_CONFIG_BINDINGS:
+            contract = minimal_contract()
+            contract["publishedBindings"]["flags"].append(
+                {"symbol": symbol, "value": 0}
+            )
+            contract["publishedBindings"]["flags"].sort(
+                key=lambda item: (item["value"], item["symbol"])
+            )
+            with (
+                self.subTest(symbol=symbol),
+                self.assertRaisesRegex(ContractError, "compile-configuration control"),
+            ):
+                validate_contract(contract)
 
     def test_contract_rejects_empty_binding_domain(self):
         contract = minimal_contract()

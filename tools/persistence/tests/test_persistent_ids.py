@@ -104,6 +104,59 @@ class PersistentIdTests(unittest.TestCase):
                     )
                     self.assertIn(f"#define {macro} {entry['value']}\n", bindings)
 
+    def test_debug_configuration_flags_survive_generated_overlay(self):
+        debug_symbols = {
+            "FLAG_DEBUG_NO_WILD_ENCOUNTERS": "0x8FE",
+            "FLAG_DEBUG_NO_TRAINER_SIGHT": "0x8FF",
+        }
+        self.assertTrue(
+            debug_symbols.keys().isdisjoint(
+                item["symbol"] for item in self.ledger["entries"]
+            )
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            overlay = (output / "include/constants/persistent_flags.inc.h").read_text()
+            for symbol in debug_symbols:
+                self.assertNotIn(symbol, overlay)
+
+            for debug, expected in (
+                (False, {key: "0" for key in debug_symbols}),
+                (True, debug_symbols),
+            ):
+                command = [
+                    "arm-none-eabi-gcc",
+                    "-dM",
+                    "-E",
+                    "-x",
+                    "c",
+                    "-DTESTING=0",
+                    "-I",
+                    str(output / "include"),
+                    "-I",
+                    str(ROOT / "include"),
+                ]
+                if debug:
+                    command.append("-DDEBUG=1")
+                macros = subprocess.run(
+                    command + ["-"],
+                    cwd=ROOT,
+                    input='#include "constants/flags.h"\n',
+                    text=True,
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                ).stdout
+                definitions = dict(
+                    line.removeprefix("#define ").split(maxsplit=1)
+                    for line in macros.splitlines()
+                    if line.startswith("#define ") and len(line.split()) == 3
+                )
+                with self.subTest(debug=debug):
+                    for symbol, value in expected.items():
+                        self.assertEqual(definitions[symbol], value)
+
     def test_grouped_generation_recovers_a_missing_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "generated"

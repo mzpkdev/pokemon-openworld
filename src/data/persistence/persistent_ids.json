@@ -9333,34 +9333,6 @@
         "kind": "published-binding"
       },
       "storage": "flag-id",
-      "symbol": "FLAG_DEBUG_NO_TRAINER_SIGHT",
-      "value": 0
-    },
-    {
-      "alias": {
-        "of": "FLAG_0x077",
-        "owner": "contract-flags"
-      },
-      "domain": "flags",
-      "source": "contract-flags",
-      "state": {
-        "kind": "published-binding"
-      },
-      "storage": "flag-id",
-      "symbol": "FLAG_DEBUG_NO_WILD_ENCOUNTERS",
-      "value": 0
-    },
-    {
-      "alias": {
-        "of": "FLAG_0x077",
-        "owner": "contract-flags"
-      },
-      "domain": "flags",
-      "source": "contract-flags",
-      "state": {
-        "kind": "published-binding"
-      },
-      "storage": "flag-id",
       "symbol": "FLAG_DEFEATED_AGATHA",
       "value": 0
     },
