@@ -36,6 +36,7 @@
 #include "overworld.h"
 #include "palette.h"
 #include "party_menu.h"
+#include "persistent_ids.h"
 #include "pokedex.h"
 #include "pokemon.h"
 #include "pokemon_icon.h"
@@ -2378,10 +2379,12 @@ static void DebugAction_Trainers_SwitchDoublesFlag(u8 taskId)
 static void DebugAction_Trainers_SetRematch(u8 taskId)
 {
     s32 rematchId = sDebugMenuListData->data[1];
+    u16 flag;
 
     if (rematchId == -1)
     {
-        FlagToggle(TRAINER_FLAGS_START + sDebugMenuListData->data[0]);
+        if (PersistentId_GetTrainerDefeatFlag(sDebugMenuListData->data[0], &flag))
+            FlagToggle(flag);
         return;
     }
 
@@ -2392,7 +2395,8 @@ static void DebugAction_Trainers_SetRematch(u8 taskId)
 
         if (!HasTrainerBeenFought(gRematchTable[rematchId].trainerIds[i]))
         {
-            FlagToggle(TRAINER_FLAGS_START + gRematchTable[rematchId].trainerIds[i]);
+            if (PersistentId_GetTrainerDefeatFlag(gRematchTable[rematchId].trainerIds[i], &flag))
+                FlagToggle(flag);
             return;
         }
     }
@@ -2402,7 +2406,8 @@ static void DebugAction_Trainers_SetRematch(u8 taskId)
         if (gRematchTable[rematchId].trainerIds[i] == 0)
             break;
 
-        FlagToggle(TRAINER_FLAGS_START + gRematchTable[rematchId].trainerIds[i]);
+        if (PersistentId_GetTrainerDefeatFlag(gRematchTable[rematchId].trainerIds[i], &flag))
+            FlagToggle(flag);
     }
 }
 

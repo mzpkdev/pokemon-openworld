@@ -51,6 +51,51 @@ between regions or a complete playable regional story. Failed runs
 write per-map screenshots, states, and logs under
 `test-results/e2e/integrity/`.
 
+Save-lifecycle regressions use only the canonical debug ROM and symbol pair.
+They drive the real start-menu Save action, wait for the 128 KiB battery image
+to change and become a complete checksum-valid flash save, terminate the old
+SkyEmu process, prove it exited, and cold-start a new process with fresh RAM and
+XDG configuration against the same copied ROM and `game.sav`. Process shutdown
+is not treated as a save flush and does not require the battery file to change.
+
+`fixtures/hoenn_continue.json` binds the historical Continue fixture to its
+SHA-256 and source commit. Its expectations were obtained by direct parsing of
+the fixture already committed at that source revision, before this build could
+interpret it. The regression asserts those semantics in RAM before resaving,
+in the rewritten battery image, and again after a cold restart.
+
+`fixtures/hoenn_populated.json` was generated from a clean `135b32ca92`
+source export with the manifest-recorded DEBUG instrumentation patch. The
+generator uses normal game services to create a party Pokémon, boxed Pokémon,
+compatible daycare pair and pending egg, in-game trade, bag reward, checkpoint,
+paused Battle Tower challenge, and defeated trainer, then drives the field
+Start-menu Save twice to replace both rotating flash slots and exclude stale
+pre-scenario Quickstart entropy. Its manifest records the instrumentation, ROM, and save
+digests plus independently decoded Pokémon provenance and representative state.
+From a clean repository with the normal E2E dependencies installed, reproduce
+the complete export → checked overlay → historical build → gameplay → Save
+pipeline with one command:
+
+```sh
+build/e2e-venv/bin/python -m tools.e2e.generate_populated_fixture \
+  --source-tree . \
+  --skyemu build/e2e-tools/SkyEmu-v5 \
+  --output tools/e2e/fixtures/hoenn_populated.json
+```
+
+The generator rejects any change to the tracked instrumentation overlay or the
+resulting historical ROM before launching the emulator. It then verifies the
+complete save digest, captured raw SaveBlock ranges, and decoded meanings
+against the immutable, hand-reviewed `fixtures/hoenn_populated_oracle.json`;
+the generator never derives or rewrites that oracle. The save and manifest are
+staged, reparsed, and published only after every validation succeeds, so a
+failed reproduction cannot leave the tracked fixture pair inconsistent.
+
+The fresh-save regression constructs equivalent representative state through
+the shipped DEBUG request/result hook, asserts it in RAM and the flash image,
+and proves it survives a cold restart. The hook's status byte is committed last
+so the game cannot consume a partially written request.
+
 Tests are pytest files under `tools/e2e/tests/<suite>/`. Each test receives a
 fresh `game` fixture with frame/input controls, memory and symbol access,
 story flag and variable helpers, and coordinate-aware overworld movement. The
@@ -67,7 +112,11 @@ final Pokédex story state.
 The first run creates the ignored `build/e2e-venv` and downloads the
 digest-checked emulator into `build/e2e-tools`. Each test gives SkyEmu isolated
 XDG settings that keep its HTTP mode truly headless. Failed tests write
-screenshots, states, and logs below `test-results/e2e/<suite>/`.
+`game.sav`, `screen.png`, `game.state`, and `skyemu.log` below
+`test-results/e2e/<suite>/`, for both ordinary and fixture-backed sessions. If
+an emulator endpoint prevents one artifact from being captured,
+`capture-errors.txt` records that failure without suppressing the remaining
+evidence.
 
 The SkyEmu v5 Linux archive and extracted executable are both checked against
 the fixed SHA-256 digests in `install_skyemu.py` before installation.

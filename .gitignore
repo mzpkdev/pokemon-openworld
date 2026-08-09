@@ -29,6 +29,7 @@ tools/compresSmol/
 *.dump
 *.sa*
 !tools/e2e/fixtures/hoenn_continue.sav
+!tools/e2e/fixtures/hoenn_populated.sav
 Thumbs.db
 build/
 .DS_Store

@@ -1073,6 +1073,19 @@ static enum Species DetermineEggSpeciesAndParentSlots(struct DayCare *daycare, u
     return eggSpecies;
 }
 
+#ifdef DEBUG
+enum Species Debug_GetPendingDaycareEggSpecies(void)
+{
+    u8 parentSlots[DAYCARE_MON_COUNT] = {0, 1};
+
+    if (!FlagGet(FLAG_PENDING_DAYCARE_EGG)
+     || CountPokemonInDaycare(&gSaveBlock1Ptr->daycare) != DAYCARE_MON_COUNT)
+        return SPECIES_NONE;
+
+    return DetermineEggSpeciesAndParentSlots(&gSaveBlock1Ptr->daycare, parentSlots);
+}
+#endif
+
 static void _GiveEggFromDaycare(struct DayCare *daycare)
 {
     struct Pokemon egg;

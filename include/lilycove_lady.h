@@ -4,6 +4,9 @@
 u8 GetLilycoveLadyId(void);
 void InitLilycoveLady(void);
 void ResetLilycoveLadyForRecordMix(void);
+#ifdef DEBUG
+void Debug_InitLilycoveLadyDeterministically(void);
+#endif
 void FieldCallback_FavorLadyEnableScriptContexts(void);
 void FieldCallback_QuizLadyEnableScriptContexts(void);
 void QuizLadyClearQuestionForRecordMix(const LilycoveLady *lilycoveLady);

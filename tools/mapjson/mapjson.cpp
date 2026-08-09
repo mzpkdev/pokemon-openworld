@@ -1295,6 +1295,86 @@ static Json read_json_file(const string &filepath, const string &purpose)
 
 static void require_product_registry(bool condition, const string &message);
 
+static set<int> persistent_consumer_sections(const Json &compatibility,
+                                             const map<string, int> &sectionValuesById)
+{
+    const vector<string> mandatorySources = {
+        "src/data/wild_encounters.json",
+        "src/data/heal_locations.json",
+        "src/data/region_map/city_map_entries.h",
+        "src/battle_setup.c",
+        "src/daycare.c",
+        "src/heal_location.c",
+        "src/battle_arena.c",
+        "src/battle_dome.c",
+        "src/battle_factory.c",
+        "src/battle_frontier.c",
+        "src/battle_palace.c",
+        "src/battle_pike.c",
+        "src/battle_pyramid.c",
+        "src/battle_tower.c",
+        "src/tv.c",
+        "src/save_location.c",
+        "src/egg_hatch.c",
+        "src/overworld.c",
+    };
+    const Json::array configuredSources = compatibility["persistent_consumer_sources"].array_items();
+    set<string> sourcePaths;
+    for (const Json &source : configuredSources)
+        sourcePaths.insert(json_to_string(source));
+    for (const string &mandatory : mandatorySources)
+        require_product_registry(sourcePaths.count(mandatory),
+                                 "persistent consumer inventory dropped source '" + mandatory + "'");
+
+    map<string, string> sectionByMapId;
+    std::error_code error;
+    for (std::filesystem::directory_iterator it("data/maps", error), end;
+         !error && it != end; it.increment(error))
+    {
+        const std::filesystem::path candidate = it->path() / "map.json";
+        if (!std::filesystem::is_regular_file(candidate))
+            continue;
+        const Json mapData = read_json_file(candidate.string(), "indexing persistent location consumers");
+        sectionByMapId.emplace(json_to_string(mapData, "id"),
+                               json_to_string(mapData, "region_map_section"));
+    }
+    require_product_registry(!error, "failed to scan map headers for persistent location consumers");
+
+    const std::regex sectionToken("\\bMAPSEC_[A-Z0-9_]+\\b");
+    const std::regex mapToken("\\bMAP_[A-Z0-9_]+\\b");
+    const set<string> nonSectionTokens = {"MAPSEC_DYNAMIC", "MAPSEC_NONE", "MAPSEC_INVALID"};
+    set<int> requiredSections;
+    for (const string &sourcePath : sourcePaths)
+    {
+        require_product_registry(std::filesystem::is_regular_file(sourcePath),
+                                 "persistent consumer source is missing: '" + sourcePath + "'");
+        const string body = read_text_file(sourcePath);
+        for (std::sregex_iterator it(body.begin(), body.end(), sectionToken), end; it != end; ++it)
+        {
+            const string token = it->str();
+            const auto section = sectionValuesById.find(token);
+            if (section != sectionValuesById.end())
+                requiredSections.insert(section->second);
+            else
+                require_product_registry(nonSectionTokens.count(token),
+                                         "persistent consumer source '" + sourcePath
+                                             + "' names unknown map section '" + token + "'");
+        }
+        for (std::sregex_iterator it(body.begin(), body.end(), mapToken), end; it != end; ++it)
+        {
+            const auto mapSection = sectionByMapId.find(it->str());
+            if (mapSection == sectionByMapId.end())
+                continue;
+            const auto section = sectionValuesById.find(mapSection->second);
+            require_product_registry(section != sectionValuesById.end(),
+                                     "persistent consumer map '" + it->str()
+                                         + "' has unknown map section '" + mapSection->second + "'");
+            requiredSections.insert(section->second);
+        }
+    }
+    return requiredSections;
+}
+
 struct MapSectionRegistry
 {
     Json::array sections;
@@ -1315,6 +1395,8 @@ static MapSectionRegistry validate_map_section_registry(
                                               "validating map-section compatibility");
     const Json::array sections = registry["map_sections"].array_items();
     const Json::array stable = compatibility["stable_sections"].array_items();
+    const Json reviewedCodecs = compatibility["reviewed_codecs"];
+    const Json::array reviewedAliases = reviewedCodecs["aliases"].array_items();
     const Json savedCompatibility = compatibility["saved_location"];
     const Json metCompatibility = compatibility["met_location"];
     const int savedInvalid = savedCompatibility["invalid_code"].int_value();
@@ -1327,6 +1409,8 @@ static MapSectionRegistry validate_map_section_registry(
     const int savedReservedLast = savedCompatibility["reserved_codes"]["last"].int_value();
     const int metReservedFirst = metCompatibility["reserved_codes"]["first"].int_value();
     const int metReservedLast = metCompatibility["reserved_codes"]["last"].int_value();
+    const int reviewedExactFirst = reviewedCodecs["exact"]["first"].int_value();
+    const int reviewedExactLast = reviewedCodecs["exact"]["last"].int_value();
     require_product_registry(compatibility["schema_version"].int_value() == 1,
                              "unsupported map-section compatibility schema");
     require_product_registry(savedInvalid == 0xFF && metInvalid == 0xFC,
@@ -1343,6 +1427,17 @@ static MapSectionRegistry validate_map_section_registry(
     require_product_registry(!sections.empty(), "map-section registry is empty");
     require_product_registry(stable.size() == 209 && sections.size() >= stable.size(),
                              "frozen map-section compatibility range changed");
+    require_product_registry(reviewedCodecs["exact"]["first"].type() == Json::Type::NUMBER
+                          && reviewedCodecs["exact"]["last"].type() == Json::Type::NUMBER
+                          && reviewedExactFirst == 0 && reviewedExactLast == 251,
+                             "reviewed exact map-section codec range changed");
+    require_product_registry(!reviewedAliases.empty()
+                          && json_to_string(reviewedAliases[0], "id") == "MAPSEC_JOHTO_VICTORY_ROAD"
+                          && json_to_string(reviewedAliases[0], "saved_location") == "MAPSEC_VICTORY_ROAD"
+                          && reviewedAliases[0]["met_location"].type() == Json::Type::NUMBER
+                          && reviewedAliases[0]["met_location"].int_value() == 70
+                          && json_to_string(reviewedAliases[0], "met_location_display") == "MAPSEC_VICTORY_ROAD",
+                             "reviewed map-section aliases changed");
 
     set<string> ids;
     set<int> values;
@@ -1371,6 +1466,8 @@ static MapSectionRegistry validate_map_section_registry(
         valuesById.emplace(id, value);
         maximum = std::max(maximum, value);
     }
+
+    const set<int> consumerSections = persistent_consumer_sections(compatibility, valuesById);
 
     set<int> reservedValues;
     for (const Json &reserved : compatibility["reserved_map_section_values"].array_items())
@@ -1407,7 +1504,8 @@ static MapSectionRegistry validate_map_section_registry(
             require_product_registry(saved->second >= 0 && saved->second < savedInvalid,
                                      "map section '" + id + "' saved-location mapping collides with invalid sentinel");
             require_product_registry(savedToSection[saved->second] == -1 || savedToSection[saved->second] == saved->second,
-                                     "conflicting saved-location reverse target code " + std::to_string(saved->second));
+                                     "conflicting saved-location reverse target code " + std::to_string(saved->second)
+                                         + " for map section '" + id + "'");
             savedToSection[saved->second] = saved->second;
             sectionToSaved[value] = saved->second;
         }
@@ -1426,10 +1524,68 @@ static MapSectionRegistry validate_map_section_registry(
             require_product_registry(metDisplayTarget != valuesById.end(),
                                      "map section '" + id + "' has unknown met-location display target '" + metDisplay + "'");
             require_product_registry(metToSection[metCode] == -1 || metToSection[metCode] == metDisplayTarget->second,
-                                     "conflicting met-location reverse target code " + std::to_string(metCode));
+                                     "conflicting met-location reverse target code " + std::to_string(metCode)
+                                         + " for map section '" + id + "'");
             metToSection[metCode] = metDisplayTarget->second;
             sectionToMet[value] = metCode;
         }
+    }
+
+    set<string> reviewedAliasIds;
+    for (const Json &alias : reviewedAliases)
+        reviewedAliasIds.insert(json_to_string(alias, "id"));
+    for (const Json &section : sections)
+    {
+        const string id = json_to_string(section, "id");
+        const int value = section["value"].int_value();
+        const Json &savedValue = section["saved_location"];
+        const Json &metValue = section["met_location"];
+        const bool hasSavedAlias = !savedValue.is_null() && json_to_string(section, "saved_location") != id;
+        const bool hasMetAlias = !metValue.is_null()
+            && (metValue.int_value() != value || json_to_string(section, "met_location_display") != id);
+        const bool reviewedAlias = reviewedAliasIds.count(id);
+
+        require_product_registry(!hasSavedAlias || reviewedAlias,
+                                 "map section '" + id + "' uses an unreviewed saved-location fallback");
+        require_product_registry(!hasMetAlias || reviewedAlias,
+                                 "map section '" + id + "' uses an unreviewed met-location fallback");
+        require_product_registry(!reviewedAlias || (hasSavedAlias && hasMetAlias),
+                                 "reviewed alias '" + id + "' has an incomplete persistence codec");
+        if (value >= reviewedExactFirst && value <= reviewedExactLast)
+        {
+            require_product_registry(!savedValue.is_null() && json_to_string(section, "saved_location") == id
+                                  && !metValue.is_null() && metValue.type() == Json::Type::NUMBER
+                                  && metValue.int_value() == value
+                                  && json_to_string(section, "met_location_display") == id,
+                                     "gameplay-relevant section '" + id + "' has an incomplete persistence codec");
+        }
+        if (reviewedAlias)
+        {
+            const string savedTarget = json_to_string(section, "saved_location");
+            const string metTarget = json_to_string(section, "met_location_display");
+            const int savedCode = valuesById.at(savedTarget);
+            const int metCode = metValue.int_value();
+            require_product_registry(savedTarget == metTarget && savedCode == metCode,
+                                     "reviewed alias '" + id + "' has inconsistent canonical targets");
+            require_product_registry(sectionToSaved.at(savedCode) == savedCode
+                                  && sectionToMet.at(savedCode) == savedCode
+                                  && savedToSection.at(savedCode) == savedCode
+                                  && metToSection.at(metCode) == savedCode,
+                                     "reviewed alias '" + id + "' lacks a canonical reverse owner");
+        }
+    }
+
+    for (int value : consumerSections)
+    {
+        const string id = json_to_string(sections.at(value), "id");
+        require_product_registry(sectionToSaved.at(value) >= 0 && sectionToMet.at(value) >= 0,
+                                 "persistent consumer section '" + id
+                                     + "' has an incomplete persistence codec");
+        require_product_registry((sectionToSaved.at(value) == value
+                               && sectionToMet.at(value) == value)
+                              || reviewedAliasIds.count(id),
+                                 "persistent consumer section '" + id
+                                     + "' lacks an exact or reviewed persistence codec");
     }
 
     for (size_t i = 0; i < stable.size(); i++)
@@ -1496,12 +1652,6 @@ static void write_map_section_metadata(const std::filesystem::path &staging)
         source << "    [" << value << "] = "
                << (registry.sectionToMet[value] < 0 ? "MET_LOCATION_INVALID" : std::to_string(registry.sectionToMet[value])) << ",\n";
 
-    source << "};\n\nconst MapSectionId gSavedLocationToMapSection[256] =\n{\n";
-    for (int code = 0; code < 256; code++)
-        source << "    " << (registry.savedToSection[code] < 0 ? "MAPSEC_INVALID" : std::to_string(registry.savedToSection[code])) << ",\n";
-    source << "};\n\nconst MapSectionId gMetLocationToMapSection[256] =\n{\n";
-    for (int code = 0; code < 256; code++)
-        source << "    " << (registry.metToSection[code] < 0 ? "MAPSEC_INVALID" : std::to_string(registry.metToSection[code])) << ",\n";
     source << "};\n";
     write_text_file((sourceDir / "map_section_metadata.inc.c").string(), source.str());
 }

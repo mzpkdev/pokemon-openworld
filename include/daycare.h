@@ -38,4 +38,8 @@ bool8 SpeciesCanLearnEggMove(enum Species species, enum Move move);
 void StorePokemonInDaycare(struct Pokemon *mon, struct DaycareMon *daycareMon);
 u8 GetEggMoves(struct Pokemon *pokemon, u16 *eggMoves);
 
+#ifdef DEBUG
+enum Species Debug_GetPendingDaycareEggSpecies(void);
+#endif
+
 #endif // GUARD_DAYCARE_H

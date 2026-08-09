@@ -2493,4 +2493,6 @@
 #define FLAG_VISITED_NEWBARK_TOWN                                    0x908
 // JOHTO IMPORT END: flags
 
+#include "constants/persistent_flags.inc.h"
+
 #endif // GUARD_CONSTANTS_FLAGS_H

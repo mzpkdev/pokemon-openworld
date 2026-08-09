@@ -52,22 +52,28 @@ class MapSectionIdentityTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         registry = json.loads(REGISTRY.read_text())
         self.assertEqual(result.stdout, f"count={registry['map_section_count']}\n")
-        for value, section in enumerate(self.registry["map_sections"]):
+        for value, section in enumerate(self.registry["map_sections"][:252]):
             self.assertEqual(section["value"], value)
-            self.assertEqual(
-                section["saved_location"], section["id"] if value < 0xFF else None
-            )
-            self.assertEqual(section["met_location"], value if value < 0xFC else None)
-            self.assertEqual(
-                section["met_location_display"],
-                section["id"] if value < 0xFC else None,
-            )
+            self.assertEqual(section["saved_location"], section["id"])
+            self.assertEqual(section["met_location"], value)
+            self.assertEqual(section["met_location_display"], section["id"])
+
+        alias = self.registry["map_sections"][264]
+        self.assertEqual(alias["saved_location"], "MAPSEC_VICTORY_ROAD")
+        self.assertEqual(alias["met_location"], 70)
+        self.assertEqual(alias["met_location_display"], "MAPSEC_VICTORY_ROAD")
 
     def test_disabled_wide_section_codecs_are_emitted_as_invalid(self) -> None:
         result = self.validate()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIsNone(self.registry["map_sections"][0xFC]["met_location"])
         self.assertIsNone(self.registry["map_sections"][0xFF]["saved_location"])
+        for value in (*range(255, 264), 265, 266):
+            with self.subTest(value=value):
+                section = self.registry["map_sections"][value]
+                self.assertIsNone(section["saved_location"])
+                self.assertIsNone(section["met_location"])
+                self.assertIsNone(section["met_location_display"])
 
     def test_duplicate_values_are_rejected(self) -> None:
         registry = self.mutated_registry()
@@ -117,7 +123,7 @@ class MapSectionIdentityTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("collides with reserved origin", result.stderr)
 
-    def test_synthetic_wide_sections_require_only_reviewed_compact_aliases(
+    def test_unreviewed_synthetic_wide_aliases_are_rejected(
         self,
     ) -> None:
         registry = self.mutated_registry()
@@ -144,7 +150,93 @@ class MapSectionIdentityTests(unittest.TestCase):
         ]
         registry["map_section_count"] = 301
         result = self.validate(registry, compatibility)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unreviewed saved-location fallback", result.stderr)
+
+    def test_every_reviewed_exact_codec_field_is_required(self) -> None:
+        mutations = (
+            (209, "saved_location", None),
+            (209, "met_location", None),
+            (251, "saved_location", "MAPSEC_LITTLEROOT_TOWN"),
+            (251, "met_location", 0),
+            (251, "met_location_display", "MAPSEC_LITTLEROOT_TOWN"),
+        )
+        for value, field, replacement in mutations:
+            with self.subTest(value=value, field=field):
+                registry = self.mutated_registry()
+                registry["map_sections"][value][field] = replacement
+                if field == "met_location":
+                    registry["map_sections"][value]["met_location_display"] = None
+                result = self.validate(registry)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(registry["map_sections"][value]["id"], result.stderr)
+
+    def test_reviewed_alias_is_frozen_and_has_one_canonical_reverse_owner(self) -> None:
+        mutations = (
+            ("saved_location", None),
+            ("saved_location", "MAPSEC_LITTLEROOT_TOWN"),
+            ("met_location", 0),
+            ("met_location_display", "MAPSEC_LITTLEROOT_TOWN"),
+        )
+        for field, replacement in mutations:
+            with self.subTest(field=field):
+                registry = self.mutated_registry()
+                registry["map_sections"][264][field] = replacement
+                result = self.validate(registry)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("MAPSEC_JOHTO_VICTORY_ROAD", result.stderr)
+
+    def test_real_consumer_reference_to_incomplete_shell_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            consumer = Path(temporary) / "wild_encounters.json"
+            consumer.write_text(
+                json.dumps({"encounters": [{"map": "MAP_JOHTO_INDIGO_PLATEAU"}]}),
+                encoding="utf-8",
+            )
+            compatibility = copy.deepcopy(self.compatibility)
+            compatibility["persistent_consumer_sources"].append(str(consumer))
+            result = self.validate(compatibility=compatibility)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "persistent consumer section 'MAPSEC_JOHTO_INDIGO_PLATEAU'",
+            result.stderr,
+        )
+
+    def test_real_consumer_reference_to_unknown_section_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            consumer = Path(temporary) / "destination.c"
+            consumer.write_text("MAPSEC_NOT_REGISTERED\n", encoding="utf-8")
+            compatibility = copy.deepcopy(self.compatibility)
+            compatibility["persistent_consumer_sources"].append(str(consumer))
+            result = self.validate(compatibility=compatibility)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "names unknown map section 'MAPSEC_NOT_REGISTERED'", result.stderr
+        )
+
+    def test_persistent_consumer_inventory_cannot_drop_a_source(self) -> None:
+        compatibility = copy.deepcopy(self.compatibility)
+        compatibility["persistent_consumer_sources"].remove(
+            "src/data/wild_encounters.json"
+        )
+        result = self.validate(compatibility=compatibility)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("persistent consumer inventory dropped source", result.stderr)
+
+    def test_reviewed_codec_manifest_mutations_are_rejected(self) -> None:
+        for field, replacement in (("first", None), ("last", 250)):
+            with self.subTest(field=field):
+                compatibility = copy.deepcopy(self.compatibility)
+                compatibility["reviewed_codecs"]["exact"][field] = replacement
+                result = self.validate(compatibility=compatibility)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("reviewed exact", result.stderr)
+
+        compatibility = copy.deepcopy(self.compatibility)
+        compatibility["reviewed_codecs"]["aliases"][0]["met_location"] = 69
+        result = self.validate(compatibility=compatibility)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("reviewed map-section aliases changed", result.stderr)
 
     def test_reserved_met_origins_are_frozen(self) -> None:
         compatibility = copy.deepcopy(self.compatibility)

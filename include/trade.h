@@ -23,4 +23,9 @@ void LinkTradeDrawWindow(void);
 void LoadTradeAnimGfx(void);
 void DrawTextOnTradeWindow(u8 windowId, const u8 *str, u8 speed);
 
+#ifdef DEBUG
+enum Species Debug_GetInGameTradeRequestedSpecies(enum Species receivedSpecies);
+bool8 Debug_ExecuteInGameTrade(u8 partyIndex, enum Species receivedSpecies);
+#endif
+
 #endif //GUARD_TRADE_H

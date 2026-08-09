@@ -1,4 +1,7 @@
 #include "global.h"
+#ifdef DEBUG
+#include "debug_save_scenario.h"
+#endif
 #include "malloc.h"
 #include "berry_powder.h"
 #include "fake_rtc.h"
@@ -140,6 +143,16 @@ void MoveSaveBlocks_ResetHeap(void)
     ApplyNewEncryptionKeyToAllEncryptedData(encryptionKey);
     gSaveBlock2Ptr->encryptionKey = encryptionKey;
 }
+
+#ifdef DEBUG
+void DebugSaveScenario_ApplyEncryptionKey(u32 encryptionKey)
+{
+    // Reuse the canonical re-key service so every encrypted save domain is
+    // decoded with the current key and encoded with the deterministic one.
+    ApplyNewEncryptionKeyToAllEncryptedData(encryptionKey);
+    gSaveBlock2Ptr->encryptionKey = encryptionKey;
+}
+#endif
 
 u32 UseContinueGameWarp(void)
 {

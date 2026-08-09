@@ -15,38 +15,57 @@ def pytest_runtest_makereport(item, call):
     setattr(item, f"report_{report.when}", report)
 
 
+def _failure_output(request) -> Path:
+    safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.nodeid)
+    return Path(os.environ["E2E_RESULTS"]) / os.environ["E2E_SUITE"] / safe_name
+
+
+def capture_failure_evidence(session, output: Path) -> None:
+    """Capture the same useful bundle for every kind of E2E session."""
+    output.mkdir(parents=True, exist_ok=True)
+    errors = []
+    operations = (
+        ("game.sav", lambda: shutil.copy2(session.battery_path, output / "game.sav")),
+        ("skyemu.log", lambda: shutil.copy2(session.log_path, output / "skyemu.log")),
+        ("screen.png", lambda: session.screenshot(output / "screen.png")),
+        ("game.state", lambda: session.save_state(output / "game.state")),
+    )
+    for name, operation in operations:
+        try:
+            operation()
+        except (OSError, RuntimeError) as error:
+            errors.append(f"{name}: {error}")
+    if errors:
+        (output / "capture-errors.txt").write_text("\n".join(errors) + "\n")
+
+
 @pytest.fixture
-def game(request, tmp_path):
-    try:
+def session_factory(request, tmp_path):
+    sessions = []
+
+    def create(*, battery_save=None):
         session = SkyEmuSession(
             binary=Path(os.environ["SKYEMU"]),
             rom=Path(os.environ["E2E_ROM"]),
             symbols=Symbols(Path(os.environ["E2E_SYMS"])),
             workdir=tmp_path,
+            battery_save=battery_save,
         )
-    except BaseException:
-        safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.nodeid)
-        output = Path(os.environ["E2E_RESULTS"]) / os.environ["E2E_SUITE"] / safe_name
-        output.mkdir(parents=True, exist_ok=True)
-        log_path = tmp_path / "skyemu.log"
-        if log_path.is_file():
-            shutil.copy2(log_path, output / "skyemu.log")
-        raise
-    yield session
+        sessions.append(session)
+        return session
+
+    yield create
 
     report = getattr(request.node, "report_call", None)
     failed = report is not None and report.failed
-    output = None
     try:
-        if failed:
-            safe_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", request.node.nodeid)
-            output = (
-                Path(os.environ["E2E_RESULTS"]) / os.environ["E2E_SUITE"] / safe_name
-            )
-            output.mkdir(parents=True, exist_ok=True)
-            session.screenshot(output / "screen.png")
-            session.save_state(output / "state.png")
+        if failed and sessions:
+            capture_failure_evidence(sessions[-1], _failure_output(request))
     finally:
-        session.close()
-        if failed and output is not None:
-            shutil.copy2(session.log_path, output / "skyemu.log")
+        for session in reversed(sessions):
+            session.close()
+
+
+@pytest.fixture
+def game(session_factory):
+    return session_factory()

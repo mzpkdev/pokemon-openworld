@@ -230,13 +230,19 @@ jobs:
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
             -s tools/johto_import/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/johto-import.log
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+            -s tools/persistence/tests -p 'test_*.py' -q \
+            2>&1 | tee build/integrity/persistence.log
+          python3 tools/persistence/contract.py validate-contract \
+            --contract tools/integrity/save_contract.json \
+            2>&1 | tee build/integrity/save-contract-schema.log
 
-      - name: Check optimized release capacity
+      - name: Check live save ABI and all five artifact budgets
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O RELEASE=1 integrity-check \
-            2>&1 | tee build/integrity/release-capacity.log
+          make -j"$(nproc)" -O integrity-check-all-purposes \
+            2>&1 | tee build/integrity/five-purpose-capacity.log
 
       - name: Upload Integrity reports
         if: ${{ always() }}
@@ -244,6 +250,8 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: integrity-evidence
-          path: build/integrity/
+          path: |
+            build/integrity/*.log
+            build/integrity/purposes/*.json
           if-no-files-found: error
           retention-days: 3

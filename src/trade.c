@@ -4641,6 +4641,67 @@ void CreateInGameTradePokemon(void)
     CreateInGameTradePokemonInternal(gSpecialVar_0x8004, gSpecialVar_0x8005);
 }
 
+#ifdef DEBUG
+enum Species Debug_GetInGameTradeRequestedSpecies(enum Species receivedSpecies)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sIngameTrades); i++)
+    {
+        if (sIngameTrades[i].species == receivedSpecies)
+            return sIngameTrades[i].requestedSpecies;
+    }
+    return SPECIES_NONE;
+}
+
+bool8 Debug_ExecuteInGameTrade(u8 partyIndex, enum Species receivedSpecies)
+{
+    u32 i;
+    bool8 allocatedTradeState = FALSE;
+    u16 savedPlayerSelection = gSpecialVar_0x8004;
+    u16 savedTradeSelection = gSpecialVar_0x8005;
+
+    if (partyIndex >= PARTY_SIZE)
+        return FALSE;
+
+    for (i = 0; i < ARRAY_COUNT(sIngameTrades); i++)
+    {
+        if (sIngameTrades[i].species != receivedSpecies)
+            continue;
+        if (GetMonData(&gParties[B_TRAINER_PLAYER][partyIndex], MON_DATA_SPECIES)
+            != sIngameTrades[i].requestedSpecies)
+            return FALSE;
+
+        gSpecialVar_0x8004 = partyIndex;
+        gSpecialVar_0x8005 = i;
+        CreateInGameTradePokemonInternal(partyIndex, i);
+        // TradeMons uses the real scene's temporary swap storage.  Allocate
+        // exactly that state even though this debug path skips the animation.
+        if (sTradeAnim == NULL)
+        {
+            sTradeAnim = AllocZeroed(sizeof(*sTradeAnim));
+            if (sTradeAnim == NULL)
+            {
+                gSpecialVar_0x8004 = savedPlayerSelection;
+                gSpecialVar_0x8005 = savedTradeSelection;
+                return FALSE;
+            }
+            allocatedTradeState = TRUE;
+        }
+        TradeMons(partyIndex, 0);
+        if (allocatedTradeState)
+        {
+            Free(sTradeAnim);
+            sTradeAnim = NULL;
+        }
+        gSpecialVar_0x8004 = savedPlayerSelection;
+        gSpecialVar_0x8005 = savedTradeSelection;
+        return GetMonData(&gParties[B_TRAINER_PLAYER][partyIndex], MON_DATA_SPECIES) == receivedSpecies;
+    }
+    return FALSE;
+}
+#endif
+
 static void CB2_UpdateLinkTrade(void)
 {
     if (DoTradeAnim() == TRUE)

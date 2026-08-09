@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import struct
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,6 +17,20 @@ try:
     from .manifest import ManifestError, group_content_region, load_manifest
 except ImportError:  # Direct script execution.
     from manifest import ManifestError, group_content_region, load_manifest
+
+try:
+    from tools.persistence.contract import (
+        ContractError,
+        abi_evidence_values_for_purpose,
+        validate_contract,
+    )
+except ImportError:  # Direct script execution from outside the repository root.
+    sys.path.insert(0, str(Path(__file__).parents[2]))
+    from tools.persistence.contract import (
+        ContractError,
+        abi_evidence_values_for_purpose,
+        validate_contract,
+    )
 
 
 ROM_BASE = 0x08000000
@@ -48,10 +64,297 @@ CAPACITY_EVIDENCE_CATEGORIES = {
 JOHTO_RESIDENT_FLOOR_BYTES = 1_747_703
 TRAVEL_STORY_RESERVE_FLOOR_BYTES = 512 * 1024
 REQUIRED_HEADROOM_FLOOR_BYTES = 2_708_917
+EWRAM_LIMIT = 256 * 1024
+IWRAM_LIMIT = 32 * 1024
+SAVE_ABI_MAGIC = 0x53414249
+SAVE_ABI_VERSION = 1
 
 
 class ValidationError(ValueError):
     """A linked product artifact violates the integrity contract."""
+
+
+def load_save_contract(path: Path) -> tuple[dict[str, Any], str]:
+    try:
+        raw = path.read_bytes()
+        contract = json.loads(raw)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValidationError(f"cannot read save contract {path}: {error}") from error
+    if not isinstance(contract, dict) or not isinstance(contract.get("structs"), dict):
+        raise ValidationError("save contract is incomplete")
+    return contract, hashlib.sha256(raw).hexdigest()
+
+
+def expected_save_abi_values(
+    contract: dict[str, Any], purpose: str
+) -> list[tuple[str, int]]:
+    try:
+        validate_contract(contract)
+        return abi_evidence_values_for_purpose(contract, purpose)
+    except (ContractError, KeyError, TypeError, ValueError) as error:
+        raise ValidationError(
+            f"save contract ABI evidence is incomplete: {error}"
+        ) from error
+
+
+def validate_linked_save_abi(
+    rom: bytes, symbols: dict[str, int], contract: dict[str, Any], purpose: str
+) -> dict[str, Any]:
+    address = symbols.get("gSaveAbiEvidence")
+    if address is None:
+        raise ValidationError("linked symbols do not define gSaveAbiEvidence")
+    offset = (address & ~1) - ROM_BASE
+    if offset < 0 or offset + 8 > len(rom):
+        raise ValidationError("gSaveAbiEvidence points outside the ROM artifact")
+    magic, version = struct.unpack_from("<II", rom, offset)
+    expected = expected_save_abi_values(contract, purpose)
+    if magic != SAVE_ABI_MAGIC or version != SAVE_ABI_VERSION:
+        raise ValidationError("linked save ABI evidence header is invalid")
+    count = len(expected)
+    end = offset + 8 + count * 4
+    if end > len(rom):
+        raise ValidationError("linked save ABI evidence is truncated")
+    actual = struct.unpack_from(f"<{count}I", rom, offset + 8)
+    for (name, wanted), value in zip(expected, actual):
+        if value != wanted:
+            raise ValidationError(
+                f"linked save ABI drift: {name} is {value}, expected {wanted}"
+            )
+    evidence = rom[offset:end]
+    return {
+        "symbol": "gSaveAbiEvidence",
+        "address": address & ~1,
+        "valueCount": count,
+        "sha256": hashlib.sha256(evidence).hexdigest(),
+    }
+
+
+def parse_elf_symbols(text: str) -> dict[str, tuple[int, int]]:
+    symbols: dict[str, tuple[int, int]] = {}
+    pattern = re.compile(
+        r"^\s*\d+:\s+(?P<address>[0-9a-fA-F]{1,8})\s+"
+        r"(?P<size>(?:0[xX][0-9a-fA-F]{1,8}|\d{1,10}))\s+"
+        r"\S+\s+\S+\s+\S+\s+\S+\s+(?P<name>\S+)\s*$",
+        re.MULTILINE,
+    )
+    for match in pattern.finditer(text):
+        size_token = match.group("size")
+        size = int(size_token, 16 if size_token[:2].lower() == "0x" else 10)
+        if size > 0xFFFFFFFF:
+            continue
+        symbols[match.group("name")] = (
+            int(match.group("address"), 16),
+            size,
+        )
+    return symbols
+
+
+def validate_elf_linked_save_abi(
+    elf_path: Path,
+    sections: list[dict[str, Any]],
+    symbols: dict[str, tuple[int, int]],
+    contract: dict[str, Any],
+    purpose: str,
+) -> dict[str, Any]:
+    symbol = symbols.get("gSaveAbiEvidence")
+    if symbol is None:
+        raise ValidationError("linked ELF does not define gSaveAbiEvidence")
+    address, symbol_size = symbol
+    expected_size = 8 + len(expected_save_abi_values(contract, purpose)) * 4
+    if symbol_size != expected_size:
+        raise ValidationError(
+            f"linked save ABI evidence size is {symbol_size}, expected {expected_size}"
+        )
+    section = next(
+        (
+            item
+            for item in sections
+            if item["type"] != "NOBITS"
+            and item["address"] <= address
+            and address + symbol_size <= item["address"] + item["size"]
+        ),
+        None,
+    )
+    if section is None:
+        raise ValidationError("gSaveAbiEvidence is outside loadable ELF sections")
+    data = elf_path.read_bytes()
+    file_offset = section["offset"] + address - section["address"]
+    end = file_offset + symbol_size
+    if file_offset < 0 or end > len(data):
+        raise ValidationError("gSaveAbiEvidence points outside the ELF artifact")
+    # Reuse the ROM validator with a synthetic zero-based image and symbol.
+    linked = validate_linked_save_abi(
+        data[file_offset:end], {"gSaveAbiEvidence": ROM_BASE}, contract, purpose
+    )
+    linked["address"] = address
+    return linked
+
+
+def parse_elf_sections(text: str) -> list[dict[str, Any]]:
+    sections = []
+    pattern = re.compile(
+        r"^\s*\[\s*\d+\]\s+(?P<name>\S+)\s+(?P<type>\S+)\s+"
+        r"(?P<address>[0-9a-fA-F]+)\s+(?P<offset>[0-9a-fA-F]+)\s+"
+        r"(?P<size>[0-9a-fA-F]+)\s+\S+\s+(?P<flags>\S*)",
+        re.MULTILINE,
+    )
+    for match in pattern.finditer(text):
+        sections.append(
+            {
+                "name": match.group("name"),
+                "type": match.group("type"),
+                "address": int(match.group("address"), 16),
+                "offset": int(match.group("offset"), 16),
+                "size": int(match.group("size"), 16),
+                "flags": match.group("flags"),
+            }
+        )
+    if not sections:
+        raise ValidationError("ELF section table is empty or unreadable")
+    return sections
+
+
+def measure_elf_capacity(elf_path: Path) -> dict[str, int]:
+    try:
+        result = subprocess.run(
+            ["arm-none-eabi-readelf", "-SW", str(elf_path)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        raise ValidationError(
+            "required tool not found: arm-none-eabi-readelf"
+        ) from error
+    except subprocess.CalledProcessError as error:
+        raise ValidationError(
+            f"cannot inspect ELF {elf_path}: {error.stderr.strip()}"
+        ) from error
+    sections = parse_elf_sections(result.stdout)
+    by_name = {section["name"]: section for section in sections}
+    required = (".ewram", ".ewram.sbss", ".iwram", ".iwram.bss")
+    missing = [name for name in required if name not in by_name]
+    if missing:
+        raise ValidationError(
+            f"ELF lacks required memory sections: {', '.join(missing)}"
+        )
+
+    def range_bytes(origin: int, limit: int, *, loadable: bool = False) -> int:
+        candidates = [
+            section
+            for section in sections
+            if "A" in section["flags"]
+            and origin <= section["address"] < limit
+            and (not loadable or section["type"] != "NOBITS")
+        ]
+        if not candidates:
+            raise ValidationError(f"ELF has no allocatable sections at 0x{origin:08x}")
+        end = max(section["address"] + section["size"] for section in candidates)
+        if end > limit:
+            raise ValidationError(
+                f"ELF section range exceeds memory ending at 0x{limit:08x}"
+            )
+        return end - origin
+
+    return {
+        "romBytes": range_bytes(ROM_BASE, ROM_BASE + ROM_LIMIT, loadable=True),
+        "ewramBytes": range_bytes(0x02000000, 0x02000000 + EWRAM_LIMIT),
+        "iwramBytes": range_bytes(0x03000000, 0x03000000 + IWRAM_LIMIT),
+    }
+
+
+def purpose_limits(contract: dict[str, Any]) -> dict[str, Any]:
+    budgets = contract.get("purposeBudgets")
+    if not isinstance(budgets, dict) or budgets.get("schemaVersion") != 1:
+        raise ValidationError("save contract lacks purposeBudgets schema 1")
+    limits = budgets.get("limits")
+    baselines = budgets.get("baselines")
+    purposes = {"normal", "debug", "release", "test-runner", "headless-test"}
+    if (
+        not isinstance(limits, dict)
+        or not isinstance(baselines, dict)
+        or set(baselines) != purposes
+    ):
+        raise ValidationError("save contract purpose budgets are incomplete")
+    expected_limits = {
+        "romBytes": ROM_LIMIT,
+        "ewramBytes": EWRAM_LIMIT,
+        "iwramBytes": IWRAM_LIMIT,
+        "releaseHeadroomBytes": REQUIRED_HEADROOM_FLOOR_BYTES,
+    }
+    if limits != expected_limits:
+        raise ValidationError("save contract purpose limits drift from hardware policy")
+    return budgets
+
+
+def enforce_purpose_usage(
+    purpose: str,
+    usage: dict[str, int],
+    contract: dict[str, Any],
+    artifact_path: Path | None = None,
+) -> dict[str, Any]:
+    budgets = purpose_limits(contract)
+    if purpose not in budgets["baselines"]:
+        raise ValidationError(f"unknown artifact purpose: {purpose}")
+    limits = budgets["limits"]
+    baseline = budgets["baselines"][purpose]
+    if artifact_path is not None and artifact_path.name != baseline["artifact"]:
+        raise ValidationError(
+            f"{purpose} artifact is {artifact_path.name}, expected {baseline['artifact']}"
+        )
+    for field in ("romBytes", "ewramBytes", "iwramBytes"):
+        if usage[field] <= 0 or usage[field] > limits[field]:
+            raise ValidationError(
+                f"{purpose} {field} use is outside budget: {usage[field]}"
+            )
+    if (
+        purpose == "release"
+        and limits["romBytes"] - usage["romBytes"] < limits["releaseHeadroomBytes"]
+    ):
+        raise ValidationError(
+            f"release ROM headroom {limits['romBytes'] - usage['romBytes']} is below required "
+            f"{limits['releaseHeadroomBytes']}"
+        )
+    return {"purpose": purpose, "usage": usage, "limits": limits, "baseline": baseline}
+
+
+def validate_elf_artifact(
+    elf_path: Path, purpose: str, save_contract_path: Path
+) -> dict[str, Any]:
+    contract, digest = load_save_contract(save_contract_path)
+    try:
+        metadata = subprocess.run(
+            ["arm-none-eabi-readelf", "-SWs", str(elf_path)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        ).stdout
+    except FileNotFoundError as error:
+        raise ValidationError(
+            "required tool not found: arm-none-eabi-readelf"
+        ) from error
+    except subprocess.CalledProcessError as error:
+        raise ValidationError(
+            f"cannot inspect ELF {elf_path}: {error.stderr.strip()}"
+        ) from error
+    linked_save_abi = validate_elf_linked_save_abi(
+        elf_path,
+        parse_elf_sections(metadata),
+        parse_elf_symbols(metadata),
+        contract,
+        purpose,
+    )
+    result = enforce_purpose_usage(
+        purpose, measure_elf_capacity(elf_path), contract, elf_path
+    )
+    return {
+        "schemaVersion": 1,
+        "artifact": str(elf_path),
+        **result,
+        "saveContract": {"sha256": digest, "linkedAbi": linked_save_abi},
+    }
 
 
 def load_capacity_policy(path: Path) -> dict[str, Any]:
@@ -548,9 +851,12 @@ def validate_artifact(
     sym_path: Path,
     manifest_path: Path,
     capacity_path: Path,
+    save_contract_path: Path = Path("tools/integrity/save_contract.json"),
+    purpose: str = "normal",
 ) -> dict[str, Any]:
     manifest = load_manifest(manifest_path)
     capacity = load_capacity_policy(capacity_path)
+    save_contract, save_contract_digest = load_save_contract(save_contract_path)
     rom = rom_path.read_bytes()
     if len(rom) > ROM_LIMIT:
         raise ValidationError(f"ROM exceeds 32 MiB: {len(rom)}")
@@ -569,7 +875,7 @@ def validate_artifact(
     require_rom_address("__rom_end - 1", rom_end - 1, ROM_BASE + len(rom))
     linked_bytes = rom_end - ROM_BASE
     headroom = ROM_LIMIT - linked_bytes
-    if headroom < capacity["requiredHeadroomBytes"]:
+    if purpose == "release" and headroom < capacity["requiredHeadroomBytes"]:
         raise ValidationError(
             f"ROM headroom {headroom} is below required {capacity['requiredHeadroomBytes']}"
         )
@@ -582,6 +888,8 @@ def validate_artifact(
         )
     for entry in manifest["symbols"]:
         require_rom_address(entry["name"], symbols[entry["name"]] & ~1, rom_end)
+
+    linked_save_abi = validate_linked_save_abi(rom, symbols, save_contract, purpose)
 
     validate_group_slots(rom, manifest, symbols, rom_end)
     validate_layouts(rom, manifest, symbols, rom_end)
@@ -614,11 +922,21 @@ def validate_artifact(
 
     ewram_bytes = section_bytes((".ewram", ".ewram.sbss"), 0x02000000)
     iwram_bytes = section_bytes((".iwram", ".iwram.bss"), 0x03000000)
-    if not 0 < ewram_bytes <= 0x40000:
+    if not 0 < ewram_bytes <= EWRAM_LIMIT:
         raise ValidationError(f"EWRAM use is outside memory bounds: {ewram_bytes}")
-    if not 0 < iwram_bytes <= 0x8000:
+    if not 0 < iwram_bytes <= IWRAM_LIMIT:
         raise ValidationError(f"IWRAM use is outside memory bounds: {iwram_bytes}")
 
+    purpose_budget = enforce_purpose_usage(
+        purpose,
+        {
+            "romBytes": linked_bytes,
+            "ewramBytes": ewram_bytes,
+            "iwramBytes": iwram_bytes,
+        },
+        save_contract,
+        rom_path,
+    )
     report = {
         "schemaVersion": 1,
         "product": manifest["product"],
@@ -632,9 +950,15 @@ def validate_artifact(
         "capacity": capacity,
         "memory": {
             "ewramBytes": ewram_bytes,
-            "ewramLimitBytes": 0x40000,
+            "ewramLimitBytes": EWRAM_LIMIT,
             "iwramBytes": iwram_bytes,
-            "iwramLimitBytes": 0x8000,
+            "iwramLimitBytes": IWRAM_LIMIT,
+        },
+        "purposeBudget": purpose_budget,
+        "saveContract": {
+            "sha256": save_contract_digest,
+            "baselineCommit": save_contract.get("baselineCommit"),
+            "linkedAbi": linked_save_abi,
         },
         "linkerMapBytes": len(linker_map.encode()),
     }
@@ -643,10 +967,21 @@ def validate_artifact(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rom", type=Path, required=True)
-    parser.add_argument("--map", type=Path, required=True)
-    parser.add_argument("--sym", type=Path, required=True)
-    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--rom", type=Path)
+    parser.add_argument("--map", type=Path)
+    parser.add_argument("--sym", type=Path)
+    parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--elf", type=Path)
+    parser.add_argument(
+        "--purpose",
+        choices=("normal", "debug", "release", "test-runner", "headless-test"),
+        default="normal",
+    )
+    parser.add_argument(
+        "--save-contract",
+        type=Path,
+        default=Path("tools/integrity/save_contract.json"),
+    )
     parser.add_argument(
         "--capacity-policy",
         type=Path,
@@ -655,9 +990,28 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        report = validate_artifact(
-            args.rom, args.map, args.sym, args.manifest, args.capacity_policy
-        )
+        if args.elf:
+            if any((args.rom, args.map, args.sym, args.manifest)):
+                parser.error(
+                    "--elf cannot be combined with --rom/--map/--sym/--manifest"
+                )
+            if args.purpose not in ("test-runner", "headless-test"):
+                parser.error("--elf requires a test-runner or headless-test purpose")
+            report = validate_elf_artifact(args.elf, args.purpose, args.save_contract)
+        else:
+            if not all((args.rom, args.map, args.sym, args.manifest)):
+                parser.error(
+                    "--rom, --map, --sym, and --manifest are required together"
+                )
+            report = validate_artifact(
+                args.rom,
+                args.map,
+                args.sym,
+                args.manifest,
+                args.capacity_policy,
+                args.save_contract,
+                args.purpose,
+            )
     except (ManifestError, ValidationError, OSError) as error:
         print(f"integrity validation failed: {error}", file=sys.stderr)
         return 1

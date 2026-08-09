@@ -14,6 +14,8 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from tools.e2e.save_file import SaveImage
+
 
 BUTTONS = ("A", "B", "Up", "Down", "Left", "Right", "L", "R", "Start", "Select")
 FIELD_DIRECTIONS = {"Down": 1, "Up": 2, "Left": 3, "Right": 4}
@@ -177,19 +179,28 @@ class SkyEmuSession:
         workdir: Path,
         battery_save: Path | None = None,
     ):
+        self.binary = binary.resolve()
         self.symbols = symbols
         self.workdir = workdir
         self.workdir.mkdir(parents=True, exist_ok=True)
         self.rom = self.workdir / "game.gba"
         shutil.copy2(rom, self.rom)
+        self.battery_path = self.rom.with_suffix(".sav")
         if battery_save is not None:
             if not battery_save.is_file():
                 raise FileNotFoundError(f"battery save does not exist: {battery_save}")
-            shutil.copy2(battery_save, self.rom.with_suffix(".sav"))
+            SaveImage.from_path(battery_save)
+            shutil.copy2(battery_save, self.battery_path)
         self.log_path = self.workdir / "skyemu.log"
+        self._generation = 0
+        self.exited_processes: list[subprocess.Popen] = []
+        self._launch()
+
+    def _launch(self) -> None:
         self.port = _free_port()
-        data_home = self.workdir / "skyemu-data"
-        config_home = self.workdir / "skyemu-config"
+        generation = self._generation
+        data_home = self.workdir / f"skyemu-data-{generation}"
+        config_home = self.workdir / f"skyemu-config-{generation}"
         settings_path = data_home / "Sky" / "SkyEmu" / "user_settings.bin"
         settings_path.parent.mkdir(parents=True, exist_ok=True)
         config_home.mkdir(parents=True, exist_ok=True)
@@ -202,11 +213,13 @@ class SkyEmuSession:
         struct.pack_into("<I", settings, SETTINGS_VERSION_OFFSET, SETTINGS_VERSION)
         settings_path.write_bytes(settings)
 
-        command = [str(binary.resolve()), "http_server", str(self.port), str(self.rom)]
+        command = [str(self.binary), "http_server", str(self.port), str(self.rom)]
         environment = os.environ.copy()
         environment["XDG_CONFIG_HOME"] = str(config_home)
         environment["XDG_DATA_HOME"] = str(data_home)
-        self._log = self.log_path.open("wb")
+        self._log = self.log_path.open("ab")
+        self._log.write(f"\n=== SkyEmu generation {generation} ===\n".encode())
+        self._log.flush()
         self.process = subprocess.Popen(
             command,
             cwd=self.workdir,
@@ -223,6 +236,48 @@ class SkyEmuSession:
         except BaseException:
             self.close()
             raise
+
+    def battery_snapshot(self) -> SaveImage:
+        return SaveImage.from_path(self.battery_path)
+
+    def wait_for_battery_change(
+        self,
+        before: SaveImage | bytes,
+        *,
+        max_pulses: int = 1_500,
+        button: str = "A",
+        release_frames: int = 4,
+    ) -> SaveImage:
+        """Wait for an in-game flash write, accepting only a complete valid image."""
+        before_data = before.data if isinstance(before, SaveImage) else before
+        last_error: ValueError | None = None
+        for _ in range(max_pulses):
+            self.press(button, release_frames=release_frames)
+            try:
+                current = self.battery_snapshot()
+            except ValueError as error:
+                # The emulator can expose the file between sector writes. Keep
+                # advancing until the complete slot is coherent.
+                last_error = error
+                continue
+            if current.data != before_data:
+                return current
+        detail = "" if last_error is None else f"; last validation error: {last_error}"
+        raise AssertionError(
+            f"battery save did not change after {max_pulses} {button} pulses{detail}"
+        )
+
+    def cold_restart(self) -> subprocess.Popen:
+        """Replace the emulator process while retaining the same ROM/save files."""
+        SaveImage.from_path(self.battery_path)
+        old_process = self.process
+        self.close()
+        if old_process.poll() is None:
+            raise AssertionError("old SkyEmu process remained alive after termination")
+        self.exited_processes.append(old_process)
+        self._generation += 1
+        self._launch()
+        return old_process
 
     def _url(self, command: str, params: list[tuple[str, str]] | None = None) -> str:
         query = "" if not params else "?" + urlencode(params)

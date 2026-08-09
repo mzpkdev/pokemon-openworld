@@ -346,4 +346,6 @@
 #define VAR_NEWBARK_TOWN_STATE                                       0x40FB
 // JOHTO IMPORT END: vars
 
+#include "constants/persistent_vars.inc.h"
+
 #endif // GUARD_CONSTANTS_VARS_H

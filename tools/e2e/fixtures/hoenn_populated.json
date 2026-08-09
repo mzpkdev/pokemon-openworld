@@ -1,0 +1,131 @@
+{
+  "fixture": {
+    "file": "hoenn_populated.sav",
+    "instrumentationPatchSha256": "9ccc7ce7aca9bd1e1d3c30bc0571b80d42b176902b7f70bf10a8d6483f2333cd",
+    "sha256": "6ea2d26f4b431543c31c50015678b5c8fc4c3b60d41aba6c7311fd064234448c",
+    "sourceCommit": "135b32ca92",
+    "sourceRomSha256": "b68fc2d33a3a6446da2af055be27e04b3ab7ef1ccba540395a9c44d9937ab07f"
+  },
+  "generation": {
+    "method": "source-build DEBUG hook using genuine game services, then two field Start-menu Saves to replace both flash slots",
+    "request": {
+      "abi_version": 2,
+      "box_species": 263,
+      "checkpoint_id": 14,
+      "daycare_species_1": 263,
+      "daycare_species_2": 132,
+      "facility_id": 0,
+      "facility_level_mode": 0,
+      "level": 10,
+      "party_species": 25,
+      "player_trainer_id": 305419896,
+      "request_id": 1212765012,
+      "reserved": 0,
+      "reward_item": 102,
+      "rng_seed": 324743882,
+      "trade_species": 273,
+      "trainer_id": 64
+    },
+    "result": {
+      "abi_version": 2,
+      "box_index": 0,
+      "checkpoint_id": 14,
+      "daycare_egg_species": 263,
+      "error": 0,
+      "facility_challenge_status": 2,
+      "facility_id": 0,
+      "facility_paused": 1,
+      "party_index": 0,
+      "player_name_hash": 58303,
+      "player_trainer_id": 305419896,
+      "request_id": 1212765012,
+      "reward_item": 102,
+      "rng_seed": 324743882,
+      "status": 3,
+      "traded_party_index": 1,
+      "trainer_flag": 64
+    }
+  },
+  "semanticExpectations": {
+    "box": {
+      "flatIndex": 0,
+      "pokemon": {
+        "checksum": 45408,
+        "isEgg": false,
+        "metGame": 3,
+        "metLevel": 10,
+        "metLocation": 84,
+        "otId": 305419896,
+        "personality": 672714171,
+        "species": 263
+      }
+    },
+    "checkpoint": {
+      "id": 14,
+      "lastHealLocationHex": "000aff0006001100"
+    },
+    "daycare": {
+      "eggSpecies": 263,
+      "parent1": {
+        "checksum": 26651,
+        "isEgg": false,
+        "metGame": 3,
+        "metLevel": 10,
+        "metLocation": 84,
+        "otId": 305419896,
+        "personality": 3815613659,
+        "species": 263
+      },
+      "parent2": {
+        "checksum": 29225,
+        "isEgg": false,
+        "metGame": 3,
+        "metLevel": 10,
+        "metLocation": 84,
+        "otId": 305419896,
+        "personality": 496828145,
+        "species": 132
+      },
+      "pendingEgg": true
+    },
+    "facilitySession": {
+      "challengeStatus": 2,
+      "currentBattle": 0,
+      "facilityId": 0,
+      "levelMode": 0,
+      "paused": true
+    },
+    "party": {
+      "createdIndex": 0,
+      "createdPokemon": {
+        "checksum": 45736,
+        "isEgg": false,
+        "metGame": 3,
+        "metLevel": 10,
+        "metLocation": 84,
+        "otId": 305419896,
+        "personality": 1719068049,
+        "species": 25
+      },
+      "tradedIndex": 1,
+      "tradedPokemon": {
+        "checksum": 13084,
+        "isEgg": false,
+        "metGame": 3,
+        "metLevel": 10,
+        "metLocation": 254,
+        "otId": 38726,
+        "personality": 132,
+        "species": 273
+      }
+    },
+    "reward": {
+      "item": 102,
+      "quantity": 1
+    },
+    "trainer": {
+      "defeated": true,
+      "id": 64
+    }
+  }
+}

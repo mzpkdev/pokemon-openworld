@@ -15,9 +15,32 @@ from tools.integrity.validate_artifact import ValidationError, load_capacity_pol
 
 ROOT = Path(__file__).resolve().parents[3]
 POLICY = ROOT / "tools/integrity/capacity_policy.json"
+SAVE_CONTRACT = ROOT / "tools/integrity/save_contract.json"
 
 
 class CapacityMeasurementTests(unittest.TestCase):
+    def test_save_contract_records_exactly_five_hardware_budget_baselines(self) -> None:
+        budgets = json.loads(SAVE_CONTRACT.read_text())["purposeBudgets"]
+        self.assertEqual(
+            budgets["limits"],
+            {
+                "romBytes": 32 * 1024 * 1024,
+                "ewramBytes": 256 * 1024,
+                "iwramBytes": 32 * 1024,
+                "releaseHeadroomBytes": 2_708_917,
+            },
+        )
+        self.assertEqual(
+            set(budgets["baselines"]),
+            {"normal", "debug", "release", "test-runner", "headless-test"},
+        )
+        for purpose, baseline in budgets["baselines"].items():
+            with self.subTest(purpose=purpose):
+                self.assertRegex(baseline["artifact"], r"\.(?:gba|elf)$")
+                self.assertGreater(baseline["romBytes"], 0)
+                self.assertLessEqual(baseline["ewramBytes"], 256 * 1024)
+                self.assertLessEqual(baseline["iwramBytes"], 32 * 1024)
+
     def assert_policy_rejected(self, policy: dict) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "capacity-policy.json"
