@@ -88,6 +88,7 @@ class OwnershipUnit:
     name: str | None = None
     registry: str | None = None
     key: str | None = None
+    slot: int | None = None
 
     def __post_init__(self) -> None:
         if self.kind not in UNIT_KINDS:
@@ -99,12 +100,18 @@ class OwnershipUnit:
                 self.name is not None
                 or self.registry is not None
                 or self.key is not None
+                or self.slot is not None
             ):
                 raise ContentPortError(
                     f"{self.path}: file ownership has sub-unit fields"
                 )
         elif self.kind == "section":
-            if not self.name or self.registry is not None or self.key is not None:
+            if (
+                not self.name
+                or self.registry is not None
+                or self.key is not None
+                or self.slot is not None
+            ):
                 raise ContentPortError(
                     f"{self.path}: section ownership requires only name"
                 )
@@ -116,6 +123,14 @@ class OwnershipUnit:
         else:
             _validate_token(self.registry, "registry name")
             _validate_token(self.key, "registry key")
+            if self.slot is not None and (
+                isinstance(self.slot, bool)
+                or not isinstance(self.slot, int)
+                or self.slot < 0
+            ):
+                raise ContentPortError(
+                    f"{self.path}: registry slot must be a non-negative integer"
+                )
 
     @property
     def identity(self) -> tuple[str, ...]:
@@ -125,21 +140,27 @@ class OwnershipUnit:
             return (self.kind, self.path, self.name or "")
         return (self.kind, self.path, self.registry or "", self.key or "")
 
-    def to_json(self) -> dict[str, str]:
-        result = {"kind": self.kind, "path": self.path, "sha256": self.sha256}
+    def to_json(self) -> dict[str, object]:
+        result: dict[str, object] = {
+            "kind": self.kind,
+            "path": self.path,
+            "sha256": self.sha256,
+        }
         if self.name is not None:
             result["name"] = self.name
         if self.registry is not None:
             result["registry"] = self.registry
         if self.key is not None:
             result["key"] = self.key
+        if self.slot is not None:
+            result["slot"] = self.slot
         return result
 
     @classmethod
     def from_json(cls, value: object, pointer: str = "$.units[]") -> "OwnershipUnit":
         if not isinstance(value, dict):
             raise ContentPortError(f"{pointer}: expected object")
-        allowed = {"kind", "path", "sha256", "name", "registry", "key"}
+        allowed = {"kind", "path", "sha256", "name", "registry", "key", "slot"}
         unknown = sorted(set(value) - allowed)
         if unknown:
             raise ContentPortError(f"{pointer}: unknown field {unknown[0]}")
@@ -147,8 +168,16 @@ class OwnershipUnit:
         missing = sorted(required - set(value))
         if missing:
             raise ContentPortError(f"{pointer}: missing field {missing[0]}")
-        if any(not isinstance(value.get(field), str) for field in value):
+        if any(
+            not isinstance(value.get(field), str) for field in value if field != "slot"
+        ):
             raise ContentPortError(f"{pointer}: ownership fields must be strings")
+        if "slot" in value and (
+            isinstance(value["slot"], bool)
+            or not isinstance(value["slot"], int)
+            or value["slot"] < 0
+        ):
+            raise ContentPortError(f"{pointer}.slot: expected a non-negative integer")
         return cls(**value)  # type: ignore[arg-type]
 
 
@@ -317,16 +346,54 @@ def _registry_container(value: object, registry: str) -> object:
     return current
 
 
+def _record_matches_key(record: object, key: str) -> bool:
+    return record == key or (
+        isinstance(record, dict)
+        and any(record.get(field) == key for field in ("key", "id", "name"))
+    )
+
+
 def _record_index(records: list[object], key: str) -> int:
     matches = [
         index
         for index, record in enumerate(records)
-        if isinstance(record, dict)
-        and any(record.get(field) == key for field in ("key", "id", "name"))
+        if _record_matches_key(record, key)
     ]
     if len(matches) != 1:
         raise ContentPortError(f"registry key {key!r} must identify exactly one record")
     return matches[0]
+
+
+def _slotted_record_index(
+    records: list[object], unit: OwnershipUnit, *, allow_append: bool = False
+) -> int:
+    if unit.slot is None:
+        return _record_index(records, unit.key or "")
+    if allow_append and unit.slot == len(records):
+        if any(_record_matches_key(record, unit.key or "") for record in records):
+            raise ContentPortError(
+                f"registry key {unit.key!r} already occupies another slot"
+            )
+        return unit.slot
+    if unit.slot >= len(records):
+        raise ContentPortError(
+            f"registry slot {unit.slot} does not exist for {unit.key!r} in {unit.path}"
+        )
+    if not _record_matches_key(records[unit.slot], unit.key or ""):
+        raise ContentPortError(
+            f"registry slot collision at {unit.path}:{unit.registry}[{unit.slot}]; "
+            f"expected {unit.key!r}"
+        )
+    matches = [
+        index
+        for index, record in enumerate(records)
+        if _record_matches_key(record, unit.key or "")
+    ]
+    if matches != [unit.slot]:
+        raise ContentPortError(
+            f"registry key {unit.key!r} must occupy exactly slot {unit.slot}"
+        )
+    return unit.slot
 
 
 def extract_owned_content(root: Path, port: str, unit: OwnershipUnit) -> bytes:
@@ -349,13 +416,17 @@ def extract_owned_content(root: Path, port: str, unit: OwnershipUnit) -> bytes:
         ) from error
     records = _registry_container(document, unit.registry or "")
     if isinstance(records, dict):
+        if unit.slot is not None:
+            raise ContentPortError(
+                f"registry slot is invalid for keyed registry {unit.registry!r}"
+            )
         if unit.key not in records:
             raise ContentPortError(
                 f"registry key {unit.key!r} does not exist in {unit.path}"
             )
         record = records[unit.key]
     elif isinstance(records, list):
-        record = records[_record_index(records, unit.key or "")]
+        record = records[_slotted_record_index(records, unit)]
     else:
         raise ContentPortError(
             f"registry {unit.registry!r} is not keyed in {unit.path}"
@@ -380,11 +451,62 @@ def verify_desired_claims(
 
     if installed.port != desired.port:
         raise ContentPortError("cannot compare ownership manifests for different ports")
-    installed_identities = set(installed.by_identity)
+    installed_by_identity = installed.by_identity
+    installed_identities = set(installed_by_identity)
+    installed_slots = {
+        (unit.path, unit.registry, unit.slot): unit
+        for unit in installed.units
+        if unit.slot is not None
+    }
+    slotted_registries: dict[tuple[str, str], list[object]] = {}
     for unit in desired.units:
+        previous = installed_by_identity.get(unit.identity)
+        if previous is not None and previous.slot != unit.slot:
+            raise ContentPortError(
+                f"owned registry slot changed for {unit.identity}: "
+                f"{previous.slot} -> {unit.slot}"
+            )
+        path = safe_repo_path(root, unit.path)
+        if unit.slot is not None:
+            if not path.exists():
+                raise ContentPortError(f"slotted registry does not exist: {unit.path}")
+            registry_key = (unit.path, unit.registry or "")
+            records = slotted_registries.get(registry_key)
+            if records is None:
+                try:
+                    document = json.loads(path.read_bytes())
+                except (OSError, json.JSONDecodeError) as error:
+                    raise ContentPortError(
+                        f"cannot inspect desired ownership path {unit.path}: {error}"
+                    ) from error
+                container = _registry_container(document, unit.registry or "")
+                if not isinstance(container, list):
+                    raise ContentPortError(
+                        f"slotted registry {unit.registry!r} is not an array"
+                    )
+                records = container
+                slotted_registries[registry_key] = records
+            occupant = installed_slots.get((unit.path, unit.registry, unit.slot))
+            if occupant is not None and occupant.identity != unit.identity:
+                _slotted_record_index(records, occupant)
+                if any(
+                    _record_matches_key(record, unit.key or "")
+                    for index, record in enumerate(records)
+                    if index != unit.slot
+                ):
+                    raise ContentPortError(
+                        f"registry key {unit.key!r} already occupies another slot"
+                    )
+                continue
+            index = _slotted_record_index(records, unit, allow_append=previous is None)
+            if previous is None and index < len(records):
+                raise ContentPortError(
+                    "refuses to claim unowned existing registry record "
+                    f"{unit.key!r} in {unit.path}"
+                )
+            continue
         if unit.identity in installed_identities:
             continue
-        path = safe_repo_path(root, unit.path)
         if not path.exists():
             continue
         if unit.kind == "file":
@@ -422,11 +544,7 @@ def verify_desired_claims(
             exists = unit.key in records
         elif isinstance(records, list):
             exists = any(
-                isinstance(record, dict)
-                and any(
-                    record.get(field) == unit.key for field in ("key", "id", "name")
-                )
-                for record in records
+                _record_matches_key(record, unit.key or "") for record in records
             )
         else:
             raise ContentPortError(
@@ -503,10 +621,62 @@ def reconcile_owned(
         normalized[identity] = payload
 
     stale = [unit for unit in previous.units if unit.identity not in desired_by_id]
-    for unit in sorted(stale, key=lambda item: item.identity, reverse=True):
+    desired_slots = {
+        (unit.path, unit.registry, unit.slot): unit
+        for unit in desired.units
+        if unit.slot is not None
+    }
+    replaced_stale = {
+        unit.identity: desired_slots[(unit.path, unit.registry, unit.slot)]
+        for unit in stale
+        if unit.slot is not None
+        and (unit.path, unit.registry, unit.slot) in desired_slots
+    }
+    removed_slots = [
+        unit
+        for unit in stale
+        if unit.slot is not None and unit.identity not in replaced_stale
+    ]
+    for stale_unit in removed_slots:
+        if any(
+            desired_unit.path == stale_unit.path
+            and desired_unit.registry == stale_unit.registry
+            and desired_unit.slot is not None
+            and desired_unit.slot > (stale_unit.slot or 0)
+            for desired_unit in desired.units
+        ):
+            raise ContentPortError(
+                f"cannot remove ordered registry slot {stale_unit.slot} before a "
+                f"retained slot in {stale_unit.path}:{stale_unit.registry}"
+            )
+    removable = [unit for unit in stale if unit.identity not in replaced_stale]
+    for unit in sorted(
+        removable,
+        key=lambda item: (
+            item.path,
+            item.registry or "",
+            item.slot if item.slot is not None else -1,
+            item.identity,
+        ),
+        reverse=True,
+    ):
         _remove_unit(root, previous.port, unit)
     for unit in desired.units:
-        _write_unit(root, desired.port, unit, normalized[unit.identity])
+        replacement = next(
+            (
+                stale_unit
+                for stale_unit in stale
+                if replaced_stale.get(stale_unit.identity) == unit
+            ),
+            None,
+        )
+        _write_unit(
+            root,
+            desired.port,
+            unit,
+            normalized[unit.identity],
+            replaceable_key=replacement.key if replacement is not None else None,
+        )
         checkpoint(f"after-render:{unit.identity}")
     verify_owned_baseline(root, desired)
 
@@ -524,9 +694,13 @@ def _remove_unit(root: Path, port: str, unit: OwnershipUnit) -> None:
     document = json.loads(content)
     records = _registry_container(document, unit.registry or "")
     if isinstance(records, dict):
+        if unit.slot is not None:
+            raise ContentPortError(
+                f"registry slot is invalid for keyed registry {unit.registry!r}"
+            )
         del records[unit.key or ""]
     elif isinstance(records, list):
-        del records[_record_index(records, unit.key or "")]
+        del records[_slotted_record_index(records, unit)]
     else:
         raise ContentPortError(
             f"registry {unit.registry!r} is not keyed in {unit.path}"
@@ -534,7 +708,14 @@ def _remove_unit(root: Path, port: str, unit: OwnershipUnit) -> None:
     _atomic_write(path, canonical_json(document))
 
 
-def _write_unit(root: Path, port: str, unit: OwnershipUnit, payload: bytes) -> None:
+def _write_unit(
+    root: Path,
+    port: str,
+    unit: OwnershipUnit,
+    payload: bytes,
+    *,
+    replaceable_key: str | None = None,
+) -> None:
     path = safe_repo_path(root, unit.path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if unit.kind == "file":
@@ -576,18 +757,55 @@ def _write_unit(root: Path, port: str, unit: OwnershipUnit, payload: bytes) -> N
     records = _registry_container(document, unit.registry or "")
     record = json.loads(payload)
     if isinstance(records, dict):
+        if unit.slot is not None:
+            raise ContentPortError(
+                f"registry slot is invalid for keyed registry {unit.registry!r}"
+            )
         if unit.key in records and canonical_json(records[unit.key or ""]) == payload:
             return
         records[unit.key or ""] = record
     elif isinstance(records, list):
-        try:
-            index = _record_index(records, unit.key or "")
-        except ContentPortError:
-            records.append(record)
+        if unit.slot is not None:
+            if unit.slot > len(records):
+                raise ContentPortError(
+                    f"registry slot {unit.slot} would create a gap in {unit.path}"
+                )
+            if unit.slot == len(records):
+                if any(_record_matches_key(item, unit.key or "") for item in records):
+                    raise ContentPortError(
+                        f"registry key {unit.key!r} already occupies another slot"
+                    )
+                records.append(record)
+            else:
+                occupant = records[unit.slot]
+                if not _record_matches_key(occupant, unit.key or ""):
+                    if replaceable_key is None or not _record_matches_key(
+                        occupant, replaceable_key
+                    ):
+                        raise ContentPortError(
+                            f"registry slot collision at {unit.path}:{unit.registry}"
+                            f"[{unit.slot}]"
+                        )
+                if any(
+                    _record_matches_key(item, unit.key or "")
+                    for index, item in enumerate(records)
+                    if index != unit.slot
+                ):
+                    raise ContentPortError(
+                        f"registry key {unit.key!r} already occupies another slot"
+                    )
+                if canonical_json(occupant) == payload:
+                    return
+                records[unit.slot] = record
         else:
-            if canonical_json(records[index]) == payload:
-                return
-            records[index] = record
+            try:
+                index = _record_index(records, unit.key or "")
+            except ContentPortError:
+                records.append(record)
+            else:
+                if canonical_json(records[index]) == payload:
+                    return
+                records[index] = record
     else:
         raise ContentPortError(
             f"registry {unit.registry!r} is not keyed in {unit.path}"
@@ -631,6 +849,7 @@ def manifest_for_payloads(
             name=template.name,
             registry=template.registry,
             key=template.key,
+            slot=template.slot,
         )
         units.append(unit)
         payloads[unit.identity] = value

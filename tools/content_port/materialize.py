@@ -110,10 +110,6 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
     profile = descriptor.adaptations["materializationProfile"]
     strip = tuple(profile["stripEventKinds"])
     content_field = descriptor.adaptations["donorFieldRoles"]["content"]
-    section_remaps = {
-        item["source"]: item["target"]
-        for item in descriptor.adaptations["sectionSymbolRemaps"]
-    }
     music_remaps = {
         item[content_field]: item["target"]
         for item in descriptor.adaptations["musicAdaptations"]
@@ -126,22 +122,20 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
     for name, ownership in descriptor.map_ownership.items():
         if ownership != "rendered":
             continue
+        allocation = descriptor.allocation_index.map_allocation(name)
         value = _thaw(state.maps[name])
         donor_fields = descriptor.adaptations["donorFieldRoles"]
         for decision in descriptor.adaptations["mapFieldDecisions"]:
             if decision["map"] == name:
                 value[decision["field"]] = decision[donor_fields[decision["authority"]]]
-        section = value.get("region_map_section")
-        if isinstance(section, str):
-            value["region_map_section"] = section_remaps.get(section, section)
+        value["id"] = allocation.map_id
+        value["layout"] = allocation.layout
+        value["region_map_section"] = allocation.section
         value["region"] = descriptor.target_bindings.region  # type: ignore[union-attr]
         music = value.get("music")
         if isinstance(music, str):
             value["music"] = music_remaps.get(music, music)
         value["connections"] = list(value.get("connections") or ())
-        for decision in descriptor.adaptations["warpReindexes"]:
-            if decision["source"] == name:
-                _set_pointer(value, decision["path"], decision["to"])
         for decision in descriptor.adaptations["berryTreeAllocations"]:
             if decision["source"] == name:
                 _set_pointer(value, decision["path"], decision["target"])
@@ -213,6 +207,7 @@ def _layout_units(
                 "data/layouts/layouts.json",
                 value,
                 record_key=layout_id,
+                slot=descriptor.allocation_index.layout_slot(layout_id),
             )
         )
     return units
@@ -226,17 +221,30 @@ def _group_units(descriptor: PortDescriptor) -> list[RenderUnit]:
         members[allocation.target_group].append(
             (allocation.target_member, allocation.name)
         )
-    return [
-        RenderUnit(
-            f"group:{name}",
-            "map-group-registry",
-            "data/maps/map_groups.json",
-            [map_name for _, map_name in sorted(members[name])],
-            registry="$",
-            record_key=name,
+    units: list[RenderUnit] = []
+    for name, slot in descriptor.allocation_index.groups.items():
+        units.extend(
+            (
+                RenderUnit(
+                    f"group:{name}",
+                    "map-group-registry",
+                    "data/maps/map_groups.json",
+                    [map_name for _, map_name in sorted(members[name])],
+                    registry="$",
+                    record_key=name,
+                ),
+                RenderUnit(
+                    f"group-order:{name}",
+                    "map-group-registry",
+                    "data/maps/map_groups.json",
+                    name,
+                    registry="group_order",
+                    record_key=name,
+                    slot=slot,
+                ),
+            )
         )
-        for name in descriptor.allocation_index.groups
-    ]
+    return units
 
 
 def _section_documents(root: Path) -> Iterable[tuple[Path, Mapping[str, Any]]]:

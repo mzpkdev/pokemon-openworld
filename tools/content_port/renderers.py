@@ -38,6 +38,7 @@ class RenderUnit:
     name: str | None = None
     registry: str | None = None
     record_key: str | None = None
+    slot: int | None = None
     options: Mapping[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -53,6 +54,7 @@ class OwnedOutput:
     name: str | None = None
     registry: str | None = None
     key: str | None = None
+    slot: int | None = None
 
     def payload_bytes(self) -> bytes:
         if self.kind == "registry-record":
@@ -82,6 +84,7 @@ class OwnedOutput:
             name=self.name,
             registry=self.registry,
             key=self.key,
+            slot=self.slot,
         )
 
 
@@ -106,7 +109,12 @@ def _record_output(unit: RenderUnit, default_registry: str) -> tuple[OwnedOutput
     key = unit.record_key or unit.key
     return (
         OwnedOutput(
-            "registry-record", unit.path, unit.value, registry=registry, key=key
+            "registry-record",
+            unit.path,
+            unit.value,
+            registry=registry,
+            key=key,
+            slot=unit.slot,
         ),
     )
 

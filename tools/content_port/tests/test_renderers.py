@@ -22,6 +22,7 @@ class RendererTests(unittest.TestCase):
             "layout-registry",
             "data/layouts/layouts.json",
             {"id": "LAYOUT_TEST", "width": 4},
+            slot=12,
         )
         manifest, payloads = render_units(context, [second, first])
         self.assertEqual(
@@ -31,6 +32,7 @@ class RendererTests(unittest.TestCase):
             payloads[("file", "data/maps/Test/map.json")],
             b'{\n  "a": 2,\n  "z": 1\n}\n',
         )
+        self.assertEqual(manifest.units[1].slot, 12)
 
     def test_binary_tileset_assets_are_byte_exact(self) -> None:
         output = render_unit(

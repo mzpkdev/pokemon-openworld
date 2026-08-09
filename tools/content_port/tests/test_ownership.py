@@ -204,6 +204,98 @@ class OwnershipTests(unittest.TestCase):
                 ["last", "owned", "first"],
             )
 
+    def test_slotted_registry_appends_and_replaces_stale_slot_exactly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            records = [{"id": "hand"}, {"id": "stale"}]
+            (root / "registry.json").write_bytes(canonical_json({"records": records}))
+            stale = OwnershipUnit(
+                "registry-record",
+                "registry.json",
+                content_sha256(canonical_json(records[1])),
+                registry="records",
+                key="stale",
+                slot=1,
+            )
+            replacement = {"id": "replacement", "value": 1}
+            appended = {"id": "appended", "value": 2}
+            desired_units = (
+                OwnershipUnit(
+                    "registry-record",
+                    "registry.json",
+                    content_sha256(canonical_json(replacement)),
+                    registry="records",
+                    key="replacement",
+                    slot=1,
+                ),
+                OwnershipUnit(
+                    "registry-record",
+                    "registry.json",
+                    content_sha256(canonical_json(appended)),
+                    registry="records",
+                    key="appended",
+                    slot=2,
+                ),
+            )
+            desired = OwnershipManifest("test", desired_units)
+            reconcile_owned(
+                root,
+                OwnershipManifest("test", (stale,)),
+                desired,
+                {
+                    desired_units[0].identity: replacement,
+                    desired_units[1].identity: appended,
+                },
+            )
+            result = json.loads((root / "registry.json").read_text())
+            self.assertEqual(
+                [record["id"] for record in result["records"]],
+                ["hand", "replacement", "appended"],
+            )
+
+    def test_slotted_registry_rejects_collision_and_gap(self) -> None:
+        for slot, message in ((0, "slot collision"), (2, "does not exist")):
+            with self.subTest(slot=slot), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "registry.json").write_bytes(
+                    canonical_json({"records": ["hand"]})
+                )
+                payload = "allocated"
+                unit = OwnershipUnit(
+                    "registry-record",
+                    "registry.json",
+                    content_sha256(canonical_json(payload)),
+                    registry="records",
+                    key=payload,
+                    slot=slot,
+                )
+                with self.assertRaisesRegex(ContentPortError, message):
+                    reconcile_owned(
+                        root,
+                        OwnershipManifest("test", ()),
+                        OwnershipManifest("test", (unit,)),
+                        {unit.identity: payload},
+                    )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload = "allocated"
+            unit = OwnershipUnit(
+                "registry-record",
+                "missing.json",
+                content_sha256(canonical_json(payload)),
+                registry="records",
+                key=payload,
+                slot=0,
+            )
+            with self.assertRaisesRegex(ContentPortError, "registry does not exist"):
+                reconcile_owned(
+                    root,
+                    OwnershipManifest("test", ()),
+                    OwnershipManifest("test", (unit,)),
+                    {unit.identity: payload},
+                )
+
     def test_unchanged_registry_record_preserves_exact_file_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

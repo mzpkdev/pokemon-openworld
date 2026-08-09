@@ -14,7 +14,13 @@ from unittest.mock import patch
 from tools.content_port.descriptor import load_port
 from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
-from tools.content_port.materialize import _asset_units, derive_desired_state
+from tools.content_port.materialize import (
+    _asset_units,
+    _group_units,
+    _layout_units,
+    _map_units,
+    derive_desired_state,
+)
 from tools.content_port.model import DonorPin, PersistentBindingRef
 from tools.content_port.ownership import OwnershipManifest
 from tools.content_port.sources import resolve_port_sources
@@ -49,6 +55,13 @@ class MaterializeTests(unittest.TestCase):
             installed = repo / "tools/content_port/ports/johto/ownership.json"
             installed.parent.mkdir(parents=True)
             shutil.copyfile(PORT / "ownership.json", installed)
+            for path in {
+                unit.path for unit in recipe.units if unit.kind == "registry-record"
+            }:
+                source = ROOT / path
+                target = repo / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
             for name, mode in descriptor.map_ownership.items():
                 if mode != "preserve":
                     continue
@@ -69,10 +82,52 @@ class MaterializeTests(unittest.TestCase):
                 ),
             ):
                 first_manifest, first_payloads = derive_desired_state(descriptor, repo)
-                for path in sorted({unit.path for unit in recipe.units}):
+                for path in sorted(
+                    {
+                        unit.path
+                        for unit in recipe.units
+                        if unit.kind != "registry-record"
+                    }
+                ):
                     target = repo / path
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_bytes(b"corrupt installed output\n")
+                for path in {
+                    unit.path for unit in recipe.units if unit.kind == "registry-record"
+                }:
+                    target = repo / path
+                    document = json.loads(target.read_bytes())
+                    for unit in (
+                        candidate
+                        for candidate in recipe.units
+                        if candidate.kind == "registry-record"
+                        and candidate.path == path
+                    ):
+                        records = document
+                        if unit.registry not in {"$", "root"}:
+                            for part in (unit.registry or "").split("."):
+                                records = records[part]
+                        if isinstance(records, dict):
+                            value = records[unit.key]
+                        elif unit.slot is not None:
+                            value = records[unit.slot]
+                        else:
+                            value = next(
+                                record
+                                for record in records
+                                if isinstance(record, dict)
+                                and unit.key
+                                in (
+                                    record.get("key"),
+                                    record.get("id"),
+                                    record.get("name"),
+                                )
+                            )
+                        if isinstance(value, dict):
+                            value["_corrupt"] = True
+                        elif isinstance(value, list):
+                            value.append("CORRUPT_OUTPUT")
+                    target.write_text(json.dumps(document), encoding="utf-8")
                 second_manifest, second_payloads = derive_desired_state(
                     descriptor, repo
                 )
@@ -84,6 +139,11 @@ class MaterializeTests(unittest.TestCase):
                 {unit.identity for unit in first_manifest.units},
                 {unit.identity for unit in recipe.units},
             )
+            route30 = json.loads(first_payloads[("file", "data/maps/Route30/map.json")])
+            route30_allocation = descriptor.allocation_index.map_allocation("Route30")
+            self.assertEqual(route30["id"], route30_allocation.map_id)
+            self.assertEqual(route30["layout"], route30_allocation.layout)
+            self.assertEqual(route30["region_map_section"], route30_allocation.section)
             victory_road = first_payloads[
                 (
                     "registry-record",
@@ -110,6 +170,68 @@ class MaterializeTests(unittest.TestCase):
                 ].decode(),
                 r"(?m)^#define BERRY_TREE_ROUTE_29_ORAN_1 +90$",
             )
+
+    def test_new_group_and_layout_use_exact_authored_slots(self) -> None:
+        descriptor = self.descriptor()
+        _, state = resolve_port_sources(descriptor, ROOT)
+        layout_id = "LAYOUT_TEST_ALLOCATION"
+        group_id = "gMapGroup_TestAllocation"
+        allocation_index = replace(
+            descriptor.allocation_index,
+            layouts=MappingProxyType(
+                {**descriptor.allocation_index.layouts, layout_id: 1040}
+            ),
+            groups=MappingProxyType(
+                {**descriptor.allocation_index.groups, group_id: 100}
+            ),
+        )
+        layout = dict(state.layouts["LAYOUT_NEW_BARK_TOWN"])
+        layout["id"] = layout_id
+        expanded_state = replace(
+            state,
+            layouts=MappingProxyType({**state.layouts, layout_id: layout}),
+        )
+        expanded = replace(descriptor, allocation_index=allocation_index)
+
+        layout_unit = next(
+            unit
+            for unit in _layout_units(expanded, expanded_state)
+            if unit.key == layout_id
+        )
+        group_order = next(
+            unit
+            for unit in _group_units(expanded)
+            if unit.key == f"group-order:{group_id}"
+        )
+        self.assertEqual(layout_unit.slot, 1040)
+        self.assertEqual(group_order.registry, "group_order")
+        self.assertEqual(group_order.record_key, group_id)
+        self.assertEqual(group_order.slot, 100)
+
+    def test_map_identity_layout_and_section_come_from_allocation(self) -> None:
+        descriptor = self.descriptor()
+        _, state = resolve_port_sources(descriptor, ROOT)
+        route30 = dict(state.maps["Route30"])
+        route30.update(
+            {
+                "id": "MAP_DONOR_DRIFT",
+                "layout": "LAYOUT_DONOR_DRIFT",
+                "region_map_section": "MAPSEC_DONOR_DRIFT",
+            }
+        )
+        drifted = replace(
+            state,
+            maps=MappingProxyType({**state.maps, "Route30": route30}),
+        )
+        unit = next(
+            unit
+            for unit in _map_units(descriptor, drifted)
+            if unit.key == "map:Route30"
+        )
+        allocation = descriptor.allocation_index.map_allocation("Route30")
+        self.assertEqual(unit.value["id"], allocation.map_id)
+        self.assertEqual(unit.value["layout"], allocation.layout)
+        self.assertEqual(unit.value["region_map_section"], allocation.section)
 
     def test_transient_route30_mutation_cannot_enter_snapshot_render(
         self,

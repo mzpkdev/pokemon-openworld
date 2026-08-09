@@ -10392,1785 +10392,2040 @@
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "86517d5bdbab1c3bdae5c47629eb2296f73ea7526c80e169f172045b554831a6"
+      "sha256": "86517d5bdbab1c3bdae5c47629eb2296f73ea7526c80e169f172045b554831a6",
+      "slot": 826
     },
     {
       "key": "LAYOUT_AZALEA_TOWN_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "62624cd4d2525413b3f940efdf3e199b93e5ebdeb7fbdc354040b83e7fc59986"
+      "sha256": "62624cd4d2525413b3f940efdf3e199b93e5ebdeb7fbdc354040b83e7fc59986",
+      "slot": 830
     },
     {
       "key": "LAYOUT_AZALEA_TOWN_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c23fce8510c0c6e099bc7c78ed9ced7c4e67b9cbacfb2a68ecfd17189b69c4fd"
+      "sha256": "c23fce8510c0c6e099bc7c78ed9ced7c4e67b9cbacfb2a68ecfd17189b69c4fd",
+      "slot": 831
     },
     {
       "key": "LAYOUT_AZALEA_TOWN_KURTS_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0cacde71b6277f34c33531e0ce1eb340b1baff20356305e23a63da82e044d812"
+      "sha256": "0cacde71b6277f34c33531e0ce1eb340b1baff20356305e23a63da82e044d812",
+      "slot": 832
     },
     {
       "key": "LAYOUT_AZALEA_TOWN_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f105014ce2a8b7a01cc44809c8a98bf0d52c933d4aed769b654ba9600bc383c1"
+      "sha256": "f105014ce2a8b7a01cc44809c8a98bf0d52c933d4aed769b654ba9600bc383c1",
+      "slot": 833
     },
     {
       "key": "LAYOUT_AZALEA_TOWN_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "37f5a793b574749d352a30434265c9d4e4df243c8f719058197e5b3961708a9d"
+      "sha256": "37f5a793b574749d352a30434265c9d4e4df243c8f719058197e5b3961708a9d",
+      "slot": 834
     },
     {
       "key": "LAYOUT_BELLCHIME_TRAIL",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2e8020d5558afa278f584d5a3fe9008e02a4d6f073c712cb90bc3791c9513cfc"
+      "sha256": "2e8020d5558afa278f584d5a3fe9008e02a4d6f073c712cb90bc3791c9513cfc",
+      "slot": 883
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "bc1a5b37df6407653e090abf5809953e1cd74915cc42159b94ed8b9af7b85920"
+      "sha256": "bc1a5b37df6407653e090abf5809953e1cd74915cc42159b94ed8b9af7b85920",
+      "slot": 960
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1d8f8981e5b296573fff2c3d60f7af8e5e4c11307cf79895922bfa0f29dbf290"
+      "sha256": "1d8f8981e5b296573fff2c3d60f7af8e5e4c11307cf79895922bfa0f29dbf290",
+      "slot": 963
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e297f1d32b0457ef57983c7f29c5493609ad9ae9706757ffe491818abda3be9b"
+      "sha256": "e297f1d32b0457ef57983c7f29c5493609ad9ae9706757ffe491818abda3be9b",
+      "slot": 964
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7e61a4a3ae4d60a4a78ad812a17a885bc2e7508ce4ecb4f62b77ddb2d6c38781"
+      "sha256": "7e61a4a3ae4d60a4a78ad812a17a885bc2e7508ce4ecb4f62b77ddb2d6c38781",
+      "slot": 965
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_HOUSE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8b67b0468d696c5597a19bca07fb672283ba2dfcfc87b801613aaf5787f0dd6e"
+      "sha256": "8b67b0468d696c5597a19bca07fb672283ba2dfcfc87b801613aaf5787f0dd6e",
+      "slot": 966
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "37ae9fa3e98d5a6754fffc1e6d00d8ff80a627c111b8c855209864637f9cd05f"
+      "sha256": "37ae9fa3e98d5a6754fffc1e6d00d8ff80a627c111b8c855209864637f9cd05f",
+      "slot": 967
     },
     {
       "key": "LAYOUT_BLACKTHORN_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "50c3c63c87347272b29e81769821767769a58d983c6fc71798222b6e503ce8ab"
+      "sha256": "50c3c63c87347272b29e81769821767769a58d983c6fc71798222b6e503ce8ab",
+      "slot": 968
     },
     {
       "key": "LAYOUT_BURNED_TOWER_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ce97916c42db6d0ca10f67e776d48c070972f4fe2747d7d010242ff8abdc90c3"
+      "sha256": "ce97916c42db6d0ca10f67e776d48c070972f4fe2747d7d010242ff8abdc90c3",
+      "slot": 895
     },
     {
       "key": "LAYOUT_BURNED_TOWER_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ed9f0f479948bdc457e4375ccc5355db6f75334705ab2035f8ba213edc6788a1"
+      "sha256": "ed9f0f479948bdc457e4375ccc5355db6f75334705ab2035f8ba213edc6788a1",
+      "slot": 896
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f4fec734ff188f23652eb2f4ce4090bb7abaf4719f10f343fd8276aba85a5408"
+      "sha256": "f4fec734ff188f23652eb2f4ce4090bb7abaf4719f10f343fd8276aba85a5408",
+      "slot": 793
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cf0a19791053a8c71b024c979678dc73cc666bef0cf0d150b0693b739b9ed040"
+      "sha256": "cf0a19791053a8c71b024c979678dc73cc666bef0cf0d150b0693b739b9ed040",
+      "slot": 796
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "694c653a5b0bbb23129f6747a61cac24809204c74580d8c4b22fe6ab3d94ed56"
+      "sha256": "694c653a5b0bbb23129f6747a61cac24809204c74580d8c4b22fe6ab3d94ed56",
+      "slot": 797
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY_HOUSE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "727a3e5f91b0024e4bb0e5d54a7b2dbac9dba5988ce278d953da255584e5f1b3"
+      "sha256": "727a3e5f91b0024e4bb0e5d54a7b2dbac9dba5988ce278d953da255584e5f1b3",
+      "slot": 798
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a57a0b2ef63785e5fbac8be320476705d09943729b18b674d8d2831ae746d672"
+      "sha256": "a57a0b2ef63785e5fbac8be320476705d09943729b18b674d8d2831ae746d672",
+      "slot": 795
     },
     {
       "key": "LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "05c9b4645b9e5678923bc17f983c015a1bfbfc75c5d7d36e748cc567551656de"
+      "sha256": "05c9b4645b9e5678923bc17f983c015a1bfbfc75c5d7d36e748cc567551656de",
+      "slot": 794
     },
     {
       "key": "LAYOUT_CIANWOOD_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "14384e43e2ba14dc55daff919d18103899ec6393bf16bd16c2628c4a79163e20"
+      "sha256": "14384e43e2ba14dc55daff919d18103899ec6393bf16bd16c2628c4a79163e20",
+      "slot": 929
     },
     {
       "key": "LAYOUT_CIANWOOD_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b97ce58e7a8c9f0c350acdc18769a5e0496a9f1f38e6778abebede530f86a61f"
+      "sha256": "b97ce58e7a8c9f0c350acdc18769a5e0496a9f1f38e6778abebede530f86a61f",
+      "slot": 932
     },
     {
       "key": "LAYOUT_CIANWOOD_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "14d6b8a33cc74fe1512a1cbc0d66d6f7935df9e66dd84179f1f1ba7b2bb83334"
+      "sha256": "14d6b8a33cc74fe1512a1cbc0d66d6f7935df9e66dd84179f1f1ba7b2bb83334",
+      "slot": 933
     },
     {
       "key": "LAYOUT_CIANWOOD_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "243292dbccc08ff3ee27476f24c589367da89cca6bfdb0a4903540002d9aa0b1"
+      "sha256": "243292dbccc08ff3ee27476f24c589367da89cca6bfdb0a4903540002d9aa0b1",
+      "slot": 934
     },
     {
       "key": "LAYOUT_CIANWOOD_HOUSE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c8f68856a65e4f5f0eb7166d3afadd20747ec059e0b6c98e6d7b145f5a97b1e5"
+      "sha256": "c8f68856a65e4f5f0eb7166d3afadd20747ec059e0b6c98e6d7b145f5a97b1e5",
+      "slot": 935
     },
     {
       "key": "LAYOUT_CIANWOOD_POKECENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4661dc9a05d73963a3fbafe8ce7b57f202c0243e055b080f46f220d98a4237bb"
+      "sha256": "4661dc9a05d73963a3fbafe8ce7b57f202c0243e055b080f46f220d98a4237bb",
+      "slot": 936
     },
     {
       "key": "LAYOUT_CIANWOOD_SHOP",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "301c9b4e1657dcd1214873cb12c3c447ac60351fbe9f97b51180f7955591deeb"
+      "sha256": "301c9b4e1657dcd1214873cb12c3c447ac60351fbe9f97b51180f7955591deeb",
+      "slot": 937
     },
     {
       "key": "LAYOUT_CLIFF_EDGE_CAVE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cf65af0214f0588e485cf38abedf3bda9c090e77e4f3b84bcb77f9d7cbd1fd38"
+      "sha256": "cf65af0214f0588e485cf38abedf3bda9c090e77e4f3b84bcb77f9d7cbd1fd38",
+      "slot": 938
     },
     {
       "key": "LAYOUT_CLIFF_EDGE_GATE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "488997aad71fe1fa3bd8c0dd736a8e8b995b448575bfde700b3a565e2af6841c"
+      "sha256": "488997aad71fe1fa3bd8c0dd736a8e8b995b448575bfde700b3a565e2af6841c",
+      "slot": 939
     },
     {
       "key": "LAYOUT_DARK_CAVE_NORTH_SIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "aef2bc86d09fc1321bac9adc89c84873e606b552a93a709e49a60b5e163c0a67"
+      "sha256": "aef2bc86d09fc1321bac9adc89c84873e606b552a93a709e49a60b5e163c0a67",
+      "slot": 977
     },
     {
       "key": "LAYOUT_DARK_CAVE_SOUTH_SIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2d385505425a966d9204c1451a5dad4097668a05a507dc210e5b8b33c4c91acc"
+      "sha256": "2d385505425a966d9204c1451a5dad4097668a05a507dc210e5b8b33c4c91acc",
+      "slot": 978
     },
     {
       "key": "LAYOUT_DRAGONS_DEN_CAVERN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "86c30cd273d360e9242e319693ade8a840fc7d7cbbc01a47b04a454281c7a216"
+      "sha256": "86c30cd273d360e9242e319693ade8a840fc7d7cbbc01a47b04a454281c7a216",
+      "slot": 974
     },
     {
       "key": "LAYOUT_DRAGONS_DEN_ENTRANCE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "43516d6487ca68ea4d1f9bd5c37b8587a25c1b4ee11b5b8b52acaeaabdc90d2a"
+      "sha256": "43516d6487ca68ea4d1f9bd5c37b8587a25c1b4ee11b5b8b52acaeaabdc90d2a",
+      "slot": 975
     },
     {
       "key": "LAYOUT_DRAGONS_DEN_SHRINE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5922b7e6801100ca209156e61515dc42de7cf3973a9170a66a974abf84a96912"
+      "sha256": "5922b7e6801100ca209156e61515dc42de7cf3973a9170a66a974abf84a96912",
+      "slot": 976
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5fa68eca53754d17b7070914614ec160cc7f892eb381f22a5474d0265be91a05"
+      "sha256": "5fa68eca53754d17b7070914614ec160cc7f892eb381f22a5474d0265be91a05",
+      "slot": 880
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4d5c716120750a5ffde19ccdacea4c2ee9e03182eb39da01df3dff19e61f489b"
+      "sha256": "4d5c716120750a5ffde19ccdacea4c2ee9e03182eb39da01df3dff19e61f489b",
+      "slot": 885
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "27ff95a4b480c19fd8e48cba02cebdd2dd075508a91da8e3493b83988871be4e"
+      "sha256": "27ff95a4b480c19fd8e48cba02cebdd2dd075508a91da8e3493b83988871be4e",
+      "slot": 886
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "702171b92da5e7baf3e41436cc52ffa3f8c8f90a945fd113e758c47ab664068a"
+      "sha256": "702171b92da5e7baf3e41436cc52ffa3f8c8f90a945fd113e758c47ab664068a",
+      "slot": 887
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "76f5ca1cd3a0adbb9ce7c89b4300d1488c23c17f1b6ca64cb92ddd676de40c51"
+      "sha256": "76f5ca1cd3a0adbb9ce7c89b4300d1488c23c17f1b6ca64cb92ddd676de40c51",
+      "slot": 888
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "16ba5ee293133239e33844ab5629f40479da50ab24f5cb411da2c19f0e6ba6d3"
+      "sha256": "16ba5ee293133239e33844ab5629f40479da50ab24f5cb411da2c19f0e6ba6d3",
+      "slot": 889
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_SAGE_OFFICE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "3c215da4a52f0f8a71806b2650a4ec28c8d03a68fe0d51425877d46ef7b9a0e1"
+      "sha256": "3c215da4a52f0f8a71806b2650a4ec28c8d03a68fe0d51425877d46ef7b9a0e1",
+      "slot": 890
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_SAGE_OFFICE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b49e1af034c4a671d0413fb930fc18dcb74c68528499842bdc75556829ceb262"
+      "sha256": "b49e1af034c4a671d0413fb930fc18dcb74c68528499842bdc75556829ceb262",
+      "slot": 891
     },
     {
       "key": "LAYOUT_ECRUTEAK_CITY_THEATER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "bdcd0f6dd5d965712325ae1ebf60290feb23de73ad209763bb9cc7035b09559c"
+      "sha256": "bdcd0f6dd5d965712325ae1ebf60290feb23de73ad209763bb9cc7035b09559c",
+      "slot": 892
     },
     {
       "key": "LAYOUT_EMBEDDED_TOWER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "97cc483347554f1114e3659c4c06aafbd52bfe20086931fb0a8e01554663b9e2"
+      "sha256": "97cc483347554f1114e3659c4c06aafbd52bfe20086931fb0a8e01554663b9e2",
+      "slot": 940
     },
     {
       "key": "LAYOUT_GATE_AZALEA_TOWN_ILEX_FOREST",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "db5b239106a9934e8b9a59dd1371624cb263787da436008a2e1a73616281771e"
+      "sha256": "db5b239106a9934e8b9a59dd1371624cb263787da436008a2e1a73616281771e",
+      "slot": 836
     },
     {
       "key": "LAYOUT_GATE_ECRUTEAK_CITY_ROUTE38",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7ea461c2d7755e9dc96d4f1b9f439f1af3d0f5227357b66ed1873b428adae814"
+      "sha256": "7ea461c2d7755e9dc96d4f1b9f439f1af3d0f5227357b66ed1873b428adae814",
+      "slot": 884
     },
     {
       "key": "LAYOUT_GATE_ECRUTEAK_CITY_ROUTE42",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8492d68640da64a9dfc4fc7a586369799f4000f45b3052c619134698b9edebea"
+      "sha256": "8492d68640da64a9dfc4fc7a586369799f4000f45b3052c619134698b9edebea",
+      "slot": 951
     },
     {
       "key": "LAYOUT_GATE_GOLDENROD_CITY_ROUTE35",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "524102713c5e4805c0be27153634d8683afb8f5ebd2eea610efd81176210029c"
+      "sha256": "524102713c5e4805c0be27153634d8683afb8f5ebd2eea610efd81176210029c",
+      "slot": 849
     },
     {
       "key": "LAYOUT_GATE_ILEX_FOREST_ROUTE34",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2c96f4c1556acf58f24efef458609843a83de35c27a92057bd4b0653c924f543"
+      "sha256": "2c96f4c1556acf58f24efef458609843a83de35c27a92057bd4b0653c924f543",
+      "slot": 837
     },
     {
       "key": "LAYOUT_GATE_MAHOGANY_TOWN_ROUTE43",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "73c1490849183bd4801d9242a6aa3556a43a5356d7f2e375c50019cf8372f142"
+      "sha256": "73c1490849183bd4801d9242a6aa3556a43a5356d7f2e375c50019cf8372f142",
+      "slot": 952
     },
     {
       "key": "LAYOUT_GATE_NATIONAL_PARK",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c1d0161944caa139b8113de8a707dbb8c021d097e9ce1c36a81b5ed105f67f3f"
+      "sha256": "c1d0161944caa139b8113de8a707dbb8c021d097e9ce1c36a81b5ed105f67f3f",
+      "slot": 850
     },
     {
       "key": "LAYOUT_GATE_ROUTE29_ROUTE46",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d09d7b17fe239418469f681128324bbb73023a0a30ddad9de0fab74eadd20fad"
+      "sha256": "d09d7b17fe239418469f681128324bbb73023a0a30ddad9de0fab74eadd20fad",
+      "slot": 792
     },
     {
       "key": "LAYOUT_GATE_ROUTE31_VIOLET_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "26fa983c96c91eacc1c30f9d1c936687d736c4db98dd72efe02f0ef32b37f969"
+      "sha256": "26fa983c96c91eacc1c30f9d1c936687d736c4db98dd72efe02f0ef32b37f969",
+      "slot": 816
     },
     {
       "key": "LAYOUT_GATE_ROUTE40_TRAINER_HILL_COURTYARD",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "99e567cefccd8e09b551d36565c09233d65db351df80c330cc721fe10495dba9"
+      "sha256": "99e567cefccd8e09b551d36565c09233d65db351df80c330cc721fe10495dba9",
+      "slot": 911
     },
     {
       "key": "LAYOUT_GATE_ROUTE43",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e9048e2fe080be158b358330c4a3d4efd919340e77ef017b83a21035b4d268b2"
+      "sha256": "e9048e2fe080be158b358330c4a3d4efd919340e77ef017b83a21035b4d268b2",
+      "slot": 953
     },
     {
       "key": "LAYOUT_GATE_RUINS_OF_ALPH_ROUTE32",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8f64f7ea47dea2c5db7a9c66b4d29a37cd366c471383ee8eb7ae84f74e2f5892"
+      "sha256": "8f64f7ea47dea2c5db7a9c66b4d29a37cd366c471383ee8eb7ae84f74e2f5892",
+      "slot": 817
     },
     {
       "key": "LAYOUT_GATE_RUINS_OF_ALPH_ROUTE36",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "9714ed3cd7458b76cd7f6088819d1fa3de0f247dea2be8af462695686a2ec722"
+      "sha256": "9714ed3cd7458b76cd7f6088819d1fa3de0f247dea2be8af462695686a2ec722",
+      "slot": 818
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "548eac0ea679936ea16afbae02aa2823f59153e87a4f3d26c9642191e2aa40f0"
+      "sha256": "548eac0ea679936ea16afbae02aa2823f59153e87a4f3d26c9642191e2aa40f0",
+      "slot": 843
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_BIKE_SHOP",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0e38d9241dc659852299b8645fa10371e1d97195bf6f1124fa6a4801f6c52ef4"
+      "sha256": "0e38d9241dc659852299b8645fa10371e1d97195bf6f1124fa6a4801f6c52ef4",
+      "slot": 851
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_BILLS_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "caf0c3a51f6d67e4f6b014fcf276383adbdea809ea3faf1e5d6eec071fd316c3"
+      "sha256": "caf0c3a51f6d67e4f6b014fcf276383adbdea809ea3faf1e5d6eec071fd316c3",
+      "slot": 852
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4bb49030cf234df349802ed8f9bf14f2b3f415724927faa297d0488bbca21aca"
+      "sha256": "4bb49030cf234df349802ed8f9bf14f2b3f415724927faa297d0488bbca21aca",
+      "slot": 855
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4051a51d8fc00767295fc294c596e744f2933ce19a9f9f1e276e2d68ec1fa1dc"
+      "sha256": "4051a51d8fc00767295fc294c596e744f2933ce19a9f9f1e276e2d68ec1fa1dc",
+      "slot": 856
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "de14bd3d7d390ceda34ede30860c18ab68bc0fe76528a8bf5c1c553e943d6264"
+      "sha256": "de14bd3d7d390ceda34ede30860c18ab68bc0fe76528a8bf5c1c553e943d6264",
+      "slot": 857
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_4F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4650c13ea86cdbb97255d6578d8d881644be76858e73ed1c705fbf00750671b9"
+      "sha256": "4650c13ea86cdbb97255d6578d8d881644be76858e73ed1c705fbf00750671b9",
+      "slot": 858
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_5F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cca52fac10a6ee85ddd33ccb9e642f5a8afbbe9e6a414492060692b571a5f4b4"
+      "sha256": "cca52fac10a6ee85ddd33ccb9e642f5a8afbbe9e6a414492060692b571a5f4b4",
+      "slot": 859
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_6F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "77850e53d4eb00bc6ed12e9d9c0b19c6a6c9d1afc731bffdd8de950652a051bb"
+      "sha256": "77850e53d4eb00bc6ed12e9d9c0b19c6a6c9d1afc731bffdd8de950652a051bb",
+      "slot": 860
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_7F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "af5e2f76e2e6e2c2bd8932a50a116b567b3ba108ebb42e063958cb30d0f92471"
+      "sha256": "af5e2f76e2e6e2c2bd8932a50a116b567b3ba108ebb42e063958cb30d0f92471",
+      "slot": 861
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_7FNIGHT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "9d5d73a37f835c736e92901d3899fe2d181f7205142743ef5379cf860cc84b43"
+      "sha256": "9d5d73a37f835c736e92901d3899fe2d181f7205142743ef5379cf860cc84b43",
+      "slot": 862
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_BASEMENT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2a47016d8c3d7ac6fbb3ea82f642fd68f5dd2a801d02f5e37542e6774dc643d6"
+      "sha256": "2a47016d8c3d7ac6fbb3ea82f642fd68f5dd2a801d02f5e37542e6774dc643d6",
+      "slot": 853
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "15e0f9837b958c015901974363bf45a05d1191678979c6e2ca85907a256f8c26"
+      "sha256": "15e0f9837b958c015901974363bf45a05d1191678979c6e2ca85907a256f8c26",
+      "slot": 854
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_FLOWER_SHOP",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "19eddb8685be66aa9388d91629daddd453e1b10dd0b0815aed1a7d1727e51ef7"
+      "sha256": "19eddb8685be66aa9388d91629daddd453e1b10dd0b0815aed1a7d1727e51ef7",
+      "slot": 863
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_GAME_CORNER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7224243b32394b2e67acd134d0e12e7cec759b38189fd87df9040ea17079ca3c"
+      "sha256": "7224243b32394b2e67acd134d0e12e7cec759b38189fd87df9040ea17079ca3c",
+      "slot": 864
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8523f5af51616f1979fe1476c633da0c758b4c8bf4f273afea76a83096525ae0"
+      "sha256": "8523f5af51616f1979fe1476c633da0c758b4c8bf4f273afea76a83096525ae0",
+      "slot": 865
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "35467de58a624192b6812a4cbe101bc30f04ad8b3ba6ab8321adbfaba69d42a8"
+      "sha256": "35467de58a624192b6812a4cbe101bc30f04ad8b3ba6ab8321adbfaba69d42a8",
+      "slot": 866
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5f7dcd919b704e150713fd8c0884b61107b5316d955d44c3639ac71a37ecabce"
+      "sha256": "5f7dcd919b704e150713fd8c0884b61107b5316d955d44c3639ac71a37ecabce",
+      "slot": 867
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_HOUSE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cea0714ea7868db7980494595dfabb52fbf010a7a92b86bea946a4dfd64bbae4"
+      "sha256": "cea0714ea7868db7980494595dfabb52fbf010a7a92b86bea946a4dfd64bbae4",
+      "slot": 868
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d531d80c8ef6eab86a00152debd8eb39e2e7e55ea733e3e779689a1badeff173"
+      "sha256": "d531d80c8ef6eab86a00152debd8eb39e2e7e55ea733e3e779689a1badeff173",
+      "slot": 869
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0fd8b4eb8e6ddf7d79adc63815d7b25044873bba1c45dcca7d8ce5179fe01ef1"
+      "sha256": "0fd8b4eb8e6ddf7d79adc63815d7b25044873bba1c45dcca7d8ce5179fe01ef1",
+      "slot": 870
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8842fc38a10ae272e898b2fcda13d80d71804a3aeb56051cfedd208222e255b6"
+      "sha256": "8842fc38a10ae272e898b2fcda13d80d71804a3aeb56051cfedd208222e255b6",
+      "slot": 871
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a034ee0b34c5f232ee759b2f755a8de05ab98f2eae3aeeeb80e71822324155b5"
+      "sha256": "a034ee0b34c5f232ee759b2f755a8de05ab98f2eae3aeeeb80e71822324155b5",
+      "slot": 872
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_4F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7b2049d890f1e86ef46993e92424993b2144eb9d2676a043532604231aed78ad"
+      "sha256": "7b2049d890f1e86ef46993e92424993b2144eb9d2676a043532604231aed78ad",
+      "slot": 873
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_RADIO_TOWER_5F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "04d71c9ffe7aad9bed744cf48fa7220dd27d8826db01e22f4e529937cf9e7d3c"
+      "sha256": "04d71c9ffe7aad9bed744cf48fa7220dd27d8826db01e22f4e529937cf9e7d3c",
+      "slot": 874
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_TRAIN_STATION",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1fbc2decd7ff3f55a670a48285edc69c9b57dcd02fb17236a970b087b26150bd"
+      "sha256": "1fbc2decd7ff3f55a670a48285edc69c9b57dcd02fb17236a970b087b26150bd",
+      "slot": 875
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_ENTRANCE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "42cd646573d4a63255703ecd5419290f994353ae28565a69f77c12dfc45fe5f3"
+      "sha256": "42cd646573d4a63255703ecd5419290f994353ae28565a69f77c12dfc45fe5f3",
+      "slot": 876
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_STORAGE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6eb2a230eb540d9b918bda820e5d3e7b6aca8e3cd6c257e303fb901134733649"
+      "sha256": "6eb2a230eb540d9b918bda820e5d3e7b6aca8e3cd6c257e303fb901134733649",
+      "slot": 877
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_SWITCHES",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2dbebe768b61268286b093298e5c261d6c23d47d400c8bc4b5347c4b8d026b5b"
+      "sha256": "2dbebe768b61268286b093298e5c261d6c23d47d400c8bc4b5347c4b8d026b5b",
+      "slot": 878
     },
     {
       "key": "LAYOUT_GOLDENROD_CITY_UNDERGROUND_TUNNEL",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c65f6e2adbec92983e21e881b5baf94198a40846b33cad88dcbb4531d68260af"
+      "sha256": "c65f6e2adbec92983e21e881b5baf94198a40846b33cad88dcbb4531d68260af",
+      "slot": 879
     },
     {
       "key": "LAYOUT_ICE_PATH_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "3e146e59cd6cf7c759fd75b6324630d0852baa9d320ada66c8d3b5f38968a07f"
+      "sha256": "3e146e59cd6cf7c759fd75b6324630d0852baa9d320ada66c8d3b5f38968a07f",
+      "slot": 969
     },
     {
       "key": "LAYOUT_ICE_PATH_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ffdb19760c152b902d245d61c6721f9b344559658980b89a27f4a74d02deb407"
+      "sha256": "ffdb19760c152b902d245d61c6721f9b344559658980b89a27f4a74d02deb407",
+      "slot": 970
     },
     {
       "key": "LAYOUT_ICE_PATH_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "46730df9b86699dfd161f09782d44ba3e5cfd1784969ba75217533d6b0489e4c"
+      "sha256": "46730df9b86699dfd161f09782d44ba3e5cfd1784969ba75217533d6b0489e4c",
+      "slot": 971
     },
     {
       "key": "LAYOUT_ICE_PATH_B3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "3c00641500e6a383a40cc01026444a200c84b15fb4198979f935ec8778aac9cd"
+      "sha256": "3c00641500e6a383a40cc01026444a200c84b15fb4198979f935ec8778aac9cd",
+      "slot": 972
     },
     {
       "key": "LAYOUT_ICE_PATH_B4F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c43eb49470178028453802f7080ac77b95fe6bcf9af0c3286d7ab8856848239a"
+      "sha256": "c43eb49470178028453802f7080ac77b95fe6bcf9af0c3286d7ab8856848239a",
+      "slot": 973
     },
     {
       "key": "LAYOUT_ILEX_FOREST",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7aa5600ecc52c5c568f85555b167891421caead4cca555b671a81316c7e577ae"
+      "sha256": "7aa5600ecc52c5c568f85555b167891421caead4cca555b671a81316c7e577ae",
+      "slot": 829
     },
     {
       "key": "LAYOUT_JOHTO_INDIGO_PLATEAU",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f8ee920344933ccce4af97cf376a1821dbb182b50654cc60f302ef9e09d79fbd"
+      "sha256": "f8ee920344933ccce4af97cf376a1821dbb182b50654cc60f302ef9e09d79fbd",
+      "slot": 1026
     },
     {
       "key": "LAYOUT_JOHTO_INDIGO_PLATEAU_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "81aaaddd5117a6d8af7f236f207c0396de8a2b939d8839b9236adcb104136e67"
+      "sha256": "81aaaddd5117a6d8af7f236f207c0396de8a2b939d8839b9236adcb104136e67",
+      "slot": 1027
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_BRUNOS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "253afbde5c6bdf655555b7d529806cdbb74fdfbfbe857341829970ba0adb06df"
+      "sha256": "253afbde5c6bdf655555b7d529806cdbb74fdfbfbe857341829970ba0adb06df",
+      "slot": 1028
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_CHAMPIONS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d0054768e7652f44f9f0753394c866b0c55d98456e91c39580eb5893593fe4a1"
+      "sha256": "d0054768e7652f44f9f0753394c866b0c55d98456e91c39580eb5893593fe4a1",
+      "slot": 1029
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_HALL_OF_FAME",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cfefe43839278cb90eac9d8c60f3333e72ef365271b48f5fae50971df9e2dc23"
+      "sha256": "cfefe43839278cb90eac9d8c60f3333e72ef365271b48f5fae50971df9e2dc23",
+      "slot": 1030
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_KARENS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "26fde649db31eda808d4dacff814e9dd2f3e386851147979b892e1e65f3e345d"
+      "sha256": "26fde649db31eda808d4dacff814e9dd2f3e386851147979b892e1e65f3e345d",
+      "slot": 1031
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_KOGAS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "553b3b69c56fbe56c87c3b1c8a5b2453f8e2f24581db10d517ffa5d13dd31066"
+      "sha256": "553b3b69c56fbe56c87c3b1c8a5b2453f8e2f24581db10d517ffa5d13dd31066",
+      "slot": 1032
     },
     {
       "key": "LAYOUT_JOHTO_POKEMON_LEAGUE_WILLS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "12c4708865ffc9f18db65bd87c50cbc631ae79ce297d2a00bc766331ef9d83e0"
+      "sha256": "12c4708865ffc9f18db65bd87c50cbc631ae79ce297d2a00bc766331ef9d83e0",
+      "slot": 1033
     },
     {
       "key": "LAYOUT_JOHTO_VICTORY_ROAD_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "11f4e661a147ffae527944a927ea0b926c5c78e79042c570cc8edd6a1b774414"
+      "sha256": "11f4e661a147ffae527944a927ea0b926c5c78e79042c570cc8edd6a1b774414",
+      "slot": 1034
     },
     {
       "key": "LAYOUT_JOHTO_VICTORY_ROAD_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8423bd47898ec2a1b044505140f374c7311c8d2046355af2df220f27bc26a196"
+      "sha256": "8423bd47898ec2a1b044505140f374c7311c8d2046355af2df220f27bc26a196",
+      "slot": 1035
     },
     {
       "key": "LAYOUT_JOHTO_VICTORY_ROAD_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "798929c09c13e3f5ce23151d18dca713c75d2283ed3e7dd0e5bf9f4486cb3924"
+      "sha256": "798929c09c13e3f5ce23151d18dca713c75d2283ed3e7dd0e5bf9f4486cb3924",
+      "slot": 1036
     },
     {
       "key": "LAYOUT_LAKE_OF_RAGE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "16ace88807bd7577c120bcb5c71339cf3545c27b8a491e579f0706da0216426c"
+      "sha256": "16ace88807bd7577c120bcb5c71339cf3545c27b8a491e579f0706da0216426c",
+      "slot": 945
     },
     {
       "key": "LAYOUT_LAKE_OF_RAGE_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "14f493c75af79a585055a4e7a592aa29881685f61e6910d5ba3e60c37a1b39d0"
+      "sha256": "14f493c75af79a585055a4e7a592aa29881685f61e6910d5ba3e60c37a1b39d0",
+      "slot": 954
     },
     {
       "key": "LAYOUT_LAKE_OF_RAGE_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e33c6380031ca130b45c0f3b96e7ee8931bdb801d1e82630c1dc72b4697ca439"
+      "sha256": "e33c6380031ca130b45c0f3b96e7ee8931bdb801d1e82630c1dc72b4697ca439",
+      "slot": 955
     },
     {
       "key": "LAYOUT_LAKE_OF_RAGE_LOW_TIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "42d7e8ba0db0769b881df3f3ba925ea26330eda3ef41ea93161c93945e3aee7c"
+      "sha256": "42d7e8ba0db0769b881df3f3ba925ea26330eda3ef41ea93161c93945e3aee7c",
+      "slot": 946
     },
     {
       "key": "LAYOUT_MAHOGANYTOWN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b21363e1bc81fdd9a27ac1fc9bfefe9ca972647fc3aa196759f5ca4e36b9687c"
+      "sha256": "b21363e1bc81fdd9a27ac1fc9bfefe9ca972647fc3aa196759f5ca4e36b9687c",
+      "slot": 941
     },
     {
       "key": "LAYOUT_MAHOGANY_HIDEOUT_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "af24cc45f4d83b6511f1b206f6d9cfe33c591b69fc052631e0717f3b3d0cf950"
+      "sha256": "af24cc45f4d83b6511f1b206f6d9cfe33c591b69fc052631e0717f3b3d0cf950",
+      "slot": 1037
     },
     {
       "key": "LAYOUT_MAHOGANY_HIDEOUT_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b0bdb6adfc70c5fcf52f33e0dd1586216b0fb81b09b2e93fa923a3d801f60ab8"
+      "sha256": "b0bdb6adfc70c5fcf52f33e0dd1586216b0fb81b09b2e93fa923a3d801f60ab8",
+      "slot": 1038
     },
     {
       "key": "LAYOUT_MAHOGANY_HIDEOUT_B3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "db8b2a56c8384e5fca146a577654aca96aebe28c6288926c2144b96c02ae656f"
+      "sha256": "db8b2a56c8384e5fca146a577654aca96aebe28c6288926c2144b96c02ae656f",
+      "slot": 1039
     },
     {
       "key": "LAYOUT_MAHOGANY_TOWN_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "354f57323b0c147fe027a79fe1548ea3a6a1946f9c87c377a026e10d06801d3a"
+      "sha256": "354f57323b0c147fe027a79fe1548ea3a6a1946f9c87c377a026e10d06801d3a",
+      "slot": 947
     },
     {
       "key": "LAYOUT_MAHOGANY_TOWN_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f8b4073f808e57981228730095fd2397f486a3cacd6bb4accd7feea52a47de68"
+      "sha256": "f8b4073f808e57981228730095fd2397f486a3cacd6bb4accd7feea52a47de68",
+      "slot": 948
     },
     {
       "key": "LAYOUT_MAHOGANY_TOWN_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b851d66d5abb9559a0e0756c4898e7af685dc143f1a089cf7bfa7f67eb72742d"
+      "sha256": "b851d66d5abb9559a0e0756c4898e7af685dc143f1a089cf7bfa7f67eb72742d",
+      "slot": 949
     },
     {
       "key": "LAYOUT_MAHOGANY_TOWN_SHOP",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "84bb0ebb2e91d3ccb02a75816277925f1cd9436a30721a73811a8799472489a9"
+      "sha256": "84bb0ebb2e91d3ccb02a75816277925f1cd9436a30721a73811a8799472489a9",
+      "slot": 950
     },
     {
       "key": "LAYOUT_MT_MORTAR_1F_NORTH",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "64bedb19d355ff16536cb3533e15d1818a3c8d449cb8b489897b57cff579be92"
+      "sha256": "64bedb19d355ff16536cb3533e15d1818a3c8d449cb8b489897b57cff579be92",
+      "slot": 956
     },
     {
       "key": "LAYOUT_MT_MORTAR_1F_SOUTH",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a30c9ed98a707015b9aa4e09e9011cb79cb057467330afde5bae45abc2faba13"
+      "sha256": "a30c9ed98a707015b9aa4e09e9011cb79cb057467330afde5bae45abc2faba13",
+      "slot": 957
     },
     {
       "key": "LAYOUT_MT_MORTAR_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "16e78fb320bd4a0ba5faff5538171e4e8df95e1d4a37397b53981fe4113b977b"
+      "sha256": "16e78fb320bd4a0ba5faff5538171e4e8df95e1d4a37397b53981fe4113b977b",
+      "slot": 958
     },
     {
       "key": "LAYOUT_MT_MORTAR_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "42667c813c660a3f57e239b0087897431d1ff54683e2423de5808759b4de8700"
+      "sha256": "42667c813c660a3f57e239b0087897431d1ff54683e2423de5808759b4de8700",
+      "slot": 959
     },
     {
       "key": "LAYOUT_MT_SILVER_1F_ITEM_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "af0162bf6f1454b173ea09fed2eb4826e676f843573fb5f36b0eba1375cf92d5"
+      "sha256": "af0162bf6f1454b173ea09fed2eb4826e676f843573fb5f36b0eba1375cf92d5",
+      "slot": 995
     },
     {
       "key": "LAYOUT_MT_SILVER_1F_MOLTRES_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1b29e2f677100c28b2b9dca7a244d88e724e67d0f5857bc1214b4b7c64756190"
+      "sha256": "1b29e2f677100c28b2b9dca7a244d88e724e67d0f5857bc1214b4b7c64756190",
+      "slot": 994
     },
     {
       "key": "LAYOUT_MT_SILVER_1F_WATERFALL_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b22a6cb34ba9720c74a80c8ad1dedc1c5149ffa39b71e8ed41a1dce5f9144044"
+      "sha256": "b22a6cb34ba9720c74a80c8ad1dedc1c5149ffa39b71e8ed41a1dce5f9144044",
+      "slot": 993
     },
     {
       "key": "LAYOUT_MT_SILVER_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "011b7a40958bb6193fec44282bd3bb2fd9f9fe27c67b8aa50309c1d51d6bf2a5"
+      "sha256": "011b7a40958bb6193fec44282bd3bb2fd9f9fe27c67b8aa50309c1d51d6bf2a5",
+      "slot": 996
     },
     {
       "key": "LAYOUT_MT_SILVER_3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "97c3f9e9f81423ce6e112e802622659f99872457da4bff314bfe2a63973be3c9"
+      "sha256": "97c3f9e9f81423ce6e112e802622659f99872457da4bff314bfe2a63973be3c9",
+      "slot": 997
     },
     {
       "key": "LAYOUT_MT_SILVER_MOUNTAIN_SIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "80e4d6db19c14e34b55b41388e5c8254fb029409a54a20365690b2239b6bb1d2"
+      "sha256": "80e4d6db19c14e34b55b41388e5c8254fb029409a54a20365690b2239b6bb1d2",
+      "slot": 998
     },
     {
       "key": "LAYOUT_MT_SILVER_OUTSIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "89e19864d8e5ec4634de4077baaec549471ef192b65e064965502fa835825141"
+      "sha256": "89e19864d8e5ec4634de4077baaec549471ef192b65e064965502fa835825141",
+      "slot": 992
     },
     {
       "key": "LAYOUT_MT_SILVER_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "42832339dfd6f6c2d0c81f231c8ec3401adbb06abe3c962dc5eee83f01ca34e1"
+      "sha256": "42832339dfd6f6c2d0c81f231c8ec3401adbb06abe3c962dc5eee83f01ca34e1",
+      "slot": 1002
     },
     {
       "key": "LAYOUT_MT_SILVER_SNOW",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c6cd941d60c30340cb95e114d687a0286e6089d2229d9dd43978b2043cb80c74"
+      "sha256": "c6cd941d60c30340cb95e114d687a0286e6089d2229d9dd43978b2043cb80c74",
+      "slot": 999
     },
     {
       "key": "LAYOUT_MT_SILVER_SUMMIT_DAY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d536a61733027a4f434119ac9f339fa3ee27bae1d9933620bf4dae4fef4f1fe8"
+      "sha256": "d536a61733027a4f434119ac9f339fa3ee27bae1d9933620bf4dae4fef4f1fe8",
+      "slot": 1000
     },
     {
       "key": "LAYOUT_MT_SILVER_SUMMIT_NIGHT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a306413b2b7098c224b9198819047e3d392e51372344159edd5d34b580e0a6d6"
+      "sha256": "a306413b2b7098c224b9198819047e3d392e51372344159edd5d34b580e0a6d6",
+      "slot": 1001
     },
     {
       "key": "LAYOUT_NATIONAL_PARK_BUG_CONTEST",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7c79e2ae297f25b9c5cfed3bb54486df9154e7514a794a9032d9718a539430f6"
+      "sha256": "7c79e2ae297f25b9c5cfed3bb54486df9154e7514a794a9032d9718a539430f6",
+      "slot": 848
     },
     {
       "key": "LAYOUT_NATIONAL_PARK_NORMAL",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e8990dec7086aff4266cde5f65a4bfc516cfe7e783ceef9288fcc861834f2665"
+      "sha256": "e8990dec7086aff4266cde5f65a4bfc516cfe7e783ceef9288fcc861834f2665",
+      "slot": 847
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "603e6c29ac8ac3f11f64e2ab5d7617ce501ab68a7744c93628097c7f4ed3d042"
+      "sha256": "603e6c29ac8ac3f11f64e2ab5d7617ce501ab68a7744c93628097c7f4ed3d042",
+      "slot": 785
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6c4c6e973d1b1346929fd7e4c143493331f4194ce918048952a2676e03e1268c"
+      "sha256": "6c4c6e973d1b1346929fd7e4c143493331f4194ce918048952a2676e03e1268c",
+      "slot": 787
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f8399ad1640fb8cdb30f22e9d574f6f3a75902a63ae25ffd61fa95fe496fe2f4"
+      "sha256": "f8399ad1640fb8cdb30f22e9d574f6f3a75902a63ae25ffd61fa95fe496fe2f4",
+      "slot": 788
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN_LAB",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0fc7a3c36273dba2c31667e67ca5960a7099f6ef9433ce5865e7c23d0f203d13"
+      "sha256": "0fc7a3c36273dba2c31667e67ca5960a7099f6ef9433ce5865e7c23d0f203d13",
+      "slot": 786
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b88d30aa8facb112ac829d0e6260a89df973e69a53011788e313921d4f0dce0a"
+      "sha256": "b88d30aa8facb112ac829d0e6260a89df973e69a53011788e313921d4f0dce0a",
+      "slot": 789
     },
     {
       "key": "LAYOUT_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0e82e6a3646d04603ae69c5184beb8e2087122024a442fbe46bdddc0d271b88b"
+      "sha256": "0e82e6a3646d04603ae69c5184beb8e2087122024a442fbe46bdddc0d271b88b",
+      "slot": 790
     },
     {
       "key": "LAYOUT_OLIVINE_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c21616b417efb2e8363bb286dc3e0f3895dbdc01345c10bdfd42044e94c321ad"
+      "sha256": "c21616b417efb2e8363bb286dc3e0f3895dbdc01345c10bdfd42044e94c321ad",
+      "slot": 908
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_CAFE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "971ecfa306b27c76f1899042b4b869f977b78c44f6f418d55c5b938b4c4b7d15"
+      "sha256": "971ecfa306b27c76f1899042b4b869f977b78c44f6f418d55c5b938b4c4b7d15",
+      "slot": 912
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6c07e66ed4e06696cb4cc344959b099f6d1126857a2879c363f8fe1de834af9e"
+      "sha256": "6c07e66ed4e06696cb4cc344959b099f6d1126857a2879c363f8fe1de834af9e",
+      "slot": 913
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "bf573c09d85e903d542401fecc69fe846d030668c07b76a5f3ade5eb24f92b58"
+      "sha256": "bf573c09d85e903d542401fecc69fe846d030668c07b76a5f3ade5eb24f92b58",
+      "slot": 914
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2c9ffb47c5f5eb6b9890310ccfd42cfb9fa907d07b0e39e50e4ed467c830eea4"
+      "sha256": "2c9ffb47c5f5eb6b9890310ccfd42cfb9fa907d07b0e39e50e4ed467c830eea4",
+      "slot": 915
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_HOUSE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "3da54c106c1f4a7b895d083ab062e919bd12f2654a4686d939a4d12e5dd04dde"
+      "sha256": "3da54c106c1f4a7b895d083ab062e919bd12f2654a4686d939a4d12e5dd04dde",
+      "slot": 916
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_LIGHTHOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5a62aa80e6a29ca9305926f70d0bbcb8a8ebef26e248855fa9fb756549df83ca"
+      "sha256": "5a62aa80e6a29ca9305926f70d0bbcb8a8ebef26e248855fa9fb756549df83ca",
+      "slot": 917
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6c4c1e490cecd822dd5cfd01f7ce467b44077995a7191c0eaf5ab113913021f5"
+      "sha256": "6c4c1e490cecd822dd5cfd01f7ce467b44077995a7191c0eaf5ab113913021f5",
+      "slot": 918
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0cbdfc9633cb7dc1526e5a5975d55b2c493ffd2c94acc718d2ae43159a78cb5e"
+      "sha256": "0cbdfc9633cb7dc1526e5a5975d55b2c493ffd2c94acc718d2ae43159a78cb5e",
+      "slot": 919
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_PORT_INSIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "65063ac31422392a937b56cdec251984c82545465727da6d0f12c928d7c1ade3"
+      "sha256": "65063ac31422392a937b56cdec251984c82545465727da6d0f12c928d7c1ade3",
+      "slot": 920
     },
     {
       "key": "LAYOUT_OLIVINE_CITY_PORT_OUTSIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "44fc3d6fc340094380da79f9a9965a2b616279f3ef71b301df1a62e173e59b04"
+      "sha256": "44fc3d6fc340094380da79f9a9965a2b616279f3ef71b301df1a62e173e59b04",
+      "slot": 921
     },
     {
       "key": "LAYOUT_RECEPTION_GATE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "75a78436982cf4d2dcc758b0c6c6ffc062204e3f2a3ceddf163937c016c30724"
+      "sha256": "75a78436982cf4d2dcc758b0c6c6ffc062204e3f2a3ceddf163937c016c30724",
+      "slot": 1025
     },
     {
       "key": "LAYOUT_ROUTE26",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "875db24b74e7facd2fe6ba6b8ac6608cc3bd5e63661293790eaaa42bf290d534"
+      "sha256": "875db24b74e7facd2fe6ba6b8ac6608cc3bd5e63661293790eaaa42bf290d534",
+      "slot": 1015
     },
     {
       "key": "LAYOUT_ROUTE26NORTH",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b94374f7c9dbc94f2020217c19db0f63e90160db1d9bda3f009026723f470360"
+      "sha256": "b94374f7c9dbc94f2020217c19db0f63e90160db1d9bda3f009026723f470360",
+      "slot": 1016
     },
     {
       "key": "LAYOUT_ROUTE26_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "4351fefc3ee04605217abcd1ea4a9f3ac7d90af7ba3508f58a5bd51f42f339c7"
+      "sha256": "4351fefc3ee04605217abcd1ea4a9f3ac7d90af7ba3508f58a5bd51f42f339c7",
+      "slot": 1017
     },
     {
       "key": "LAYOUT_ROUTE26_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e0fa1d1daead3a08aeb73c00de4efafa881cafdde6d2a5dac6b47ed6526b7f2e"
+      "sha256": "e0fa1d1daead3a08aeb73c00de4efafa881cafdde6d2a5dac6b47ed6526b7f2e",
+      "slot": 1018
     },
     {
       "key": "LAYOUT_ROUTE27",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "bd1b030df46742bf1bb9b41fa350364de2ec9c141645e2a6dbefc546931fe56f"
+      "sha256": "bd1b030df46742bf1bb9b41fa350364de2ec9c141645e2a6dbefc546931fe56f",
+      "slot": 1019
     },
     {
       "key": "LAYOUT_ROUTE27_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "879cfac265cad6ff800b737556ecb0c6c368b1b97e45820c70bd4aa4b73b6e04"
+      "sha256": "879cfac265cad6ff800b737556ecb0c6c368b1b97e45820c70bd4aa4b73b6e04",
+      "slot": 1020
     },
     {
       "key": "LAYOUT_ROUTE28",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "698c1d9782623cbd3fde490177fb5b40ac2392998ebbeffea5d0bbaff2e6bd8f"
+      "sha256": "698c1d9782623cbd3fde490177fb5b40ac2392998ebbeffea5d0bbaff2e6bd8f",
+      "slot": 799
     },
     {
       "key": "LAYOUT_ROUTE28_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f7587a9581b8006077457cc534485d32205d877cc7924bc1a0e9f984650955d1"
+      "sha256": "f7587a9581b8006077457cc534485d32205d877cc7924bc1a0e9f984650955d1",
+      "slot": 800
     },
     {
       "key": "LAYOUT_ROUTE29",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "47d2b26a6a272a5d5b1c86acaa07e2bf4d6d8e7c12375dce400e0313806f54ef"
+      "sha256": "47d2b26a6a272a5d5b1c86acaa07e2bf4d6d8e7c12375dce400e0313806f54ef",
+      "slot": 791
     },
     {
       "key": "LAYOUT_ROUTE30",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7bfbbe232cdf97482e9e02bd3809619b7b974ee4763f5dd886de0992f22dd153"
+      "sha256": "7bfbbe232cdf97482e9e02bd3809619b7b974ee4763f5dd886de0992f22dd153",
+      "slot": 801
     },
     {
       "key": "LAYOUT_ROUTE30_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c53c62ef9dfab8c50892a2457cdc2e18a8c23afb0518b470d245789b81038fb7"
+      "sha256": "c53c62ef9dfab8c50892a2457cdc2e18a8c23afb0518b470d245789b81038fb7",
+      "slot": 1021
     },
     {
       "key": "LAYOUT_ROUTE30_MR_POKEMONS_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a2182018efd50db770e22b9f3a25ab8a6217250ee9fe5582578fef47ed62cba7"
+      "sha256": "a2182018efd50db770e22b9f3a25ab8a6217250ee9fe5582578fef47ed62cba7",
+      "slot": 1022
     },
     {
       "key": "LAYOUT_ROUTE31",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5fdc2c5b001f802a35152ee477cf3ded83bda42ddf4e29325001a402861164c5"
+      "sha256": "5fdc2c5b001f802a35152ee477cf3ded83bda42ddf4e29325001a402861164c5",
+      "slot": 802
     },
     {
       "key": "LAYOUT_ROUTE32",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5c0803ed400826a0673d3d4424954453eb4e1048ea858b15cdffc2b9f6b144b6"
+      "sha256": "5c0803ed400826a0673d3d4424954453eb4e1048ea858b15cdffc2b9f6b144b6",
+      "slot": 803
     },
     {
       "key": "LAYOUT_ROUTE32_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b959f1c06841e5aca024fe4917867e1fea43e86328fd2eef72aeb8fd8827434e"
+      "sha256": "b959f1c06841e5aca024fe4917867e1fea43e86328fd2eef72aeb8fd8827434e",
+      "slot": 815
     },
     {
       "key": "LAYOUT_ROUTE33",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c1bddb4ea26e2ab16ca4303018e00606834f9fa94a0997dc7ffe8de281a54226"
+      "sha256": "c1bddb4ea26e2ab16ca4303018e00606834f9fa94a0997dc7ffe8de281a54226",
+      "slot": 827
     },
     {
       "key": "LAYOUT_ROUTE34",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "485b01efad6b72dda45683b87decf33c5e94434578cc936442411f54735cf300"
+      "sha256": "485b01efad6b72dda45683b87decf33c5e94434578cc936442411f54735cf300",
+      "slot": 828
     },
     {
       "key": "LAYOUT_ROUTE34_DAY_CARE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6e2a505052e7774d91726d3eb1600d218e62f78681d6e46d53303e62f9571e05"
+      "sha256": "6e2a505052e7774d91726d3eb1600d218e62f78681d6e46d53303e62f9571e05",
+      "slot": 835
     },
     {
       "key": "LAYOUT_ROUTE35",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "467a9d5e4f867e38f7b222501bc634b9405d2164efe6e9d38852c35eaed13f57"
+      "sha256": "467a9d5e4f867e38f7b222501bc634b9405d2164efe6e9d38852c35eaed13f57",
+      "slot": 844
     },
     {
       "key": "LAYOUT_ROUTE36",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7151231ebce8e0b372b48cc5cc550cd09cd6d849fab708c537ce6bfbfe2aec82"
+      "sha256": "7151231ebce8e0b372b48cc5cc550cd09cd6d849fab708c537ce6bfbfe2aec82",
+      "slot": 845
     },
     {
       "key": "LAYOUT_ROUTE37",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "54455bb486c5d54718e590cd4dfdde559d596604e0cb11b63eb10531e89d900c"
+      "sha256": "54455bb486c5d54718e590cd4dfdde559d596604e0cb11b63eb10531e89d900c",
+      "slot": 846
     },
     {
       "key": "LAYOUT_ROUTE38",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cc23af31def8d6885ecee6bf2b1f1fba02203aa5ecd1078678fdc66c621cbead"
+      "sha256": "cc23af31def8d6885ecee6bf2b1f1fba02203aa5ecd1078678fdc66c621cbead",
+      "slot": 881
     },
     {
       "key": "LAYOUT_ROUTE39",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "03e7015535580326712fcd77e70340be2a62aec4e54bca84cdff2d8887d0cac2"
+      "sha256": "03e7015535580326712fcd77e70340be2a62aec4e54bca84cdff2d8887d0cac2",
+      "slot": 882
     },
     {
       "key": "LAYOUT_ROUTE39_BARN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5b9473eb79cdab149114c595ad819cfc94dd6a78e21ed6648864075729652828"
+      "sha256": "5b9473eb79cdab149114c595ad819cfc94dd6a78e21ed6648864075729652828",
+      "slot": 893
     },
     {
       "key": "LAYOUT_ROUTE39_FARM_HOUSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d15bc9894cefe59f468ea22c7fedf4f57e2f81f6bd3196457e656b78acd21488"
+      "sha256": "d15bc9894cefe59f468ea22c7fedf4f57e2f81f6bd3196457e656b78acd21488",
+      "slot": 894
     },
     {
       "key": "LAYOUT_ROUTE40",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5bc8fb96159a60a511bfd8ceb870496a77a1a37b83b88c38fe319ea8c1d56847"
+      "sha256": "5bc8fb96159a60a511bfd8ceb870496a77a1a37b83b88c38fe319ea8c1d56847",
+      "slot": 909
     },
     {
       "key": "LAYOUT_ROUTE41",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "851853e4978815c7bc91dc87c09a0896bc91d155cff1b99290d8b0a9a39e3018"
+      "sha256": "851853e4978815c7bc91dc87c09a0896bc91d155cff1b99290d8b0a9a39e3018",
+      "slot": 910
     },
     {
       "key": "LAYOUT_ROUTE42",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6aa54f87fed04b7954dec0cd2203464afdc02cb327def79154fd169d75422590"
+      "sha256": "6aa54f87fed04b7954dec0cd2203464afdc02cb327def79154fd169d75422590",
+      "slot": 942
     },
     {
       "key": "LAYOUT_ROUTE43",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "670a082d4e1576f393396ac870d8f7277cbd4832723177b007a23760e82a18f8"
+      "sha256": "670a082d4e1576f393396ac870d8f7277cbd4832723177b007a23760e82a18f8",
+      "slot": 943
     },
     {
       "key": "LAYOUT_ROUTE44",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ac7b84e8cd7aaeb09cf47eaef8133f41ccbb372b08c0a2108ba57a1e3fc6d2c7"
+      "sha256": "ac7b84e8cd7aaeb09cf47eaef8133f41ccbb372b08c0a2108ba57a1e3fc6d2c7",
+      "slot": 944
     },
     {
       "key": "LAYOUT_ROUTE45",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "36cbe3eb41b556f341b16e8ce3f96bf0db6aa6da16c6d6a0b9b862fcd79ecb59"
+      "sha256": "36cbe3eb41b556f341b16e8ce3f96bf0db6aa6da16c6d6a0b9b862fcd79ecb59",
+      "slot": 961
     },
     {
       "key": "LAYOUT_ROUTE46",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "425ae40591dccb39921bbca52f194a747c257549ef9a2c23cb3520c37d843685"
+      "sha256": "425ae40591dccb39921bbca52f194a747c257549ef9a2c23cb3520c37d843685",
+      "slot": 962
     },
     {
       "key": "LAYOUT_ROUTE47",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "02c39278cd9c71316406cbb1cbe290cfcbfdd95906c873df665e383eb29dff2e"
+      "sha256": "02c39278cd9c71316406cbb1cbe290cfcbfdd95906c873df665e383eb29dff2e",
+      "slot": 930
     },
     {
       "key": "LAYOUT_ROUTE48",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ab0a7caf2d7e347ba926d9f8292fdb9239a1932358b837cb3e0602d2ca0b9fe7"
+      "sha256": "ab0a7caf2d7e347ba926d9f8292fdb9239a1932358b837cb3e0602d2ca0b9fe7",
+      "slot": 931
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "52565f2bc8a451af17d963a14aeb7b338834d33583f8402dfb0316a50f448fbf"
+      "sha256": "52565f2bc8a451af17d963a14aeb7b338834d33583f8402dfb0316a50f448fbf",
+      "slot": 820
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_LAB",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ba29ad1352f0da9c5ab5f0e7eea0f58faefa10f93192df9372d46ea9d9a8120a"
+      "sha256": "ba29ad1352f0da9c5ab5f0e7eea0f58faefa10f93192df9372d46ea9d9a8120a",
+      "slot": 819
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_OUTSIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d8f17f75ce7ca84cda403110b425db2a1e3266883d36c26bef243e0dce3bae13"
+      "sha256": "d8f17f75ce7ca84cda403110b425db2a1e3266883d36c26bef243e0dce3bae13",
+      "slot": 805
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "aff37d82b06957c15b3f76745ba5ca8b9675a84dd83047f3b961525b9f6ad342"
+      "sha256": "aff37d82b06957c15b3f76745ba5ca8b9675a84dd83047f3b961525b9f6ad342",
+      "slot": 821
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ddcb6584f851bb3eb5b00fc30e6786d378d1f3543263eedd179b9e2a164d6381"
+      "sha256": "ddcb6584f851bb3eb5b00fc30e6786d378d1f3543263eedd179b9e2a164d6381",
+      "slot": 822
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "bd44b3c7135fe53d351070d93d0b567cae4d86a4522a35fc5df4e7088540bda8"
+      "sha256": "bd44b3c7135fe53d351070d93d0b567cae4d86a4522a35fc5df4e7088540bda8",
+      "slot": 823
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7a3bd4571d81a7dcfeb5550a35928ff6f37de6dfdab99298be6d63fad45fc3b2"
+      "sha256": "7a3bd4571d81a7dcfeb5550a35928ff6f37de6dfdab99298be6d63fad45fc3b2",
+      "slot": 824
     },
     {
       "key": "LAYOUT_RUINS_OF_ALPH_WORDS_ROOM4",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "6b982583488679cade6015598f42adbf26774bdfe090e89efd847205092db7d0"
+      "sha256": "6b982583488679cade6015598f42adbf26774bdfe090e89efd847205092db7d0",
+      "slot": 825
     },
     {
       "key": "LAYOUT_SAFARI_ZONE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "23d312c78514ec104d89e247f4d69792a9c96c4ea7fdff10d2d1aae2f679f0ab"
+      "sha256": "23d312c78514ec104d89e247f4d69792a9c96c4ea7fdff10d2d1aae2f679f0ab",
+      "slot": 989
     },
     {
       "key": "LAYOUT_SAFARI_ZONE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c3c75b92916cc900f24429da11467b900c38a484dec7bd5367df902568fc58f1"
+      "sha256": "c3c75b92916cc900f24429da11467b900c38a484dec7bd5367df902568fc58f1",
+      "slot": 990
     },
     {
       "key": "LAYOUT_SAFARI_ZONE3",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "9d2c4871d1718436168f84fb05d29c4f5f82742835bb927109efcc331db89bbb"
+      "sha256": "9d2c4871d1718436168f84fb05d29c4f5f82742835bb927109efcc331db89bbb",
+      "slot": 991
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_ENTERANCE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "3361f98e23ea20c8a6a714abb694f4987f9513bff0c7e78c2ccd6304c1afc8b2"
+      "sha256": "3361f98e23ea20c8a6a714abb694f4987f9513bff0c7e78c2ccd6304c1afc8b2",
+      "slot": 983
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_GATE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7db954a5c42d10bb420211c7d43a767f3ef058b95f19eccf421b6a1fd992dd48"
+      "sha256": "7db954a5c42d10bb420211c7d43a767f3ef058b95f19eccf421b6a1fd992dd48",
+      "slot": 979
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_GATE_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "969c59d58f439923330099ac1140845453709b1a0cc46eded7db4cb2bfc25278"
+      "sha256": "969c59d58f439923330099ac1140845453709b1a0cc46eded7db4cb2bfc25278",
+      "slot": 980
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1bedfda0f0f26ec5e2059d6d823bc50523749f141be891d40f0ce9197ef91718"
+      "sha256": "1bedfda0f0f26ec5e2059d6d823bc50523749f141be891d40f0ce9197ef91718",
+      "slot": 981
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_INDOOR",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f2cf3a590b15ae22de5cac403df8c4853b9794433bfff5f7f5b937dca40063c1"
+      "sha256": "f2cf3a590b15ae22de5cac403df8c4853b9794433bfff5f7f5b937dca40063c1",
+      "slot": 982
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_LOW_LEFT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "36584b822cfdc83147b01d8d5b71ecb781b8a47da899a9de399bdd0dc4a558f5"
+      "sha256": "36584b822cfdc83147b01d8d5b71ecb781b8a47da899a9de399bdd0dc4a558f5",
+      "slot": 984
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_LOW_MID",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "580a85a8f3d9b52d192fb98a90ac0754c4c7ddfa44ed4c96067fe33671c2cb57"
+      "sha256": "580a85a8f3d9b52d192fb98a90ac0754c4c7ddfa44ed4c96067fe33671c2cb57",
+      "slot": 985
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_LOW_RIGHT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1c2ae2c21e95ae3e7c8badf833c166a3f45149acd68ba5ba588b7a37cd36671d"
+      "sha256": "1c2ae2c21e95ae3e7c8badf833c166a3f45149acd68ba5ba588b7a37cd36671d",
+      "slot": 986
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_TOP_MID",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cfac99cc944c015e292542ac79f9c89e11d73c565df22e0f0f42d66a982a6e41"
+      "sha256": "cfac99cc944c015e292542ac79f9c89e11d73c565df22e0f0f42d66a982a6e41",
+      "slot": 987
     },
     {
       "key": "LAYOUT_SAFARI_ZONE_TOP_RIGHT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d98db4cdbda9883eb880ff53fc0808a710f36afd5885865423f8461e3684f8cf"
+      "sha256": "d98db4cdbda9883eb880ff53fc0808a710f36afd5885865423f8461e3684f8cf",
+      "slot": 988
     },
     {
       "key": "LAYOUT_SLOWPOKE_WELL_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "56377d72305042d65279d093a8b2c966dbf397865dece219fe36328b385f2503"
+      "sha256": "56377d72305042d65279d093a8b2c966dbf397865dece219fe36328b385f2503",
+      "slot": 841
     },
     {
       "key": "LAYOUT_SLOWPOKE_WELL_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "5397ce9b69bfb6d4d042751dc12f5e7fd33973a694546bc266f3a6c55151cec0"
+      "sha256": "5397ce9b69bfb6d4d042751dc12f5e7fd33973a694546bc266f3a6c55151cec0",
+      "slot": 842
     },
     {
       "key": "LAYOUT_SPROUT_TOWER_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c662c74d3c141fdc415c49af4fda44795260c2e2586105be1903266f8be8a0f9"
+      "sha256": "c662c74d3c141fdc415c49af4fda44795260c2e2586105be1903266f8be8a0f9",
+      "slot": 812
     },
     {
       "key": "LAYOUT_SPROUT_TOWER_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "dd47398d508f92eae4caf426faecef5391040b34ed06b8cf80b3906bd58d3cab"
+      "sha256": "dd47398d508f92eae4caf426faecef5391040b34ed06b8cf80b3906bd58d3cab",
+      "slot": 813
     },
     {
       "key": "LAYOUT_SPROUT_TOWER_3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d291b408ef1ca2b3c141dc599b3f1e5383dae6e753190ca87e5b3c761a1d2ef8"
+      "sha256": "d291b408ef1ca2b3c141dc599b3f1e5383dae6e753190ca87e5b3c761a1d2ef8",
+      "slot": 814
     },
     {
       "key": "LAYOUT_SSAQUA_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "fcbd43fbaf143f9901eeaa02cb3584d0c46fa3eb89ca226363bffb075baa1d0c"
+      "sha256": "fcbd43fbaf143f9901eeaa02cb3584d0c46fa3eb89ca226363bffb075baa1d0c",
+      "slot": 1003
     },
     {
       "key": "LAYOUT_SSAQUA_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ede3ddfb39af15743ae5059f98b7b152240d343cd632eca2b6bcccc3aa98efd5"
+      "sha256": "ede3ddfb39af15743ae5059f98b7b152240d343cd632eca2b6bcccc3aa98efd5",
+      "slot": 1004
     },
     {
       "key": "LAYOUT_SSAQUA_CAPTAINS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "8ad0f7dd7f784e141eb704f5ac130cb22b6454278e0e2002b4c1746482482786"
+      "sha256": "8ad0f7dd7f784e141eb704f5ac130cb22b6454278e0e2002b4c1746482482786",
+      "slot": 1005
     },
     {
       "key": "LAYOUT_SSAQUA_PLAYERS_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "48f61ec0643d86a0d02c23268427b29731e6f4ce62db520c67fd59cbe8bd554e"
+      "sha256": "48f61ec0643d86a0d02c23268427b29731e6f4ce62db520c67fd59cbe8bd554e",
+      "slot": 1006
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_NE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "eecf9dbce020b579eb56d0b8cb252558bf1995b33c5d5c8a09f6597e9c96da4a"
+      "sha256": "eecf9dbce020b579eb56d0b8cb252558bf1995b33c5d5c8a09f6597e9c96da4a",
+      "slot": 1008
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_NNE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2be0ceffd33ad7f6db1f9163ec261542f58cfe9bd1ca057a1a56abf886f2df07"
+      "sha256": "2be0ceffd33ad7f6db1f9163ec261542f58cfe9bd1ca057a1a56abf886f2df07",
+      "slot": 1009
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_NW",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1f2838c9b59a2c8171f4abfbb5bc2a9ef82170ba85ac1c5935f610f0f1caa3cf"
+      "sha256": "1f2838c9b59a2c8171f4abfbb5bc2a9ef82170ba85ac1c5935f610f0f1caa3cf",
+      "slot": 1007
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_SE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0e17d28aaff78f8e22c53564be70641ff1b19e61cae02b547f9073249dae9fdc"
+      "sha256": "0e17d28aaff78f8e22c53564be70641ff1b19e61cae02b547f9073249dae9fdc",
+      "slot": 1012
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_SSE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e1f54b2ff5fa4528a1382a03b1e7a09c02d403cad65bfccdfc2c9b3df91aa240"
+      "sha256": "e1f54b2ff5fa4528a1382a03b1e7a09c02d403cad65bfccdfc2c9b3df91aa240",
+      "slot": 1011
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_SSW",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "e86cae25e0b8309e291eb47c27b4c635865d8d63eb34566aa8bd54a43781eaee"
+      "sha256": "e86cae25e0b8309e291eb47c27b4c635865d8d63eb34566aa8bd54a43781eaee",
+      "slot": 1010
     },
     {
       "key": "LAYOUT_SSAQUA_ROOM_SW",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "538dfb1200e66b8d68f6d338d1c849e11eb294aff190c5b6942c13fdbe633bc9"
+      "sha256": "538dfb1200e66b8d68f6d338d1c849e11eb294aff190c5b6942c13fdbe633bc9",
+      "slot": 1013
     },
     {
       "key": "LAYOUT_TIN_TOWER_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "9da6ebd07fc74e13006c6e11c9db8cf2360ede93cd744e1826e2eaa89147ddea"
+      "sha256": "9da6ebd07fc74e13006c6e11c9db8cf2360ede93cd744e1826e2eaa89147ddea",
+      "slot": 897
     },
     {
       "key": "LAYOUT_TIN_TOWER_2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "afd4659a83f8097080fb11423c376e87fda8f5c4184a9dcecee960df316f46e7"
+      "sha256": "afd4659a83f8097080fb11423c376e87fda8f5c4184a9dcecee960df316f46e7",
+      "slot": 898
     },
     {
       "key": "LAYOUT_TIN_TOWER_3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2ebe1adeab28b56f4ccbb0d2192893f9724f9c43a39ad5ff6baec69711f5882a"
+      "sha256": "2ebe1adeab28b56f4ccbb0d2192893f9724f9c43a39ad5ff6baec69711f5882a",
+      "slot": 899
     },
     {
       "key": "LAYOUT_TIN_TOWER_4F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7f08703143e1a420f486c1de95f40e6c712389131dad7484095a06cac1c037ee"
+      "sha256": "7f08703143e1a420f486c1de95f40e6c712389131dad7484095a06cac1c037ee",
+      "slot": 900
     },
     {
       "key": "LAYOUT_TIN_TOWER_5F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "cf4944678c9f93dfe763364ccbdab80b40ddd28e55ee584afa4e51586aeed76b"
+      "sha256": "cf4944678c9f93dfe763364ccbdab80b40ddd28e55ee584afa4e51586aeed76b",
+      "slot": 901
     },
     {
       "key": "LAYOUT_TIN_TOWER_6F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "acb9d47ae347b6b3b47d15f74bf75b84f55572f1218a168159809d3f4407fd1a"
+      "sha256": "acb9d47ae347b6b3b47d15f74bf75b84f55572f1218a168159809d3f4407fd1a",
+      "slot": 902
     },
     {
       "key": "LAYOUT_TIN_TOWER_7F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "41386c908fd6384854fb507b1e23116d1c66c5a6f2a4f0510fb3fdf87bfeff14"
+      "sha256": "41386c908fd6384854fb507b1e23116d1c66c5a6f2a4f0510fb3fdf87bfeff14",
+      "slot": 903
     },
     {
       "key": "LAYOUT_TIN_TOWER_8F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "dad7ceac15e0f0eb6b2a0b1388ad5bb0ecc1182bfa6b764787bf5101feff7fae"
+      "sha256": "dad7ceac15e0f0eb6b2a0b1388ad5bb0ecc1182bfa6b764787bf5101feff7fae",
+      "slot": 904
     },
     {
       "key": "LAYOUT_TIN_TOWER_9F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "1ffb94850fa1c41c772a209cddb2395e4a27078f2c317009a06b88c49afd96db"
+      "sha256": "1ffb94850fa1c41c772a209cddb2395e4a27078f2c317009a06b88c49afd96db",
+      "slot": 905
     },
     {
       "key": "LAYOUT_TIN_TOWER_ROOF_DAY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "a525a66b433c29deee1940a348cf9af920013532915aa0cc311c901f74b60d91"
+      "sha256": "a525a66b433c29deee1940a348cf9af920013532915aa0cc311c901f74b60d91",
+      "slot": 906
     },
     {
       "key": "LAYOUT_TIN_TOWER_ROOF_NIGHT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "f85c5e2920010f2c9f41108b6f9da685a72c947a32bff6a56166bc9889e23ac7"
+      "sha256": "f85c5e2920010f2c9f41108b6f9da685a72c947a32bff6a56166bc9889e23ac7",
+      "slot": 907
     },
     {
       "key": "LAYOUT_TOHJO_FALLS_CAVERN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c5e60970285a1a5228d6b3f43c8919ec32e98728564c621608c5690ab4f94a71"
+      "sha256": "c5e60970285a1a5228d6b3f43c8919ec32e98728564c621608c5690ab4f94a71",
+      "slot": 1023
     },
     {
       "key": "LAYOUT_TOHJO_FALLS_GIOVANNI_ROOM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "ac9065801881ed9ecf1480837229febbb28d907a98fa5c2a6b0295e96e6d5bcd"
+      "sha256": "ac9065801881ed9ecf1480837229febbb28d907a98fa5c2a6b0295e96e6d5bcd",
+      "slot": 1024
     },
     {
       "key": "LAYOUT_UNION_CAVE_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d90e8c6f72264ec4381a7dda172bb7d06cf7f31a622828e75fd2714c69049845"
+      "sha256": "d90e8c6f72264ec4381a7dda172bb7d06cf7f31a622828e75fd2714c69049845",
+      "slot": 838
     },
     {
       "key": "LAYOUT_UNION_CAVE_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "d701be4867dfe18a62ff6d1a42d14eabdaa01acd719561c1a56bc107997c65c6"
+      "sha256": "d701be4867dfe18a62ff6d1a42d14eabdaa01acd719561c1a56bc107997c65c6",
+      "slot": 839
     },
     {
       "key": "LAYOUT_UNION_CAVE_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "75ec56a38cc3bb0cc7b88e8f6a89c9bf0283d718ba7cb457f9971046502dc596"
+      "sha256": "75ec56a38cc3bb0cc7b88e8f6a89c9bf0283d718ba7cb457f9971046502dc596",
+      "slot": 840
     },
     {
       "key": "LAYOUT_VERMILION_CITY_PORT_INSIDE",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7f0bdd069183dafbd76cc76fd948cd42fd75e5c31d6c707bc73f6078b9404e34"
+      "sha256": "7f0bdd069183dafbd76cc76fd948cd42fd75e5c31d6c707bc73f6078b9404e34",
+      "slot": 1014
     },
     {
       "key": "LAYOUT_VIOLET_CITY",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "361606344e878cd0462b1c1f95e6d8b598a1154f8a8ab04307747c5616c59ab2"
+      "sha256": "361606344e878cd0462b1c1f95e6d8b598a1154f8a8ab04307747c5616c59ab2",
+      "slot": 804
     },
     {
       "key": "LAYOUT_VIOLET_CITY_GYM",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "89f788420b172c3f54cab2da826f73429d870a04f5aae1d59a544799554c18d9"
+      "sha256": "89f788420b172c3f54cab2da826f73429d870a04f5aae1d59a544799554c18d9",
+      "slot": 806
     },
     {
       "key": "LAYOUT_VIOLET_CITY_HOUSE1",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "015527c024f0df6340cd482299c13e956f94b1db1c551075e35fb03c8335a054"
+      "sha256": "015527c024f0df6340cd482299c13e956f94b1db1c551075e35fb03c8335a054",
+      "slot": 807
     },
     {
       "key": "LAYOUT_VIOLET_CITY_HOUSE2",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "c70a545e17a5c54d194208e9c37dc8b10e3373a75d55dcc454bed8fb224745df"
+      "sha256": "c70a545e17a5c54d194208e9c37dc8b10e3373a75d55dcc454bed8fb224745df",
+      "slot": 808
     },
     {
       "key": "LAYOUT_VIOLET_CITY_MART",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "72ea03622350ccab4db20439adf657e5ae40d16e98e76bdadb1bd5e59f8a0853"
+      "sha256": "72ea03622350ccab4db20439adf657e5ae40d16e98e76bdadb1bd5e59f8a0853",
+      "slot": 809
     },
     {
       "key": "LAYOUT_VIOLET_CITY_POKEMON_CENTER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "25000ffbb0bdc6981719c9e8383d2c6b0d7c2e740f2bdcf52def60b8e89bffce"
+      "sha256": "25000ffbb0bdc6981719c9e8383d2c6b0d7c2e740f2bdcf52def60b8e89bffce",
+      "slot": 810
     },
     {
       "key": "LAYOUT_VIOLET_CITY_TRAINER_SCHOOL",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0e72319734d2c03f1a94b5e2311317bcf03af34cee8c9160997675286ab6d973"
+      "sha256": "0e72319734d2c03f1a94b5e2311317bcf03af34cee8c9160997675286ab6d973",
+      "slot": 811
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "2854265c1e82039a4a460868a07deba1302ef7431ec75ebe6463839838475d89"
+      "sha256": "2854265c1e82039a4a460868a07deba1302ef7431ec75ebe6463839838475d89",
+      "slot": 922
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_B1F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b36bcb606c7d0df2ff20aadc035133bda73bd90b331dafccc8510dff0936c183"
+      "sha256": "b36bcb606c7d0df2ff20aadc035133bda73bd90b331dafccc8510dff0936c183",
+      "slot": 923
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_B1F_INNER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "73b4a4f58c8e242b637993628e029c251e9e3654a55075e331adf541162bb63c"
+      "sha256": "73b4a4f58c8e242b637993628e029c251e9e3654a55075e331adf541162bb63c",
+      "slot": 924
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_B2F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "891d2e53ad95c84cfdc4866b03e90c1f5ea494b0a606f7a7e62a979f2411148a"
+      "sha256": "891d2e53ad95c84cfdc4866b03e90c1f5ea494b0a606f7a7e62a979f2411148a",
+      "slot": 925
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_B3F",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "b66b50ef934378f7f1fe8f092eb38725f7c6ff18afa8b5035df5adbaed68fa27"
+      "sha256": "b66b50ef934378f7f1fe8f092eb38725f7c6ff18afa8b5035df5adbaed68fa27",
+      "slot": 926
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_DESCENT",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "9eb60552c30fff9cbf5a093fcfe71b8511a5507e25d15a9b9f64a14fa7b95c61"
+      "sha256": "9eb60552c30fff9cbf5a093fcfe71b8511a5507e25d15a9b9f64a14fa7b95c61",
+      "slot": 927
     },
     {
       "key": "LAYOUT_WHIRL_ISLANDS_LUGIA_CHAMBER",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "383deefcbb319181e23838ce6f8a9aad658143276a639dd50dfe22b0f8c861b1"
+      "sha256": "383deefcbb319181e23838ce6f8a9aad658143276a639dd50dfe22b0f8c861b1",
+      "slot": 928
     },
     {
       "key": "gMapGroup_IndoorAzalea",
@@ -12346,6 +12601,206 @@
       "path": "data/maps/map_groups.json",
       "registry": "$",
       "sha256": "387f6da264a57098d70d398cdab0e359e81be8f8cc2a6eee67eacbdcd20aa4e8"
+    },
+    {
+      "key": "gMapGroup_IndoorAzalea",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "4387a86055424f5e70740df8ef67e2519a758e8b2b71f4a21d44205eb3603fb5",
+      "slot": 83
+    },
+    {
+      "key": "gMapGroup_IndoorBlackthorn",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "d41e3cabfd4b63a64b729f18b00c5be9ab03a5aee8e9b70c4a132024d838e9ea",
+      "slot": 78
+    },
+    {
+      "key": "gMapGroup_IndoorCherrygrove",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "b278daad7d5dd94c4c72c35dfd55f68886a2eab2f6700f178ebe78df0c2dcd04",
+      "slot": 77
+    },
+    {
+      "key": "gMapGroup_IndoorCianwood",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "b4c716574bcf70f4a6d9b2abdaa6245cd9fe669a39be2cac837514e67d61da15",
+      "slot": 92
+    },
+    {
+      "key": "gMapGroup_IndoorEcruteak",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "f9e0b5ea294ea8bc62d582d42788b5c64cad0179e744ba988e8d577f6ec4ce4a",
+      "slot": 88
+    },
+    {
+      "key": "gMapGroup_IndoorGoldenrod",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "32018854bd1f99a732e6e2bd66c17bf9a5ca1d309f18d585c8db8aff2b49ea76",
+      "slot": 86
+    },
+    {
+      "key": "gMapGroup_IndoorMahogany",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "36aef8fdb122a1454f30e58ff167e306f969804d09fdcec50340b2adc20038dd",
+      "slot": 94
+    },
+    {
+      "key": "gMapGroup_IndoorNewBark",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "eaf215988dd1e0ab4f4e30af4b3a145349a2bcd74c1142493479ea4b31ff85c3",
+      "slot": 76
+    },
+    {
+      "key": "gMapGroup_IndoorOlivine",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "f739bacd1bc7862d348b619da7ae4b660ed50affbe0a209439f960c66d44e743",
+      "slot": 90
+    },
+    {
+      "key": "gMapGroup_IndoorSSAqua",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "f5c3ca3fb5a791df277906a500795b56cd095ff79a948da0ce2066becd2ca18b",
+      "slot": 96
+    },
+    {
+      "key": "gMapGroup_JohtoAzalea",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "95c1a815d001e122b081eb9041c563bd174ea65a0fa6a243626b16e1217db8df",
+      "slot": 82
+    },
+    {
+      "key": "gMapGroup_JohtoBlackthorn",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "d352b54bb211dd8ecac2a0a0f9014dee5c6ec064e4e7bd319f5828a52b64e99e",
+      "slot": 95
+    },
+    {
+      "key": "gMapGroup_JohtoCianwood",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "ddd86351b8f5abfa7c9957c72a46d41ed9c1950078dec27feb97b7cf0cbebe97",
+      "slot": 91
+    },
+    {
+      "key": "gMapGroup_JohtoEcruteak",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "8d1a3b76bd5c4b753d4d6741cfb58fc65119a89de59b562411459900c9bce2d7",
+      "slot": 87
+    },
+    {
+      "key": "gMapGroup_JohtoFinal",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "cd9280b0c35cbe4a60e721a03171c6448ddcb600324ab6ff42e1afbcae2ea385",
+      "slot": 98
+    },
+    {
+      "key": "gMapGroup_JohtoGoldenrod",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "4f8288fb9d2e91fe4ae70b1627f367ef37878999b23b0024874aa3a1c99c0eaa",
+      "slot": 85
+    },
+    {
+      "key": "gMapGroup_JohtoLeague",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "4e15bfd757cc78233d6fd103e91e3eab0e1f974460cae873d92939e424dda5a7",
+      "slot": 99
+    },
+    {
+      "key": "gMapGroup_JohtoMahogany",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "038a0bf87cced339033256ed4723e021b5114d1e4e8b7066023f9857cb3714ed",
+      "slot": 93
+    },
+    {
+      "key": "gMapGroup_JohtoOlivine",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "510dde1ce57792859f4dd5ad02204f2460edb6a6b9ed58d7bbd6ea513c7c3e34",
+      "slot": 89
+    },
+    {
+      "key": "gMapGroup_JohtoRuins",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "9d94496feadc50da08230ee5bc9a94295ebdaf48dd2fb6f23da7b6c87ca7cc73",
+      "slot": 81
+    },
+    {
+      "key": "gMapGroup_JohtoTownsAndRoutes",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "62d6bec58fadbdd7fbbce433933b692cd041b1703687270ea186716f4ab459e4",
+      "slot": 75
+    },
+    {
+      "key": "gMapGroup_JohtoUnion",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "b627f28e6f5f18dedfec3ffca9bad6b83d97730b04df00b27da48a19ba0d8462",
+      "slot": 84
+    },
+    {
+      "key": "gMapGroup_JohtoViolet",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "c5ba114539e3a1d811325645e8eb26a09b358186504c639beb973699270be583",
+      "slot": 80
+    },
+    {
+      "key": "gMapGroup_MtSilver",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "44ecd5f8a920ac9a4c280e8f3d656eaa15de2dcdae8ed8691c7fce73978a6ceb",
+      "slot": 79
+    },
+    {
+      "key": "gMapGroup_SafariZoneJohto",
+      "kind": "registry-record",
+      "path": "data/maps/map_groups.json",
+      "registry": "group_order",
+      "sha256": "b6cefeca3d02bace70c6303fa94238bd1452374829d827f72feb38ccd5bba233",
+      "slot": 97
     },
     {
       "key": "MAPSEC_AZALEA_TOWN",
