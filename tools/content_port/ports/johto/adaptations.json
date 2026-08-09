@@ -6647,16 +6647,11 @@
   ],
   "materializationProfile": {
     "mapScripts": "empty",
-    "retainEventKinds": [
-      "warp_events"
-    ],
     "stripEventKinds": [
-      "object_events",
+      "bg_events",
       "coord_events",
-      "bg_events"
-    ],
-    "encounters": false,
-    "gameplayGlobals": false
+      "object_events"
+    ]
   },
   "worldPolicy": {
     "roots": [

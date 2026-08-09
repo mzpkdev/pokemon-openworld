@@ -277,16 +277,13 @@ class DescriptorTests(unittest.TestCase):
                 "materializationProfile",
                 {
                     "mapScripts": "empty",
-                    "retainEventKinds": ["warp_events"],
                     "stripEventKinds": ["object_events"],
-                    "encounters": False,
-                    "gameplayGlobals": False,
                 },
                 "mapScripts",
-                "encounters",
-                "false",
+                "stripEventKinds",
+                False,
                 "$.materializationProfile",
-                "encounters",
+                "stripEventKinds",
             ),
             (
                 "worldPolicy",
@@ -404,10 +401,7 @@ class DescriptorTests(unittest.TestCase):
                 },
                 "materializationProfile": {
                     "mapScripts": "empty",
-                    "retainEventKinds": ["warp_events"],
                     "stripEventKinds": ["object_events"],
-                    "encounters": False,
-                    "gameplayGlobals": False,
                 },
                 "worldPolicy": {
                     "roots": ["TestMap"],
@@ -503,7 +497,10 @@ class DescriptorTests(unittest.TestCase):
             "varExports": [],
         }
         dump(root / "adaptations.json", adaptations)
-        dump(root / "events.json", {"schemaVersion": 1, "entries": []})
+        dump(
+            root / "events.json",
+            {"schemaVersion": 1, "entries": [], "effects": []},
+        )
         dump(
             root / "assets.json",
             {"schemaVersion": 1, "permissionRecords": {}, "assets": []},
@@ -748,6 +745,48 @@ class DescriptorTests(unittest.TestCase):
             (
                 lambda document: document["targetBindings"].update(berryTreeBase=90),
                 "unknown field 'berryTreeBase'",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    retainEventKinds=["warp_events"]
+                ),
+                "unknown field 'retainEventKinds'",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    encounters=False
+                ),
+                "unknown field 'encounters'",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    gameplayGlobals=False
+                ),
+                "unknown field 'gameplayGlobals'",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    mapScripts="copy"
+                ),
+                "only 'empty' is supported",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    stripEventKinds=["bogus_events"]
+                ),
+                "unsupported event kind 'bogus_events'",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    stripEventKinds=["object_events", "bg_events"]
+                ),
+                "must be sorted and unique",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    stripEventKinds=["object_events", "object_events"]
+                ),
+                "must be sorted and unique",
             ),
             (
                 lambda document: document.pop("targetBindings"),
@@ -1189,7 +1228,11 @@ class DescriptorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.make_port(root)
-            events = {"schemaVersion": 1, "entries": [{"targetId": 7}]}
+            events = {
+                "schemaVersion": 1,
+                "entries": [{"targetId": 7}],
+                "effects": [],
+            }
             dump(root / "events.json", events)
             with self.assertRaisesRegex(
                 ContentPortError, "numeric placement belongs in allocation_lock.json"

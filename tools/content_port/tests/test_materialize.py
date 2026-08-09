@@ -146,6 +146,11 @@ class MaterializeTests(unittest.TestCase):
             self.assertEqual(route30["id"], route30_allocation.map_id)
             self.assertEqual(route30["layout"], route30_allocation.layout)
             self.assertEqual(route30["region_map_section"], route30_allocation.section)
+            for field in descriptor.adaptations["materializationProfile"][
+                "stripEventKinds"
+            ]:
+                self.assertEqual(route30[field], [])
+            self.assertTrue(route30["warp_events"])
             victory_road = first_payloads[
                 (
                     "registry-record",

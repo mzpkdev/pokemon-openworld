@@ -506,19 +506,27 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
     profile = _policy_record(
         document["materializationProfile"],
         profile_pointer,
-        {
-            "mapScripts",
-            "retainEventKinds",
-            "stripEventKinds",
-            "encounters",
-            "gameplayGlobals",
-        },
+        {"mapScripts", "stripEventKinds"},
     )
-    _string(profile["mapScripts"], f"{profile_pointer}.mapScripts")
-    _string_array(profile["retainEventKinds"], f"{profile_pointer}.retainEventKinds")
-    _string_array(profile["stripEventKinds"], f"{profile_pointer}.stripEventKinds")
-    _boolean(profile["encounters"], f"{profile_pointer}.encounters")
-    _boolean(profile["gameplayGlobals"], f"{profile_pointer}.gameplayGlobals")
+    map_scripts = _string(profile["mapScripts"], f"{profile_pointer}.mapScripts")
+    if map_scripts != "empty":
+        raise ContentPortError(
+            f"{profile_pointer}.mapScripts: only 'empty' is supported"
+        )
+    strip_event_kinds = _string_array(
+        profile["stripEventKinds"], f"{profile_pointer}.stripEventKinds"
+    )
+    supported_event_kinds = {"bg_events", "coord_events", "object_events"}
+    unknown_event_kinds = sorted(set(strip_event_kinds) - supported_event_kinds)
+    if unknown_event_kinds:
+        raise ContentPortError(
+            f"{profile_pointer}.stripEventKinds: unsupported event kind "
+            f"{unknown_event_kinds[0]!r}"
+        )
+    if strip_event_kinds != tuple(sorted(set(strip_event_kinds))):
+        raise ContentPortError(
+            f"{profile_pointer}.stripEventKinds: must be sorted and unique"
+        )
 
     world_pointer = f"{pointer}.worldPolicy"
     world = _policy_record(
@@ -1312,9 +1320,13 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         "$",
     )
     _validate_adaptation_policy(_thaw(adaptations), "$")
-    events = _load_policy(
-        _safe_child(port_dir, root["eventPolicy"], "$.eventPolicy"), None, "$"
-    )
+    event_path = _safe_child(port_dir, root["eventPolicy"], "$.eventPolicy")
+    events = _load_policy(event_path, {"schemaVersion", "entries", "effects"}, "$")
+    # Event semantics are part of the descriptor contract, not deferred until a
+    # production render happens to enable an event capability.
+    from .semantics import load_event_policy
+
+    load_event_policy(event_path)
     assets = _load_policy(
         _safe_child(port_dir, root["assetPolicy"], "$.assetPolicy"),
         {"schemaVersion", "permissionRecords", "assets"},
