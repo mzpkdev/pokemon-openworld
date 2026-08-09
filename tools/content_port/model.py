@@ -138,10 +138,25 @@ class SectionMetadataAuthority:
 
 
 @dataclass(frozen=True, order=True)
+class PersistentBindingRef:
+    """A symbolic identity that must be resolved through the checked ledger."""
+
+    domain: str
+    symbol: str
+
+    def __post_init__(self) -> None:
+        for field, value in (("domain", self.domain), ("symbol", self.symbol)):
+            if not isinstance(value, str) or not value or value.strip() != value:
+                raise ContentPortError(
+                    f"persistent binding {field} must be a non-empty, trimmed string"
+                )
+
+
+@dataclass(frozen=True, order=True)
 class SectionPersistenceCodec:
     section: str
     saved_location: str
-    met_location: int
+    met_location_binding: PersistentBindingRef
     met_location_display: str
 
 
@@ -151,9 +166,9 @@ class TargetBindings:
     section_kind: str
     region: str
     region_map_type: str
-    saved_location_invalid: int
-    met_location_invalid: int
-    berry_tree_base: int
+    saved_location_invalid_binding: PersistentBindingRef
+    met_location_invalid_binding: PersistentBindingRef
+    berry_tree_binding: PersistentBindingRef
     tileset_feature_macro: str
     time_encounter_label: str
     deferred_call_label: str

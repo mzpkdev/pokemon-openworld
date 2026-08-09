@@ -18,6 +18,7 @@ from .model import (
     DonorPin,
     GeneratedSectionPolicy,
     LayoutBinaryAuthority,
+    PersistentBindingRef,
     ResourceKey,
     SectionPersistenceCodec,
     SectionMetadataAuthority,
@@ -47,6 +48,7 @@ DONOR_KEYS = {
     "fileCount",
     "root",
     "migration",
+    "genesis",
 }
 INVENTORY_DOMAINS = {"maps", "layouts", "groups", "sections", "tilesets"}
 AUTHORITY_KEYS = {"content", "mechanical", "unclassifiedDivergence"}
@@ -90,6 +92,7 @@ MIGRATION_KEYS = {
     "decision",
     "donor",
     "from",
+    "predecessor",
     "removedPaths",
     "repository",
     "schemaVersion",
@@ -273,58 +276,74 @@ def _validate_migration(
     tree_digest: str,
     file_count: int,
     donor_checkout: Path,
+    genesis: tuple[str, str, int],
 ) -> None:
     from .update import migration_digest, validate_reviewed_migration
 
-    path = port_dir / "migrations" / f"{digest}.json"
-    if path.is_symlink():
-        raise ContentPortError(f"{path}: migration record must not be a symbolic link")
-    report = _object(read_json(path), f"migration:{digest}")
-    _exact_keys(report, MIGRATION_KEYS, f"migration:{digest}")
-    if migration_digest(report) != digest:
-        raise ContentPortError(f"migration record filename is stale: {path}")
-    if report["schemaVersion"] != 1:
-        raise ContentPortError(
-            f"migration:{digest}.schemaVersion: unsupported migration schema"
+    def validate_link(
+        link: str,
+        expected_target: tuple[str, str, int],
+        seen: frozenset[str],
+    ) -> None:
+        if link in seen:
+            raise ContentPortError(f"donor {donor}: migration predecessor cycle")
+        path = port_dir / "migrations" / f"{link}.json"
+        if path.is_symlink():
+            raise ContentPortError(
+                f"{path}: migration record must not be a symbolic link"
+            )
+        report = _object(read_json(path), f"migration:{link}")
+        _exact_keys(report, MIGRATION_KEYS, f"migration:{link}")
+        if migration_digest(report) != link:
+            raise ContentPortError(f"migration record filename is stale: {path}")
+        if report["schemaVersion"] != 1:
+            raise ContentPortError(
+                f"migration:{link}.schemaVersion: unsupported migration schema"
+            )
+        for field in (
+            "addedPaths",
+            "assets",
+            "authorityChanges",
+            "changedPaths",
+            "removedPaths",
+            "tests",
+        ):
+            _array(report[field], f"migration:{link}.{field}")
+        source = _migration_pin(report["from"], f"migration:{link}.from")
+        target = _migration_pin(report["to"], f"migration:{link}.to")
+        if source[0] == target[0]:
+            raise ContentPortError(
+                f"donor {donor}: reviewed migration commit chain is a no-op"
+            )
+        if target != expected_target:
+            raise ContentPortError(f"donor {donor}: migration target pin is stale")
+        predecessor = report["predecessor"]
+        if predecessor is None:
+            if source != genesis:
+                raise ContentPortError(
+                    f"donor {donor}: migration chain does not start at genesis pin"
+                )
+        elif isinstance(predecessor, str) and DIGEST_RE.fullmatch(predecessor):
+            validate_link(predecessor, source, seen | {link})
+        else:
+            raise ContentPortError(
+                f"migration:{link}.predecessor: expected null or 64 lowercase hex"
+            )
+        validate_reviewed_migration(
+            report,
+            donor=role,
+            repository=repository,
+            from_commit=source[0],
+            from_tree_digest=source[1],
+            from_file_count=source[2],
+            to_commit=target[0],
+            to_tree_digest=target[1],
+            to_file_count=target[2],
+            port_dir=port_dir,
+            donor_checkout=donor_checkout,
         )
-    for field in (
-        "addedPaths",
-        "assets",
-        "authorityChanges",
-        "changedPaths",
-        "removedPaths",
-        "tests",
-    ):
-        _array(report[field], f"migration:{digest}.{field}")
-    source_commit, source_digest, source_count = _migration_pin(
-        report["from"], f"migration:{digest}.from"
-    )
-    target_commit, target_digest, target_count = _migration_pin(
-        report["to"], f"migration:{digest}.to"
-    )
-    if source_commit == target_commit:
-        raise ContentPortError(
-            f"donor {donor}: reviewed migration commit chain is a no-op"
-        )
-    validate_reviewed_migration(
-        report,
-        donor=role,
-        repository=repository,
-        from_commit=source_commit,
-        from_tree_digest=source_digest,
-        from_file_count=source_count,
-        to_commit=commit,
-        to_tree_digest=tree_digest,
-        to_file_count=file_count,
-        port_dir=port_dir,
-        donor_checkout=donor_checkout,
-    )
-    if (target_commit, target_digest, target_count) != (
-        commit,
-        tree_digest,
-        file_count,
-    ):
-        raise ContentPortError(f"donor {donor}: migration target pin is stale")
+
+    validate_link(digest, (commit, tree_digest, file_count), frozenset())
 
 
 def _load_donors(
@@ -368,8 +387,15 @@ def _load_donors(
         file_count = _integer(
             item["fileCount"], f"{item_pointer}.fileCount", positive=True
         )
+        genesis = _migration_pin(item["genesis"], f"{item_pointer}.genesis")
         checkout = donor_root.joinpath(*relative.parts)
-        if migration_value is not None:
+        current = (commit, digest, file_count)
+        if migration_value is None:
+            if current != genesis:
+                raise ContentPortError(
+                    f"{item_pointer}: unlinked pin differs from genesis"
+                )
+        else:
             _validate_migration(
                 port_dir,
                 migration_value,
@@ -380,6 +406,7 @@ def _load_donors(
                 tree_digest=digest,
                 file_count=file_count,
                 donor_checkout=checkout,
+                genesis=genesis,
             )
         result[role] = DonorPin(
             name=name,
@@ -584,9 +611,9 @@ def _load_renderer_policy(
         "sectionKind",
         "region",
         "regionMapType",
-        "savedLocationInvalid",
-        "metLocationInvalid",
-        "berryTreeBase",
+        "savedLocationInvalidBinding",
+        "metLocationInvalidBinding",
+        "berryTreeBinding",
         "tilesetFeatureMacro",
         "timeEncounterLabel",
         "deferredCallLabel",
@@ -596,6 +623,15 @@ def _load_renderer_policy(
         "varExports",
     }
     _exact_keys(bindings, binding_keys, bindings_pointer)
+
+    def binding_ref(value: object, item_pointer: str) -> PersistentBindingRef:
+        item = _object(value, item_pointer)
+        _exact_keys(item, {"domain", "symbol"}, item_pointer)
+        return PersistentBindingRef(
+            domain=_string(item["domain"], f"{item_pointer}.domain"),
+            symbol=_string(item["symbol"], f"{item_pointer}.symbol"),
+        )
+
     codecs: list[SectionPersistenceCodec] = []
     for index, raw in enumerate(
         _array(
@@ -607,7 +643,12 @@ def _load_renderer_policy(
         item = _object(raw, item_pointer)
         _exact_keys(
             item,
-            {"section", "savedLocation", "metLocation", "metLocationDisplay"},
+            {
+                "section",
+                "savedLocation",
+                "metLocationBinding",
+                "metLocationDisplay",
+            },
             item_pointer,
         )
         codecs.append(
@@ -616,8 +657,9 @@ def _load_renderer_policy(
                 saved_location=_string(
                     item["savedLocation"], f"{item_pointer}.savedLocation"
                 ),
-                met_location=_integer(
-                    item["metLocation"], f"{item_pointer}.metLocation"
+                met_location_binding=binding_ref(
+                    item["metLocationBinding"],
+                    f"{item_pointer}.metLocationBinding",
                 ),
                 met_location_display=_string(
                     item["metLocationDisplay"],
@@ -658,14 +700,16 @@ def _load_renderer_policy(
         region_map_type=_string(
             bindings["regionMapType"], f"{bindings_pointer}.regionMapType"
         ),
-        saved_location_invalid=_integer(
-            bindings["savedLocationInvalid"], f"{bindings_pointer}.savedLocationInvalid"
+        saved_location_invalid_binding=binding_ref(
+            bindings["savedLocationInvalidBinding"],
+            f"{bindings_pointer}.savedLocationInvalidBinding",
         ),
-        met_location_invalid=_integer(
-            bindings["metLocationInvalid"], f"{bindings_pointer}.metLocationInvalid"
+        met_location_invalid_binding=binding_ref(
+            bindings["metLocationInvalidBinding"],
+            f"{bindings_pointer}.metLocationInvalidBinding",
         ),
-        berry_tree_base=_integer(
-            bindings["berryTreeBase"], f"{bindings_pointer}.berryTreeBase"
+        berry_tree_binding=binding_ref(
+            bindings["berryTreeBinding"], f"{bindings_pointer}.berryTreeBinding"
         ),
         tileset_feature_macro=_string(
             bindings["tilesetFeatureMacro"],

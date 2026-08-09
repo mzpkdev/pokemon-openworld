@@ -8,10 +8,17 @@ from tools.content_port import (
     ContentPortError,
     ResourceKey,
 )
-from tools.content_port.model import MapAllocation
+from tools.content_port.model import MapAllocation, PersistentBindingRef
 
 
 class ModelTests(unittest.TestCase):
+    def test_persistent_binding_reference_is_symbolic_and_validated(self):
+        reference = PersistentBindingRef("berryTrees", "BERRY_TREE_ROUTE_29_ORAN_1")
+        self.assertEqual(reference.domain, "berryTrees")
+        self.assertEqual(reference.symbol, "BERRY_TREE_ROUTE_29_ORAN_1")
+        with self.assertRaisesRegex(ContentPortError, "binding domain"):
+            PersistentBindingRef("", "BERRY_TREE_ROUTE_29_ORAN_1")
+
     def test_map_allocation_is_immutable_and_validated(self):
         fields = {
             "name": "TestMap",
