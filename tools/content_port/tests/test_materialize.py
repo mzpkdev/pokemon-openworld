@@ -19,10 +19,12 @@ from tools.content_port.materialize import (
     _group_units,
     _layout_units,
     _map_units,
+    _section_units,
     derive_desired_state,
 )
 from tools.content_port.model import DonorPin, PersistentBindingRef
 from tools.content_port.ownership import OwnershipManifest
+from tools.content_port.renderers import RenderContext, render_units
 from tools.content_port.sources import resolve_port_sources
 
 
@@ -229,9 +231,49 @@ class MaterializeTests(unittest.TestCase):
             if unit.key == "map:Route30"
         )
         allocation = descriptor.allocation_index.map_allocation("Route30")
+        section_remaps = {
+            item["source"]: item["target"]
+            for item in descriptor.adaptations["sectionSymbolRemaps"]
+        }
         self.assertEqual(unit.value["id"], allocation.map_id)
         self.assertEqual(unit.value["layout"], allocation.layout)
-        self.assertEqual(unit.value["region_map_section"], allocation.section)
+        self.assertEqual(
+            unit.value["region_map_section"],
+            section_remaps.get(allocation.section, allocation.section),
+        )
+
+        vermilion_map = next(
+            item
+            for item in _map_units(descriptor, state)
+            if item.key == "map:VermilionCity_PortInside"
+        )
+        vermilion_allocation = descriptor.allocation_index.map_allocation(
+            "VermilionCity_PortInside"
+        )
+        sections_by_slot = {
+            item.slot: item for item in _section_units(descriptor, state, ROOT)
+        }
+        vermilion_section = sections_by_slot[vermilion_allocation.target_section]
+        self.assertEqual(
+            vermilion_map.value["region_map_section"], vermilion_section.record_key
+        )
+        self.assertEqual(vermilion_map.value["region"], "REGION_JOHTO")
+        self.assertEqual(vermilion_section.value["region"], "REGION_JOHTO")
+        self.assertEqual(vermilion_section.slot, 260)
+        manifest, _ = render_units(
+            RenderContext("johto"), (vermilion_map, vermilion_section)
+        )
+        self.assertIn(
+            ("file", "data/maps/VermilionCity_PortInside/map.json"),
+            manifest.by_identity,
+        )
+        section_identity = (
+            "registry-record",
+            "src/data/region_map/region_map_sections.json",
+            "map_sections",
+            "MAPSEC_JOHTO_VERMILION_PORT",
+        )
+        self.assertEqual(manifest.by_identity[section_identity].slot, 260)
 
     def test_transient_route30_mutation_cannot_enter_snapshot_render(
         self,

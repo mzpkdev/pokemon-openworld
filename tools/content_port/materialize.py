@@ -110,6 +110,10 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
     profile = descriptor.adaptations["materializationProfile"]
     strip = tuple(profile["stripEventKinds"])
     content_field = descriptor.adaptations["donorFieldRoles"]["content"]
+    section_remaps = {
+        item["source"]: item["target"]
+        for item in descriptor.adaptations["sectionSymbolRemaps"]
+    }
     music_remaps = {
         item[content_field]: item["target"]
         for item in descriptor.adaptations["musicAdaptations"]
@@ -130,7 +134,9 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                 value[decision["field"]] = decision[donor_fields[decision["authority"]]]
         value["id"] = allocation.map_id
         value["layout"] = allocation.layout
-        value["region_map_section"] = allocation.section
+        value["region_map_section"] = section_remaps.get(
+            allocation.section, allocation.section
+        )
         value["region"] = descriptor.target_bindings.region  # type: ignore[union-attr]
         music = value.get("music")
         if isinstance(music, str):
@@ -366,6 +372,7 @@ def _section_units(
                 value,
                 registry="map_sections",
                 record_key=target,
+                slot=slot,
             )
         )
     return units

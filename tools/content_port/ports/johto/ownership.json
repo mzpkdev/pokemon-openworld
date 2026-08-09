@@ -12807,406 +12807,464 @@
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "480e5a8a8b4175afab4d3d1edceb263142f6d5bf4cace7f1944adb128a8ae7e1"
+      "sha256": "480e5a8a8b4175afab4d3d1edceb263142f6d5bf4cace7f1944adb128a8ae7e1",
+      "slot": 221
     },
     {
       "key": "MAPSEC_BLACKTHORN_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "b22dfb624554d0ae0f20a6c474cb8a74af75919d148512e5f2509c5f3dded0f8"
+      "sha256": "b22dfb624554d0ae0f20a6c474cb8a74af75919d148512e5f2509c5f3dded0f8",
+      "slot": 252
     },
     {
       "key": "MAPSEC_BURNED_TOWER",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "34e7119413f8b3d4838d093a30aeee3babfd7f8b547bdd41b966856ab75f8555"
+      "sha256": "34e7119413f8b3d4838d093a30aeee3babfd7f8b547bdd41b966856ab75f8555",
+      "slot": 234
     },
     {
       "key": "MAPSEC_CHERRYGROVE_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "da377298f87224232dae5ee0a8869e8508dc83f119347ac0018de8d1c65a9580"
+      "sha256": "da377298f87224232dae5ee0a8869e8508dc83f119347ac0018de8d1c65a9580",
+      "slot": 211
     },
     {
       "key": "MAPSEC_CIANWOOD_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "78383cb5903c21c68b6826757daa638ff59bb2b9a84ca84819462cc6e5915e2a"
+      "sha256": "78383cb5903c21c68b6826757daa638ff59bb2b9a84ca84819462cc6e5915e2a",
+      "slot": 241
     },
     {
       "key": "MAPSEC_CLIFF_CAVE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "c25bf0cfcea697cab592b3204d0a86c4d28644695b01c93533c00693af2d55a7"
+      "sha256": "c25bf0cfcea697cab592b3204d0a86c4d28644695b01c93533c00693af2d55a7",
+      "slot": 244
     },
     {
       "key": "MAPSEC_DARK_CAVE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "d607fceab94c6f58ee9e3657c3f878f28ccb55b1a698c0f86bf91d26b930494d"
+      "sha256": "d607fceab94c6f58ee9e3657c3f878f28ccb55b1a698c0f86bf91d26b930494d",
+      "slot": 257
     },
     {
       "key": "MAPSEC_DRAGONS_DEN",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "c9083f38be148125a2ea8b1163bde456392702c0a7fb25560b3fdd266adea8bc"
+      "sha256": "c9083f38be148125a2ea8b1163bde456392702c0a7fb25560b3fdd266adea8bc",
+      "slot": 256
     },
     {
       "key": "MAPSEC_ECRUTEAK_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "80dac4f546d58eff168d2ef3d2f01ad5c91abcd58bf6326ce78a3f2366f75437"
+      "sha256": "80dac4f546d58eff168d2ef3d2f01ad5c91abcd58bf6326ce78a3f2366f75437",
+      "slot": 231
     },
     {
       "key": "MAPSEC_EMBEDDED_TOWER",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "943a97598c681ea8265423f98fa2bc8b78b79503ed3f52f91819d50631f7dc95"
+      "sha256": "943a97598c681ea8265423f98fa2bc8b78b79503ed3f52f91819d50631f7dc95",
+      "slot": 245
     },
     {
       "key": "MAPSEC_GOLDENROD_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "dabf7c20e89b4a091f1465469a3ee2c1d72328bbfcba89a2cbf7d46f8ce32cad"
+      "sha256": "dabf7c20e89b4a091f1465469a3ee2c1d72328bbfcba89a2cbf7d46f8ce32cad",
+      "slot": 227
     },
     {
       "key": "MAPSEC_ICE_PATH",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "6828dd19c3592ffee1028c1ad5023b1b4ddb92e9e55cb4926e06e4ebe5b5292b"
+      "sha256": "6828dd19c3592ffee1028c1ad5023b1b4ddb92e9e55cb4926e06e4ebe5b5292b",
+      "slot": 255
     },
     {
       "key": "MAPSEC_ILEX_FOREST",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "742e8008c0443501307aa86ff825f53a35b6f9f3dc0fd106a187558243dc5b97"
+      "sha256": "742e8008c0443501307aa86ff825f53a35b6f9f3dc0fd106a187558243dc5b97",
+      "slot": 224
     },
     {
       "key": "MAPSEC_JOHTO_INDIGO_PLATEAU",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "c1037773e107de6f43c9a8c3ac5614fdf7f4f005d178d58d574ea1839e0d42eb"
+      "sha256": "c1037773e107de6f43c9a8c3ac5614fdf7f4f005d178d58d574ea1839e0d42eb",
+      "slot": 265
     },
     {
       "key": "MAPSEC_JOHTO_VERMILION_PORT",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "5a5673741872656a13c03bfd2394bf251e1b802e7b941726b387baa82674e455"
+      "sha256": "5a5673741872656a13c03bfd2394bf251e1b802e7b941726b387baa82674e455",
+      "slot": 260
     },
     {
       "key": "MAPSEC_JOHTO_VICTORY_ROAD",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "6035419aa800bd95fd3a063fe085ce5ba6b82d0a3a0c4102d8657a4a362623e0"
+      "sha256": "6035419aa800bd95fd3a063fe085ce5ba6b82d0a3a0c4102d8657a4a362623e0",
+      "slot": 264
     },
     {
       "key": "MAPSEC_LAKE_OF_RAGE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "d3e86c5a71b0c48c1d6dc2ca1e342b270e58e9a12c424d6520c02272c079ff8c"
+      "sha256": "d3e86c5a71b0c48c1d6dc2ca1e342b270e58e9a12c424d6520c02272c079ff8c",
+      "slot": 250
     },
     {
       "key": "MAPSEC_MAHOGANY_HIDEOUT",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "13131a9953a0866269e491d37e6213f179c1cd1ebda19141f4d643458b9c7bba"
+      "sha256": "13131a9953a0866269e491d37e6213f179c1cd1ebda19141f4d643458b9c7bba",
+      "slot": 266
     },
     {
       "key": "MAPSEC_MAHOGANY_TOWN",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "f77a53477a29ad83ef2d657816df6a766fc4249bf99b0ed89fc9910252aa15ee"
+      "sha256": "f77a53477a29ad83ef2d657816df6a766fc4249bf99b0ed89fc9910252aa15ee",
+      "slot": 246
     },
     {
       "key": "MAPSEC_MT_MORTAR",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "b5fbb5299233befb842c65b5c69462dab83ec744dc523717f4421002bcd607f3"
+      "sha256": "b5fbb5299233befb842c65b5c69462dab83ec744dc523717f4421002bcd607f3",
+      "slot": 251
     },
     {
       "key": "MAPSEC_MT_SILVER",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "f66d101bdf5cf7aba2e1f0592099ccda76b00ae263b84dfbcc3e4255f5e44e24"
+      "sha256": "f66d101bdf5cf7aba2e1f0592099ccda76b00ae263b84dfbcc3e4255f5e44e24",
+      "slot": 213
     },
     {
       "key": "MAPSEC_NATIONAL_PARK",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "96bee2705afe2e6ebcb2d38bb50c12bdcf19a0b4aba0223749c9536b0b007017"
+      "sha256": "96bee2705afe2e6ebcb2d38bb50c12bdcf19a0b4aba0223749c9536b0b007017",
+      "slot": 230
     },
     {
       "key": "MAPSEC_NEW_BARK_TOWN",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "6c4300015b33c87df36a3aa782bddea25ad555963317926417c8454564c98466"
+      "sha256": "6c4300015b33c87df36a3aa782bddea25ad555963317926417c8454564c98466",
+      "slot": 209
     },
     {
       "key": "MAPSEC_OLIVINE_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "7b637846fda6417aeb840fa555ce3af5c45429907ef7697448e3e76aaec693c0"
+      "sha256": "7b637846fda6417aeb840fa555ce3af5c45429907ef7697448e3e76aaec693c0",
+      "slot": 236
     },
     {
       "key": "MAPSEC_OLIVINE_LIGHTHOUSE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "95013255daca809d4bf08e79c4240b611447d83f12c5cba0938c7675d80979eb"
+      "sha256": "95013255daca809d4bf08e79c4240b611447d83f12c5cba0938c7675d80979eb",
+      "slot": 239
     },
     {
       "key": "MAPSEC_ROUTE_26",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "ce284cb09db820f736f9436b351d1e3bb3cf078f6982eb406fda5af50925885f"
+      "sha256": "ce284cb09db820f736f9436b351d1e3bb3cf078f6982eb406fda5af50925885f",
+      "slot": 261
     },
     {
       "key": "MAPSEC_ROUTE_27",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "cfe39fcd79bbe29ca983a1eab56febc03cbb6873ce24e9922e12edbc388f603f"
+      "sha256": "cfe39fcd79bbe29ca983a1eab56febc03cbb6873ce24e9922e12edbc388f603f",
+      "slot": 262
     },
     {
       "key": "MAPSEC_ROUTE_28",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "bc6cc4af0313c362d748eeb6e7f4a1d4f21c2fc8a84c8a70e966254b7356d1a3"
+      "sha256": "bc6cc4af0313c362d748eeb6e7f4a1d4f21c2fc8a84c8a70e966254b7356d1a3",
+      "slot": 212
     },
     {
       "key": "MAPSEC_ROUTE_29",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "5ae6daec19d2e1217cd18a5ec189117bc97123dd59cbbbc99c3be3f44832f6de"
+      "sha256": "5ae6daec19d2e1217cd18a5ec189117bc97123dd59cbbbc99c3be3f44832f6de",
+      "slot": 210
     },
     {
       "key": "MAPSEC_ROUTE_30",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "a50870eeae55071342e45f370bc229b262a31d644f4bb8383a180f99e53f5409"
+      "sha256": "a50870eeae55071342e45f370bc229b262a31d644f4bb8383a180f99e53f5409",
+      "slot": 214
     },
     {
       "key": "MAPSEC_ROUTE_31",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "da6ab675ebda7d489ddedcdf6099de413730b76d1a64056490a52fd85963a4f0"
+      "sha256": "da6ab675ebda7d489ddedcdf6099de413730b76d1a64056490a52fd85963a4f0",
+      "slot": 215
     },
     {
       "key": "MAPSEC_ROUTE_32",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "4c4e8c5ce2ac39ce49901c67fc26918439552ef0b112fb86ac276fc57cf11889"
+      "sha256": "4c4e8c5ce2ac39ce49901c67fc26918439552ef0b112fb86ac276fc57cf11889",
+      "slot": 216
     },
     {
       "key": "MAPSEC_ROUTE_33",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "70b808a994e03320ebf1d54863357e7c1ec0258a93ad2bd37962ebeeacf7042c"
+      "sha256": "70b808a994e03320ebf1d54863357e7c1ec0258a93ad2bd37962ebeeacf7042c",
+      "slot": 222
     },
     {
       "key": "MAPSEC_ROUTE_34",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "0b9200927f244b201262698694367c11edbfd70067c6ca4cbaf60f0de49f97fa"
+      "sha256": "0b9200927f244b201262698694367c11edbfd70067c6ca4cbaf60f0de49f97fa",
+      "slot": 223
     },
     {
       "key": "MAPSEC_ROUTE_35",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "5d74b0071ef178051ce59f9ecfdca06e79c6ab944bbf4316459cc7cd4bcc08d0"
+      "sha256": "5d74b0071ef178051ce59f9ecfdca06e79c6ab944bbf4316459cc7cd4bcc08d0",
+      "slot": 228
     },
     {
       "key": "MAPSEC_ROUTE_36",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "44d379a9a1018fec72aec1baf4205ef725a7a238109467b293c8425f28937fa3"
+      "sha256": "44d379a9a1018fec72aec1baf4205ef725a7a238109467b293c8425f28937fa3",
+      "slot": 220
     },
     {
       "key": "MAPSEC_ROUTE_37",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "2a3452f266dc6eece3516de3dbb50b71e31281c29885d50b5cc0b38bd7a93b8b"
+      "sha256": "2a3452f266dc6eece3516de3dbb50b71e31281c29885d50b5cc0b38bd7a93b8b",
+      "slot": 229
     },
     {
       "key": "MAPSEC_ROUTE_38",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "6b4c0650f6a0c5edf7402b5b3382c28292a029e31e2db5d3d4bd814a00dfa5e3"
+      "sha256": "6b4c0650f6a0c5edf7402b5b3382c28292a029e31e2db5d3d4bd814a00dfa5e3",
+      "slot": 232
     },
     {
       "key": "MAPSEC_ROUTE_39",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "1a1b97372af3070f71b3b57dc2a5a6b4abab7cb3255461eb5841914282b025de"
+      "sha256": "1a1b97372af3070f71b3b57dc2a5a6b4abab7cb3255461eb5841914282b025de",
+      "slot": 233
     },
     {
       "key": "MAPSEC_ROUTE_40",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "3c9f5e9a13588d400d570b43257f5f27f8bca935c1cf3531b7fa3ac52dd92a8a"
+      "sha256": "3c9f5e9a13588d400d570b43257f5f27f8bca935c1cf3531b7fa3ac52dd92a8a",
+      "slot": 237
     },
     {
       "key": "MAPSEC_ROUTE_41",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "2a11619fba1bd8235fded8315ae2af080462575613eeb6f91d25665953ca2008"
+      "sha256": "2a11619fba1bd8235fded8315ae2af080462575613eeb6f91d25665953ca2008",
+      "slot": 238
     },
     {
       "key": "MAPSEC_ROUTE_42",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "857e883f5cb32de4efd59aeaf3fbe5913d70875dd50a386f829433f45a609fe2"
+      "sha256": "857e883f5cb32de4efd59aeaf3fbe5913d70875dd50a386f829433f45a609fe2",
+      "slot": 247
     },
     {
       "key": "MAPSEC_ROUTE_43",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "04458298084fd736159cc836f38061fd6bf5555189bfb75332d9cf8073820c18"
+      "sha256": "04458298084fd736159cc836f38061fd6bf5555189bfb75332d9cf8073820c18",
+      "slot": 248
     },
     {
       "key": "MAPSEC_ROUTE_44",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "c427a5b8d85507c4971ff47e8128067a85c006d11a6270f071fb340dcfb58070"
+      "sha256": "c427a5b8d85507c4971ff47e8128067a85c006d11a6270f071fb340dcfb58070",
+      "slot": 249
     },
     {
       "key": "MAPSEC_ROUTE_45",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "8c158d66d17120fcc07428fc2d8da5ba778b0d2eb7db4543f75d7c563d17144f"
+      "sha256": "8c158d66d17120fcc07428fc2d8da5ba778b0d2eb7db4543f75d7c563d17144f",
+      "slot": 253
     },
     {
       "key": "MAPSEC_ROUTE_46",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "707f1e8b32fa62b9381c340bb10b68a90a135b59bd8961541a3617b257fb9eaa"
+      "sha256": "707f1e8b32fa62b9381c340bb10b68a90a135b59bd8961541a3617b257fb9eaa",
+      "slot": 254
     },
     {
       "key": "MAPSEC_ROUTE_47",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "58ff3b397d30b6ff98118c9df127d2537d46a490528cb9c8e2b928b6d8f2a721"
+      "sha256": "58ff3b397d30b6ff98118c9df127d2537d46a490528cb9c8e2b928b6d8f2a721",
+      "slot": 242
     },
     {
       "key": "MAPSEC_ROUTE_48",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "e62268c1bf2cb14396ac9271d14d7fbf3645bfb39e5a0b19a0206a4ef4dc7186"
+      "sha256": "e62268c1bf2cb14396ac9271d14d7fbf3645bfb39e5a0b19a0206a4ef4dc7186",
+      "slot": 243
     },
     {
       "key": "MAPSEC_RUINS_OF_ALPH",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "b15be3b58fc8126e0d5ec6c06e834f84a636c7e0a40c9c4c5ddbf86515ed8062"
+      "sha256": "b15be3b58fc8126e0d5ec6c06e834f84a636c7e0a40c9c4c5ddbf86515ed8062",
+      "slot": 218
     },
     {
       "key": "MAPSEC_SAFARI_ZONE_GATE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "af634e757ac2edad2b13bb375485f34aaf1ff17b291bfee20b39547d20b0d68a"
+      "sha256": "af634e757ac2edad2b13bb375485f34aaf1ff17b291bfee20b39547d20b0d68a",
+      "slot": 258
     },
     {
       "key": "MAPSEC_SLOWPOKE_WELL",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "0a5c5d69114098b671e86470f35ecd45bd9b895e190b25419b5c311aa3254953"
+      "sha256": "0a5c5d69114098b671e86470f35ecd45bd9b895e190b25419b5c311aa3254953",
+      "slot": 226
     },
     {
       "key": "MAPSEC_SPROUT_TOWER",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "873b0722b8f41e7b6a42a2b3e72bc7d4e361856d87d577aaab3d8de5c85e9050"
+      "sha256": "873b0722b8f41e7b6a42a2b3e72bc7d4e361856d87d577aaab3d8de5c85e9050",
+      "slot": 219
     },
     {
       "key": "MAPSEC_SS_AQUA",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "f6b08a8d187d79b777345585114b7ebddb6568a08569b27bc888f259635b8670"
+      "sha256": "f6b08a8d187d79b777345585114b7ebddb6568a08569b27bc888f259635b8670",
+      "slot": 259
     },
     {
       "key": "MAPSEC_TIN_TOWER",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "128bedd0f81e127253c0764c22fd048998529381fa1b56b8c425444f2b7f0d0f"
+      "sha256": "128bedd0f81e127253c0764c22fd048998529381fa1b56b8c425444f2b7f0d0f",
+      "slot": 235
     },
     {
       "key": "MAPSEC_TOHJO_FALLS",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "6bacac6beba838982a9deeec051d047fade005356a0f1d6294e6b049557019dc"
+      "sha256": "6bacac6beba838982a9deeec051d047fade005356a0f1d6294e6b049557019dc",
+      "slot": 263
     },
     {
       "key": "MAPSEC_UNION_CAVE",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "fd8ccddbf5ee64c68af48613544a36cae95f85738a2227958fda22746d5b4c60"
+      "sha256": "fd8ccddbf5ee64c68af48613544a36cae95f85738a2227958fda22746d5b4c60",
+      "slot": 225
     },
     {
       "key": "MAPSEC_VIOLET_CITY",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "9a212ac9719d1fddd8cb7aaf0d575a9085aab6c2e078a1e8adc56484ce6c9868"
+      "sha256": "9a212ac9719d1fddd8cb7aaf0d575a9085aab6c2e078a1e8adc56484ce6c9868",
+      "slot": 217
     },
     {
       "key": "MAPSEC_WHIRL_ISLANDS",
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "37ea14431337390abec64ca751c79803f367a5253ef110649075bc889584c1cc"
+      "sha256": "37ea14431337390abec64ca751c79803f367a5253ef110649075bc889584c1cc",
+      "slot": 240
     },
     {
       "kind": "section",
