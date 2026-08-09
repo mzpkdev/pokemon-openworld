@@ -148,6 +148,47 @@ class MaterializeTests(unittest.TestCase):
         ):
             derive_desired_state(broken, ROOT)
 
+    def test_ordinary_section_codes_must_agree_with_the_persistent_ledger(
+        self,
+    ) -> None:
+        descriptor = self.descriptor()
+        evidence, state = resolve_port_sources(descriptor, ROOT)
+        source = ROOT / "src/data/persistence/persistent_ids.json"
+        original = json.loads(source.read_text(encoding="utf-8"))
+        for domain, label in (
+            ("destinations", "persistent destination binding"),
+            ("savedLocations", "persistent saved location binding"),
+        ):
+            with (
+                self.subTest(domain=domain),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                repo = Path(directory)
+                document = json.loads(json.dumps(original))
+                binding = next(
+                    item
+                    for item in document["entries"]
+                    if item["domain"] == domain
+                    and item["symbol"] == "MAPSEC_NEW_BARK_TOWN"
+                )
+                self.assertEqual(binding["value"], 209)
+                binding["value"] = 10000
+                target = repo / source.relative_to(ROOT)
+                target.parent.mkdir(parents=True)
+                target.write_text(json.dumps(document), encoding="utf-8")
+                with (
+                    patch(
+                        "tools.content_port.materialize.resolve_port_sources",
+                        return_value=(evidence, state),
+                    ),
+                    patch(
+                        "tools.content_port.materialize.authenticate_donors",
+                        return_value=(),
+                    ),
+                    self.assertRaisesRegex(ContentPortError, label),
+                ):
+                    derive_desired_state(descriptor, repo)
+
     def test_berry_tree_binding_requires_an_allocated_ledger_identity(self) -> None:
         descriptor = self.descriptor()
         evidence, state = resolve_port_sources(descriptor, ROOT)

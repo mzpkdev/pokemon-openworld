@@ -299,15 +299,36 @@ def _section_units(
         source = records[0][1]
         target = remaps.get(authority.section, authority.section)
         slot = descriptor.allocation_index.section_slot(authority.section)
+        destination_binding = ledger.resolve(
+            target, domain=bindings.met_location_invalid_binding.domain
+        )
+        saved_location_binding = ledger.resolve(
+            target, domain=bindings.saved_location_invalid_binding.domain
+        )
+        for kind, binding in (
+            ("destination", destination_binding),
+            ("saved location", saved_location_binding),
+        ):
+            if binding.value != slot:
+                raise ContentPortError(
+                    f"{authority.section}: persistent {kind} binding {binding.value} "
+                    f"disagrees with allocation {slot}"
+                )
         value: dict[str, object] = {
             "id": target,
-            "value": slot,
+            "value": destination_binding.value,
             "kind": bindings.section_kind,
             "region": bindings.region,
             "region_map_type": bindings.region_map_type,
-            "saved_location": target if slot < saved_location_invalid else None,
-            "met_location": slot if slot < met_location_invalid else None,
-            "met_location_display": target if slot < met_location_invalid else None,
+            "saved_location": target
+            if saved_location_binding.value < saved_location_invalid
+            else None,
+            "met_location": destination_binding.value
+            if destination_binding.value < met_location_invalid
+            else None,
+            "met_location_display": target
+            if destination_binding.value < met_location_invalid
+            else None,
             "name": source["name"],
         }
         codec = codecs.get(authority.section)
@@ -320,6 +341,10 @@ def _section_units(
                 raise ContentPortError(
                     f"{authority.section}: met-location binding must match its display identity"
                 )
+            ledger.resolve(
+                codec.saved_location,
+                domain=bindings.saved_location_invalid_binding.domain,
+            )
             value["saved_location"] = codec.saved_location
             value["met_location"] = ledger.resolve(
                 codec.met_location_binding.symbol,
