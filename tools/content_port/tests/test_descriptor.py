@@ -302,6 +302,18 @@ class DescriptorTests(unittest.TestCase):
         dump(root / "port.json", port)
         return digest, report
 
+    def test_non_legacy_port_does_not_require_migration_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            port.pop("legacyReport")
+            dump(root / "port.json", port)
+
+            descriptor = load_port(root, root / "donors")
+
+            self.assertIsNone(descriptor.legacy_report)
+            self.assertEqual(descriptor.target_bindings.region, "REGION_TEST")
+
     def test_loads_complete_port_and_freezes_policy(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

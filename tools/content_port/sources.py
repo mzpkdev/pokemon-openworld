@@ -1474,34 +1474,6 @@ def resolve_port_sources(
         }
     )
     legacy = descriptor.legacy_report
-    legacy_inventory = legacy.get("inventory")
-    legacy_closure = legacy.get("closure")
-    legacy_evidence = legacy.get("evidence")
-    if (
-        not isinstance(legacy_inventory, Mapping)
-        or not isinstance(legacy_closure, Mapping)
-        or not isinstance(legacy_evidence, Mapping)
-    ):
-        raise ContentPortError(
-            "required legacy baseline lacks inventory, closure, or evidence"
-        )
-    if dict(inventory) != dict(legacy_inventory):
-        raise ContentPortError(
-            "current inventory differs from required legacy baseline"
-        )
-    for field_name in (
-        "maps",
-        "layouts",
-        "groups",
-        "sections",
-        "tilesets",
-        "symbols",
-        "deferred_edges",
-    ):
-        if _thaw(closure_report[field_name]) != _thaw(legacy_closure.get(field_name)):
-            raise ContentPortError(
-                f"current closure field {field_name} differs from required legacy baseline"
-            )
     actual_legacy_evidence = {
         "attributeFormats": _thaw(attribute_formats),
         "inputs": _thaw(legacy_inputs),
@@ -1514,11 +1486,42 @@ def resolve_port_sources(
             for role, pin in donor_pins.items()
         },
     }
-    for field_name, value in actual_legacy_evidence.items():
-        if value != _thaw(legacy_evidence.get(field_name)):
+    if legacy is not None:
+        legacy_inventory = legacy.get("inventory")
+        legacy_closure = legacy.get("closure")
+        legacy_evidence = legacy.get("evidence")
+        if (
+            not isinstance(legacy_inventory, Mapping)
+            or not isinstance(legacy_closure, Mapping)
+            or not isinstance(legacy_evidence, Mapping)
+        ):
             raise ContentPortError(
-                f"current evidence field {field_name} differs from required legacy baseline"
+                "declared legacy baseline lacks inventory, closure, or evidence"
             )
+        if dict(inventory) != dict(legacy_inventory):
+            raise ContentPortError(
+                "current inventory differs from declared legacy baseline"
+            )
+        for field_name in (
+            "maps",
+            "layouts",
+            "groups",
+            "sections",
+            "tilesets",
+            "symbols",
+            "deferred_edges",
+        ):
+            if _thaw(closure_report[field_name]) != _thaw(
+                legacy_closure.get(field_name)
+            ):
+                raise ContentPortError(
+                    f"current closure field {field_name} differs from declared legacy baseline"
+                )
+        for field_name, value in actual_legacy_evidence.items():
+            if value != _thaw(legacy_evidence.get(field_name)):
+                raise ContentPortError(
+                    f"current evidence field {field_name} differs from declared legacy baseline"
+                )
     provenance_roots = tuple(
         (role, root.resolve()) for role, root in sorted(donor_roots.items())
     ) + (("target", target_root.resolve()),)

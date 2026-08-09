@@ -197,6 +197,11 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
 
+        without_legacy = validate_port_sources(
+            replace(descriptor, legacy_report=None), Path(".")
+        )
+        self.assertEqual(without_legacy.inventory["maps"], 254)
+
         _, resolved = resolve_port_sources(descriptor, Path("."))
         new_bark = resolved.layouts["LAYOUT_NEW_BARK_TOWN"]
         self.assertEqual(resolved.layout_authorities["LAYOUT_NEW_BARK_TOWN"], "content")
@@ -328,9 +333,10 @@ class SourceGraphTests(unittest.TestCase):
                 replace(descriptor, expected_inventory=expected_inventory), Path(".")
             )
 
+        self.assertIsNotNone(descriptor.legacy_report)
         legacy = self._mutable(descriptor.legacy_report)
         legacy["closure"]["maps"].pop()
-        with self.assertRaisesRegex(ContentPortError, "required legacy baseline"):
+        with self.assertRaisesRegex(ContentPortError, "declared legacy baseline"):
             validate_port_sources(replace(descriptor, legacy_report=legacy), Path("."))
 
         for section, field in (

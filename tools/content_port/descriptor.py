@@ -256,7 +256,7 @@ class PortDescriptor:
     adaptations: Mapping[str, object]
     events: Mapping[str, object]
     assets: Mapping[str, object]
-    legacy_report: Mapping[str, object]
+    legacy_report: Mapping[str, object] | None
     layout_binary_authorities: tuple[LayoutBinaryAuthority, ...]
     layout_field_authorities: tuple[LayoutFieldAuthority, ...]
     generated_sections: tuple[GeneratedSectionPolicy, ...]
@@ -913,7 +913,10 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         raise ContentPortError(f"port descriptor directory does not exist: {port_dir}")
     port_path = port_dir / "port.json"
     root = _object(read_json(port_path), "$")
-    _exact_keys(root, PORT_KEYS, "$")
+    present_port_keys = (
+        PORT_KEYS if "legacyReport" in root else PORT_KEYS - {"legacyReport"}
+    )
+    _exact_keys(root, present_port_keys, "$")
     if root["schemaVersion"] != 1:
         raise ContentPortError("$.schemaVersion: unsupported port schema")
     forbid_numeric_policy(
@@ -954,8 +957,12 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     from .update import validate_assets
 
     validate_assets(_thaw(assets), require_redistributable=False)  # type: ignore[arg-type]
-    legacy = _load_policy(
-        _safe_child(port_dir, root["legacyReport"], "$.legacyReport"), None, "$"
+    legacy = (
+        _load_policy(
+            _safe_child(port_dir, root["legacyReport"], "$.legacyReport"), None, "$"
+        )
+        if "legacyReport" in root
+        else None
     )
     donors_by_role = _load_donors(
         root["donors"], donor_root.resolve(), port_dir, "$.donors"
