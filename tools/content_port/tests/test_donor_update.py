@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+from types import MappingProxyType
 import unittest
 from unittest import mock
 
@@ -134,6 +135,15 @@ class DonorUpdateTests(unittest.TestCase):
         self.assertEqual(first["addedPaths"], [])
         self.assertEqual(first["removedPaths"], [])
         self.assertEqual(first["changedPaths"], [])
+
+    def test_canonical_bytes_thaws_frozen_descriptor_values(self) -> None:
+        frozen = MappingProxyType(
+            {"record": MappingProxyType({"argv": ("copy-bytes",)})}
+        )
+        self.assertEqual(
+            json.loads(canonical_bytes(frozen)),
+            {"record": {"argv": ["copy-bytes"]}},
+        )
 
     def test_reports_added_removed_changed_and_field_level_conflict(self) -> None:
         (self.repo / "data.json").write_text(

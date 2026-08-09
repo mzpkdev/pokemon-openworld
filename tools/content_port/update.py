@@ -69,8 +69,15 @@ class TreeIdentity:
 
 
 def canonical_bytes(value: object) -> bytes:
+    def thaw(item: object) -> object:
+        if isinstance(item, Mapping):
+            return {key: thaw(child) for key, child in item.items()}
+        if isinstance(item, (list, tuple)):
+            return [thaw(child) for child in item]
+        return item
+
     return (
-        json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+        json.dumps(thaw(value), indent=2, sort_keys=True, ensure_ascii=True) + "\n"
     ).encode("utf-8")
 
 

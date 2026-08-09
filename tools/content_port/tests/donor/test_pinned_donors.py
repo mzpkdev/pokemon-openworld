@@ -6,6 +6,7 @@ import hashlib
 import json
 import unittest
 
+from tools.content_port.cli import check_port
 from tools.content_port.descriptor import load_port
 from tools.content_port.donors import authenticate_donors
 
@@ -28,6 +29,13 @@ class PinnedDonorTests(unittest.TestCase):
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
         evidence = authenticate_donors(descriptor.donors)
         self.assertEqual(len(evidence), 2)
+        report = check_port(
+            Path.cwd(),
+            "johto",
+            donor_root,
+            compare_report=Path("tools/content_port/ports/johto/legacy_report.json"),
+        )
+        self.assertEqual(report["schemaVersion"], 1)
 
         roots = {
             "content": donor_root / "pokemonHnS",
