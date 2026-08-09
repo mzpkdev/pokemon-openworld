@@ -11,6 +11,7 @@ from typing import Any, Iterable, Mapping
 
 from .bindings import load_binding_index
 from .descriptor import PortDescriptor
+from .donors import authenticate_donors
 from .errors import ContentPortError
 from .ownership import OwnershipManifest, safe_repo_path
 from .renderers import RenderContext, RenderUnit, render_units
@@ -256,7 +257,7 @@ def _section_documents(root: Path) -> Iterable[tuple[Path, Mapping[str, Any]]]:
 
 
 def _section_units(
-    descriptor: PortDescriptor, state: PortSourceState
+    descriptor: PortDescriptor, state: PortSourceState, repo: Path
 ) -> list[RenderUnit]:
     bindings = descriptor.target_bindings
     if bindings is None:
@@ -265,6 +266,15 @@ def _section_units(
         item["source"]: item["target"]
         for item in descriptor.adaptations["sectionSymbolRemaps"]
     }
+    ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
+    saved_location_invalid = ledger.resolve(
+        bindings.saved_location_invalid_binding.symbol,
+        domain=bindings.saved_location_invalid_binding.domain,
+    ).value
+    met_location_invalid = ledger.resolve(
+        bindings.met_location_invalid_binding.symbol,
+        domain=bindings.met_location_invalid_binding.domain,
+    ).value
     codecs = {item.section: item for item in bindings.section_persistence_codecs}
     cache: dict[str, tuple[tuple[Path, Mapping[str, Any]], ...]] = {}
     units: list[RenderUnit] = []
@@ -295,19 +305,26 @@ def _section_units(
             "kind": bindings.section_kind,
             "region": bindings.region,
             "region_map_type": bindings.region_map_type,
-            "saved_location": target
-            if slot < bindings.saved_location_invalid
-            else None,
-            "met_location": slot if slot < bindings.met_location_invalid else None,
-            "met_location_display": target
-            if slot < bindings.met_location_invalid
-            else None,
+            "saved_location": target if slot < saved_location_invalid else None,
+            "met_location": slot if slot < met_location_invalid else None,
+            "met_location_display": target if slot < met_location_invalid else None,
             "name": source["name"],
         }
         codec = codecs.get(authority.section)
         if codec is not None:
+            if (
+                codec.met_location_binding.domain
+                != bindings.met_location_invalid_binding.domain
+                or codec.met_location_binding.symbol != codec.met_location_display
+            ):
+                raise ContentPortError(
+                    f"{authority.section}: met-location binding must match its display identity"
+                )
             value["saved_location"] = codec.saved_location
-            value["met_location"] = codec.met_location
+            value["met_location"] = ledger.resolve(
+                codec.met_location_binding.symbol,
+                domain=codec.met_location_binding.domain,
+            ).value
             value["met_location_display"] = codec.met_location_display
         for field in ("x", "y", "width", "height"):
             if field in source:
@@ -364,10 +381,19 @@ def _generated_body(
     if symbol in {"flag-bindings", "var-bindings"}:
         return _binding_body(descriptor, state, repo, symbol)
     if symbol == "berry-bindings":
-        next_value = descriptor.target_bindings.berry_tree_base  # type: ignore[union-attr]
+        bindings = descriptor.target_bindings
+        assert bindings is not None
+        allocations = descriptor.adaptations["berryTreeAllocations"]
+        anchor = bindings.berry_tree_binding
+        if not allocations or allocations[0]["target"] != anchor.symbol:
+            raise ContentPortError(
+                "berry-tree policy anchor does not match the first allocation"
+            )
+        ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
         return "\n".join(
-            f"#define {item['target']:<40} {next_value + index}"
-            for index, item in enumerate(descriptor.adaptations["berryTreeAllocations"])
+            f"#define {item['target']:<40} "
+            f"{ledger.resolve(item['target'], domain=anchor.domain).value}"
+            for item in allocations
         )
     if symbol == "trainer-bindings":
         ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
@@ -463,6 +489,7 @@ def derive_desired_state(
 ) -> tuple[OwnershipManifest, Mapping[tuple[str, ...], object]]:
     """Return complete desired ownership compiled without reading owned target payloads."""
     root = Path(repo).resolve()
+    authenticated_before = authenticate_donors(descriptor.donors)
     _, state = resolve_port_sources(descriptor, root)
     if descriptor.target_bindings is None or not descriptor.generated_sections:
         raise ContentPortError("port descriptor has no complete renderer policy")
@@ -470,7 +497,7 @@ def derive_desired_state(
         *_map_units(descriptor, state),
         *_layout_units(descriptor, state),
         *_group_units(descriptor),
-        *_section_units(descriptor, state),
+        *_section_units(descriptor, state, root),
         *_asset_units(descriptor, state),
         *_generated_units(descriptor, state, root),
     ]
@@ -490,4 +517,7 @@ def derive_desired_state(
             "renderer output identities differ from reviewed ownership recipe: "
             f"missing={missing[:1]}, extra={extra[:1]}"
         )
+    authenticated_after = authenticate_donors(descriptor.donors)
+    if authenticated_after != authenticated_before:
+        raise ContentPortError("donor evidence changed during desired-state rendering")
     return manifest, payloads

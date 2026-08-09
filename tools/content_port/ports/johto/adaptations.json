@@ -7232,9 +7232,18 @@
     "sectionKind": "geographic",
     "region": "REGION_JOHTO",
     "regionMapType": "REGION_MAP_HOENN",
-    "savedLocationInvalid": 255,
-    "metLocationInvalid": 252,
-    "berryTreeBase": 90,
+    "savedLocationInvalidBinding": {
+      "domain": "savedLocations",
+      "symbol": "MAPSEC_ICE_PATH"
+    },
+    "metLocationInvalidBinding": {
+      "domain": "destinations",
+      "symbol": "MAPSEC_BLACKTHORN_CITY"
+    },
+    "berryTreeBinding": {
+      "domain": "berryTrees",
+      "symbol": "BERRY_TREE_ROUTE_29_ORAN_1"
+    },
     "tilesetFeatureMacro": "HAS_JOHTO_TILESETS",
     "timeEncounterLabel": "Johto_EventScript_SetTimeEncounters",
     "deferredCallLabel": "Johto_Text_DeferredElmCall",
@@ -7243,7 +7252,10 @@
       {
         "section": "MAPSEC_JOHTO_VICTORY_ROAD",
         "savedLocation": "MAPSEC_VICTORY_ROAD",
-        "metLocation": 70,
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_VICTORY_ROAD"
+        },
         "metLocationDisplay": "MAPSEC_VICTORY_ROAD"
       }
     ],

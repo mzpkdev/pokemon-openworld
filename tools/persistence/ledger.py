@@ -219,7 +219,12 @@ def validate_ledger(
         raise ContractError("$.entries: expected a nonempty list")
     source_by_id = _source_index(sources)
     storage_by_id = _storage_index(sources)
-    allowed_domains = set(contract["publishedBindings"]) | {"checkpoints"}
+    allocated_domains = {
+        allocation["domain"] for allocation in sources.get("explicitAllocations", [])
+    }
+    allowed_domains = (
+        set(contract["publishedBindings"]) | {"checkpoints"} | allocated_domains
+    )
     seen_symbols: set[tuple[str, str]] = set()
     by_key: dict[tuple[str, str, int], list[dict[str, Any]]] = defaultdict(list)
     by_symbol: dict[tuple[str, str, str], dict[str, Any]] = {}
