@@ -2,10 +2,24 @@ ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
 _CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 .PHONY: __content-port-build-lock
 __content-port-build-lock:
-	@state="$$(git rev-parse --path-format=absolute --git-path content-port-transaction)"; \
-	mkdir -p "$$state"; \
-	python3 -c 'import fcntl, os, subprocess, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); raise SystemExit(subprocess.call(sys.argv[2:]))' \
-		"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS)
+	@if [ -e .git ] || [ -L .git ]; then \
+		root="$$(git rev-parse --show-toplevel)" || exit 2; \
+		root="$$(cd "$$root" && pwd -P)" || exit 2; \
+		current="$$(pwd -P)" || exit 2; \
+		if [ "$$root" != "$$current" ]; then \
+			echo "content-port: Makefile must run at its Git worktree root" >&2; \
+			exit 2; \
+		fi; \
+		state="$$(git rev-parse --path-format=absolute --git-path content-port-transaction)" || exit 2; \
+		case "$$state" in /*/content-port-transaction) ;; \
+			*) echo "content-port: invalid transaction state path" >&2; exit 2 ;; \
+		esac; \
+		mkdir -p "$$state" || exit 2; \
+		python3 -c 'import fcntl, os, subprocess, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); raise SystemExit(subprocess.call(sys.argv[2:]))' \
+			"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
+	else \
+		$(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
+	fi
 
 %: __content-port-build-lock
 	@:

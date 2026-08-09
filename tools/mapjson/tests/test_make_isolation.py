@@ -253,6 +253,7 @@ class ProductMakeContractTests(unittest.TestCase):
             # Local runs exercise the working Makefile; in CI this is identical
             # to the archived committed copy.
             shutil.copy2(ROOT / "Makefile", checkout / "Makefile")
+            self.assertFalse((checkout / ".git").exists())
 
             header = checkout / "include/constants/script_commands.h"
             generated_dirs = (
@@ -273,6 +274,7 @@ class ProductMakeContractTests(unittest.TestCase):
                         capture_output=True,
                     )
                     self.assertEqual(build.returncode, 0, build.stderr)
+                    self.assertNotIn("not a git repository", build.stderr)
                     self.assertEqual(
                         build.stdout.count("make_scr_cmd_constants.py"),
                         1,
@@ -288,7 +290,9 @@ class ProductMakeContractTests(unittest.TestCase):
                         capture_output=True,
                     )
                     self.assertEqual(clean.returncode, 0, clean.stderr)
+                    self.assertNotIn("not a git repository", clean.stderr)
                     self.assertFalse(header.exists())
+                    self.assertFalse((checkout / "content-port-transaction").exists())
 
     def test_conflicting_command_line_values_fail_before_assignment(self) -> None:
         conflicts = {
