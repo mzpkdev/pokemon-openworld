@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import replace
 import json
 import os
@@ -11,9 +12,10 @@ import unittest
 from unittest.mock import patch
 
 from tools.content_port.descriptor import load_port
+from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import _asset_units, derive_desired_state
-from tools.content_port.model import PersistentBindingRef
+from tools.content_port.model import DonorPin, PersistentBindingRef
 from tools.content_port.ownership import OwnershipManifest
 from tools.content_port.sources import resolve_port_sources
 
@@ -44,6 +46,9 @@ class MaterializeTests(unittest.TestCase):
             destination = repo / ledger.relative_to(ROOT)
             destination.parent.mkdir(parents=True)
             shutil.copyfile(ledger, destination)
+            installed = repo / "tools/content_port/ports/johto/ownership.json"
+            installed.parent.mkdir(parents=True)
+            shutil.copyfile(PORT / "ownership.json", installed)
             for name, mode in descriptor.map_ownership.items():
                 if mode != "preserve":
                     continue
@@ -53,9 +58,15 @@ class MaterializeTests(unittest.TestCase):
                     target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(source, target)
 
-            with patch(
-                "tools.content_port.materialize.resolve_port_sources",
-                return_value=(evidence, state),
+            with (
+                patch(
+                    "tools.content_port.materialize.resolve_port_sources",
+                    return_value=(evidence, state),
+                ),
+                patch(
+                    "tools.content_port.materialize.authenticated_donor_snapshot",
+                    return_value=nullcontext(descriptor.donors),
+                ),
             ):
                 first_manifest, first_payloads = derive_desired_state(descriptor, repo)
                 for path in sorted({unit.path for unit in recipe.units}):
@@ -100,53 +111,124 @@ class MaterializeTests(unittest.TestCase):
                 r"(?m)^#define BERRY_TREE_ROUTE_29_ORAN_1 +90$",
             )
 
-    def test_route30_mutation_during_derivation_fails_post_authentication(
+    def test_transient_route30_mutation_cannot_enter_snapshot_render(
         self,
     ) -> None:
         descriptor = self.descriptor()
-        donor = descriptor.donors_by_role["content"].root
-        route30 = donor / "data/maps/Route30/map.json"
-        original = route30.read_bytes()
-        resolved = resolve_port_sources
+        _, state = resolve_port_sources(descriptor, ROOT)
+        source = (
+            descriptor.donors_by_role["content"].root / "data/maps/Route30/map.json"
+        )
+        source_document = json.loads(source.read_bytes())
+        original_weather = source_document["weather"]
+        transient_weather = "WEATHER_SUNNY_CLOUDS"
+        self.assertNotEqual(original_weather, transient_weather)
 
-        def mutate_after_resolving(*args, **kwargs):
-            result = resolved(*args, **kwargs)
-            route30.write_bytes(original + b"\n")
-            return result
+        with tempfile.TemporaryDirectory() as directory:
+            donor = Path(directory) / "donor"
+            route30 = donor / "data/maps/Route30/map.json"
+            route30.parent.mkdir(parents=True)
+            route30.write_bytes(source.read_bytes())
+            records = source_tree_records(donor)
+            pin = DonorPin(
+                "isolated",
+                "example/isolated",
+                "0" * 40,
+                records_digest(records),
+                len(records),
+                donor,
+            )
+            isolated_descriptor = replace(
+                descriptor,
+                donors=(pin,),
+                donors_by_role=MappingProxyType({"content": pin, "mechanical": pin}),
+                map_ownership=MappingProxyType({"Route30": "rendered"}),
+            )
+            original = route30.read_bytes()
 
-        self.addCleanup(route30.write_bytes, original)
-        try:
+            def resolve_during_transient_mutation(snapshot_descriptor, _repo):
+                document = json.loads(original)
+                document["weather"] = transient_weather
+                route30.write_text(json.dumps(document), encoding="utf-8")
+                try:
+                    snapshot_route30 = (
+                        snapshot_descriptor.donors_by_role["content"].root
+                        / "data/maps/Route30/map.json"
+                    )
+                    self.assertFalse(os.path.samefile(route30, snapshot_route30))
+                    rendered_map = json.loads(snapshot_route30.read_bytes())
+                    isolated_state = replace(
+                        state,
+                        maps=MappingProxyType({"Route30": rendered_map}),
+                        donor_roots=MappingProxyType(
+                            {
+                                role: pin.root
+                                for role, pin in snapshot_descriptor.donors_by_role.items()
+                            }
+                        ),
+                    )
+                    return (), isolated_state
+                finally:
+                    route30.write_bytes(original)
+
             with (
+                patch.dict(os.environ, {"CONTENT_PORT_REQUIRE_DONORS": "0"}),
                 patch(
                     "tools.content_port.materialize.resolve_port_sources",
-                    side_effect=mutate_after_resolving,
+                    side_effect=resolve_during_transient_mutation,
                 ),
-                self.assertRaisesRegex(ContentPortError, "source-tree digest mismatch"),
+                patch("tools.content_port.materialize._layout_units", return_value=[]),
+                patch("tools.content_port.materialize._group_units", return_value=[]),
+                patch("tools.content_port.materialize._section_units", return_value=[]),
+                patch("tools.content_port.materialize._asset_units", return_value=[]),
+                patch(
+                    "tools.content_port.materialize._generated_units", return_value=[]
+                ),
             ):
-                derive_desired_state(descriptor, ROOT)
-        finally:
-            route30.write_bytes(original)
+                _, payloads = derive_desired_state(isolated_descriptor, Path(directory))
+
+            rendered = json.loads(payloads[("file", "data/maps/Route30/map.json")])
+            self.assertEqual(rendered["weather"], original_weather)
+            self.assertEqual(route30.read_bytes(), original)
 
     def test_mechanical_layout_border_drift_fails_authentication(self) -> None:
         descriptor = self.descriptor()
-        donor = descriptor.donors_by_role["mechanical"].root
-        layouts = donor / "data/layouts/layouts.json"
-        original = layouts.read_bytes()
-        document = json.loads(original)
-        new_bark = next(
-            item for item in document["layouts"] if item["id"] == "LAYOUT_NEW_BARK_TOWN"
+        source = (
+            descriptor.donors_by_role["mechanical"].root / "data/layouts/layouts.json"
         )
-        self.assertEqual(new_bark["border_width"], 0)
-        new_bark["border_width"] = 1
-        self.addCleanup(layouts.write_bytes, original)
-        try:
+        with tempfile.TemporaryDirectory() as directory:
+            donor = Path(directory) / "donor"
+            layouts = donor / "data/layouts/layouts.json"
+            layouts.parent.mkdir(parents=True)
+            layouts.write_bytes(source.read_bytes())
+            records = source_tree_records(donor)
+            pin = DonorPin(
+                "isolated",
+                "example/isolated",
+                "0" * 40,
+                records_digest(records),
+                len(records),
+                donor,
+            )
+            document = json.loads(layouts.read_bytes())
+            new_bark = next(
+                item
+                for item in document["layouts"]
+                if item["id"] == "LAYOUT_NEW_BARK_TOWN"
+            )
+            self.assertEqual(new_bark["border_width"], 0)
+            new_bark["border_width"] = 1
             layouts.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
-            with self.assertRaisesRegex(
-                ContentPortError, "source-tree digest mismatch"
+            isolated_descriptor = replace(
+                descriptor,
+                donors=(pin,),
+                donors_by_role=MappingProxyType({"content": pin, "mechanical": pin}),
+            )
+            with (
+                patch.dict(os.environ, {"CONTENT_PORT_REQUIRE_DONORS": "0"}),
+                self.assertRaisesRegex(ContentPortError, "source-tree digest mismatch"),
             ):
-                derive_desired_state(descriptor, ROOT)
-        finally:
-            layouts.write_bytes(original)
+                derive_desired_state(isolated_descriptor, ROOT)
 
     def test_victory_road_codec_requires_a_ledger_binding(self) -> None:
         descriptor = self.descriptor()
@@ -174,7 +256,8 @@ class MaterializeTests(unittest.TestCase):
                 return_value=(evidence, state),
             ),
             patch(
-                "tools.content_port.materialize.authenticate_donors", return_value=()
+                "tools.content_port.materialize.authenticated_donor_snapshot",
+                return_value=nullcontext(descriptor.donors),
             ),
             self.assertRaisesRegex(ContentPortError, "must match its display identity"),
         ):
@@ -214,8 +297,8 @@ class MaterializeTests(unittest.TestCase):
                         return_value=(evidence, state),
                     ),
                     patch(
-                        "tools.content_port.materialize.authenticate_donors",
-                        return_value=(),
+                        "tools.content_port.materialize.authenticated_donor_snapshot",
+                        return_value=nullcontext(descriptor.donors),
                     ),
                     self.assertRaisesRegex(ContentPortError, label),
                 ):
@@ -242,8 +325,8 @@ class MaterializeTests(unittest.TestCase):
                     return_value=(evidence, state),
                 ),
                 patch(
-                    "tools.content_port.materialize.authenticate_donors",
-                    return_value=(),
+                    "tools.content_port.materialize.authenticated_donor_snapshot",
+                    return_value=nullcontext(descriptor.donors),
                 ),
                 self.assertRaisesRegex(ContentPortError, "has no ledger binding"),
             ):
@@ -266,7 +349,8 @@ class MaterializeTests(unittest.TestCase):
                 return_value=(evidence, state),
             ),
             patch(
-                "tools.content_port.materialize.authenticate_donors", return_value=()
+                "tools.content_port.materialize.authenticated_donor_snapshot",
+                return_value=nullcontext(descriptor.donors),
             ),
             self.assertRaisesRegex(ContentPortError, "authority contract drift"),
         ):

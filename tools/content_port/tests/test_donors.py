@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import tempfile
 import unittest
@@ -7,6 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from tools.content_port.donors import (
+    authenticated_donor_snapshot,
     authenticate_donor,
     records_digest,
     source_tree_records,
@@ -131,6 +133,26 @@ class DonorTests(unittest.TestCase):
                     self.assertRaisesRegex(ContentPortError, "excluded path"),
                 ):
                     source_tree_records(root, excluded_paths=exclusions)
+
+    def test_authenticated_snapshot_is_a_private_byte_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            pin = self.make_checkout(root)
+            with authenticated_donor_snapshot((pin,)) as (snapshot,):
+                source = root / "a.txt"
+                copied = snapshot.root / "a.txt"
+                self.assertFalse(os.path.samefile(source, copied))
+                source.write_bytes(b"transient mutation")
+                self.assertEqual(copied.read_bytes(), b"first")
+
+    def test_authenticated_snapshot_mutation_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pin = self.make_checkout(Path(directory))
+            with self.assertRaisesRegex(
+                ContentPortError, "snapshot changed during desired-state rendering"
+            ):
+                with authenticated_donor_snapshot((pin,)) as (snapshot,):
+                    (snapshot.root / "a.txt").write_bytes(b"mutation")
 
 
 if __name__ == "__main__":

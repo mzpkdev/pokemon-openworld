@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
 import re
+from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
 from .bindings import load_binding_index
 from .descriptor import GENERATED_AUTHORITY_CONTRACT, PortDescriptor
-from .donors import authenticate_donors
+from .donors import authenticated_donor_snapshot
 from .errors import ContentPortError
-from .ownership import OwnershipManifest, safe_repo_path
+from .model import DonorPin
+from .ownership import OwnershipManifest, safe_repo_path, verify_desired_claims
 from .renderers import RenderContext, RenderUnit, render_units
 from .sources import PortSourceState, resolve_port_sources
 
@@ -33,6 +36,25 @@ def _thaw(value: Any) -> Any:
 
 def _port_name(descriptor: PortDescriptor) -> str:
     return descriptor.path.parent.name
+
+
+def _with_snapshot_donors(
+    descriptor: PortDescriptor, snapshots: tuple[DonorPin, ...]
+) -> PortDescriptor:
+    snapshot_by_name = {pin.name: pin for pin in snapshots}
+    expected_names = {pin.name for pin in descriptor.donors}
+    if set(snapshot_by_name) != expected_names:
+        raise ContentPortError("authenticated donor snapshot does not match descriptor")
+    return replace(
+        descriptor,
+        donors=tuple(snapshot_by_name[pin.name] for pin in descriptor.donors),
+        donors_by_role=MappingProxyType(
+            {
+                role: snapshot_by_name[pin.name]
+                for role, pin in descriptor.donors_by_role.items()
+            }
+        ),
+    )
 
 
 def _read_source(root: Path, relative: str, label: str) -> bytes:
@@ -120,18 +142,6 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         for decision in descriptor.adaptations["warpReindexes"]:
             if decision["source"] == name:
                 _set_pointer(value, decision["path"], decision["to"])
-        for decision in descriptor.adaptations["warpRemovals"]:
-            if decision["source"] != name:
-                continue
-            _, raw_index = decision["path"].split("/")
-            index = int(raw_index)
-            warps = value.get("warp_events") or []
-            if index < len(warps):
-                candidate = warps[index]
-                if candidate.get("dest_map") == decision["destination"] and str(
-                    candidate.get("dest_warp_id")
-                ) == str(decision["destWarpId"]):
-                    del warps[index]
         for decision in descriptor.adaptations["berryTreeAllocations"]:
             if decision["source"] == name:
                 _set_pointer(value, decision["path"], decision["target"])
@@ -505,35 +515,40 @@ def derive_desired_state(
 ) -> tuple[OwnershipManifest, Mapping[tuple[str, ...], object]]:
     """Return complete desired ownership compiled without reading owned target payloads."""
     root = Path(repo).resolve()
-    authenticated_before = authenticate_donors(descriptor.donors)
-    _, state = resolve_port_sources(descriptor, root)
-    if descriptor.target_bindings is None or not descriptor.generated_sections:
-        raise ContentPortError("port descriptor has no complete renderer policy")
-    units = [
-        *_map_units(descriptor, state),
-        *_layout_units(descriptor, state),
-        *_group_units(descriptor),
-        *_section_units(descriptor, state, root),
-        *_asset_units(descriptor, state),
-        *_generated_units(descriptor, state, root),
-    ]
-    manifest, payloads = render_units(
-        RenderContext(
-            _port_name(descriptor), root=root, allocations=descriptor.allocation_index
-        ),
-        units,
-    )
-    recipe = OwnershipManifest.load(descriptor.path.parent / "ownership.json")
-    actual = set(manifest.by_identity)
-    expected = set(recipe.by_identity)
-    if actual != expected:
-        missing = sorted(expected - actual)
-        extra = sorted(actual - expected)
-        raise ContentPortError(
-            "renderer output identities differ from reviewed ownership recipe: "
-            f"missing={missing[:1]}, extra={extra[:1]}"
+    with authenticated_donor_snapshot(descriptor.donors) as snapshots:
+        snapshot_descriptor = _with_snapshot_donors(descriptor, snapshots)
+        _, state = resolve_port_sources(snapshot_descriptor, root)
+        if (
+            snapshot_descriptor.target_bindings is None
+            or not snapshot_descriptor.generated_sections
+        ):
+            raise ContentPortError("port descriptor has no complete renderer policy")
+        units = [
+            *_map_units(snapshot_descriptor, state),
+            *_layout_units(snapshot_descriptor, state),
+            *_group_units(snapshot_descriptor),
+            *_section_units(snapshot_descriptor, state, root),
+            *_asset_units(snapshot_descriptor, state),
+            *_generated_units(snapshot_descriptor, state, root),
+        ]
+        manifest, payloads = render_units(
+            RenderContext(
+                _port_name(snapshot_descriptor),
+                root=root,
+                allocations=snapshot_descriptor.allocation_index,
+            ),
+            units,
         )
-    authenticated_after = authenticate_donors(descriptor.donors)
-    if authenticated_after != authenticated_before:
-        raise ContentPortError("donor evidence changed during desired-state rendering")
-    return manifest, payloads
+        installed_path = (
+            root
+            / "tools/content_port/ports"
+            / _port_name(snapshot_descriptor)
+            / "ownership.json"
+        )
+        installed = (
+            OwnershipManifest.load(installed_path)
+            if installed_path.exists()
+            else OwnershipManifest(_port_name(snapshot_descriptor), ())
+        )
+        verify_desired_claims(root, installed, manifest)
+        return manifest, payloads

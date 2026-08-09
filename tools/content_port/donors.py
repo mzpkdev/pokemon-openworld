@@ -7,7 +7,11 @@ import os
 import re
 import subprocess
 from collections.abc import Iterable, Mapping
+from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path, PurePosixPath
+import tempfile
+from typing import Iterator
 
 from .errors import ContentPortError
 from .model import DonorEvidence, DonorPin
@@ -175,3 +179,68 @@ def authenticate_donors(
         evidence.append(record)
         checkpoint(f"after-donor-auth:{record.name}")
     return tuple(evidence)
+
+
+def _copy_authenticated_tree(pin: DonorPin, destination: Path) -> DonorPin:
+    records = source_tree_records(pin.root, excluded_paths=pin.excluded_paths)
+    for record in records:
+        relative = str(record["path"])
+        source = pin.root / PurePosixPath(relative)
+        target = destination / PurePosixPath(relative)
+        try:
+            payload = source.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"cannot snapshot donor input {source}: {error}"
+            ) from error
+        digest = hashlib.sha256(payload).hexdigest()
+        if len(payload) != record["bytes"] or digest != record["sha256"]:
+            raise ContentPortError(
+                f"{pin.name}: donor input changed while creating authenticated snapshot: "
+                f"{relative}"
+            )
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("xb") as stream:
+                stream.write(payload)
+        except OSError as error:
+            raise ContentPortError(
+                f"cannot create authenticated donor snapshot {target}: {error}"
+            ) from error
+    return replace(pin, root=destination, excluded_paths=())
+
+
+@contextmanager
+def authenticated_donor_snapshot(
+    pins: Iterable[DonorPin],
+) -> Iterator[tuple[DonorPin, ...]]:
+    """Yield private byte copies whose complete contents match authenticated pins."""
+
+    values = tuple(pins)
+    authenticated = authenticate_donors(values)
+    with tempfile.TemporaryDirectory(
+        prefix="content-port-donor-snapshot-"
+    ) as directory:
+        snapshot_root = Path(directory)
+        snapshots = tuple(
+            _copy_authenticated_tree(pin, snapshot_root / str(index))
+            for index, pin in enumerate(values)
+        )
+        copied = authenticate_donors(snapshots, require_git=False)
+        if copied != authenticated:
+            raise ContentPortError(
+                "donor evidence changed while creating authenticated snapshot"
+            )
+        try:
+            yield snapshots
+        finally:
+            try:
+                rendered = authenticate_donors(snapshots, require_git=False)
+            except ContentPortError as error:
+                raise ContentPortError(
+                    "authenticated donor snapshot changed during desired-state rendering"
+                ) from error
+            if rendered != authenticated:
+                raise ContentPortError(
+                    "authenticated donor snapshot changed during desired-state rendering"
+                )
