@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import Any
 
 from .allocations import AllocationIndex, load_allocation_index
+from .donors import validate_excluded_paths
 from .errors import ContentPortError
 from .model import (
     CapabilityDecision,
@@ -49,6 +50,7 @@ DONOR_KEYS = {
     "root",
     "migration",
     "genesis",
+    "excludePaths",
 }
 INVENTORY_DOMAINS = {"maps", "layouts", "groups", "sections", "tilesets"}
 AUTHORITY_KEYS = {"content", "mechanical", "unclassifiedDivergence"}
@@ -387,6 +389,16 @@ def _load_donors(
         file_count = _integer(
             item["fileCount"], f"{item_pointer}.fileCount", positive=True
         )
+        excluded_values = _array(item["excludePaths"], f"{item_pointer}.excludePaths")
+        excluded_paths = tuple(
+            _string(value, f"{item_pointer}.excludePaths[{index}]")
+            for index, value in enumerate(excluded_values)
+        )
+        validate_excluded_paths(excluded_paths)
+        if excluded_paths != tuple(sorted(excluded_paths)):
+            raise ContentPortError(
+                f"{item_pointer}.excludePaths: expected sorted exact paths"
+            )
         genesis = _migration_pin(item["genesis"], f"{item_pointer}.genesis")
         checkout = donor_root.joinpath(*relative.parts)
         current = (commit, digest, file_count)
@@ -416,6 +428,7 @@ def _load_donors(
             file_count=file_count,
             root=checkout,
             migration=migration_value,
+            excluded_paths=excluded_paths,
         )
     if len({pin.name for pin in result.values()}) != len(result):
         raise ContentPortError(f"{pointer}: duplicate donor name")

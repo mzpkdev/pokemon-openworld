@@ -54,6 +54,7 @@ class DonorPin:
     file_count: int
     root: Path
     migration: str | None = None
+    excluded_paths: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

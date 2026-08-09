@@ -137,6 +137,11 @@ exact `donor-port-update.json` proposal without editing `port.json`. The tool
 never moves a branch or creates a commit; only the resulting reviewed Git commit
 publishes generated output.
 
+Donor authentication includes ordinary files by default, including ROM and
+linker outputs. A donor may omit only the exact safe relative paths authored in
+its `excludePaths` policy; generic authentication contains no donor-specific
+artifact names. Changes to that list are reviewed pin-policy changes.
+
 The five baseline-usage records are reproducibly measured from the frozen commit
 in an exported clean tree (never from the current worktree) with:
 

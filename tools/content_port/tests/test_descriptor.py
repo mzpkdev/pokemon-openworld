@@ -166,6 +166,7 @@ class DescriptorTests(unittest.TestCase):
                     "commit": "1" * 40,
                     "treeDigest": "2" * 64,
                     "fileCount": 2,
+                    "excludePaths": [],
                     "genesis": {
                         "commit": "1" * 40,
                         "fileCount": 2,
@@ -180,6 +181,7 @@ class DescriptorTests(unittest.TestCase):
                     "commit": "3" * 40,
                     "treeDigest": "4" * 64,
                     "fileCount": 3,
+                    "excludePaths": [],
                     "genesis": {
                         "commit": "3" * 40,
                         "fileCount": 3,
@@ -412,6 +414,25 @@ class DescriptorTests(unittest.TestCase):
                 ContentPortError, "unlinked pin differs from genesis"
             ):
                 load_port(root, root / "donors")
+
+    def test_donor_exclusions_require_sorted_safe_exact_paths(self):
+        invalid = (
+            (["../outside"], "unsafe donor excluded path"),
+            (["nested//file"], "unsafe donor excluded path"),
+            (["z.bin", "a.bin"], "expected sorted exact paths"),
+            (["same", "same"], "must not contain duplicates"),
+        )
+        for exclusions, message in invalid:
+            with (
+                self.subTest(exclusions=exclusions),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                port = self.make_port(root)
+                port["donors"]["mechanical"]["excludePaths"] = exclusions  # type: ignore[index]
+                dump(root / "port.json", port)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
 
     def test_content_addressed_predecessor_chain_reaches_genesis(self):
         with tempfile.TemporaryDirectory() as directory:

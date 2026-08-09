@@ -97,14 +97,14 @@ def _safe_source_path(value: object, pointer: str) -> str:
     return value
 
 
-def identify_tree(tree: Path) -> TreeIdentity:
+def identify_tree(tree: Path, *, excluded_paths: Iterable[str] = ()) -> TreeIdentity:
     """Return an exact identity for the checked-out commit and file inventory."""
 
     tree = tree.resolve()
     if not tree.is_dir():
         raise DonorUpdateError(f"donor checkout does not exist: {tree}")
     commit = _run_git(tree, "rev-parse", "HEAD^{commit}")
-    records = source_tree_records(tree)
+    records = source_tree_records(tree, excluded_paths=excluded_paths)
     files = {
         str(record["path"]): f"{record['bytes']} {record['sha256']}"
         for record in records
@@ -398,11 +398,12 @@ def build_migration(
     assets: Mapping[str, object] | None = None,
     tests: Iterable[Mapping[str, object]] = (),
     predecessor: str | None = None,
+    excluded_paths: Iterable[str] = (),
 ) -> dict[str, object]:
     """Build a deterministic, non-authoritative donor migration candidate."""
 
-    old = identify_tree(old_tree)
-    new = identify_tree(new_tree)
+    old = identify_tree(old_tree, excluded_paths=excluded_paths)
+    new = identify_tree(new_tree, excluded_paths=excluded_paths)
     old_paths = set(old.files)
     new_paths = set(new.files)
     added_paths = [
@@ -875,12 +876,21 @@ def verify_migration_evidence(
         adaptations_document = json.loads(
             (port_dir / "adaptations.json").read_text(encoding="utf-8")
         )
+        port_document = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise DonorUpdateError("cannot load migration comparison policy") from error
-    if not isinstance(assets_document, dict) or not isinstance(
-        adaptations_document, dict
+    if (
+        not isinstance(assets_document, dict)
+        or not isinstance(adaptations_document, dict)
+        or not isinstance(port_document, dict)
     ):
         raise DonorUpdateError("migration comparison policy is invalid")
+    record = _descriptor_donor_record(port_document, donor)
+    excluded_paths = record.get("excludePaths")
+    if not isinstance(excluded_paths, list) or not all(
+        isinstance(path, str) for path in excluded_paths
+    ):
+        raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
     assets = validate_assets(assets_document, require_redistributable=False)
     filtered_assets = {
         "schemaVersion": SCHEMA_VERSION,
@@ -919,6 +929,7 @@ def verify_migration_evidence(
                 assets=filtered_assets,
                 tests=report.get("tests", ()),  # type: ignore[arg-type]
                 predecessor=report.get("predecessor"),  # type: ignore[arg-type]
+                excluded_paths=excluded_paths,
             )
         finally:
             for tree in (old_tree, new_tree):
@@ -986,6 +997,11 @@ def run_donor_update(
     checkout = (donor_root / str(root)).resolve()
     if not checkout.is_dir():
         raise DonorUpdateError(f"donor checkout does not exist: {checkout}")
+    excluded_paths = record.get("excludePaths")
+    if not isinstance(excluded_paths, list) or not all(
+        isinstance(path, str) for path in excluded_paths
+    ):
+        raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
 
     asset_records = validate_assets(assets_document, require_redistributable=False)
     filtered_assets = {
@@ -1017,6 +1033,7 @@ def run_donor_update(
                 assets=filtered_assets,
                 tests=run_review_commands(repo),
                 predecessor=record.get("migration"),
+                excluded_paths=excluded_paths,
             )
         finally:
             for tree in (old_tree, new_tree):

@@ -236,6 +236,7 @@ class DonorUpdateTests(unittest.TestCase):
                     "commit": self.old_commit,
                     "treeDigest": "0" * 64,
                     "fileCount": 2,
+                    "excludePaths": [],
                     "genesis": {
                         "commit": self.old_commit,
                         "treeDigest": "0" * 64,
@@ -310,6 +311,7 @@ class DonorUpdateTests(unittest.TestCase):
                     "name": "fixture",
                     "repository": "owner/repo",
                     **report["from"],
+                    "excludePaths": [],
                     "genesis": dict(report["from"]),
                     "root": "donor",
                     "migration": None,

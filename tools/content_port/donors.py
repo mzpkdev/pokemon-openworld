@@ -7,7 +7,7 @@ import os
 import re
 import subprocess
 from collections.abc import Iterable, Mapping
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from .errors import ContentPortError
 from .model import DonorEvidence, DonorPin
@@ -16,9 +16,25 @@ from .model import DonorEvidence, DonorPin
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 EXCLUDED_DIRECTORIES = frozenset({".git", "build", "test-results"})
-GENERATED_ARTIFACTS = frozenset(
-    {"pokemonworld.elf", "pokemonworld.map", "pokemonworld.sym", "pokemonworld.gba"}
-)
+
+
+def validate_excluded_paths(paths: Iterable[str]) -> frozenset[str]:
+    """Validate exact, authored donor-relative file exclusions."""
+
+    values = tuple(paths)
+    if len(values) != len(set(values)):
+        raise ContentPortError("donor excluded paths must not contain duplicates")
+    for value in values:
+        if not isinstance(value, str) or not value or "\\" in value:
+            raise ContentPortError(f"unsafe donor excluded path: {value!r}")
+        path = PurePosixPath(value)
+        if (
+            path.is_absolute()
+            or value != path.as_posix()
+            or any(part in {"", ".", ".."} for part in path.parts)
+        ):
+            raise ContentPortError(f"unsafe donor excluded path: {value!r}")
+    return frozenset(values)
 
 
 def _sha256(path: Path) -> str:
@@ -32,10 +48,13 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def source_tree_records(root: Path) -> tuple[Mapping[str, object], ...]:
+def source_tree_records(
+    root: Path, *, excluded_paths: Iterable[str] = ()
+) -> tuple[Mapping[str, object], ...]:
     """Return normalized source records in stable path order."""
     if not root.is_dir():
         raise ContentPortError(f"donor directory does not exist: {root}")
+    exclusions = validate_excluded_paths(excluded_paths)
     records: list[Mapping[str, object]] = []
     try:
         paths = sorted(root.rglob("*"))
@@ -51,7 +70,7 @@ def source_tree_records(root: Path) -> tuple[Mapping[str, object], ...]:
             raise ContentPortError(
                 f"donor source tree contains a symbolic link: {relative.as_posix()}"
             )
-        if not path.is_file() or path.name in GENERATED_ARTIFACTS:
+        if not path.is_file() or relative.as_posix() in exclusions:
             continue
         try:
             size = path.stat().st_size
@@ -123,7 +142,7 @@ def authenticate_donor(
         raise ContentPortError(
             f"{pin.name} checkout commit {actual_commit} does not match pin {pin.commit}"
         )
-    records = source_tree_records(pin.root)
+    records = source_tree_records(pin.root, excluded_paths=pin.excluded_paths)
     actual_digest = records_digest(records)
     if actual_digest != pin.tree_digest:
         raise ContentPortError(

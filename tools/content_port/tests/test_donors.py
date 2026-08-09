@@ -83,6 +83,40 @@ class DonorTests(unittest.TestCase):
             with self.assertRaisesRegex(ContentPortError, "cannot authenticate"):
                 authenticate_donor(pin, require_git=True)
 
+    def test_generic_tree_includes_artifacts_unless_pin_explicitly_excludes_them(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            pin = self.make_checkout(root)
+            artifact = root / "pokemonworld.elf"
+            artifact.write_bytes(b"generated output")
+            self.assertIn(
+                "pokemonworld.elf",
+                {record["path"] for record in source_tree_records(root)},
+            )
+            with self.assertRaisesRegex(ContentPortError, "digest mismatch"):
+                authenticate_donor(pin)
+            evidence = authenticate_donor(
+                replace(pin, excluded_paths=("pokemonworld.elf",))
+            )
+            self.assertEqual(evidence.tree_digest, pin.tree_digest)
+
+    def test_excluded_paths_are_safe_exact_relative_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_checkout(root)
+            for exclusions in (
+                ("../outside",),
+                ("/absolute",),
+                ("nested//file",),
+                ("windows\\path",),
+                ("a.txt", "a.txt"),
+            ):
+                with (
+                    self.subTest(exclusions=exclusions),
+                    self.assertRaisesRegex(ContentPortError, "excluded path"),
+                ):
+                    source_tree_records(root, excluded_paths=exclusions)
+
 
 if __name__ == "__main__":
     unittest.main()
