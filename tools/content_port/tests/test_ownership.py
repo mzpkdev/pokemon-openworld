@@ -40,6 +40,23 @@ class OwnershipTests(unittest.TestCase):
             )
             self.assertEqual(extract_owned_content(root, "fixture", unit), section)
 
+    def test_owned_section_includes_preprocessor_marker_line(self) -> None:
+        from tools.content_port.ownership import extract_owned_content
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "fixture.party"
+            section = (
+                b"#if 1 /* CONTENT PORT BEGIN fixture:generated */\n"
+                b"value\n"
+                b"#endif /* CONTENT PORT END fixture:generated */\n"
+            )
+            path.write_bytes(section + b"\nhand_owned\n")
+            unit = OwnershipUnit(
+                "section", "fixture.party", content_sha256(section), name="generated"
+            )
+            self.assertEqual(extract_owned_content(root, "fixture", unit), section)
+
     def test_checked_johto_manifest_matches_tree_and_asset_ledger(self) -> None:
         root = Path(__file__).resolve().parents[3]
         port = root / "tools/content_port/ports/johto"

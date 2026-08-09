@@ -257,13 +257,11 @@ def _section_span(content: bytes, port: str, name: str) -> tuple[int, int, bytes
         )
     marker_start = begin_positions[0]
     start = content.rfind(b"\n", 0, marker_start) + 1
-    finish = end_positions[0] + len(end)
+    marker_finish = end_positions[0] + len(end)
     if end_positions[0] <= marker_start:
         raise ContentPortError(f"section {port}:{name} has reversed markers")
-    if content[finish : finish + 1] == b"\r":
-        finish += 1
-    if content[finish : finish + 1] == b"\n":
-        finish += 1
+    line_finish = content.find(b"\n", marker_finish)
+    finish = len(content) if line_finish < 0 else line_finish + 1
     return start, finish, content[start:finish]
 
 
