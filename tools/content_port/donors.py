@@ -15,7 +15,7 @@ from .model import DonorEvidence, DonorPin
 
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
-EXCLUDED_DIRECTORIES = frozenset({".git", "build", "test-results"})
+VCS_METADATA_DIRECTORIES = frozenset({".git"})
 
 
 def validate_excluded_paths(paths: Iterable[str]) -> frozenset[str]:
@@ -64,7 +64,7 @@ def source_tree_records(
         ) from error
     for path in paths:
         relative = path.relative_to(root)
-        if any(part in EXCLUDED_DIRECTORIES for part in relative.parts):
+        if any(part in VCS_METADATA_DIRECTORIES for part in relative.parts):
             continue
         if path.is_symlink():
             raise ContentPortError(

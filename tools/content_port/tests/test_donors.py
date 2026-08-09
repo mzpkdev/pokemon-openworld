@@ -20,8 +20,6 @@ class DonorTests(unittest.TestCase):
         subprocess.run(("git", "init", "-q", str(root)), check=True)
         (root / "z.txt").write_bytes(b"last")
         (root / "a.txt").write_bytes(b"first")
-        (root / "build").mkdir()
-        (root / "build/ignored").write_bytes(b"ignored")
         subprocess.run(("git", "-C", str(root), "add", "a.txt", "z.txt"), check=True)
         subprocess.run(
             (
@@ -99,6 +97,23 @@ class DonorTests(unittest.TestCase):
                 replace(pin, excluded_paths=("pokemonworld.elf",))
             )
             self.assertEqual(evidence.tree_digest, pin.tree_digest)
+
+    def test_output_directories_are_included_unless_explicitly_excluded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            pin = self.make_checkout(root)
+            artifacts = ("build/unauthenticated.bin", "test-results/result.json")
+            for relative in artifacts:
+                path = root / relative
+                path.parent.mkdir(exist_ok=True)
+                path.write_bytes(relative.encode())
+            records = {record["path"] for record in source_tree_records(root)}
+            self.assertTrue(set(artifacts).issubset(records))
+            with self.assertRaisesRegex(ContentPortError, "digest mismatch"):
+                authenticate_donor(pin)
+            evidence = authenticate_donor(replace(pin, excluded_paths=artifacts))
+            self.assertEqual(evidence.tree_digest, pin.tree_digest)
+            self.assertEqual(evidence.file_count, pin.file_count)
 
     def test_excluded_paths_are_safe_exact_relative_paths(self):
         with tempfile.TemporaryDirectory() as directory:
