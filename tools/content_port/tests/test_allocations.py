@@ -17,8 +17,6 @@ def allocation_document() -> dict[str, object]:
             {
                 "name": "TestMap",
                 "id": "MAP_TEST",
-                "batch": "fixture",
-                "materialization": "residency",
                 "targetGroup": "gMapGroup_Test",
                 "targetGroupId": 4,
                 "targetMember": 0,
@@ -40,8 +38,6 @@ class AllocationTests(unittest.TestCase):
             (
                 allocation.name,
                 allocation.map_id,
-                allocation.batch,
-                allocation.materialization,
                 allocation.target_group,
                 allocation.target_group_id,
                 allocation.target_member,
@@ -53,8 +49,6 @@ class AllocationTests(unittest.TestCase):
             (
                 "TestMap",
                 "MAP_TEST",
-                "fixture",
-                "residency",
                 "gMapGroup_Test",
                 4,
                 0,
@@ -81,6 +75,14 @@ class AllocationTests(unittest.TestCase):
         boolean["groups"][0]["targetId"] = True  # type: ignore[index]
         with self.assertRaisesRegex(ContentPortError, "non-negative integer"):
             load_allocation_index(boolean)
+        for dead_field in ("batch", "materialization"):
+            with self.subTest(dead_field=dead_field):
+                dead = allocation_document()
+                dead["maps"][0][dead_field] = "dead"  # type: ignore[index]
+                with self.assertRaisesRegex(
+                    ContentPortError, f"unknown field '{dead_field}'"
+                ):
+                    load_allocation_index(dead)
 
     def test_mismatched_authority_value_fails(self):
         document = allocation_document()

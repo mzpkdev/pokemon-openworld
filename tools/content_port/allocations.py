@@ -122,8 +122,6 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
     map_keys = {
         "name",
         "id",
-        "batch",
-        "materialization",
         "targetGroup",
         "targetGroupId",
         "targetMember",
@@ -145,17 +143,11 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
             for key in (
                 "name",
                 "id",
-                "batch",
-                "materialization",
                 "targetGroup",
                 "layout",
                 "section",
             )
         }
-        if strings["materialization"] not in {"preserve", "residency"}:
-            raise ContentPortError(
-                f"{item_pointer}.materialization: unknown ownership mode"
-            )
         numbers = {
             key: _integer(item[key], f"{item_pointer}.{key}")
             for key in (
@@ -186,8 +178,6 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
         maps[name] = MapAllocation(
             name=name,
             map_id=strings["id"],
-            batch=strings["batch"],
-            materialization=strings["materialization"],
             target_group=group,
             target_group_id=numbers["targetGroupId"],
             target_member=numbers["targetMember"],

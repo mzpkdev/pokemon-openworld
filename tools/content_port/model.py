@@ -71,8 +71,6 @@ class MapAllocation:
 
     name: str
     map_id: str
-    batch: str
-    materialization: str
     target_group: str
     target_group_id: int
     target_member: int
@@ -85,7 +83,6 @@ class MapAllocation:
         for field in (
             "name",
             "map_id",
-            "batch",
             "target_group",
             "layout",
             "section",
@@ -95,10 +92,6 @@ class MapAllocation:
                 raise ContentPortError(
                     f"map allocation {field} must be a non-empty string"
                 )
-        if self.materialization not in {"preserve", "residency"}:
-            raise ContentPortError(
-                f"map allocation has unknown materialization {self.materialization!r}"
-            )
         for field in (
             "target_group_id",
             "target_member",

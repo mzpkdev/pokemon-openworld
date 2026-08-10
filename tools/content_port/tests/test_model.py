@@ -23,8 +23,6 @@ class ModelTests(unittest.TestCase):
         fields = {
             "name": "TestMap",
             "map_id": "MAP_TEST",
-            "batch": "fixture",
-            "materialization": "residency",
             "target_group": "gMapGroup_Test",
             "target_group_id": 4,
             "target_member": 0,
@@ -37,8 +35,6 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(allocation.map_slot, ("gMapGroup_Test", 4, 0))
         with self.assertRaises((AttributeError, TypeError)):
             allocation.target_member = 1  # type: ignore[misc]
-        with self.assertRaisesRegex(ContentPortError, "unknown materialization"):
-            MapAllocation(**(fields | {"materialization": "implicit"}))
         with self.assertRaisesRegex(ContentPortError, "non-negative integer"):
             MapAllocation(**(fields | {"target_section": True}))
 
