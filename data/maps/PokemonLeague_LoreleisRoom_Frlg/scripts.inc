@@ -73,11 +73,11 @@ PokemonLeague_LoreleisRoom_EventScript_RematchIntro::
 	return
 
 PokemonLeague_LoreleisRoom_EventScript_Battle::
-	trainerbattle_no_intro TRAINER_ELITE_FOUR_LORELEI, PokemonLeague_LoreleisRoom_Text_Defeat
+	trainerbattle_no_intro TRAINER_FRLG_ELITE_FOUR_LORELEI, PokemonLeague_LoreleisRoom_Text_Defeat
 	return
 
 PokemonLeague_LoreleisRoom_EventScript_Rematch::
-	trainerbattle_no_intro TRAINER_ELITE_FOUR_LORELEI_2, PokemonLeague_LoreleisRoom_Text_Defeat
+	trainerbattle_no_intro TRAINER_FRLG_ELITE_FOUR_LORELEI_2, PokemonLeague_LoreleisRoom_Text_Defeat
 	return
 
 PokemonLeague_LoreleisRoom_EventScript_PostBattle::

@@ -37,6 +37,8 @@ static bool32 ValidateTrainerDefeatBinding(const struct TrainerDefeatBinding *bi
         return binding->bit == 0 && IsPersistentFlag(binding->id);
     case TRAINER_DEFEAT_STORAGE_VARIABLE_BIT:
         return binding->bit < 16 && IsPersistentVariable(binding->id);
+    case TRAINER_DEFEAT_STORAGE_BITMAP:
+        return binding->id < PERSISTENT_TRAINER_BITMAP_BYTES && binding->bit < 8;
     default:
         return FALSE;
     }
@@ -80,6 +82,9 @@ static bool32 GetTrainerDefeated(const struct TrainerDefeatBinding *binding, boo
     case TRAINER_DEFEAT_STORAGE_VARIABLE_BIT:
         *defeated = (VarGet(binding->id) & (1 << binding->bit)) != 0;
         return TRUE;
+    case TRAINER_DEFEAT_STORAGE_BITMAP:
+        *defeated = (gSaveBlock1Ptr->trainerDefeated[binding->id] & (1 << binding->bit)) != 0;
+        return TRUE;
     default:
         return FALSE;
     }
@@ -99,6 +104,9 @@ static bool32 SetTrainerDefeated(const struct TrainerDefeatBinding *binding)
         if (!VarSet(binding->id, VarGet(binding->id) | (1 << binding->bit)))
             return FALSE;
         return (VarGet(binding->id) & (1 << binding->bit)) != 0;
+    case TRAINER_DEFEAT_STORAGE_BITMAP:
+        gSaveBlock1Ptr->trainerDefeated[binding->id] |= 1 << binding->bit;
+        return (gSaveBlock1Ptr->trainerDefeated[binding->id] & (1 << binding->bit)) != 0;
     default:
         return FALSE;
     }
@@ -118,6 +126,9 @@ static bool32 ClearTrainerDefeated(const struct TrainerDefeatBinding *binding)
         if (!VarSet(binding->id, VarGet(binding->id) & ~(1 << binding->bit)))
             return FALSE;
         return (VarGet(binding->id) & (1 << binding->bit)) == 0;
+    case TRAINER_DEFEAT_STORAGE_BITMAP:
+        gSaveBlock1Ptr->trainerDefeated[binding->id] &= ~(1 << binding->bit);
+        return (gSaveBlock1Ptr->trainerDefeated[binding->id] & (1 << binding->bit)) == 0;
     default:
         return FALSE;
     }

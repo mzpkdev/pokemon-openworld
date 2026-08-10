@@ -1337,11 +1337,12 @@
 #define FLAG_UNUSED_0x4FF                                           0x4FF // Unused Flag
 
 // Trainer Flags
-// Trainer flags occupy 0x500 - 0x85F, the last 9 of which are unused
-// See constants/opponents.h. The values there + FLAG_TRAINER_FLAG_START are the flag IDs
+// The published Hoenn trainer flags permanently occupy 0x500 - 0x85F, the
+// last 9 of which are unused. New regional trainer identities use the
+// dedicated SaveBlock1 bitmap and must never move the following system flags.
 
 #define TRAINER_FLAGS_START                                         0x500
-#define TRAINER_FLAGS_END                                           (TRAINER_FLAGS_START + MAX_TRAINERS_COUNT - 1) // 0x85F
+#define TRAINER_FLAGS_END                                           0x85F
 
 // System Flags
 

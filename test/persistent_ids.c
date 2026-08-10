@@ -8,7 +8,7 @@ TEST("Persistent trainer IDs preserve every published defeat flag")
     u16 flag;
     struct TrainerDefeatBinding binding;
 
-    for (u16 trainerId = 0; trainerId < PERSISTENT_TRAINER_COUNT; trainerId++)
+    for (u16 trainerId = 0; trainerId < PERSISTENT_TRAINER_FLAG_COUNT; trainerId++)
     {
         EXPECT(PersistentId_GetTrainerDefeatBinding(trainerId, &binding));
         EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_FLAG);
@@ -18,6 +18,39 @@ TEST("Persistent trainer IDs preserve every published defeat flag")
         EXPECT_EQ(flag, 0x500 + trainerId);
         EXPECT_EQ(gTrainerDefeatFlagById[trainerId], 0x500 + trainerId);
     }
+}
+
+TEST("Persistent regional trainer IDs use every dedicated bitmap bit exactly once")
+{
+    u16 flag = 0x1234;
+    struct TrainerDefeatBinding binding;
+    bool32 defeated = TRUE;
+
+    memset(gSaveBlock1Ptr->trainerDefeated, 0, sizeof(gSaveBlock1Ptr->trainerDefeated));
+    for (u16 trainerId = PERSISTENT_TRAINER_BITMAP_FIRST; trainerId < PERSISTENT_TRAINER_COUNT; trainerId++)
+    {
+        u16 bitIndex = trainerId - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerId, &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+        EXPECT_EQ(gTrainerDefeatFlagById[trainerId], 0xFFFF);
+        EXPECT(!PersistentId_GetTrainerDefeatFlag(trainerId, &flag));
+        EXPECT_EQ(flag, 0x1234);
+        EXPECT(PersistentId_GetTrainerDefeated(trainerId, &defeated));
+        EXPECT(!defeated);
+        EXPECT(PersistentId_SetTrainerDefeated(trainerId));
+        EXPECT(PersistentId_GetTrainerDefeated(trainerId, &defeated));
+        EXPECT(defeated);
+    }
+    for (u32 i = 0; i < sizeof(gSaveBlock1Ptr->trainerDefeated); i++)
+        EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[i], 0xFF);
+
+    for (u16 trainerId = PERSISTENT_TRAINER_BITMAP_FIRST; trainerId < PERSISTENT_TRAINER_COUNT; trainerId++)
+        EXPECT(PersistentId_ClearTrainerDefeated(trainerId));
+    for (u32 i = 0; i < sizeof(gSaveBlock1Ptr->trainerDefeated); i++)
+        EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[i], 0);
 }
 
 TEST("Persistent trainer IDs fail closed when invalid")
@@ -93,6 +126,8 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
         {.id = TESTING_VARS_START, .storage = TRAINER_DEFEAT_STORAGE_VARIABLE_BIT, .bit = 0},
         {.id = VARS_END + 1, .storage = TRAINER_DEFEAT_STORAGE_VARIABLE_BIT, .bit = 0},
         {.id = VAR_UNUSED_0x40F7, .storage = TRAINER_DEFEAT_STORAGE_VARIABLE_BIT, .bit = 16},
+        {.id = PERSISTENT_TRAINER_BITMAP_BYTES, .storage = TRAINER_DEFEAT_STORAGE_BITMAP, .bit = 0},
+        {.id = 0, .storage = TRAINER_DEFEAT_STORAGE_BITMAP, .bit = 8},
     };
     const u16 flag = 0x500;
     const u16 var = VAR_UNUSED_0x40F7;
@@ -119,6 +154,7 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
 
     FlagClear(flag);
     VarSet(var, 0xA55A);
+    memset(gSaveBlock1Ptr->trainerDefeated, 0xA5, sizeof(gSaveBlock1Ptr->trainerDefeated));
     for (u32 i = 0; i < ARRAY_COUNT(preservedFlags); i++)
         FlagClear(preservedFlags[i]);
     for (u32 i = 0; i < ARRAY_COUNT(preservedVars); i++)
@@ -130,6 +166,8 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
         EXPECT(!PersistentId_TestSetTrainerDefeated(&invalid[i]));
         EXPECT(!FlagGet(flag));
         EXPECT_EQ(VarGet(var), 0xA55A);
+        for (u32 j = 0; j < sizeof(gSaveBlock1Ptr->trainerDefeated); j++)
+            EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[j], 0xA5);
         for (u32 j = 0; j < ARRAY_COUNT(preservedFlags); j++)
             EXPECT(!FlagGet(preservedFlags[j]));
         for (u32 j = 0; j < ARRAY_COUNT(preservedVars); j++)
@@ -137,6 +175,8 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
         EXPECT(!PersistentId_TestClearTrainerDefeated(&invalid[i]));
         EXPECT(!FlagGet(flag));
         EXPECT_EQ(VarGet(var), 0xA55A);
+        for (u32 j = 0; j < sizeof(gSaveBlock1Ptr->trainerDefeated); j++)
+            EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[j], 0xA5);
         for (u32 j = 0; j < ARRAY_COUNT(preservedFlags); j++)
             EXPECT(!FlagGet(preservedFlags[j]));
         for (u32 j = 0; j < ARRAY_COUNT(preservedVars); j++)

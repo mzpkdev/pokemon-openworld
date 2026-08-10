@@ -68,15 +68,15 @@ SilphCo_7F_EventScript_RivalApproachBottom::
 	return
 
 SilphCo_7F_EventScript_RivalSquirtle::
-	trainerbattle_no_intro TRAINER_RIVAL_SILPH_SQUIRTLE, SilphCo_7F_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_SILPH_SQUIRTLE, SilphCo_7F_Text_RivalDefeat
 	return
 
 SilphCo_7F_EventScript_RivalBulbasaur::
-	trainerbattle_no_intro TRAINER_RIVAL_SILPH_BULBASAUR, SilphCo_7F_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_SILPH_BULBASAUR, SilphCo_7F_Text_RivalDefeat
 	return
 
 SilphCo_7F_EventScript_RivalCharmander::
-	trainerbattle_no_intro TRAINER_RIVAL_SILPH_CHARMANDER, SilphCo_7F_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_SILPH_CHARMANDER, SilphCo_7F_Text_RivalDefeat
 	return
 
 SilphCo_7F_EventScript_RivalExitTop::
@@ -213,22 +213,22 @@ SilphCo_7F_EventScript_FloorSign::
 	end
 
 SilphCo_7F_EventScript_Joshua::
-	trainerbattle_single TRAINER_SCIENTIST_JOSHUA, SilphCo_7F_Text_JoshuaIntro, SilphCo_7F_Text_JoshuaDefeat
+	trainerbattle_single TRAINER_FRLG_SCIENTIST_JOSHUA, SilphCo_7F_Text_JoshuaIntro, SilphCo_7F_Text_JoshuaDefeat
 	msgbox SilphCo_7F_Text_JoshuaPostBattle, MSGBOX_AUTOCLOSE
 	end
 
 SilphCo_7F_EventScript_Grunt1::
-	trainerbattle_single TRAINER_TEAM_ROCKET_GRUNT_33, SilphCo_7F_Text_Grunt1Intro, SilphCo_7F_Text_Grunt1Defeat
+	trainerbattle_single TRAINER_FRLG_TEAM_ROCKET_GRUNT_33, SilphCo_7F_Text_Grunt1Intro, SilphCo_7F_Text_Grunt1Defeat
 	msgbox SilphCo_7F_Text_Grunt1PostBattle, MSGBOX_AUTOCLOSE
 	end
 
 SilphCo_7F_EventScript_Grunt2::
-	trainerbattle_single TRAINER_TEAM_ROCKET_GRUNT_34, SilphCo_7F_Text_Grunt2Intro, SilphCo_7F_Text_Grunt2Defeat
+	trainerbattle_single TRAINER_FRLG_TEAM_ROCKET_GRUNT_34, SilphCo_7F_Text_Grunt2Intro, SilphCo_7F_Text_Grunt2Defeat
 	msgbox SilphCo_7F_Text_Grunt2PostBattle, MSGBOX_AUTOCLOSE
 	end
 
 SilphCo_7F_EventScript_Grunt3::
-	trainerbattle_single TRAINER_TEAM_ROCKET_GRUNT_35, SilphCo_7F_Text_Grunt3Intro, SilphCo_7F_Text_Grunt3Defeat
+	trainerbattle_single TRAINER_FRLG_TEAM_ROCKET_GRUNT_35, SilphCo_7F_Text_Grunt3Intro, SilphCo_7F_Text_Grunt3Defeat
 	msgbox SilphCo_7F_Text_Grunt3PostBattle, MSGBOX_AUTOCLOSE
 	end
 

@@ -105,6 +105,27 @@ def set_path(value, path, replacement):
 
 
 class SaveContractTests(unittest.TestCase):
+    def test_live_trainer_identities_do_not_rewrite_frozen_tombstone_evidence(self):
+        bindings = _bindings(
+            {
+                "TRAINER_YOUNGSTER_BEN": 1,
+                "TRAINER_FRLG_YOUNGSTER_BEN": 858,
+                "TRAINER_YOUNGSTER_SAMUEL_JOHTO": 1481,
+            }
+        )
+        self.assertIn(
+            {"symbol": "TRAINER_YOUNGSTER_BEN", "value": 1},
+            bindings["trainerIds"],
+        )
+        self.assertNotIn(
+            {"symbol": "TRAINER_FRLG_YOUNGSTER_BEN", "value": 858},
+            bindings["trainerIds"],
+        )
+        self.assertNotIn(
+            {"symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481},
+            bindings["trainerIds"],
+        )
+
     @staticmethod
     def _saveblock_unit(*, leaf_size=1, bit_attribute=None, bit_value=0):
         member_attrs = {

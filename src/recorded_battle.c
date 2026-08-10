@@ -65,6 +65,7 @@ static u8 sApprenticeLanguage;
 
 static u8 GetNextRecordedDataByte(u8 *, u8 *, u8 *);
 static bool32 CopyRecordedBattleFromSave(struct RecordedBattleSave *);
+static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *);
 static void RecordedBattle_RestoreSavedParties(void);
 static void CB2_RecordedBattle(void);
 
@@ -270,6 +271,33 @@ static bool32 IsRecordedBattleSaveValid(struct RecordedBattleSave *save)
     return TRUE;
 }
 
+static void NormalizeRecordedBattlePartnerId(struct RecordedBattleSave *save)
+{
+    if (!(save->battleFlags & BATTLE_TYPE_INGAME_PARTNER))
+        return;
+    if (save->partnerId < RECORDED_BATTLE_LEGACY_PARTNER_BASE
+     || save->partnerId >= RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_COUNT)
+        return;
+
+    save->partnerId = TRAINER_PARTNER(save->partnerId - RECORDED_BATTLE_LEGACY_PARTNER_BASE);
+}
+
+static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *save)
+{
+    if (!IsRecordedBattleSaveValid(save))
+        return FALSE;
+
+    NormalizeRecordedBattlePartnerId(save);
+    return TRUE;
+}
+
+#if TESTING
+bool32 RecordedBattle_TestValidateAndNormalizeSave(struct RecordedBattleSave *save)
+{
+    return ValidateAndNormalizeRecordedBattleSave(save);
+}
+#endif
+
 static bool32 RecordedBattleToSave(struct RecordedBattleSave *battleSave, struct RecordedBattleSave *saveSector)
 {
     memset(saveSector, 0, SECTOR_SIZE);
@@ -448,7 +476,7 @@ static bool32 TryCopyRecordedBattleSaveData(struct RecordedBattleSave *dst, stru
 
     memcpy(dst, saveBuffer, sizeof(struct RecordedBattleSave));
 
-    if (!IsRecordedBattleSaveValid(dst))
+    if (!ValidateAndNormalizeRecordedBattleSave(dst))
         return FALSE;
 
     return TRUE;

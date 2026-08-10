@@ -25,7 +25,7 @@ PokemonMansion_2F_EventScript_DiaryJuly10th::
 	end
 
 PokemonMansion_2F_EventScript_Arnie::
-	trainerbattle_single TRAINER_BURGLAR_ARNIE, PokemonMansion_1F_Text_ArnieIntro, PokemonMansion_1F_Text_ArnieDefeat
+	trainerbattle_single TRAINER_FRLG_BURGLAR_ARNIE, PokemonMansion_1F_Text_ArnieIntro, PokemonMansion_1F_Text_ArnieDefeat
 	msgbox PokemonMansion_1F_Text_ArniePostBattle, MSGBOX_AUTOCLOSE
 	end
 

@@ -46,6 +46,10 @@ NON_PERSISTENT_CONFIG_BINDINGS = frozenset(
         "FLAG_DEBUG_NO_WILD_ENCOUNTERS",
     )
 )
+# Live post-baseline trainer identities are owned by persistent_ids.json. The
+# save contract retains the colliding pre-ledger TRAINER_* spellings as frozen
+# tombstone evidence instead of silently rewriting that historical projection.
+LEDGER_ONLY_TRAINER_BINDINGS = frozenset(("TRAINER_YOUNGSTER_SAMUEL_JOHTO",))
 ABI_PURPOSES = ("normal", "debug", "release", "test-runner", "headless-test")
 ROOT_TYPES = (
     "SaveBlock1",
@@ -821,7 +825,15 @@ def _bindings(values: dict[str, int]) -> dict[str, list[dict[str, Any]]]:
         entries = [
             {"symbol": name, "value": value}
             for name, value in values.items()
-            if name.startswith(prefixes) and name not in NON_PERSISTENT_CONFIG_BINDINGS
+            if name.startswith(prefixes)
+            and name not in NON_PERSISTENT_CONFIG_BINDINGS
+            and not (
+                domain == "trainerIds"
+                and (
+                    name.startswith("TRAINER_FRLG_")
+                    or name in LEDGER_ONLY_TRAINER_BINDINGS
+                )
+            )
         ]
         result[domain] = sorted(
             entries, key=lambda item: (item["value"], item["symbol"])

@@ -24,7 +24,7 @@ $(PERSISTENT_ID_OUTPUTS) &: $(PERSISTENT_ID_LEDGER) $(PERSISTENT_ID_SOURCES) \
 		$(PERSISTENT_ID_PUBLICATIONS) \
 		tools/integrity/save_contract.json $(PERSISTENT_ID_GENERATOR) \
 		$(PERSISTENT_HEAL_SOURCE) $(PERSISTENT_LOCATION_SOURCE) $(PERSISTENT_FACILITY_SOURCE) \
-		include/constants/opponents.h include/constants/trainers.h include/constants/trainer_hill.h \
+		include/constants/opponents.h include/constants/opponents_frlg.h include/constants/trainers.h include/constants/trainer_hill.h \
 		include/constants/flags.h include/constants/vars.h include/constants/vars_frlg.h \
 		include/constants/game_stat.h include/constants/maps.h include/config/item.h | $(MAP_GENERATION_STAMP)
 	python3 -m tools.persistence.ledger generate --output-root $(GENERATED_ROOT)

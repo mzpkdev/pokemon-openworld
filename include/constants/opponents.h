@@ -860,20 +860,11 @@
 #define TRAINER_BRENDAN_PLACEHOLDER         853
 #define TRAINER_MAY_PLACEHOLDER             854
 
-// NOTE: Because each Trainer uses a flag to determine when they are defeated, there is only space for 9 additional trainers before trainer flag space overflows
-//       More space can be made by shifting flags around in constants/flags.h or changing how trainer flags are handled
-//       MAX_TRAINERS_COUNT can be increased but will take up additional saveblock space
-
 #define TRAINERS_COUNT_EMERALD     858
 #define MAX_TRAINERS_COUNT_EMERALD 864
 
-#if IS_FRLG
-#define TRAINERS_COUNT                      TRAINERS_COUNT_FRLG
-#define MAX_TRAINERS_COUNT                  MAX_TRAINERS_COUNT_FRLG
-#else
-#define TRAINERS_COUNT                      TRAINERS_COUNT_EMERALD
-#define MAX_TRAINERS_COUNT                  MAX_TRAINERS_COUNT_EMERALD
-#endif
+#define TRAINERS_COUNT                      1482
+#define MAX_TRAINERS_COUNT                  1536
 #define TRAINER_PARTNER(partner)           (MAX_TRAINERS_COUNT + partner)
 
 // JOHTO IMPORT BEGIN: rival opponents
@@ -881,6 +872,9 @@
 #define TRAINER_RIVAL_CYNDAQUIL_1 856
 #define TRAINER_RIVAL_TOTODILE_1 857
 // JOHTO IMPORT END: rival opponents
+
+// Reserved identity only. Phase 4 owns Samuel's presentation, party, script, and map content.
+#define TRAINER_YOUNGSTER_SAMUEL_JOHTO 1481
 
 #include "constants/persistent_opponents.inc.h"
 

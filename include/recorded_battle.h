@@ -7,6 +7,9 @@
 
 #define BATTLER_RECORD_SIZE 388
 
+// Frozen partner-namespace base serialized by historical recorded battles.
+#define RECORDED_BATTLE_LEGACY_PARTNER_BASE 864
+
 struct RecordedBattleSave
 {
     struct Pokemon parties[MAX_BATTLE_TRAINERS][PARTY_SIZE];
@@ -91,5 +94,9 @@ u8 GetRecordedBattleRecordMixFriendLanguage(void);
 u8 GetRecordedBattleApprenticeLanguage(void);
 void RecordedBattle_SaveBattleOutcome(void);
 u16 *GetRecordedBattleEasyChatSpeech(void);
+
+#if TESTING
+bool32 RecordedBattle_TestValidateAndNormalizeSave(struct RecordedBattleSave *save);
+#endif
 
 #endif // GUARD_RECORDED_BATTLE_H

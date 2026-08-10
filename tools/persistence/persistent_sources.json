@@ -11,6 +11,8 @@
     {"id": "contract-trade-state", "kind": "frozen-contract", "contractDomain": "tradeState", "domains": ["tradeState"], "storage": "u8-id"},
     {"id": "contract-trainer-ids", "kind": "frozen-contract", "contractDomain": "trainerIds", "domains": ["trainerIds"], "storage": "u32-id"},
     {"id": "contract-vars", "kind": "frozen-contract", "contractDomain": "vars", "domains": ["vars"], "storage": "u16-id"},
+    {"id": "frlg-trainer-identities", "kind": "explicit-source", "path": "include/constants/opponents_frlg.h", "domains": ["trainerIds"], "storage": "u32-id"},
+    {"id": "johto-trainer-identities", "kind": "explicit-source", "path": "include/constants/opponents.h", "domains": ["trainerIds"], "storage": "u32-id"},
     {"id": "heal-locations", "kind": "json-symbol-list", "path": "src/data/heal_locations.json", "listKey": "heal_locations", "symbolField": "id", "noneSymbol": "HEAL_LOCATION_NONE", "domains": ["checkpoints"], "storage": "heal-location-id"},
     {"id": "battle-frontier-facilities", "kind": "explicit-source", "path": "include/constants/battle_frontier.h", "domains": ["facilities"], "storage": "u8-id"},
     {"id": "berry-trees", "kind": "explicit-source", "path": "include/constants/berry.h", "domains": ["berryTrees"], "storage": "u8-id"}
@@ -61,10 +63,26 @@
     {"domain": "vars", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Var(?:Get|Set)\\(\\s*(?P<symbol>VAR_[A-Za-z0-9_]+)", "^\\s*(?:setvar|addvar|subvar|copyvar|copyvarifnotzero|setorcopyvar|specialvar)\\s+(?P<symbol>VAR_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["VAR_"]}}
   ],
   "locationCodecs": {"path": "src/data/region_map/region_map_sections.json", "consumerFacade": "src/data/persistence/location_codecs.inc.c"},
+  "trainerIdentityProjection": {
+    "legacyPath": "include/constants/opponents_frlg.h",
+    "legacyIdRange": [1, 623],
+    "legacySymbolPrefix": "TRAINER_",
+    "liveSymbolPrefix": "TRAINER_FRLG_",
+    "liveValueOffset": 857,
+    "liveSource": "frlg-trainer-identities",
+    "additional": [
+      {"source": "johto-trainer-identities", "symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481}
+    ]
+  },
   "trainerDefeat": {
-    "count": 858,
+    "count": 1482,
     "publishedCount": 858,
     "flagBase": 1280,
+    "bitmapStorage": {
+      "firstTrainerId": 858,
+      "bitCount": 624,
+      "byteCount": 78
+    },
     "flagStorage": {
       "persistent": [32, 2335],
       "transient": [0, 31],

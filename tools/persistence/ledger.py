@@ -81,6 +81,111 @@ def _entry(
     }
 
 
+def _trainer_identity_projection(
+    contract: dict[str, Any], sources: dict[str, Any], repo: Path
+) -> dict[str, list[dict[str, Any]]]:
+    """Project frozen FRLG collisions into distinct live runtime identities."""
+    config = sources.get("trainerIdentityProjection")
+    required = {
+        "additional",
+        "legacyIdRange",
+        "legacyPath",
+        "legacySymbolPrefix",
+        "liveSource",
+        "liveSymbolPrefix",
+        "liveValueOffset",
+    }
+    if not isinstance(config, dict) or set(config) != required:
+        raise ContractError("$.trainerIdentityProjection: malformed projection")
+    bounds = config["legacyIdRange"]
+    if (
+        not isinstance(bounds, list)
+        or len(bounds) != 2
+        or not all(isinstance(value, int) for value in bounds)
+        or bounds[0] > bounds[1]
+    ):
+        raise ContractError("$.trainerIdentityProjection.legacyIdRange: invalid")
+    for key in (
+        "legacyPath",
+        "legacySymbolPrefix",
+        "liveSource",
+        "liveSymbolPrefix",
+    ):
+        if not isinstance(config[key], str) or not config[key]:
+            raise ContractError(f"$.trainerIdentityProjection.{key}: invalid")
+    if not isinstance(config["liveValueOffset"], int):
+        raise ContractError("$.trainerIdentityProjection.liveValueOffset: invalid")
+
+    text = (repo / config["legacyPath"]).read_text(encoding="utf-8")
+    macros = [
+        (symbol, int(value, 0))
+        for symbol, value in re.findall(
+            r"^#define\s+(TRAINER_[A-Za-z0-9_]+)\s+"
+            r"(0[xX][0-9A-Fa-f]+|[0-9]+)\s*(?://[^\r\n]*)?$",
+            text,
+            re.MULTILINE,
+        )
+    ]
+    legacy_by_value: dict[int, str] = {}
+    for symbol, value in macros:
+        if (
+            symbol.startswith(config["legacySymbolPrefix"])
+            and not symbol.startswith(config["liveSymbolPrefix"])
+            and bounds[0] <= value <= bounds[1]
+        ):
+            previous = legacy_by_value.setdefault(value, symbol)
+            if previous != symbol:
+                raise ContractError(
+                    f"trainer tombstone {value}: duplicate symbols {previous}, {symbol}"
+                )
+    expected_values = set(range(bounds[0], bounds[1] + 1))
+    if set(legacy_by_value) != expected_values:
+        missing = sorted(expected_values - set(legacy_by_value))[:10]
+        raise ContractError(f"trainer tombstone projection is incomplete: {missing}")
+
+    frozen = {
+        (item["symbol"], item["value"])
+        for item in contract["publishedBindings"]["trainerIds"]
+    }
+    tombstones = []
+    live = []
+    for legacy_value in range(bounds[0], bounds[1] + 1):
+        legacy_symbol = legacy_by_value[legacy_value]
+        if (legacy_symbol, legacy_value) not in frozen:
+            raise ContractError(
+                f"trainer tombstone is absent from frozen evidence: {legacy_symbol}"
+            )
+        suffix = legacy_symbol.removeprefix(config["legacySymbolPrefix"])
+        live_value = legacy_value + config["liveValueOffset"]
+        tombstones.append({"symbol": legacy_symbol, "value": legacy_value})
+        live.append(
+            {
+                "source": config["liveSource"],
+                "symbol": config["liveSymbolPrefix"] + suffix,
+                "value": live_value,
+            }
+        )
+
+    additional = config["additional"]
+    if not isinstance(additional, list) or not additional:
+        raise ContractError("$.trainerIdentityProjection.additional: expected list")
+    for index, item in enumerate(additional):
+        if not isinstance(item, dict) or set(item) != {"source", "symbol", "value"}:
+            raise ContractError(
+                f"$.trainerIdentityProjection.additional[{index}]: invalid"
+            )
+        if (
+            not isinstance(item["source"], str)
+            or not isinstance(item["symbol"], str)
+            or not isinstance(item["value"], int)
+        ):
+            raise ContractError(
+                f"$.trainerIdentityProjection.additional[{index}]: invalid"
+            )
+        live.append(dict(item))
+    return {"live": live, "tombstones": tombstones}
+
+
 def seed_ledger(
     contract: dict[str, Any], sources: dict[str, Any], repo: Path
 ) -> dict[str, Any]:
@@ -98,7 +203,7 @@ def seed_ledger(
             state: dict[str, Any] = {"kind": "published-binding"}
             if (
                 domain == "trainerIds"
-                and 0 <= value < sources["trainerDefeat"]["count"]
+                and 0 <= value < sources["trainerDefeat"]["publishedCount"]
             ):
                 state = {
                     "kind": "trainer-defeat-flag",
@@ -143,6 +248,39 @@ def seed_ledger(
                 source["storage"],
                 {"kind": "allocated-binding"},
                 allocation["source"],
+            )
+        )
+
+    projection = _trainer_identity_projection(contract, sources, repo)
+    tombstone_keys = {
+        (item["symbol"], item["value"]) for item in projection["tombstones"]
+    }
+    projected = set()
+    for item in entries:
+        key = (item["symbol"], item["value"])
+        if item["domain"] == "trainerIds" and key in tombstone_keys:
+            item["state"] = {"kind": "published-tombstone"}
+            projected.add(key)
+    if projected != tombstone_keys:
+        missing = sorted(tombstone_keys - projected)[:10]
+        raise ContractError(f"frozen trainer tombstones are missing: {missing}")
+    source_by_id = _source_index(sources)
+    bitmap_first = sources["trainerDefeat"]["bitmapStorage"]["firstTrainerId"]
+    for item in projection["live"]:
+        source = source_by_id.get(item["source"])
+        if source is None:
+            raise ContractError(f"trainer identity source is missing: {item['source']}")
+        entries.append(
+            _entry(
+                "trainerIds",
+                item["symbol"],
+                item["value"],
+                source["storage"],
+                {
+                    "bitIndex": item["value"] - bitmap_first,
+                    "kind": "trainer-defeat-bitmap",
+                },
+                item["source"],
             )
         )
 
@@ -222,10 +360,14 @@ def _published_allocation_entries(
     if not isinstance(entries, list) or not entries:
         raise ContractError(f"{pointer}.entries: expected a nonempty list")
     required = {"domain", "source", "storage", "symbol", "value"}
+    bitmap_required = required | {"physicalBinding"}
     seen: set[tuple[str, str]] = set()
     for index, item in enumerate(entries):
         path = f"{pointer}.entries[{index}]"
-        if not isinstance(item, dict) or set(item) != required:
+        if not isinstance(item, dict) or set(item) not in (
+            required,
+            bitmap_required,
+        ):
             raise ContractError(f"{path}: invalid published allocation fields")
         for field in ("domain", "source", "storage"):
             value = item[field]
@@ -238,6 +380,18 @@ def _published_allocation_entries(
             raise ContractError(f"{path}.symbol: invalid C symbol")
         if isinstance(item["value"], bool) or not isinstance(item["value"], int):
             raise ContractError(f"{path}.value: expected integer")
+        physical = item.get("physicalBinding")
+        if physical is not None:
+            if (
+                item["domain"] != "trainerIds"
+                or not isinstance(physical, dict)
+                or set(physical) != {"bitIndex", "kind"}
+                or physical.get("kind") != "trainer-defeat-bitmap"
+                or isinstance(physical.get("bitIndex"), bool)
+                or not isinstance(physical.get("bitIndex"), int)
+                or physical["bitIndex"] < 0
+            ):
+                raise ContractError(f"{path}.physicalBinding: invalid bitmap binding")
         identity = (item["domain"], symbol)
         if identity in seen:
             raise ContractError(f"{path}: duplicate published allocation {identity}")
@@ -247,11 +401,19 @@ def _published_allocation_entries(
 
 def _allocated_projection(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     fields = ("domain", "source", "storage", "symbol", "value")
-    return [
-        {field: item[field] for field in fields}
-        for item in entries
-        if item["state"]["kind"] == "allocated-binding"
-    ]
+    projection = []
+    for item in entries:
+        kind = item["state"]["kind"]
+        if kind not in {"allocated-binding", "trainer-defeat-bitmap"}:
+            continue
+        published = {field: item[field] for field in fields}
+        if kind == "trainer-defeat-bitmap":
+            published["physicalBinding"] = {
+                "bitIndex": item["state"]["bitIndex"],
+                "kind": kind,
+            }
+        projection.append(published)
+    return projection
 
 
 def validate_published_allocations(
@@ -503,14 +665,18 @@ def validate_ledger(
         state = item["state"]
         if not isinstance(state, dict) or state.get("kind") not in {
             "published-binding",
+            "published-tombstone",
             "allocated-binding",
+            "trainer-defeat-bitmap",
             "trainer-defeat-flag",
             "trainer-defeat-variable-bit",
         }:
             raise ContractError(f"{path}.state: invalid state ownership")
         expected_state_fields = {
             "published-binding": {"kind"},
+            "published-tombstone": {"kind"},
             "allocated-binding": {"kind"},
+            "trainer-defeat-bitmap": {"bitIndex", "kind"},
             "trainer-defeat-flag": {"kind", "value"},
             "trainer-defeat-variable-bit": {"bit", "kind", "value"},
         }[state["kind"]]
@@ -520,6 +686,8 @@ def validate_ledger(
             raise ContractError(
                 f"{path}.state: trainer defeat binding outside trainerIds"
             )
+        if state["kind"] == "published-tombstone" and domain != "trainerIds":
+            raise ContractError(f"{path}.state: tombstone outside trainerIds")
         by_key[(domain, item["storage"], value)].append(item)
         by_symbol[(domain, item["storage"], symbol)] = item
 
@@ -543,6 +711,7 @@ def validate_ledger(
             if alias["owner"] not in source_by_id:
                 raise ContractError(f"{item['symbol']}: unallocated alias owner")
 
+    validate_trainer_identity_projection(entries, contract, sources, repo)
     _trainer_bindings(entries, sources["trainerDefeat"])
     validate_frozen_bindings(entries, contract)
     validate_published_allocations(entries, published_allocations)
@@ -579,6 +748,38 @@ def validate_ledger(
     validate_consumer_references(entries, sources.get("consumerSchemas"), repo)
 
 
+def validate_trainer_identity_projection(
+    entries: list[dict[str, Any]],
+    contract: dict[str, Any],
+    sources: dict[str, Any],
+    repo: Path,
+) -> None:
+    projection = _trainer_identity_projection(contract, sources, repo)
+    expected_tombstones = {
+        (item["symbol"], item["value"]) for item in projection["tombstones"]
+    }
+    actual_tombstones = {
+        (item["symbol"], item["value"])
+        for item in entries
+        if item["domain"] == "trainerIds"
+        and item["state"]["kind"] == "published-tombstone"
+    }
+    if actual_tombstones != expected_tombstones:
+        raise ContractError("trainer tombstone projection moved/deleted")
+
+    expected_live = {
+        (item["source"], item["symbol"]): item["value"] for item in projection["live"]
+    }
+    actual_live = {
+        (item["source"], item["symbol"]): item["value"]
+        for item in entries
+        if item["domain"] == "trainerIds"
+        and item["state"]["kind"] == "trainer-defeat-bitmap"
+    }
+    if actual_live != expected_live:
+        raise ContractError("live trainer identity projection moved/deleted")
+
+
 def validate_location_codecs(codecs: Any, sources: dict[str, Any], repo: Path) -> None:
     expected = _read_location_codecs(repo / sources["locationCodecs"]["path"])
     if codecs != expected:
@@ -597,7 +798,21 @@ def validate_consumer_references(
         raise ContractError(
             "$.consumerSchemas: every persisted domain needs exactly one schema"
         )
-    allocated = {(item["domain"], item["symbol"]) for item in entries}
+    allocated = {
+        (item["domain"], item["symbol"]): item["state"]["kind"] for item in entries
+    }
+
+    def validate_reference(domain: str, symbol: str, path: Path) -> None:
+        state = allocated.get((domain, symbol))
+        if state is None:
+            raise ContractError(
+                f"{path}: unallocated {domain} consumer reference {symbol}"
+            )
+        if domain == "trainerIds" and state == "published-tombstone":
+            raise ContractError(
+                f"{path}: tombstoned trainerIds consumer reference {symbol}"
+            )
+
     for schema in schemas:
         domain = schema["domain"]
         paths = schema.get("paths")
@@ -621,10 +836,7 @@ def validate_consumer_references(
                 for pattern in patterns:
                     for match in re.finditer(pattern, text, re.MULTILINE):
                         symbol = match.group("symbol")
-                        if (domain, symbol) not in allocated:
-                            raise ContractError(
-                                f"{path}: unallocated {domain} consumer reference {symbol}"
-                            )
+                        validate_reference(domain, symbol, path)
         script = schema.get("scriptTokens")
         if script is not None:
             script_paths = script.get("paths")
@@ -672,10 +884,7 @@ def validate_consumer_references(
                     for symbol in token_re.findall(executable):
                         if symbol in excluded or symbol.startswith(excluded_prefixes):
                             continue
-                        if (domain, symbol) not in allocated:
-                            raise ContractError(
-                                f"{path}: unallocated {domain} script reference {symbol}"
-                            )
+                        validate_reference(domain, symbol, path)
 
 
 def validate_frozen_bindings(
@@ -685,7 +894,8 @@ def validate_frozen_bindings(
     published = {
         (item["domain"], item["symbol"]): item["value"]
         for item in entries
-        if item["state"]["kind"] in {"published-binding", "trainer-defeat-flag"}
+        if item["state"]["kind"]
+        in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
     }
     frozen = {
         (domain, item["symbol"]): item["value"]
@@ -705,6 +915,7 @@ def validate_frozen_bindings(
 
 def _validate_trainer_storage_policy(policy: Any) -> None:
     if not isinstance(policy, dict) or set(policy) != {
+        "bitmapStorage",
         "count",
         "flagBase",
         "flagStorage",
@@ -735,6 +946,22 @@ def _validate_trainer_storage_policy(policy: Any) -> None:
         "transient",
     }:
         raise ContractError("$.trainerDefeat.variableBitStorage: malformed policy")
+    bitmap = policy["bitmapStorage"]
+    if not isinstance(bitmap, dict) or set(bitmap) != {
+        "bitCount",
+        "byteCount",
+        "firstTrainerId",
+    }:
+        raise ContractError("$.trainerDefeat.bitmapStorage: malformed policy")
+    if not all(isinstance(bitmap[key], int) for key in bitmap):
+        raise ContractError("$.trainerDefeat.bitmapStorage: values must be integers")
+    if (
+        bitmap["bitCount"] <= 0
+        or bitmap["byteCount"] != (bitmap["bitCount"] + 7) // 8
+        or bitmap["firstTrainerId"] != policy["publishedCount"]
+        or policy["count"] != bitmap["firstTrainerId"] + bitmap["bitCount"]
+    ):
+        raise ContractError("$.trainerDefeat.bitmapStorage: inconsistent bounds")
 
 
 def _in_range(value: int, bounds: Any) -> bool:
@@ -750,6 +977,16 @@ def _validate_trainer_binding(
     trainer_id: int, state: dict[str, Any], policy: dict[str, Any]
 ) -> tuple[str, int, int]:
     kind = state["kind"]
+    if kind == "trainer-defeat-bitmap":
+        config = policy["bitmapStorage"]
+        bit_index = state["bitIndex"]
+        expected = trainer_id - config["firstTrainerId"]
+        if not isinstance(bit_index, int) or not 0 <= bit_index < config["bitCount"]:
+            raise ContractError(f"trainer {trainer_id}: out-of-range bitmap bit")
+        if bit_index != expected:
+            raise ContractError(f"trainer {trainer_id}: moved bitmap binding")
+        return ("bitmap", bit_index // 8, bit_index % 8)
+
     value = state["value"]
     if not isinstance(value, int):
         raise ContractError(f"trainer {trainer_id}: binding value must be an integer")
@@ -793,6 +1030,7 @@ def _trainer_bindings(
     for item in entries:
         state = item["state"]
         if item["domain"] == "trainerIds" and state["kind"] in {
+            "trainer-defeat-bitmap",
             "trainer-defeat-flag",
             "trainer-defeat-variable-bit",
         }:
@@ -821,6 +1059,8 @@ def _trainer_bindings(
 
     external_owners = _external_trainer_storage_owners(entries)
     for trainer_id, (kind, value, _bit) in values.items():
+        if kind == "bitmap":
+            continue
         owner = external_owners[kind].get(value)
         if owner is not None:
             raise ContractError(
@@ -833,6 +1073,12 @@ def _trainer_bindings(
         expected = ("flag", flag_base + trainer_id, 0)
         if values.get(trainer_id) != expected:
             raise ContractError(f"trainer {trainer_id}: published defeat binding moved")
+    bitmap = policy["bitmapStorage"]
+    for trainer_id in range(bitmap["firstTrainerId"], count):
+        bit_index = trainer_id - bitmap["firstTrainerId"]
+        expected = ("bitmap", bit_index // 8, bit_index % 8)
+        if values.get(trainer_id) != expected:
+            raise ContractError(f"trainer {trainer_id}: bitmap defeat binding moved")
     return [values[index] for index in range(count)]
 
 
@@ -881,11 +1127,11 @@ def render(ledger: dict[str, Any], sources: dict[str, Any], output_root: Path) -
         "{",
     ]
     for index, (kind, value, bit) in enumerate(bindings):
-        storage = (
-            "TRAINER_DEFEAT_STORAGE_FLAG"
-            if kind == "flag"
-            else "TRAINER_DEFEAT_STORAGE_VARIABLE_BIT"
-        )
+        storage = {
+            "bitmap": "TRAINER_DEFEAT_STORAGE_BITMAP",
+            "flag": "TRAINER_DEFEAT_STORAGE_FLAG",
+            "variable-bit": "TRAINER_DEFEAT_STORAGE_VARIABLE_BIT",
+        }[kind]
         typed_table.append(
             f"    [{index}] = {{.id = 0x{value:04X}, .storage = {storage}, .bit = {bit}}},"
         )
@@ -997,7 +1243,13 @@ def render(ledger: dict[str, Any], sources: dict[str, Any], output_root: Path) -
         ),
         "persistent_opponents.inc.h": (
             "trainerIds",
-            defined_symbols("include/constants/opponents.h", "TRAINER_"),
+            defined_symbols(
+                (
+                    "include/constants/opponents.h",
+                    "include/constants/opponents_frlg.h",
+                ),
+                "TRAINER_",
+            ),
         ),
         "persistent_trainer_special.inc.h": (
             "trainerIds",
