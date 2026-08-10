@@ -14,6 +14,7 @@ from typing import Any, Callable, Iterable, Mapping, Protocol
 from .descriptor import PortDescriptor
 from .errors import ContentPortError
 from .model import ResourceKey
+from .ownership import safe_repo_path
 
 
 @dataclass(frozen=True, order=True)
@@ -137,17 +138,53 @@ def _c_list(text: str, field: str, prefix: str) -> list[str]:
     return re.findall(rf"\b{re.escape(prefix)}[A-Z0-9_]+\b", match.group(1))
 
 
-def _add_native_leaf(
-    records: dict[ResourceKey, SourceRecord],
+def _index_native_declarations(
+    records: dict[ResourceKey, SourceRecord], root: Path
+) -> None:
+    declarations = {
+        root / "include/constants/species.h": (("species", "SPECIES_"),),
+        root / "include/constants/moves.h": (("move", "MOVE_"),),
+        root / "include/constants/items.h": (("item", "ITEM_"),),
+        root / "include/constants/trainers.h": (
+            ("trainer-class", "TRAINER_CLASS_"),
+            ("asset", "TRAINER_PIC_"),
+            ("asset", "TRAINER_ENCOUNTER_MUSIC_"),
+        ),
+    }
+    for path, domains in declarations.items():
+        if not path.is_file():
+            continue
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(), 1
+        ):
+            match = re.match(
+                r"^\s*(?:#\s*define\s+)?([A-Z][A-Z0-9_]+)\s*(?:=|,|\s)",
+                line,
+            )
+            if match is None:
+                continue
+            symbol = match.group(1)
+            for domain, prefix in domains:
+                if symbol.startswith(prefix):
+                    records.setdefault(
+                        ResourceKey(domain, symbol),
+                        SourceRecord(
+                            {}, Provenance(path.as_posix(), f":{line_number}")
+                        ),
+                    )
+
+
+def _require_native_leaf(
+    records: Mapping[ResourceKey, SourceRecord],
     domain: str,
     name: str,
-    path: Path,
-    match: re.Match[str],
+    source: Path,
+    pointer: str,
 ) -> None:
-    records.setdefault(
-        ResourceKey(domain, name),
-        SourceRecord({}, Provenance(path.as_posix(), f":{match.start()}")),
-    )
+    if ResourceKey(domain, name) not in records:
+        raise ContentPortError(
+            f"{source}{pointer}: {domain} symbol {name} has no authenticated declaration"
+        )
 
 
 class SourceContext:
@@ -220,6 +257,7 @@ class ExpansionSourceContext(SourceContext):
         root = Path(donor_root)
         records: dict[ResourceKey, SourceRecord] = {}
         aliases: dict[ResourceKey, ResourceKey] = {}
+        _index_native_declarations(records, root)
 
         maps_root = root / "data/maps"
         for path in sorted(maps_root.glob("*/map.json")):
@@ -301,11 +339,21 @@ class ExpansionSourceContext(SourceContext):
                             "moves": moves,
                         }
                     )
-                    _add_native_leaf(records, "species", species, party_path, match)
+                    _require_native_leaf(
+                        records, "species", species, party_path, f":{match.start()}"
+                    )
                     if held_item is not None:
-                        _add_native_leaf(records, "item", held_item, party_path, match)
+                        _require_native_leaf(
+                            records,
+                            "item",
+                            held_item,
+                            party_path,
+                            f":{match.start()}",
+                        )
                     for move in moves:
-                        _add_native_leaf(records, "move", move, party_path, match)
+                        _require_native_leaf(
+                            records, "move", move, party_path, f":{match.start()}"
+                        )
                 records[ResourceKey("party", match.group(1))] = SourceRecord(
                     {"members": members},
                     Provenance(party_path.as_posix(), f":{match.start()}"),
@@ -329,13 +377,25 @@ class ExpansionSourceContext(SourceContext):
                 items = _c_list(block, "items", "ITEM_")
                 for asset in (trainer_pic, encounter_music):
                     if asset is not None:
-                        _add_native_leaf(records, "asset", asset, trainer_path, match)
+                        _require_native_leaf(
+                            records,
+                            "asset",
+                            asset,
+                            trainer_path,
+                            f":{match.start()}",
+                        )
                 if trainer_class is not None:
-                    _add_native_leaf(
-                        records, "trainer-class", trainer_class, trainer_path, match
+                    _require_native_leaf(
+                        records,
+                        "trainer-class",
+                        trainer_class,
+                        trainer_path,
+                        f":{match.start()}",
                     )
                 for item in items:
-                    _add_native_leaf(records, "item", item, trainer_path, match)
+                    _require_native_leaf(
+                        records, "item", item, trainer_path, f":{match.start()}"
+                    )
                 records[ResourceKey("trainer", match.group(1))] = SourceRecord(
                     {
                         "parties": parties,
@@ -375,15 +435,12 @@ class ExpansionSourceContext(SourceContext):
                             }
                         )
                         for symbol in species:
-                            records.setdefault(
-                                ResourceKey("species", symbol),
-                                SourceRecord(
-                                    {},
-                                    Provenance(
-                                        encounters_path.as_posix(),
-                                        f"/{name}/{index}/species",
-                                    ),
-                                ),
+                            _require_native_leaf(
+                                records,
+                                "species",
+                                symbol,
+                                encounters_path,
+                                f"/{name}/{index}/species",
                             )
                         records[ResourceKey("encounter", name)] = SourceRecord(
                             {"maps": [map_name], "species": species},
@@ -553,45 +610,47 @@ def extract_map_edges(
                     role="warp",
                 )
             )
-    if not context.supports("events", key):
+    if not context.supports("events", key) and not context.supports("trainers", key):
         return tuple(edge for edge in candidates if edge is not None)
     for collection in ("object_events", "coord_events", "bg_events"):
         for index, event in enumerate(_array(record, collection)):
             if not isinstance(event, Mapping):
                 continue
-            candidates.append(
-                _edge(
-                    key,
-                    "service",
-                    event.get("script"),
-                    record,
-                    f"/{collection}/{index}/script",
-                    role="event",
-                )
-            )
-            candidates.append(
-                _edge(
-                    key,
-                    "trainer",
-                    event.get("trainer"),
-                    record,
-                    f"/{collection}/{index}/trainer",
-                    role="trainer",
-                )
-            )
-            for field_name, prefix in (("flag", "FLAG_"), ("var", "VAR_")):
-                symbol = event.get(field_name)
-                if isinstance(symbol, str) and symbol.startswith(prefix):
-                    candidates.append(
-                        _edge(
-                            key,
-                            "binding",
-                            symbol,
-                            record,
-                            f"/{collection}/{index}/{field_name}",
-                            role="persistent",
-                        )
+            if context.supports("events", key):
+                candidates.append(
+                    _edge(
+                        key,
+                        "service",
+                        event.get("script"),
+                        record,
+                        f"/{collection}/{index}/script",
+                        role="event",
                     )
+                )
+                for field_name, prefix in (("flag", "FLAG_"), ("var", "VAR_")):
+                    symbol = event.get(field_name)
+                    if isinstance(symbol, str) and symbol.startswith(prefix):
+                        candidates.append(
+                            _edge(
+                                key,
+                                "binding",
+                                symbol,
+                                record,
+                                f"/{collection}/{index}/{field_name}",
+                                role="persistent",
+                            )
+                        )
+            if context.supports("trainers", key):
+                candidates.append(
+                    _edge(
+                        key,
+                        "trainer",
+                        event.get("trainer"),
+                        record,
+                        f"/{collection}/{index}/trainer",
+                        role="trainer",
+                    )
+                )
     return tuple(edge for edge in candidates if edge is not None)
 
 
@@ -1198,6 +1257,7 @@ def resolve_port_sources(
         load_event_policy,
         parse_scripts,
         validate_effects,
+        validate_event_policy_capabilities,
     )
     from .world_graph import WorldPolicy, validate_world_graph, world_graph_from_maps
 
@@ -1726,23 +1786,86 @@ def resolve_port_sources(
     enabled_by_map: dict[str, set[str]] = {}
     for decision in enabled:
         enabled_by_map.setdefault(decision.map_name, set()).add(decision.capability)
-    semantic_domains = ("trainer", "party", "encounter", "service")
-    for domain in semantic_domains:
-        source_records.update(
-            {
-                key: record
-                for key, record in content._records.items()
-                if key.domain == domain
-            }
-        )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
     explicit_dependencies = {
         dependency for decision in enabled for dependency in decision.dependencies
     }
-    for dependency in sorted(explicit_dependencies):
-        if dependency.domain != "binding":
+    event_capabilities = {
+        decision.capability for decision in descriptor.capabilities
+    } - {
+        "spatial",
+        "encounters",
+        "environment-assets",
+        "trainers",
+    }
+    semantic_domains = frozenset(
+        {
+            "trainer",
+            "party",
+            "encounter",
+            "service",
+            "species",
+            "move",
+            "item",
+            "trainer-class",
+            "asset",
+        }
+    )
+    pending_semantics: list[tuple[str, ResourceKey]] = []
+    binding_dependencies = {
+        dependency
+        for dependency in explicit_dependencies
+        if dependency.domain == "binding"
+    }
+    for decision in enabled:
+        role = "mechanical" if decision.map_name in fallback else "content"
+        pending_semantics.extend(
+            (role, dependency)
+            for dependency in decision.dependencies
+            if dependency.domain in semantic_domains
+        )
+        map_key = ResourceKey("map", decision.map_name)
+        active = enabled_by_map[decision.map_name]
+        map_capabilities = (
+            ({"encounters"} if "encounters" in active else set())
+            | ({"trainers"} if "trainers" in active else set())
+            | ({"events"} if active & event_capabilities else set())
+        )
+        gate = SourceContext(resource_capabilities={map_key: map_capabilities})
+        for edge in extract_map_edges(gate, map_key, source_records[map_key]):
+            if edge.target.domain in semantic_domains:
+                pending_semantics.append((role, edge.target))
+            elif edge.target.domain == "binding":
+                binding_dependencies.add(edge.target)
+
+    semantic_authorities: dict[ResourceKey, str] = {}
+    while pending_semantics:
+        role, dependency = pending_semantics.pop()
+        previous_role = semantic_authorities.get(dependency)
+        if previous_role is not None:
+            if previous_role != role:
+                raise ContentPortError(
+                    f"{dependency}: ambiguous semantic donor authority "
+                    f"{previous_role}/{role}"
+                )
             continue
+        try:
+            record = contexts[role].load(dependency)
+        except ContentPortError as error:
+            raise ContentPortError(
+                f"{dependency}: missing from {role} semantic authority"
+            ) from error
+        semantic_authorities[dependency] = role
+        source_records[dependency] = record
+        extractor = EXTRACTORS[dependency.domain]
+        for edge in extractor(contexts[role], dependency, record):
+            if edge.target.domain in semantic_domains:
+                pending_semantics.append((role, edge.target))
+            elif edge.target.domain == "binding":
+                binding_dependencies.add(edge.target)
+
+    for dependency in sorted(binding_dependencies):
         binding_domain = (
             "flags"
             if dependency.name.startswith("FLAG_")
@@ -1754,6 +1877,44 @@ def resolve_port_sources(
         source_records[dependency] = SourceRecord(
             {}, Provenance(ledger_path.as_posix(), f"/{dependency.name}")
         )
+    enabled_capability_names = {decision.capability for decision in enabled}
+    asset_policy_references: dict[str, list[str]] = {}
+    asset_records = descriptor.assets.get("assets")
+    if not isinstance(asset_records, tuple):
+        raise ContentPortError("asset policy requires an immutable assets array")
+    for index, raw_asset in enumerate(asset_records):
+        asset = _thaw(raw_asset)
+        if not isinstance(asset, dict):
+            raise ContentPortError(f"assets[{index}]: expected object")
+        capability = asset.get("capability")
+        role = asset.get("donor")
+        source_path = asset.get("sourcePath")
+        if capability not in enabled_capability_names:
+            continue
+        if not isinstance(role, str) or role not in donor_roots:
+            raise ContentPortError(f"assets[{index}]: unknown donor role {role!r}")
+        if not isinstance(source_path, str):
+            raise ContentPortError(f"assets[{index}]: invalid sourcePath")
+        path = safe_repo_path(donor_roots[role], source_path, allow_missing=False)
+        try:
+            payload = path.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"assets[{index}]: cannot read authenticated donor asset"
+            ) from error
+        digest = hashlib.sha256(payload).hexdigest()
+        if digest != asset.get("sourceSha256") or digest != asset.get("targetSha256"):
+            raise ContentPortError(f"assets[{index}]: donor asset hash drift")
+        qualified_name = f"{role}:{source_path}"
+        key = ResourceKey("asset", qualified_name)
+        previous = source_records.get(key)
+        record = SourceRecord({}, Provenance(path.as_posix(), f"/assets/{index}"))
+        if previous is not None and Path(previous.provenance.path) != path:
+            raise ContentPortError(
+                f"assets[{index}]: conflicting graph provenance for {qualified_name}"
+            )
+        source_records[key] = record
+        asset_policy_references.setdefault(str(capability), []).append(qualified_name)
     capability_roots: list[ResourceKey] = []
     for decision in enabled:
         key = ResourceKey("capability", f"{decision.map_name}/{decision.capability}")
@@ -1781,16 +1942,19 @@ def resolve_port_sources(
             ),
         )
         capability_roots.append(key)
-    event_capabilities = {
-        decision.capability for decision in descriptor.capabilities
-    } - {
-        "spatial",
-        "encounters",
-        "environment-assets",
-    }
+    asset_policy_keys: set[ResourceKey] = set()
+    for capability, names in sorted(asset_policy_references.items()):
+        key = ResourceKey("capability", f"asset-policy/{capability}")
+        source_records[key] = SourceRecord(
+            {"references": {"asset": sorted(names)}},
+            Provenance(descriptor.path.as_posix(), f"/assets/{capability}"),
+        )
+        capability_roots.append(key)
+        asset_policy_keys.update(ResourceKey("asset", name) for name in names)
     resource_capabilities = {
         ResourceKey("map", name): (
             ({"encounters"} if "encounters" in capabilities else set())
+            | ({"trainers"} if "trainers" in capabilities else set())
             | ({"events"} if capabilities & event_capabilities else set())
         )
         for name, capabilities in enabled_by_map.items()
@@ -1802,7 +1966,9 @@ def resolve_port_sources(
     enabled_spatial_maps = {
         decision.map_name for decision in enabled if decision.capability == "spatial"
     }
-    allowed: set[ResourceKey] = set(capability_roots) | explicit_dependencies
+    allowed: set[ResourceKey] = (
+        set(capability_roots) | explicit_dependencies | asset_policy_keys
+    )
     pending_explicit = list(explicit_dependencies)
     while pending_explicit:
         dependency = pending_explicit.pop()
@@ -1950,6 +2116,12 @@ def resolve_port_sources(
     )
 
     entries, effect_policy = load_event_policy(descriptor.path.parent / "events.json")
+    validate_event_policy_capabilities(
+        entries,
+        effect_policy,
+        descriptor.capabilities,
+        source=descriptor.path.parent / "events.json",
+    )
     enabled_capabilities = {decision.capability for decision in enabled}
     for entry in sorted(entries.values(), key=lambda item: item.name):
         if entry.capability not in enabled_capabilities:
@@ -2141,7 +2313,12 @@ def resolve_port_sources(
         ),
         donor_roots=MappingProxyType(dict(donor_roots)),
         resources=graph.resources,
-        inventory=MappingProxyType(dict(inventory_values)),
+        inventory=MappingProxyType(
+            {
+                **inventory_values,
+                "asset-policy": tuple(sorted(key.name for key in asset_policy_keys)),
+            }
+        ),
     )
     return contract, state
 

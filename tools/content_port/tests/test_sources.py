@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tools.content_port.errors import ContentPortError
-from tools.content_port.model import ResourceKey
+from tools.content_port.model import CapabilityState, ResourceKey
 from tools.content_port.descriptor import load_port
 from tools.content_port.sources import (
     ExpansionSourceContext,
@@ -188,6 +188,25 @@ class SourceGraphTests(unittest.TestCase):
             root = Path(directory)
             (root / "src/data").mkdir(parents=True)
             (root / "data/maps/Town").mkdir(parents=True)
+            (root / "include/constants").mkdir(parents=True)
+            declarations = {
+                "species.h": ["SPECIES_PIKACHU", "SPECIES_RATTATA"],
+                "moves.h": ["MOVE_THUNDERBOLT", "MOVE_QUICK_ATTACK"],
+                "items.h": ["ITEM_ORAN_BERRY", "ITEM_POTION"],
+                "trainers.h": [
+                    "TRAINER_CLASS_ACE",
+                    "TRAINER_PIC_ACE",
+                    "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1",
+                ],
+            }
+            for filename, symbols in declarations.items():
+                (root / "include/constants" / filename).write_text(
+                    "".join(
+                        f"#define {symbol} {index}\n"
+                        for index, symbol in enumerate(symbols)
+                    ),
+                    encoding="utf-8",
+                )
             (root / "src/data/trainer_parties.h").write_text(
                 """static const struct TrainerMonItemCustomMoves sParty_Test[] = {
     {.species = SPECIES_PIKACHU, .heldItem = ITEM_ORAN_BERRY,
@@ -266,6 +285,50 @@ class SourceGraphTests(unittest.TestCase):
             }
             self.assertTrue(expected <= set(graph.resources))
 
+            native_files = {
+                "species": (
+                    root / "src/data/trainer_parties.h",
+                    "SPECIES_PIKACHU",
+                    "SPECIES_NOT_DECLARED",
+                ),
+                "move": (
+                    root / "src/data/trainer_parties.h",
+                    "MOVE_THUNDERBOLT",
+                    "MOVE_NOT_DECLARED",
+                ),
+                "item": (
+                    root / "src/data/trainer_parties.h",
+                    "ITEM_ORAN_BERRY",
+                    "ITEM_NOT_DECLARED",
+                ),
+                "trainer-class": (
+                    root / "src/data/trainers.h",
+                    "TRAINER_CLASS_ACE",
+                    "TRAINER_CLASS_NOT_DECLARED",
+                ),
+                "portrait": (
+                    root / "src/data/trainers.h",
+                    "TRAINER_PIC_ACE",
+                    "TRAINER_PIC_NOT_DECLARED",
+                ),
+                "music": (
+                    root / "src/data/trainers.h",
+                    "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1",
+                    "TRAINER_ENCOUNTER_MUSIC_NOT_DECLARED",
+                ),
+            }
+            for label, (path, declared, missing) in native_files.items():
+                with self.subTest(native_leaf=label):
+                    original = path.read_text(encoding="utf-8")
+                    path.write_text(
+                        original.replace(declared, missing, 1), encoding="utf-8"
+                    )
+                    with self.assertRaisesRegex(
+                        ContentPortError, "no authenticated declaration"
+                    ):
+                        ExpansionSourceContext(root)
+                    path.write_text(original, encoding="utf-8")
+
             (root / "data/maps/Town/scripts.inc").write_text(
                 "Entry::\n call MissingService\n end\n", encoding="utf-8"
             )
@@ -302,6 +365,19 @@ class SourceGraphTests(unittest.TestCase):
         evidence, state = resolve_port_sources(descriptor, Path("."))
         self.assertEqual(evidence.inventory["maps"], 254)
         self.assertEqual(evidence.inventory["layouts"], 255)
+        expected_asset_policy = tuple(
+            sorted(
+                f"{item['donor']}:{item['sourcePath']}"
+                for item in descriptor.assets["assets"]
+            )
+        )
+        self.assertEqual(state.inventory["asset-policy"], expected_asset_policy)
+        self.assertTrue(
+            all(
+                ResourceKey("asset", identity) in state.resources
+                for identity in expected_asset_policy
+            )
+        )
         self.assertEqual(state.map_authorities["JohtoVictoryRoad_1F"], "mechanical")
         self.assertEqual(
             state.layout_authorities["LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"],
@@ -338,6 +414,79 @@ class SourceGraphTests(unittest.TestCase):
         with self.assertRaisesRegex(ContentPortError, "stale unreachable-shell"):
             validate_port_sources(
                 replace(descriptor, adaptations=adaptations), Path(".")
+            )
+
+    def test_real_trainer_capability_uses_map_authority_without_event_leakage(
+        self,
+    ) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        capabilities = tuple(
+            replace(
+                decision,
+                state=CapabilityState.ENABLED,
+                dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
+            )
+            if decision.map_name == "Route29" and decision.capability == "trainers"
+            else decision
+            for decision in descriptor.capabilities
+        )
+        _, state = resolve_port_sources(
+            replace(
+                descriptor,
+                capabilities=capabilities,
+                legacy_report=None,
+            ),
+            Path("."),
+        )
+        expected = {
+            ResourceKey("trainer", "TRAINER_SAWYER_1"),
+            ResourceKey("party", "sParty_Sawyer1"),
+            ResourceKey("species", "SPECIES_GEODUDE"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_HIKER"),
+            ResourceKey("asset", "TRAINER_PIC_HIKER"),
+        }
+        self.assertTrue(expected <= set(state.resources))
+        self.assertNotIn(ResourceKey("binding", "VAR_TEMP_0"), state.resources)
+
+        fallback_capabilities = tuple(
+            replace(
+                decision,
+                state=CapabilityState.ENABLED,
+                dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
+            )
+            if decision.map_name == "JohtoVictoryRoad_1F"
+            and decision.capability == "trainers"
+            else decision
+            for decision in descriptor.capabilities
+        )
+        with self.assertRaisesRegex(ContentPortError, "mechanical semantic authority"):
+            resolve_port_sources(
+                replace(
+                    descriptor,
+                    capabilities=fallback_capabilities,
+                    legacy_report=None,
+                ),
+                Path("."),
+            )
+
+        without_event_capability = tuple(
+            decision
+            for decision in descriptor.capabilities
+            if decision.capability != "interactions"
+        )
+        with self.assertRaisesRegex(ContentPortError, "unknown capability"):
+            resolve_port_sources(
+                replace(
+                    descriptor,
+                    capabilities=without_event_capability,
+                    legacy_report=None,
+                ),
+                Path("."),
             )
 
     def test_full_real_port_contract_rejects_cross_domain_mutations(self) -> None:

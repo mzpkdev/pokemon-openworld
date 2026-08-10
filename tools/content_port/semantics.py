@@ -10,9 +10,12 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Iterable, Mapping, Sequence
 
 from .errors import ContentPortError
+
+if TYPE_CHECKING:
+    from .model import CapabilityDecision
 
 
 LABEL_RE = re.compile(r"^\s*([A-Za-z_.$][A-Za-z0-9_.$]*)::?\s*(?:@.*)?$")
@@ -479,3 +482,39 @@ def load_event_policy(
             )
         policy[key] = owner
     return entries, policy
+
+
+def validate_event_policy_capabilities(
+    entries: Mapping[str, EventEntry],
+    policy: Mapping[EffectKey, str],
+    capabilities: Iterable[CapabilityDecision],
+    *,
+    source: Path | str,
+) -> None:
+    from .model import CapabilityState
+
+    capability_states: dict[str, set[CapabilityState]] = {}
+    for decision in capabilities:
+        capability_states.setdefault(decision.capability, set()).add(decision.state)
+    for entry in entries.values():
+        states = capability_states.get(entry.capability)
+        if states is None:
+            raise ContentPortError(
+                f"{source}: event {entry.name} names unknown capability "
+                f"{entry.capability!r}"
+            )
+        classification = CapabilityState.parse(
+            entry.classification, f"{source}: event {entry.name}.classification"
+        )
+        if classification not in states:
+            raise ContentPortError(
+                f"{source}: event {entry.name} classification "
+                f"{entry.classification!r} is stale for capability "
+                f"{entry.capability!r}"
+            )
+    allowed_effect_owners = set(capability_states) | {CapabilityState.STORY_OWNED.value}
+    unknown_effect_owners = sorted(set(policy.values()) - allowed_effect_owners)
+    if unknown_effect_owners:
+        raise ContentPortError(
+            f"{source}: effect policy names unknown owner {unknown_effect_owners[0]!r}"
+        )

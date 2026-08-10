@@ -27,12 +27,12 @@
   ],
   "entries": [
     {
-      "capability": "story",
+      "capability": "interactions",
       "classification": "story-owned",
       "name": "NewBarkTown_OnTransition"
     },
     {
-      "capability": "story",
+      "capability": "interactions",
       "classification": "story-owned",
       "name": "NewBarkTown_EventScript_LeaveTrigger"
     }
