@@ -21,6 +21,17 @@ class CiContractTests(unittest.TestCase):
             r"(?m)^  donor-contracts:\n    name: Donor Contracts$",
         )
 
+    def test_mechanics_job_has_bounded_runtime_budget(self) -> None:
+        self.assertRegex(
+            self.workflow,
+            (
+                r"(?m)^  test:\n"
+                r"    name: Test\n"
+                r"    runs-on: ubuntu-latest\n"
+                r"    timeout-minutes: 45$"
+            ),
+        )
+
     def test_both_public_donors_are_exactly_pinned_without_credentials(self) -> None:
         for repository, revision, path in (
             (
