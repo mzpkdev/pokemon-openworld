@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from tools.content_port.descriptor import (
@@ -17,6 +18,9 @@ from tools.content_port.descriptor import (
 from tools.content_port.errors import ContentPortError
 from tools.content_port.update import (
     REQUIRED_REVIEW_COMMANDS,
+    _derive_authored_policy_snapshot,
+    _publication_policy_snapshot,
+    _validate_publication_policy_binding,
     build_migration,
     canonical_bytes,
     identify_tree,
@@ -1050,6 +1054,32 @@ class DescriptorTests(unittest.TestCase):
             descriptor = load_port(root, root / "donors")
             self.assertEqual(descriptor.donors[0].migration, digest)
 
+    def test_legacy_migration_preflights_every_donor_root_before_git(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = self.make_port(root)
+            _digest, report = self.attach_migration(root, port)
+            self.assertEqual(report["schemaVersion"], 1)
+
+            outside = root / "outside-content"
+            outside.mkdir()
+            marker = outside / "marker"
+            marker.write_text("unchanged\n", encoding="utf-8")
+            (root / "donors/content").symlink_to(outside, target_is_directory=True)
+
+            with (
+                mock.patch("tools.content_port.update._run_git") as run_git,
+                mock.patch(
+                    "tools.content_port.update.tempfile.TemporaryDirectory"
+                ) as temporary_directory,
+                self.assertRaisesRegex(ContentPortError, "symbolic link"),
+            ):
+                load_port(root, root / "donors")
+
+            run_git.assert_not_called()
+            temporary_directory.assert_not_called()
+            self.assertEqual(marker.read_text(encoding="utf-8"), "unchanged\n")
+
     def test_hand_installed_record_cannot_skip_published_predecessor(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1094,7 +1124,50 @@ class DescriptorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             port = self.make_port(root)
-            first_digest, _ = self.attach_migration(root, port)
+            first_digest, first_report = self.attach_migration(root, port)
+            first_path = root / "migrations" / f"{first_digest}.json"
+            first_path.unlink()
+            semantic_reference = {
+                "authority": "mechanical",
+                "newHash": "b" * 64,
+                "oldHash": "a" * 64,
+                "recordType": "semantic-evidence",
+                "semanticIdentity": "binding:Fixture",
+                "sourcePath": "semantic-evidence/binding/Fixture",
+            }
+            first_report["policy"]["references"] = [semantic_reference]
+            first_report["authorityChanges"] = [
+                {
+                    "authority": "mechanical",
+                    "jsonPointer": None,
+                    "newHash": "b" * 64,
+                    "oldHash": "a" * 64,
+                    "reviewerDisposition": "accepted",
+                    "semanticIdentity": "binding:Fixture",
+                    "sourcePath": "semantic-evidence/binding/Fixture",
+                }
+            ]
+            first_descriptor = copy.deepcopy(port)
+            first_source_record = first_descriptor["donors"]["mechanical"]  # type: ignore[index]
+            first_source_record.update(first_report["from"])
+            first_source_record["migration"] = None
+            first_snapshot = _publication_policy_snapshot(
+                root,
+                first_descriptor,
+                "mechanical",
+                authored_policy=_derive_authored_policy_snapshot(
+                    root, first_descriptor, "mechanical", evidence_root=root
+                ),
+            )
+            first_report["schemaVersion"] = 2
+            first_report["publicationPolicySnapshot"] = first_snapshot
+            first_report["publicationPolicyDigest"] = migration_digest(first_snapshot)
+            first_digest = migration_digest(first_report)
+            (root / "migrations" / f"{first_digest}.json").write_bytes(
+                canonical_bytes(first_report)
+            )
+            port["donors"]["mechanical"]["migration"] = first_digest  # type: ignore[index]
+            dump(root / "port.json", port)
             donor = root / "donors/mechanical"
             first = identify_tree(donor)
             first_tree = root / "first-pin"
@@ -1130,11 +1203,33 @@ class DescriptorTests(unittest.TestCase):
                 predecessor=first_digest,
             )
             report["decision"] = "reviewed"
+            pin = port["donors"]["mechanical"]  # type: ignore[index]
+            # The new head captures unrelated donor and policy evolution. The
+            # predecessor must remain verifiable from its embedded context.
+            port["donors"]["content"]["commit"] = "9" * 40  # type: ignore[index]
+            port["donors"]["content"]["genesis"]["commit"] = "9" * 40  # type: ignore[index]
+            adaptations = json.loads((root / "adaptations.json").read_text())
+            adaptations["contentFallback"]["reason"] = "evolved unrelated policy"
+            dump(root / "adaptations.json", adaptations)
+            second_descriptor = copy.deepcopy(port)
+            second_source_record = second_descriptor["donors"]["mechanical"]  # type: ignore[index]
+            second_source_record.update(report["from"])
+            second_source_record["migration"] = first_digest
+            second_snapshot = _publication_policy_snapshot(
+                root,
+                second_descriptor,
+                "mechanical",
+                authored_policy=_derive_authored_policy_snapshot(
+                    root, second_descriptor, "mechanical", evidence_root=root
+                ),
+            )
+            report["schemaVersion"] = 2
+            report["publicationPolicySnapshot"] = second_snapshot
+            report["publicationPolicyDigest"] = migration_digest(second_snapshot)
             second_digest = migration_digest(report)
             (root / "migrations" / f"{second_digest}.json").write_bytes(
                 canonical_bytes(report)
             )
-            pin = port["donors"]["mechanical"]  # type: ignore[index]
             pin.update(
                 commit=second.commit,
                 treeDigest=second.digest,
@@ -1142,8 +1237,89 @@ class DescriptorTests(unittest.TestCase):
                 migration=second_digest,
             )
             dump(root / "port.json", port)
-            descriptor = load_port(root, root / "donors")
+            historical_contexts: list[tuple[str, str]] = []
+
+            def semantic_evidence(
+                repo: Path,
+                snapshot_port: Path,
+                donor_root: Path,
+                donor_role: str,
+                selected_pin: dict[str, object],
+                *,
+                port_document: dict[str, object],
+            ) -> dict[str, str]:
+                policy = json.loads((snapshot_port / "adaptations.json").read_text())
+                auxiliary = port_document["donors"]["content"]["commit"]  # type: ignore[index]
+                historical_contexts.append(
+                    (policy["contentFallback"]["reason"], auxiliary)
+                )
+                value = (
+                    "a" * 64
+                    if selected_pin["commit"] == first_report["from"]["commit"]
+                    else "b" * 64
+                )
+                return {"mechanical:binding:Fixture": value}
+
+            with mock.patch(
+                "tools.content_port.update._semantic_evidence_at_pin",
+                side_effect=semantic_evidence,
+            ):
+                descriptor = load_port(root, root / "donors")
             self.assertEqual(descriptor.donors[0].migration, second_digest)
+            self.assertEqual(
+                historical_contexts,
+                [
+                    ("content donor has no fallback maps", "3" * 40),
+                    ("content donor has no fallback maps", "3" * 40),
+                ],
+            )
+
+    def test_live_heads_ignore_cross_donor_update_order(self):
+        for ordering in (("mechanical", "content"), ("content", "mechanical")):
+            with (
+                self.subTest(ordering=ordering),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                port = self.make_port(root)
+                reports: dict[str, dict[str, object]] = {}
+                for index, role in enumerate(ordering, start=6):
+                    record = port["donors"][role]  # type: ignore[index]
+                    source = {
+                        field: record[field]
+                        for field in ("commit", "fileCount", "treeDigest")
+                    }
+                    target = {
+                        "commit": str(index) * 40,
+                        "fileCount": index,
+                        "treeDigest": str(index + 1) * 64,
+                    }
+                    snapshot = _publication_policy_snapshot(
+                        root,
+                        port,
+                        role,
+                        authored_policy=_derive_authored_policy_snapshot(
+                            root, port, role, evidence_root=root
+                        ),
+                    )
+                    report: dict[str, object] = {
+                        "donor": role,
+                        "from": source,
+                        "predecessor": record["migration"],
+                        "publicationPolicyDigest": migration_digest(snapshot),
+                        "publicationPolicySnapshot": snapshot,
+                        "schemaVersion": 2,
+                        "to": target,
+                    }
+                    record.update(target)
+                    record["migration"] = migration_digest(report)
+                    reports[role] = report
+                dump(root / "port.json", port)
+
+                for role in ordering:
+                    _validate_publication_policy_binding(
+                        reports[role], root, evidence_root=root
+                    )
 
     def test_missing_stale_and_unreviewed_migrations_fail_closed(self):
         cases = (

@@ -56,8 +56,12 @@ class MaterializeTests(unittest.TestCase):
                 "disabled",
                 "asset emission requires 'enabled'",
             ),
-            ("source", "donor", r"unknown fields \['source'\]"),
-            ("license", {"arbitrary": True}, r"unknown fields \['license'\]"),
+            ("source", "", r"\.source: expected a non-empty string"),
+            (
+                "license",
+                {"arbitrary": True},
+                r"\.license: expected a non-empty string",
+            ),
         )
         for field, value, message in cases:
             with (

@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 from types import MappingProxyType
 import unittest
 from unittest import mock
 
+from tools.content_port import update as donor_update_module
+from tools.content_port.descriptor import load_port
+from tools.content_port.model import CapabilityState, ResourceKey
 from tools.content_port.update import (
     DonorUpdateError,
     REQUIRED_REVIEW_COMMANDS,
@@ -23,7 +29,10 @@ from tools.content_port.update import (
     validate_assets,
     validate_reviewed_migration,
     verify_migration_evidence,
+    _derive_authored_policy_snapshot,
+    _remove_worktrees,
     _policy_references,
+    _semantic_policy_references,
 )
 
 
@@ -81,6 +90,285 @@ class DonorUpdateTests(unittest.TestCase):
         path = self.root / name
         git(self.repo, "worktree", "add", "--detach", str(path), revision)
         return path
+
+    def test_semantic_reconstruction_rejects_every_unsafe_donor_root_before_mutation(
+        self,
+    ) -> None:
+        pin = {
+            "commit": self.old_commit,
+            "fileCount": 1,
+            "treeDigest": "a" * 64,
+        }
+        for unsafe_kind in ("traversal", "absolute", "symlink"):
+            with self.subTest(unsafe_kind=unsafe_kind):
+                outside = self.root / f"semantic-outside-{unsafe_kind}"
+                outside.mkdir()
+                if unsafe_kind == "traversal":
+                    unsafe_root = "../escape"
+                elif unsafe_kind == "absolute":
+                    unsafe_root = str(outside)
+                else:
+                    link = self.root / "semantic-linked-donor"
+                    link.symlink_to(outside, target_is_directory=True)
+                    unsafe_root = link.name
+                port = {
+                    "donors": {
+                        "content": {"commit": self.old_commit, "root": "donor"},
+                        # Keep the unsafe entry second: preflight must reject all
+                        # roots before starting work for the first valid donor.
+                        "mechanical": {
+                            "commit": self.old_commit,
+                            "root": unsafe_root,
+                        },
+                    }
+                }
+                with (
+                    mock.patch(
+                        "tools.content_port.update.tempfile.TemporaryDirectory"
+                    ) as temporary_directory,
+                    mock.patch("tools.content_port.update.shutil.copytree") as copytree,
+                    mock.patch("tools.content_port.update._run_git") as run_git,
+                    self.assertRaisesRegex(
+                        DonorUpdateError,
+                        "unsafe donor checkout path|symbolic link",
+                    ),
+                ):
+                    donor_update_module._semantic_evidence_at_pin(
+                        self.root,
+                        self.root / "port",
+                        self.root,
+                        "content",
+                        pin,
+                        port_document=port,
+                    )
+                temporary_directory.assert_not_called()
+                copytree.assert_not_called()
+                run_git.assert_not_called()
+
+    def test_update_rejects_every_unsafe_donor_root_before_mutation(self) -> None:
+        for unsafe_kind in ("traversal", "absolute", "symlink"):
+            with self.subTest(unsafe_kind=unsafe_kind):
+                host = self.root / f"update-host-{unsafe_kind}"
+                port_dir = host / "tools/content_port/ports/fixture"
+                port_dir.mkdir(parents=True)
+                outside = self.root / f"update-outside-{unsafe_kind}"
+                outside.mkdir()
+                if unsafe_kind == "traversal":
+                    unsafe_root = "../escape"
+                elif unsafe_kind == "absolute":
+                    unsafe_root = str(outside)
+                else:
+                    link = self.root / "update-linked-donor"
+                    link.symlink_to(outside, target_is_directory=True)
+                    unsafe_root = link.name
+                port = {
+                    "donors": {
+                        "content": {
+                            "commit": self.old_commit,
+                            "excludePaths": [],
+                            "name": "fixture",
+                            "repository": "owner/repo",
+                            "root": "donor",
+                        },
+                        "mechanical": {
+                            "commit": self.old_commit,
+                            "root": unsafe_root,
+                        },
+                    }
+                }
+                (port_dir / "port.json").write_bytes(canonical_bytes(port))
+                output = host / "candidate.json"
+                with (
+                    mock.patch(
+                        "tools.content_port.update.tempfile.TemporaryDirectory"
+                    ) as temporary_directory,
+                    mock.patch(
+                        "tools.content_port.update._derive_authored_policy_snapshot"
+                    ) as derive_policy,
+                    mock.patch("tools.content_port.update._run_git") as run_git,
+                    self.assertRaisesRegex(
+                        DonorUpdateError,
+                        "unsafe donor checkout path|symbolic link",
+                    ),
+                ):
+                    run_donor_update(
+                        host,
+                        "fixture",
+                        self.root,
+                        "content",
+                        self.old_commit,
+                        output,
+                    )
+                temporary_directory.assert_not_called()
+                derive_policy.assert_not_called()
+                run_git.assert_not_called()
+                self.assertFalse(output.exists())
+
+    def test_atomic_publication_ignores_predictable_temporary_symlink(self) -> None:
+        publication = self.root / "publication"
+        publication.mkdir()
+        output = publication / "candidate.json"
+        victim = self.root / "victim"
+        victim.write_bytes(b"untouched")
+        predictable = publication / ".candidate.json.tmp"
+        predictable.symlink_to(victim)
+
+        donor_update_module._atomic_write(
+            output, b"published", "secure-temporary-symlink-test"
+        )
+
+        self.assertEqual(output.read_bytes(), b"published")
+        self.assertEqual(victim.read_bytes(), b"untouched")
+        self.assertTrue(predictable.is_symlink())
+        self.assertEqual(
+            list(publication.glob(".candidate.json.tmp-*")),
+            [],
+        )
+
+    def test_publication_rollback_stays_on_held_parent_after_swap(self) -> None:
+        publication = self.root / "publication"
+        publication.mkdir()
+        output = publication / "record.json"
+        output.write_bytes(b"previous")
+        displaced = self.root / "held-publication"
+        calls = 0
+
+        def swap_parent(*args: object, **kwargs: object) -> str:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                publication.rename(displaced)
+                publication.mkdir()
+                (publication / output.name).write_bytes(b"decoy")
+                return "b" * 64
+            return "a" * 64
+
+        with (
+            mock.patch(
+                "tools.content_port.update._publication_policy_digest",
+                side_effect=swap_parent,
+            ),
+            self.assertRaisesRegex(DonorUpdateError, "policy drifted during write"),
+        ):
+            donor_update_module._write_policy_bound_artifact(
+                output,
+                b"published",
+                "parent-swap-test",
+                port_dir=self.root,
+                donor="content",
+                evidence_root=self.root,
+                policy_digest="a" * 64,
+            )
+
+        self.assertEqual((displaced / output.name).read_bytes(), b"previous")
+        self.assertEqual((publication / output.name).read_bytes(), b"decoy")
+
+    def test_publication_rejects_parent_swap_with_identical_policy(self) -> None:
+        publication = self.root / "publication"
+        publication.mkdir()
+        output = publication / "record.json"
+        output.write_bytes(b"previous")
+        displaced = self.root / "held-publication"
+        calls = 0
+
+        def swap_parent(*args: object, **kwargs: object) -> str:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                publication.rename(displaced)
+                publication.mkdir()
+                (publication / output.name).write_bytes(b"decoy")
+            return "a" * 64
+
+        with (
+            mock.patch(
+                "tools.content_port.update._publication_policy_digest",
+                side_effect=swap_parent,
+            ),
+            self.assertRaisesRegex(DonorUpdateError, "publication parent changed"),
+        ):
+            donor_update_module._write_policy_bound_artifact(
+                output,
+                b"published",
+                "identical-policy-parent-swap-test",
+                port_dir=self.root,
+                donor="content",
+                evidence_root=self.root,
+                policy_digest="a" * 64,
+            )
+
+        self.assertEqual((displaced / output.name).read_bytes(), b"previous")
+        self.assertEqual((publication / output.name).read_bytes(), b"decoy")
+
+    def test_selected_pin_reconstruction_unlinks_every_frozen_donor(self) -> None:
+        port_dir = self.root / "port"
+        port_dir.mkdir()
+        current = {
+            "commit": "1" * 40,
+            "fileCount": 1,
+            "treeDigest": "2" * 64,
+        }
+        unrelated = {
+            "commit": "3" * 40,
+            "fileCount": 2,
+            "treeDigest": "4" * 64,
+        }
+        selected = {
+            "commit": "5" * 40,
+            "fileCount": 3,
+            "treeDigest": "6" * 64,
+        }
+        port = {
+            "donors": {
+                "content": {
+                    **current,
+                    "genesis": dict(current),
+                    "migration": "a" * 64,
+                    "root": "content",
+                },
+                "mechanical": {
+                    **unrelated,
+                    "genesis": {
+                        "commit": "7" * 40,
+                        "fileCount": 7,
+                        "treeDigest": "8" * 64,
+                    },
+                    "migration": "b" * 64,
+                    "root": "mechanical",
+                },
+            }
+        }
+        (port_dir / "port.json").write_bytes(canonical_bytes(port))
+        captured: dict[str, object] = {}
+
+        def inspect_descriptor(snapshot_port: Path, donor_root: Path) -> None:
+            del donor_root
+            captured.update(json.loads((snapshot_port / "port.json").read_text()))
+            raise DonorUpdateError("inspection complete")
+
+        with (
+            mock.patch("tools.content_port.update._run_git", return_value=""),
+            mock.patch("tools.content_port.update._remove_worktrees"),
+            mock.patch(
+                "tools.content_port.descriptor.load_port",
+                side_effect=inspect_descriptor,
+            ),
+            self.assertRaisesRegex(DonorUpdateError, "inspection complete"),
+        ):
+            donor_update_module._semantic_evidence_at_pin(
+                self.root,
+                port_dir,
+                self.root,
+                "content",
+                selected,
+                port_document=port,
+            )
+
+        donors = captured["donors"]
+        self.assertEqual(donors["content"]["genesis"], selected)  # type: ignore[index]
+        self.assertIsNone(donors["content"]["migration"])  # type: ignore[index]
+        self.assertEqual(donors["mechanical"]["genesis"], unrelated)  # type: ignore[index]
+        self.assertIsNone(donors["mechanical"]["migration"])  # type: ignore[index]
 
     def asset_policy(self, permission: str = "redistributable") -> dict[str, object]:
         evidence = self.root / "permission.txt"
@@ -475,6 +763,118 @@ class DonorUpdateTests(unittest.TestCase):
                 self.assertEqual(changes[identity]["authority"], "content")
                 self.assertEqual(changes[identity]["reviewerDisposition"], "pending")
 
+    def test_complete_layout_and_section_additions_and_removals_are_reported(
+        self,
+    ) -> None:
+        layout_path = self.repo / "data/layouts/layouts.json"
+        section_path = self.repo / "src/data/region_map/test.json"
+        layout_path.parent.mkdir(parents=True)
+        section_path.parent.mkdir(parents=True)
+        layout_path.write_text(json.dumps({"layouts": []}))
+        section_path.write_text(json.dumps({"map_sections": []}))
+        absent_commit = make_commit(self.repo, "selected records absent")
+        layout_path.write_text(
+            json.dumps({"layouts": [{"id": "LAYOUT_TEST", "width": 10}]})
+        )
+        section_path.write_text(
+            json.dumps({"map_sections": [{"id": "MAPSEC_TEST", "name": "Test"}]})
+        )
+        present_commit = make_commit(self.repo, "selected records present")
+        references = _policy_references(
+            {
+                "layoutBinaryAuthorities": [
+                    {
+                        "layout": "LAYOUT_TEST",
+                        "source": "TestMap",
+                        "sourceRole": "content",
+                    }
+                ],
+                "sectionMetadataAuthorities": [
+                    {
+                        "section": "MAPSEC_TEST",
+                        "sourceRole": "content",
+                        "sourceSymbol": "MAPSEC_TEST",
+                    }
+                ],
+            },
+            "content",
+        )
+        absent = self.worktree("records-absent", absent_commit)
+        present = self.worktree("records-present", present_commit)
+        added = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=absent,
+            new_tree=present,
+            references=references,
+        )
+        removed = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=present,
+            new_tree=absent,
+            references=references,
+        )
+        for report, missing_side in ((added, "oldHash"), (removed, "newHash")):
+            changes = {
+                change["semanticIdentity"]: change
+                for change in report["authorityChanges"]
+            }
+            for identity in (
+                "layout:LAYOUT_TEST.id",
+                "layout:LAYOUT_TEST.width",
+                "section:MAPSEC_TEST.id",
+                "section:MAPSEC_TEST.name",
+            ):
+                with self.subTest(identity=identity, missing_side=missing_side):
+                    self.assertIn(identity, changes)
+                    self.assertIsNone(changes[identity][missing_side])
+
+    def test_complete_layout_and_section_records_reject_non_mappings(self) -> None:
+        layout_path = self.repo / "data/layouts/layouts.json"
+        section_path = self.repo / "src/data/region_map/test.json"
+        layout_path.parent.mkdir(parents=True)
+        section_path.parent.mkdir(parents=True)
+        layout_path.write_text(json.dumps({"layouts": ["invalid"]}))
+        section_path.write_text(json.dumps({"map_sections": ["invalid"]}))
+        malformed_commit = make_commit(self.repo, "malformed selected records")
+        malformed = self.worktree("records-malformed", malformed_commit)
+        for reference, message in (
+            (
+                {
+                    "authority": "content",
+                    "jsonPointer": "/layouts/@LAYOUT_TEST",
+                    "layoutId": "LAYOUT_TEST",
+                    "recordType": "layout",
+                    "semanticIdentity": "layout:LAYOUT_TEST",
+                    "sourcePath": "data/layouts/layouts.json",
+                },
+                "layout registry is malformed",
+            ),
+            (
+                {
+                    "authority": "content",
+                    "jsonPointer": "",
+                    "recordType": "section",
+                    "sectionSymbol": "MAPSEC_TEST",
+                    "semanticIdentity": "section:MAPSEC_TEST",
+                    "sourcePath": "src/data/region_map",
+                },
+                "section metadata is malformed",
+            ),
+        ):
+            with (
+                self.subTest(record=reference["recordType"]),
+                self.assertRaisesRegex(DonorUpdateError, message),
+            ):
+                build_migration(
+                    donor="content",
+                    repository="owner/repo",
+                    old_tree=malformed,
+                    new_tree=malformed,
+                    references=(reference,),
+                )
+
     def test_asset_policy_fails_closed_on_permission_and_metadata(self) -> None:
         for permission in ("blocked", "unknown"):
             with self.subTest(permission=permission):
@@ -489,15 +889,19 @@ class DonorUpdateTests(unittest.TestCase):
         with self.assertRaisesRegex(DonorUpdateError, "missing fields"):
             validate_assets(malformed, evidence_root=self.root)
 
-        for dead_field, value in (
-            ("source", "donor"),
-            ("license", {"arbitrary": True}),
-        ):
-            with self.subTest(dead_field=dead_field):
+        for compatibility_field in ("source", "license"):
+            with self.subTest(compatibility_field=compatibility_field):
                 policy = self.asset_policy()
-                policy["assets"][0][dead_field] = value
+                policy["assets"][0][compatibility_field] = "reviewed fixture metadata"
+                self.assertEqual(
+                    validate_assets(policy, evidence_root=self.root),
+                    tuple(policy["assets"]),
+                )
+
+                policy["assets"][0][compatibility_field] = {"arbitrary": True}
                 with self.assertRaisesRegex(
-                    DonorUpdateError, rf"unknown fields \['{dead_field}'\]"
+                    DonorUpdateError,
+                    rf"\.{compatibility_field}: expected a non-empty string",
                 ):
                     validate_assets(policy, evidence_root=self.root)
 
@@ -594,6 +998,486 @@ class DonorUpdateTests(unittest.TestCase):
                 evidence_root=self.root,
             )
 
+    def test_production_semantic_evidence_covers_every_enabled_native_domain(
+        self,
+    ) -> None:
+        domains = ("trainer", "party", "encounter", "service", "binding")
+        current = {f"content:{domain}:Fixture": "a" * 64 for domain in domains}
+        current.update(
+            {
+                "content:binding:Removed": "c" * 64,
+                "content:service:Unchanged": "d" * 64,
+                "mechanical:trainer:Ignored": "e" * 64,
+            }
+        )
+        target = {f"content:{domain}:Fixture": "b" * 64 for domain in domains}
+        target.update(
+            {
+                "content:encounter:Added": "f" * 64,
+                "content:service:Unchanged": "d" * 64,
+                "mechanical:trainer:Ignored": "0" * 64,
+            }
+        )
+        references = _semantic_policy_references(current, target, "content")
+        reversed_references = _semantic_policy_references(
+            dict(reversed(tuple(current.items()))),
+            dict(reversed(tuple(target.items()))),
+            "content",
+        )
+        self.assertEqual(references, reversed_references)
+        self.assertEqual(
+            {reference["authority"] for reference in references}, {"content"}
+        )
+        self.assertEqual(
+            [reference["semanticIdentity"] for reference in references],
+            sorted(
+                [
+                    *(f"{domain}:Fixture" for domain in domains),
+                    "binding:Removed",
+                    "encounter:Added",
+                    "service:Unchanged",
+                ]
+            ),
+        )
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("semantic-old", self.old_commit),
+            new_tree=self.worktree("semantic-new", self.old_commit),
+            references=references,
+        )
+        self.assertEqual(
+            {change["semanticIdentity"] for change in report["authorityChanges"]},
+            {
+                *(f"{domain}:Fixture" for domain in domains),
+                "binding:Removed",
+                "encounter:Added",
+            },
+        )
+        changes = {
+            change["semanticIdentity"]: change for change in report["authorityChanges"]
+        }
+        self.assertIsNone(changes["binding:Removed"]["newHash"])
+        self.assertIsNone(changes["encounter:Added"]["oldHash"])
+        self.assertNotIn("service:Unchanged", changes)
+
+    def test_semantic_evidence_rejects_malformed_identities_and_hashes(self) -> None:
+        with self.assertRaisesRegex(DonorUpdateError, "no resource identity"):
+            _semantic_policy_references({"content:": "a" * 64}, {}, "content")
+        for malformed in ("a" * 63, "A" * 64, 7):
+            with (
+                self.subTest(hash=malformed),
+                self.assertRaisesRegex(DonorUpdateError, "lowercase hex hash"),
+            ):
+                _semantic_policy_references(
+                    {"content:trainer:Fixture": malformed},  # type: ignore[dict-item]
+                    {},
+                    "content",
+                )
+        with self.assertRaisesRegex(DonorUpdateError, "identities must be strings"):
+            _semantic_policy_references(
+                {1: "a" * 64},  # type: ignore[dict-item]
+                {},
+                "content",
+            )
+
+        malformed_reference = {
+            "authority": "content",
+            "newHash": "not-a-hash",
+            "oldHash": "a" * 64,
+            "recordType": "semantic-evidence",
+            "semanticIdentity": "trainer:Fixture",
+            "sourcePath": "semantic-evidence/trainer/Fixture",
+        }
+        with self.assertRaisesRegex(DonorUpdateError, "newHash.*lowercase hex"):
+            build_migration(
+                donor="content",
+                repository="owner/repo",
+                old_tree=self.worktree("malformed-old", self.old_commit),
+                new_tree=self.worktree("malformed-new", self.old_commit),
+                references=(malformed_reference,),
+            )
+
+    def test_semantic_verification_recomputes_hashes_from_exact_pins(self) -> None:
+        (self.repo / "data.json").write_text(json.dumps({"changed": True}))
+        new_commit = make_commit(self.repo, "semantic verification target")
+        actual_old = {"content:trainer:Fixture": "a" * 64}
+        actual_new = {"content:trainer:Fixture": "b" * 64}
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("semantic-verify-old", self.old_commit),
+            new_tree=self.worktree("semantic-verify-new", new_commit),
+            references=_semantic_policy_references(actual_old, actual_new, "content"),
+        )
+        port_dir = self.root / "semantic-port"
+        port_dir.mkdir()
+        (port_dir / "port.json").write_bytes(
+            canonical_bytes(
+                {
+                    "donors": {
+                        "content": {
+                            "name": "fixture",
+                            "root": "donor",
+                        }
+                    }
+                }
+            )
+        )
+        fabricated = copy.deepcopy(report)
+        fabricated_reference = next(
+            reference
+            for reference in fabricated["policy"]["references"]
+            if reference.get("recordType") == "semantic-evidence"
+        )
+        fabricated_reference["newHash"] = "c" * 64
+        fabricated["authorityChanges"][0]["newHash"] = "c" * 64
+        with (
+            mock.patch(
+                "tools.content_port.update._semantic_evidence_at_pin",
+                side_effect=(actual_old, actual_new),
+            ) as derive,
+            self.assertRaisesRegex(DonorUpdateError, "fabricated or stale"),
+        ):
+            verify_migration_evidence(
+                fabricated,
+                port_dir,
+                self.repo,
+                evidence_root=self.root,
+                donor_root=self.root,
+                repo=self.root,
+            )
+        self.assertEqual(derive.call_count, 2)
+
+    def test_public_update_and_finalize_derive_live_semantic_policy(self) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        configured = os.environ.get("CONTENT_PORT_DONOR_ROOT")
+        candidates = tuple(
+            path
+            for path in (
+                Path(configured) if configured else None,
+                repo / ".references",
+                Path("/tmp/content-port-donors.ATzdJy"),
+                repo.parents[2] / ".references",
+            )
+            if path is not None
+        )
+        source_donor_root = next(
+            (
+                path
+                for path in candidates
+                if all((path / name).is_dir() for name in ("pokemonHnS", "PKMN-World"))
+            ),
+            None,
+        )
+        if source_donor_root is None:
+            self.skipTest("pinned donor checkouts are not present")
+
+        donor_root = self.root / "live-donors"
+        donor_root.mkdir()
+        for name in ("pokemonHnS", "PKMN-World"):
+            subprocess.run(
+                (
+                    "git",
+                    "clone",
+                    "-q",
+                    "--shared",
+                    str(source_donor_root / name),
+                    str(donor_root / name),
+                ),
+                check=True,
+            )
+
+        ports_root = repo / "tools/content_port/ports"
+        with tempfile.TemporaryDirectory(dir=ports_root) as directory:
+            port_dir = Path(directory)
+            shutil.copytree(ports_root / "johto", port_dir, dirs_exist_ok=True)
+            port = json.loads((port_dir / "port.json").read_text())
+            content = donor_root / "pokemonHnS"
+            git(content, "config", "user.name", "Contract Test")
+            git(content, "config", "user.email", "contract@example.invalid")
+            git(content, "checkout", "-q", port["donors"]["content"]["commit"])
+            parties = content / "src/data/trainer_parties.h"
+            parties.write_text(
+                parties.read_text().replace(
+                    "    .species = SPECIES_GEODUDE,",
+                    "    .species = SPECIES_ONIX,",
+                    1,
+                )
+            )
+            revision = make_commit(content, "semantic target")
+            git(content, "checkout", "-q", port["donors"]["content"]["commit"])
+            parties.write_text(
+                parties.read_text().replace(
+                    "    .species = SPECIES_GEODUDE,",
+                    "    .species = SPECIES_ZUBAT,",
+                    1,
+                )
+            )
+            self.assertTrue(git(content, "status", "--porcelain"))
+            output = self.root / "live-donor-migration.json"
+
+            def descriptor_with_native_trainer(port_path: Path, donors: Path):
+                descriptor = load_port(port_path, donors)
+                capabilities = tuple(
+                    replace(
+                        decision,
+                        state=CapabilityState.ENABLED,
+                        dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
+                    )
+                    if decision.map_name == "Route29"
+                    and decision.capability == "trainers"
+                    else decision
+                    for decision in descriptor.capabilities
+                )
+                return replace(
+                    descriptor,
+                    capabilities=capabilities,
+                    legacy_report=None,
+                )
+
+            with (
+                mock.patch(
+                    "tools.content_port.update.run_review_commands",
+                    return_value=tuple(passed_evidence()),
+                ),
+                mock.patch(
+                    "tools.content_port.descriptor.load_port",
+                    side_effect=descriptor_with_native_trainer,
+                ),
+                mock.patch("tools.content_port.materialize.derive_desired_state"),
+            ):
+                run_donor_update(
+                    repo,
+                    port_dir.name,
+                    donor_root,
+                    "content",
+                    revision,
+                    output,
+                )
+                report = json.loads(output.read_text())
+                semantic_references = [
+                    reference
+                    for reference in report["policy"]["references"]
+                    if reference.get("recordType") == "semantic-evidence"
+                ]
+                self.assertTrue(semantic_references)
+                self.assertEqual(
+                    {reference["authority"] for reference in semantic_references},
+                    {"content"},
+                )
+                self.assertTrue(
+                    any(
+                        reference["oldHash"] != reference["newHash"]
+                        for reference in semantic_references
+                    )
+                )
+                report["decision"] = "reviewed"
+                for change in (*report["authorityChanges"], *report["assets"]):
+                    change["reviewerDisposition"] = "accepted"
+                output.write_bytes(canonical_bytes(report))
+                record, proposal = finalize_migration(
+                    output,
+                    port_dir,
+                    donor_root=donor_root,
+                    repo=repo,
+                    evidence_root=repo,
+                )
+            finalized = json.loads(record.read_text())
+            self.assertEqual(finalized["schemaVersion"], 2)
+            self.assertRegex(finalized["publicationPolicyDigest"], r"^[0-9a-f]{64}$")
+            self.assertEqual(
+                json.loads(proposal.read_text())["proposedDonorRecord"]["commit"],
+                revision,
+            )
+
+    def test_authored_snapshot_tracks_exact_live_reference_and_asset_removals(
+        self,
+    ) -> None:
+        port_dir = self.root / "snapshot-port"
+        port_dir.mkdir()
+        adaptations = {
+            "schemaVersion": 1,
+            "donorFieldRoles": {"content": "content", "mechanical": "mechanical"},
+            "adaptations": [
+                {"source": "TestMap", "path": "weather"},
+            ],
+        }
+        assets = self.asset_policy()
+        assets["assets"][0]["donor"] = "content"
+        (port_dir / "adaptations.json").write_bytes(canonical_bytes(adaptations))
+        (port_dir / "assets.json").write_bytes(canonical_bytes(assets))
+        port = {
+            "adaptations": "adaptations.json",
+            "assetPolicy": "assets.json",
+            "donors": {
+                "content": {
+                    "name": "fixture",
+                    "excludePaths": ["ignored"],
+                }
+            },
+        }
+        snapshot = _derive_authored_policy_snapshot(
+            port_dir, port, "content", evidence_root=self.root
+        )
+        self.assertEqual(len(snapshot["references"]), 1)
+        self.assertEqual(len(snapshot["assets"]["assets"]), 1)
+        adaptations["adaptations"] = []
+        assets["assets"] = []
+        assets["permissionRecords"] = {}
+        (port_dir / "adaptations.json").write_bytes(canonical_bytes(adaptations))
+        (port_dir / "assets.json").write_bytes(canonical_bytes(assets))
+        reduced = _derive_authored_policy_snapshot(
+            port_dir, port, "content", evidence_root=self.root
+        )
+        self.assertEqual(reduced["references"], [])
+        self.assertEqual(reduced["assets"]["assets"], [])
+        self.assertNotEqual(snapshot, reduced)
+
+    def test_worktree_cleanup_attempts_all_and_preserves_primary_error(self) -> None:
+        first = self.root / "cleanup-first"
+        second = self.root / "cleanup-second"
+        first.mkdir()
+        second.mkdir()
+        primary = DonorUpdateError("primary donor failure")
+        failed = subprocess.CompletedProcess(
+            args=(), returncode=1, stdout="", stderr="remove refused"
+        )
+        with mock.patch(
+            "tools.content_port.update.subprocess.run",
+            side_effect=(OSError("git unavailable"), failed),
+        ) as run:
+            _remove_worktrees(
+                ((self.repo, first), (self.repo, second)),
+                primary_error=primary,
+            )
+        self.assertEqual(run.call_count, 2)
+        self.assertEqual(str(primary), "primary donor failure")
+        self.assertEqual(len(primary.__notes__), 1)
+        self.assertIn("cleanup failed", primary.__notes__[0])
+        self.assertIn(str(first), primary.__notes__[0])
+        self.assertIn(str(second), primary.__notes__[0])
+
+        with (
+            mock.patch(
+                "tools.content_port.update.subprocess.run",
+                return_value=failed,
+            ) as run,
+            self.assertRaisesRegex(DonorUpdateError, "cleanup failed"),
+        ):
+            _remove_worktrees(
+                ((self.repo, first), (self.repo, second)),
+                primary_error=None,
+            )
+        self.assertEqual(run.call_count, 2)
+
+    def test_update_and_finalize_reject_unsafe_authored_policy_paths(self) -> None:
+        (self.repo / "data.json").write_text(json.dumps({"changed": True}))
+        new_commit = make_commit(self.repo, "unsafe policy target")
+        report = build_migration(
+            donor="content",
+            repository="owner/repo",
+            old_tree=self.worktree("unsafe-policy-old", self.old_commit),
+            new_tree=self.worktree("unsafe-policy-new", new_commit),
+            tests=passed_evidence(),
+        )
+        report["decision"] = "reviewed"
+
+        for operation in ("update", "finalize"):
+            for field in ("adaptations", "assetPolicy"):
+                for unsafe_kind, message in (
+                    ("traversal", "expected one local policy filename"),
+                    ("symlink", "must not be a symbolic link"),
+                ):
+                    with self.subTest(
+                        operation=operation, field=field, unsafe_kind=unsafe_kind
+                    ):
+                        host = self.root / f"unsafe-{operation}-{field}-{unsafe_kind}"
+                        port_dir = host / "tools/content_port/ports/fixture"
+                        port_dir.mkdir(parents=True)
+                        adaptations = port_dir / "adaptations.json"
+                        assets = port_dir / "assets.json"
+                        adaptations.write_bytes(canonical_bytes({"schemaVersion": 1}))
+                        assets.write_bytes(
+                            canonical_bytes(
+                                {
+                                    "schemaVersion": 1,
+                                    "permissionRecords": {},
+                                    "assets": [],
+                                }
+                            )
+                        )
+                        selected = {
+                            "adaptations": adaptations.name,
+                            "assetPolicy": assets.name,
+                        }
+                        outside = port_dir.parent / f"outside-{field}.json"
+                        outside.write_bytes(
+                            adaptations.read_bytes()
+                            if field == "adaptations"
+                            else assets.read_bytes()
+                        )
+                        if unsafe_kind == "traversal":
+                            selected[field] = f"../{outside.name}"
+                        else:
+                            link = port_dir / f"{field}-link.json"
+                            link.symlink_to(outside)
+                            selected[field] = link.name
+                        port = {
+                            **selected,
+                            "donors": {
+                                "content": {
+                                    "name": "fixture",
+                                    "repository": "owner/repo",
+                                    **report["from"],
+                                    "excludePaths": [],
+                                    "genesis": dict(report["from"]),
+                                    "root": "donor",
+                                    "migration": None,
+                                }
+                            },
+                        }
+                        (port_dir / "port.json").write_bytes(canonical_bytes(port))
+                        output = host / "candidate.json"
+                        if operation == "update":
+
+                            def invoke() -> object:
+                                return run_donor_update(
+                                    host,
+                                    "fixture",
+                                    self.root,
+                                    "content",
+                                    new_commit,
+                                    output,
+                                )
+
+                        else:
+                            output.write_bytes(canonical_bytes(report))
+
+                            def invoke() -> object:
+                                return finalize_migration(
+                                    output,
+                                    port_dir,
+                                    donor_root=self.root,
+                                    repo=host,
+                                    evidence_root=host,
+                                )
+
+                        with (
+                            mock.patch(
+                                "tools.content_port.update.run_review_commands",
+                                return_value=tuple(passed_evidence()),
+                            ),
+                            self.assertRaisesRegex(DonorUpdateError, message),
+                        ):
+                            invoke()
+                        if operation == "update":
+                            self.assertFalse(output.exists())
+                        self.assertFalse((port_dir / "migrations").exists())
+                        self.assertFalse(
+                            output.with_name("donor-port-update.json").exists()
+                        )
+
     def test_reviewed_record_rejects_stale_pin_and_conversion_drift(self) -> None:
         old = self.worktree("old", self.old_commit)
         report = build_migration(
@@ -643,6 +1527,22 @@ class DonorUpdateTests(unittest.TestCase):
         with self.assertRaisesRegex(DonorUpdateError, "filename is stale"):
             load_reviewed_migration(migrations, stale_digest)
 
+        finalized_without_binding = build_migration(
+            donor="fixture",
+            repository="owner/repo",
+            old_tree=self.worktree("missing-binding", self.old_commit),
+            new_tree=self.worktree("missing-binding-target", self.old_commit),
+        )
+        finalized_without_binding["schemaVersion"] = 2
+        missing_digest = migration_digest(finalized_without_binding)
+        (migrations / f"{missing_digest}.json").write_bytes(
+            canonical_bytes(finalized_without_binding)
+        )
+        with self.assertRaisesRegex(
+            DonorUpdateError, "requires publicationPolicyDigest"
+        ):
+            load_reviewed_migration(migrations, missing_digest)
+
     def test_cli_wrapper_writes_candidate_without_editing_port_policy(self) -> None:
         host = self.root / "host"
         port = host / "tools/content_port/ports/fixture"
@@ -662,6 +1562,7 @@ class DonorUpdateTests(unittest.TestCase):
         port_document = {
             "schemaVersion": 1,
             "assetPolicy": "assets.json",
+            "adaptations": "adaptations.json",
             "authority": {},
             "donors": {
                 "content": {
@@ -693,8 +1594,9 @@ class DonorUpdateTests(unittest.TestCase):
                 return_value=tuple(passed_evidence()),
             ),
             mock.patch(
-                "tools.content_port.update._validate_target_pin"
-            ) as target_check,
+                "tools.content_port.update._derive_live_policy_snapshot",
+                return_value=empty_policy(),
+            ),
         ):
             result = run_donor_update(
                 host,
@@ -709,7 +1611,6 @@ class DonorUpdateTests(unittest.TestCase):
         candidate = json.loads(output.read_text())
         self.assertEqual(candidate["decision"], "candidate")
         self.assertEqual(candidate["donor"], "content")
-        target_check.assert_called_once()
 
     def test_finalize_links_reviewed_content_address_without_editing_port(self) -> None:
         (self.repo / "data.json").write_text(
@@ -727,12 +1628,21 @@ class DonorUpdateTests(unittest.TestCase):
             old_tree=old,
             new_tree=new,
             assets=asset_policy,
+            references=(
+                {
+                    "authority": "content",
+                    "jsonPointer": "/maps/Route/section",
+                    "semanticIdentity": "map:Route.section",
+                    "sourcePath": "data.json",
+                },
+            ),
             tests=passed_evidence(),
             evidence_root=self.root,
         )
         candidate_digest = migration_digest(report)
         report["decision"] = "reviewed"
         report["assets"][0]["reviewerDisposition"] = "accepted"
+        report["authorityChanges"][0]["reviewerDisposition"] = "accepted"
         self.assertNotEqual(candidate_digest, migration_digest(report))
         fabricated_tests = copy.deepcopy(report)
         fabricated_tests["tests"] = [{"command": ["true"], "result": "passed"}]
@@ -747,6 +1657,12 @@ class DonorUpdateTests(unittest.TestCase):
         port_dir = self.root / "port"
         port_dir.mkdir()
         port = {
+            "allocationLock": "allocations.json",
+            "adaptations": "adaptations.json",
+            "assetPolicy": "assets.json",
+            "capabilityPolicy": "capabilities.json",
+            "eventPolicy": "events.json",
+            "legacyReport": "legacy.json",
             "donors": {
                 "content": {
                     "name": "fixture",
@@ -757,10 +1673,14 @@ class DonorUpdateTests(unittest.TestCase):
                     "root": "donor",
                     "migration": None,
                 }
-            }
+            },
         }
         port_path = port_dir / "port.json"
-        port_path.write_bytes(canonical_bytes(port))
+        # Publication may begin from an authored, semantically valid descriptor
+        # whose JSON bytes are not canonical. Applying the proposal normally
+        # rewrites the descriptor canonically and must preserve the binding.
+        port_path.write_text(json.dumps(port, separators=(",", ":")))
+        self.assertNotEqual(port_path.read_bytes(), canonical_bytes(port))
         (port_dir / "assets.json").write_bytes(canonical_bytes(asset_policy))
         (port_dir / "adaptations.json").write_bytes(
             canonical_bytes(
@@ -772,6 +1692,13 @@ class DonorUpdateTests(unittest.TestCase):
                 }
             )
         )
+        for filename in (
+            "allocations.json",
+            "capabilities.json",
+            "events.json",
+            "legacy.json",
+        ):
+            (port_dir / filename).write_bytes(canonical_bytes({}))
         validate_reviewed_migration(
             report,
             donor="content",
@@ -789,9 +1716,177 @@ class DonorUpdateTests(unittest.TestCase):
         before = port_path.read_bytes()
         candidate = self.root / "donor-migration.json"
         candidate.write_bytes(canonical_bytes(report))
+        policy_paths = {
+            field: port_dir / str(port[field])
+            for field in (
+                "capabilityPolicy",
+                "eventPolicy",
+                "legacyReport",
+                "adaptations",
+                "assetPolicy",
+                "allocationLock",
+            )
+        }
+        original = policy_paths["adaptations"].read_bytes()
+
+        def drift_during_live_policy(*args: object, **kwargs: object) -> object:
+            policy_paths["adaptations"].write_bytes(original + b" \n")
+            return report["policy"]
+
+        with (
+            mock.patch(
+                "tools.content_port.update._derive_live_policy_snapshot",
+                side_effect=drift_during_live_policy,
+            ),
+            mock.patch("tools.content_port.update.verify_migration_evidence") as verify,
+            self.assertRaisesRegex(DonorUpdateError, "policy drifted"),
+        ):
+            finalize_migration(
+                candidate,
+                port_dir,
+                donor_root=self.root,
+                repo=Path.cwd(),
+                evidence_root=self.root,
+            )
+        verify.assert_called_once()
+        self.assertFalse((port_dir / "migrations").exists())
+        self.assertFalse(candidate.with_name("donor-port-update.json").exists())
+        policy_paths["adaptations"].write_bytes(original)
+
+        for field, policy_path in policy_paths.items():
+            original = policy_path.read_bytes()
+
+            def drift_policy_after_verification(
+                *args: object,
+                drifted_path: Path = policy_path,
+                **kwargs: object,
+            ) -> None:
+                verify_migration_evidence(*args, **kwargs)  # type: ignore[arg-type]
+                drifted_path.write_bytes(original + b" \n")
+
+            with (
+                self.subTest(field=field),
+                mock.patch(
+                    "tools.content_port.update._derive_live_policy_snapshot",
+                    return_value=report["policy"],
+                ),
+                mock.patch(
+                    "tools.content_port.update.verify_migration_evidence",
+                    side_effect=drift_policy_after_verification,
+                ),
+                self.assertRaisesRegex(DonorUpdateError, "policy drifted"),
+            ):
+                finalize_migration(
+                    candidate,
+                    port_dir,
+                    donor_root=self.root,
+                    repo=Path.cwd(),
+                    evidence_root=self.root,
+                )
+            self.assertFalse((port_dir / "migrations").exists())
+            self.assertFalse(candidate.with_name("donor-port-update.json").exists())
+            policy_path.write_bytes(original)
+
+        original_port = port_path.read_bytes()
+        drifted_port = dict(port)
+        drifted_port["schemaVersion"] = 2
+
+        def drift_port_before_initial_digest(*args: object, **kwargs: object):
+            port_path.write_bytes(canonical_bytes(drifted_port))
+            return tuple(passed_evidence())
+
+        with (
+            mock.patch(
+                "tools.content_port.update.run_review_commands",
+                side_effect=drift_port_before_initial_digest,
+            ),
+            mock.patch(
+                "tools.content_port.update._derive_live_policy_snapshot",
+                return_value=report["policy"],
+            ),
+            mock.patch("tools.content_port.update.verify_migration_evidence"),
+            self.assertRaisesRegex(DonorUpdateError, "policy drifted"),
+        ):
+            finalize_migration(
+                candidate,
+                port_dir,
+                donor_root=self.root,
+                repo=Path.cwd(),
+                evidence_root=self.root,
+            )
+        self.assertFalse((port_dir / "migrations").exists())
+        self.assertFalse(candidate.with_name("donor-port-update.json").exists())
+        port_path.write_bytes(original_port)
+
+        for digest_call, artifact in ((2, "record"), (4, "proposal")):
+            original = policy_paths["adaptations"].read_bytes()
+            calls = 0
+            real_digest = donor_update_module._publication_policy_digest
+
+            def drift_after_final_digest(*args: object, **kwargs: object) -> str:
+                nonlocal calls
+                calls += 1
+                digest = real_digest(*args, **kwargs)  # type: ignore[arg-type]
+                if calls == digest_call:
+                    policy_paths["adaptations"].write_bytes(original + b" \n")
+                return digest
+
+            with (
+                self.subTest(artifact=artifact),
+                mock.patch(
+                    "tools.content_port.update._derive_live_policy_snapshot",
+                    return_value=report["policy"],
+                ),
+                mock.patch("tools.content_port.update.verify_migration_evidence"),
+                mock.patch(
+                    "tools.content_port.update._publication_policy_digest",
+                    side_effect=drift_after_final_digest,
+                ),
+                self.assertRaisesRegex(DonorUpdateError, "policy drifted"),
+            ):
+                finalize_migration(
+                    candidate,
+                    port_dir,
+                    donor_root=self.root,
+                    repo=Path.cwd(),
+                    evidence_root=self.root,
+                )
+            self.assertFalse((port_dir / "migrations").exists())
+            self.assertFalse(candidate.with_name("donor-port-update.json").exists())
+            policy_paths["adaptations"].write_bytes(original)
+
+        outside_migrations = self.root / "outside-migrations"
+        outside_migrations.mkdir()
+        migrations_link = port_dir / "migrations"
+        migrations_link.symlink_to(outside_migrations, target_is_directory=True)
+        with self.assertRaisesRegex(DonorUpdateError, "must be a real directory"):
+            load_reviewed_migration(migrations_link, "0" * 64)
+        with (
+            mock.patch(
+                "tools.content_port.update.run_review_commands",
+                return_value=tuple(passed_evidence()),
+            ),
+            mock.patch(
+                "tools.content_port.update._derive_live_policy_snapshot",
+                return_value=report["policy"],
+            ),
+            mock.patch("tools.content_port.update.verify_migration_evidence"),
+            self.assertRaisesRegex(DonorUpdateError, "must be a real directory"),
+        ):
+            finalize_migration(
+                candidate,
+                port_dir,
+                donor_root=self.root,
+                repo=Path.cwd(),
+                evidence_root=self.root,
+            )
+        self.assertEqual(list(outside_migrations.iterdir()), [])
+        migrations_link.unlink()
+
         with mock.patch(
-            "tools.content_port.update._validate_target_pin"
-        ) as target_check:
+            "tools.content_port.update._derive_live_policy_snapshot",
+            return_value=report["policy"],
+        ):
             record, proposal = finalize_migration(
                 candidate,
                 port_dir,
@@ -799,16 +1894,88 @@ class DonorUpdateTests(unittest.TestCase):
                 repo=Path.cwd(),
                 evidence_root=self.root,
             )
-        target_check.assert_called_once()
-        self.assertEqual(record.name, migration_filename(report))
-        self.assertEqual(record.read_bytes(), canonical_bytes(report))
+        finalized = json.loads(record.read_text())
+        self.assertEqual(record.name, migration_filename(finalized))
+        self.assertEqual(finalized["schemaVersion"], 2)
+        self.assertRegex(finalized["publicationPolicyDigest"], r"^[0-9a-f]{64}$")
+        captured_documents = finalized["publicationPolicySnapshot"]["policyDocuments"]
+        self.assertEqual(set(captured_documents), set(policy_paths))
+        for entry in captured_documents.values():
+            self.assertEqual(
+                entry["sha256"],
+                hashlib.sha256(canonical_bytes(entry["document"])).hexdigest(),
+            )
         self.assertEqual(port_path.read_bytes(), before)
         update = json.loads(proposal.read_text())
-        self.assertEqual(update["migration"], migration_digest(report))
+        self.assertEqual(update["migration"], migration_digest(finalized))
+        self.assertEqual(
+            update["publicationPolicyDigest"],
+            finalized["publicationPolicyDigest"],
+        )
         self.assertEqual(
             update["proposedDonorRecord"]["commit"], report["to"]["commit"]
         )
         self.assertEqual(update["proposedDonorRecord"]["genesis"], report["from"])
+
+        applied_port = copy.deepcopy(port)
+        applied_port["donors"]["content"] = update["proposedDonorRecord"]
+        port_path.write_bytes(canonical_bytes(applied_port))
+        loaded = load_reviewed_migration(
+            record.parent,
+            record.stem,
+            evidence_root=self.root,
+        )
+        self.assertEqual(loaded, finalized)
+        capability_bytes = policy_paths["capabilityPolicy"].read_bytes()
+        policy_paths["capabilityPolicy"].write_bytes(capability_bytes + b" \n")
+        # Raw formatting drift is not semantic drift after publication.
+        self.assertEqual(
+            load_reviewed_migration(
+                record.parent,
+                record.stem,
+                evidence_root=self.root,
+            ),
+            finalized,
+        )
+        policy_paths["capabilityPolicy"].write_bytes(capability_bytes)
+        policy_paths["capabilityPolicy"].write_bytes(
+            canonical_bytes({"semanticChange": True})
+        )
+        with self.assertRaisesRegex(DonorUpdateError, "publication policy is stale"):
+            load_reviewed_migration(
+                record.parent,
+                record.stem,
+                evidence_root=self.root,
+            )
+        policy_paths["capabilityPolicy"].write_bytes(capability_bytes)
+        applied_port["donors"]["content"]["excludePaths"] = ["new-exclusion"]
+        port_path.write_bytes(canonical_bytes(applied_port))
+        with self.assertRaisesRegex(DonorUpdateError, "publication policy is stale"):
+            load_reviewed_migration(
+                record.parent,
+                record.stem,
+                evidence_root=self.root,
+            )
+        port_path.write_bytes(before)
+
+        shrunk = copy.deepcopy(report)
+        shrunk["policy"]["references"] = []
+        shrunk["authorityChanges"] = []
+        candidate.write_bytes(canonical_bytes(shrunk))
+        with (
+            mock.patch(
+                "tools.content_port.update._derive_live_policy_snapshot",
+                return_value=report["policy"],
+            ),
+            self.assertRaisesRegex(DonorUpdateError, "differs from live policy"),
+        ):
+            finalize_migration(
+                candidate,
+                port_dir,
+                donor_root=self.root,
+                repo=Path.cwd(),
+                evidence_root=self.root,
+            )
 
         stale_predecessor = copy.deepcopy(report)
         stale_predecessor["predecessor"] = "f" * 64
@@ -910,6 +2077,8 @@ class DonorUpdateTests(unittest.TestCase):
         port_dir = self.root / "target-port"
         port_dir.mkdir()
         port = {
+            "adaptations": "adaptations.json",
+            "assetPolicy": "assets.json",
             "donors": {
                 "content": {
                     "name": "fixture",
@@ -920,7 +2089,7 @@ class DonorUpdateTests(unittest.TestCase):
                     "root": "donor",
                     "migration": None,
                 }
-            }
+            },
         }
         (port_dir / "port.json").write_bytes(canonical_bytes(port))
         (port_dir / "assets.json").write_bytes(
@@ -932,7 +2101,7 @@ class DonorUpdateTests(unittest.TestCase):
 
         with (
             mock.patch(
-                "tools.content_port.update._validate_target_pin",
+                "tools.content_port.update._derive_live_policy_snapshot",
                 side_effect=DonorUpdateError("target pin production check failed"),
             ),
             self.assertRaisesRegex(

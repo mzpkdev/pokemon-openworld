@@ -11,17 +11,22 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import secrets
 import shutil
+import stat
 import subprocess
+import sys
 import tempfile
 from typing import Iterable, Mapping, Sequence
 
+from .donor_paths import validated_donor_checkout, validated_donor_checkouts
 from .donors import records_digest, source_tree_records
 from .errors import ContentPortError
 from .faults import checkpoint
 
 
 SCHEMA_VERSION = 1
+FINALIZED_MIGRATION_SCHEMA_VERSION = 2
 PERMISSION_STATES = frozenset(("redistributable", "blocked", "unknown"))
 SUPPORT_STATES = frozenset(
     ("enabled", "disabled", "deferred", "story-owned", "unsupported")
@@ -45,6 +50,10 @@ MIGRATION_KEYS = {
     "tests",
     "to",
 }
+FINALIZED_MIGRATION_KEYS = MIGRATION_KEYS | {
+    "publicationPolicyDigest",
+    "publicationPolicySnapshot",
+}
 REQUIRED_REVIEW_COMMANDS = (
     (
         "python3",
@@ -53,6 +62,14 @@ REQUIRED_REVIEW_COMMANDS = (
         "tools.content_port.tests.test_ci_contract",
         "-q",
     ),
+)
+PUBLICATION_POLICY_FIELDS = (
+    "capabilityPolicy",
+    "eventPolicy",
+    "legacyReport",
+    "adaptations",
+    "assetPolicy",
+    "allocationLock",
 )
 
 
@@ -66,6 +83,31 @@ class TreeIdentity:
     digest: str
     file_count: int
     files: Mapping[str, str]
+
+
+def _descriptor_policy_file(
+    port_dir: Path,
+    port_document: Mapping[str, object],
+    field: str,
+) -> Path:
+    """Resolve a descriptor-selected policy through the descriptor contract."""
+
+    # Keep this import local: descriptor loading delegates asset validation back
+    # to this module, so importing the helper while modules initialize would
+    # create a cycle.
+    from .descriptor import _safe_child
+
+    try:
+        value = port_document[field]
+    except KeyError as error:
+        raise DonorUpdateError(f"invalid descriptor policy file $.{field}") from error
+    try:
+        path = _safe_child(port_dir, value, f"$.{field}")
+    except ContentPortError as error:
+        raise DonorUpdateError(str(error)) from error
+    if not path.is_file():
+        raise DonorUpdateError(f"$.{field}: policy file must be a regular file")
+    return path
 
 
 def canonical_bytes(value: object) -> bytes:
@@ -98,6 +140,47 @@ def _run_git(tree: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _remove_worktrees(
+    worktrees: Iterable[tuple[Path, Path]],
+    primary_error: BaseException | None,
+) -> None:
+    """Remove every temporary worktree without hiding an in-flight failure."""
+
+    failures: list[str] = []
+    for checkout, worktree in worktrees:
+        try:
+            result = subprocess.run(
+                (
+                    "git",
+                    "-C",
+                    str(checkout),
+                    "worktree",
+                    "remove",
+                    "--force",
+                    str(worktree),
+                ),
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except OSError as error:
+            failures.append(f"{worktree}: {error}")
+            continue
+        if result.returncode:
+            detail = result.stderr.strip() or f"git exited {result.returncode}"
+            failures.append(f"{worktree}: {detail}")
+    if not failures:
+        return
+    cleanup_error = DonorUpdateError(
+        "temporary donor worktree cleanup failed: " + "; ".join(failures)
+    )
+    if primary_error is not None:
+        primary_error.add_note(str(cleanup_error))
+        return
+    raise cleanup_error
+
+
 def _safe_source_path(value: object, pointer: str) -> str:
     if not isinstance(value, str) or not value:
         raise DonorUpdateError(f"{pointer}: expected a non-empty source path")
@@ -105,6 +188,24 @@ def _safe_source_path(value: object, pointer: str) -> str:
     if path.is_absolute() or ".." in path.parts or value != path.as_posix():
         raise DonorUpdateError(f"{pointer}: unsafe source path {value!r}")
     return value
+
+
+def _validated_donor_checkout(donor_root: Path, value: object, pointer: str) -> Path:
+    """Validate a descriptor donor root before resolving or mutating paths."""
+
+    return validated_donor_checkout(
+        donor_root, value, pointer, error_type=DonorUpdateError
+    )
+
+
+def _validated_donor_checkouts(
+    port_document: Mapping[str, object], donor_root: Path
+) -> Mapping[str, Path]:
+    """Preflight every raw donor root before any caller starts filesystem work."""
+
+    return validated_donor_checkouts(
+        port_document, donor_root, error_type=DonorUpdateError
+    )
 
 
 def identify_tree(tree: Path, *, excluded_paths: Iterable[str] = ()) -> TreeIdentity:
@@ -189,6 +290,10 @@ def _layout_field_value(blob: bytes | None, layout_id: str, field: str) -> objec
         layouts = json.loads(blob)["layouts"]
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
         raise DonorUpdateError("donor layout registry is malformed") from error
+    if not isinstance(layouts, list) or not all(
+        isinstance(item, Mapping) for item in layouts
+    ):
+        raise DonorUpdateError("donor layout registry is malformed")
     matches = [
         item
         for item in layouts
@@ -210,6 +315,10 @@ def _layout_record_value(blob: bytes | None, layout_id: str) -> object:
         layouts = json.loads(blob)["layouts"]
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
         raise DonorUpdateError("donor layout registry is malformed") from error
+    if not isinstance(layouts, list) or not all(
+        isinstance(item, Mapping) for item in layouts
+    ):
+        raise DonorUpdateError("donor layout registry is malformed")
     matches = [
         item
         for item in layouts
@@ -234,7 +343,9 @@ def _section_record_value(tree: Path, symbol: str) -> object:
         if not isinstance(document, Mapping):
             raise DonorUpdateError(f"donor section metadata is malformed: {path}")
         values = document.get("map_sections", [])
-        if not isinstance(values, list):
+        if not isinstance(values, list) or not all(
+            isinstance(item, Mapping) for item in values
+        ):
             raise DonorUpdateError(f"donor section metadata is malformed: {path}")
         records.extend(
             item
@@ -283,6 +394,32 @@ def _authority_changes(
         layout_id = reference.get("layoutId")
         field = reference.get("field")
         record_type = reference.get("recordType")
+        if record_type == "semantic-evidence":
+            old_hash = reference.get("oldHash")
+            new_hash = reference.get("newHash")
+            for label, value in (("oldHash", old_hash), ("newHash", new_hash)):
+                if value is not None and (
+                    not isinstance(value, str)
+                    or len(value) != 64
+                    or any(character not in "0123456789abcdef" for character in value)
+                ):
+                    raise DonorUpdateError(
+                        f"{pointer}.{label}: expected a 64-character lowercase hex "
+                        "hash or null"
+                    )
+            if old_hash != new_hash:
+                changes.append(
+                    {
+                        "authority": authority,
+                        "jsonPointer": None,
+                        "newHash": new_hash,
+                        "oldHash": old_hash,
+                        "reviewerDisposition": "pending",
+                        "semanticIdentity": semantic_identity,
+                        "sourcePath": source_path,
+                    }
+                )
+            continue
         if record_type == "section":
             section_symbol = reference.get("sectionSymbol")
             if not isinstance(section_symbol, str):
@@ -301,8 +438,13 @@ def _authority_changes(
             else:
                 old_record = new_record = None
         if record_type in {"map", "layout", "section"}:
-            old_fields = old_record if isinstance(old_record, Mapping) else {}
-            new_fields = new_record if isinstance(new_record, Mapping) else {}
+            for label, record in (("old", old_record), ("new", new_record)):
+                if record is not _MISSING and not isinstance(record, Mapping):
+                    raise DonorUpdateError(
+                        f"{pointer}: {label} {record_type} record is malformed"
+                    )
+            old_fields = {} if old_record is _MISSING else old_record
+            new_fields = {} if new_record is _MISSING else new_record
             for field_name in sorted(set(old_fields) | set(new_fields)):
                 old_value = old_fields.get(field_name, _MISSING)
                 new_value = new_fields.get(field_name, _MISSING)
@@ -367,6 +509,7 @@ def validate_assets(
 
     allowed_keys = {
         "key",
+        "source",
         "donor",
         "sourcePath",
         "semanticTarget",
@@ -374,6 +517,7 @@ def validate_assets(
         "targetSha256",
         "conversionCommand",
         "permission",
+        "license",
         "permissionEvidence",
         "capability",
         "supportState",
@@ -476,6 +620,13 @@ def validate_assets(
         seen.add(key)
         for field in ("donor", "semanticTarget", "capability"):
             if not isinstance(asset[field], str) or not asset[field]:
+                raise DonorUpdateError(
+                    f"{pointer}.{field}: expected a non-empty string"
+                )
+        for field in ("source", "license"):
+            if field in asset and (
+                not isinstance(asset[field], str) or not asset[field]
+            ):
                 raise DonorUpdateError(
                     f"{pointer}.{field}: expected a non-empty string"
                 )
@@ -645,6 +796,527 @@ def _filter_asset_policy(
     }
 
 
+def _semantic_policy_references(
+    current: Mapping[str, str], target: Mapping[str, str], donor: str
+) -> tuple[Mapping[str, object], ...]:
+    if not isinstance(donor, str) or not donor:
+        raise DonorUpdateError("semantic evidence donor must be a non-empty string")
+    identities = set(current) | set(target)
+    if not all(isinstance(identity, str) for identity in identities):
+        raise DonorUpdateError("semantic evidence identities must be strings")
+
+    def checked_hash(value: object, pointer: str) -> str | None:
+        if value is None:
+            return None
+        if (
+            not isinstance(value, str)
+            or len(value) != 64
+            or any(character not in "0123456789abcdef" for character in value)
+        ):
+            raise DonorUpdateError(
+                f"{pointer}: expected a 64-character lowercase hex hash"
+            )
+        return value
+
+    prefix = f"{donor}:"
+    references: list[Mapping[str, object]] = []
+    for identity in sorted(identities):
+        if not identity.startswith(prefix):
+            continue
+        semantic_identity = identity[len(prefix) :]
+        if not semantic_identity:
+            raise DonorUpdateError(
+                f"semantic evidence identity {identity!r} has no resource identity"
+            )
+        references.append(
+            {
+                "authority": donor,
+                "newHash": checked_hash(
+                    target.get(identity), f"semantic evidence {identity!r} target hash"
+                ),
+                "oldHash": checked_hash(
+                    current.get(identity),
+                    f"semantic evidence {identity!r} current hash",
+                ),
+                "recordType": "semantic-evidence",
+                "semanticIdentity": semantic_identity,
+                "sourcePath": f"semantic-evidence/{semantic_identity.replace(':', '/')}",
+            }
+        )
+    return tuple(references)
+
+
+def _derive_authored_policy_snapshot(
+    port_dir: Path,
+    port_document: Mapping[str, object],
+    donor: str,
+    *,
+    evidence_root: Path,
+) -> Mapping[str, object]:
+    """Derive live authored migration inputs before production closure."""
+
+    record = _descriptor_donor_record(port_document, donor)
+    excluded_paths = record.get("excludePaths")
+    if not isinstance(excluded_paths, list) or not all(
+        isinstance(path, str) for path in excluded_paths
+    ):
+        raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
+    try:
+        adaptations = json.loads(
+            _descriptor_policy_file(port_dir, port_document, "adaptations").read_text(
+                encoding="utf-8"
+            )
+        )
+        assets_document = json.loads(
+            _descriptor_policy_file(port_dir, port_document, "assetPolicy").read_text(
+                encoding="utf-8"
+            )
+        )
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError("cannot derive live migration policy") from error
+    if not isinstance(adaptations, Mapping) or not isinstance(assets_document, Mapping):
+        raise DonorUpdateError("live migration policy is invalid")
+    allocations = _allocation_policy(port_dir, port_document)
+    asset_records = validate_assets(
+        assets_document,
+        evidence_root=evidence_root,
+        require_redistributable=False,
+    )
+    name = record.get("name")
+    filtered_assets = _filter_asset_policy(
+        assets_document,
+        [asset for asset in asset_records if asset.get("donor") in (donor, name)],
+    )
+    references = _policy_references(adaptations, donor, allocations)
+    return _build_policy_snapshot(references, filtered_assets, excluded_paths)
+
+
+def _capture_publication_policy(
+    port_dir: Path,
+    donor: str,
+    *,
+    evidence_root: Path,
+    descriptor_bytes: bytes | None = None,
+    descriptor: Mapping[str, object] | None = None,
+) -> tuple[Mapping[str, object], Mapping[str, object], str, str]:
+    """Capture one raw descriptor generation and its donor-specific semantics."""
+
+    port_path = port_dir / "port.json"
+    try:
+        if descriptor_bytes is None:
+            descriptor_bytes = port_path.read_bytes()
+        if descriptor is None:
+            descriptor = json.loads(descriptor_bytes)
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError("cannot re-read migration publication policy") from error
+    if not isinstance(descriptor, Mapping):
+        raise DonorUpdateError("migration publication policy is invalid")
+
+    def raw_inputs() -> Mapping[str, object]:
+        inputs: dict[str, object] = {
+            "port.json": hashlib.sha256(descriptor_bytes).hexdigest()
+        }
+        for field in PUBLICATION_POLICY_FIELDS:
+            if descriptor.get(field) is None:
+                continue
+            try:
+                path = _descriptor_policy_file(port_dir, descriptor, field)
+                inputs[field] = {
+                    "path": descriptor[field],
+                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                }
+            except OSError as error:
+                raise DonorUpdateError(
+                    "cannot re-read migration publication policy"
+                ) from error
+        return inputs
+
+    before_inputs = raw_inputs()
+    authored = _derive_authored_policy_snapshot(
+        port_dir, descriptor, donor, evidence_root=evidence_root
+    )
+    try:
+        if port_path.read_bytes() != descriptor_bytes or raw_inputs() != before_inputs:
+            raise DonorUpdateError(
+                "migration publication policy drifted during snapshot capture"
+            )
+    except OSError as error:
+        raise DonorUpdateError("cannot re-read migration publication policy") from error
+    snapshot = _publication_policy_snapshot(
+        port_dir,
+        descriptor,
+        donor,
+        authored_policy=authored,
+    )
+    digest = hashlib.sha256(canonical_bytes(snapshot)).hexdigest()
+    generation_digest = hashlib.sha256(canonical_bytes(before_inputs)).hexdigest()
+    return descriptor, snapshot, digest, generation_digest
+
+
+def _validated_migrations_dir(port_dir: Path, *, create: bool) -> Path:
+    """Return a real migrations directory directly below the real port."""
+
+    try:
+        resolved_port = port_dir.resolve(strict=True)
+    except OSError as error:
+        raise DonorUpdateError(f"invalid port directory: {port_dir}") from error
+    if not resolved_port.is_dir():
+        raise DonorUpdateError(f"invalid port directory: {port_dir}")
+    migrations = port_dir / "migrations"
+    try:
+        metadata = os.lstat(migrations)
+    except FileNotFoundError:
+        if not create:
+            raise DonorUpdateError(
+                f"missing reviewed migration directory: {migrations}"
+            )
+        try:
+            migrations.mkdir()
+            metadata = os.lstat(migrations)
+        except OSError as error:
+            raise DonorUpdateError(
+                f"cannot create reviewed migration directory: {migrations}"
+            ) from error
+    except OSError as error:
+        raise DonorUpdateError(
+            f"invalid reviewed migration directory: {migrations}"
+        ) from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISDIR(metadata.st_mode):
+        raise DonorUpdateError(
+            f"reviewed migration directory must be a real directory: {migrations}"
+        )
+    try:
+        resolved_migrations = migrations.resolve(strict=True)
+    except OSError as error:
+        raise DonorUpdateError(
+            f"invalid reviewed migration directory: {migrations}"
+        ) from error
+    if resolved_migrations.parent != resolved_port:
+        raise DonorUpdateError(
+            f"reviewed migration directory must be directly beneath port: {migrations}"
+        )
+    return migrations
+
+
+def _publication_policy_snapshot(
+    port_dir: Path,
+    descriptor: Mapping[str, object],
+    donor: str,
+    *,
+    authored_policy: Mapping[str, object] | None = None,
+) -> Mapping[str, object]:
+    """Capture canonical, reconstructable policy semantics for one link."""
+
+    if authored_policy is None:
+        raise DonorUpdateError("authored migration policy snapshot is required")
+    _descriptor_donor_record(descriptor, donor)
+    documents: dict[str, object] = {}
+    for field in PUBLICATION_POLICY_FIELDS:
+        if descriptor.get(field) is None:
+            continue
+        try:
+            document = json.loads(
+                _descriptor_policy_file(port_dir, descriptor, field).read_text(
+                    encoding="utf-8"
+                )
+            )
+        except (OSError, json.JSONDecodeError) as error:
+            raise DonorUpdateError(
+                f"cannot capture migration publication document {field}"
+            ) from error
+        documents[field] = {
+            "document": document,
+            "sha256": hashlib.sha256(canonical_bytes(document)).hexdigest(),
+        }
+    return json.loads(
+        canonical_bytes(
+            {
+                "authoredPolicy": authored_policy,
+                "descriptor": descriptor,
+                "policyDocuments": documents,
+            }
+        )
+    )
+
+
+def _bound_publication_policy_digest(
+    report: Mapping[str, object],
+    port_dir: Path,
+    *,
+    evidence_root: Path,
+) -> tuple[Mapping[str, object], str]:
+    """Recompute this link's donor-specific policy at source or applied state."""
+
+    try:
+        descriptor_bytes = (port_dir / "port.json").read_bytes()
+        descriptor = json.loads(descriptor_bytes)
+    except (OSError, json.JSONDecodeError) as error:
+        raise DonorUpdateError(
+            "cannot load bound migration publication policy"
+        ) from error
+    if not isinstance(descriptor, dict) or not isinstance(
+        descriptor.get("donors"), dict
+    ):
+        raise DonorUpdateError("bound migration publication policy is invalid")
+    donor = report.get("donor")
+    if not isinstance(donor, str):
+        raise DonorUpdateError("migration has invalid donor identity")
+    current = descriptor["donors"].get(donor)
+    if not isinstance(current, dict):
+        raise DonorUpdateError(f"port policy has no donor role {donor!r}")
+    source = _pin_identity(report.get("from"), "$.from")
+    target = _pin_identity(report.get("to"), "$.to")
+    predecessor = _migration_link(report.get("predecessor"), "$.predecessor")
+    current_pin = {field: current.get(field) for field in source}
+    current_migration = current.get("migration")
+    if current_pin == source and current_migration == predecessor:
+        normalized = descriptor
+    elif current_pin == target and current_migration == migration_digest(report):
+        normalized = dict(descriptor)
+        normalized_donors = dict(descriptor["donors"])
+        normalized_record = dict(current)
+        normalized_record.update(source)
+        normalized_record["migration"] = predecessor
+        normalized_donors[donor] = normalized_record
+        normalized["donors"] = normalized_donors
+    else:
+        raise DonorUpdateError(
+            "migration publication policy does not match source or applied pin"
+        )
+
+    # Capture against the live bytes to detect a torn/racing read.  The durable
+    # binding itself is canonical donor-specific semantics, not those raw bytes.
+    _capture_publication_policy(
+        port_dir,
+        donor,
+        evidence_root=evidence_root,
+        descriptor_bytes=descriptor_bytes,
+        descriptor=descriptor,
+    )
+    authored = _derive_authored_policy_snapshot(
+        port_dir, normalized, donor, evidence_root=evidence_root
+    )
+    try:
+        if (port_dir / "port.json").read_bytes() != descriptor_bytes:
+            raise DonorUpdateError(
+                "migration publication policy drifted during snapshot capture"
+            )
+    except OSError as error:
+        raise DonorUpdateError("cannot re-read migration publication policy") from error
+    snapshot = _publication_policy_snapshot(
+        port_dir, normalized, donor, authored_policy=authored
+    )
+    return snapshot, hashlib.sha256(canonical_bytes(snapshot)).hexdigest()
+
+
+def _validate_publication_policy_binding(
+    report: Mapping[str, object],
+    port_dir: Path,
+    *,
+    evidence_root: Path,
+) -> None:
+    digest = report.get("publicationPolicyDigest")
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+    ):
+        raise DonorUpdateError(
+            "$.publicationPolicyDigest: finalized migration requires lowercase SHA-256"
+        )
+    snapshot = report.get("publicationPolicySnapshot")
+    if not isinstance(snapshot, Mapping):
+        raise DonorUpdateError(
+            "$.publicationPolicySnapshot: finalized migration requires an object"
+        )
+    if digest != hashlib.sha256(canonical_bytes(snapshot)).hexdigest():
+        raise DonorUpdateError("migration publication policy snapshot is stale")
+    embedded_snapshot = _validate_embedded_publication_policy(
+        report, evidence_root=evidence_root
+    )
+    live_snapshot, _ = _bound_publication_policy_digest(
+        report, port_dir, evidence_root=evidence_root
+    )
+    donor = report.get("donor")
+    if not isinstance(donor, str):
+        raise DonorUpdateError("migration has invalid donor identity")
+    if _donor_publication_policy_binding(
+        embedded_snapshot, donor
+    ) != _donor_publication_policy_binding(live_snapshot, donor):
+        raise DonorUpdateError("migration publication policy is stale")
+
+
+def _donor_publication_policy_binding(
+    snapshot: Mapping[str, object], donor: str
+) -> Mapping[str, object]:
+    """Project a reconstructable snapshot onto one donor's live-head contract."""
+
+    descriptor = snapshot.get("descriptor")
+    authored = snapshot.get("authoredPolicy")
+    documents = snapshot.get("policyDocuments")
+    if (
+        not isinstance(descriptor, Mapping)
+        or not isinstance(descriptor.get("donors"), Mapping)
+        or not isinstance(authored, Mapping)
+        or not isinstance(documents, Mapping)
+    ):
+        raise DonorUpdateError("migration publication policy snapshot is invalid")
+    donor_record = descriptor["donors"].get(donor)
+    if not isinstance(donor_record, Mapping):
+        raise DonorUpdateError("migration publication donor snapshot is invalid")
+    return json.loads(
+        canonical_bytes(
+            {
+                "authoredPolicy": authored,
+                "donor": donor_record,
+                "policyDocuments": documents,
+            }
+        )
+    )
+
+
+def _validate_embedded_publication_policy(
+    report: Mapping[str, object], *, evidence_root: Path
+) -> Mapping[str, object]:
+    """Authenticate a historical link without consulting unrelated live state."""
+
+    digest = report.get("publicationPolicyDigest")
+    snapshot = report.get("publicationPolicySnapshot")
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+        or not isinstance(snapshot, Mapping)
+        or digest != hashlib.sha256(canonical_bytes(snapshot)).hexdigest()
+    ):
+        raise DonorUpdateError("migration publication policy snapshot is stale")
+    if set(snapshot) != {"authoredPolicy", "descriptor", "policyDocuments"}:
+        raise DonorUpdateError("migration publication policy snapshot is invalid")
+    descriptor = snapshot.get("descriptor")
+    documents = snapshot.get("policyDocuments")
+    authored = snapshot.get("authoredPolicy")
+    if (
+        not isinstance(descriptor, Mapping)
+        or not isinstance(descriptor.get("donors"), Mapping)
+        or not isinstance(documents, Mapping)
+        or not isinstance(authored, Mapping)
+    ):
+        raise DonorUpdateError("migration publication policy snapshot is invalid")
+    donor = report.get("donor")
+    if not isinstance(donor, str):
+        raise DonorUpdateError("migration has invalid donor identity")
+    donor_record = _descriptor_donor_record(descriptor, donor)
+    if not isinstance(donor_record, Mapping):
+        raise DonorUpdateError("migration publication donor snapshot is invalid")
+    source = _pin_identity(report.get("from"), "$.from")
+    if any(donor_record.get(field) != value for field, value in source.items()):
+        raise DonorUpdateError("migration publication donor snapshot is stale")
+    if donor_record.get("migration") != report.get("predecessor"):
+        raise DonorUpdateError("migration publication predecessor snapshot is stale")
+    expected_fields = {
+        field
+        for field in PUBLICATION_POLICY_FIELDS
+        if descriptor.get(field) is not None
+    }
+    if set(documents) != expected_fields:
+        raise DonorUpdateError("migration publication policy documents are incomplete")
+    with tempfile.TemporaryDirectory(
+        prefix="content-port-embedded-policy-"
+    ) as directory:
+        embedded_port = Path(directory)
+        for field in sorted(expected_fields):
+            binding = descriptor[field]
+            entry = documents[field]
+            if not isinstance(entry, Mapping) or set(entry) != {"document", "sha256"}:
+                raise DonorUpdateError(
+                    f"migration publication policy document {field} is invalid"
+                )
+            document = entry["document"]
+            document_digest = entry["sha256"]
+            if (
+                not isinstance(document_digest, str)
+                or document_digest
+                != hashlib.sha256(canonical_bytes(document)).hexdigest()
+            ):
+                raise DonorUpdateError(
+                    f"migration publication policy document {field} is stale"
+                )
+            from .descriptor import _safe_child
+
+            try:
+                policy_path = _safe_child(embedded_port, binding, f"$.{field}")
+            except ContentPortError as error:
+                raise DonorUpdateError(str(error)) from error
+            policy_path.parent.mkdir(parents=True, exist_ok=True)
+            existing = policy_path.read_bytes() if policy_path.exists() else None
+            payload = canonical_bytes(document)
+            if existing is not None and existing != payload:
+                raise DonorUpdateError("migration publication policy bindings conflict")
+            policy_path.write_bytes(payload)
+        embedded_port.joinpath("port.json").write_bytes(canonical_bytes(descriptor))
+        recomputed = _derive_authored_policy_snapshot(
+            embedded_port, descriptor, donor, evidence_root=evidence_root
+        )
+    if authored != recomputed:
+        raise DonorUpdateError("migration publication authored policy is stale")
+    return snapshot
+
+
+def _publication_policy_digest(
+    port_dir: Path,
+    donor: str,
+    *,
+    evidence_root: Path,
+) -> str:
+    """Hash freshly read descriptor and authored inputs guarding publication."""
+
+    _, _, _, digest = _capture_publication_policy(
+        port_dir, donor, evidence_root=evidence_root
+    )
+    return digest
+
+
+def _derive_live_policy_snapshot(
+    port_dir: Path,
+    port_document: Mapping[str, object],
+    donor_root: Path,
+    donor: str,
+    repo: Path,
+    report: Mapping[str, object],
+    *,
+    evidence_root: Path,
+) -> Mapping[str, object]:
+    """Derive the only policy snapshot eligible for a new review publication."""
+
+    authored = _derive_authored_policy_snapshot(
+        port_dir, port_document, donor, evidence_root=evidence_root
+    )
+    references, filtered_assets, excluded_paths = _migration_policy(
+        authored, evidence_root=evidence_root
+    )
+    current_evidence = _semantic_evidence_at_pin(
+        repo,
+        port_dir,
+        donor_root,
+        donor,
+        _pin_identity(report.get("from"), "$.from"),
+        port_document=port_document,
+    )
+    target_evidence = _validate_target_pin(
+        repo,
+        port_dir,
+        donor_root,
+        donor,
+        report,
+        port_document=port_document,
+    )
+    references = (
+        *references,
+        *_semantic_policy_references(current_evidence, target_evidence, donor),
+    )
+    return _build_policy_snapshot(references, filtered_assets, excluded_paths)
+
+
 def build_migration(
     *,
     donor: str,
@@ -722,20 +1394,254 @@ def build_migration(
     return report
 
 
-def _atomic_write(output: Path, data: bytes, checkpoint_name: str) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    temporary = output.with_name(f".{output.name}.tmp")
-    with temporary.open("wb") as stream:
-        stream.write(data)
-        stream.flush()
-        os.fsync(stream.fileno())
-    temporary.replace(output)
-    directory = os.open(output.parent, os.O_RDONLY)
+def _directory_flags() -> int:
+    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+
+
+def _open_publication_directory(directory: Path, *, create: bool = True) -> int:
+    if create:
+        directory.mkdir(parents=True, exist_ok=True)
     try:
-        os.fsync(directory)
+        return os.open(directory, _directory_flags())
+    except OSError as error:
+        raise DonorUpdateError(
+            f"publication parent must be a real directory: {directory}"
+        ) from error
+
+
+def _open_migrations_publication_directory(
+    port_dir: Path,
+) -> tuple[Path, int, int, bool]:
+    """Open the migration directory beneath a held, non-symlink port handle."""
+
+    port_fd = _open_publication_directory(port_dir, create=False)
+    created = False
+    try:
+        try:
+            os.mkdir("migrations", dir_fd=port_fd)
+            created = True
+            os.fsync(port_fd)
+        except FileExistsError:
+            pass
+        try:
+            migrations_fd = os.open("migrations", _directory_flags(), dir_fd=port_fd)
+        except OSError as error:
+            raise DonorUpdateError(
+                "reviewed migration directory must be a real directory: "
+                f"{port_dir / 'migrations'}"
+            ) from error
+        current = os.stat("migrations", dir_fd=port_fd, follow_symlinks=False)
+        opened = os.fstat(migrations_fd)
+        if (current.st_dev, current.st_ino) != (opened.st_dev, opened.st_ino):
+            os.close(migrations_fd)
+            raise DonorUpdateError("reviewed migration directory changed while opening")
+        return port_dir / "migrations", port_fd, migrations_fd, created
+    except BaseException:
+        os.close(port_fd)
+        raise
+
+
+def _remove_anchored_directory(parent_fd: int, name: str, directory_fd: int) -> None:
+    """Remove a created directory only while its pathname names the held inode."""
+
+    try:
+        current = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    opened = os.fstat(directory_fd)
+    if (current.st_dev, current.st_ino) != (opened.st_dev, opened.st_ino):
+        return
+    try:
+        os.rmdir(name, dir_fd=parent_fd)
+        os.fsync(parent_fd)
+    except OSError:
+        pass
+
+
+def _read_publication_path(directory_fd: int, name: str) -> bytes | None:
+    try:
+        descriptor = os.open(
+            name,
+            os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC,
+            dir_fd=directory_fd,
+        )
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise DonorUpdateError(f"cannot preserve publication target {name}") from error
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise DonorUpdateError(f"publication target must be a regular file: {name}")
+        with os.fdopen(descriptor, "rb", closefd=False) as stream:
+            return stream.read()
     finally:
-        os.close(directory)
-    checkpoint(checkpoint_name)
+        os.close(descriptor)
+
+
+def _assert_publication_parent(directory: Path, directory_fd: int) -> None:
+    """Require a held publication handle to remain the pathname's directory."""
+
+    try:
+        current = os.stat(directory, follow_symlinks=False)
+        opened = os.fstat(directory_fd)
+    except OSError as error:
+        raise DonorUpdateError(
+            f"publication parent changed during write: {directory}"
+        ) from error
+    if not stat.S_ISDIR(current.st_mode) or (current.st_dev, current.st_ino) != (
+        opened.st_dev,
+        opened.st_ino,
+    ):
+        raise DonorUpdateError(f"publication parent changed during write: {directory}")
+
+
+def _atomic_write_at(
+    directory_fd: int, name: str, data: bytes, checkpoint_name: str
+) -> None:
+    temporary: str | None = None
+    descriptor: int | None = None
+    try:
+        for _ in range(128):
+            candidate = f".{name}.tmp-{secrets.token_hex(16)}"
+            try:
+                descriptor = os.open(
+                    candidate,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                    0o666,
+                    dir_fd=directory_fd,
+                )
+            except FileExistsError:
+                continue
+            temporary = candidate
+            break
+        if descriptor is None or temporary is None:
+            raise DonorUpdateError("cannot allocate secure publication temporary")
+        with os.fdopen(descriptor, "wb", closefd=False) as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(descriptor)
+        os.close(descriptor)
+        descriptor = None
+        os.replace(
+            temporary,
+            name,
+            src_dir_fd=directory_fd,
+            dst_dir_fd=directory_fd,
+        )
+        temporary = None
+        os.fsync(directory_fd)
+        checkpoint(checkpoint_name)
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if temporary is not None:
+            try:
+                os.unlink(temporary, dir_fd=directory_fd)
+                os.fsync(directory_fd)
+            except FileNotFoundError:
+                pass
+
+
+def _atomic_write(
+    output: Path,
+    data: bytes,
+    checkpoint_name: str,
+    *,
+    directory_fd: int | None = None,
+) -> None:
+    owned_directory_fd = directory_fd is None
+    if directory_fd is None:
+        directory_fd = _open_publication_directory(output.parent)
+    try:
+        _atomic_write_at(directory_fd, output.name, data, checkpoint_name)
+    finally:
+        if owned_directory_fd:
+            os.close(directory_fd)
+
+
+def _restore_publication_path(
+    output: Path, previous: bytes | None, *, directory_fd: int | None = None
+) -> None:
+    owned_directory_fd = directory_fd is None
+    if directory_fd is None:
+        directory_fd = _open_publication_directory(output.parent, create=False)
+    try:
+        if previous is None:
+            try:
+                os.unlink(output.name, dir_fd=directory_fd)
+            except FileNotFoundError:
+                return
+            os.fsync(directory_fd)
+            return
+        _atomic_write(
+            output,
+            previous,
+            f"after-migration-publication-restore:{output.name}",
+            directory_fd=directory_fd,
+        )
+    finally:
+        if owned_directory_fd:
+            os.close(directory_fd)
+
+
+def _write_policy_bound_artifact(
+    output: Path,
+    data: bytes,
+    checkpoint_name: str,
+    *,
+    port_dir: Path,
+    donor: str,
+    evidence_root: Path,
+    policy_digest: str,
+    directory_fd: int | None = None,
+    anchored_directories: Sequence[tuple[Path, int]] = (),
+) -> bytes | None:
+    """Publish atomically and roll back if live policy changes around the write."""
+
+    owned_directory_fd = directory_fd is None
+    if directory_fd is None:
+        directory_fd = _open_publication_directory(output.parent)
+    try:
+        publication_directories = ((output.parent, directory_fd), *anchored_directories)
+        for directory, descriptor in publication_directories:
+            _assert_publication_parent(directory, descriptor)
+        previous = _read_publication_path(directory_fd, output.name)
+        if policy_digest != _publication_policy_digest(
+            port_dir, donor, evidence_root=evidence_root
+        ):
+            raise DonorUpdateError("migration publication policy drifted before write")
+        try:
+            _atomic_write(
+                output,
+                data,
+                checkpoint_name,
+                directory_fd=directory_fd,
+            )
+            after_policy_digest = _publication_policy_digest(
+                port_dir, donor, evidence_root=evidence_root
+            )
+            parent_error: DonorUpdateError | None = None
+            try:
+                for directory, descriptor in publication_directories:
+                    _assert_publication_parent(directory, descriptor)
+            except DonorUpdateError as error:
+                parent_error = error
+            if policy_digest != after_policy_digest:
+                raise DonorUpdateError(
+                    "migration publication policy drifted during write"
+                )
+            if parent_error is not None:
+                raise parent_error
+        except BaseException as error:
+            try:
+                _restore_publication_path(output, previous, directory_fd=directory_fd)
+            except BaseException as cleanup_error:
+                error.add_note(f"publication rollback failed: {cleanup_error}")
+            raise
+        return previous
+    finally:
+        if owned_directory_fd:
+            os.close(directory_fd)
 
 
 def write_candidate_migration(output: Path, **kwargs: object) -> dict[str, object]:
@@ -857,26 +1763,46 @@ def run_review_commands(repo: Path) -> tuple[Mapping[str, object], ...]:
     return tuple(evidence)
 
 
-def _validate_target_pin(
+def _semantic_evidence_at_pin(
     repo: Path,
     port_dir: Path,
     donor_root: Path,
     donor: str,
-    report: Mapping[str, object],
-) -> None:
-    """Run production source and materialization validation at a proposed pin."""
+    pin: Mapping[str, object],
+    *,
+    port_document: Mapping[str, object] | None = None,
+) -> Mapping[str, str]:
+    """Derive production semantics from authenticated, detached donor commits."""
 
-    try:
-        port = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise DonorUpdateError("cannot load target-pin port policy") from error
+    if port_document is None:
+        try:
+            port = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise DonorUpdateError("cannot load target-pin port policy") from error
+    else:
+        port = port_document
     if not isinstance(port, dict) or not isinstance(port.get("donors"), dict):
         raise DonorUpdateError("target-pin port policy has no donors object")
-    target = _pin_identity(report.get("to"), "$.to")
+    selected = _pin_identity(pin, "$.pin")
     if donor not in port["donors"]:
         raise DonorUpdateError(f"target-pin port policy has no donor role {donor!r}")
 
-    with tempfile.TemporaryDirectory(prefix="content-port-target-pin-") as directory:
+    checkouts = _validated_donor_checkouts(port, donor_root)
+    donor_records: list[tuple[str, Mapping[str, object], Path, str]] = []
+    for role, raw in sorted(port["donors"].items()):
+        if not isinstance(raw, Mapping):
+            raise DonorUpdateError(f"invalid donor record {role!r}")
+        commit = selected["commit"] if role == donor else raw.get("commit")
+        if not isinstance(commit, str):
+            raise DonorUpdateError(f"invalid donor record {role!r}")
+        donor_records.append((role, raw, checkouts[role], commit))
+
+    semantic_evidence: Mapping[str, str] | None = None
+    # Keep the detached descriptor beneath the repository so descriptor loading
+    # retains the repository root used by content-addressed permission evidence.
+    with tempfile.TemporaryDirectory(
+        prefix=".content-port-target-pin-", dir=repo
+    ) as directory:
         temporary = Path(directory)
         temporary_port = temporary / "ports" / port_dir.name
         temporary_donors = temporary / "donors"
@@ -884,14 +1810,9 @@ def _validate_target_pin(
         temporary_donors.mkdir()
         worktrees: list[tuple[Path, Path]] = []
         try:
-            for role, raw in sorted(port["donors"].items()):
-                if not isinstance(raw, dict):
-                    raise DonorUpdateError(f"invalid donor record {role!r}")
-                root = raw.get("root")
-                commit = target["commit"] if role == donor else raw.get("commit")
-                if not isinstance(root, str) or not isinstance(commit, str):
-                    raise DonorUpdateError(f"invalid donor record {role!r}")
-                checkout = (donor_root / root).resolve()
+            for role, raw, checkout, commit in donor_records:
+                root = raw["root"]
+                assert isinstance(root, str)
                 worktree = temporary_donors / root
                 worktree.parent.mkdir(parents=True, exist_ok=True)
                 _run_git(
@@ -906,12 +1827,23 @@ def _validate_target_pin(
 
             proposed = dict(port)
             proposed_donors = {role: dict(raw) for role, raw in port["donors"].items()}
+            for role, frozen_record in proposed_donors.items():
+                try:
+                    frozen_pin = {
+                        field: frozen_record[field]
+                        for field in ("commit", "fileCount", "treeDigest")
+                    }
+                except KeyError as error:
+                    raise DonorUpdateError(f"invalid donor record {role!r}") from error
+                _pin_identity(frozen_pin, f"$.donors.{role}")
+                frozen_record["genesis"] = frozen_pin
+                frozen_record["migration"] = None
             proposed_record = proposed_donors[donor]
-            proposed_record.update(target)
+            proposed_record.update(selected)
             # The temporary descriptor represents the proposed pin as its own
             # reviewed baseline. The real predecessor linkage remains enforced
             # independently by finalize_migration and descriptor-chain loading.
-            proposed_record["genesis"] = dict(target)
+            proposed_record["genesis"] = dict(selected)
             proposed_record["migration"] = None
             proposed["donors"] = proposed_donors
             (temporary_port / "port.json").write_bytes(canonical_bytes(proposed))
@@ -919,32 +1851,43 @@ def _validate_target_pin(
             from .descriptor import load_port
             from .donors import authenticate_donors
             from .materialize import derive_desired_state
-            from .sources import validate_port_sources
+            from .sources import resolve_port_sources
 
             descriptor = load_port(temporary_port, temporary_donors)
             authenticate_donors(descriptor.donors, require_git=True)
-            validate_port_sources(descriptor, repo)
+            _, state = resolve_port_sources(descriptor, repo)
+            semantic_evidence = state.semantic_evidence
             derive_desired_state(descriptor, repo)
         except ContentPortError as error:
             raise DonorUpdateError(
                 f"target pin production check failed: {error}"
             ) from error
         finally:
-            for checkout, worktree in reversed(worktrees):
-                if worktree.exists():
-                    subprocess.run(
-                        (
-                            "git",
-                            "-C",
-                            str(checkout),
-                            "worktree",
-                            "remove",
-                            "--force",
-                            str(worktree),
-                        ),
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
+            _remove_worktrees(reversed(worktrees), primary_error=sys.exception())
+    if semantic_evidence is None:
+        raise DonorUpdateError("target pin production check produced no evidence")
+    return semantic_evidence
+
+
+def _validate_target_pin(
+    repo: Path,
+    port_dir: Path,
+    donor_root: Path,
+    donor: str,
+    report: Mapping[str, object],
+    *,
+    port_document: Mapping[str, object] | None = None,
+) -> Mapping[str, str]:
+    """Run production source and materialization validation at a proposed pin."""
+
+    return _semantic_evidence_at_pin(
+        repo,
+        port_dir,
+        donor_root,
+        donor,
+        _pin_identity(report.get("to"), "$.to"),
+        port_document=port_document,
+    )
 
 
 def finalize_migration(
@@ -958,7 +1901,8 @@ def finalize_migration(
 
     try:
         report = json.loads(candidate.read_text(encoding="utf-8"))
-        port = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
+        port_bytes = (port_dir / "port.json").read_bytes()
+        port = json.loads(port_bytes)
     except (OSError, json.JSONDecodeError) as error:
         raise DonorUpdateError(
             "cannot load migration candidate or port policy"
@@ -984,8 +1928,6 @@ def finalize_migration(
     repo = repo.resolve()
     if evidence_root is None:
         evidence_root = repo
-    if list(run_review_commands(repo)) != report["tests"]:
-        raise DonorUpdateError("$.tests: recorded command evidence is stale")
     if not isinstance(port, dict) or not isinstance(port.get("donors"), dict):
         raise DonorUpdateError("port policy has no donors object")
     current = port["donors"].get(donor)
@@ -1005,41 +1947,115 @@ def finalize_migration(
         donor_root = Path(
             os.environ.get("CONTENT_PORT_DONOR_ROOT", repo / ".references")
         )
-    root = current.get("root")
-    if not isinstance(root, str):
-        raise DonorUpdateError(f"donor {donor}: port policy has invalid root")
+    _validated_donor_checkouts(port, donor_root)
+    (
+        port,
+        publication_policy_snapshot,
+        publication_policy_digest,
+        publication_generation_digest,
+    ) = _capture_publication_policy(
+        port_dir,
+        donor,
+        evidence_root=evidence_root,
+        descriptor_bytes=port_bytes,
+        descriptor=port,
+    )
+    if list(run_review_commands(repo)) != report["tests"]:
+        raise DonorUpdateError("$.tests: recorded command evidence is stale")
+    live_policy = _derive_live_policy_snapshot(
+        port_dir,
+        port,
+        donor_root,
+        donor,
+        repo,
+        report,
+        evidence_root=evidence_root,
+    )
+    if report.get("policy") != live_policy:
+        raise DonorUpdateError("migration policy snapshot differs from live policy")
     verify_migration_evidence(
         report,
         port_dir,
-        donor_root / root,
+        _validated_donor_checkout(
+            donor_root, current.get("root"), f"$.donors.{donor}.root"
+        ),
         evidence_root=evidence_root,
+        donor_root=donor_root,
+        repo=repo,
+        port_document=port,
     )
-    _validate_target_pin(repo, port_dir, donor_root, donor, report)
-
-    digest = migration_digest(report)
-    record_path = port_dir / "migrations" / f"{digest}.json"
-    _atomic_write(
-        record_path,
-        canonical_bytes(report),
-        f"after-migration-finalize-write:{record_path.name}",
+    if publication_generation_digest != _publication_policy_digest(
+        port_dir, donor, evidence_root=evidence_root
+    ):
+        raise DonorUpdateError(
+            "migration publication policy drifted during evidence verification"
+        )
+    finalized_report = dict(report)
+    finalized_report["schemaVersion"] = FINALIZED_MIGRATION_SCHEMA_VERSION
+    finalized_report["publicationPolicyDigest"] = publication_policy_digest
+    finalized_report["publicationPolicySnapshot"] = publication_policy_snapshot
+    digest = migration_digest(finalized_report)
+    migrations, port_fd, migrations_fd, migrations_created = (
+        _open_migrations_publication_directory(port_dir)
     )
-    proposed_donor = dict(current)
-    proposed_donor.update(target)
-    proposed_donor["migration"] = digest
-    proposal = {
-        "donor": donor,
-        "migration": digest,
-        "port": port_dir.name,
-        "proposedDonorRecord": proposed_donor,
-        "schemaVersion": SCHEMA_VERSION,
-    }
-    proposal_path = candidate.with_name("donor-port-update.json")
-    _atomic_write(
-        proposal_path,
-        canonical_bytes(proposal),
-        f"after-migration-finalize-proposal:{proposal_path.name}",
-    )
-    return record_path, proposal_path
+    record_path = migrations / f"{digest}.json"
+    try:
+        try:
+            previous_record = _write_policy_bound_artifact(
+                record_path,
+                canonical_bytes(finalized_report),
+                f"after-migration-finalize-write:{record_path.name}",
+                port_dir=port_dir,
+                donor=donor,
+                evidence_root=evidence_root,
+                policy_digest=publication_generation_digest,
+                directory_fd=migrations_fd,
+                anchored_directories=((port_dir, port_fd),),
+            )
+        except BaseException:
+            if migrations_created:
+                _remove_anchored_directory(port_fd, "migrations", migrations_fd)
+            raise
+        proposed_donor = dict(current)
+        proposed_donor.update(target)
+        proposed_donor["migration"] = digest
+        proposal = {
+            "donor": donor,
+            "migration": digest,
+            "port": port_dir.name,
+            "publicationPolicyDigest": publication_policy_digest,
+            "proposedDonorRecord": proposed_donor,
+            "schemaVersion": FINALIZED_MIGRATION_SCHEMA_VERSION,
+        }
+        proposal_path = candidate.with_name("donor-port-update.json")
+        try:
+            _write_policy_bound_artifact(
+                proposal_path,
+                canonical_bytes(proposal),
+                f"after-migration-finalize-proposal:{proposal_path.name}",
+                port_dir=port_dir,
+                donor=donor,
+                evidence_root=evidence_root,
+                policy_digest=publication_generation_digest,
+                anchored_directories=(
+                    (port_dir, port_fd),
+                    (migrations, migrations_fd),
+                ),
+            )
+        except BaseException as error:
+            try:
+                _restore_publication_path(
+                    record_path, previous_record, directory_fd=migrations_fd
+                )
+            except BaseException as cleanup_error:
+                error.add_note(f"record publication rollback failed: {cleanup_error}")
+            if migrations_created:
+                _remove_anchored_directory(port_fd, "migrations", migrations_fd)
+            raise
+        return record_path, proposal_path
+    finally:
+        os.close(migrations_fd)
+        os.close(port_fd)
 
 
 def validate_reviewed_migration(
@@ -1058,11 +2074,49 @@ def validate_reviewed_migration(
     donor_checkout: Path | None = None,
     review_repo: Path | None = None,
     evidence_root: Path | None = None,
+    validate_live_publication_policy: bool = True,
 ) -> None:
     """Require an exact reviewed record for a descriptor pin transition."""
 
-    if report.get("schemaVersion") != SCHEMA_VERSION:
+    embedded_publication_policy: Mapping[str, object] | None = None
+    schema_version = report.get("schemaVersion")
+    if schema_version not in (SCHEMA_VERSION, FINALIZED_MIGRATION_SCHEMA_VERSION):
         raise DonorUpdateError("migration record has unsupported schemaVersion")
+    if schema_version == FINALIZED_MIGRATION_SCHEMA_VERSION:
+        if (
+            "publicationPolicyDigest" not in report
+            or "publicationPolicySnapshot" not in report
+        ):
+            raise DonorUpdateError(
+                "finalized migration record requires publicationPolicyDigest and publicationPolicySnapshot"
+            )
+        if set(report) != FINALIZED_MIGRATION_KEYS:
+            raise DonorUpdateError(
+                "finalized migration record has fields outside the contract"
+            )
+        if validate_live_publication_policy and port_dir is None:
+            raise DonorUpdateError(
+                "finalized migration record needs live publication policy"
+            )
+        if evidence_root is None:
+            evidence_root = (
+                review_repo
+                if review_repo is not None
+                else Path(__file__).resolve().parents[2]
+            )
+        if validate_live_publication_policy:
+            assert port_dir is not None
+            _validate_publication_policy_binding(
+                report, port_dir, evidence_root=evidence_root
+            )
+        else:
+            embedded_publication_policy = _validate_embedded_publication_policy(
+                report, evidence_root=evidence_root
+            )
+    if schema_version == SCHEMA_VERSION and set(report) != MIGRATION_KEYS:
+        raise DonorUpdateError(
+            "legacy migration record has fields outside the contract"
+        )
     if report.get("decision") != "reviewed":
         raise DonorUpdateError(f"donor {donor}: migration record is not reviewed")
     _migration_link(report.get("predecessor"), "$.predecessor")
@@ -1129,14 +2183,22 @@ def validate_reviewed_migration(
         port_dir,
         donor_checkout,
         evidence_root=evidence_root,
+        publication_policy_snapshot=embedded_publication_policy,
     )
 
 
 def load_reviewed_migration(
     migrations: Path,
     digest: str,
+    *,
+    evidence_root: Path | None = None,
 ) -> Mapping[str, object]:
-    path = migrations / f"{digest}.json"
+    checked_migrations = _validated_migrations_dir(migrations.parent, create=False)
+    if checked_migrations != migrations:
+        raise DonorUpdateError(
+            f"reviewed migration directory must be directly beneath port: {migrations}"
+        )
+    path = checked_migrations / f"{digest}.json"
     if not path.is_file():
         raise DonorUpdateError(f"missing reviewed migration record: {path}")
     try:
@@ -1145,6 +2207,33 @@ def load_reviewed_migration(
         raise DonorUpdateError(f"invalid migration record: {path}") from error
     if not isinstance(report, dict) or migration_digest(report) != digest:
         raise DonorUpdateError(f"migration record filename is stale: {path}")
+    schema_version = report.get("schemaVersion")
+    if schema_version == FINALIZED_MIGRATION_SCHEMA_VERSION:
+        if (
+            "publicationPolicyDigest" not in report
+            or "publicationPolicySnapshot" not in report
+        ):
+            raise DonorUpdateError(
+                "finalized migration record requires publicationPolicyDigest and publicationPolicySnapshot"
+            )
+        if set(report) != FINALIZED_MIGRATION_KEYS:
+            raise DonorUpdateError(
+                "finalized migration record has fields outside the contract"
+            )
+        if evidence_root is None:
+            evidence_root = migrations.parent.resolve().parents[3]
+        _validate_publication_policy_binding(
+            report,
+            migrations.parent,
+            evidence_root=evidence_root,
+        )
+    elif schema_version == SCHEMA_VERSION:
+        if set(report) != MIGRATION_KEYS:
+            raise DonorUpdateError(
+                "legacy migration record has fields outside the contract"
+            )
+    else:
+        raise DonorUpdateError("migration record has unsupported schemaVersion")
     return report
 
 
@@ -1175,10 +2264,12 @@ def _allocation_policy(
     filename = port_document.get("allocationLock")
     if filename is None:
         return None
-    if not isinstance(filename, str) or PurePosixPath(filename).name != filename:
-        raise DonorUpdateError("port descriptor has invalid allocationLock")
     try:
-        document = json.loads((port_dir / filename).read_text(encoding="utf-8"))
+        document = json.loads(
+            _descriptor_policy_file(
+                port_dir, port_document, "allocationLock"
+            ).read_text(encoding="utf-8")
+        )
     except (OSError, json.JSONDecodeError) as error:
         raise DonorUpdateError("cannot load migration allocation policy") from error
     if not isinstance(document, Mapping):
@@ -1424,8 +2515,70 @@ def verify_migration_evidence(
     donor_checkout: Path,
     *,
     evidence_root: Path | None = None,
+    donor_root: Path | None = None,
+    repo: Path | None = None,
+    port_document: Mapping[str, object] | None = None,
+    publication_policy_snapshot: Mapping[str, object] | None = None,
 ) -> None:
     """Recompute every claimed drift field from the two authenticated commits."""
+
+    if publication_policy_snapshot is not None:
+        descriptor = publication_policy_snapshot.get("descriptor")
+        documents = publication_policy_snapshot.get("policyDocuments")
+        if not isinstance(descriptor, Mapping) or not isinstance(documents, Mapping):
+            raise DonorUpdateError("migration publication policy snapshot is invalid")
+        if repo is None:
+            try:
+                repo = port_dir.resolve().parents[3]
+            except IndexError:
+                if evidence_root is None:
+                    raise DonorUpdateError(
+                        "cannot recompute migration semantic evidence"
+                    )
+                repo = evidence_root.resolve()
+        with tempfile.TemporaryDirectory(
+            prefix=".content-port-historical-policy-", dir=repo
+        ) as directory:
+            historical_port = Path(directory) / "ports" / port_dir.name
+            historical_port.mkdir(parents=True)
+            historical_descriptor = json.loads(canonical_bytes(descriptor))
+            donors = historical_descriptor.get("donors")
+            if not isinstance(donors, dict):
+                raise DonorUpdateError(
+                    "migration publication donor snapshot is invalid"
+                )
+            for role, raw in donors.items():
+                if not isinstance(raw, dict):
+                    raise DonorUpdateError(f"invalid donor record {role!r}")
+                raw["genesis"] = {
+                    field: raw[field] for field in ("commit", "fileCount", "treeDigest")
+                }
+                raw["migration"] = None
+            for field, entry in documents.items():
+                if not isinstance(field, str) or not isinstance(entry, Mapping):
+                    raise DonorUpdateError(
+                        "migration publication policy snapshot is invalid"
+                    )
+                from .descriptor import _safe_child
+
+                path = _safe_child(
+                    historical_port, historical_descriptor[field], f"$.{field}"
+                )
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(canonical_bytes(entry["document"]))
+            historical_port.joinpath("port.json").write_bytes(
+                canonical_bytes(historical_descriptor)
+            )
+            verify_migration_evidence(
+                report,
+                historical_port,
+                donor_checkout,
+                evidence_root=evidence_root,
+                donor_root=donor_root,
+                repo=repo,
+                port_document=historical_descriptor,
+            )
+        return
 
     donor = report.get("donor")
     repository = report.get("repository")
@@ -1438,12 +2591,69 @@ def verify_migration_evidence(
     references, filtered_assets, excluded_paths = _migration_policy(
         report.get("policy"), evidence_root=evidence_root
     )
+    semantic_references = tuple(
+        reference
+        for reference in references
+        if reference.get("recordType") == "semantic-evidence"
+    )
+    if semantic_references:
+        if port_document is None:
+            try:
+                port_document = json.loads(
+                    (port_dir / "port.json").read_text(encoding="utf-8")
+                )
+            except (OSError, json.JSONDecodeError) as error:
+                raise DonorUpdateError(
+                    "cannot recompute migration semantic evidence"
+                ) from error
+        if not isinstance(port_document, Mapping):
+            raise DonorUpdateError("cannot recompute migration semantic evidence")
+        donor_record = _descriptor_donor_record(port_document, donor)
+        donor_root_name = donor_record.get("root")
+        if not isinstance(donor_root_name, str):
+            raise DonorUpdateError("cannot recompute migration semantic evidence")
+        if donor_root is None:
+            donor_root = donor_checkout.resolve()
+            for _ in PurePosixPath(donor_root_name).parts:
+                donor_root = donor_root.parent
+        if repo is None:
+            try:
+                repo = port_dir.resolve().parents[3]
+            except IndexError as error:
+                raise DonorUpdateError(
+                    "cannot recompute migration semantic evidence"
+                ) from error
+        current_evidence = _semantic_evidence_at_pin(
+            repo,
+            port_dir,
+            donor_root,
+            donor,
+            source,
+            port_document=port_document,
+        )
+        target_evidence = _semantic_evidence_at_pin(
+            repo,
+            port_dir,
+            donor_root,
+            donor,
+            target,
+            port_document=port_document,
+        )
+        references = (
+            *(
+                reference
+                for reference in references
+                if reference.get("recordType") != "semantic-evidence"
+            ),
+            *_semantic_policy_references(current_evidence, target_evidence, donor),
+        )
     with tempfile.TemporaryDirectory(
         prefix="content-port-migration-verify-"
     ) as directory:
         temporary = Path(directory)
         old_tree = temporary / "old"
         new_tree = temporary / "new"
+        worktrees: list[tuple[Path, Path]] = []
         try:
             _run_git(
                 donor_checkout,
@@ -1453,6 +2663,7 @@ def verify_migration_evidence(
                 str(old_tree),
                 str(source["commit"]),
             )
+            worktrees.append((donor_checkout, old_tree))
             _run_git(
                 donor_checkout,
                 "worktree",
@@ -1461,6 +2672,7 @@ def verify_migration_evidence(
                 str(new_tree),
                 str(target["commit"]),
             )
+            worktrees.append((donor_checkout, new_tree))
             recomputed = build_migration(
                 donor=donor,
                 repository=repository,
@@ -1474,21 +2686,10 @@ def verify_migration_evidence(
                 evidence_root=evidence_root,
             )
         finally:
-            for tree in (old_tree, new_tree):
-                if tree.exists():
-                    subprocess.run(
-                        (
-                            "git",
-                            "-C",
-                            str(donor_checkout),
-                            "worktree",
-                            "remove",
-                            "--force",
-                            str(tree),
-                        ),
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
+            _remove_worktrees(
+                reversed(worktrees),
+                primary_error=sys.exception(),
+            )
     for field in (
         "from",
         "to",
@@ -1520,22 +2721,12 @@ def run_donor_update(
     port_dir = repo / "tools/content_port/ports" / port
     try:
         port_document = json.loads((port_dir / "port.json").read_text(encoding="utf-8"))
-        assets_document = json.loads(
-            (port_dir / "assets.json").read_text(encoding="utf-8")
-        )
-        adaptations_document = json.loads(
-            (port_dir / "adaptations.json").read_text(encoding="utf-8")
-        )
     except (OSError, json.JSONDecodeError) as error:
         raise DonorUpdateError(f"cannot load port policy {port!r}") from error
-    if (
-        not isinstance(port_document, dict)
-        or not isinstance(assets_document, dict)
-        or not isinstance(adaptations_document, dict)
-    ):
+    if not isinstance(port_document, dict):
         raise DonorUpdateError(f"invalid port policy {port!r}")
+    _validated_donor_checkouts(port_document, donor_root)
     record = _descriptor_donor_record(port_document, donor)
-    allocations_document = _allocation_policy(port_dir, port_document)
     root = record.get("root")
     commit = record.get("commit")
     repository = record.get("repository")
@@ -1544,7 +2735,7 @@ def run_donor_update(
         isinstance(value, str) and value for value in (root, commit, repository, name)
     ):
         raise DonorUpdateError(f"invalid donor record {donor!r}")
-    checkout = (donor_root / str(root)).resolve()
+    checkout = _validated_donor_checkout(donor_root, root, f"$.donors.{donor}.root")
     if not checkout.is_dir():
         raise DonorUpdateError(f"donor checkout does not exist: {checkout}")
     excluded_paths = record.get("excludePaths")
@@ -1553,29 +2744,28 @@ def run_donor_update(
     ):
         raise DonorUpdateError(f"invalid donor exclusions for {donor!r}")
 
-    asset_records = validate_assets(
-        assets_document,
-        evidence_root=repo,
-        require_redistributable=False,
+    authored_policy = _derive_authored_policy_snapshot(
+        port_dir, port_document, donor, evidence_root=repo
     )
-    filtered_assets = _filter_asset_policy(
-        assets_document,
-        [asset for asset in asset_records if asset.get("donor") in (donor, name)],
+    references, filtered_assets, live_excluded_paths = _migration_policy(
+        authored_policy, evidence_root=repo
     )
+    if tuple(excluded_paths) != live_excluded_paths:
+        raise DonorUpdateError(f"donor {donor}: live exclusion policy is inconsistent")
 
     with tempfile.TemporaryDirectory(prefix="content-port-donor-update-") as directory:
         temporary = Path(directory)
         old_tree = temporary / "old"
         new_tree = temporary / "new"
+        worktrees: list[tuple[Path, Path]] = []
         try:
             _run_git(
                 checkout, "worktree", "add", "--detach", str(old_tree), str(commit)
             )
+            worktrees.append((checkout, old_tree))
             _run_git(checkout, "worktree", "add", "--detach", str(new_tree), revision)
-            references = _policy_references(
-                adaptations_document, donor, allocations_document
-            )
-            report = build_migration(
+            worktrees.append((checkout, new_tree))
+            provisional = build_migration(
                 donor=donor,
                 repository=str(repository),
                 old_tree=old_tree,
@@ -1587,26 +2777,38 @@ def run_donor_update(
                 excluded_paths=excluded_paths,
                 evidence_root=repo,
             )
-            _validate_target_pin(repo, port_dir, donor_root, donor, report)
+            live_policy = _derive_live_policy_snapshot(
+                port_dir,
+                port_document,
+                donor_root,
+                donor,
+                repo,
+                provisional,
+                evidence_root=repo,
+            )
+            references, filtered_assets, _ = _migration_policy(
+                live_policy, evidence_root=repo
+            )
+            report = build_migration(
+                donor=donor,
+                repository=str(repository),
+                old_tree=old_tree,
+                new_tree=new_tree,
+                references=references,
+                assets=filtered_assets,
+                tests=provisional["tests"],  # type: ignore[arg-type]
+                predecessor=record.get("migration"),
+                excluded_paths=excluded_paths,
+                evidence_root=repo,
+            )
             _atomic_write(
                 output,
                 canonical_bytes(report),
                 f"after-donor-update-write:{output.name}",
             )
         finally:
-            for tree in (old_tree, new_tree):
-                if tree.exists():
-                    subprocess.run(
-                        (
-                            "git",
-                            "-C",
-                            str(checkout),
-                            "worktree",
-                            "remove",
-                            "--force",
-                            str(tree),
-                        ),
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
+            _remove_worktrees(
+                reversed(worktrees),
+                primary_error=sys.exception(),
+            )
     return output

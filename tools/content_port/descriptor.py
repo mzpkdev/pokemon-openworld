@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import Any
 
 from .allocations import AllocationIndex, load_allocation_index
+from .donor_paths import validated_donor_checkouts
 from .donors import validate_excluded_paths
 from .errors import ContentPortError
 from .model import (
@@ -89,7 +90,7 @@ ADAPTATION_KEYS = {
     "sectionMetadataAuthorities",
     "targetBindings",
 }
-MIGRATION_KEYS = {
+LEGACY_MIGRATION_KEYS = {
     "addedPaths",
     "assets",
     "authorityChanges",
@@ -104,6 +105,10 @@ MIGRATION_KEYS = {
     "schemaVersion",
     "tests",
     "to",
+}
+MIGRATION_KEYS = LEGACY_MIGRATION_KEYS | {
+    "publicationPolicyDigest",
+    "publicationPolicySnapshot",
 }
 MIGRATION_PIN_KEYS = {"commit", "fileCount", "treeDigest"}
 NUMERIC_POLICY_FIELDS = {
@@ -707,28 +712,45 @@ def _validate_migration(
     donor_checkout: Path,
     genesis: tuple[str, str, int],
 ) -> None:
-    from .update import migration_digest, validate_reviewed_migration
+    from .update import (
+        _validated_migrations_dir,
+        migration_digest,
+        validate_reviewed_migration,
+    )
+
+    migrations = port_dir / "migrations"
+    if migrations.exists() or migrations.is_symlink():
+        try:
+            migrations = _validated_migrations_dir(port_dir, create=False)
+        except ContentPortError as error:
+            raise ContentPortError(str(error)) from error
 
     def validate_link(
         link: str,
         expected_target: tuple[str, str, int],
         seen: frozenset[str],
+        *,
+        live_policy: bool,
     ) -> None:
         if link in seen:
             raise ContentPortError(f"donor {donor}: migration predecessor cycle")
-        path = port_dir / "migrations" / f"{link}.json"
+        path = migrations / f"{link}.json"
         if path.is_symlink():
             raise ContentPortError(
                 f"{path}: migration record must not be a symbolic link"
             )
         report = _object(read_json(path), f"migration:{link}")
-        _exact_keys(report, MIGRATION_KEYS, f"migration:{link}")
-        if migration_digest(report) != link:
-            raise ContentPortError(f"migration record filename is stale: {path}")
-        if report["schemaVersion"] != 1:
+        schema_version = report.get("schemaVersion")
+        if schema_version == 1:
+            _exact_keys(report, LEGACY_MIGRATION_KEYS, f"migration:{link}")
+        elif schema_version == 2:
+            _exact_keys(report, MIGRATION_KEYS, f"migration:{link}")
+        else:
             raise ContentPortError(
                 f"migration:{link}.schemaVersion: unsupported migration schema"
             )
+        if migration_digest(report) != link:
+            raise ContentPortError(f"migration record filename is stale: {path}")
         for field in (
             "addedPaths",
             "assets",
@@ -753,7 +775,7 @@ def _validate_migration(
                     f"donor {donor}: migration chain does not start at genesis pin"
                 )
         elif isinstance(predecessor, str) and DIGEST_RE.fullmatch(predecessor):
-            validate_link(predecessor, source, seen | {link})
+            validate_link(predecessor, source, seen | {link}, live_policy=False)
         else:
             raise ContentPortError(
                 f"migration:{link}.predecessor: expected null or 64 lowercase hex"
@@ -770,13 +792,19 @@ def _validate_migration(
             to_file_count=target[2],
             port_dir=port_dir,
             donor_checkout=donor_checkout,
+            validate_live_publication_policy=live_policy,
         )
 
-    validate_link(digest, (commit, tree_digest, file_count), frozenset())
+    validate_link(
+        digest, (commit, tree_digest, file_count), frozenset(), live_policy=True
+    )
 
 
 def _load_donors(
-    value: object, donor_root: Path, port_dir: Path, pointer: str
+    value: object,
+    donor_checkouts: Mapping[str, Path],
+    port_dir: Path,
+    pointer: str,
 ) -> Mapping[str, DonorPin]:
     donors = _object(value, pointer)
     if not donors:
@@ -827,7 +855,7 @@ def _load_donors(
                 f"{item_pointer}.excludePaths: expected sorted exact paths"
             )
         genesis = _migration_pin(item["genesis"], f"{item_pointer}.genesis")
-        checkout = donor_root.joinpath(*relative.parts)
+        checkout = donor_checkouts[role]
         current = (commit, digest, file_count)
         if migration_value is None:
             if current != genesis:
@@ -1309,6 +1337,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     forbid_numeric_policy(
         {key: value for key, value in root.items() if key != "allocationLock"}
     )
+    donor_checkouts = validated_donor_checkouts(root, donor_root)
 
     allocation_path = _safe_child(port_dir, root["allocationLock"], "$.allocationLock")
     allocation_index = load_allocation_index(read_json(allocation_path))
@@ -1398,9 +1427,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         if "legacyReport" in root
         else None
     )
-    donors_by_role = _load_donors(
-        root["donors"], donor_root.resolve(), port_dir, "$.donors"
-    )
+    donors_by_role = _load_donors(root["donors"], donor_checkouts, port_dir, "$.donors")
     required_roles = {"content", "mechanical"}
     if not required_roles.issubset(donors_by_role):
         missing = sorted(required_roles - set(donors_by_role))

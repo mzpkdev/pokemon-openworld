@@ -12,6 +12,7 @@ from unittest.mock import patch
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import CapabilityState, ResourceKey
 from tools.content_port.descriptor import load_port
+from tools.content_port.semantics import EventEntry
 from tools.content_port.sources import (
     ExpansionSourceContext,
     SourceContext,
@@ -679,21 +680,10 @@ class SourceGraphTests(unittest.TestCase):
                 else decision
                 for decision in descriptor.capabilities
             )
-            (port / "events.json").write_text(
-                json.dumps(
-                    {
-                        "schemaVersion": 1,
-                        "entries": [
-                            {
-                                "name": "BlackthornCity_House1_Unrelated",
-                                "capability": "interactions",
-                                "classification": "enabled",
-                            }
-                        ],
-                        "effects": [],
-                    }
-                ),
-                encoding="utf-8",
+            unrelated = EventEntry(
+                name="BlackthornCity_House1_Unrelated",
+                capability="interactions",
+                classification="enabled",
             )
             with self.assertRaisesRegex(
                 ContentPortError,
@@ -703,6 +693,7 @@ class SourceGraphTests(unittest.TestCase):
                     replace(
                         descriptor,
                         capabilities=capabilities,
+                        event_entries={unrelated.name: unrelated},
                         legacy_report=None,
                     ),
                     Path("."),
