@@ -18,6 +18,7 @@ from tools.content_port.sources import (
     SourceRecord,
     Provenance,
     build_source_graph,
+    extract_service_edges,
     resolve_port_sources,
     validate_port_sources,
 )
@@ -180,6 +181,20 @@ class SourceGraphTests(unittest.TestCase):
             mechanical, [ResourceKey("encounter", "gRoute29")]
         )
         self.assertIn(ResourceKey("species", "SPECIES_PHANPY"), hidden_graph.resources)
+        for donor_name in ("pokemonHnS", "PKMN-World"):
+            generated = ExpansionSourceContext(donor_root / donor_name)
+            for symbol in ("ITEM_HM_CUT", "ITEM_TM_FOCUS_PUNCH"):
+                record = generated.load(ResourceKey("item", symbol))
+                self.assertTrue(record.provenance.path.endswith("tms_hms.h"))
+        service_key = ResourceKey(
+            "service", "RustboroCity_CuttersHouse_EventScript_Cutter"
+        )
+        service = context.load(service_key)
+        service_edges = tuple(extract_service_edges(context, service_key, service))
+        self.assertIn(
+            ResourceKey("item", "ITEM_HM_CUT"),
+            {edge.target for edge in service_edges},
+        )
         for key in (
             ResourceKey("species", "SPECIES_GEODUDE"),
             ResourceKey("asset", "TRAINER_PIC_HIKER"),

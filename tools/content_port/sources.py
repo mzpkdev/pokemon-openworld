@@ -173,6 +173,27 @@ def _index_native_declarations(
                             {}, Provenance(path.as_posix(), f":{line_number}")
                         ),
                     )
+    tmhm_path = root / "include/constants/tms_hms.h"
+    if tmhm_path.is_file():
+        family: str | None = None
+        for line_number, line in enumerate(
+            tmhm_path.read_text(encoding="utf-8").splitlines(), 1
+        ):
+            declaration = re.match(r"^\s*#\s*define\s+FOREACH_(TM|HM)\(F\)", line)
+            if declaration:
+                family = declaration.group(1)
+                continue
+            if family is None:
+                continue
+            member = re.match(r"^\s*F\(([A-Z][A-Z0-9_]*)\)\s*(?:\\)?\s*$", line)
+            if member is None:
+                family = None
+                continue
+            symbol = f"ITEM_{family}_{member.group(1)}"
+            records.setdefault(
+                ResourceKey("item", symbol),
+                SourceRecord({}, Provenance(tmhm_path.as_posix(), f":{line_number}")),
+            )
 
 
 def _require_native_leaf(
