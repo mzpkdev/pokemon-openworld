@@ -71,6 +71,29 @@ class MaterializeTests(unittest.TestCase):
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(port, donor_root)
 
+    def test_enabled_non_spatial_capability_cannot_be_stripped_by_rendering(
+        self,
+    ) -> None:
+        descriptor = self.descriptor()
+        donor_root = descriptor.donors[0].root.parent
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            port = Path(directory) / "johto"
+            shutil.copytree(PORT, port)
+            path = port / "capabilities.json"
+            document = json.loads(path.read_text(encoding="utf-8"))
+            blackthorn = next(
+                item
+                for item in document["maps"]
+                if item["map"] == "BlackthornCity_House1"
+            )
+            blackthorn["capabilities"]["interactions"] = "enabled"
+            path.write_text(json.dumps(document), encoding="utf-8")
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "enabled capability is not materialized by the current render profile",
+            ):
+                load_port(port, donor_root)
+
     def test_owned_output_corruption_cannot_change_desired_state(self) -> None:
         descriptor = self.descriptor()
         evidence, state = resolve_port_sources(descriptor, ROOT)
@@ -172,12 +195,14 @@ class MaterializeTests(unittest.TestCase):
                 set(state.inventory["asset-policy"]),
             )
             self.assertEqual(
-                {unit.key for unit in _asset_units(descriptor, state)},
-                {
-                    f"asset:{policy_target_by_source[source]}"
-                    for source in state.inventory["asset-policy"]
-                },
+                set(policy_target_by_source),
+                set(state.inventory["asset-required"]),
             )
+            self.assertEqual(
+                {unit.key for unit in _asset_units(descriptor, state)},
+                {f"asset:{target}" for target in state.asset_targets.values()},
+            )
+            self.assertEqual(policy_target_by_source, dict(state.asset_targets))
             self.assertEqual(len(first_manifest.units), len(recipe.units))
             self.assertEqual(
                 {unit.identity for unit in first_manifest.units},
@@ -211,6 +236,21 @@ class MaterializeTests(unittest.TestCase):
                 "must strip every non-warp event collection",
             ):
                 _map_units(incomplete_descriptor, state)
+            interaction_decisions = tuple(
+                replace(decision, state=type(decision.state).ENABLED)
+                if decision.map_name == "BlackthornCity_House1"
+                and decision.capability == "interactions"
+                else decision
+                for decision in descriptor.capabilities
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "enabled capability 'interactions' is not materialized",
+            ):
+                _map_units(
+                    replace(descriptor, capabilities=interaction_decisions),
+                    state,
+                )
             disabled_assets = dict(descriptor.assets)
             disabled_records = list(descriptor.assets["assets"])
             disabled_record = dict(disabled_records[0])
@@ -226,6 +266,57 @@ class MaterializeTests(unittest.TestCase):
                 "asset emission requires enabled support",
             ):
                 _asset_units(disabled_descriptor, state)
+            missing_asset_descriptor = replace(
+                descriptor,
+                assets=MappingProxyType(
+                    {
+                        **descriptor.assets,
+                        "assets": descriptor.assets["assets"][1:],
+                    }
+                ),
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "asset render inventory does not match authenticated closure",
+            ):
+                _asset_units(missing_asset_descriptor, state)
+            removed_target = descriptor.assets["assets"][0]["semanticTarget"]
+            self.assertIn(
+                ("file", removed_target),
+                {unit.identity for unit in recipe.units},
+            )
+            with (
+                patch(
+                    "tools.content_port.materialize.resolve_port_sources",
+                    return_value=(evidence, state),
+                ),
+                patch(
+                    "tools.content_port.materialize.authenticated_donor_snapshot",
+                    return_value=nullcontext(descriptor.donors),
+                ),
+                self.assertRaisesRegex(
+                    ContentPortError,
+                    "asset render inventory does not match authenticated closure",
+                ),
+            ):
+                derive_desired_state(missing_asset_descriptor, repo)
+            mistargeted_assets = dict(descriptor.assets)
+            mistargeted_records = list(descriptor.assets["assets"])
+            mistargeted_record = dict(mistargeted_records[0])
+            mistargeted_record["semanticTarget"] = (
+                "data/layouts/AzaleaTown/unreferenced.bin"
+            )
+            mistargeted_records[0] = MappingProxyType(mistargeted_record)
+            mistargeted_assets["assets"] = tuple(mistargeted_records)
+            mistargeted_descriptor = replace(
+                descriptor,
+                assets=MappingProxyType(mistargeted_assets),
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "asset render targets do not match authenticated closure",
+            ):
+                _asset_units(mistargeted_descriptor, state)
             victory_road = first_payloads[
                 (
                     "registry-record",
@@ -614,10 +705,14 @@ class MaterializeTests(unittest.TestCase):
             isolated = replace(
                 state,
                 donor_roots=MappingProxyType({**state.donor_roots, role: donor}),
+                asset_targets=MappingProxyType(
+                    {f"{role}:{source_path}": asset["semanticTarget"]}
+                ),
                 inventory=MappingProxyType(
                     {
                         **state.inventory,
                         "asset-policy": (f"{role}:{source_path}",),
+                        "asset-required": (f"{role}:{source_path}",),
                     }
                 ),
             )

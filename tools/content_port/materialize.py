@@ -14,6 +14,7 @@ from typing import Any, Iterable, Mapping
 from .bindings import load_binding_index
 from .descriptor import (
     GENERATED_AUTHORITY_CONTRACT,
+    MATERIALIZED_CAPABILITIES,
     MATERIALIZATION_STRIP_EVENT_KINDS,
     PortDescriptor,
 )
@@ -74,7 +75,7 @@ def _asset_units(
 ) -> list[RenderUnit]:
     units: list[RenderUnit] = []
     seen: set[str] = set()
-    rendered_sources: set[str] = set()
+    rendered_targets: dict[str, str] = {}
     records = descriptor.assets.get("assets")
     if not isinstance(records, tuple):
         raise ContentPortError("asset policy requires an immutable assets array")
@@ -110,11 +111,11 @@ def _asset_units(
                 f"assets[{index}]: source is absent from authenticated closure: "
                 f"{source_key}"
             )
-        if source_key.name in rendered_sources:
+        if source_key.name in rendered_targets:
             raise ContentPortError(
                 f"assets[{index}]: duplicate authenticated source {source_key.name}"
             )
-        rendered_sources.add(source_key.name)
+        rendered_targets[source_key.name] = target
         if command != ["copy-bytes"]:
             raise ContentPortError(f"assets[{index}]: unsupported conversion command")
         if item.get("permission") != "redistributable":
@@ -132,17 +133,46 @@ def _asset_units(
             RenderUnit(f"asset:{target}", "tileset-assets", target, {target: payload})
         )
     authorized_sources = set(state.inventory.get("asset-policy", ()))
-    if rendered_sources != authorized_sources:
-        missing = sorted(authorized_sources - rendered_sources)
-        extra = sorted(rendered_sources - authorized_sources)
+    required_sources = set(state.inventory.get("asset-required", ()))
+    if authorized_sources != required_sources:
+        missing = sorted(required_sources - authorized_sources)
+        extra = sorted(authorized_sources - required_sources)
+        raise ContentPortError(
+            "asset policy does not match required physical closure: "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+    rendered_sources = set(rendered_targets)
+    if rendered_sources != required_sources:
+        missing = sorted(required_sources - rendered_sources)
+        extra = sorted(rendered_sources - required_sources)
         raise ContentPortError(
             "asset render inventory does not match authenticated closure: "
             f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+    required_targets = dict(state.asset_targets)
+    if rendered_targets != required_targets:
+        mismatched = sorted(
+            source
+            for source in rendered_sources & set(required_targets)
+            if rendered_targets[source] != required_targets[source]
+        )
+        raise ContentPortError(
+            "asset render targets do not match authenticated closure: "
+            f"mismatched={mismatched[:1]}"
         )
     return units
 
 
 def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[RenderUnit]:
+    for decision in descriptor.capabilities:
+        if (
+            decision.state.value == "enabled"
+            and decision.capability not in MATERIALIZED_CAPABILITIES
+        ):
+            raise ContentPortError(
+                f"{decision.map_name}: enabled capability {decision.capability!r} "
+                "is not materialized"
+            )
     profile = descriptor.adaptations["materializationProfile"]
     strip = tuple(profile["stripEventKinds"])
     if strip != MATERIALIZATION_STRIP_EVENT_KINDS:

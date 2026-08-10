@@ -35,6 +35,7 @@ MATERIALIZATION_STRIP_EVENT_KINDS = (
     "coord_events",
     "object_events",
 )
+MATERIALIZED_CAPABILITIES = frozenset({"spatial", "environment-assets"})
 PORT_KEYS = {
     "schemaVersion",
     "allocationLock",
@@ -1313,6 +1314,15 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     capability_doc = read_json(capability_path)
     forbid_numeric_policy(capability_doc)
     capabilities, ownership = _load_capabilities(capability_doc, "$")
+    for decision in capabilities:
+        if (
+            decision.state is CapabilityState.ENABLED
+            and decision.capability not in MATERIALIZED_CAPABILITIES
+        ):
+            raise ContentPortError(
+                f"$.maps.{decision.map_name}.{decision.capability}: enabled capability "
+                "is not materialized by the current render profile"
+            )
     if set(ownership) != set(allocation_index.maps):
         missing = sorted(set(allocation_index.maps) - set(ownership))
         extra = sorted(set(ownership) - set(allocation_index.maps))
