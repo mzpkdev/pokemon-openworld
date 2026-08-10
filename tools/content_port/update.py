@@ -367,7 +367,6 @@ def validate_assets(
 
     allowed_keys = {
         "key",
-        "source",
         "donor",
         "sourcePath",
         "semanticTarget",
@@ -375,7 +374,6 @@ def validate_assets(
         "targetSha256",
         "conversionCommand",
         "permission",
-        "license",
         "permissionEvidence",
         "capability",
         "supportState",
@@ -456,7 +454,6 @@ def validate_assets(
             raise DonorUpdateError(f"{pointer}: unknown fields {unknown}")
         required = (
             "key",
-            "source",
             "donor",
             "sourcePath",
             "semanticTarget",
@@ -477,7 +474,7 @@ def validate_assets(
         if key in seen:
             raise DonorUpdateError(f"{pointer}.key: duplicate asset key {key}")
         seen.add(key)
-        for field in ("source", "donor", "semanticTarget", "capability"):
+        for field in ("donor", "semanticTarget", "capability"):
             if not isinstance(asset[field], str) or not asset[field]:
                 raise DonorUpdateError(
                     f"{pointer}.{field}: expected a non-empty string"

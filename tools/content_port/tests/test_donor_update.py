@@ -100,7 +100,6 @@ class DonorUpdateTests(unittest.TestCase):
             "assets": [
                 {
                     "key": "route-art",
-                    "source": "content",
                     "donor": "fixture",
                     "sourcePath": "asset.bin",
                     "semanticTarget": "graphics/route/tiles.4bpp",
@@ -108,7 +107,6 @@ class DonorUpdateTests(unittest.TestCase):
                     "targetSha256": hashlib.sha256(b"old asset").hexdigest(),
                     "conversionCommand": ["python3", "convert.py", "asset.bin"],
                     "permission": permission,
-                    "license": "author permission",
                     "permissionEvidence": permission_digest,
                     "capability": "environment-assets",
                     "supportState": "enabled",
@@ -490,6 +488,18 @@ class DonorUpdateTests(unittest.TestCase):
         del malformed["assets"][0]["conversionCommand"]
         with self.assertRaisesRegex(DonorUpdateError, "missing fields"):
             validate_assets(malformed, evidence_root=self.root)
+
+        for dead_field, value in (
+            ("source", "donor"),
+            ("license", {"arbitrary": True}),
+        ):
+            with self.subTest(dead_field=dead_field):
+                policy = self.asset_policy()
+                policy["assets"][0][dead_field] = value
+                with self.assertRaisesRegex(
+                    DonorUpdateError, rf"unknown fields \['{dead_field}'\]"
+                ):
+                    validate_assets(policy, evidence_root=self.root)
 
         for mutation, message in (
             (
