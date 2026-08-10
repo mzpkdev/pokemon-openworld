@@ -283,6 +283,105 @@ def _safe_path(repo: Path, raw: str) -> Path:
     return candidate
 
 
+@contextmanager
+def _open_owned_parent(
+    repo: Path, raw: str, *, create: bool
+) -> Iterator[tuple[int, str]]:
+    pure = PurePosixPath(raw)
+    if not raw or pure.is_absolute() or ".." in pure.parts or "." in pure.parts:
+        raise ContentPortError(f"unsafe bundle path: {raw!r}")
+    directory_flags = (
+        os.O_RDONLY
+        | os.O_CLOEXEC
+        | getattr(os, "O_DIRECTORY", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
+    descriptors: list[int] = []
+    try:
+        current = os.open(repo, directory_flags)
+        descriptors.append(current)
+        for part in pure.parts[:-1]:
+            try:
+                child = os.open(part, directory_flags, dir_fd=current)
+            except FileNotFoundError:
+                if not create:
+                    raise
+                try:
+                    os.mkdir(part, 0o755, dir_fd=current)
+                except FileExistsError:
+                    pass
+                child = os.open(part, directory_flags, dir_fd=current)
+                os.fsync(current)
+            except OSError as error:
+                raise ContentPortError(
+                    f"bundle path traverses non-directory or symlink: {raw}"
+                ) from error
+            descriptors.append(child)
+            current = child
+        yield current, pure.name
+    except OSError as error:
+        if isinstance(error, FileNotFoundError):
+            raise
+        raise ContentPortError(f"cannot safely open bundle path: {raw}") from error
+    finally:
+        for descriptor in reversed(descriptors):
+            os.close(descriptor)
+
+
+def _atomic_write_owned(repo: Path, raw: str, data: bytes, mode: int = 0o644) -> None:
+    with _open_owned_parent(repo, raw, create=True) as (parent, name):
+        try:
+            existing = os.stat(name, dir_fd=parent, follow_symlinks=False)
+        except FileNotFoundError:
+            existing = None
+        if existing is not None and not stat.S_ISREG(existing.st_mode):
+            raise ContentPortError(f"refusing to replace non-file owned path: {raw}")
+        temporary = f".{name}.{uuid.uuid4().hex}"
+        descriptor = os.open(
+            temporary,
+            os.O_WRONLY
+            | os.O_CREAT
+            | os.O_EXCL
+            | os.O_CLOEXEC
+            | getattr(os, "O_NOFOLLOW", 0),
+            mode,
+            dir_fd=parent,
+        )
+        try:
+            view = memoryview(data)
+            while view:
+                written = os.write(descriptor, view)
+                view = view[written:]
+            os.fchmod(descriptor, mode)
+            os.fsync(descriptor)
+            os.close(descriptor)
+            descriptor = -1
+            os.replace(temporary, name, src_dir_fd=parent, dst_dir_fd=parent)
+            os.fsync(parent)
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+            try:
+                os.unlink(temporary, dir_fd=parent)
+            except FileNotFoundError:
+                pass
+
+
+def _unlink_owned(repo: Path, raw: str) -> None:
+    try:
+        with _open_owned_parent(repo, raw, create=False) as (parent, name):
+            try:
+                existing = os.stat(name, dir_fd=parent, follow_symlinks=False)
+            except FileNotFoundError:
+                return
+            if not stat.S_ISREG(existing.st_mode):
+                raise ContentPortError(f"refusing to remove non-file owned path: {raw}")
+            os.unlink(name, dir_fd=parent)
+            os.fsync(parent)
+    except FileNotFoundError:
+        return
+
+
 def _mode_for_path(path: Path) -> int:
     return stat.S_IMODE(path.stat().st_mode)
 
@@ -978,12 +1077,9 @@ class ApplyTransaction:
         if unit["exists"]:
             content = _decode(str(unit["content"]))
             mode = int(str(unit["mode"]), 8) & 0o777
-            _atomic_write(path, content, mode)
+            _atomic_write_owned(self.repo, raw, content, mode)
         elif path.exists():
-            if not path.is_file():
-                raise ContentPortError(f"refusing to remove non-file owned path: {raw}")
-            path.unlink()
-            _fsync_directory(path.parent)
+            _unlink_owned(self.repo, raw)
         checkpoint(f"after-apply:{raw}")
 
         if _snapshot_path(self.repo, raw) != _snapshot_expected(unit):
@@ -1120,18 +1216,14 @@ class ApplyTransaction:
                 raw = str(unit["path"])
                 path = _safe_path(self.repo, raw)
                 if unit["exists"]:
-                    _atomic_write(
-                        path,
+                    _atomic_write_owned(
+                        self.repo,
+                        raw,
                         _decode(str(unit["content"])),
                         int(str(unit["mode"]), 8),
                     )
                 elif path.exists():
-                    if not path.is_file():
-                        raise ContentPortError(
-                            f"refusing to recover over non-file path: {raw}"
-                        )
-                    path.unlink()
-                    _fsync_directory(path.parent)
+                    _unlink_owned(self.repo, raw)
                 checkpoint(f"after-recover:{raw}")
             index_path = _git_path(self.repo, "index")
             _atomic_write(index_path, index)

@@ -10,6 +10,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
+import tools.content_port.transaction as transaction_module
 from tools.content_port.bundle import BUNDLE_FILES, _publish_artifacts, build_bundle
 from tools.content_port.faults import InjectedFault
 from tools.content_port.errors import ContentPortError
@@ -348,6 +349,49 @@ class FaultInjectionTests(unittest.TestCase):
             self.assertTrue(guard_active(repo))
 
             (repo / "alpha.txt").write_bytes(b"alpha\n")
+            recover_transaction(repo)
+            fixture.assert_clean()
+        finally:
+            temporary.cleanup()
+
+    def test_parent_symlink_swap_cannot_escape_owned_publication(self) -> None:
+        temporary, repo, fixture, bundle, digest = self._fixture()
+        outside = Path(temporary.name) / "outside"
+        outside.mkdir()
+        sentinel = outside / "sentinel"
+        sentinel.write_bytes(b"outside\n")
+        ports = repo / "tools/content_port/ports"
+        displaced = repo / "tools/content_port/ports.displaced"
+        manifest = "tools/content_port/ports/fixture/ownership.json"
+        swapped = False
+        real_write = transaction_module._atomic_write_owned
+
+        def swap_parent_then_write(
+            repo_root: Path, raw: str, data: bytes, mode: int = 0o644
+        ) -> None:
+            nonlocal swapped
+            if raw == manifest and not swapped:
+                ports.rename(displaced)
+                ports.symlink_to(outside, target_is_directory=True)
+                swapped = True
+            real_write(repo_root, raw, data, mode)
+
+        try:
+            with patch(
+                "tools.content_port.transaction._atomic_write_owned",
+                side_effect=swap_parent_then_write,
+            ):
+                with self.assertRaisesRegex(
+                    ContentPortError, "traverses non-directory or symlink"
+                ):
+                    apply_bundle(repo, bundle, digest)
+            self.assertTrue(swapped)
+            self.assertEqual(sentinel.read_bytes(), b"outside\n")
+            self.assertEqual(list(outside.iterdir()), [sentinel])
+            self.assertTrue(guard_active(repo))
+
+            ports.unlink()
+            displaced.rename(ports)
             recover_transaction(repo)
             fixture.assert_clean()
         finally:
