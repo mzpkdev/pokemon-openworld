@@ -12,7 +12,8 @@
     {"id": "contract-trainer-ids", "kind": "frozen-contract", "contractDomain": "trainerIds", "domains": ["trainerIds"], "storage": "u32-id"},
     {"id": "contract-vars", "kind": "frozen-contract", "contractDomain": "vars", "domains": ["vars"], "storage": "u16-id"},
     {"id": "heal-locations", "kind": "json-symbol-list", "path": "src/data/heal_locations.json", "listKey": "heal_locations", "symbolField": "id", "noneSymbol": "HEAL_LOCATION_NONE", "domains": ["checkpoints"], "storage": "heal-location-id"},
-    {"id": "battle-frontier-facilities", "kind": "explicit-source", "path": "include/constants/battle_frontier.h", "domains": ["facilities"], "storage": "u8-id"}
+    {"id": "battle-frontier-facilities", "kind": "explicit-source", "path": "include/constants/battle_frontier.h", "domains": ["facilities"], "storage": "u8-id"},
+    {"id": "berry-trees", "kind": "explicit-source", "path": "include/constants/berry.h", "domains": ["berryTrees"], "storage": "u8-id"}
   ],
   "explicitAllocations": [
     {"domain": "facilities", "symbol": "FRONTIER_FACILITY_TOWER", "value": 0, "source": "battle-frontier-facilities"},
@@ -30,7 +31,9 @@
     {"domain": "facilities", "symbol": "FACILITY_BATTLE_PIKE_SINGLE", "value": 5, "source": "battle-frontier-facilities"},
     {"domain": "facilities", "symbol": "FACILITY_BATTLE_PIKE_DOUBLE", "value": 6, "source": "battle-frontier-facilities"},
     {"domain": "facilities", "symbol": "FACILITY_BATTLE_PYRAMID", "value": 7, "source": "battle-frontier-facilities"},
-    {"domain": "facilities", "symbol": "FACILITY_BATTLE_TRAINER_HILL", "value": 8, "source": "battle-frontier-facilities"}
+    {"domain": "facilities", "symbol": "FACILITY_BATTLE_TRAINER_HILL", "value": 8, "source": "battle-frontier-facilities"},
+    {"domain": "berryTrees", "symbol": "BERRY_TREE_ROUTE_123_RAWST", "value": 89, "source": "berry-trees"},
+    {"domain": "berryTrees", "symbol": "BERRY_TREE_ROUTE_29_ORAN_1", "value": 90, "source": "berry-trees"}
   ],
   "storages": [
     {"id": "flag-id", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": []},
@@ -44,6 +47,7 @@
     {"id": "warp-id", "width": 8, "signed": true, "sentinel": -1, "sentinelSymbols": ["WARP_ID_NONE"]}
   ],
   "consumerSchemas": [
+    {"domain": "berryTrees", "paths": ["tools/content_port/ports/*/adaptations.json"], "patterns": ["\\\"target\\\"\\s*:\\s*\\\"(?P<symbol>BERRY_TREE_[A-Za-z0-9_]+)\\\""]},
     {"domain": "checkpoints", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["\\b(?P<symbol>HEAL_LOCATION_[A-Za-z0-9_]+)\\b", "\\b(?P<symbol>WARP_ID_(?:NONE|SECRET_BASE|DYNAMIC))\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["HEAL_LOCATION_", "WARP_ID_"]}},
     {"domain": "destinations", "paths": ["src/region_map.c", "src/**/*.json"], "patterns": ["\\b(?P<symbol>FLAG_(?:LANDMARK|WORLD_MAP)_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FLAG_LANDMARK_", "FLAG_WORLD_MAP_", "MAPSEC_"]}},
     {"domain": "facilities", "paths": ["src/battle_frontier.c", "src/frontier_util.c", "src/trainer_hill.c", "data/**/*.s", "data/**/*.inc"], "patterns": ["\\b(?P<symbol>FRONTIER_FACILITY_(?:TOWER|DOME|PALACE|ARENA|FACTORY|PIKE|PYRAMID))\\b", "\\b(?P<symbol>HILL_MODE_[A-Za-z0-9_]+)\\b", "\\b(?P<symbol>FACILITY_BATTLE_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["FRONTIER_FACILITY_", "FACILITY_BATTLE_", "HILL_MODE_"]}},

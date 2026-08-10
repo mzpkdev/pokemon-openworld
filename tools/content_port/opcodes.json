@@ -1,0 +1,466 @@
+{
+    "schemaVersion": 1,
+    "opcodes": {
+        "additem": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": [{"domain": "item", "operand": 0}]
+        },
+        "addvar": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "applymovement": {
+            "effects": [{"kind": "movement", "operand": 1}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "applymovementat": {
+            "effects": [{"kind": "movement", "operand": 2}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call": {"effects": [], "calls": [0], "terminal": false, "dependencies": []},
+        "call_if": {"effects": [], "calls": [1], "terminal": false, "dependencies": []},
+        "call_if_eq": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_ge": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_gt": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_le": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_lt": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_ne": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_set": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [1],
+            "terminal": false,
+            "dependencies": []
+        },
+        "call_if_unset": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [1],
+            "terminal": false,
+            "dependencies": []
+        },
+        "callnative": {
+            "effects": [{"kind": "special", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "checkflag": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "checktrainerflag": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": [{"domain": "trainer", "operand": 0}]
+        },
+        "clearflag": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "closemessage": {
+            "effects": [],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "compare": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "compare_local_to_local": {
+            "effects": [
+                {"kind": "state-read", "operand": 0},
+                {"kind": "state-read", "operand": 1}
+            ],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "compare_local_to_value": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "copyvar": {
+            "effects": [
+                {"kind": "state-write", "operand": 0},
+                {"kind": "state-read", "operand": 1}
+            ],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "delay": {"effects": [], "calls": [], "terminal": false, "dependencies": []},
+        "end": {"effects": [], "calls": [], "terminal": true, "dependencies": []},
+        "faceplayer": {
+            "effects": [{"kind": "movement", "operand": null}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "fadescreen": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "giveitem": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": [{"domain": "item", "operand": 0}]
+        },
+        "givebp": {
+            "effects": [{"kind": "side-effect", "operand": null}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto": {"effects": [], "calls": [0], "terminal": true, "dependencies": []},
+        "goto_if": {"effects": [], "calls": [1], "terminal": false, "dependencies": []},
+        "goto_if_eq": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_ge": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_gt": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_le": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_lt": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_ne": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_set": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [1],
+            "terminal": false,
+            "dependencies": []
+        },
+        "goto_if_unset": {
+            "effects": [{"kind": "state-read", "operand": 0}],
+            "calls": [1],
+            "terminal": false,
+            "dependencies": []
+        },
+        "gotonative": {
+            "effects": [{"kind": "special", "operand": 0}],
+            "calls": [],
+            "terminal": true,
+            "dependencies": []
+        },
+        "lock": {"effects": [], "calls": [], "terminal": false, "dependencies": []},
+        "lockall": {"effects": [], "calls": [], "terminal": false, "dependencies": []},
+        "map_script": {
+            "effects": [{"kind": "callback", "operand": 0}],
+            "calls": [1],
+            "terminal": false,
+            "dependencies": []
+        },
+        "map_script_2": {
+            "effects": [
+                {"kind": "state-read", "operand": 0},
+                {"kind": "callback", "operand": 2}
+            ],
+            "calls": [2],
+            "terminal": false,
+            "dependencies": []
+        },
+        "msgbox": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "playmoncry": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": [{"domain": "species", "operand": 0}]
+        },
+        "playse": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "pokenavcall": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "release": {"effects": [], "calls": [], "terminal": false, "dependencies": []},
+        "releaseall": {
+            "effects": [],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "removeobject": {
+            "effects": [{"kind": "side-effect", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "return": {"effects": [], "calls": [], "terminal": true, "dependencies": []},
+        "setflag": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setdivewarp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setdynamicwarp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setescapewarp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setholewarp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setobjectxy": {
+            "effects": [{"kind": "movement", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setobjectxyperm": {
+            "effects": [{"kind": "movement", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setvar": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "settrainerflag": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": [{"domain": "trainer", "operand": 0}]
+        },
+        "setwarp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "setworldmapflag": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "special": {
+            "effects": [{"kind": "special", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "specialvar": {
+            "effects": [
+                {"kind": "state-write", "operand": 0},
+                {"kind": "special", "operand": 1}
+            ],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "subvar": {
+            "effects": [{"kind": "state-write", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "waitmessage": {
+            "effects": [],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "waitmoncry": {
+            "effects": [],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "waitmovement": {
+            "effects": [],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "waitse": {"effects": [], "calls": [], "terminal": false, "dependencies": []},
+        "warp": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpdoor": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warphole": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpmossdeepgym": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpsilent": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpspinenter": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpwhitefade": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpdynamic": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "warpteleport": {
+            "effects": [{"kind": "warp", "operand": 0}],
+            "calls": [],
+            "terminal": false,
+            "dependencies": []
+        },
+        "trainerbattle_single": {
+            "effects": [],
+            "calls": [],
+            "dependencies": [{"domain": "trainer", "operand": 0}],
+            "terminal": false
+        },
+        "trainerbattle_double": {
+            "effects": [],
+            "calls": [],
+            "dependencies": [{"domain": "trainer", "operand": 0}],
+            "terminal": false
+        },
+        "trainerbattle_no_intro": {
+            "effects": [],
+            "calls": [],
+            "dependencies": [{"domain": "trainer", "operand": 0}],
+            "terminal": false
+        },
+        "trainerbattle_rematch": {
+            "effects": [],
+            "calls": [],
+            "dependencies": [{"domain": "trainer", "operand": 0}],
+            "terminal": false
+        },
+        "trainerbattle_rematch_double": {
+            "effects": [],
+            "calls": [],
+            "dependencies": [{"domain": "trainer", "operand": 0}],
+            "terminal": false
+        }
+    }
+}

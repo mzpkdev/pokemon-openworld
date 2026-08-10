@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "validationCommands": [
+    [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/content_port/tests",
+      "-p",
+      "test_*.py",
+      "-q"
+    ],
+    [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/persistence/tests",
+      "-p",
+      "test_*.py",
+      "-q"
+    ],
+    [
+      "make",
+      "check"
+    ],
+    [
+      "make",
+      "integrity-check"
+    ],
+    [
+      "make",
+      "e2e-core"
+    ],
+    [
+      "make",
+      "e2e-extended"
+    ],
+    [
+      "make",
+      "e2e-integrity"
+    ]
+  ]
+}

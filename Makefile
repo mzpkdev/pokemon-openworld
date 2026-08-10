@@ -1,3 +1,67 @@
+# GNU Make puts its compact short-option word first in MAKEFLAGS.  Long options
+# retain their leading dashes, so exclude those before looking for the exact
+# direct-evaluation flags; for example, --no-print-directory is not `-n`.
+_CONTENT_PORT_FIRST_MAKEFLAG := $(firstword $(MAKEFLAGS))
+_CONTENT_PORT_SHORT_MAKEFLAGS := $(filter-out -%,$(_CONTENT_PORT_FIRST_MAKEFLAG))
+ifneq (,$(findstring =,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
+_CONTENT_PORT_SHORT_MAKEFLAGS :=
+endif
+# Recursive wrapping changes the target status seen by question mode, makes
+# touch mode update the wrapper target, and executes recipe lines containing
+# $(MAKE) even in dry-run mode.  Evaluate all three modes against the original
+# product graph; none runs a normal publishing recipe.
+_CONTENT_PORT_READ_ONLY_MAKE_MODE := $(or \
+  $(findstring n,$(_CONTENT_PORT_SHORT_MAKEFLAGS)), \
+  $(findstring q,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
+_CONTENT_PORT_TOUCH_MAKE_MODE := $(and \
+  $(findstring t,$(_CONTENT_PORT_SHORT_MAKEFLAGS)), \
+  $(if $(_CONTENT_PORT_READ_ONLY_MAKE_MODE),,1))
+_CONTENT_PORT_DIRECT_MAKE_MODE := $(or \
+  $(_CONTENT_PORT_READ_ONLY_MAKE_MODE), \
+  $(_CONTENT_PORT_TOUCH_MAKE_MODE))
+ifneq (,$(_CONTENT_PORT_DIRECT_MAKE_MODE))
+CONTENT_PORT_BUILD_LOCK_HELD := 1
+endif
+
+# Exported source trees have no Git transaction state.  Only enable Git-backed
+# coordination when this Makefile is running at the exact worktree root, using
+# the same .git/root identity required by the lifetime-lock wrapper below.
+_CONTENT_PORT_IS_GIT_WORKTREE_ROOT := $(shell \
+  if [ -e .git ] || [ -L .git ]; then \
+    root="$$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0; \
+    root="$$(cd "$$root" && pwd -P)" || exit 0; \
+    current="$$(pwd -P)" || exit 0; \
+    if [ "$$root" = "$$current" ]; then printf '1'; fi; \
+  fi)
+
+ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
+_CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
+.PHONY: __content-port-build-lock
+__content-port-build-lock:
+	+@if [ -e .git ] || [ -L .git ]; then \
+		root="$$(git rev-parse --show-toplevel)" || exit 2; \
+		root="$$(cd "$$root" && pwd -P)" || exit 2; \
+		current="$$(pwd -P)" || exit 2; \
+		if [ "$$root" != "$$current" ]; then \
+			echo "content-port: Makefile must run at its Git worktree root" >&2; \
+			exit 2; \
+		fi; \
+		state="$$(git rev-parse --path-format=absolute --git-path content-port-transaction)" || exit 2; \
+		case "$$state" in /*/content-port-transaction) ;; \
+			*) echo "content-port: invalid transaction state path" >&2; exit 2 ;; \
+		esac; \
+		mkdir -p "$$state" || exit 2; \
+		python3 -c 'import fcntl, os, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); os.set_inheritable(fd, True); os.execvp(sys.argv[2], sys.argv[2:])' \
+			"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
+	else \
+		$(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
+	fi
+
+%:: __content-port-build-lock
+	@:
+
+else
+
 # Product identity is deliberately closed.  Diagnostic map dialects are exposed
 # only by the generator-fixture-* targets below; they can never select a link.
 ifeq ($(origin GAME_VERSION),command line)
@@ -85,7 +149,7 @@ endif
 include config.mk
 
 # Default make rule
-all: rom
+all: content-port-transaction-check rom
 
 # Toolchain selection
 TOOLCHAIN := $(DEVKITARM)
@@ -376,9 +440,11 @@ MAKEFLAGS += --no-print-directory
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check
+.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -398,9 +464,19 @@ endif
 .SHELLSTATUS ?= 0
 
 ifeq ($(SETUP_PREREQS),1)
+ifeq (,$(_CONTENT_PORT_DIRECT_MAKE_MODE))
+ifeq ($(_CONTENT_PORT_IS_GIT_WORKTREE_ROOT),1)
+  # This runs before parse-time tool and source generation, which otherwise
+  # precedes the normal prerequisite graph and could consume a mixed tree.
+  $(foreach line, $(shell python3 -m tools.content_port transaction-check --repo . 2>&1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
+  ifneq ($(.SHELLSTATUS),0)
+    $(error Active content-port transaction blocks build setup)
+  endif
+endif
   # If set on: Default target or a rule requiring a scan
   # Forcibly execute `make tools` since we need them for what we are doing.
-  $(foreach line, $(shell $(MAKE) -f make_tools.mk | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
+  _CONTENT_PORT_SETUP_TOOLS_GOAL := $(if $(_CONTENT_PORT_IS_GIT_WORKTREE_ROOT),tools,tools-no-history)
+  $(foreach line, $(shell $(MAKE) -f make_tools.mk $(_CONTENT_PORT_SETUP_TOOLS_GOAL) | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
   ifneq ($(.SHELLSTATUS),0)
     $(error Errors occurred while building tools. See error messages above for more details)
   endif
@@ -409,6 +485,7 @@ ifeq ($(SETUP_PREREQS),1)
   ifneq ($(.SHELLSTATUS),0)
     $(error Errors occurred while generating map-related sources. See error messages above for more details)
   endif
+endif
 endif
 
 # Collect sources
@@ -436,8 +513,26 @@ MID_OBJS := $(patsubst $(MID_SUBDIR)/%.mid,$(MID_BUILDDIR)/%.o,$(MID_SRCS))
 OBJS     := $(C_OBJS) $(C_ASM_OBJS) $(ASM_OBJS) $(DATA_ASM_OBJS) $(MID_OBJS)
 OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(OBJS))
 
-SUBDIRS  := $(sort $(dir $(OBJS) $(dir $(TEST_OBJS))))
-$(shell mkdir -p $(SUBDIRS))
+DEP_FILES := $(addprefix $(OBJ_DIR)/, \
+  $(C_SRCS:.c=.d) $(TEST_SRCS:.c=.d) $(ASM_SRCS:.s=.d) \
+  $(C_ASM_SRCS:.s=.d) $(DATA_ASM_SRCS:.s=.d))
+DIRECTORY_OUTPUTS := $(OBJS) $(TEST_OBJS) $(DEP_FILES) \
+  $(OBJ_DIR)/ld_script_test.ld \
+  $(OBJ_DIR)/sym_bss.ld $(OBJ_DIR)/sym_common.ld $(OBJ_DIR)/sym_ewram.ld
+SUBDIRS          := $(sort $(dir $(DIRECTORY_OUTPUTS)))
+
+# Touch mode substitutes `touch` for ordinary recipes.  Force only the mkdir
+# recipe it needs; dry-run and question mode must remain read-only.
+ifneq (,$(_CONTENT_PORT_TOUCH_MAKE_MODE))
+$(SUBDIRS):
+	+@mkdir -p $@
+else
+$(SUBDIRS):
+	@mkdir -p $@
+endif
+
+# Do not materialize every build directory when only one output was requested.
+$(foreach output,$(DIRECTORY_OUTPUTS),$(eval $(output): | $(dir $(output))))
 
 # Pretend rules that are actually flags defer to `make all`
 modern: all
@@ -456,7 +551,7 @@ LD_SCRIPT_TEST := ld_script_test.ld
 $(OBJ_DIR)/ld_script_test.ld: $(LD_SCRIPT_TEST)
 	cd $(OBJ_DIR) && sed "s#tools/#../../tools/#g" ../../$(LD_SCRIPT_TEST) > ld_script_test.ld
 
-$(TESTELF): $(OBJ_DIR)/ld_script_test.ld $(OBJS) $(TEST_OBJS) libagbsyscall tools check-tools
+$(TESTELF): $(OBJ_DIR)/ld_script_test.ld $(OBJS) $(TEST_OBJS) libagbsyscall tools check-tools | content-port-transaction-check
 	@echo "cd $(OBJ_DIR) && $(LD) -T ld_script_test.ld -o ../../$@ <objects> <test-objects> <lib>"
 	@cd $(OBJ_DIR) && $(LD) $(TESTLDFLAGS) --undefined=gSaveAbiEvidence -T ld_script_test.ld -o ../../$@ $(OBJS_REL) $(TEST_OBJS_REL) $(LIB)
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) -d0 --silent
@@ -464,12 +559,34 @@ $(TESTELF): $(OBJ_DIR)/ld_script_test.ld $(OBJS) $(TEST_OBJS) libagbsyscall tool
 
 TEST_SKIP_IS_FAIL := \x01
 
-$(HEADLESSELF): $(TESTELF)
+$(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 
-check: save-contract-check $(HEADLESSELF)
+check: content-port-transaction-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
+
+CONTENT_PORT ?= johto
+CONTENT_PORT_DONOR_ROOT ?= .references
+CONTENT_PORT_OUTPUT ?= $(BUILD_DIR)/content-port/$(CONTENT_PORT)
+
+content-port-transaction-check:
+	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+		python3 -m tools.content_port transaction-check --repo .; \
+	fi
+
+content-port-test: content-port-transaction-check
+	CONTENT_PORT_DONOR_ROOT=$(CONTENT_PORT_DONOR_ROOT) \
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+		-s tools/content_port/tests -p 'test_*.py' -q
+
+content-port-check: content-port-transaction-check
+	python3 -m tools.content_port check --port $(CONTENT_PORT) \
+		--donor-root $(CONTENT_PORT_DONOR_ROOT)
+
+content-port-bundle: content-port-transaction-check
+	python3 -m tools.content_port bundle --port $(CONTENT_PORT) \
+		--donor-root $(CONTENT_PORT_DONOR_ROOT) --output $(CONTENT_PORT_OUTPUT)
 
 RUFF_VENV := $(BUILD_DIR)/ruff-venv
 RUFF_PYTHON := $(RUFF_VENV)/bin/python
@@ -484,16 +601,16 @@ $(RUFF_REQUIREMENTS_STAMP): $(RUFF_REQUIREMENTS) $(RUFF_PYTHON)
 	$(RUFF_PYTHON) -m pip install --disable-pip-version-check -r $(RUFF_REQUIREMENTS)
 	@touch $@
 
-format: $(RUFF_REQUIREMENTS_STAMP)
+format: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 	$(RUFF) format .
 
-format-check: $(RUFF_REQUIREMENTS_STAMP)
+format-check: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 	$(RUFF) format --check .
 
-lint: $(RUFF_REQUIREMENTS_STAMP)
+lint: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 	$(RUFF) check --fix .
 
-lint-check: $(RUFF_REQUIREMENTS_STAMP)
+lint-check: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 	$(RUFF) check .
 
 E2E_VENV := $(BUILD_DIR)/e2e-venv
@@ -510,14 +627,14 @@ SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
 # generated-source, object, link, ROM, and symbol dependency graph as a normal
 # debug build. CI may trust artifacts produced by its required build job for the
 # exact same commit; local runs always traverse the graph.
-_e2e-build-debug-artifacts:
+_e2e-build-debug-artifacts: content-port-transaction-check
 ifeq ($(E2E_PREBUILT_DEBUG),1)
 	@:
 else
 	+$(MAKE) DEBUG=1 $(E2E_ROM) $(E2E_SYMS)
 endif
 
-_e2e-require-artifacts: _e2e-build-debug-artifacts
+_e2e-require-artifacts: content-port-transaction-check _e2e-build-debug-artifacts
 	@missing=0; \
 	for artifact in "$(E2E_ROM)" "$(E2E_SYMS)"; do \
 		if [[ ! -f "$$artifact" ]]; then \
@@ -530,7 +647,7 @@ _e2e-require-artifacts: _e2e-build-debug-artifacts
 		exit 1; \
 	fi
 
-build-variant-isolation-check:
+build-variant-isolation-check: content-port-transaction-check
 	@test -f $(FILE_NAME).sym -a -f $(FILE_NAME)-debug.sym || { \
 		echo "Build normal and debug symbol artifacts before checking variant isolation." >&2; \
 		exit 1; \
@@ -551,17 +668,17 @@ $(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON)
 _e2e-skyemu: tools/e2e/install_skyemu.py
 	python3 tools/e2e/install_skyemu.py --output $(SKYEMU)
 
-e2e-core: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-core: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=core \
 	$(E2E_PYTHON) tools/e2e/run.py core
 
-e2e-extended: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-extended: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
 	$(E2E_PYTHON) tools/e2e/run.py extended
 
-e2e-integrity: _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
 	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
 	$(E2E_PYTHON) tools/e2e/run.py integrity
@@ -580,7 +697,7 @@ endif
 INTEGRITY_REPORT ?= $(BUILD_DIR)/integrity/$(INTEGRITY_PURPOSE).json
 PURPOSE_REPORT_DIR := $(BUILD_DIR)/integrity/purposes
 
-$(LIVE_SAVE_ABI): $(SAVE_CONTRACT) tools/persistence/contract.py tools/persistence/abi_anchor.c src/record_mixing.c $(shell find include -type f -name '*.h')
+$(LIVE_SAVE_ABI): $(SAVE_CONTRACT) tools/persistence/contract.py tools/persistence/abi_anchor.c src/record_mixing.c $(shell find include -type f -name '*.h') | content-port-transaction-check
 	@mkdir -p $(dir $(LIVE_SAVE_ABI))
 	python3 tools/persistence/contract.py validate-contract --contract $(SAVE_CONTRACT)
 	python3 tools/persistence/contract.py measure-abi --tree . --purpose $(SAVE_ABI_PURPOSE) --output $(LIVE_SAVE_ABI)
@@ -591,9 +708,9 @@ $(LINKED_SAVE_ABI): $(LIVE_SAVE_ABI)
 
 $(C_BUILDDIR)/save_abi.o: $(LINKED_SAVE_ABI)
 
-save-contract-check: $(LINKED_SAVE_ABI)
+save-contract-check: content-port-transaction-check $(LINKED_SAVE_ABI)
 
-integrity-check: $(CAPACITY_POLICY) save-contract-check
+integrity-check: content-port-transaction-check $(CAPACITY_POLICY) save-contract-check
 	+$(MAKE) $(ROM) $(SYM)
 	@mkdir -p $(dir $(INTEGRITY_REPORT))
 	python3 tools/integrity/validate_artifact.py \
@@ -602,7 +719,7 @@ integrity-check: $(CAPACITY_POLICY) save-contract-check
 		--save-contract $(SAVE_CONTRACT) --purpose $(INTEGRITY_PURPOSE) \
 		--output $(INTEGRITY_REPORT)
 
-integrity-check-all-purposes:
+integrity-check-all-purposes: content-port-transaction-check
 	@rm -rf $(PURPOSE_REPORT_DIR)
 	@mkdir -p $(PURPOSE_REPORT_DIR)
 	+$(MAKE) integrity-check SAVE_ABI_PURPOSE=normal INTEGRITY_PURPOSE=normal INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/normal.json
@@ -618,12 +735,12 @@ integrity-check-all-purposes:
 		--contract $(SAVE_CONTRACT) --reports $(PURPOSE_REPORT_DIR)
 
 # Other rules
-rom: $(ROM)
+rom: content-port-transaction-check $(ROM)
 ifeq ($(COMPARE),1)
 	@$(SHA1) rom.sha1
 endif
 
-syms: $(SYM)
+syms: content-port-transaction-check $(SYM)
 
 clean: tidy clean-tools clean-check-tools clean-generated clean-assets
 	@$(MAKE) clean -C libagbsyscall
@@ -681,11 +798,14 @@ include trainer_rules.mk
 ifneq ($(words $(wildcard $(GENERATED_CONSTANT_HEADERS))),$(words $(GENERATED_CONSTANT_HEADERS)))
 .PHONY: $(MAP_GENERATION_STAMP)
 endif
-$(C_OBJS) $(TEST_OBJS): $(MAP_GENERATION_STAMP) $(GENERATED_CONSTANT_HEADERS)
+$(C_OBJS) $(TEST_OBJS): $(MAP_GENERATION_STAMP) $(GENERATED_CONSTANT_HEADERS) | content-port-transaction-check
+$(OBJS) $(TEST_OBJS): | content-port-transaction-check
+
+$(AUTO_GEN_TARGETS): | content-port-transaction-check
 
 # NOTE: Tools must have been built prior (FIXME)
 # so you can't really call this rule directly
-generated: $(AUTO_GEN_TARGETS)
+generated: content-port-transaction-check $(AUTO_GEN_TARGETS)
 	@: # Silence the "Nothing to be done for `generated'" message, which some people were confusing for an error.
 
 
@@ -842,25 +962,27 @@ libagbsyscall:
 ifneq ($(LTO),0)
 LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence
 LDFLAGS += -Xlinker -flto=auto
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall
+$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
 	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs>"
 	+@cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ $(OBJS_REL) $(LIB)
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 else
 # Output .map file, memory usage readout and gc sections to clean-up unused data
 LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall
+$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
 	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$@ $(OBJS_REL) $(LIB) | cat
 	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs> | cat"
 	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 endif
 
 # Builds the rom from the elf file
-$(ROM): $(ELF)
+$(ROM): $(ELF) | content-port-transaction-check
 	$(OBJCOPY) -O binary $< $@
 	$(FIX) $@ -p --silent
 
 emerald: all
 # Symbol file (`make syms`)
-$(SYM): $(ELF)
+$(SYM): $(ELF) | content-port-transaction-check
 	$(OBJDUMP) -t $< | sort -u | grep -E "^0[2389]" | $(PERL) -p -e 's/^(\w{8}) (\w).{6} \S+\t(\w{8}) (\S+)$$/\1 \2 \3 \4/g' > $@
+
+endif

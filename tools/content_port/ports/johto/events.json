@@ -1,0 +1,41 @@
+{
+  "effects": [
+    {
+      "command": "goto_if_eq",
+      "kind": "state-read",
+      "operand": "VAR_NEWBARK_TOWN_STATE",
+      "owner": "story-owned"
+    },
+    {
+      "command": "setvar",
+      "kind": "state-write",
+      "operand": "VAR_NEWBARK_TOWN_STATE",
+      "owner": "story-owned"
+    },
+    {
+      "command": "clearflag",
+      "kind": "state-write",
+      "operand": "FLAG_HIDE_SILVER_NEWBARKTOWN",
+      "owner": "story-owned"
+    },
+    {
+      "command": "callnative",
+      "kind": "special",
+      "operand": "SetTimeBasedEncounters",
+      "owner": "story-owned"
+    }
+  ],
+  "entries": [
+    {
+      "capability": "interactions",
+      "classification": "story-owned",
+      "name": "NewBarkTown_OnTransition"
+    },
+    {
+      "capability": "interactions",
+      "classification": "story-owned",
+      "name": "NewBarkTown_EventScript_LeaveTrigger"
+    }
+  ],
+  "schemaVersion": 1
+}

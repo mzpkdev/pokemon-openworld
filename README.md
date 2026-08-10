@@ -85,6 +85,76 @@ their own purpose-specific linked target-compiler ABI table. The Integrity E2E
 suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
 
+## Content ports
+
+Content ports use public donor checkouts and an authored policy. Prepare the
+current Johto authorities at their pinned commits without storing credentials:
+
+```sh
+git clone --no-checkout https://github.com/PokemonHnS-Development/pokemonHnS \
+  .references/pokemonHnS
+git -C .references/pokemonHnS checkout \
+  751823abaf677020bcd72c45fe3e7cb2b8a576e4
+git clone --no-checkout https://github.com/evilchinesefood/PKMN-World \
+  .references/PKMN-World
+git -C .references/PKMN-World checkout \
+  d40affe26e58a20f445daad84af5e45be812e69f
+make content-port-test
+make content-port-check
+```
+
+`make content-port-bundle` authenticates both trees and writes the deterministic
+Johto bundle under `build/content-port/johto/`. Review its patch, ownership
+manifest, report, and printed SHA-256 before applying it:
+
+```sh
+content_port_bundle_sha256="$(make -s content-port-bundle)"
+[[ "$content_port_bundle_sha256" =~ ^[0-9a-f]{64}$ ]] || exit 1
+python3 -m tools.content_port apply --repo . \
+  --bundle build/content-port/johto \
+  --sha256 "${content_port_bundle_sha256:?}"
+```
+
+An interrupted apply leaves an active transaction guard. Every build, test,
+integrity, and content-port target refuses that mixed tree until one of these
+commands verifies the transaction and clears it:
+
+```sh
+python3 -m tools.content_port resume --repo .
+python3 -m tools.content_port recover --repo .
+```
+
+To propose a donor pin, run `donor-update` with the donor key (`content` or
+`mechanical`), proposed revision, and
+`--output build/content-port/johto/donor-migration.json`. Review every field-level
+authority change, asset hash, conversion command, license or permission, and
+capability state. Only `redistributable` assets pass. Commit the content-addressed
+reviewed migration with its matching policy change. After setting its decision
+and dispositions, run `migration-finalize --candidate
+build/content-port/johto/donor-migration.json --port-dir
+tools/content_port/ports/johto`; it writes the canonical reviewed record and an
+exact `donor-port-update.json` proposal without editing `port.json`. The tool
+never moves a branch or creates a commit; only the resulting reviewed Git commit
+publishes generated output.
+
+Migration records embed the canonical authority references, asset recipe, and
+donor exclusions used for their evidence, so later policy edits cannot redefine
+history. Asset permission labels are backed by reviewed content-addressed
+evidence records: descriptor loading, `check`, migration validation, and bundle
+creation all re-hash the exact repository evidence file.
+
+The production `check` command enforces that permission gate before donor source
+validation. Consequently the required `Donor Contracts` job cannot pass while a
+blocked or unknown asset remains in the emitted asset ledger, even when those
+bytes are already present in the repository. That job runs the complete
+content-port suite against both authenticated checkouts and treats any skipped
+test as a failure before running the explicit production check.
+
+Donor authentication includes ordinary files by default, including ROM and
+linker outputs. A donor may omit only the exact safe relative paths authored in
+its `excludePaths` policy; generic authentication contains no donor-specific
+artifact names. Changes to that list are reviewed pin-policy changes.
+
 The five baseline-usage records are reproducibly measured from the frozen commit
 in an exported clean tree (never from the current worktree) with:
 

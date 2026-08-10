@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -38,6 +39,166 @@ class ProductMakeContractTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
+
+    def make_probe_command(
+        self, option: str, makefile: Path, target: Path
+    ) -> list[str]:
+        return [
+            "make",
+            option,
+            "-f",
+            str(ROOT / "Makefile"),
+            "-f",
+            str(makefile),
+            "NODEP=1",
+            "SETUP_PREREQS=0",
+            str(target),
+        ]
+
+    def test_question_modes_report_current_and_outdated_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            prerequisite = temp / "source"
+            target = temp / "target"
+            makefile = temp / "probe.mk"
+            prerequisite.write_text("source\n")
+            target.write_text("target\n")
+            makefile.write_text(f"{target}: {prerequisite}\n\t@cp $< $@\n")
+
+            for option in ("-q", "--question"):
+                with self.subTest(option=option, state="current"):
+                    os.utime(prerequisite, (1_000_000_000, 1_000_000_000))
+                    os.utime(target, (1_000_000_001, 1_000_000_001))
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
+                with self.subTest(option=option, state="outdated"):
+                    os.utime(prerequisite, (1_000_000_002, 1_000_000_002))
+                    before = target.read_bytes()
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertEqual(target.read_bytes(), before)
+
+    def test_touch_modes_preserve_current_and_outdated_target_semantics(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            prerequisite = temp / "source"
+            target = temp / "target"
+            makefile = temp / "probe.mk"
+            prerequisite.write_text("source\n")
+            target.write_text("target\n")
+            makefile.write_text(f"{target}: {prerequisite}\n\t@cp $< $@\n")
+
+            for option in ("-t", "--touch"):
+                with self.subTest(option=option, state="current"):
+                    os.utime(prerequisite, (1_000_000_000, 1_000_000_000))
+                    os.utime(target, (1_000_000_001, 1_000_000_001))
+                    before = target.stat().st_mtime_ns
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(target.stat().st_mtime_ns, before)
+
+                with self.subTest(option=option, state="outdated"):
+                    os.utime(prerequisite, (1_000_000_002, 1_000_000_002))
+                    before = target.stat().st_mtime_ns
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertGreater(target.stat().st_mtime_ns, before)
+
+    def test_parallel_wrapper_preserves_usable_jobserver(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            probe = temp / "jobserver_probe.py"
+            probe.write_text(
+                """import fcntl
+import os
+import re
+import stat
+import subprocess
+
+makeflags = os.environ["MAKEFLAGS"]
+match = re.search(r"(?:^| )--jobserver-(?:auth|fds)=([^ ]+)(?: |$)", makeflags)
+if match is None:
+    raise SystemExit(f"missing jobserver authentication in MAKEFLAGS: {makeflags!r}")
+authentication = match.group(1)
+if authentication.startswith("fifo:"):
+    fifo_path = authentication.removeprefix("fifo:")
+    if not fifo_path or not stat.S_ISFIFO(os.stat(fifo_path).st_mode):
+        raise SystemExit(f"jobserver authentication is not a FIFO: {authentication!r}")
+else:
+    descriptors = re.fullmatch(r"([0-9]+),([0-9]+)", authentication)
+    if descriptors is None:
+        raise SystemExit(f"unsupported jobserver authentication: {authentication!r}")
+    for descriptor in map(int, descriptors.groups()):
+        os.fstat(descriptor)
+state = subprocess.check_output(
+    ["git", "rev-parse", "--path-format=absolute", "--git-path", "content-port-transaction"],
+    text=True,
+).strip()
+contender = os.open(os.path.join(state, "lifetime.lock"), os.O_RDWR)
+try:
+    fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    pass
+else:
+    raise SystemExit("content-port lifetime lock did not survive wrapper exec")
+print(makeflags)
+"""
+            )
+            makefile = temp / "probe.mk"
+            makefile.write_text(
+                "ifeq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)\n"
+                ".PHONY: content-port-jobserver-probe\n"
+                "content-port-jobserver-probe:\n"
+                f"\t+@{sys.executable} {probe}\n"
+                "endif\n"
+            )
+
+            result = subprocess.run(
+                [
+                    "make",
+                    "-j4",
+                    "--no-print-directory",
+                    "NODEP=1",
+                    "SETUP_PREREQS=0",
+                    "content-port-jobserver-probe",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                env={**os.environ, "MAKEFILES": str(makefile)},
+                timeout=10.0,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("jobserver unavailable", result.stderr)
+            hydra_parallelism = re.search(r"(?:^| )-j([0-9]+)(?: |$)", result.stdout)
+            self.assertIsNotNone(hydra_parallelism, result.stdout)
+            assert hydra_parallelism is not None
+            self.assertGreater(int(hydra_parallelism.group(1)), 1)
+            self.assertRegex(
+                result.stdout,
+                r"(?:^| )--jobserver-(?:auth|fds)=(?:[0-9]+,[0-9]+|fifo:[^ ]+)(?: |$)",
+            )
 
     def test_product_tuple_is_forced_for_every_build_purpose(self) -> None:
         # Query the parsed make database through a phony goal whose prerequisites
@@ -253,12 +414,49 @@ class ProductMakeContractTests(unittest.TestCase):
             # Local runs exercise the working Makefile; in CI this is identical
             # to the archived committed copy.
             shutil.copy2(ROOT / "Makefile", checkout / "Makefile")
+            shutil.copy2(ROOT / "make_tools.mk", checkout / "make_tools.mk")
+            self.assertFalse((checkout / ".git").exists())
 
             header = checkout / "include/constants/script_commands.h"
             generated_dirs = (
                 checkout / "build/generated/allregions/current/src",
                 checkout / "build/generated/allregions/current/include",
             )
+
+            setup_dry_run = subprocess.run(
+                ["make", "-n", "NODEP=1", "SETUP_PREREQS=1", "all"],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+                timeout=10.0,
+            )
+            self.assertEqual(setup_dry_run.returncode, 0, setup_dry_run.stderr)
+            self.assertNotIn("not a git repository", setup_dry_run.stderr)
+            self.assertNotIn("Active content-port transaction", setup_dry_run.stderr)
+            for output in (
+                checkout / "tools/mapjson/mapjson",
+                checkout / "tools/trainerproc/trainerproc",
+                header,
+            ):
+                with self.subTest(dry_run_output=output.relative_to(checkout)):
+                    self.assertFalse(output.exists())
+
+            setup_query = subprocess.run(
+                [
+                    "make",
+                    "--question",
+                    "NODEP=1",
+                    "SETUP_PREREQS=1",
+                    "all",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(setup_query.returncode, 1, setup_query.stderr)
+            self.assertNotIn("not a git repository", setup_query.stderr)
+            self.assertFalse(header.exists())
+
             for clean_goal in ("clean-generated", "clean"):
                 with self.subTest(clean_goal=clean_goal):
                     build = subprocess.run(
@@ -273,6 +471,7 @@ class ProductMakeContractTests(unittest.TestCase):
                         capture_output=True,
                     )
                     self.assertEqual(build.returncode, 0, build.stderr)
+                    self.assertNotIn("not a git repository", build.stderr)
                     self.assertEqual(
                         build.stdout.count("make_scr_cmd_constants.py"),
                         1,
@@ -288,7 +487,51 @@ class ProductMakeContractTests(unittest.TestCase):
                         capture_output=True,
                     )
                     self.assertEqual(clean.returncode, 0, clean.stderr)
+                    self.assertNotIn("not a git repository", clean.stderr)
                     self.assertFalse(header.exists())
+                    self.assertFalse((checkout / "content-port-transaction").exists())
+
+            subprocess.run(
+                ["git", "init", "--quiet"],
+                cwd=checkout,
+                check=True,
+                capture_output=True,
+            )
+            guard = checkout / ".git/content-port-transaction/guard.json"
+            guard.parent.mkdir(parents=True)
+            guard.write_text("active\n")
+            direct_guard = subprocess.run(
+                [
+                    "python3",
+                    "-m",
+                    "tools.content_port",
+                    "transaction-check",
+                    "--repo",
+                    ".",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(direct_guard.returncode, 2, direct_guard.stderr)
+            guarded_setup = subprocess.run(
+                [
+                    "make",
+                    "CONTENT_PORT_BUILD_LOCK_HELD=1",
+                    "NODEP=1",
+                    "SETUP_PREREQS=1",
+                    "all",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+                timeout=10.0,
+            )
+            self.assertNotEqual(guarded_setup.returncode, 0)
+            self.assertIn(
+                "Active content-port transaction blocks build setup",
+                guarded_setup.stderr,
+            )
 
     def test_conflicting_command_line_values_fail_before_assignment(self) -> None:
         conflicts = {

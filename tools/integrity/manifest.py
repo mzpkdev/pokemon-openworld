@@ -10,94 +10,54 @@ from typing import Any
 
 
 ROOT = Path(__file__).parents[2]
-JOHTO_MANIFEST = json.loads(
-    (ROOT / "tools/johto_import/import_manifest.json").read_text(encoding="utf-8")
+JOHTO_PORT_ROOT = ROOT / "tools/content_port/ports/johto"
+JOHTO_PORT = json.loads((JOHTO_PORT_ROOT / "port.json").read_text(encoding="utf-8"))
+JOHTO_ADAPTATIONS = json.loads(
+    (JOHTO_PORT_ROOT / JOHTO_PORT["adaptations"]).read_text(encoding="utf-8")
 )
 JOHTO_LOCK = json.loads(
-    (ROOT / "tools/johto_import/allocation_lock.json").read_text(encoding="utf-8")
-)
-FINAL_JOHTO_COUNTS = {
-    "maps": 254,
-    "layouts": 255,
-    "groups": 25,
-    "sections": 58,
-    "tilesets": 71,
-}
-FINAL_JOHTO_FALLBACK_MAPS = (
-    "JohtoIndigoPlateau",
-    "JohtoIndigoPlateau_PokemonCenter",
-    "JohtoPokemonLeague_BrunosRoom",
-    "JohtoPokemonLeague_ChampionsRoom",
-    "JohtoPokemonLeague_HallOfFame",
-    "JohtoPokemonLeague_KarensRoom",
-    "JohtoPokemonLeague_KogasRoom",
-    "JohtoPokemonLeague_WillsRoom",
-    "JohtoVictoryRoad_1F",
-    "JohtoVictoryRoad_B1F",
-    "JohtoVictoryRoad_B2F",
-    "MahoganyHideout_B1F",
-    "MahoganyHideout_B2F",
-    "MahoganyHideout_B3F",
+    (JOHTO_PORT_ROOT / JOHTO_PORT["allocationLock"]).read_text(encoding="utf-8")
 )
 
 
 def _validate_final_johto_source_contract() -> None:
-    batch_names = [batch["name"] for batch in JOHTO_MANIFEST["batches"]]
-    if JOHTO_MANIFEST["activeBatches"] != batch_names:
-        raise RuntimeError("integrity requires every canonical Johto batch active")
-    if tuple(JOHTO_MANIFEST["contentFallback"]["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
-        raise RuntimeError("integrity Johto fallback allowlist drift")
-    fallback_batch = next(
-        batch
-        for batch in JOHTO_MANIFEST["batches"]
-        if batch["name"] == "pkmn-world-fallback"
-    )
-    if tuple(fallback_batch["maps"]) != FINAL_JOHTO_FALLBACK_MAPS:
-        raise RuntimeError("integrity Johto fallback batch drift")
+    expected = JOHTO_PORT["expectedInventory"]
     actual = {
         "maps": len(JOHTO_LOCK["maps"]),
         "layouts": len(JOHTO_LOCK["layouts"]),
         "groups": len(JOHTO_LOCK["groups"]),
         "sections": len(JOHTO_LOCK["sections"]),
-        "tilesets": JOHTO_MANIFEST["expectedInventory"]["tilesets"]["count"],
+        "tilesets": expected["tilesets"]["count"],
     }
-    if actual != FINAL_JOHTO_COUNTS:
+    expected_counts = {name: record["count"] for name, record in expected.items()}
+    if actual != expected_counts:
         raise RuntimeError(f"integrity final Johto counts drift: {actual!r}")
-    if [item["targetId"] for item in JOHTO_LOCK["groups"]] != list(range(75, 100)):
+    map_names = {item["name"] for item in JOHTO_LOCK["maps"]}
+    fallback_maps = JOHTO_ADAPTATIONS["contentFallback"]["maps"]
+    if (
+        len(fallback_maps) != len(set(fallback_maps))
+        or not set(fallback_maps) <= map_names
+    ):
+        raise RuntimeError("integrity Johto fallback allowlist drift")
+    if [item["targetId"] for item in JOHTO_LOCK["groups"]] != list(
+        range(75, 75 + actual["groups"])
+    ):
         raise RuntimeError("integrity Johto group allocation drift")
-    if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(range(209, 267)):
+    if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(
+        range(209, 209 + actual["sections"])
+    ):
         raise RuntimeError("integrity Johto section allocation drift")
     if [item["targetIndex"] for item in JOHTO_LOCK["layouts"]] != list(
-        range(785, 1040)
+        range(785, 785 + actual["layouts"])
     ):
         raise RuntimeError("integrity Johto layout allocation drift")
 
 
 _validate_final_johto_source_contract()
-ACTIVE_JOHTO_BATCHES = set(JOHTO_MANIFEST["activeBatches"])
-ACTIVE_JOHTO_MAPS = [
-    item for item in JOHTO_LOCK["maps"] if item["batch"] in ACTIVE_JOHTO_BATCHES
-]
-ACTIVE_JOHTO_LAYOUT_IDS = {
-    layout
-    for batch in JOHTO_MANIFEST["batches"]
-    if batch["name"] in ACTIVE_JOHTO_BATCHES
-    for layout in batch["layouts"]
-}
-ACTIVE_JOHTO_LAYOUTS = [
-    item for item in JOHTO_LOCK["layouts"] if item["id"] in ACTIVE_JOHTO_LAYOUT_IDS
-]
-INACTIVE_JOHTO_PLACEHOLDERS = [
-    item
-    for item in JOHTO_MANIFEST.get("inactiveGroupPlaceholders", [])
-    if item["activationBatch"] not in ACTIVE_JOHTO_BATCHES
-]
-ACTIVE_JOHTO_GROUPS = {item["targetGroup"] for item in ACTIVE_JOHTO_MAPS} | {
-    item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
-}
-INACTIVE_JOHTO_GROUPS = {
-    item["targetId"]: item["name"] for item in INACTIVE_JOHTO_PLACEHOLDERS
-}
+ACTIVE_JOHTO_MAPS = list(JOHTO_LOCK["maps"])
+ACTIVE_JOHTO_LAYOUTS = list(JOHTO_LOCK["layouts"])
+ACTIVE_JOHTO_GROUPS = {item["name"] for item in JOHTO_LOCK["groups"]}
+INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
 ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in ACTIVE_JOHTO_MAPS}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935

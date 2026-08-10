@@ -1362,8 +1362,6 @@
     {
       "name": "NewBarkTown",
       "id": "MAP_NEW_BARK_TOWN",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 0,
@@ -1375,8 +1373,6 @@
     {
       "name": "NewBarkTown_Lab",
       "id": "MAP_NEW_BARK_TOWN_LAB",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorNewBark",
       "targetGroupId": 76,
       "targetMember": 0,
@@ -1388,8 +1384,6 @@
     {
       "name": "NewBarkTown_House1",
       "id": "MAP_NEW_BARK_TOWN_HOUSE1",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorNewBark",
       "targetGroupId": 76,
       "targetMember": 1,
@@ -1401,8 +1395,6 @@
     {
       "name": "NewBarkTown_House2",
       "id": "MAP_NEW_BARK_TOWN_HOUSE2",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorNewBark",
       "targetGroupId": 76,
       "targetMember": 2,
@@ -1414,8 +1406,6 @@
     {
       "name": "NewBarkTown_PlayersHouse_1F",
       "id": "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_1F",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorNewBark",
       "targetGroupId": 76,
       "targetMember": 3,
@@ -1427,8 +1417,6 @@
     {
       "name": "NewBarkTown_PlayersHouse_2F",
       "id": "MAP_NEW_BARK_TOWN_PLAYERS_HOUSE_2F",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorNewBark",
       "targetGroupId": 76,
       "targetMember": 4,
@@ -1440,8 +1428,6 @@
     {
       "name": "Route29",
       "id": "MAP_ROUTE29",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 1,
@@ -1453,8 +1439,6 @@
     {
       "name": "Gate_Route29_Route46",
       "id": "MAP_GATE_ROUTE29_ROUTE46",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 0,
@@ -1466,8 +1450,6 @@
     {
       "name": "CherrygroveCity",
       "id": "MAP_CHERRYGROVE_CITY",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 2,
@@ -1479,8 +1461,6 @@
     {
       "name": "CherrygroveCity_PokemonCenter",
       "id": "MAP_CHERRYGROVE_CITY_POKEMON_CENTER",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorCherrygrove",
       "targetGroupId": 77,
       "targetMember": 0,
@@ -1492,8 +1472,6 @@
     {
       "name": "CherrygroveCity_Mart",
       "id": "MAP_CHERRYGROVE_CITY_MART",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorCherrygrove",
       "targetGroupId": 77,
       "targetMember": 1,
@@ -1505,8 +1483,6 @@
     {
       "name": "CherrygroveCity_House1",
       "id": "MAP_CHERRYGROVE_CITY_HOUSE1",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorCherrygrove",
       "targetGroupId": 77,
       "targetMember": 2,
@@ -1518,8 +1494,6 @@
     {
       "name": "CherrygroveCity_House2",
       "id": "MAP_CHERRYGROVE_CITY_HOUSE2",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorCherrygrove",
       "targetGroupId": 77,
       "targetMember": 3,
@@ -1531,8 +1505,6 @@
     {
       "name": "CherrygroveCity_House3",
       "id": "MAP_CHERRYGROVE_CITY_HOUSE3",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_IndoorCherrygrove",
       "targetGroupId": 77,
       "targetMember": 4,
@@ -1544,8 +1516,6 @@
     {
       "name": "Route28",
       "id": "MAP_ROUTE28",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 0,
@@ -1557,8 +1527,6 @@
     {
       "name": "Route28_House",
       "id": "MAP_ROUTE28_HOUSE",
-      "batch": "baseline",
-      "materialization": "preserve",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 1,
@@ -1570,8 +1538,6 @@
     {
       "name": "Route30",
       "id": "MAP_ROUTE30",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 3,
@@ -1583,8 +1549,6 @@
     {
       "name": "Route31",
       "id": "MAP_ROUTE31",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 4,
@@ -1596,8 +1560,6 @@
     {
       "name": "Route32",
       "id": "MAP_ROUTE32",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 5,
@@ -1609,8 +1571,6 @@
     {
       "name": "VioletCity",
       "id": "MAP_VIOLET_CITY",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 6,
@@ -1622,8 +1582,6 @@
     {
       "name": "RuinsOfAlph_Outside",
       "id": "MAP_RUINS_OF_ALPH_OUTSIDE",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoTownsAndRoutes",
       "targetGroupId": 75,
       "targetMember": 7,
@@ -1635,8 +1593,6 @@
     {
       "name": "VioletCity_Gym",
       "id": "MAP_VIOLET_CITY_GYM",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 0,
@@ -1648,8 +1604,6 @@
     {
       "name": "VioletCity_House1",
       "id": "MAP_VIOLET_CITY_HOUSE1",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 1,
@@ -1661,8 +1615,6 @@
     {
       "name": "VioletCity_House2",
       "id": "MAP_VIOLET_CITY_HOUSE2",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 2,
@@ -1674,8 +1626,6 @@
     {
       "name": "VioletCity_Mart",
       "id": "MAP_VIOLET_CITY_MART",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 3,
@@ -1687,8 +1637,6 @@
     {
       "name": "VioletCity_PokemonCenter",
       "id": "MAP_VIOLET_CITY_POKEMON_CENTER",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 4,
@@ -1700,8 +1648,6 @@
     {
       "name": "VioletCity_TrainerSchool",
       "id": "MAP_VIOLET_CITY_TRAINER_SCHOOL",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 5,
@@ -1713,8 +1659,6 @@
     {
       "name": "SproutTower_1F",
       "id": "MAP_SPROUT_TOWER_1F",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 6,
@@ -1726,8 +1670,6 @@
     {
       "name": "SproutTower_2F",
       "id": "MAP_SPROUT_TOWER_2F",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 7,
@@ -1739,8 +1681,6 @@
     {
       "name": "SproutTower_3F",
       "id": "MAP_SPROUT_TOWER_3F",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 8,
@@ -1752,8 +1692,6 @@
     {
       "name": "Route32_PokemonCenter",
       "id": "MAP_ROUTE32_POKEMON_CENTER",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoViolet",
       "targetGroupId": 80,
       "targetMember": 9,
@@ -1765,8 +1703,6 @@
     {
       "name": "Gate_Route31_VioletCity",
       "id": "MAP_GATE_ROUTE31_VIOLET_CITY",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 0,
@@ -1778,8 +1714,6 @@
     {
       "name": "Gate_RuinsOfAlph_Route32",
       "id": "MAP_GATE_RUINS_OF_ALPH_ROUTE32",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 1,
@@ -1791,8 +1725,6 @@
     {
       "name": "Gate_RuinsOfAlph_Route36",
       "id": "MAP_GATE_RUINS_OF_ALPH_ROUTE36",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 2,
@@ -1804,8 +1736,6 @@
     {
       "name": "RuinsOfAlph_Lab",
       "id": "MAP_RUINS_OF_ALPH_LAB",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 3,
@@ -1817,8 +1747,6 @@
     {
       "name": "RuinsOfAlph_B1F",
       "id": "MAP_RUINS_OF_ALPH_B1F",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 4,
@@ -1830,8 +1758,6 @@
     {
       "name": "RuinsOfAlph_PuzzleAndRewardChambers",
       "id": "MAP_RUINS_OF_ALPH_PUZZLE_AND_REWARD_CHAMBERS",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 5,
@@ -1843,8 +1769,6 @@
     {
       "name": "RuinsOfAlph_WordsRoom1",
       "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM1",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 6,
@@ -1856,8 +1780,6 @@
     {
       "name": "RuinsOfAlph_WordsRoom2",
       "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM2",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 7,
@@ -1869,8 +1791,6 @@
     {
       "name": "RuinsOfAlph_WordsRoom3",
       "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM3",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 8,
@@ -1882,8 +1802,6 @@
     {
       "name": "RuinsOfAlph_WordsRoom4",
       "id": "MAP_RUINS_OF_ALPH_WORDS_ROOM4",
-      "batch": "early-violet-ruins",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoRuins",
       "targetGroupId": 81,
       "targetMember": 9,
@@ -1895,8 +1813,6 @@
     {
       "name": "AzaleaTown",
       "id": "MAP_AZALEA_TOWN",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoAzalea",
       "targetGroupId": 82,
       "targetMember": 0,
@@ -1908,8 +1824,6 @@
     {
       "name": "Route33",
       "id": "MAP_ROUTE33",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoAzalea",
       "targetGroupId": 82,
       "targetMember": 1,
@@ -1921,8 +1835,6 @@
     {
       "name": "Route34",
       "id": "MAP_ROUTE34",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoAzalea",
       "targetGroupId": 82,
       "targetMember": 2,
@@ -1934,8 +1846,6 @@
     {
       "name": "IlexForest",
       "id": "MAP_ILEX_FOREST",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoAzalea",
       "targetGroupId": 82,
       "targetMember": 3,
@@ -1947,8 +1857,6 @@
     {
       "name": "AzaleaTown_Gym",
       "id": "MAP_AZALEA_TOWN_GYM",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 0,
@@ -1960,8 +1868,6 @@
     {
       "name": "AzaleaTown_House1",
       "id": "MAP_AZALEA_TOWN_HOUSE1",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 1,
@@ -1973,8 +1879,6 @@
     {
       "name": "AzaleaTown_KurtsHouse",
       "id": "MAP_AZALEA_TOWN_KURTS_HOUSE",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 2,
@@ -1986,8 +1890,6 @@
     {
       "name": "AzaleaTown_Mart",
       "id": "MAP_AZALEA_TOWN_MART",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 3,
@@ -1999,8 +1901,6 @@
     {
       "name": "AzaleaTown_PokemonCenter",
       "id": "MAP_AZALEA_TOWN_POKEMON_CENTER",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 4,
@@ -2012,8 +1912,6 @@
     {
       "name": "Route34_DayCare",
       "id": "MAP_ROUTE34_DAY_CARE",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorAzalea",
       "targetGroupId": 83,
       "targetMember": 5,
@@ -2025,8 +1923,6 @@
     {
       "name": "Gate_AzaleaTown_IlexForest",
       "id": "MAP_GATE_AZALEA_TOWN_ILEX_FOREST",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 0,
@@ -2038,8 +1934,6 @@
     {
       "name": "Gate_IlexForest_Route34",
       "id": "MAP_GATE_ILEX_FOREST_ROUTE34",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 1,
@@ -2051,8 +1945,6 @@
     {
       "name": "UnionCave_1F",
       "id": "MAP_UNION_CAVE_1F",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 2,
@@ -2064,8 +1956,6 @@
     {
       "name": "UnionCave_B1F",
       "id": "MAP_UNION_CAVE_B1F",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 3,
@@ -2077,8 +1967,6 @@
     {
       "name": "UnionCave_B2F",
       "id": "MAP_UNION_CAVE_B2F",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 4,
@@ -2090,8 +1978,6 @@
     {
       "name": "SlowpokeWell_B1F",
       "id": "MAP_SLOWPOKE_WELL_B1F",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 5,
@@ -2103,8 +1989,6 @@
     {
       "name": "SlowpokeWell_B2F",
       "id": "MAP_SLOWPOKE_WELL_B2F",
-      "batch": "azalea-union-ilex",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoUnion",
       "targetGroupId": 84,
       "targetMember": 6,
@@ -2116,8 +2000,6 @@
     {
       "name": "GoldenrodCity",
       "id": "MAP_GOLDENROD_CITY",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 0,
@@ -2129,8 +2011,6 @@
     {
       "name": "Route35",
       "id": "MAP_ROUTE35",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 1,
@@ -2142,8 +2022,6 @@
     {
       "name": "Route36",
       "id": "MAP_ROUTE36",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 2,
@@ -2155,8 +2033,6 @@
     {
       "name": "Route37",
       "id": "MAP_ROUTE37",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 3,
@@ -2168,8 +2044,6 @@
     {
       "name": "NationalPark_Normal",
       "id": "MAP_NATIONAL_PARK_NORMAL",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 4,
@@ -2181,8 +2055,6 @@
     {
       "name": "NationalPark_BugContest",
       "id": "MAP_NATIONAL_PARK_BUG_CONTEST",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 5,
@@ -2194,8 +2066,6 @@
     {
       "name": "Gate_GoldenrodCity_Route35",
       "id": "MAP_GATE_GOLDENROD_CITY_ROUTE35",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 6,
@@ -2207,8 +2077,6 @@
     {
       "name": "Gate_NationalPark",
       "id": "MAP_GATE_NATIONAL_PARK",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoGoldenrod",
       "targetGroupId": 85,
       "targetMember": 7,
@@ -2220,8 +2088,6 @@
     {
       "name": "GoldenrodCity_BikeShop",
       "id": "MAP_GOLDENROD_CITY_BIKE_SHOP",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 0,
@@ -2233,8 +2099,6 @@
     {
       "name": "GoldenrodCity_BillsHouse",
       "id": "MAP_GOLDENROD_CITY_BILLS_HOUSE",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 1,
@@ -2246,8 +2110,6 @@
     {
       "name": "GoldenrodCity_DepartmentStoreBasement",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_BASEMENT",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 2,
@@ -2259,8 +2121,6 @@
     {
       "name": "GoldenrodCity_DepartmentStoreElevator",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 3,
@@ -2272,8 +2132,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_1F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_1F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 4,
@@ -2285,8 +2143,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_2F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_2F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 5,
@@ -2298,8 +2154,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_3F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_3F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 6,
@@ -2311,8 +2165,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_4F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_4F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 7,
@@ -2324,8 +2176,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_5F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_5F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 8,
@@ -2337,8 +2187,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_6F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_6F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 9,
@@ -2350,8 +2198,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_7F",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_7F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 10,
@@ -2363,8 +2209,6 @@
     {
       "name": "GoldenrodCity_DepartmentStore_7FNight",
       "id": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_7FNIGHT",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 11,
@@ -2376,8 +2220,6 @@
     {
       "name": "GoldenrodCity_FlowerShop",
       "id": "MAP_GOLDENROD_CITY_FLOWER_SHOP",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 12,
@@ -2389,8 +2231,6 @@
     {
       "name": "GoldenrodCity_GameCorner",
       "id": "MAP_GOLDENROD_CITY_GAME_CORNER",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 13,
@@ -2402,8 +2242,6 @@
     {
       "name": "GoldenrodCity_Gym",
       "id": "MAP_GOLDENROD_CITY_GYM",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 14,
@@ -2415,8 +2253,6 @@
     {
       "name": "GoldenrodCity_House1",
       "id": "MAP_GOLDENROD_CITY_HOUSE1",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 15,
@@ -2428,8 +2264,6 @@
     {
       "name": "GoldenrodCity_House2",
       "id": "MAP_GOLDENROD_CITY_HOUSE2",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 16,
@@ -2441,8 +2275,6 @@
     {
       "name": "GoldenrodCity_House3",
       "id": "MAP_GOLDENROD_CITY_HOUSE3",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 17,
@@ -2454,8 +2286,6 @@
     {
       "name": "GoldenrodCity_PokemonCenter",
       "id": "MAP_GOLDENROD_CITY_POKEMON_CENTER",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 18,
@@ -2467,8 +2297,6 @@
     {
       "name": "GoldenrodCity_RadioTower_1F",
       "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_1F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 19,
@@ -2480,8 +2308,6 @@
     {
       "name": "GoldenrodCity_RadioTower_2F",
       "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_2F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 20,
@@ -2493,8 +2319,6 @@
     {
       "name": "GoldenrodCity_RadioTower_3F",
       "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_3F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 21,
@@ -2506,8 +2330,6 @@
     {
       "name": "GoldenrodCity_RadioTower_4F",
       "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_4F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 22,
@@ -2519,8 +2341,6 @@
     {
       "name": "GoldenrodCity_RadioTower_5F",
       "id": "MAP_GOLDENROD_CITY_RADIO_TOWER_5F",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 23,
@@ -2532,8 +2352,6 @@
     {
       "name": "GoldenrodCity_TrainStation",
       "id": "MAP_GOLDENROD_CITY_TRAIN_STATION",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 24,
@@ -2545,8 +2363,6 @@
     {
       "name": "GoldenrodCity_UndergroundEntrance",
       "id": "MAP_GOLDENROD_CITY_UNDERGROUND_ENTRANCE",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 25,
@@ -2558,8 +2374,6 @@
     {
       "name": "GoldenrodCity_UndergroundStorage",
       "id": "MAP_GOLDENROD_CITY_UNDERGROUND_STORAGE",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 26,
@@ -2571,8 +2385,6 @@
     {
       "name": "GoldenrodCity_UndergroundSwitches",
       "id": "MAP_GOLDENROD_CITY_UNDERGROUND_SWITCHES",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 27,
@@ -2584,8 +2396,6 @@
     {
       "name": "GoldenrodCity_UndergroundTunnel",
       "id": "MAP_GOLDENROD_CITY_UNDERGROUND_TUNNEL",
-      "batch": "goldenrod-park",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorGoldenrod",
       "targetGroupId": 86,
       "targetMember": 28,
@@ -2597,8 +2407,6 @@
     {
       "name": "EcruteakCity",
       "id": "MAP_ECRUTEAK_CITY",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoEcruteak",
       "targetGroupId": 87,
       "targetMember": 0,
@@ -2610,8 +2418,6 @@
     {
       "name": "Route38",
       "id": "MAP_ROUTE38",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoEcruteak",
       "targetGroupId": 87,
       "targetMember": 1,
@@ -2623,8 +2429,6 @@
     {
       "name": "Route39",
       "id": "MAP_ROUTE39",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoEcruteak",
       "targetGroupId": 87,
       "targetMember": 2,
@@ -2636,8 +2440,6 @@
     {
       "name": "BellchimeTrail",
       "id": "MAP_BELLCHIME_TRAIL",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoEcruteak",
       "targetGroupId": 87,
       "targetMember": 3,
@@ -2649,8 +2451,6 @@
     {
       "name": "Gate_EcruteakCity_Route38",
       "id": "MAP_GATE_ECRUTEAK_CITY_ROUTE38",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoEcruteak",
       "targetGroupId": 87,
       "targetMember": 4,
@@ -2662,8 +2462,6 @@
     {
       "name": "EcruteakCity_Gym",
       "id": "MAP_ECRUTEAK_CITY_GYM",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 0,
@@ -2675,8 +2473,6 @@
     {
       "name": "EcruteakCity_House1",
       "id": "MAP_ECRUTEAK_CITY_HOUSE1",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 1,
@@ -2688,8 +2484,6 @@
     {
       "name": "EcruteakCity_House2",
       "id": "MAP_ECRUTEAK_CITY_HOUSE2",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 2,
@@ -2701,8 +2495,6 @@
     {
       "name": "EcruteakCity_Mart",
       "id": "MAP_ECRUTEAK_CITY_MART",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 3,
@@ -2714,8 +2506,6 @@
     {
       "name": "EcruteakCity_PokemonCenter",
       "id": "MAP_ECRUTEAK_CITY_POKEMON_CENTER",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 4,
@@ -2727,8 +2517,6 @@
     {
       "name": "EcruteakCity_SageOffice1",
       "id": "MAP_ECRUTEAK_CITY_SAGE_OFFICE1",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 5,
@@ -2740,8 +2528,6 @@
     {
       "name": "EcruteakCity_SageOffice2",
       "id": "MAP_ECRUTEAK_CITY_SAGE_OFFICE2",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 6,
@@ -2753,8 +2539,6 @@
     {
       "name": "EcruteakCity_Theater",
       "id": "MAP_ECRUTEAK_CITY_THEATER",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 7,
@@ -2766,8 +2550,6 @@
     {
       "name": "Route39_Barn",
       "id": "MAP_ROUTE39_BARN",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 8,
@@ -2779,8 +2561,6 @@
     {
       "name": "Route39_FarmHouse",
       "id": "MAP_ROUTE39_FARM_HOUSE",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 9,
@@ -2792,8 +2572,6 @@
     {
       "name": "BurnedTower_1F",
       "id": "MAP_BURNED_TOWER_1F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 10,
@@ -2805,8 +2583,6 @@
     {
       "name": "BurnedTower_B1F",
       "id": "MAP_BURNED_TOWER_B1F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 11,
@@ -2818,8 +2594,6 @@
     {
       "name": "TinTower_1F",
       "id": "MAP_TIN_TOWER_1F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 12,
@@ -2831,8 +2605,6 @@
     {
       "name": "TinTower_2F",
       "id": "MAP_TIN_TOWER_2F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 13,
@@ -2844,8 +2616,6 @@
     {
       "name": "TinTower_3F",
       "id": "MAP_TIN_TOWER_3F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 14,
@@ -2857,8 +2627,6 @@
     {
       "name": "TinTower_4F",
       "id": "MAP_TIN_TOWER_4F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 15,
@@ -2870,8 +2638,6 @@
     {
       "name": "TinTower_5F",
       "id": "MAP_TIN_TOWER_5F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 16,
@@ -2883,8 +2649,6 @@
     {
       "name": "TinTower_6F",
       "id": "MAP_TIN_TOWER_6F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 17,
@@ -2896,8 +2660,6 @@
     {
       "name": "TinTower_7F",
       "id": "MAP_TIN_TOWER_7F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 18,
@@ -2909,8 +2671,6 @@
     {
       "name": "TinTower_8F",
       "id": "MAP_TIN_TOWER_8F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 19,
@@ -2922,8 +2682,6 @@
     {
       "name": "TinTower_9F",
       "id": "MAP_TIN_TOWER_9F",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 20,
@@ -2935,8 +2693,6 @@
     {
       "name": "TinTower_RoofDay",
       "id": "MAP_TIN_TOWER_ROOF_DAY",
-      "batch": "ecruteak-towers",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorEcruteak",
       "targetGroupId": 88,
       "targetMember": 21,
@@ -2948,8 +2704,6 @@
     {
       "name": "OlivineCity",
       "id": "MAP_OLIVINE_CITY",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoOlivine",
       "targetGroupId": 89,
       "targetMember": 0,
@@ -2961,8 +2715,6 @@
     {
       "name": "Route40",
       "id": "MAP_ROUTE40",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoOlivine",
       "targetGroupId": 89,
       "targetMember": 1,
@@ -2974,8 +2726,6 @@
     {
       "name": "Route41",
       "id": "MAP_ROUTE41",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoOlivine",
       "targetGroupId": 89,
       "targetMember": 2,
@@ -2987,8 +2737,6 @@
     {
       "name": "Gate_Route40_TrainerHill_Courtyard",
       "id": "MAP_GATE_ROUTE40_TRAINER_HILL_COURTYARD",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoOlivine",
       "targetGroupId": 89,
       "targetMember": 3,
@@ -3000,8 +2748,6 @@
     {
       "name": "OlivineCity_Cafe",
       "id": "MAP_OLIVINE_CITY_CAFE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 0,
@@ -3013,8 +2759,6 @@
     {
       "name": "OlivineCity_Gym",
       "id": "MAP_OLIVINE_CITY_GYM",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 1,
@@ -3026,8 +2770,6 @@
     {
       "name": "OlivineCity_House1",
       "id": "MAP_OLIVINE_CITY_HOUSE1",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 2,
@@ -3039,8 +2781,6 @@
     {
       "name": "OlivineCity_House2",
       "id": "MAP_OLIVINE_CITY_HOUSE2",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 3,
@@ -3052,8 +2792,6 @@
     {
       "name": "OlivineCity_House3",
       "id": "MAP_OLIVINE_CITY_HOUSE3",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 4,
@@ -3065,8 +2803,6 @@
     {
       "name": "OlivineCity_Lighthouse",
       "id": "MAP_OLIVINE_CITY_LIGHTHOUSE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 5,
@@ -3078,8 +2814,6 @@
     {
       "name": "OlivineCity_Mart",
       "id": "MAP_OLIVINE_CITY_MART",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 6,
@@ -3091,8 +2825,6 @@
     {
       "name": "OlivineCity_PokemonCenter",
       "id": "MAP_OLIVINE_CITY_POKEMON_CENTER",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 7,
@@ -3104,8 +2836,6 @@
     {
       "name": "OlivineCity_PortInside",
       "id": "MAP_OLIVINE_CITY_PORT_INSIDE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 8,
@@ -3117,8 +2847,6 @@
     {
       "name": "OlivineCity_PortOutside",
       "id": "MAP_OLIVINE_CITY_PORT_OUTSIDE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 9,
@@ -3130,8 +2858,6 @@
     {
       "name": "WhirlIslands_1F",
       "id": "MAP_WHIRL_ISLANDS_1F",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 10,
@@ -3143,8 +2869,6 @@
     {
       "name": "WhirlIslands_B1F",
       "id": "MAP_WHIRL_ISLANDS_B1F",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 11,
@@ -3156,8 +2880,6 @@
     {
       "name": "WhirlIslands_B1F_Inner",
       "id": "MAP_WHIRL_ISLANDS_B1F_INNER",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 12,
@@ -3169,8 +2891,6 @@
     {
       "name": "WhirlIslands_B2F",
       "id": "MAP_WHIRL_ISLANDS_B2F",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 13,
@@ -3182,8 +2902,6 @@
     {
       "name": "WhirlIslands_B3F",
       "id": "MAP_WHIRL_ISLANDS_B3F",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 14,
@@ -3195,8 +2913,6 @@
     {
       "name": "WhirlIslands_Descent",
       "id": "MAP_WHIRL_ISLANDS_DESCENT",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 15,
@@ -3208,8 +2924,6 @@
     {
       "name": "WhirlIslands_LugiaChamber",
       "id": "MAP_WHIRL_ISLANDS_LUGIA_CHAMBER",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorOlivine",
       "targetGroupId": 90,
       "targetMember": 16,
@@ -3221,8 +2935,6 @@
     {
       "name": "CianwoodCity",
       "id": "MAP_CIANWOOD_CITY",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoCianwood",
       "targetGroupId": 91,
       "targetMember": 0,
@@ -3234,8 +2946,6 @@
     {
       "name": "Route47",
       "id": "MAP_ROUTE47",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoCianwood",
       "targetGroupId": 91,
       "targetMember": 1,
@@ -3247,8 +2957,6 @@
     {
       "name": "Route48",
       "id": "MAP_ROUTE48",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoCianwood",
       "targetGroupId": 91,
       "targetMember": 2,
@@ -3260,8 +2968,6 @@
     {
       "name": "CianwoodGym",
       "id": "MAP_CIANWOOD_GYM",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 0,
@@ -3273,8 +2979,6 @@
     {
       "name": "CianwoodHouse1",
       "id": "MAP_CIANWOOD_HOUSE1",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 1,
@@ -3286,8 +2990,6 @@
     {
       "name": "CianwoodHouse2",
       "id": "MAP_CIANWOOD_HOUSE2",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 2,
@@ -3299,8 +3001,6 @@
     {
       "name": "CianwoodHouse3",
       "id": "MAP_CIANWOOD_HOUSE3",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 3,
@@ -3312,8 +3012,6 @@
     {
       "name": "CianwoodPokecenter",
       "id": "MAP_CIANWOOD_POKECENTER",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 4,
@@ -3325,8 +3023,6 @@
     {
       "name": "CianwoodShop",
       "id": "MAP_CIANWOOD_SHOP",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 5,
@@ -3338,8 +3034,6 @@
     {
       "name": "CliffEdgeCave",
       "id": "MAP_CLIFF_EDGE_CAVE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 6,
@@ -3351,8 +3045,6 @@
     {
       "name": "CliffEdgeGate",
       "id": "MAP_CLIFF_EDGE_GATE",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 7,
@@ -3364,8 +3056,6 @@
     {
       "name": "EmbeddedTower",
       "id": "MAP_EMBEDDED_TOWER",
-      "batch": "olivine-cianwood-whirl",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorCianwood",
       "targetGroupId": 92,
       "targetMember": 8,
@@ -3377,8 +3067,6 @@
     {
       "name": "Mahoganytown",
       "id": "MAP_MAHOGANYTOWN",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 0,
@@ -3390,8 +3078,6 @@
     {
       "name": "Route42",
       "id": "MAP_ROUTE42",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 1,
@@ -3403,8 +3089,6 @@
     {
       "name": "Route43",
       "id": "MAP_ROUTE43",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 2,
@@ -3416,8 +3100,6 @@
     {
       "name": "Route44",
       "id": "MAP_ROUTE44",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 3,
@@ -3429,8 +3111,6 @@
     {
       "name": "LakeOfRage",
       "id": "MAP_LAKE_OF_RAGE",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 4,
@@ -3442,8 +3122,6 @@
     {
       "name": "LakeOfRageLowTide",
       "id": "MAP_LAKE_OF_RAGE_LOW_TIDE",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoMahogany",
       "targetGroupId": 93,
       "targetMember": 5,
@@ -3455,8 +3133,6 @@
     {
       "name": "MahoganyTown_Gym",
       "id": "MAP_MAHOGANY_TOWN_GYM",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 0,
@@ -3468,8 +3144,6 @@
     {
       "name": "MahoganyTown_House1",
       "id": "MAP_MAHOGANY_TOWN_HOUSE1",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 1,
@@ -3481,8 +3155,6 @@
     {
       "name": "MahoganyTown_PokemonCenter",
       "id": "MAP_MAHOGANY_TOWN_POKEMON_CENTER",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 2,
@@ -3494,8 +3166,6 @@
     {
       "name": "MahoganyTown_Shop",
       "id": "MAP_MAHOGANY_TOWN_SHOP",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 3,
@@ -3507,8 +3177,6 @@
     {
       "name": "Gate_EcruteakCity_Route42",
       "id": "MAP_GATE_ECRUTEAK_CITY_ROUTE42",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 4,
@@ -3520,8 +3188,6 @@
     {
       "name": "Gate_MahoganyTown_Route43",
       "id": "MAP_GATE_MAHOGANY_TOWN_ROUTE43",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 5,
@@ -3533,8 +3199,6 @@
     {
       "name": "Gate_Route43",
       "id": "MAP_GATE_ROUTE43",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 6,
@@ -3546,8 +3210,6 @@
     {
       "name": "LakeOfRage_House1",
       "id": "MAP_LAKE_OF_RAGE_HOUSE1",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 7,
@@ -3559,8 +3221,6 @@
     {
       "name": "LakeOfRage_House2",
       "id": "MAP_LAKE_OF_RAGE_HOUSE2",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 8,
@@ -3572,8 +3232,6 @@
     {
       "name": "MtMortar_1F_North",
       "id": "MAP_MT_MORTAR_1F_NORTH",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 9,
@@ -3585,8 +3243,6 @@
     {
       "name": "MtMortar_1F_South",
       "id": "MAP_MT_MORTAR_1F_SOUTH",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 10,
@@ -3598,8 +3254,6 @@
     {
       "name": "MtMortar_2F",
       "id": "MAP_MT_MORTAR_2F",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 11,
@@ -3611,8 +3265,6 @@
     {
       "name": "MtMortar_B1F",
       "id": "MAP_MT_MORTAR_B1F",
-      "batch": "mahogany-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 12,
@@ -3624,8 +3276,6 @@
     {
       "name": "BlackthornCity",
       "id": "MAP_BLACKTHORN_CITY",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoBlackthorn",
       "targetGroupId": 95,
       "targetMember": 0,
@@ -3637,8 +3287,6 @@
     {
       "name": "Route45",
       "id": "MAP_ROUTE45",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoBlackthorn",
       "targetGroupId": 95,
       "targetMember": 1,
@@ -3650,8 +3298,6 @@
     {
       "name": "Route46",
       "id": "MAP_ROUTE46",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoBlackthorn",
       "targetGroupId": 95,
       "targetMember": 2,
@@ -3663,8 +3309,6 @@
     {
       "name": "BlackthornCity_Gym",
       "id": "MAP_BLACKTHORN_CITY_GYM",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 1,
@@ -3676,8 +3320,6 @@
     {
       "name": "BlackthornCity_House1",
       "id": "MAP_BLACKTHORN_CITY_HOUSE1",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 2,
@@ -3689,8 +3331,6 @@
     {
       "name": "BlackthornCity_House2",
       "id": "MAP_BLACKTHORN_CITY_HOUSE2",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 3,
@@ -3702,8 +3342,6 @@
     {
       "name": "BlackthornCity_House3",
       "id": "MAP_BLACKTHORN_CITY_HOUSE3",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 4,
@@ -3715,8 +3353,6 @@
     {
       "name": "BlackthornCity_Mart",
       "id": "MAP_BLACKTHORN_CITY_MART",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 5,
@@ -3728,8 +3364,6 @@
     {
       "name": "BlackthornCity_PokemonCenter",
       "id": "MAP_BLACKTHORN_CITY_POKEMON_CENTER",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 6,
@@ -3741,8 +3375,6 @@
     {
       "name": "IcePath_1F",
       "id": "MAP_ICE_PATH_1F",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 7,
@@ -3754,8 +3386,6 @@
     {
       "name": "IcePath_B1F",
       "id": "MAP_ICE_PATH_B1F",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 8,
@@ -3767,8 +3397,6 @@
     {
       "name": "IcePath_B2F",
       "id": "MAP_ICE_PATH_B2F",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 9,
@@ -3780,8 +3408,6 @@
     {
       "name": "IcePath_B3F",
       "id": "MAP_ICE_PATH_B3F",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 10,
@@ -3793,8 +3419,6 @@
     {
       "name": "IcePath_B4F",
       "id": "MAP_ICE_PATH_B4F",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 11,
@@ -3806,8 +3430,6 @@
     {
       "name": "DragonsDen_Cavern",
       "id": "MAP_DRAGONS_DEN_CAVERN",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 12,
@@ -3819,8 +3441,6 @@
     {
       "name": "DragonsDen_Entrance",
       "id": "MAP_DRAGONS_DEN_ENTRANCE",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 13,
@@ -3832,8 +3452,6 @@
     {
       "name": "DragonsDen_Shrine",
       "id": "MAP_DRAGONS_DEN_SHRINE",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 14,
@@ -3845,8 +3463,6 @@
     {
       "name": "DarkCave_NorthSide",
       "id": "MAP_DARK_CAVE_NORTH_SIDE",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 15,
@@ -3858,8 +3474,6 @@
     {
       "name": "DarkCave_SouthSide",
       "id": "MAP_DARK_CAVE_SOUTH_SIDE",
-      "batch": "blackthorn-ice-dark-den",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorBlackthorn",
       "targetGroupId": 78,
       "targetMember": 16,
@@ -3871,8 +3485,6 @@
     {
       "name": "SafariZoneGate",
       "id": "MAP_SAFARI_ZONE_GATE",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 0,
@@ -3884,8 +3496,6 @@
     {
       "name": "SafariZoneGate_PokemonCenter",
       "id": "MAP_SAFARI_ZONE_GATE_POKEMON_CENTER",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 1,
@@ -3897,8 +3507,6 @@
     {
       "name": "SafariZoneGate_SafariZoneEntrance",
       "id": "MAP_SAFARI_ZONE_GATE_SAFARI_ZONE_ENTRANCE",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 2,
@@ -3910,8 +3518,6 @@
     {
       "name": "SafariZoneIndoor",
       "id": "MAP_SAFARI_ZONE_INDOOR",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 3,
@@ -3923,8 +3529,6 @@
     {
       "name": "SafariZone_Enterance",
       "id": "MAP_SAFARI_ZONE_ENTERANCE",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 4,
@@ -3936,8 +3540,6 @@
     {
       "name": "SafariZone_Low_Left",
       "id": "MAP_SAFARI_ZONE_LOW_LEFT",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 5,
@@ -3949,8 +3551,6 @@
     {
       "name": "SafariZone_Low_Mid",
       "id": "MAP_SAFARI_ZONE_LOW_MID",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 6,
@@ -3962,8 +3562,6 @@
     {
       "name": "SafariZone_Low_Right",
       "id": "MAP_SAFARI_ZONE_LOW_RIGHT",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 7,
@@ -3975,8 +3573,6 @@
     {
       "name": "SafariZone_Top_Mid",
       "id": "MAP_SAFARI_ZONE_TOP_MID",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 8,
@@ -3988,8 +3584,6 @@
     {
       "name": "SafariZone_Top_Right",
       "id": "MAP_SAFARI_ZONE_TOP_RIGHT",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 9,
@@ -4001,8 +3595,6 @@
     {
       "name": "SafariZone1",
       "id": "MAP_SAFARI_ZONE1",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 10,
@@ -4014,8 +3606,6 @@
     {
       "name": "SafariZone2",
       "id": "MAP_SAFARI_ZONE2",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 11,
@@ -4027,8 +3617,6 @@
     {
       "name": "SafariZone3",
       "id": "MAP_SAFARI_ZONE3",
-      "batch": "safari",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_SafariZoneJohto",
       "targetGroupId": 97,
       "targetMember": 12,
@@ -4040,8 +3628,6 @@
     {
       "name": "MtSilver_Outside",
       "id": "MAP_MT_SILVER_OUTSIDE",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 2,
@@ -4053,8 +3639,6 @@
     {
       "name": "MtSilver_1F_WaterfallRoom",
       "id": "MAP_MT_SILVER_1F_WATERFALL_ROOM",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 3,
@@ -4066,8 +3650,6 @@
     {
       "name": "MtSilver_1F_MoltresRoom",
       "id": "MAP_MT_SILVER_1F_MOLTRES_ROOM",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 4,
@@ -4079,8 +3661,6 @@
     {
       "name": "MtSilver_1F_ItemRoom",
       "id": "MAP_MT_SILVER_1F_ITEM_ROOM",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 5,
@@ -4092,8 +3672,6 @@
     {
       "name": "MtSilver_2F",
       "id": "MAP_MT_SILVER_2F",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 6,
@@ -4105,8 +3683,6 @@
     {
       "name": "MtSilver_3F",
       "id": "MAP_MT_SILVER_3F",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 7,
@@ -4118,8 +3694,6 @@
     {
       "name": "MtSilver_MountainSide",
       "id": "MAP_MT_SILVER_MOUNTAIN_SIDE",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 8,
@@ -4131,8 +3705,6 @@
     {
       "name": "MtSilver_Snow",
       "id": "MAP_MT_SILVER_SNOW",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 9,
@@ -4144,8 +3716,6 @@
     {
       "name": "MtSilver_SummitDay",
       "id": "MAP_MT_SILVER_SUMMIT_DAY",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 10,
@@ -4157,8 +3727,6 @@
     {
       "name": "MtSilver_SummitNight",
       "id": "MAP_MT_SILVER_SUMMIT_NIGHT",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 11,
@@ -4170,8 +3738,6 @@
     {
       "name": "MtSilver_PokemonCenter",
       "id": "MAP_MT_SILVER_POKEMON_CENTER",
-      "batch": "mt-silver",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_MtSilver",
       "targetGroupId": 79,
       "targetMember": 12,
@@ -4183,8 +3749,6 @@
     {
       "name": "SSAqua_1F",
       "id": "MAP_SSAQUA_1F",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 0,
@@ -4196,8 +3760,6 @@
     {
       "name": "SSAqua_B1F",
       "id": "MAP_SSAQUA_B1F",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 1,
@@ -4209,8 +3771,6 @@
     {
       "name": "SSAqua_CaptainsRoom",
       "id": "MAP_SSAQUA_CAPTAINS_ROOM",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 2,
@@ -4222,8 +3782,6 @@
     {
       "name": "SSAqua_PlayersRoom",
       "id": "MAP_SSAQUA_PLAYERS_ROOM",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 3,
@@ -4235,8 +3793,6 @@
     {
       "name": "SSAqua_RoomNW",
       "id": "MAP_SSAQUA_ROOM_NW",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 4,
@@ -4248,8 +3804,6 @@
     {
       "name": "SSAqua_RoomNE",
       "id": "MAP_SSAQUA_ROOM_NE",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 5,
@@ -4261,8 +3815,6 @@
     {
       "name": "SSAqua_RoomNNE",
       "id": "MAP_SSAQUA_ROOM_NNE",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 6,
@@ -4274,8 +3826,6 @@
     {
       "name": "SSAqua_RoomSSW",
       "id": "MAP_SSAQUA_ROOM_SSW",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 7,
@@ -4287,8 +3837,6 @@
     {
       "name": "SSAqua_RoomSSE",
       "id": "MAP_SSAQUA_ROOM_SSE",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 8,
@@ -4300,8 +3848,6 @@
     {
       "name": "SSAqua_RoomSE",
       "id": "MAP_SSAQUA_ROOM_SE",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 9,
@@ -4313,8 +3859,6 @@
     {
       "name": "SSAqua_RoomSW",
       "id": "MAP_SSAQUA_ROOM_SW",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 10,
@@ -4326,8 +3870,6 @@
     {
       "name": "VermilionCity_PortInside",
       "id": "MAP_VERMILION_CITY_PORT_INSIDE",
-      "batch": "aqua-vermilion",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorSSAqua",
       "targetGroupId": 96,
       "targetMember": 11,
@@ -4339,8 +3881,6 @@
     {
       "name": "Route26",
       "id": "MAP_ROUTE26",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 0,
@@ -4352,8 +3892,6 @@
     {
       "name": "Route26North",
       "id": "MAP_ROUTE26NORTH",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 1,
@@ -4365,8 +3903,6 @@
     {
       "name": "Route26_House1",
       "id": "MAP_ROUTE26_HOUSE1",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 2,
@@ -4378,8 +3914,6 @@
     {
       "name": "Route26_House2",
       "id": "MAP_ROUTE26_HOUSE2",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 3,
@@ -4391,8 +3925,6 @@
     {
       "name": "Route27",
       "id": "MAP_ROUTE27",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 4,
@@ -4404,8 +3936,6 @@
     {
       "name": "Route27_House",
       "id": "MAP_ROUTE27_HOUSE",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 5,
@@ -4417,8 +3947,6 @@
     {
       "name": "Route30_House",
       "id": "MAP_ROUTE30_HOUSE",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 6,
@@ -4430,8 +3958,6 @@
     {
       "name": "Route30_MrPokemonsHouse",
       "id": "MAP_ROUTE30_MR_POKEMONS_HOUSE",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 7,
@@ -4443,8 +3969,6 @@
     {
       "name": "TohjoFalls_Cavern",
       "id": "MAP_TOHJO_FALLS_CAVERN",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 8,
@@ -4456,8 +3980,6 @@
     {
       "name": "TohjoFalls_GiovanniRoom",
       "id": "MAP_TOHJO_FALLS_GIOVANNI_ROOM",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 9,
@@ -4469,8 +3991,6 @@
     {
       "name": "ReceptionGate",
       "id": "MAP_RECEPTION_GATE",
-      "batch": "tohjo-league-hns",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoFinal",
       "targetGroupId": 98,
       "targetMember": 10,
@@ -4482,8 +4002,6 @@
     {
       "name": "JohtoIndigoPlateau",
       "id": "MAP_JOHTO_INDIGO_PLATEAU",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 0,
@@ -4495,8 +4013,6 @@
     {
       "name": "JohtoIndigoPlateau_PokemonCenter",
       "id": "MAP_JOHTO_INDIGO_PLATEAU_POKEMON_CENTER",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 1,
@@ -4508,8 +4024,6 @@
     {
       "name": "JohtoPokemonLeague_BrunosRoom",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_BRUNOS_ROOM",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 2,
@@ -4521,8 +4035,6 @@
     {
       "name": "JohtoPokemonLeague_ChampionsRoom",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_CHAMPIONS_ROOM",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 3,
@@ -4534,8 +4046,6 @@
     {
       "name": "JohtoPokemonLeague_HallOfFame",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_HALL_OF_FAME",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 4,
@@ -4547,8 +4057,6 @@
     {
       "name": "JohtoPokemonLeague_KarensRoom",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_KARENS_ROOM",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 5,
@@ -4560,8 +4068,6 @@
     {
       "name": "JohtoPokemonLeague_KogasRoom",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_KOGAS_ROOM",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 6,
@@ -4573,8 +4079,6 @@
     {
       "name": "JohtoPokemonLeague_WillsRoom",
       "id": "MAP_JOHTO_POKEMON_LEAGUE_WILLS_ROOM",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 7,
@@ -4586,8 +4090,6 @@
     {
       "name": "JohtoVictoryRoad_1F",
       "id": "MAP_JOHTO_VICTORY_ROAD_1F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 8,
@@ -4599,8 +4101,6 @@
     {
       "name": "JohtoVictoryRoad_B1F",
       "id": "MAP_JOHTO_VICTORY_ROAD_B1F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 9,
@@ -4612,8 +4112,6 @@
     {
       "name": "JohtoVictoryRoad_B2F",
       "id": "MAP_JOHTO_VICTORY_ROAD_B2F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_JohtoLeague",
       "targetGroupId": 99,
       "targetMember": 10,
@@ -4625,8 +4123,6 @@
     {
       "name": "MahoganyHideout_B1F",
       "id": "MAP_MAHOGANY_HIDEOUT_B1F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 13,
@@ -4638,8 +4134,6 @@
     {
       "name": "MahoganyHideout_B2F",
       "id": "MAP_MAHOGANY_HIDEOUT_B2F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 14,
@@ -4651,8 +4145,6 @@
     {
       "name": "MahoganyHideout_B3F",
       "id": "MAP_MAHOGANY_HIDEOUT_B3F",
-      "batch": "pkmn-world-fallback",
-      "materialization": "residency",
       "targetGroup": "gMapGroup_IndoorMahogany",
       "targetGroupId": 94,
       "targetMember": 15,

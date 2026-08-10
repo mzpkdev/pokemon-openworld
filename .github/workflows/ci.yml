@@ -44,9 +44,94 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
 
       - name: Lint Python
         run: make lint-check
+
+      - name: Validate append-only persistent allocations
+        env:
+          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: >-
+          python3 -m tools.persistence.ledger validate
+          --published-baseline-ref "$PERSISTENT_BASELINE_REF"
+          --require-published-baseline
+          --allow-published-baseline-bootstrap
+
+  donor-contracts:
+    name: Donor Contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Checkout HnS content authority
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: PokemonHnS-Development/pokemonHnS
+          ref: 751823abaf677020bcd72c45fe3e7cb2b8a576e4
+          path: .references/pokemonHnS
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Checkout PKMN-World mechanical donor
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: evilchinesefood/PKMN-World
+          ref: d40affe26e58a20f445daad84af5e45be812e69f
+          path: .references/PKMN-World
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Authenticate donors and run contracts
+        shell: bash
+        env:
+          CONTENT_PORT_REQUIRE_DONORS: "1"
+          CONTENT_PORT_DONOR_ROOT: .references
+        run: |
+          set -o pipefail
+          mkdir -p build/content-port
+          status=0
+          make content-port-transaction-check || status=$?
+          if (( status == 0 )); then
+            PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+              -s tools/content_port/tests -p 'test_*.py' -q \
+              2>&1 | tee build/content-port/donor-contract.log || status=$?
+          fi
+          if (( status == 0 )) && grep -Eq 'skipped=[1-9][0-9]*' \
+            build/content-port/donor-contract.log; then
+            printf '%s\n' 'Donor Contracts requires zero skipped tests.' \
+              | tee -a build/content-port/donor-contract.log
+            status=1
+          fi
+          if (( status == 0 )); then
+            python3 -m tools.content_port check --port johto \
+              --donor-root .references \
+              --write-report build/content-port/donor-contract.json || status=$?
+          fi
+          if (( status != 0 )) && [[ ! -f build/content-port/donor-contract.json ]]; then
+            printf '%s\n' '{"schemaVersion":1,"status":"failed"}' \
+              > build/content-port/donor-contract.json
+          fi
+          exit "$status"
+
+      - name: Upload donor-contract failure evidence
+        if: failure()
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: donor-contract-failure-evidence
+          path: |
+            build/content-port/donor-contract.json
+            build/content-port/donor-contract.log
+          if-no-files-found: error
+          retention-days: 3
 
   test:
     name: Test
@@ -227,9 +312,8 @@ jobs:
           mkdir -p build/integrity
           python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py' \
             2>&1 | tee build/integrity/generator-schema.log
-          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-            -s tools/johto_import/tests -p 'test_*.py' -q \
-            2>&1 | tee build/integrity/johto-import.log
+          make content-port-test \
+            2>&1 | tee build/integrity/content-port.log
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log

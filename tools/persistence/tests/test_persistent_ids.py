@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+import re
 import tempfile
 import subprocess
 import unittest
@@ -15,10 +16,37 @@ from tools.persistence.ledger import (
     validate_frozen_bindings,
     validate_ledger,
     validate_location_codecs,
+    validate_published_allocation_history,
+    validate_published_allocations,
 )
 
 
 ROOT = Path(__file__).parents[3]
+
+
+def _numeric_macro_match(text: str, symbol: str) -> re.Match[str]:
+    pattern = re.compile(
+        rf"(?m)^[ \t]*#define[ \t]+{re.escape(symbol)}[ \t]+"
+        r"(?P<value>0[xX][0-9A-Fa-f]+|[0-9]+)[ \t]*(?://[^\r\n]*)?$"
+    )
+    matches = list(pattern.finditer(text))
+    if len(matches) != 1:
+        raise AssertionError(f"expected exactly one numeric macro for {symbol}")
+    return matches[0]
+
+
+def _numeric_macro_value(text: str, symbol: str) -> int:
+    return int(_numeric_macro_match(text, symbol).group("value"), 0)
+
+
+def _replace_numeric_macro(
+    text: str, symbol: str, *, expected: int, replacement: int
+) -> str:
+    match = _numeric_macro_match(text, symbol)
+    if int(match.group("value"), 0) != expected:
+        raise AssertionError(f"expected {symbol} to equal {expected}")
+    start, end = match.span("value")
+    return f"{text[:start]}{replacement}{text[end:]}"
 
 
 class PersistentIdTests(unittest.TestCase):
@@ -32,6 +60,9 @@ class PersistentIdTests(unittest.TestCase):
         )
         cls.ledger = json.loads(
             (ROOT / "src/data/persistence/persistent_ids.json").read_text()
+        )
+        cls.published_allocations = json.loads(
+            (ROOT / "tools/persistence/published_allocations.json").read_text()
         )
 
     def mutated(self):
@@ -219,6 +250,139 @@ class PersistentIdTests(unittest.TestCase):
                 validate_frozen_bindings(entries, self.contract)
             item["value"] = old
 
+    def test_every_allocated_binding_is_bound_to_the_published_baseline(self):
+        validate_published_allocations(
+            self.ledger["entries"], self.published_allocations
+        )
+        entries = self.ledger["entries"]
+        for item in entries:
+            if item["state"]["kind"] != "allocated-binding":
+                continue
+            old = item["value"]
+            item["value"] = old + 1
+            with (
+                self.subTest(domain=item["domain"], symbol=item["symbol"]),
+                self.assertRaisesRegex(
+                    ContractError, "published allocations moved/deleted/unreviewed"
+                ),
+            ):
+                validate_published_allocations(entries, self.published_allocations)
+            item["value"] = old
+
+    def test_coordinated_berry_source_and_ledger_renumber_is_rejected(self):
+        ledger = self.mutated()
+        sources = copy.deepcopy(self.sources)
+        berry_symbol = "BERRY_TREE_ROUTE_29_ORAN_1"
+        berry_entry = next(
+            item for item in ledger["entries"] if item["symbol"] == berry_symbol
+        )
+        berry_source = next(
+            item
+            for item in sources["explicitAllocations"]
+            if item["symbol"] == berry_symbol
+        )
+        berry_entry["value"] = 91
+        berry_source["value"] = 91
+        header = _replace_numeric_macro(
+            (ROOT / "include/constants/berry.h").read_text(),
+            berry_symbol,
+            expected=90,
+            replacement=91,
+        )
+        self.assertEqual(_numeric_macro_value(header, berry_symbol), 91)
+        self.assertEqual(berry_entry["value"], berry_source["value"])
+
+        with self.assertRaisesRegex(
+            ContractError, "published allocations moved/deleted/unreviewed"
+        ):
+            validate_published_allocations(
+                ledger["entries"], self.published_allocations
+            )
+
+    def test_changing_current_policy_cannot_rewrite_published_history(self):
+        current = copy.deepcopy(self.published_allocations)
+        ledger = self.mutated()
+        sources = copy.deepcopy(self.sources)
+        berry_symbol = "BERRY_TREE_ROUTE_29_ORAN_1"
+        berry = next(
+            item for item in current["entries"] if item["symbol"] == berry_symbol
+        )
+        berry["value"] = 91
+        next(item for item in ledger["entries"] if item["symbol"] == berry_symbol)[
+            "value"
+        ] = 91
+        next(
+            item
+            for item in sources["explicitAllocations"]
+            if item["symbol"] == berry_symbol
+        )["value"] = 91
+        header = _replace_numeric_macro(
+            (ROOT / "include/constants/berry.h").read_text(),
+            berry_symbol,
+            expected=90,
+            replacement=91,
+        )
+        self.assertEqual(_numeric_macro_value(header, berry_symbol), 91)
+        validate_published_allocations(ledger["entries"], current)
+        with self.assertRaisesRegex(
+            ContractError, r"entries\[1\]: published allocation history changed"
+        ):
+            validate_published_allocation_history(current, self.published_allocations)
+
+    def test_berry_macro_mutation_is_independent_of_rendered_spacing(self):
+        symbol = "BERRY_TREE_ROUTE_29_ORAN_1"
+        installed = (ROOT / "include/constants/berry.h").read_text()
+        compiler_rendered = f"#define {symbol:<40} 90\n"
+        for label, header in (
+            ("installed", installed),
+            ("compiler-rendered", compiler_rendered),
+        ):
+            with self.subTest(header=label):
+                self.assertEqual(_numeric_macro_value(header, symbol), 90)
+                mutated = _replace_numeric_macro(
+                    header, symbol, expected=90, replacement=91
+                )
+                self.assertEqual(_numeric_macro_value(mutated, symbol), 91)
+
+    def test_published_allocation_history_is_append_only(self):
+        previous = self.published_allocations
+        current = copy.deepcopy(previous)
+        allocation = {
+            "domain": "berryTrees",
+            "source": "berry-trees",
+            "storage": "u8-id",
+            "symbol": "BERRY_TREE_FUTURE_REVIEWED",
+            "value": 91,
+        }
+        current["entries"].append(allocation)
+        validate_published_allocation_history(current, previous)
+
+        ledger_entries = copy.deepcopy(self.ledger["entries"])
+        ledger_entries.append(
+            {
+                "alias": None,
+                **allocation,
+                "state": {"kind": "allocated-binding"},
+            }
+        )
+        validate_published_allocations(ledger_entries, current)
+
+        truncated = copy.deepcopy(previous)
+        truncated["entries"].pop()
+        with self.assertRaisesRegex(ContractError, "history was truncated"):
+            validate_published_allocation_history(truncated, previous)
+
+        reused = copy.deepcopy(previous)
+        reused["entries"].append(
+            {
+                **allocation,
+                "symbol": "BERRY_TREE_REUSED_FORBIDDEN",
+                "value": 90,
+            }
+        )
+        with self.assertRaisesRegex(ContractError, "reuses published allocation"):
+            validate_published_allocation_history(reused, previous)
+
     def test_every_domain_rejects_an_unallocated_live_consumer(self):
         entries = self.ledger["entries"]
         for schema in self.sources["consumerSchemas"]:
@@ -295,21 +459,39 @@ class PersistentIdTests(unittest.TestCase):
         first, second = ledger["entries"][:2]
         second["domain"], second["symbol"] = first["domain"], first["symbol"]
         with self.assertRaisesRegex(ContractError, "duplicate symbol"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_duplicate_value_without_alias_is_rejected(self):
         ledger = self.mutated()
         group = next(item for item in ledger["entries"] if item["alias"] is not None)
         group["alias"] = None
         with self.assertRaisesRegex(ContractError, "canonical owner"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_unauthorized_alias_is_rejected(self):
         ledger = self.mutated()
         item = next(item for item in ledger["entries"] if item["alias"] is not None)
         item["alias"]["owner"] = "contract-vars"
         with self.assertRaisesRegex(ContractError, "unauthorized alias"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_deleted_published_binding_is_rejected(self):
         ledger = self.mutated()
@@ -320,27 +502,51 @@ class PersistentIdTests(unittest.TestCase):
         )
         ledger["entries"].pop(index)
         with self.assertRaises(ContractError):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_sentinel_collision_is_rejected(self):
         ledger = self.mutated()
         item = next(item for item in ledger["entries"] if item["storage"] == "flag-id")
         item["value"] = 0xFFFF
         with self.assertRaisesRegex(ContractError, "sentinel collision"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_storage_overflow_is_rejected(self):
         ledger = self.mutated()
         item = next(item for item in ledger["entries"] if item["storage"] == "u8-id")
         item["value"] = 256
         with self.assertRaisesRegex(ContractError, "width/storage overflow"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_unallocated_source_reference_is_rejected(self):
         ledger = self.mutated()
         ledger["entries"][0]["source"] = "missing-source"
         with self.assertRaisesRegex(ContractError, "unallocated source reference"):
-            validate_ledger(ledger, self.contract, self.sources, ROOT)
+            validate_ledger(
+                ledger,
+                self.contract,
+                self.sources,
+                self.published_allocations,
+                ROOT,
+            )
 
     def test_trainer_table_preserves_every_old_defeat_bit(self):
         with tempfile.TemporaryDirectory() as tmp:

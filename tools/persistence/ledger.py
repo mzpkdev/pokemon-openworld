@@ -12,6 +12,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 from typing import Any
@@ -22,6 +23,7 @@ SCHEMA_VERSION = 1
 LEDGER_PATH = Path("src/data/persistence/persistent_ids.json")
 SOURCES_PATH = Path("tools/persistence/persistent_sources.json")
 CONTRACT_PATH = Path("tools/integrity/save_contract.json")
+PUBLISHED_ALLOCATIONS_PATH = Path("tools/persistence/published_allocations.json")
 
 
 def _source_index(sources: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -202,10 +204,239 @@ def _read_location_codecs(path: Path) -> dict[str, list[dict[str, Any]]]:
     return {"met": met, "saved": saved}
 
 
+def _published_allocation_entries(
+    publication: dict[str, Any], pointer: str = "$"
+) -> list[dict[str, Any]]:
+    if not isinstance(publication, dict) or set(publication) != {
+        "baselineCommit",
+        "entries",
+        "schemaVersion",
+    }:
+        raise ContractError(f"{pointer}: invalid published allocation keys")
+    if publication["schemaVersion"] != 1:
+        raise ContractError(f"{pointer}.schemaVersion: unsupported")
+    baseline = publication["baselineCommit"]
+    if not isinstance(baseline, str) or not re.fullmatch(r"[0-9a-f]{40}", baseline):
+        raise ContractError(f"{pointer}.baselineCommit: expected full commit SHA")
+    entries = publication["entries"]
+    if not isinstance(entries, list) or not entries:
+        raise ContractError(f"{pointer}.entries: expected a nonempty list")
+    required = {"domain", "source", "storage", "symbol", "value"}
+    seen: set[tuple[str, str]] = set()
+    for index, item in enumerate(entries):
+        path = f"{pointer}.entries[{index}]"
+        if not isinstance(item, dict) or set(item) != required:
+            raise ContractError(f"{path}: invalid published allocation fields")
+        for field in ("domain", "source", "storage"):
+            value = item[field]
+            if not isinstance(value, str) or not value or value.strip() != value:
+                raise ContractError(f"{path}.{field}: expected a nonempty string")
+        symbol = item["symbol"]
+        if not isinstance(symbol, str) or not re.fullmatch(
+            r"[A-Za-z_][A-Za-z0-9_]*", symbol
+        ):
+            raise ContractError(f"{path}.symbol: invalid C symbol")
+        if isinstance(item["value"], bool) or not isinstance(item["value"], int):
+            raise ContractError(f"{path}.value: expected integer")
+        identity = (item["domain"], symbol)
+        if identity in seen:
+            raise ContractError(f"{path}: duplicate published allocation {identity}")
+        seen.add(identity)
+    return entries
+
+
+def _allocated_projection(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    fields = ("domain", "source", "storage", "symbol", "value")
+    return [
+        {field: item[field] for field in fields}
+        for item in entries
+        if item["state"]["kind"] == "allocated-binding"
+    ]
+
+
+def validate_published_allocations(
+    entries: list[dict[str, Any]], publication: dict[str, Any]
+) -> None:
+    """Bind every durable allocation to the checked publication baseline."""
+    published_entries = _published_allocation_entries(publication)
+    published = {(item["domain"], item["symbol"]): item for item in published_entries}
+    actual_entries = _allocated_projection(entries)
+    actual = {(item["domain"], item["symbol"]): item for item in actual_entries}
+    if actual != published:
+        missing = sorted(set(published) - set(actual))[:5]
+        extra = sorted(set(actual) - set(published))[:5]
+        changed = sorted(
+            identity
+            for identity in set(actual) & set(published)
+            if actual[identity] != published[identity]
+        )[:5]
+        raise ContractError(
+            "published allocations moved/deleted/unreviewed "
+            f"(missing={missing}, extra={extra}, changed={changed})"
+        )
+
+
+def validate_published_allocation_history(
+    publication: dict[str, Any], previous: dict[str, Any]
+) -> None:
+    """Require allocation publication history to grow by exact append only."""
+    current_entries = _published_allocation_entries(publication)
+    previous_entries = _published_allocation_entries(previous, "$previous")
+    if publication["baselineCommit"] != previous["baselineCommit"]:
+        raise ContractError("$.baselineCommit: published allocation baseline changed")
+    if len(current_entries) < len(previous_entries):
+        raise ContractError("$.entries: published allocation history was truncated")
+    for index, prior in enumerate(previous_entries):
+        if current_entries[index] != prior:
+            raise ContractError(
+                f"$.entries[{index}]: published allocation history changed"
+            )
+    occupied = {(item["domain"], item["value"]) for item in previous_entries}
+    for index, item in enumerate(
+        current_entries[len(previous_entries) :], len(previous_entries)
+    ):
+        slot = (item["domain"], item["value"])
+        if slot in occupied:
+            raise ContractError(
+                f"$.entries[{index}].value: reuses published allocation {slot}"
+            )
+        occupied.add(slot)
+
+
+def load_published_allocation_baseline(
+    repo: Path,
+    publication: dict[str, Any],
+    publication_path: Path,
+    *,
+    baseline_path: Path | None = None,
+    baseline_ref: str | None = None,
+    required: bool = False,
+    allow_bootstrap: bool = False,
+) -> dict[str, Any] | None:
+    _published_allocation_entries(publication)
+    if baseline_path is not None and baseline_ref is not None:
+        raise ContractError("choose one published allocation baseline path or ref")
+    if baseline_path is not None:
+        try:
+            return load_json(baseline_path)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ContractError(
+                f"published allocation baseline is unavailable: {baseline_path}"
+            ) from exc
+    if baseline_ref is None:
+        if required:
+            raise ContractError("published allocation history baseline is required")
+        return None
+    if not isinstance(baseline_ref, str) or not baseline_ref.strip():
+        raise ContractError("published allocation baseline ref is empty")
+    revision = subprocess.run(
+        ("git", "rev-parse", "--verify", f"{baseline_ref}^{{commit}}"),
+        cwd=repo,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if revision.returncode != 0:
+        raise ContractError(
+            f"published allocation baseline ref is unavailable: {baseline_ref}"
+        )
+    try:
+        relative = publication_path.resolve().relative_to(repo.resolve())
+    except ValueError as exc:
+        raise ContractError(
+            "published allocation file must be inside the repository"
+        ) from exc
+    revision_sha = revision.stdout.strip()
+    tree_entry = subprocess.run(
+        ("git", "ls-tree", "--name-only", revision_sha, "--", relative.as_posix()),
+        cwd=repo,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if tree_entry.returncode != 0:
+        raise ContractError(
+            f"cannot read published allocation baseline at {baseline_ref}"
+        )
+    baseline_exists = tree_entry.stdout.strip() == relative.as_posix()
+    if not baseline_exists and not allow_bootstrap:
+        raise ContractError(
+            f"published allocation baseline is unavailable at {baseline_ref}"
+        )
+    if not baseline_exists:
+        bootstrap = publication.get("baselineCommit")
+        for ancestor, descendant, message in (
+            (bootstrap, "HEAD", "bootstrap commit is not in current history"),
+            (
+                bootstrap,
+                revision_sha,
+                "bootstrap commit is already in baseline history",
+            ),
+        ):
+            check = subprocess.run(
+                ("git", "merge-base", "--is-ancestor", str(ancestor), descendant),
+                cwd=repo,
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            is_ancestor = check.returncode == 0
+            if descendant == "HEAD" and not is_ancestor:
+                raise ContractError(message)
+            if descendant == revision_sha and is_ancestor:
+                raise ContractError(message)
+            if check.returncode not in {0, 1}:
+                raise ContractError("cannot authenticate allocation bootstrap history")
+        bootstrap_ledger = subprocess.run(
+            ("git", "show", f"{bootstrap}:{LEDGER_PATH.as_posix()}"),
+            cwd=repo,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        if bootstrap_ledger.returncode != 0:
+            raise ContractError("allocation bootstrap commit has no persistent ledger")
+        try:
+            ledger_document = json.loads(bootstrap_ledger.stdout)
+        except json.JSONDecodeError as exc:
+            raise ContractError("allocation bootstrap ledger is invalid JSON") from exc
+        if not isinstance(ledger_document, dict) or not isinstance(
+            ledger_document.get("entries"), list
+        ):
+            raise ContractError("allocation bootstrap ledger has no entries")
+        validate_published_allocations(ledger_document["entries"], publication)
+        return None
+    result = subprocess.run(
+        ("git", "show", f"{revision_sha}:{relative.as_posix()}"),
+        cwd=repo,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise ContractError(
+            f"cannot read published allocation baseline at {baseline_ref}"
+        )
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise ContractError(
+            "published allocation history baseline is invalid JSON"
+        ) from exc
+    if not isinstance(value, dict):
+        raise ContractError("published allocation history baseline is not an object")
+    return value
+
+
 def validate_ledger(
     ledger: dict[str, Any],
     contract: dict[str, Any],
     sources: dict[str, Any],
+    published_allocations: dict[str, Any],
     repo: Path,
 ) -> None:
     if ledger.get("schemaVersion") != SCHEMA_VERSION:
@@ -219,7 +450,12 @@ def validate_ledger(
         raise ContractError("$.entries: expected a nonempty list")
     source_by_id = _source_index(sources)
     storage_by_id = _storage_index(sources)
-    allowed_domains = set(contract["publishedBindings"]) | {"checkpoints"}
+    allocated_domains = {
+        allocation["domain"] for allocation in sources.get("explicitAllocations", [])
+    }
+    allowed_domains = (
+        set(contract["publishedBindings"]) | {"checkpoints"} | allocated_domains
+    )
     seen_symbols: set[tuple[str, str]] = set()
     by_key: dict[tuple[str, str, int], list[dict[str, Any]]] = defaultdict(list)
     by_symbol: dict[tuple[str, str, str], dict[str, Any]] = {}
@@ -304,6 +540,7 @@ def validate_ledger(
                 raise ContractError(f"{item['symbol']}: unallocated alias owner")
 
     validate_frozen_bindings(entries, contract)
+    validate_published_allocations(entries, published_allocations)
 
     for source_id, source in source_by_id.items():
         if source.get("kind") == "json-symbol-list":
@@ -662,20 +899,42 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ledger", type=Path, default=LEDGER_PATH)
     parser.add_argument("--contract", type=Path, default=CONTRACT_PATH)
     parser.add_argument("--sources", type=Path, default=SOURCES_PATH)
+    parser.add_argument(
+        "--published-allocations", type=Path, default=PUBLISHED_ALLOCATIONS_PATH
+    )
+    baseline = parser.add_mutually_exclusive_group()
+    baseline.add_argument("--published-baseline", type=Path)
+    baseline.add_argument("--published-baseline-ref")
+    parser.add_argument("--require-published-baseline", action="store_true")
+    parser.add_argument("--allow-published-baseline-bootstrap", action="store_true")
     parser.add_argument("--output-root", type=Path)
     args = parser.parse_args(argv)
     try:
         repo = Path.cwd()
         contract = load_json(args.contract)
         sources = load_json(args.sources)
+        published_allocations = load_json(args.published_allocations)
+        published_baseline = load_published_allocation_baseline(
+            repo,
+            published_allocations,
+            args.published_allocations,
+            baseline_path=args.published_baseline,
+            baseline_ref=args.published_baseline_ref,
+            required=args.require_published_baseline,
+            allow_bootstrap=args.allow_published_baseline_bootstrap,
+        )
+        if published_baseline is not None:
+            validate_published_allocation_history(
+                published_allocations, published_baseline
+            )
         if args.command == "seed":
             ledger = seed_ledger(contract, sources, repo)
-            validate_ledger(ledger, contract, sources, repo)
+            validate_ledger(ledger, contract, sources, published_allocations, repo)
             write_json(args.ledger, ledger)
             print(f"PASS: seeded {len(ledger['entries'])} explicit persistent bindings")
         else:
             ledger = load_json(args.ledger)
-            validate_ledger(ledger, contract, sources, repo)
+            validate_ledger(ledger, contract, sources, published_allocations, repo)
             if args.command == "generate":
                 if args.output_root is None:
                     raise ContractError("--output-root is required for generate")

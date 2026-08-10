@@ -12,10 +12,14 @@ TOOLDIRS := $(TOOL_NAMES:%=$(TOOLS_DIR)/%)
 CHECKTOOLDIRS := $(CHECK_TOOL_NAMES:%=$(TOOLS_DIR)/%)
 
 # Tool making doesnt require a pokeemerald dependency scan.
-RULES_NO_SCAN += tools check-tools clean-tools clean-check-tools history $(TOOLDIRS) $(CHECKTOOLDIRS)
+RULES_NO_SCAN += tools tools-no-history check-tools clean-tools clean-check-tools history $(TOOLDIRS) $(CHECKTOOLDIRS)
 .PHONY: $(RULES_NO_SCAN)
 
 tools: history $(TOOLDIRS)
+
+# A Git-exported source tree has no history to validate, but it still supports
+# building the repository-owned host tools needed by normal setup.
+tools-no-history: $(TOOLDIRS)
 
 check-tools: $(CHECKTOOLDIRS)
 

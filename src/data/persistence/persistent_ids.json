@@ -3,6 +3,28 @@
   "entries": [
     {
       "alias": null,
+      "domain": "berryTrees",
+      "source": "berry-trees",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "u8-id",
+      "symbol": "BERRY_TREE_ROUTE_123_RAWST",
+      "value": 89
+    },
+    {
+      "alias": null,
+      "domain": "berryTrees",
+      "source": "berry-trees",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "u8-id",
+      "symbol": "BERRY_TREE_ROUTE_29_ORAN_1",
+      "value": 90
+    },
+    {
+      "alias": null,
       "domain": "checkpoints",
       "source": "heal-locations",
       "state": {
