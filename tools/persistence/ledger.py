@@ -505,17 +505,21 @@ def validate_ledger(
             "published-binding",
             "allocated-binding",
             "trainer-defeat-flag",
+            "trainer-defeat-variable-bit",
         }:
             raise ContractError(f"{path}.state: invalid state ownership")
-        if state.get("kind") == "trainer-defeat-flag":
-            flag = state.get("value")
-            flag_storage = storage_by_id["saveblock1.flags"]
-            if not isinstance(flag, int) or not 0 <= flag < (
-                1 << flag_storage["width"]
-            ):
-                raise ContractError(f"{path}.state.value: width/storage overflow")
-            if flag == flag_storage.get("sentinel"):
-                raise ContractError(f"{path}.state.value: sentinel collision")
+        expected_state_fields = {
+            "published-binding": {"kind"},
+            "allocated-binding": {"kind"},
+            "trainer-defeat-flag": {"kind", "value"},
+            "trainer-defeat-variable-bit": {"bit", "kind", "value"},
+        }[state["kind"]]
+        if set(state) != expected_state_fields:
+            raise ContractError(f"{path}.state: malformed trainer defeat binding")
+        if state["kind"].startswith("trainer-defeat-") and domain != "trainerIds":
+            raise ContractError(
+                f"{path}.state: trainer defeat binding outside trainerIds"
+            )
         by_key[(domain, item["storage"], value)].append(item)
         by_symbol[(domain, item["storage"], symbol)] = item
 
@@ -539,6 +543,7 @@ def validate_ledger(
             if alias["owner"] not in source_by_id:
                 raise ContractError(f"{item['symbol']}: unallocated alias owner")
 
+    _trainer_bindings(entries, sources["trainerDefeat"])
     validate_frozen_bindings(entries, contract)
     validate_published_allocations(entries, published_allocations)
 
@@ -698,36 +703,196 @@ def validate_frozen_bindings(
         )
 
 
-def _trainer_bindings(entries: list[dict[str, Any]], count: int) -> list[int]:
-    values: dict[int, int] = {}
+def _validate_trainer_storage_policy(policy: Any) -> None:
+    if not isinstance(policy, dict) or set(policy) != {
+        "count",
+        "flagBase",
+        "flagStorage",
+        "publishedCount",
+        "variableBitStorage",
+    }:
+        raise ContractError("$.trainerDefeat: malformed storage policy")
+    if not all(
+        isinstance(policy[key], int) for key in ("count", "flagBase", "publishedCount")
+    ):
+        raise ContractError("$.trainerDefeat: count/base values must be integers")
+    flag = policy["flagStorage"]
+    if not isinstance(flag, dict) or set(flag) != {
+        "daily",
+        "debugReserved",
+        "persistent",
+        "special",
+        "transient",
+    }:
+        raise ContractError("$.trainerDefeat.flagStorage: malformed policy")
+    variable = policy["variableBitStorage"]
+    if not isinstance(variable, dict) or set(variable) != {
+        "bitCount",
+        "daily",
+        "debugReserved",
+        "persistent",
+        "special",
+        "transient",
+    }:
+        raise ContractError("$.trainerDefeat.variableBitStorage: malformed policy")
+
+
+def _in_range(value: int, bounds: Any) -> bool:
+    return (
+        isinstance(bounds, list)
+        and len(bounds) == 2
+        and all(isinstance(item, int) for item in bounds)
+        and bounds[0] <= value <= bounds[1]
+    )
+
+
+def _validate_trainer_binding(
+    trainer_id: int, state: dict[str, Any], policy: dict[str, Any]
+) -> tuple[str, int, int]:
+    kind = state["kind"]
+    value = state["value"]
+    if not isinstance(value, int):
+        raise ContractError(f"trainer {trainer_id}: binding value must be an integer")
+    if kind == "trainer-defeat-flag":
+        config = policy["flagStorage"]
+        if _in_range(value, config["transient"]):
+            raise ContractError(f"trainer {trainer_id}: transient flag binding")
+        if _in_range(value, config["daily"]):
+            raise ContractError(f"trainer {trainer_id}: daily flag binding")
+        if _in_range(value, config["special"]):
+            raise ContractError(f"trainer {trainer_id}: special flag binding")
+        if value in config["debugReserved"]:
+            raise ContractError(f"trainer {trainer_id}: debug-reserved flag binding")
+        if not _in_range(value, config["persistent"]):
+            raise ContractError(f"trainer {trainer_id}: out-of-range flag binding")
+        return ("flag", value, 0)
+
+    config = policy["variableBitStorage"]
+    bit = state["bit"]
+    if not isinstance(bit, int) or not 0 <= bit < config["bitCount"]:
+        raise ContractError(f"trainer {trainer_id}: out-of-range variable bit")
+    if _in_range(value, config["transient"]):
+        raise ContractError(f"trainer {trainer_id}: transient variable binding")
+    if value in config["daily"]:
+        raise ContractError(f"trainer {trainer_id}: daily variable binding")
+    if _in_range(value, config["special"]):
+        raise ContractError(f"trainer {trainer_id}: special variable binding")
+    if _in_range(value, config["debugReserved"]):
+        raise ContractError(f"trainer {trainer_id}: debug-reserved variable binding")
+    if not _in_range(value, config["persistent"]):
+        raise ContractError(f"trainer {trainer_id}: out-of-range variable binding")
+    return ("variable-bit", value, bit)
+
+
+def _trainer_bindings(
+    entries: list[dict[str, Any]], policy: dict[str, Any]
+) -> list[tuple[str, int, int]]:
+    _validate_trainer_storage_policy(policy)
+    count = policy["count"]
+    values: dict[int, tuple[str, int, int]] = {}
     for item in entries:
         state = item["state"]
-        if item["domain"] == "trainerIds" and state["kind"] == "trainer-defeat-flag":
-            previous = values.setdefault(item["value"], state["value"])
-            if previous != state["value"]:
+        if item["domain"] == "trainerIds" and state["kind"] in {
+            "trainer-defeat-flag",
+            "trainer-defeat-variable-bit",
+        }:
+            trainer_id = item["value"]
+            if not isinstance(trainer_id, int) or not 0 <= trainer_id < count:
                 raise ContractError(
-                    f"trainer {item['value']}: conflicting defeat flags"
+                    f"trainer defeat binding ID out of range: {trainer_id}"
+                )
+            binding = _validate_trainer_binding(trainer_id, state, policy)
+            previous = values.setdefault(trainer_id, binding)
+            if previous != binding:
+                raise ContractError(
+                    f"trainer {trainer_id}: conflicting defeat bindings"
                 )
     if set(values) != set(range(count)):
         missing = sorted(set(range(count)) - set(values))[:10]
         raise ContractError(f"trainer defeat table is incomplete: {missing}")
+
+    physical_owners: dict[tuple[str, int, int], int] = {}
+    for trainer_id, binding in values.items():
+        previous = physical_owners.setdefault(binding, trainer_id)
+        if previous != trainer_id:
+            raise ContractError(
+                f"trainer {trainer_id}: duplicate physical defeat binding owned by trainer {previous}"
+            )
+
+    external_owners = _external_trainer_storage_owners(entries)
+    for trainer_id, (kind, value, _bit) in values.items():
+        owner = external_owners[kind].get(value)
+        if owner is not None:
+            raise ContractError(
+                f"trainer {trainer_id}: {kind} binding collides with published owner {owner}"
+            )
+
+    published_count = policy["publishedCount"]
+    flag_base = policy["flagBase"]
+    for trainer_id in range(published_count):
+        expected = ("flag", flag_base + trainer_id, 0)
+        if values.get(trainer_id) != expected:
+            raise ContractError(f"trainer {trainer_id}: published defeat binding moved")
     return [values[index] for index in range(count)]
+
+
+def _external_trainer_storage_owners(
+    entries: list[dict[str, Any]],
+) -> dict[str, dict[int, str]]:
+    """Index current published physical owners outside trainer defeat storage.
+
+    Phase 2 can extend this boundary with its reviewed semantic reference
+    inventory. Until then, every flag identity and whole-variable identity in
+    the existing ledger is conservatively treated as owning its physical state.
+    """
+    owners: dict[str, dict[int, str]] = {"flag": {}, "variable-bit": {}}
+    for item in entries:
+        if item["domain"] == "trainerIds":
+            continue
+        if item["storage"] == "flag-id":
+            owners["flag"].setdefault(item["value"], item["symbol"])
+        elif item["domain"] == "vars":
+            owners["variable-bit"].setdefault(item["value"], item["symbol"])
+    return owners
 
 
 def render(ledger: dict[str, Any], sources: dict[str, Any], output_root: Path) -> None:
     entries = ledger["entries"]
-    count = sources["trainerDefeat"]["count"]
-    flags = _trainer_bindings(entries, count)
+    bindings = _trainer_bindings(entries, sources["trainerDefeat"])
     table = [
         "/* Generated from persistent_ids.json; do not edit. */",
         "const u16 gTrainerDefeatFlagById[PERSISTENT_TRAINER_COUNT] =",
         "{",
     ]
-    table.extend(f"    [{index}] = 0x{flag:04X}," for index, flag in enumerate(flags))
+    table.extend(
+        f"    [{index}] = 0x{binding[1]:04X},"
+        if binding[0] == "flag"
+        else f"    [{index}] = 0xFFFF,"
+        for index, binding in enumerate(bindings)
+    )
     table.extend(["};", ""])
     outputs: dict[Path, bytes] = {}
     table_path = Path("src/data/persistence/trainer_defeat_flags.inc.c")
     outputs[table_path] = "\n".join(table).encode()
+
+    typed_table = [
+        "/* Generated from persistent_ids.json; do not edit. */",
+        "const struct TrainerDefeatBinding gTrainerDefeatBindingById[PERSISTENT_TRAINER_COUNT] =",
+        "{",
+    ]
+    for index, (kind, value, bit) in enumerate(bindings):
+        storage = (
+            "TRAINER_DEFEAT_STORAGE_FLAG"
+            if kind == "flag"
+            else "TRAINER_DEFEAT_STORAGE_VARIABLE_BIT"
+        )
+        typed_table.append(
+            f"    [{index}] = {{.id = 0x{value:04X}, .storage = {storage}, .bit = {bit}}},"
+        )
+    typed_table.extend(["};", ""])
+    outputs[Path("src/data/persistence/trainer_defeat_bindings.inc.c")] = "\n".join(
+        typed_table
+    ).encode()
 
     heal = [item for item in entries if item["source"] == "heal-locations"]
     heal.sort(key=lambda item: item["value"])

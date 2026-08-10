@@ -61,5 +61,24 @@
     {"domain": "vars", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Var(?:Get|Set)\\(\\s*(?P<symbol>VAR_[A-Za-z0-9_]+)", "^\\s*(?:setvar|addvar|subvar|copyvar|copyvarifnotzero|setorcopyvar|specialvar)\\s+(?P<symbol>VAR_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["VAR_"]}}
   ],
   "locationCodecs": {"path": "src/data/region_map/region_map_sections.json", "consumerFacade": "src/data/persistence/location_codecs.inc.c"},
-  "trainerDefeat": {"count": 858, "flagBase": 1280}
+  "trainerDefeat": {
+    "count": 858,
+    "publishedCount": 858,
+    "flagBase": 1280,
+    "flagStorage": {
+      "persistent": [32, 2335],
+      "transient": [0, 31],
+      "daily": [2336, 2399],
+      "special": [16384, 16511],
+      "debugReserved": [2302, 2303]
+    },
+    "variableBitStorage": {
+      "persistent": [16400, 16639],
+      "transient": [16384, 16399],
+      "daily": [16614, 16615, 16616, 16617, 16618, 16619, 16625],
+      "special": [32768, 32789],
+      "debugReserved": [36864, 36871],
+      "bitCount": 16
+    }
+  }
 }

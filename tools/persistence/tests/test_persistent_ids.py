@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import contextlib
+import io
 import json
 from pathlib import Path
 import re
@@ -10,6 +12,7 @@ import unittest
 
 from tools.persistence.contract import ContractError, canonical_bytes
 from tools.persistence.ledger import (
+    main,
     render,
     seed_ledger,
     validate_consumer_references,
@@ -85,6 +88,7 @@ class PersistentIdTests(unittest.TestCase):
             render(second, self.sources, right)
             for relative in (
                 "src/data/persistence/trainer_defeat_flags.inc.c",
+                "src/data/persistence/trainer_defeat_bindings.inc.c",
                 "src/data/persistence/location_codecs.inc.c",
                 "include/constants/heal_locations.h",
                 "include/constants/persistent_bindings.h",
@@ -558,6 +562,120 @@ class PersistentIdTests(unittest.TestCase):
         for trainer_id in range(858):
             with self.subTest(trainer_id=trainer_id):
                 self.assertIn(f"[{trainer_id}] = 0x{0x500 + trainer_id:04X},", table)
+
+    def test_typed_trainer_table_reproduces_every_published_flag_binding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            table = (
+                output / "src/data/persistence/trainer_defeat_bindings.inc.c"
+            ).read_text()
+        for trainer_id in range(858):
+            with self.subTest(trainer_id=trainer_id):
+                self.assertIn(
+                    f"[{trainer_id}] = {{.id = 0x{0x500 + trainer_id:04X}, "
+                    ".storage = TRAINER_DEFEAT_STORAGE_FLAG, .bit = 0},",
+                    table,
+                )
+
+    def test_rejected_trainer_bindings_leave_generated_output_unchanged(self):
+        flag_owner = next(
+            item["value"]
+            for item in self.ledger["entries"]
+            if item["storage"] == "flag-id"
+            and 31 < item["value"] < 0x920
+            and item["value"] not in (0x8FE, 0x8FF)
+        )
+        variable_owner = next(
+            item["value"]
+            for item in self.ledger["entries"]
+            if item["domain"] == "vars"
+            and 0x400F < item["value"] <= 0x40FF
+            and item["value"] not in range(0x40E6, 0x40EC)
+            and item["value"] != 0x40F1
+        )
+        cases = {
+            "malformed": (
+                "malformed",
+                lambda state: state.__setitem__("unexpected", 0),
+            ),
+            "moved": ("moved", lambda state: state.__setitem__("value", 0x85F)),
+            "duplicate": ("duplicate", lambda state: state.__setitem__("value", 0x500)),
+            "daily": ("daily", lambda state: state.__setitem__("value", 0x920)),
+            "transient": ("transient", lambda state: state.__setitem__("value", 1)),
+            "special": ("special", lambda state: state.__setitem__("value", 0x4000)),
+            "debug-reserved": (
+                "debug-reserved",
+                lambda state: state.__setitem__("value", 0x8FE),
+            ),
+            "out-of-range": (
+                "out-of-range",
+                lambda state: state.__setitem__("value", 0x960),
+            ),
+            "external-flag-owner": (
+                "published owner",
+                lambda state: state.__setitem__("value", flag_owner),
+            ),
+            "external-variable-owner": (
+                "published owner",
+                lambda state: (
+                    state.clear(),
+                    state.update(
+                        {
+                            "bit": 7,
+                            "kind": "trainer-defeat-variable-bit",
+                            "value": variable_owner,
+                        }
+                    ),
+                ),
+            ),
+        }
+        trainer_entries = [
+            item
+            for item in self.ledger["entries"]
+            if item["domain"] == "trainerIds"
+            and item["value"] == 1
+            and item["state"]["kind"] == "trainer-defeat-flag"
+        ]
+        self.assertTrue(trainer_entries)
+
+        for label, (error, mutate) in cases.items():
+            ledger = self.mutated()
+            states = [
+                item["state"]
+                for item in ledger["entries"]
+                if item["domain"] == "trainerIds"
+                and item["value"] == 1
+                and item["state"]["kind"] == "trainer-defeat-flag"
+            ]
+            for state in states:
+                mutate(state)
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                ledger_path = root / "persistent_ids.json"
+                output = root / "generated"
+                marker = output / "marker"
+                output.mkdir()
+                marker.write_bytes(b"unchanged")
+                ledger_path.write_text(json.dumps(ledger))
+                stderr = io.StringIO()
+                with self.subTest(case=label):
+                    with contextlib.redirect_stderr(stderr):
+                        self.assertEqual(
+                            main(
+                                [
+                                    "generate",
+                                    "--ledger",
+                                    str(ledger_path),
+                                    "--output-root",
+                                    str(output),
+                                ]
+                            ),
+                            1,
+                        )
+                    self.assertIn(error, stderr.getvalue())
+                    self.assertEqual(marker.read_bytes(), b"unchanged")
+                    self.assertEqual(list(output.iterdir()), [marker])
 
 
 if __name__ == "__main__":
