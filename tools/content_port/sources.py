@@ -1304,7 +1304,6 @@ def resolve_port_sources(
     from .model import CapabilityState
     from .semantics import (
         analyze_entry,
-        load_event_policy,
         parse_scripts,
         validate_effects,
         validate_event_policy_capabilities,
@@ -1890,8 +1889,9 @@ def resolve_port_sources(
                 binding_dependencies.add(edge.target)
 
     semantic_authorities: dict[ResourceKey, str] = {}
-    event_policy_path = descriptor.path.parent / "events.json"
-    entries, effect_policy = load_event_policy(event_policy_path)
+    event_policy_path = descriptor.event_policy_path
+    entries = descriptor.event_entries
+    effect_policy = descriptor.effect_policy
     validate_event_policy_capabilities(
         entries,
         effect_policy,

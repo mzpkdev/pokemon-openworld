@@ -635,6 +635,29 @@ class SourceGraphTests(unittest.TestCase):
                     Path("."),
                 )
 
+    def test_resolver_uses_descriptor_event_policy_path_not_sibling_name(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        with tempfile.TemporaryDirectory(dir="tools/content_port/tests") as directory:
+            port = Path(directory) / "johto"
+            shutil.copytree("tools/content_port/ports/johto", port)
+            selected = port / "semantic-events.json"
+            (port / "events.json").rename(selected)
+            port_document = json.loads((port / "port.json").read_text(encoding="utf-8"))
+            port_document["eventPolicy"] = selected.name
+            (port / "port.json").write_text(json.dumps(port_document), encoding="utf-8")
+            (port / "events.json").write_text(
+                json.dumps({"schemaVersion": 999, "entires": []}),
+                encoding="utf-8",
+            )
+            descriptor = load_port(port, donor_root)
+            self.assertEqual(descriptor.event_policy_path, selected.resolve())
+            evidence, _ = resolve_port_sources(descriptor, Path("."))
+            self.assertEqual(evidence.inventory["maps"], 254)
+
     def test_full_real_port_contract_rejects_cross_domain_mutations(self) -> None:
         donor_root = self._donor_root()
         if donor_root is None:

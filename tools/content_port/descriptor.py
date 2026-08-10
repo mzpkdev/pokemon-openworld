@@ -26,6 +26,7 @@ from .model import (
     SectionMetadataAuthority,
     TargetBindings,
 )
+from .semantics import EffectKey, EventEntry
 
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -660,6 +661,9 @@ class PortDescriptor:
     map_ownership: Mapping[str, str]
     adaptations: Mapping[str, object]
     events: Mapping[str, object]
+    event_entries: Mapping[str, EventEntry]
+    effect_policy: Mapping[EffectKey, str]
+    event_policy_path: Path
     assets: Mapping[str, object]
     legacy_report: Mapping[str, object] | None
     layout_binary_authorities: tuple[LayoutBinaryAuthority, ...]
@@ -1420,6 +1424,9 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         map_ownership=ownership,
         adaptations=adaptations,
         events=events,
+        event_entries=event_entries,
+        effect_policy=effect_policy,
+        event_policy_path=event_path,
         assets=assets,
         legacy_report=legacy,
         layout_binary_authorities=layout_binary_authorities,
