@@ -88,6 +88,7 @@ class PortSourceState:
     resources: Mapping[ResourceKey, Provenance]
     inventory: Mapping[str, tuple[str, ...]]
     asset_targets: Mapping[str, str]
+    semantic_evidence: Mapping[str, str]
 
 
 class RecordLoader(Protocol):
@@ -501,6 +502,117 @@ class ExpansionSourceContext(SourceContext):
                             {"maps": [map_name], "species": species},
                             Provenance(encounters_path.as_posix(), f"/{name}/{index}"),
                         )
+                        raw_map_key = ResourceKey("map", map_name)
+                        map_key = aliases.get(
+                            raw_map_key,
+                            aliases.get(
+                                ResourceKey("map", map_name.removeprefix("MAP_")),
+                                raw_map_key,
+                            ),
+                        )
+                        map_record = records.get(map_key)
+                        if map_record is None:
+                            raise ContentPortError(
+                                f"{encounters_path}/{name}/{index}: encounter map "
+                                f"{map_name} is not indexed"
+                            )
+                        map_value = dict(map_record.value)
+                        encounter_roots = list(map_value.get("_encounter_roots", ()))
+                        if name in encounter_roots:
+                            raise ContentPortError(
+                                f"{encounters_path}/{name}/{index}: duplicate "
+                                "encounter root identity"
+                            )
+                        encounter_roots.append(name)
+                        map_value["_encounter_roots"] = sorted(encounter_roots)
+                        records[map_key] = SourceRecord(
+                            map_value, map_record.provenance
+                        )
+
+        # Trainer object events name script labels; the actual trainer identity
+        # is a typed operand of the donor's trainerbattle macro. Resolve that
+        # native indirection once so enabling the trainers capability roots the
+        # trainer/party graph without enabling unrelated event effects.
+        from .semantics import load_opcodes, split_operands
+
+        opcode_inventory = load_opcodes()
+        script_cache: dict[str, tuple[str, ...]] = {}
+        for map_key, map_record in tuple(records.items()):
+            if map_key.domain != "map":
+                continue
+            trainer_roots: set[str] = set()
+            for event in map_record.value.get("object_events", []) or []:
+                if not isinstance(event, Mapping) or event.get("trainer_type") in {
+                    None,
+                    0,
+                    "TRAINER_TYPE_NONE",
+                }:
+                    continue
+                label = event.get("script")
+                service = (
+                    records.get(ResourceKey("service", label))
+                    if isinstance(label, str)
+                    else None
+                )
+                if service is None:
+                    raise ContentPortError(
+                        f"{map_record.provenance.path}: trainer event script "
+                        f"{label!r} is not indexed"
+                    )
+                script_path = service.value.get("script_path")
+                if not isinstance(script_path, str):
+                    raise ContentPortError(
+                        f"{service.provenance.path}: trainer script has no source"
+                    )
+                lines = script_cache.get(script_path)
+                if lines is None:
+                    lines = tuple(
+                        (root / script_path).read_text(encoding="utf-8").splitlines()
+                    )
+                    script_cache[script_path] = lines
+                active = False
+                found = False
+                for line_number, raw_line in enumerate(lines, 1):
+                    label_match = re.match(
+                        r"^\s*([A-Za-z_][A-Za-z0-9_]*)::?\s*(?:@.*)?$",
+                        raw_line,
+                    )
+                    if label_match:
+                        active = label_match.group(1) == label
+                        found = found or active
+                        continue
+                    if not active:
+                        continue
+                    stripped = raw_line.split("@", 1)[0].strip()
+                    if not stripped or stripped.startswith((".", "#")):
+                        continue
+                    command_match = re.match(
+                        r"^([A-Za-z_][A-Za-z0-9_]*)\s*(.*?)\s*$", stripped
+                    )
+                    if command_match is None:
+                        continue
+                    command = command_match.group(1)
+                    operands = split_operands(command_match.group(2))
+                    opcode = opcode_inventory.get(command)
+                    if opcode is None:
+                        continue
+                    for domain, operand_index in opcode.dependencies:
+                        if domain != "trainer":
+                            continue
+                        if operand_index >= len(operands):
+                            raise ContentPortError(
+                                f"{script_path}:{line_number}: "
+                                "trainer dependency operand is missing"
+                            )
+                        trainer_roots.add(operands[operand_index])
+                if not found:
+                    raise ContentPortError(
+                        f"{service.provenance.path}: trainer label {label} is missing"
+                    )
+            if trainer_roots:
+                map_value = dict(map_record.value)
+                map_value["_trainer_roots"] = sorted(trainer_roots)
+                records[map_key] = SourceRecord(map_value, map_record.provenance)
 
         layouts_path = root / "data/layouts/layouts.json"
         if layouts_path.exists():
@@ -639,6 +751,18 @@ def extract_map_edges(
         if context.supports("encounters", key)
         else None,
     ]
+    if context.supports("encounters", key):
+        for index, encounter in enumerate(value.get("_encounter_roots", ())):
+            candidates.append(
+                _edge(
+                    key,
+                    "encounter",
+                    encounter,
+                    record,
+                    f"/_encounter_roots/{index}",
+                    role="encounter",
+                )
+            )
     for index, connection in enumerate(_array(record, "connections")):
         if isinstance(connection, Mapping):
             candidates.append(
@@ -663,6 +787,18 @@ def extract_map_edges(
                     f"/warp_events/{index}/dest_map",
                     prefixes=("MAP_",),
                     role="warp",
+                )
+            )
+    if context.supports("trainers", key):
+        for index, trainer in enumerate(record.value.get("_trainer_roots", ())):
+            candidates.append(
+                _edge(
+                    key,
+                    "trainer",
+                    trainer,
+                    record,
+                    f"/_trainer_roots/{index}",
+                    role="trainer",
                 )
             )
     if not context.supports("events", key) and not context.supports("trainers", key):
@@ -695,7 +831,7 @@ def extract_map_edges(
                                 role="persistent",
                             )
                         )
-            if context.supports("trainers", key):
+            if context.supports("trainers", key) and event.get("trainer") is not None:
                 candidates.append(
                     _edge(
                         key,
@@ -1401,6 +1537,10 @@ def resolve_port_sources(
                 ) from error
             selected_role = "target"
         document = _thaw(selected_record.value)
+        for semantic_root_field in ("_encounter_roots", "_trainer_roots"):
+            roots = record.value.get(semantic_root_field)
+            if roots:
+                document[semantic_root_field] = list(roots)
         selected_maps[name] = document
         map_authorities[name] = selected_role
         canonical = ResourceKey("map", name)
@@ -2150,13 +2290,59 @@ def resolve_port_sources(
     enabled_domain_names: set[str] = set()
     for capabilities in enabled_by_map.values():
         if "encounters" in capabilities:
-            enabled_domain_names.add("encounter")
+            enabled_domain_names.update(("encounter", "species"))
         if "trainers" in capabilities:
-            enabled_domain_names.update(("trainer", "party", "asset"))
+            enabled_domain_names.update(
+                (
+                    "trainer",
+                    "party",
+                    "species",
+                    "move",
+                    "item",
+                    "trainer-class",
+                    "asset",
+                )
+            )
         if capabilities & event_capabilities:
             enabled_domain_names.update(("service", "binding", "asset"))
     allowed.update(key for key in graph.resources if key.domain in enabled_domain_names)
     closure = close_source_graph(graph, capability_roots, frozenset(allowed))
+    semantic_evidence: dict[str, str] = {}
+    evidenced_domains = {
+        "trainer",
+        "party",
+        "encounter",
+        "service",
+        "binding",
+        "species",
+        "move",
+        "item",
+        "trainer-class",
+    }
+    for key in sorted(closure):
+        if key.domain not in evidenced_domains:
+            continue
+        role = semantic_authorities.get(
+            key, "target" if key.domain == "binding" else ""
+        )
+        if not role:
+            raise ContentPortError(
+                f"{key}: resolved semantic resource has no authority"
+            )
+        record = source_records[key]
+        identity = f"{role}:{key.domain}:{key.name}"
+        semantic_evidence[identity] = hashlib.sha256(
+            json.dumps(
+                {
+                    "authority": role,
+                    "domain": key.domain,
+                    "name": key.name,
+                    "value": _thaw(record.value),
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
 
     rendered_graph = world_graph_from_maps(selected_maps)
     world_policy = adaptations.get("worldPolicy")
@@ -2485,6 +2671,7 @@ def resolve_port_sources(
             }
         ),
         asset_targets=MappingProxyType(dict(sorted(required_asset_targets.items()))),
+        semantic_evidence=MappingProxyType(dict(sorted(semantic_evidence.items()))),
     )
     return contract, state
 

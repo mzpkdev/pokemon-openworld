@@ -551,6 +551,64 @@ class SourceGraphTests(unittest.TestCase):
         }
         self.assertTrue(expected <= set(state.resources))
         self.assertNotIn(ResourceKey("binding", "VAR_TEMP_0"), state.resources)
+        trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAWYER_1"]
+        self.assertRegex(trainer_evidence, r"^[0-9a-f]{64}$")
+        _, repeated_state = resolve_port_sources(
+            replace(
+                descriptor,
+                capabilities=capabilities,
+                legacy_report=None,
+            ),
+            Path("."),
+        )
+        self.assertEqual(state.semantic_evidence, repeated_state.semantic_evidence)
+
+        encounter_capabilities = tuple(
+            replace(decision, state=CapabilityState.ENABLED)
+            if decision.map_name == "Route29" and decision.capability == "encounters"
+            else decision
+            for decision in descriptor.capabilities
+        )
+        _, encounter_state = resolve_port_sources(
+            replace(
+                descriptor,
+                capabilities=encounter_capabilities,
+                legacy_report=None,
+            ),
+            Path("."),
+        )
+        self.assertTrue(
+            {
+                ResourceKey("encounter", "gRoute29"),
+                ResourceKey("encounter", "gRoute29_Night"),
+                ResourceKey("species", "SPECIES_PIDGEY"),
+                ResourceKey("species", "SPECIES_HOOTHOOT"),
+            }
+            <= set(encounter_state.resources)
+        )
+
+        implicit_trainer_capabilities = tuple(
+            replace(decision, state=CapabilityState.ENABLED)
+            if decision.map_name == "Route30" and decision.capability == "trainers"
+            else decision
+            for decision in descriptor.capabilities
+        )
+        _, implicit_trainer_state = resolve_port_sources(
+            replace(
+                descriptor,
+                capabilities=implicit_trainer_capabilities,
+                legacy_report=None,
+            ),
+            Path("."),
+        )
+        self.assertTrue(
+            {
+                ResourceKey("trainer", "TRAINER_JOEY"),
+                ResourceKey("trainer", "TRAINER_MIKEY"),
+                ResourceKey("trainer", "TRAINER_DON"),
+            }
+            <= set(implicit_trainer_state.resources)
+        )
 
         fallback_capabilities = tuple(
             replace(

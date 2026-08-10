@@ -74,7 +74,7 @@ class ScriptProgram:
     opcodes: Mapping[str, Opcode]
 
 
-def _split_operands(text: str) -> tuple[str, ...]:
+def split_operands(text: str) -> tuple[str, ...]:
     # Expansion script operands do not contain unquoted, nested commas. Preserve
     # strings so diagnostics quote the exact semantic operand.
     values: list[str] = []
@@ -331,7 +331,7 @@ def parse_scripts(
             labels[current].append(
                 Instruction(
                     command.group(1),
-                    _split_operands(command.group(2)),
+                    split_operands(command.group(2)),
                     display,
                     line_number,
                     global_scope,
