@@ -10,10 +10,15 @@ endif
 # touch mode update the wrapper target, and executes recipe lines containing
 # $(MAKE) even in dry-run mode.  Evaluate all three modes against the original
 # product graph; none runs a normal publishing recipe.
-_CONTENT_PORT_DIRECT_MAKE_MODE := $(or \
+_CONTENT_PORT_READ_ONLY_MAKE_MODE := $(or \
   $(findstring n,$(_CONTENT_PORT_SHORT_MAKEFLAGS)), \
-  $(findstring q,$(_CONTENT_PORT_SHORT_MAKEFLAGS)), \
-  $(findstring t,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
+  $(findstring q,$(_CONTENT_PORT_SHORT_MAKEFLAGS)))
+_CONTENT_PORT_TOUCH_MAKE_MODE := $(and \
+  $(findstring t,$(_CONTENT_PORT_SHORT_MAKEFLAGS)), \
+  $(if $(_CONTENT_PORT_READ_ONLY_MAKE_MODE),,1))
+_CONTENT_PORT_DIRECT_MAKE_MODE := $(or \
+  $(_CONTENT_PORT_READ_ONLY_MAKE_MODE), \
+  $(_CONTENT_PORT_TOUCH_MAKE_MODE))
 ifneq (,$(_CONTENT_PORT_DIRECT_MAKE_MODE))
 CONTENT_PORT_BUILD_LOCK_HELD := 1
 endif
@@ -508,8 +513,26 @@ MID_OBJS := $(patsubst $(MID_SUBDIR)/%.mid,$(MID_BUILDDIR)/%.o,$(MID_SRCS))
 OBJS     := $(C_OBJS) $(C_ASM_OBJS) $(ASM_OBJS) $(DATA_ASM_OBJS) $(MID_OBJS)
 OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(OBJS))
 
-SUBDIRS  := $(sort $(dir $(OBJS) $(dir $(TEST_OBJS))))
-$(shell mkdir -p $(SUBDIRS))
+DEP_FILES := $(addprefix $(OBJ_DIR)/, \
+  $(C_SRCS:.c=.d) $(TEST_SRCS:.c=.d) $(ASM_SRCS:.s=.d) \
+  $(C_ASM_SRCS:.s=.d) $(DATA_ASM_SRCS:.s=.d))
+DIRECTORY_OUTPUTS := $(OBJS) $(TEST_OBJS) $(DEP_FILES) \
+  $(OBJ_DIR)/ld_script_test.ld \
+  $(OBJ_DIR)/sym_bss.ld $(OBJ_DIR)/sym_common.ld $(OBJ_DIR)/sym_ewram.ld
+SUBDIRS          := $(sort $(dir $(DIRECTORY_OUTPUTS)))
+
+# Touch mode substitutes `touch` for ordinary recipes.  Force only the mkdir
+# recipe it needs; dry-run and question mode must remain read-only.
+ifneq (,$(_CONTENT_PORT_TOUCH_MAKE_MODE))
+$(SUBDIRS):
+	+@mkdir -p $@
+else
+$(SUBDIRS):
+	@mkdir -p $@
+endif
+
+# Do not materialize every build directory when only one output was requested.
+$(foreach output,$(DIRECTORY_OUTPUTS),$(eval $(output): | $(dir $(output))))
 
 # Pretend rules that are actually flags defer to `make all`
 modern: all

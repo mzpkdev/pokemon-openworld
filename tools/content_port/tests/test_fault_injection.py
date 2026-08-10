@@ -4,6 +4,7 @@ import gc
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import tempfile
 import threading
@@ -33,7 +34,120 @@ from tools.content_port.transaction import (
 )
 
 
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def standalone_make_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    for variable in (
+        "GNUMAKEFLAGS",
+        "MAKEFLAGS",
+        "MAKEFILES",
+        "MAKELEVEL",
+        "MAKEOVERRIDES",
+        "MFLAGS",
+        "CONTENT_PORT_BUILD_LOCK_HELD",
+    ):
+        environment.pop(variable, None)
+    return environment
+
+
+def worktree_status(repo: Path) -> str:
+    return git(
+        repo,
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+        "--ignored=matching",
+    )
+
+
+def filesystem_snapshot(root: Path) -> dict[str, tuple[int, int, bytes | str | None]]:
+    snapshot: dict[str, tuple[int, int, bytes | str | None]] = {}
+
+    def visit(path: Path, relative: str) -> None:
+        metadata = path.lstat()
+        file_type = stat.S_IFMT(metadata.st_mode)
+        mode = stat.S_IMODE(metadata.st_mode)
+        if stat.S_ISLNK(metadata.st_mode):
+            contents: bytes | str | None = os.readlink(path)
+        elif stat.S_ISREG(metadata.st_mode):
+            contents = path.read_bytes()
+        else:
+            contents = None
+        snapshot[relative] = (file_type, mode, contents)
+
+        if stat.S_ISDIR(metadata.st_mode):
+            with os.scandir(path) as entries:
+                names = sorted(entry.name for entry in entries)
+            for name in names:
+                child = name if relative == "." else f"{relative}/{name}"
+                visit(path / name, child)
+
+    visit(root, ".")
+    return snapshot
+
+
+def clone_make_repo(destination: Path) -> None:
+    clone = subprocess.run(
+        [
+            "git",
+            "clone",
+            "--quiet",
+            "--shared",
+            "--no-tags",
+            str(ROOT),
+            str(destination),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if clone.returncode:
+        raise AssertionError(clone.stderr)
+    shutil.copy2(ROOT / "Makefile", destination / "Makefile")
+
+
 class FaultInjectionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.make_temporary = tempfile.TemporaryDirectory()
+        cls.make_repo = Path(cls.make_temporary.name) / "repo"
+        try:
+            clone_make_repo(cls.make_repo)
+        except AssertionError:
+            cls.make_temporary.cleanup()
+            raise
+        cls.injected_makefile = Path(cls.make_temporary.name) / "injected.mk"
+        cls.injected_makefile.write_text(
+            "$(error inherited MAKEFILES contaminated standalone make)\n"
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.make_temporary.cleanup()
+
+    def _standalone_make_environment_under_contamination(self) -> dict[str, str]:
+        contaminated = {
+            "GNUMAKEFLAGS": "--dry-run --warn-undefined-variables",
+            "MAKEFLAGS": "n --no-print-directory",
+            "MAKEFILES": str(self.injected_makefile),
+        }
+        with patch.dict(os.environ, contaminated):
+            environment = standalone_make_environment()
+        for variable in contaminated:
+            self.assertNotIn(variable, environment)
+        return environment
+
+    def _assert_isolated_makefile_matches_worktree(self) -> None:
+        source = ROOT / "Makefile"
+        isolated = self.make_repo / "Makefile"
+        self.assertEqual(isolated.read_bytes(), source.read_bytes())
+        self.assertEqual(
+            stat.S_IMODE(isolated.stat().st_mode),
+            stat.S_IMODE(source.stat().st_mode),
+        )
+
     def _fixture(
         self,
     ) -> tuple[
@@ -437,7 +551,8 @@ class FaultInjectionTests(unittest.TestCase):
             temporary.cleanup()
 
     def test_non_dry_run_make_flags_cannot_bypass_build_lock(self) -> None:
-        repo = Path(__file__).resolve().parents[3]
+        repo = self.make_repo
+        self._assert_isolated_makefile_matches_worktree()
         commands = (
             ["make", "--no-print-directory", "content-port-transaction-check"],
             [
@@ -460,6 +575,7 @@ class FaultInjectionTests(unittest.TestCase):
                             text=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
+                            env=self._standalone_make_environment_under_contamination(),
                         )
                         with self.assertRaises(subprocess.TimeoutExpired):
                             process.wait(timeout=0.25)
@@ -474,17 +590,148 @@ class FaultInjectionTests(unittest.TestCase):
                         process.terminate()
                         process.wait(timeout=5.0)
 
-    def test_dry_run_setup_is_read_only_and_does_not_wait_for_build_lock(self) -> None:
-        repo = Path(__file__).resolve().parents[3]
-        with transaction_lifetime_lock(repo, exclusive=True):
-            result = subprocess.run(
-                ["make", "-n", "NODEP=1", "SETUP_PREREQS=1", "all"],
-                cwd=repo,
-                text=True,
-                capture_output=True,
-                timeout=5.0,
+    def test_read_only_make_modes_do_not_write_or_wait_for_build_lock(self) -> None:
+        repo = self.make_repo
+        build_directory = repo / "build/emerald-allregions-allregions1/src"
+        self._assert_isolated_makefile_matches_worktree()
+        self.assertFalse(build_directory.exists())
+        status_before = worktree_status(repo)
+        for mode, expected_returncode in (("-n", 0), ("-q", 1)):
+            with self.subTest(mode=mode):
+                with transaction_lifetime_lock(repo, exclusive=True):
+                    state, _, _ = transaction_paths(repo)
+                    state_before = filesystem_snapshot(state)
+                    result = subprocess.run(
+                        ["make", mode, "NODEP=1", "SETUP_PREREQS=1", "all"],
+                        cwd=repo,
+                        text=True,
+                        capture_output=True,
+                        env=self._standalone_make_environment_under_contamination(),
+                        timeout=5.0,
+                    )
+                    state_after = filesystem_snapshot(state)
+                self.assertEqual(
+                    result.returncode,
+                    expected_returncode,
+                    result.stderr,
+                )
+                self.assertEqual(state_after, state_before)
+                self.assertEqual(worktree_status(repo), status_before)
+                self.assertFalse(build_directory.exists())
+
+        create_directory = subprocess.run(
+            [
+                "make",
+                "--no-print-directory",
+                "NODEP=1",
+                "SETUP_PREREQS=0",
+                "build/emerald-allregions-allregions1/src/",
+            ],
+            cwd=repo,
+            text=True,
+            capture_output=True,
+            env=self._standalone_make_environment_under_contamination(),
+            timeout=5.0,
+        )
+        self.assertEqual(create_directory.returncode, 0, create_directory.stderr)
+        self.assertTrue(build_directory.is_dir())
+
+    def test_direct_obj_dir_outputs_create_directory_in_clean_clones(self) -> None:
+        relative_outputs = (
+            Path("build/emerald-allregions-allregions1/ld_script_test.ld"),
+            Path("build/emerald-allregions-allregions1/sym_bss.ld"),
+            Path("build/emerald-allregions-allregions1/sym_common.ld"),
+            Path("build/emerald-allregions-allregions1/sym_ewram.ld"),
+        )
+
+        for mode in ("normal", "touch"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
+                repo = Path(directory) / "repo"
+                clone_make_repo(repo)
+                for source in ("sym_bss.txt", "sym_common.txt", "sym_ewram.txt"):
+                    (repo / source).write_text("", encoding="utf-8")
+                unrelated_directory = repo / "build/emerald-allregions-allregions1/src"
+                self.assertFalse((repo / "build").exists())
+
+                command = ["make", "-j2"]
+                if mode == "touch":
+                    command.append("-t")
+                command.extend(
+                    (
+                        "--no-print-directory",
+                        "NODEP=1",
+                        "SETUP_PREREQS=0",
+                        "C_OBJS=",
+                        "RAMSCRGEN=true",
+                        *(str(output) for output in relative_outputs),
+                    )
+                )
+                result = subprocess.run(
+                    command,
+                    cwd=repo,
+                    text=True,
+                    capture_output=True,
+                    env=self._standalone_make_environment_under_contamination(),
+                    timeout=5.0,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn("jobserver unavailable", result.stderr)
+                for output in relative_outputs:
+                    self.assertTrue((repo / output).is_file(), output)
+                if mode == "normal":
+                    self.assertEqual(
+                        (repo / relative_outputs[0]).read_text(encoding="utf-8"),
+                        (repo / "ld_script_test.ld")
+                        .read_text(encoding="utf-8")
+                        .replace("tools/", "../../tools/"),
+                    )
+                else:
+                    for output in relative_outputs:
+                        self.assertEqual((repo / output).read_bytes(), b"")
+                self.assertFalse(unrelated_directory.exists())
+
+    def test_touch_mode_creates_required_directory_in_clean_clone(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory) / "repo"
+            clone_make_repo(repo)
+            target = (
+                repo / "build/emerald-allregions-allregions1/data/battle_scripts_2.o"
             )
-        self.assertEqual(result.returncode, 0, result.stderr)
+            unrelated_directory = repo / "build/emerald-allregions-allregions1/src"
+            self.assertFalse((repo / "build").exists())
+            status_before = git(
+                repo, "status", "--porcelain=v1", "--untracked-files=all"
+            )
+
+            with transaction_lifetime_lock(repo, exclusive=True):
+                state, _, _ = transaction_paths(repo)
+                state_before = filesystem_snapshot(state)
+                result = subprocess.run(
+                    [
+                        "make",
+                        "-t",
+                        "--no-print-directory",
+                        "NODEP=1",
+                        "SETUP_PREREQS=0",
+                        str(target.relative_to(repo)),
+                    ],
+                    cwd=repo,
+                    text=True,
+                    capture_output=True,
+                    env=self._standalone_make_environment_under_contamination(),
+                    timeout=5.0,
+                )
+                state_after = filesystem_snapshot(state)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(state_after, state_before)
+            self.assertEqual(
+                git(repo, "status", "--porcelain=v1", "--untracked-files=all"),
+                status_before,
+            )
+            self.assertEqual(target.read_bytes(), b"")
+            self.assertFalse(unrelated_directory.exists())
 
     def test_ref_cannot_move_between_identity_check_and_publication(self) -> None:
         temporary, repo, fixture, bundle, digest = self._fixture()
