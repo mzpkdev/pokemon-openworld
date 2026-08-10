@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -123,6 +124,81 @@ class ProductMakeContractTests(unittest.TestCase):
                     )
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertGreater(target.stat().st_mtime_ns, before)
+
+    def test_parallel_wrapper_preserves_usable_jobserver(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            probe = temp / "jobserver_probe.py"
+            probe.write_text(
+                """import fcntl
+import os
+import re
+import stat
+import subprocess
+
+makeflags = os.environ["MAKEFLAGS"]
+match = re.search(r"(?:^| )--jobserver-(?:auth|fds)=([^ ]+)(?: |$)", makeflags)
+if match is None:
+    raise SystemExit(f"missing jobserver authentication in MAKEFLAGS: {makeflags!r}")
+authentication = match.group(1)
+if authentication.startswith("fifo:"):
+    fifo_path = authentication.removeprefix("fifo:")
+    if not fifo_path or not stat.S_ISFIFO(os.stat(fifo_path).st_mode):
+        raise SystemExit(f"jobserver authentication is not a FIFO: {authentication!r}")
+else:
+    descriptors = re.fullmatch(r"([0-9]+),([0-9]+)", authentication)
+    if descriptors is None:
+        raise SystemExit(f"unsupported jobserver authentication: {authentication!r}")
+    for descriptor in map(int, descriptors.groups()):
+        os.fstat(descriptor)
+state = subprocess.check_output(
+    ["git", "rev-parse", "--path-format=absolute", "--git-path", "content-port-transaction"],
+    text=True,
+).strip()
+contender = os.open(os.path.join(state, "lifetime.lock"), os.O_RDWR)
+try:
+    fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    pass
+else:
+    raise SystemExit("content-port lifetime lock did not survive wrapper exec")
+print(makeflags)
+"""
+            )
+            makefile = temp / "probe.mk"
+            makefile.write_text(
+                "ifeq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)\n"
+                ".PHONY: content-port-jobserver-probe\n"
+                "content-port-jobserver-probe:\n"
+                f"\t+@{sys.executable} {probe}\n"
+                "endif\n"
+            )
+
+            result = subprocess.run(
+                [
+                    "make",
+                    "-j4",
+                    "--no-print-directory",
+                    "NODEP=1",
+                    "SETUP_PREREQS=0",
+                    "content-port-jobserver-probe",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                env={**os.environ, "MAKEFILES": str(makefile)},
+                timeout=10.0,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("jobserver unavailable", result.stderr)
+            hydra_parallelism = re.search(r"(?:^| )-j([0-9]+)(?: |$)", result.stdout)
+            self.assertIsNotNone(hydra_parallelism, result.stdout)
+            assert hydra_parallelism is not None
+            self.assertGreater(int(hydra_parallelism.group(1)), 1)
+            self.assertRegex(
+                result.stdout,
+                r"(?:^| )--jobserver-(?:auth|fds)=(?:[0-9]+,[0-9]+|fifo:[^ ]+)(?: |$)",
+            )
 
     def test_product_tuple_is_forced_for_every_build_purpose(self) -> None:
         # Query the parsed make database through a phony goal whose prerequisites

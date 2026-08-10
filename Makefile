@@ -33,7 +33,7 @@ ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
 _CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 .PHONY: __content-port-build-lock
 __content-port-build-lock:
-	@if [ -e .git ] || [ -L .git ]; then \
+	+@if [ -e .git ] || [ -L .git ]; then \
 		root="$$(git rev-parse --show-toplevel)" || exit 2; \
 		root="$$(cd "$$root" && pwd -P)" || exit 2; \
 		current="$$(pwd -P)" || exit 2; \
@@ -46,7 +46,7 @@ __content-port-build-lock:
 			*) echo "content-port: invalid transaction state path" >&2; exit 2 ;; \
 		esac; \
 		mkdir -p "$$state" || exit 2; \
-		python3 -c 'import fcntl, os, subprocess, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); raise SystemExit(subprocess.call(sys.argv[2:]))' \
+		python3 -c 'import fcntl, os, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); os.set_inheritable(fd, True); os.execvp(sys.argv[2], sys.argv[2:])' \
 			"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
 	else \
 		$(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \

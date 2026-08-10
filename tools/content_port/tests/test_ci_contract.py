@@ -28,7 +28,7 @@ class CiContractTests(unittest.TestCase):
                 r"(?m)^  test:\n"
                 r"    name: Test\n"
                 r"    runs-on: ubuntu-latest\n"
-                r"    timeout-minutes: 45$"
+                r"    timeout-minutes: 30$"
             ),
         )
 
