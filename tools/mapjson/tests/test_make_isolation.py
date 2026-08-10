@@ -39,6 +39,91 @@ class ProductMakeContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
+    def make_probe_command(
+        self, option: str, makefile: Path, target: Path
+    ) -> list[str]:
+        return [
+            "make",
+            option,
+            "-f",
+            str(ROOT / "Makefile"),
+            "-f",
+            str(makefile),
+            "NODEP=1",
+            "SETUP_PREREQS=0",
+            str(target),
+        ]
+
+    def test_question_modes_report_current_and_outdated_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            prerequisite = temp / "source"
+            target = temp / "target"
+            makefile = temp / "probe.mk"
+            prerequisite.write_text("source\n")
+            target.write_text("target\n")
+            makefile.write_text(f"{target}: {prerequisite}\n\t@cp $< $@\n")
+
+            for option in ("-q", "--question"):
+                with self.subTest(option=option, state="current"):
+                    os.utime(prerequisite, (1_000_000_000, 1_000_000_000))
+                    os.utime(target, (1_000_000_001, 1_000_000_001))
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
+                with self.subTest(option=option, state="outdated"):
+                    os.utime(prerequisite, (1_000_000_002, 1_000_000_002))
+                    before = target.read_bytes()
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    self.assertEqual(target.read_bytes(), before)
+
+    def test_touch_modes_preserve_current_and_outdated_target_semantics(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            prerequisite = temp / "source"
+            target = temp / "target"
+            makefile = temp / "probe.mk"
+            prerequisite.write_text("source\n")
+            target.write_text("target\n")
+            makefile.write_text(f"{target}: {prerequisite}\n\t@cp $< $@\n")
+
+            for option in ("-t", "--touch"):
+                with self.subTest(option=option, state="current"):
+                    os.utime(prerequisite, (1_000_000_000, 1_000_000_000))
+                    os.utime(target, (1_000_000_001, 1_000_000_001))
+                    before = target.stat().st_mtime_ns
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(target.stat().st_mtime_ns, before)
+
+                with self.subTest(option=option, state="outdated"):
+                    os.utime(prerequisite, (1_000_000_002, 1_000_000_002))
+                    before = target.stat().st_mtime_ns
+                    result = subprocess.run(
+                        self.make_probe_command(option, makefile, target),
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertGreater(target.stat().st_mtime_ns, before)
+
     def test_product_tuple_is_forced_for_every_build_purpose(self) -> None:
         # Query the parsed make database through a phony goal whose prerequisites
         # are present in a clean checkout.  The production `generated` goal needs
