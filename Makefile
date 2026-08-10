@@ -18,6 +18,17 @@ ifneq (,$(_CONTENT_PORT_DIRECT_MAKE_MODE))
 CONTENT_PORT_BUILD_LOCK_HELD := 1
 endif
 
+# Exported source trees have no Git transaction state.  Only enable Git-backed
+# coordination when this Makefile is running at the exact worktree root, using
+# the same .git/root identity required by the lifetime-lock wrapper below.
+_CONTENT_PORT_IS_GIT_WORKTREE_ROOT := $(shell \
+  if [ -e .git ] || [ -L .git ]; then \
+    root="$$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0; \
+    root="$$(cd "$$root" && pwd -P)" || exit 0; \
+    current="$$(pwd -P)" || exit 0; \
+    if [ "$$root" = "$$current" ]; then printf '1'; fi; \
+  fi)
+
 ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
 _CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 .PHONY: __content-port-build-lock
@@ -448,15 +459,19 @@ endif
 .SHELLSTATUS ?= 0
 
 ifeq ($(SETUP_PREREQS),1)
+ifeq (,$(_CONTENT_PORT_DIRECT_MAKE_MODE))
+ifeq ($(_CONTENT_PORT_IS_GIT_WORKTREE_ROOT),1)
   # This runs before parse-time tool and source generation, which otherwise
   # precedes the normal prerequisite graph and could consume a mixed tree.
   $(foreach line, $(shell python3 -m tools.content_port transaction-check --repo . 2>&1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
   ifneq ($(.SHELLSTATUS),0)
     $(error Active content-port transaction blocks build setup)
   endif
+endif
   # If set on: Default target or a rule requiring a scan
   # Forcibly execute `make tools` since we need them for what we are doing.
-  $(foreach line, $(shell $(MAKE) -f make_tools.mk | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
+  _CONTENT_PORT_SETUP_TOOLS_GOAL := $(if $(_CONTENT_PORT_IS_GIT_WORKTREE_ROOT),tools,tools-no-history)
+  $(foreach line, $(shell $(MAKE) -f make_tools.mk $(_CONTENT_PORT_SETUP_TOOLS_GOAL) | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
   ifneq ($(.SHELLSTATUS),0)
     $(error Errors occurred while building tools. See error messages above for more details)
   endif
@@ -465,6 +480,7 @@ ifeq ($(SETUP_PREREQS),1)
   ifneq ($(.SHELLSTATUS),0)
     $(error Errors occurred while generating map-related sources. See error messages above for more details)
   endif
+endif
 endif
 
 # Collect sources

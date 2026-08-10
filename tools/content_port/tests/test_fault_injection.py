@@ -430,6 +430,18 @@ class FaultInjectionTests(unittest.TestCase):
                         process.terminate()
                         process.wait(timeout=5.0)
 
+    def test_dry_run_setup_is_read_only_and_does_not_wait_for_build_lock(self) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        with transaction_lifetime_lock(repo, exclusive=True):
+            result = subprocess.run(
+                ["make", "-n", "NODEP=1", "SETUP_PREREQS=1", "all"],
+                cwd=repo,
+                text=True,
+                capture_output=True,
+                timeout=5.0,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_ref_cannot_move_between_identity_check_and_publication(self) -> None:
         temporary, repo, fixture, bundle, digest = self._fixture()
         try:

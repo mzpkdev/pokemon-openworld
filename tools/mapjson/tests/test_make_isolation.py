@@ -338,6 +338,7 @@ class ProductMakeContractTests(unittest.TestCase):
             # Local runs exercise the working Makefile; in CI this is identical
             # to the archived committed copy.
             shutil.copy2(ROOT / "Makefile", checkout / "Makefile")
+            shutil.copy2(ROOT / "make_tools.mk", checkout / "make_tools.mk")
             self.assertFalse((checkout / ".git").exists())
 
             header = checkout / "include/constants/script_commands.h"
@@ -345,6 +346,41 @@ class ProductMakeContractTests(unittest.TestCase):
                 checkout / "build/generated/allregions/current/src",
                 checkout / "build/generated/allregions/current/include",
             )
+
+            setup_dry_run = subprocess.run(
+                ["make", "-n", "NODEP=1", "SETUP_PREREQS=1", "all"],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+                timeout=10.0,
+            )
+            self.assertEqual(setup_dry_run.returncode, 0, setup_dry_run.stderr)
+            self.assertNotIn("not a git repository", setup_dry_run.stderr)
+            self.assertNotIn("Active content-port transaction", setup_dry_run.stderr)
+            for output in (
+                checkout / "tools/mapjson/mapjson",
+                checkout / "tools/trainerproc/trainerproc",
+                header,
+            ):
+                with self.subTest(dry_run_output=output.relative_to(checkout)):
+                    self.assertFalse(output.exists())
+
+            setup_query = subprocess.run(
+                [
+                    "make",
+                    "--question",
+                    "NODEP=1",
+                    "SETUP_PREREQS=1",
+                    "all",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(setup_query.returncode, 1, setup_query.stderr)
+            self.assertNotIn("not a git repository", setup_query.stderr)
+            self.assertFalse(header.exists())
+
             for clean_goal in ("clean-generated", "clean"):
                 with self.subTest(clean_goal=clean_goal):
                     build = subprocess.run(
@@ -378,6 +414,48 @@ class ProductMakeContractTests(unittest.TestCase):
                     self.assertNotIn("not a git repository", clean.stderr)
                     self.assertFalse(header.exists())
                     self.assertFalse((checkout / "content-port-transaction").exists())
+
+            subprocess.run(
+                ["git", "init", "--quiet"],
+                cwd=checkout,
+                check=True,
+                capture_output=True,
+            )
+            guard = checkout / ".git/content-port-transaction/guard.json"
+            guard.parent.mkdir(parents=True)
+            guard.write_text("active\n")
+            direct_guard = subprocess.run(
+                [
+                    "python3",
+                    "-m",
+                    "tools.content_port",
+                    "transaction-check",
+                    "--repo",
+                    ".",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(direct_guard.returncode, 2, direct_guard.stderr)
+            guarded_setup = subprocess.run(
+                [
+                    "make",
+                    "CONTENT_PORT_BUILD_LOCK_HELD=1",
+                    "NODEP=1",
+                    "SETUP_PREREQS=1",
+                    "all",
+                ],
+                cwd=checkout,
+                text=True,
+                capture_output=True,
+                timeout=10.0,
+            )
+            self.assertNotEqual(guarded_setup.returncode, 0)
+            self.assertIn(
+                "Active content-port transaction blocks build setup",
+                guarded_setup.stderr,
+            )
 
     def test_conflicting_command_line_values_fail_before_assignment(self) -> None:
         conflicts = {
