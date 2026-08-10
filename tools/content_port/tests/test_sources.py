@@ -589,6 +589,52 @@ class SourceGraphTests(unittest.TestCase):
                 Path("."),
             )
 
+    def test_enabled_event_entry_must_be_reachable_from_its_map_policy(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        with tempfile.TemporaryDirectory(dir="tools/content_port/tests") as directory:
+            port = Path(directory) / "johto"
+            shutil.copytree("tools/content_port/ports/johto", port)
+            descriptor = load_port(port, donor_root)
+            capabilities = tuple(
+                replace(decision, state=CapabilityState.ENABLED)
+                if decision.map_name == "DragonsDen_Entrance"
+                and decision.capability == "interactions"
+                else decision
+                for decision in descriptor.capabilities
+            )
+            (port / "events.json").write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": 1,
+                        "entries": [
+                            {
+                                "name": "BlackthornCity_House1_Unrelated",
+                                "capability": "interactions",
+                                "classification": "enabled",
+                            }
+                        ],
+                        "effects": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "enabled event entry BlackthornCity_House1_Unrelated is not reachable",
+            ):
+                resolve_port_sources(
+                    replace(
+                        descriptor,
+                        capabilities=capabilities,
+                        legacy_report=None,
+                    ),
+                    Path("."),
+                )
+
     def test_full_real_port_contract_rejects_cross_domain_mutations(self) -> None:
         donor_root = self._donor_root()
         if donor_root is None:
