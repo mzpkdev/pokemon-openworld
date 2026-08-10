@@ -12,10 +12,14 @@ from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
 from .bindings import load_binding_index
-from .descriptor import GENERATED_AUTHORITY_CONTRACT, PortDescriptor
+from .descriptor import (
+    GENERATED_AUTHORITY_CONTRACT,
+    MATERIALIZATION_STRIP_EVENT_KINDS,
+    PortDescriptor,
+)
 from .donors import authenticated_donor_snapshot
 from .errors import ContentPortError
-from .model import DonorPin
+from .model import DonorPin, ResourceKey
 from .ownership import OwnershipManifest, safe_repo_path, verify_desired_claims
 from .renderers import RenderContext, RenderUnit, render_units
 from .sources import PortSourceState, resolve_port_sources
@@ -70,13 +74,26 @@ def _asset_units(
 ) -> list[RenderUnit]:
     units: list[RenderUnit] = []
     seen: set[str] = set()
+    rendered_sources: set[str] = set()
     records = descriptor.assets.get("assets")
     if not isinstance(records, tuple):
         raise ContentPortError("asset policy requires an immutable assets array")
+    declared_capabilities = {
+        decision.capability for decision in descriptor.capabilities
+    }
     for index, raw in enumerate(records):
         item = _thaw(raw)
         if not isinstance(item, dict):
             raise ContentPortError(f"assets[{index}]: expected object")
+        capability = item.get("capability")
+        if capability not in declared_capabilities:
+            raise ContentPortError(
+                f"assets[{index}]: unknown capability {capability!r}"
+            )
+        if item.get("supportState") != "enabled":
+            raise ContentPortError(
+                f"assets[{index}]: asset emission requires enabled support"
+            )
         target = item.get("semanticTarget")
         role = item.get("donor")
         source = item.get("sourcePath")
@@ -87,6 +104,17 @@ def _asset_units(
             raise ContentPortError(f"assets[{index}]: incomplete source binding")
         if role not in state.donor_roots:
             raise ContentPortError(f"assets[{index}]: unknown donor role {role!r}")
+        source_key = ResourceKey("asset", f"{role}:{source}")
+        if source_key not in state.resources:
+            raise ContentPortError(
+                f"assets[{index}]: source is absent from authenticated closure: "
+                f"{source_key}"
+            )
+        if source_key.name in rendered_sources:
+            raise ContentPortError(
+                f"assets[{index}]: duplicate authenticated source {source_key.name}"
+            )
+        rendered_sources.add(source_key.name)
         if command != ["copy-bytes"]:
             raise ContentPortError(f"assets[{index}]: unsupported conversion command")
         if item.get("permission") != "redistributable":
@@ -103,12 +131,24 @@ def _asset_units(
         units.append(
             RenderUnit(f"asset:{target}", "tileset-assets", target, {target: payload})
         )
+    authorized_sources = set(state.inventory.get("asset-policy", ()))
+    if rendered_sources != authorized_sources:
+        missing = sorted(authorized_sources - rendered_sources)
+        extra = sorted(rendered_sources - authorized_sources)
+        raise ContentPortError(
+            "asset render inventory does not match authenticated closure: "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
     return units
 
 
 def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[RenderUnit]:
     profile = descriptor.adaptations["materializationProfile"]
     strip = tuple(profile["stripEventKinds"])
+    if strip != MATERIALIZATION_STRIP_EVENT_KINDS:
+        raise ContentPortError(
+            "materialization profile must strip every non-warp event collection"
+        )
     content_field = descriptor.adaptations["donorFieldRoles"]["content"]
     section_remaps = {
         item["source"]: item["target"]

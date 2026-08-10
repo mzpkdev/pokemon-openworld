@@ -277,7 +277,11 @@ class DescriptorTests(unittest.TestCase):
                 "materializationProfile",
                 {
                     "mapScripts": "empty",
-                    "stripEventKinds": ["object_events"],
+                    "stripEventKinds": [
+                        "bg_events",
+                        "coord_events",
+                        "object_events",
+                    ],
                 },
                 "mapScripts",
                 "stripEventKinds",
@@ -401,7 +405,11 @@ class DescriptorTests(unittest.TestCase):
                 },
                 "materializationProfile": {
                     "mapScripts": "empty",
-                    "stripEventKinds": ["object_events"],
+                    "stripEventKinds": [
+                        "bg_events",
+                        "coord_events",
+                        "object_events",
+                    ],
                 },
                 "worldPolicy": {
                     "roots": ["TestMap"],
@@ -780,13 +788,19 @@ class DescriptorTests(unittest.TestCase):
                 lambda document: document["materializationProfile"].update(
                     stripEventKinds=["object_events", "bg_events"]
                 ),
-                "must be sorted and unique",
+                "must exactly strip",
             ),
             (
                 lambda document: document["materializationProfile"].update(
                     stripEventKinds=["object_events", "object_events"]
                 ),
-                "must be sorted and unique",
+                "must exactly strip",
+            ),
+            (
+                lambda document: document["materializationProfile"].update(
+                    stripEventKinds=["bg_events", "coord_events"]
+                ),
+                "must exactly strip",
             ),
             (
                 lambda document: document.pop("targetBindings"),
@@ -1238,6 +1252,61 @@ class DescriptorTests(unittest.TestCase):
                 ContentPortError, "numeric placement belongs in allocation_lock.json"
             ):
                 load_port(root, root / "missing-donors")
+
+    def test_event_policy_cross_references_capability_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cases = (
+                (
+                    {
+                        "schemaVersion": 1,
+                        "entries": [
+                            {
+                                "name": "Entry",
+                                "capability": "spatail",
+                                "classification": "enabled",
+                            }
+                        ],
+                        "effects": [],
+                    },
+                    "unknown capability 'spatail'",
+                ),
+                (
+                    {
+                        "schemaVersion": 1,
+                        "entries": [
+                            {
+                                "name": "Entry",
+                                "capability": "spatial",
+                                "classification": "story-owned",
+                            }
+                        ],
+                        "effects": [],
+                    },
+                    "classification 'story-owned' is stale",
+                ),
+                (
+                    {
+                        "schemaVersion": 1,
+                        "entries": [],
+                        "effects": [
+                            {
+                                "kind": "state-read",
+                                "command": "checkflag",
+                                "operand": "FLAG_TEST",
+                                "owner": "spatail",
+                            }
+                        ],
+                    },
+                    "unknown owner 'spatail'",
+                ),
+            )
+            for document, message in cases:
+                with self.subTest(message=message):
+                    self.make_port(root)
+                    dump(root / "events.json", document)
+                    with self.assertRaisesRegex(ContentPortError, message):
+                        load_port(root, root)
 
     def test_unknown_capability_state_and_map_drift_fail(self):
         with tempfile.TemporaryDirectory() as directory:

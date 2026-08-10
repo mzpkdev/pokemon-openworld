@@ -44,6 +44,33 @@ class MaterializeTests(unittest.TestCase):
             self.skipTest(message)
         return load_port(PORT, donor_root)
 
+    def test_asset_policy_capability_and_support_state_are_render_authority(
+        self,
+    ) -> None:
+        descriptor = self.descriptor()
+        donor_root = descriptor.donors[0].root.parent
+        cases = (
+            ("capability", "spatail", "unknown capability 'spatail'"),
+            (
+                "supportState",
+                "disabled",
+                "asset emission requires 'enabled'",
+            ),
+        )
+        for field, value, message in cases:
+            with (
+                self.subTest(field=field),
+                tempfile.TemporaryDirectory(dir=ROOT) as directory,
+            ):
+                port = Path(directory) / "johto"
+                shutil.copytree(PORT, port)
+                path = port / "assets.json"
+                document = json.loads(path.read_text(encoding="utf-8"))
+                document["assets"][0][field] = value
+                path.write_text(json.dumps(document), encoding="utf-8")
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(port, donor_root)
+
     def test_owned_output_corruption_cannot_change_desired_state(self) -> None:
         descriptor = self.descriptor()
         evidence, state = resolve_port_sources(descriptor, ROOT)
@@ -136,6 +163,21 @@ class MaterializeTests(unittest.TestCase):
 
             self.assertEqual(first_manifest.to_json(), second_manifest.to_json())
             self.assertEqual(dict(first_payloads), dict(second_payloads))
+            policy_target_by_source = {
+                f"{record['donor']}:{record['sourcePath']}": record["semanticTarget"]
+                for record in descriptor.assets["assets"]
+            }
+            self.assertEqual(
+                set(policy_target_by_source),
+                set(state.inventory["asset-policy"]),
+            )
+            self.assertEqual(
+                {unit.key for unit in _asset_units(descriptor, state)},
+                {
+                    f"asset:{policy_target_by_source[source]}"
+                    for source in state.inventory["asset-policy"]
+                },
+            )
             self.assertEqual(len(first_manifest.units), len(recipe.units))
             self.assertEqual(
                 {unit.identity for unit in first_manifest.units},
@@ -151,6 +193,39 @@ class MaterializeTests(unittest.TestCase):
             ]:
                 self.assertEqual(route30[field], [])
             self.assertTrue(route30["warp_events"])
+            incomplete_adaptations = dict(descriptor.adaptations)
+            incomplete_profile = dict(descriptor.adaptations["materializationProfile"])
+            incomplete_profile["stripEventKinds"] = (
+                "bg_events",
+                "coord_events",
+            )
+            incomplete_adaptations["materializationProfile"] = MappingProxyType(
+                incomplete_profile
+            )
+            incomplete_descriptor = replace(
+                descriptor,
+                adaptations=MappingProxyType(incomplete_adaptations),
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "must strip every non-warp event collection",
+            ):
+                _map_units(incomplete_descriptor, state)
+            disabled_assets = dict(descriptor.assets)
+            disabled_records = list(descriptor.assets["assets"])
+            disabled_record = dict(disabled_records[0])
+            disabled_record["supportState"] = "disabled"
+            disabled_records[0] = MappingProxyType(disabled_record)
+            disabled_assets["assets"] = tuple(disabled_records)
+            disabled_descriptor = replace(
+                descriptor,
+                assets=MappingProxyType(disabled_assets),
+            )
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "asset emission requires enabled support",
+            ):
+                _asset_units(disabled_descriptor, state)
             victory_road = first_payloads[
                 (
                     "registry-record",
@@ -539,6 +614,12 @@ class MaterializeTests(unittest.TestCase):
             isolated = replace(
                 state,
                 donor_roots=MappingProxyType({**state.donor_roots, role: donor}),
+                inventory=MappingProxyType(
+                    {
+                        **state.inventory,
+                        "asset-policy": (f"{role}:{source_path}",),
+                    }
+                ),
             )
             focused = replace(
                 descriptor,

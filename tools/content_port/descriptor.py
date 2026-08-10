@@ -30,6 +30,11 @@ from .model import (
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+MATERIALIZATION_STRIP_EVENT_KINDS = (
+    "bg_events",
+    "coord_events",
+    "object_events",
+)
 PORT_KEYS = {
     "schemaVersion",
     "allocationLock",
@@ -516,16 +521,18 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
     strip_event_kinds = _string_array(
         profile["stripEventKinds"], f"{profile_pointer}.stripEventKinds"
     )
-    supported_event_kinds = {"bg_events", "coord_events", "object_events"}
-    unknown_event_kinds = sorted(set(strip_event_kinds) - supported_event_kinds)
+    unknown_event_kinds = sorted(
+        set(strip_event_kinds) - set(MATERIALIZATION_STRIP_EVENT_KINDS)
+    )
     if unknown_event_kinds:
         raise ContentPortError(
             f"{profile_pointer}.stripEventKinds: unsupported event kind "
             f"{unknown_event_kinds[0]!r}"
         )
-    if strip_event_kinds != tuple(sorted(set(strip_event_kinds))):
+    if strip_event_kinds != MATERIALIZATION_STRIP_EVENT_KINDS:
         raise ContentPortError(
-            f"{profile_pointer}.stripEventKinds: must be sorted and unique"
+            f"{profile_pointer}.stripEventKinds: must exactly strip "
+            f"{list(MATERIALIZATION_STRIP_EVENT_KINDS)!r}"
         )
 
     world_pointer = f"{pointer}.worldPolicy"
@@ -1324,9 +1331,12 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     events = _load_policy(event_path, {"schemaVersion", "entries", "effects"}, "$")
     # Event semantics are part of the descriptor contract, not deferred until a
     # production render happens to enable an event capability.
-    from .semantics import load_event_policy
+    from .semantics import load_event_policy, validate_event_policy_capabilities
 
-    load_event_policy(event_path)
+    event_entries, effect_policy = load_event_policy(event_path)
+    validate_event_policy_capabilities(
+        event_entries, effect_policy, capabilities, source=event_path
+    )
     assets = _load_policy(
         _safe_child(port_dir, root["assetPolicy"], "$.assetPolicy"),
         {"schemaVersion", "permissionRecords", "assets"},
@@ -1348,6 +1358,25 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         ),
         require_redistributable=False,
     )
+    asset_records = assets["assets"]
+    if not isinstance(asset_records, tuple):
+        raise ContentPortError("$.assets: expected an immutable array")
+    declared_capabilities = {decision.capability for decision in capabilities}
+    for index, raw in enumerate(asset_records):
+        pointer = f"$.assets[{index}]"
+        item = _object(_thaw(raw), pointer)
+        capability = _string(item.get("capability"), f"{pointer}.capability")
+        if capability not in declared_capabilities:
+            raise ContentPortError(
+                f"{pointer}.capability: unknown capability {capability!r}"
+            )
+        support_state = CapabilityState.parse(
+            item.get("supportState"), f"{pointer}.supportState"
+        )
+        if support_state is not CapabilityState.ENABLED:
+            raise ContentPortError(
+                f"{pointer}.supportState: asset emission requires 'enabled'"
+            )
     legacy = (
         _load_policy(
             _safe_child(port_dir, root["legacyReport"], "$.legacyReport"), None, "$"
