@@ -64,6 +64,7 @@ class Instruction:
 class Opcode:
     effects: tuple[tuple[str, int | None], ...] = ()
     calls: tuple[int, ...] = ()
+    dependencies: tuple[tuple[str, int], ...] = ()
     terminal: bool = False
 
 
@@ -155,7 +156,7 @@ def load_opcodes(path: Path | str | None = None) -> Mapping[str, Opcode]:
         _nonempty_string(command, f"{source}/opcodes command")
         spec = _exact_object(
             raw_spec,
-            {"effects", "calls", "terminal"},
+            {"effects", "calls", "dependencies", "terminal"},
             f"{source}/opcodes/{command}",
         )
         raw_effects = spec["effects"]
@@ -188,12 +189,37 @@ def load_opcodes(path: Path | str | None = None) -> Mapping[str, Opcode]:
             raise ContentPortError(
                 f"{source}/opcodes/{command}/calls: invalid call operand"
             )
+        raw_dependencies = spec["dependencies"]
+        if not isinstance(raw_dependencies, list):
+            raise ContentPortError(
+                f"{source}/opcodes/{command}/dependencies: must be a list"
+            )
+        dependencies: list[tuple[str, int]] = []
+        for index, raw_dependency in enumerate(raw_dependencies):
+            dependency = _exact_object(
+                raw_dependency,
+                {"domain", "operand"},
+                f"{source}/opcodes/{command}/dependencies/{index}",
+            )
+            domain = _nonempty_string(
+                dependency["domain"],
+                f"{source}/opcodes/{command}/dependencies/{index}/domain",
+            )
+            operand = dependency["operand"]
+            if type(operand) is not int or operand < 0:
+                raise ContentPortError(
+                    f"{source}/opcodes/{command}/dependencies/{index}/operand: "
+                    "invalid operand index"
+                )
+            dependencies.append((domain, operand))
         terminal = spec["terminal"]
         if type(terminal) is not bool:
             raise ContentPortError(
                 f"{source}/opcodes/{command}/terminal: must be a boolean"
             )
-        result[command] = Opcode(tuple(effects), tuple(calls), terminal)
+        result[command] = Opcode(
+            tuple(effects), tuple(calls), tuple(dependencies), terminal
+        )
     return result
 
 

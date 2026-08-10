@@ -102,12 +102,22 @@ class SemanticsTests(unittest.TestCase):
     def test_opcode_schema_is_exact_required_versioned_and_typed(self) -> None:
         valid = {
             "schemaVersion": 1,
-            "opcodes": {"end": {"effects": [], "calls": [], "terminal": False}},
+            "opcodes": {
+                "end": {
+                    "effects": [],
+                    "calls": [],
+                    "dependencies": [],
+                    "terminal": False,
+                }
+            },
         }
         mutations = {
             "version": lambda value: value.update(schemaVersion=999),
             "missing effects": lambda value: value["opcodes"]["end"].pop("effects"),
             "missing calls": lambda value: value["opcodes"]["end"].pop("calls"),
+            "missing dependencies": lambda value: value["opcodes"]["end"].pop(
+                "dependencies"
+            ),
             "coerced boolean": lambda value: value["opcodes"]["end"].update(
                 terminal="false"
             ),

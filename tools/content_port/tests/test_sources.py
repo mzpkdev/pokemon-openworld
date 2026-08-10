@@ -173,6 +173,13 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("service", "NewBarkTown_OnTransition"),
         ):
             self.assertIn(key, domain_graph.resources)
+        mechanical = ExpansionSourceContext(
+            donor_root / "PKMN-World", active_capabilities=("encounters",)
+        )
+        hidden_graph = build_source_graph(
+            mechanical, [ResourceKey("encounter", "gRoute29")]
+        )
+        self.assertIn(ResourceKey("species", "SPECIES_PHANPY"), hidden_graph.resources)
         for key in (
             ResourceKey("species", "SPECIES_GEODUDE"),
             ResourceKey("asset", "TRAINER_PIC_HIKER"),
@@ -190,7 +197,11 @@ class SourceGraphTests(unittest.TestCase):
             (root / "data/maps/Town").mkdir(parents=True)
             (root / "include/constants").mkdir(parents=True)
             declarations = {
-                "species.h": ["SPECIES_PIKACHU", "SPECIES_RATTATA"],
+                "species.h": [
+                    "SPECIES_PIKACHU",
+                    "SPECIES_RATTATA",
+                    "SPECIES_HIDDEN",
+                ],
                 "moves.h": ["MOVE_THUNDERBOLT", "MOVE_QUICK_ATTACK"],
                 "items.h": ["ITEM_ORAN_BERRY", "ITEM_POTION"],
                 "trainers.h": [
@@ -230,7 +241,9 @@ class SourceGraphTests(unittest.TestCase):
                 json.dumps({"name": "Town", "id": "MAP_TOWN"}), encoding="utf-8"
             )
             (root / "data/maps/Town/scripts.inc").write_text(
-                "Entry::\n call Helper\n setflag FLAG_TEST\n end\nHelper::\n return\n",
+                "Entry::\n call Helper\n setflag FLAG_TEST\n "
+                "playmoncry SPECIES_PIKACHU, CRY_MODE_NORMAL\n end\n"
+                "Helper::\n return\n",
                 encoding="utf-8",
             )
             encounter = {
@@ -240,7 +253,26 @@ class SourceGraphTests(unittest.TestCase):
                             {
                                 "map": "MAP_TOWN",
                                 "base_label": "gTown",
-                                "land_mons": {"mons": [{"species": "SPECIES_RATTATA"}]},
+                                "land_mons": {
+                                    "encounter_rate": 20,
+                                    "mons": [
+                                        {
+                                            "min_level": 2,
+                                            "max_level": 3,
+                                            "species": "SPECIES_RATTATA",
+                                        }
+                                    ],
+                                },
+                                "hidden_mons": {
+                                    "encounter_rate": 0,
+                                    "mons": [
+                                        {
+                                            "min_level": 4,
+                                            "max_level": 6,
+                                            "species": "SPECIES_HIDDEN",
+                                        }
+                                    ],
+                                },
                             }
                         ]
                     }
@@ -273,6 +305,7 @@ class SourceGraphTests(unittest.TestCase):
                 ResourceKey("party", "sParty_Test"),
                 ResourceKey("species", "SPECIES_PIKACHU"),
                 ResourceKey("species", "SPECIES_RATTATA"),
+                ResourceKey("species", "SPECIES_HIDDEN"),
                 ResourceKey("move", "MOVE_THUNDERBOLT"),
                 ResourceKey("move", "MOVE_QUICK_ATTACK"),
                 ResourceKey("item", "ITEM_ORAN_BERRY"),
@@ -316,6 +349,11 @@ class SourceGraphTests(unittest.TestCase):
                     "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1",
                     "TRAINER_ENCOUNTER_MUSIC_NOT_DECLARED",
                 ),
+                "hidden-species": (
+                    root / "src/data/wild_encounters.json",
+                    "SPECIES_HIDDEN",
+                    "SPECIES_NOT_DECLARED",
+                ),
             }
             for label, (path, declared, missing) in native_files.items():
                 with self.subTest(native_leaf=label):
@@ -353,6 +391,21 @@ class SourceGraphTests(unittest.TestCase):
             with self.assertRaisesRegex(ContentPortError, "binding:FLAG_UNALLOCATED"):
                 build_source_graph(broken, [ResourceKey("capability", "native")])
 
+            (root / "data/maps/Town/scripts.inc").write_text(
+                "Entry::\n playmoncry SPECIES_NOT_DECLARED, CRY_MODE_NORMAL\n end\n",
+                encoding="utf-8",
+            )
+            broken = ExpansionSourceContext(
+                root,
+                capabilities={"native": {"references": {"service": ["Entry"]}}},
+                persistent_ledger=ledger,
+                active_capabilities=("events",),
+            )
+            with self.assertRaisesRegex(
+                ContentPortError, "species:SPECIES_NOT_DECLARED"
+            ):
+                build_source_graph(broken, [ResourceKey("capability", "native")])
+
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,
     ) -> None:
@@ -378,6 +431,37 @@ class SourceGraphTests(unittest.TestCase):
                 for identity in expected_asset_policy
             )
         )
+        azalea_border = "data/layouts/AzaleaTown/border.bin"
+        missing_asset_policy = {
+            **descriptor.assets,
+            "assets": tuple(
+                item
+                for item in descriptor.assets["assets"]
+                if item["sourcePath"] != azalea_border
+            ),
+        }
+        with self.assertRaisesRegex(ContentPortError, "exactly cover"):
+            resolve_port_sources(
+                replace(
+                    descriptor,
+                    assets=missing_asset_policy,
+                    legacy_report=None,
+                ),
+                Path("."),
+            )
+        target_drift = [self._mutable(item) for item in descriptor.assets["assets"]]
+        next(item for item in target_drift if item["sourcePath"] == azalea_border)[
+            "semanticTarget"
+        ] = "data/layouts/AzaleaTown/wrong-border.bin"
+        with self.assertRaisesRegex(ContentPortError, "semantic targets differ"):
+            resolve_port_sources(
+                replace(
+                    descriptor,
+                    assets={**descriptor.assets, "assets": tuple(target_drift)},
+                    legacy_report=None,
+                ),
+                Path("."),
+            )
         self.assertEqual(state.map_authorities["JohtoVictoryRoad_1F"], "mechanical")
         self.assertEqual(
             state.layout_authorities["LAYOUT_CHERRYGROVE_CITY_POKEMON_CENTER"],
@@ -484,6 +568,22 @@ class SourceGraphTests(unittest.TestCase):
                 replace(
                     descriptor,
                     capabilities=without_event_capability,
+                    legacy_report=None,
+                ),
+                Path("."),
+            )
+
+        event_capabilities = tuple(
+            replace(decision, state=CapabilityState.ENABLED)
+            if decision.map_name == "Route30" and decision.capability == "interactions"
+            else decision
+            for decision in descriptor.capabilities
+        )
+        with self.assertRaisesRegex(ContentPortError, "has no classification"):
+            resolve_port_sources(
+                replace(
+                    descriptor,
+                    capabilities=event_capabilities,
                     legacy_report=None,
                 ),
                 Path("."),

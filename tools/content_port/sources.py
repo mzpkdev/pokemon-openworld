@@ -87,6 +87,7 @@ class PortSourceState:
     donor_roots: Mapping[str, Path]
     resources: Mapping[ResourceKey, Provenance]
     inventory: Mapping[str, tuple[str, ...]]
+    asset_targets: Mapping[str, str]
 
 
 class RecordLoader(Protocol):
@@ -416,24 +417,57 @@ class ExpansionSourceContext(SourceContext):
                     name = encounter.get("base_label") or encounter.get("map")
                     map_name = encounter.get("map")
                     if isinstance(name, str) and isinstance(map_name, str):
-                        species = sorted(
-                            {
-                                mon["species"]
-                                for habitat in (
-                                    "land_mons",
-                                    "water_mons",
-                                    "fishing_mons",
-                                    "rock_smash_mons",
+                        habitat_fields = {
+                            "land_mons",
+                            "water_mons",
+                            "fishing_mons",
+                            "rock_smash_mons",
+                            "hidden_mons",
+                        }
+                        unknown_fields = set(encounter) - {
+                            "map",
+                            "base_label",
+                            *habitat_fields,
+                        }
+                        if unknown_fields:
+                            raise ContentPortError(
+                                f"{encounters_path}/{name}/{index}: unknown encounter "
+                                f"field {sorted(unknown_fields)[0]!r}"
+                            )
+                        species_values: set[str] = set()
+                        for habitat in sorted(habitat_fields & set(encounter)):
+                            habitat_value = encounter[habitat]
+                            if not isinstance(habitat_value, Mapping) or set(
+                                habitat_value
+                            ) != {"encounter_rate", "mons"}:
+                                raise ContentPortError(
+                                    f"{encounters_path}/{name}/{habitat}: malformed "
+                                    "habitat record"
                                 )
-                                for mon in (
-                                    encounter.get(habitat, {}).get("mons", [])
-                                    if isinstance(encounter.get(habitat), Mapping)
-                                    else []
+                            mons = habitat_value["mons"]
+                            if not isinstance(mons, list):
+                                raise ContentPortError(
+                                    f"{encounters_path}/{name}/{habitat}/mons: "
+                                    "must be a list"
                                 )
-                                if isinstance(mon, Mapping)
-                                and isinstance(mon.get("species"), str)
-                            }
-                        )
+                            for mon_index, mon in enumerate(mons):
+                                if not isinstance(mon, Mapping) or set(mon) != {
+                                    "min_level",
+                                    "max_level",
+                                    "species",
+                                }:
+                                    raise ContentPortError(
+                                        f"{encounters_path}/{name}/{habitat}/mons/"
+                                        f"{mon_index}: malformed encounter member"
+                                    )
+                                symbol = mon["species"]
+                                if not isinstance(symbol, str):
+                                    raise ContentPortError(
+                                        f"{encounters_path}/{name}/{habitat}/mons/"
+                                        f"{mon_index}/species: must be a string"
+                                    )
+                                species_values.add(symbol)
+                        species = sorted(species_values)
                         for symbol in species:
                             _require_native_leaf(
                                 records,
@@ -937,6 +971,22 @@ def extract_service_edges(
                 record,
                 f"/instructions/{index}/operands/{call_index}",
                 role="script-call",
+            )
+            if edge:
+                result.append(edge)
+        for domain, operand_index in opcode.dependencies:
+            if operand_index >= len(operands):
+                raise ContentPortError(
+                    f"{record.provenance.path}/instructions/{index}: "
+                    f"{command} lacks dependency operand {operand_index}"
+                )
+            edge = _edge(
+                key,
+                domain,
+                operands[operand_index],
+                record,
+                f"/instructions/{index}/operands/{operand_index}",
+                role="typed-operand",
             )
             if edge:
                 result.append(edge)
@@ -1840,6 +1890,14 @@ def resolve_port_sources(
                 binding_dependencies.add(edge.target)
 
     semantic_authorities: dict[ResourceKey, str] = {}
+    event_policy_path = descriptor.path.parent / "events.json"
+    entries, effect_policy = load_event_policy(event_policy_path)
+    validate_event_policy_capabilities(
+        entries,
+        effect_policy,
+        descriptor.capabilities,
+        source=event_policy_path,
+    )
     while pending_semantics:
         role, dependency = pending_semantics.pop()
         previous_role = semantic_authorities.get(dependency)
@@ -1858,6 +1916,10 @@ def resolve_port_sources(
             ) from error
         semantic_authorities[dependency] = role
         source_records[dependency] = record
+        if dependency.domain == "service" and dependency.name not in entries:
+            raise ContentPortError(
+                f"reachable event service {dependency.name} has no classification"
+            )
         extractor = EXTRACTORS[dependency.domain]
         for edge in extractor(contexts[role], dependency, record):
             if edge.target.domain in semantic_domains:
@@ -1878,7 +1940,57 @@ def resolve_port_sources(
             {}, Provenance(ledger_path.as_posix(), f"/{dependency.name}")
         )
     enabled_capability_names = {decision.capability for decision in enabled}
+    required_assets: set[ResourceKey] = set()
+    required_asset_targets: dict[str, str] = {}
+    for layout_id, record in selected_layouts.items():
+        for field_name in ("border_filepath", "blockdata_filepath"):
+            role = layout_field_authorities[layout_id][field_name]
+            relative = str(record.value[field_name])
+            safe_repo_path(donor_roots[role], relative, allow_missing=False)
+            qualified = f"{role}:{relative}"
+            required_assets.add(ResourceKey("asset", qualified))
+            required_asset_targets[qualified] = relative
+    authority_roles = {value: role for role, value in donor_fields.items()}
+    for index, item in enumerate(adaptations["tilesetAdaptations"]):
+        role = authority_roles.get(item["authority"])
+        if role is None:
+            raise ContentPortError(
+                f"tilesetAdaptations/{index}: unknown donor field authority"
+            )
+        directory = (
+            donor_roots[role]
+            / "data"
+            / "tilesets"
+            / str(item["role"])
+            / str(item["directory"])
+        )
+        direct_files = [path for path in directory.glob("*") if path.is_file()]
+        palettes = directory / "palettes"
+        palette_files = (
+            [path for path in palettes.rglob("*") if path.is_file()]
+            if palettes.is_dir()
+            else []
+        )
+        if not direct_files:
+            raise ContentPortError(
+                f"tilesetAdaptations/{index}: authenticated tileset directory is empty"
+            )
+        for path in direct_files + palette_files:
+            relative = path.relative_to(donor_roots[role]).as_posix()
+            safe_repo_path(donor_roots[role], relative, allow_missing=False)
+            qualified = f"{role}:{relative}"
+            required_assets.add(ResourceKey("asset", qualified))
+            target_directory = item.get("targetDirectory", item["directory"])
+            target = (
+                Path("data")
+                / "tilesets"
+                / str(item["role"])
+                / str(target_directory)
+                / path.relative_to(directory)
+            ).as_posix()
+            required_asset_targets[qualified] = target
     asset_policy_references: dict[str, list[str]] = {}
+    policy_asset_targets: dict[str, str] = {}
     asset_records = descriptor.assets.get("assets")
     if not isinstance(asset_records, tuple):
         raise ContentPortError("asset policy requires an immutable assets array")
@@ -1896,16 +2008,10 @@ def resolve_port_sources(
         if not isinstance(source_path, str):
             raise ContentPortError(f"assets[{index}]: invalid sourcePath")
         path = safe_repo_path(donor_roots[role], source_path, allow_missing=False)
-        try:
-            payload = path.read_bytes()
-        except OSError as error:
-            raise ContentPortError(
-                f"assets[{index}]: cannot read authenticated donor asset"
-            ) from error
-        digest = hashlib.sha256(payload).hexdigest()
-        if digest != asset.get("sourceSha256") or digest != asset.get("targetSha256"):
-            raise ContentPortError(f"assets[{index}]: donor asset hash drift")
         qualified_name = f"{role}:{source_path}"
+        semantic_target = asset.get("semanticTarget")
+        if not isinstance(semantic_target, str):
+            raise ContentPortError(f"assets[{index}]: invalid semanticTarget")
         key = ResourceKey("asset", qualified_name)
         previous = source_records.get(key)
         record = SourceRecord({}, Provenance(path.as_posix(), f"/assets/{index}"))
@@ -1915,6 +2021,33 @@ def resolve_port_sources(
             )
         source_records[key] = record
         asset_policy_references.setdefault(str(capability), []).append(qualified_name)
+        if qualified_name in policy_asset_targets:
+            raise ContentPortError(
+                f"assets[{index}]: duplicate qualified asset {qualified_name}"
+            )
+        policy_asset_targets[qualified_name] = semantic_target
+    asset_policy_keys = {
+        ResourceKey("asset", name)
+        for names in asset_policy_references.values()
+        for name in names
+    }
+    missing_assets = sorted(required_assets - asset_policy_keys, key=str)
+    extra_assets = sorted(asset_policy_keys - required_assets, key=str)
+    if missing_assets or extra_assets:
+        raise ContentPortError(
+            "asset policy must exactly cover resolved physical dependencies; "
+            f"missing={missing_assets[:1]}, extra={extra_assets[:1]}"
+        )
+    if policy_asset_targets != required_asset_targets:
+        drift = sorted(
+            key
+            for key in set(policy_asset_targets) | set(required_asset_targets)
+            if policy_asset_targets.get(key) != required_asset_targets.get(key)
+        )
+        raise ContentPortError(
+            "asset policy semantic targets differ from resolved render dependencies; "
+            f"drift={drift[:1]}"
+        )
     capability_roots: list[ResourceKey] = []
     for decision in enabled:
         key = ResourceKey("capability", f"{decision.map_name}/{decision.capability}")
@@ -1942,7 +2075,6 @@ def resolve_port_sources(
             ),
         )
         capability_roots.append(key)
-    asset_policy_keys: set[ResourceKey] = set()
     for capability, names in sorted(asset_policy_references.items()):
         key = ResourceKey("capability", f"asset-policy/{capability}")
         source_records[key] = SourceRecord(
@@ -1950,7 +2082,6 @@ def resolve_port_sources(
             Provenance(descriptor.path.as_posix(), f"/assets/{capability}"),
         )
         capability_roots.append(key)
-        asset_policy_keys.update(ResourceKey("asset", name) for name in names)
     resource_capabilities = {
         ResourceKey("map", name): (
             ({"encounters"} if "encounters" in capabilities else set())
@@ -2115,28 +2246,40 @@ def resolve_port_sources(
         ),
     )
 
-    entries, effect_policy = load_event_policy(descriptor.path.parent / "events.json")
-    validate_event_policy_capabilities(
-        entries,
-        effect_policy,
-        descriptor.capabilities,
-        source=descriptor.path.parent / "events.json",
-    )
     enabled_capabilities = {decision.capability for decision in enabled}
-    for entry in sorted(entries.values(), key=lambda item: item.name):
-        if entry.capability not in enabled_capabilities:
-            continue
-        scripts = [
-            path
-            for path in (content_pin.root / "data/maps").glob("*/scripts.inc")
-            if entry.name in path.read_text(encoding="utf-8", errors="replace")
-        ]
-        if not scripts:
+    reachable_services = {key.name for key in closure if key.domain == "service"}
+    missing_entries = sorted(reachable_services - set(entries))
+    if missing_entries:
+        raise ContentPortError(
+            f"reachable event service {missing_entries[0]} has no classification"
+        )
+    stale_enabled_entries = sorted(
+        entry.name
+        for entry in entries.values()
+        if entry.classification == CapabilityState.ENABLED.value
+        and entry.capability in enabled_capabilities
+        and entry.name not in reachable_services
+    )
+    if stale_enabled_entries:
+        raise ContentPortError(
+            f"enabled event entry {stale_enabled_entries[0]} is not reachable"
+        )
+    for service in sorted(reachable_services):
+        entry = entries[service]
+        key = ResourceKey("service", service)
+        role = semantic_authorities.get(key)
+        if role is None:
             raise ContentPortError(
-                f"enabled event entry {entry.name} has no donor script source"
+                f"reachable event service {service} has no authority"
             )
-        program = parse_scripts(scripts, root=content_pin.root)
-        effects = analyze_entry(program, entry.name)
+        record = source_records[key]
+        script_path = record.value.get("script_path")
+        if not isinstance(script_path, str):
+            raise ContentPortError(
+                f"reachable event service {service} has no script source"
+            )
+        program = parse_scripts([script_path], root=donor_roots[role])
+        effects = analyze_entry(program, service)
         validate_effects(entry, effects, effect_policy)
         for effect in effects:
             if (
@@ -2317,8 +2460,10 @@ def resolve_port_sources(
             {
                 **inventory_values,
                 "asset-policy": tuple(sorted(key.name for key in asset_policy_keys)),
+                "asset-required": tuple(sorted(key.name for key in required_assets)),
             }
         ),
+        asset_targets=MappingProxyType(dict(sorted(required_asset_targets.items()))),
     )
     return contract, state
 

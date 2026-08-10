@@ -9,7 +9,13 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": [
+        {
+          "domain": "item",
+          "operand": 0
+        }
+      ]
     },
     "addvar": {
       "effects": [
@@ -19,7 +25,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "applymovement": {
       "effects": [
@@ -29,7 +36,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "applymovementat": {
       "effects": [
@@ -39,21 +47,24 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call": {
       "effects": [],
       "calls": [
         0
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if": {
       "effects": [],
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_eq": {
       "effects": [
@@ -65,7 +76,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_ge": {
       "effects": [
@@ -77,7 +89,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_gt": {
       "effects": [
@@ -89,7 +102,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_le": {
       "effects": [
@@ -101,7 +115,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_lt": {
       "effects": [
@@ -113,7 +128,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_ne": {
       "effects": [
@@ -125,7 +141,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_set": {
       "effects": [
@@ -137,7 +154,8 @@
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "call_if_unset": {
       "effects": [
@@ -149,7 +167,8 @@
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "callnative": {
       "effects": [
@@ -159,7 +178,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "checkflag": {
       "effects": [
@@ -169,7 +189,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "checktrainerflag": {
       "effects": [
@@ -179,7 +200,13 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": [
+        {
+          "domain": "trainer",
+          "operand": 0
+        }
+      ]
     },
     "clearflag": {
       "effects": [
@@ -189,12 +216,14 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "closemessage": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "compare": {
       "effects": [
@@ -204,7 +233,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "compare_local_to_local": {
       "effects": [
@@ -218,7 +248,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "compare_local_to_value": {
       "effects": [
@@ -228,7 +259,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "copyvar": {
       "effects": [
@@ -242,17 +274,20 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "delay": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "end": {
       "effects": [],
       "calls": [],
-      "terminal": true
+      "terminal": true,
+      "dependencies": []
     },
     "faceplayer": {
       "effects": [
@@ -262,7 +297,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "fadescreen": {
       "effects": [
@@ -272,7 +308,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "giveitem": {
       "effects": [
@@ -282,7 +319,13 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": [
+        {
+          "domain": "item",
+          "operand": 0
+        }
+      ]
     },
     "givebp": {
       "effects": [
@@ -292,21 +335,24 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto": {
       "effects": [],
       "calls": [
         0
       ],
-      "terminal": true
+      "terminal": true,
+      "dependencies": []
     },
     "goto_if": {
       "effects": [],
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_eq": {
       "effects": [
@@ -318,7 +364,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_ge": {
       "effects": [
@@ -330,7 +377,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_gt": {
       "effects": [
@@ -342,7 +390,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_le": {
       "effects": [
@@ -354,7 +403,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_lt": {
       "effects": [
@@ -366,7 +416,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_ne": {
       "effects": [
@@ -378,7 +429,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_set": {
       "effects": [
@@ -390,7 +442,8 @@
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "goto_if_unset": {
       "effects": [
@@ -402,7 +455,8 @@
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "gotonative": {
       "effects": [
@@ -412,17 +466,20 @@
         }
       ],
       "calls": [],
-      "terminal": true
+      "terminal": true,
+      "dependencies": []
     },
     "lock": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "lockall": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "map_script": {
       "effects": [
@@ -434,7 +491,8 @@
       "calls": [
         1
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "map_script_2": {
       "effects": [
@@ -450,7 +508,8 @@
       "calls": [
         2
       ],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "msgbox": {
       "effects": [
@@ -460,7 +519,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "playmoncry": {
       "effects": [
@@ -470,7 +530,13 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": [
+        {
+          "domain": "species",
+          "operand": 0
+        }
+      ]
     },
     "playse": {
       "effects": [
@@ -480,7 +546,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "pokenavcall": {
       "effects": [
@@ -490,17 +557,20 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "release": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "releaseall": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "removeobject": {
       "effects": [
@@ -510,12 +580,14 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "return": {
       "effects": [],
       "calls": [],
-      "terminal": true
+      "terminal": true,
+      "dependencies": []
     },
     "setflag": {
       "effects": [
@@ -525,7 +597,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setdivewarp": {
       "effects": [
@@ -535,7 +608,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setdynamicwarp": {
       "effects": [
@@ -545,7 +619,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setescapewarp": {
       "effects": [
@@ -555,7 +630,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setholewarp": {
       "effects": [
@@ -565,7 +641,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setobjectxy": {
       "effects": [
@@ -575,7 +652,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setobjectxyperm": {
       "effects": [
@@ -585,7 +663,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setvar": {
       "effects": [
@@ -595,7 +674,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "settrainerflag": {
       "effects": [
@@ -605,7 +685,13 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": [
+        {
+          "domain": "trainer",
+          "operand": 0
+        }
+      ]
     },
     "setwarp": {
       "effects": [
@@ -615,7 +701,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "setworldmapflag": {
       "effects": [
@@ -625,7 +712,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "special": {
       "effects": [
@@ -635,7 +723,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "specialvar": {
       "effects": [
@@ -649,7 +738,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "subvar": {
       "effects": [
@@ -659,27 +749,32 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "waitmessage": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "waitmoncry": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "waitmovement": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "waitse": {
       "effects": [],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warp": {
       "effects": [
@@ -689,7 +784,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpdoor": {
       "effects": [
@@ -699,7 +795,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warphole": {
       "effects": [
@@ -709,7 +806,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpmossdeepgym": {
       "effects": [
@@ -719,7 +817,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpsilent": {
       "effects": [
@@ -729,7 +828,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpspinenter": {
       "effects": [
@@ -739,7 +839,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpwhitefade": {
       "effects": [
@@ -749,7 +850,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpdynamic": {
       "effects": [
@@ -759,7 +861,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     },
     "warpteleport": {
       "effects": [
@@ -769,7 +872,8 @@
         }
       ],
       "calls": [],
-      "terminal": false
+      "terminal": false,
+      "dependencies": []
     }
   }
 }
