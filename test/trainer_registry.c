@@ -2,8 +2,10 @@
 #include "battle_main.h"
 #include "battle_setup.h"
 #include "event_data.h"
+#include "persistent_ids.h"
 #include "strings.h"
 #include "trainer_registry.h"
+#include "trainer_rematch_registry.h"
 #include "constants/characters.h"
 #include "constants/opponents.h"
 #include "test/test.h"
@@ -86,7 +88,36 @@ TEST("Ordinary trainer registry rejects invalid IDs holes and missing parties")
         .partySize = 1,
     };
     EXPECT(!TrainerRegistry_TestResolve(&sRegistryTrainers[0][0], REGISTRY_TEST_TRAINER_COUNT, 3, DIFFICULTY_HARD, &resolved));
-    EXPECT(!TryResolveOrdinaryTrainer(TRAINER_YOUNGSTER_SAMUEL_JOHTO, &resolved));
+    EXPECT(!TryResolveOrdinaryTrainer(TRAINERS_COUNT, &resolved));
+}
+
+TEST("Samuel resolves his authored normal party without legacy defeat flag or rematch state")
+{
+    struct ResolvedOrdinaryTrainer resolved;
+    u16 defeatFlag = TRAINER_NONE;
+
+    EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+        TRAINER_YOUNGSTER_SAMUEL_JOHTO,
+        DIFFICULTY_HARD,
+        &resolved));
+    EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+    EXPECT_EQ((u32)resolved.trainer.partySize, 3);
+    EXPECT_EQ(resolved.trainer.party[0].species, SPECIES_TEDDIURSA);
+    EXPECT_EQ((u32)resolved.trainer.party[0].lvl, 12);
+    EXPECT_EQ((u32)resolved.trainer.party[0].iv, 0);
+    EXPECT_EQ(resolved.trainer.party[1].species, SPECIES_SANDSHREW);
+    EXPECT_EQ((u32)resolved.trainer.party[1].lvl, 10);
+    EXPECT_EQ((u32)resolved.trainer.party[1].iv, 0);
+    EXPECT_EQ(resolved.trainer.party[2].species, SPECIES_SPEAROW);
+    EXPECT_EQ((u32)resolved.trainer.party[2].lvl, 12);
+    EXPECT_EQ((u32)resolved.trainer.party[2].iv, 0);
+    EXPECT(!PersistentId_GetTrainerDefeatFlag(
+        TRAINER_YOUNGSTER_SAMUEL_JOHTO,
+        &defeatFlag));
+    EXPECT_EQ(defeatFlag, TRAINER_NONE);
+    EXPECT_EQ(
+        TrainerRematch_GetBinding(TRAINER_YOUNGSTER_SAMUEL_JOHTO).kind,
+        TRAINER_REMATCH_BINDING_NONE);
 }
 
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
@@ -156,7 +187,7 @@ TEST("Trainer string metadata is safely empty for invalid ordinary IDs")
     static const u16 invalidTrainerIds[] =
     {
         TRAINER_NONE,
-        TRAINER_YOUNGSTER_SAMUEL_JOHTO,
+        TRAINERS_COUNT,
         0xFFFF,
     };
 
@@ -220,7 +251,7 @@ TEST("AI versus AI player party rejects invalid trainers without mutation")
     memset(gParties[B_TRAINER_PLAYER], 0xA5, sizeof(gParties[B_TRAINER_PLAYER]));
     memcpy(before, gParties[B_TRAINER_PLAYER], sizeof(before));
     gPartnerTrainerId = 0x1234;
-    gSpecialVar_0x8004 = TRAINER_YOUNGSTER_SAMUEL_JOHTO;
+    gSpecialVar_0x8004 = TRAINERS_COUNT;
 
     CreateTrainerPartyForPlayer();
 

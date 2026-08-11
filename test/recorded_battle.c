@@ -121,7 +121,7 @@ TEST("Recorded ordinary battles reject invalid trainers after checksum validatio
 {
     struct RecordedBattleSave *save = InitRecordedBattleSave(BATTLE_TYPE_TRAINER, TRAINER_NONE);
 
-    save->opponentA = TRAINER_YOUNGSTER_SAMUEL_JOHTO;
+    save->opponentA = TRAINERS_COUNT;
     FinalizeRecordedBattleSave(save);
 
     EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));

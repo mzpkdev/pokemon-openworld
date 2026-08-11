@@ -99,7 +99,6 @@ TEST("Ordinary battle preflight rejects invalid opponents and illegal topology")
 
     EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINER_NONE, TRAINER_NONE, TRAINER_NONE, single));
     EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINERS_COUNT, TRAINER_NONE, TRAINER_NONE, single));
-    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINER_YOUNGSTER_SAMUEL_JOHTO, TRAINER_NONE, TRAINER_NONE, single));
     EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINER_RED_TEST, TRAINER_NONE, TRAINER_NONE, two));
     EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINER_RED_TEST, 0xFFFF, TRAINER_NONE, two));
     EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(TRAINER_RED_TEST, TRAINER_LEAF_TEST, TRAINER_NONE, single));
@@ -107,6 +106,11 @@ TEST("Ordinary battle preflight rejects invalid opponents and illegal topology")
 
 TEST("Ordinary battle preflight accepts complete one two and partner topologies")
 {
+    EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+        TRAINER_YOUNGSTER_SAMUEL_JOHTO,
+        TRAINER_NONE,
+        TRAINER_NONE,
+        BATTLE_TYPE_TRAINER));
     EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
         TRAINER_RED_TEST,
         TRAINER_NONE,
@@ -172,7 +176,7 @@ TEST("Invalid trainer script preflight leaves battle globals unchanged")
     memset(gTrainerBattleParameter.data, 0x5A, sizeof(gTrainerBattleParameter));
     before = gTrainerBattleParameter;
     gBattleTypeFlags = battleTypeFlags;
-    invalid.params.opponentA = TRAINER_YOUNGSTER_SAMUEL_JOHTO;
+    invalid.params.opponentA = TRAINERS_COUNT;
 
     EXPECT(!BattleSetup_TryPreflightTrainerBattleData(invalid.data));
     EXPECT(!BattleSetup_TryLoadTrainerBattle(invalid.data));
@@ -211,9 +215,9 @@ TEST("Invalid direct battle launches preserve every observable mutation boundary
         u8 approachingTrainers;
     } invalid[] =
     {
-        {TRAINER_YOUNGSTER_SAMUEL_JOHTO, TRAINER_NONE, 1},
+        {TRAINERS_COUNT, TRAINER_NONE, 1},
         {TRAINER_RED_TEST, TRAINER_NONE, 2},
-        {TRAINER_RED_TEST, TRAINER_YOUNGSTER_SAMUEL_JOHTO, 2},
+        {TRAINER_RED_TEST, TRAINERS_COUNT, 2},
     };
 
     for (u32 i = 0; i < ARRAY_COUNT(invalid); i++)
@@ -239,7 +243,7 @@ TEST("Trainer sight rejects a valid first and invalid second trainer before task
     bool8 lockedBefore = ArePlayerFieldControlsLocked();
 
     trainerA->params.opponentA = TRAINER_RED_TEST;
-    trainerB->params.opponentA = TRAINER_YOUNGSTER_SAMUEL_JOHTO;
+    trainerB->params.opponentA = TRAINERS_COUNT;
 
     EXPECT(!TrainerSee_TestTrySetUpTwoTrainersBattle(trainerScriptA, trainerScriptB));
     EXPECT_EQ(CountActiveTasks(), tasksBefore);

@@ -82,7 +82,7 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             },
         )
 
-    def test_global_bounds_and_reserved_samuel_identity_are_literal(self) -> None:
+    def test_global_bounds_and_authored_samuel_identity_are_literal(self) -> None:
         opponents = OPPONENTS.read_text()
         definitions = numeric_definitions(OPPONENTS)
         hoenn = {name: value for name, value in definitions.items() if value <= 857}
@@ -126,7 +126,7 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             ["data/trainers.h", "data/trainers_frlg.h"],
         )
         self.assertNotIn("IS_FRLG", body)
-        self.assertEqual(len(PARTY_SECTION.findall(HOENN_PARTIES.read_text())), 858)
+        self.assertEqual(len(PARTY_SECTION.findall(HOENN_PARTIES.read_text())), 859)
 
     def test_executable_sources_never_use_legacy_frlg_tombstones(self) -> None:
         tracked = subprocess.run(
