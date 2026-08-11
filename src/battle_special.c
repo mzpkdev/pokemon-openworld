@@ -73,6 +73,26 @@ void DoSpecialTrainerBattle(void)
 {
     s32 i;
 
+    if (gSpecialVar_0x8004 == SPECIAL_BATTLE_MULTI)
+    {
+        u32 battleTypeFlags = BATTLE_TYPE_DOUBLE | BATTLE_TYPE_MULTI | BATTLE_TYPE_INGAME_PARTNER;
+        u16 multiBattleType = gSpecialVar_0x8005 & ~MULTI_BATTLE_CHOOSE_MONS;
+
+        if (multiBattleType == MULTI_BATTLE_2_VS_1)
+            battleTypeFlags |= BATTLE_TYPE_TRAINER;
+        else if (multiBattleType == MULTI_BATTLE_2_VS_2)
+            battleTypeFlags |= BATTLE_TYPE_TRAINER | BATTLE_TYPE_TWO_OPPONENTS;
+        else if (multiBattleType != MULTI_BATTLE_2_VS_WILD)
+            return;
+
+        if (!BattleSetup_TryPreflightOrdinaryBattle(
+                TRAINER_BATTLE_PARAM.opponentA,
+                TRAINER_BATTLE_PARAM.opponentB,
+                gPartnerTrainerId,
+                battleTypeFlags))
+            return;
+    }
+
     gBattleScripting.specialTrainerBattleType = gSpecialVar_0x8004;
     switch (gSpecialVar_0x8004)
     {

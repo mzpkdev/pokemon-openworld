@@ -2687,8 +2687,9 @@
 	cant_see_if 5
 	.endm
 
-	.macro setmultitrainerbattle trainer_a:req, lose_text_a:req, trainer_b:req, lose_text_b:req, partnerId:req
+	.macro setmultitrainerbattle type:req, trainer_a:req, lose_text_a:req, trainer_b:req, lose_text_b:req, partnerId:req
 	callnative SetMultiTrainerBattle
+	.byte \type
 	.2byte \trainer_a
 	.4byte \lose_text_a
 	.2byte \trainer_b

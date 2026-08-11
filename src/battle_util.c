@@ -29,6 +29,7 @@
 #include "test_runner.h"
 #include "trig.h"
 #include "trainer_slide.h"
+#include "trainer_registry.h"
 #include "window.h"
 #include "battle_message.h"
 #include "battle_ai_record.h"
@@ -9792,6 +9793,56 @@ bool32 IsSleepClauseEnabled(void)
     return FALSE;
 }
 
+static bool32 AreMultiPartiesFullTeamsForBattle(u32 battleTypeFlags, u16 opponentAId, u16 opponentBId)
+{
+    struct ResolvedOrdinaryTrainer opponentA;
+    struct ResolvedOrdinaryTrainer opponentB;
+    bool32 opponentAHalfTeam = FALSE;
+    bool32 opponentBHalfTeam = FALSE;
+    const u32 explicitTrainerNamespaces = BATTLE_TYPE_LINK
+                                        | BATTLE_TYPE_FRONTIER
+                                        | BATTLE_TYPE_TRAINER_HILL
+                                        | BATTLE_TYPE_SECRET_BASE
+                                        | BATTLE_TYPE_EREADER_TRAINER;
+
+    if (!(battleTypeFlags & explicitTrainerNamespaces))
+    {
+        if (!IsSpecialTrainer(opponentAId))
+        {
+            if (!TryResolveOrdinaryTrainer(opponentAId, &opponentA))
+            {
+                gSpecialVar_Result = FALSE;
+                return FALSE;
+            }
+            opponentAHalfTeam = opponentA.trainer.multiTeamSize == MULTI_TEAM_SIZE_HALF;
+        }
+        if (opponentBId != TRAINER_NONE
+         && opponentBId != 0xFFFF
+         && !IsSpecialTrainer(opponentBId))
+        {
+            if (!TryResolveOrdinaryTrainer(opponentBId, &opponentB))
+            {
+                gSpecialVar_Result = FALSE;
+                return FALSE;
+            }
+            opponentBHalfTeam = opponentB.trainer.multiTeamSize == MULTI_TEAM_SIZE_HALF;
+        }
+    }
+
+    if (B_MULTI_HALF_TEAMS
+     || opponentAId == TRAINER_LINK_OPPONENT
+     || battleTypeFlags & BATTLE_TYPE_TOWER_LINK_MULTI
+     || opponentAHalfTeam
+     || opponentBHalfTeam)
+    {
+        gSpecialVar_Result = FALSE;
+        return FALSE;
+    }
+
+    gSpecialVar_Result = TRUE;
+    return TRUE;
+}
+
 bool32 AreMultiPartiesFullTeams(void)
 {
 #if TESTING
@@ -9814,23 +9865,21 @@ bool32 AreMultiPartiesFullTeams(void)
         gSpecialVar_Result = FALSE;
         return FALSE;
     }
-#else
-    enum DifficultyLevel difficulty = GetCurrentDifficultyLevel();
-
-    if (B_MULTI_HALF_TEAMS
-     || TRAINER_BATTLE_PARAM.opponentA == TRAINER_LINK_OPPONENT
-     || gBattleTypeFlags & BATTLE_TYPE_TOWER_LINK_MULTI
-     || (gTrainers[difficulty][TRAINER_BATTLE_PARAM.opponentA].multiTeamSize == MULTI_TEAM_SIZE_HALF)
-     || (gTrainers[difficulty][TRAINER_BATTLE_PARAM.opponentB].multiTeamSize == MULTI_TEAM_SIZE_HALF))
-    {
-        gSpecialVar_Result = FALSE;
-        return FALSE;
-    }
-#endif
-
     gSpecialVar_Result = TRUE;
     return TRUE;
+#else
+    return AreMultiPartiesFullTeamsForBattle(gBattleTypeFlags,
+                                             TRAINER_BATTLE_PARAM.opponentA,
+                                             TRAINER_BATTLE_PARAM.opponentB);
+#endif
 }
+
+#if TESTING
+bool32 BattleUtil_TestAreMultiPartiesFullTeamsForBattle(u32 battleTypeFlags, u16 opponentA, u16 opponentB)
+{
+    return AreMultiPartiesFullTeamsForBattle(battleTypeFlags, opponentA, opponentB);
+}
+#endif
 
 void ClearDamageCalcResults(void)
 {

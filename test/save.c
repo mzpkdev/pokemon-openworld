@@ -6,7 +6,7 @@
 
 // If you would like to ensure save compatibility, update the values below with those for your hack. You can find these through the debug menu.
 // Please note that this simple check is not 100% foolproof, but should be able to catch most unintended shifts.
-#define T_SAVEBLOCK1_SIZE 15568
+#define T_SAVEBLOCK1_SIZE 15648
 #define T_SAVEBLOCK2_SIZE 3884
 #define T_SAVEBLOCK3_SIZE 4
 #define T_POKEMONSTORAGE_SIZE 34144
@@ -14,6 +14,11 @@
 TEST("SaveBlock1 is backwards compatible")
 {
     EXPECT_EQ(sizeof(struct SaveBlock1), T_SAVEBLOCK1_SIZE);
+    EXPECT_EQ(offsetof(struct SaveBlock1, trainerDefeated), 0x3CD0);
+    EXPECT_EQ(sizeof(gSaveBlock1Ptr->trainerDefeated), 78);
+    EXPECT_EQ(sizeof(struct SaveBlock1) - offsetof(struct SaveBlock1, trainerDefeated), 80);
+    EXPECT_EQ(sizeof(struct SaveBlock1) - 3 * SECTOR_DATA_SIZE, 3744);
+    EXPECT_EQ(4 * SECTOR_DATA_SIZE - sizeof(struct SaveBlock1), 224);
 }
 
 TEST("SaveBlock2 is backwards compatible")

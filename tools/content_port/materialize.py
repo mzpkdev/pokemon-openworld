@@ -17,6 +17,7 @@ from .descriptor import (
     MATERIALIZED_CAPABILITIES,
     MATERIALIZATION_STRIP_EVENT_KINDS,
     PortDescriptor,
+    TRAINER_DISPLAY_RE,
 )
 from .donors import authenticated_donor_snapshot
 from .errors import ContentPortError
@@ -192,12 +193,18 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         item[content_field]: item["target"]
         for item in descriptor.adaptations["graphicsAdaptations"]
     }
+    projections = {
+        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+    }
     units: list[RenderUnit] = []
+    materialization_maps = state.materialization_maps or state.maps
     for name, ownership in descriptor.map_ownership.items():
         if ownership != "rendered":
             continue
         allocation = descriptor.allocation_index.map_allocation(name)
-        value = _thaw(state.maps[name])
+        value = _thaw(materialization_maps[name])
+        value.pop("_encounter_roots", None)
+        value.pop("_trainer_event_roots", None)
         donor_fields = descriptor.adaptations["donorFieldRoles"]
         for decision in descriptor.adaptations["mapFieldDecisions"]:
             if decision["map"] == name:
@@ -223,19 +230,182 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
             if field not in value:
                 raise ContentPortError(f"{name}: missing stripped event field {field}")
             value[field] = []
-        units.append(
-            RenderUnit(f"map:{name}", "map-json", f"data/maps/{name}/map.json", value)
-        )
-        if profile["mapScripts"] != "empty":
-            raise ContentPortError(
-                "only the declarative empty map-script profile is supported"
+        rendered_events: list[dict[str, Any]] = []
+        selected_objects: list[dict[str, Any]] = []
+        for event in state.trainer_events.get(name, ()):
+            if len(event.trainers) != 1 or event.trainers[0] not in projections:
+                raise ContentPortError(
+                    f"{name}: selected trainer event has no exact projection"
+                )
+            projection = projections[event.trainers[0]]
+            if tuple(item.command for item in event.instructions) != (
+                "trainerbattle_single",
+                "msgbox",
+                "end",
+            ) or tuple(len(item.operands) for item in event.instructions) != (3, 2, 0):
+                raise ContentPortError(
+                    f"{event.script_name}: unsupported selected trainer script shape"
+                )
+            instructions = []
+            for index, instruction in enumerate(event.instructions):
+                operands = list(instruction.operands)
+                if index == 0:
+                    operands[0] = projection["target"]
+                instructions.append(
+                    {"command": instruction.command, "operands": operands}
+                )
+            rendered_events.append(
+                {
+                    "script": event.script_name,
+                    "instructions": instructions,
+                    "texts": [
+                        {"label": text.label, "fragments": list(text.fragments)}
+                        for text in event.texts
+                    ],
+                }
             )
-        script = f"{name}_MapScripts::\n\t.byte 0\n"
+            object_event = _thaw(event.object_event)
+            graphics = object_event.get("graphics_id")
+            if isinstance(graphics, str):
+                object_event["graphics_id"] = graphics_remaps.get(graphics, graphics)
+            selected_objects.append(object_event)
+        value["object_events"] = selected_objects
+        units.append(
+            RenderUnit(
+                f"map:{name}",
+                "map-json",
+                f"data/maps/{name}/map.json",
+                value,
+                options={"sortKeys": False, "ensureAscii": True},
+            )
+        )
+        if profile["mapScripts"] == "empty" and rendered_events:
+            raise ContentPortError(
+                f"{name}: empty map-script profile cannot render trainer events"
+            )
+        if profile["mapScripts"] not in {"empty", "selected-trainers"}:
+            raise ContentPortError("unsupported map-script materialization profile")
         path = f"data/maps/{name}/scripts.inc"
         units.append(
-            RenderUnit(f"map-script:{name}", "tileset-assets", path, {path: script})
+            RenderUnit(
+                f"map-script:{name}",
+                "trainer-script",
+                path,
+                {"map": name, "events": rendered_events},
+            )
         )
     return units
+
+
+def _trainer_units(
+    descriptor: PortDescriptor, state: PortSourceState, repo: Path
+) -> list[RenderUnit]:
+    selected = {
+        trainer
+        for map_name, events in state.trainer_events.items()
+        if descriptor.map_ownership.get(map_name) == "rendered"
+        for event in events
+        for trainer in event.trainers
+    }
+    projections = {
+        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+    }
+    if selected - set(projections):
+        raise ContentPortError(
+            "trainer projections must cover selected trainer dependencies"
+        )
+    if not selected:
+        return []
+    ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
+    rendered: list[dict[str, Any]] = []
+    for source in sorted(selected):
+        projection = projections[source]
+        ledger.resolve(projection["target"], domain="trainerIds")
+        trainer = state.semantic_values.get(ResourceKey("trainer", source))
+        if trainer is None:
+            raise ContentPortError(
+                f"trainer:{source}: authenticated payload is missing"
+            )
+        expected = {
+            "trainer_class": projection["class"]["source"],
+            "trainer_pic": projection["pic"]["source"],
+            "encounter_music": projection["music"]["source"],
+            "gender": projection["gender"],
+        }
+        for field, value in expected.items():
+            if trainer.get(field) != value:
+                raise ContentPortError(
+                    f"trainer:{source}/{field}: projection preimage drift"
+                )
+        ai_sources = tuple(item["source"] for item in projection["ai"])
+        if tuple(trainer.get("ai_flags", ())) != ai_sources:
+            raise ContentPortError(
+                f"trainer:{source}/ai_flags: projection preimage drift"
+            )
+        if (
+            trainer.get("items")
+            or trainer.get("party_format") != "NO_ITEM_DEFAULT_MOVES"
+        ):
+            raise ContentPortError(f"trainer:{source}: unsupported party payload")
+        trainer_name = trainer.get("trainer_name")
+        if (
+            not isinstance(trainer_name, str)
+            or TRAINER_DISPLAY_RE.fullmatch(trainer_name) is None
+        ):
+            raise ContentPortError(f"trainer:{source}: invalid trainer name payload")
+        double_token = trainer.get("double_battle")
+        if double_token not in {"TRUE", "FALSE"}:
+            raise ContentPortError(f"trainer:{source}: invalid double-battle payload")
+        parties = tuple(trainer.get("parties", ()))
+        if len(parties) != 1:
+            raise ContentPortError(f"trainer:{source}: exactly one party is required")
+        party = state.semantic_values.get(ResourceKey("party", parties[0]))
+        if party is None:
+            raise ContentPortError(
+                f"party:{parties[0]}: authenticated payload is missing"
+            )
+        members: list[dict[str, Any]] = []
+        for index, member in enumerate(party.get("members", ())):
+            if member.get("held_item") is not None or member.get("moves"):
+                raise ContentPortError(
+                    f"party:{parties[0]}/members/{index}: default party format drift"
+                )
+            if (
+                type(member.get("level")) is not int
+                or type(member.get("iv")) is not int
+            ):
+                raise ContentPortError(
+                    f"party:{parties[0]}/members/{index}: level and IV are required"
+                )
+            members.append(
+                {
+                    "species": member["species"],
+                    "level": member["level"],
+                    "iv": member["iv"],
+                }
+            )
+        rendered.append(
+            {
+                "target": projection["target"],
+                "name": trainer_name,
+                "class": projection["class"]["target"],
+                "pic": projection["pic"]["target"],
+                "gender": projection["gender"],
+                "music": projection["music"]["target"],
+                "double": double_token == "TRUE",
+                "ai": [item["target"] for item in projection["ai"]],
+                "party": members,
+            }
+        )
+    return [
+        RenderUnit(
+            "selected-trainer-parties",
+            "trainer-party",
+            "src/data/trainers.party",
+            rendered,
+            name="selected trainer parties",
+        )
+    ]
 
 
 def _set_pointer(value: object, pointer: str, replacement: object) -> None:
@@ -268,6 +438,11 @@ def _layout_units(
         for item in descriptor.adaptations["layoutTilesetRemaps"]
     }
     units: list[RenderUnit] = []
+    preserved_layouts = {
+        allocation.layout
+        for name, allocation in descriptor.allocation_index.maps.items()
+        if descriptor.map_ownership.get(name) == "preserve"
+    }
     for layout_id in descriptor.allocation_index.layouts:
         value = _thaw(state.layouts[layout_id])
         for field in ("primary_tileset", "secondary_tileset"):
@@ -276,6 +451,13 @@ def _layout_units(
                 value[field] = replacement
         value.pop("layout_version", None)
         value["format"] = bindings.layout_format
+        supplemental = tuple(
+            field
+            for field in ("border_height", "border_width")
+            if layout_id not in preserved_layouts
+            and state.layout_field_authorities[layout_id][field]
+            != state.layout_authorities[layout_id]
+        )
         units.append(
             RenderUnit(
                 layout_id,
@@ -284,6 +466,7 @@ def _layout_units(
                 value,
                 record_key=layout_id,
                 slot=descriptor.allocation_index.layout_slot(layout_id),
+                options={"omitFields": supplemental},
             )
         )
     return units
@@ -357,6 +540,11 @@ def _section_units(
     ).value
     codecs = {item.section: item for item in bindings.section_persistence_codecs}
     cache: dict[str, tuple[tuple[Path, Mapping[str, Any]], ...]] = {}
+    rendered_sections = {
+        allocation.section
+        for name, allocation in descriptor.allocation_index.maps.items()
+        if descriptor.map_ownership.get(name) == "rendered"
+    }
     units: list[RenderUnit] = []
     for authority in descriptor.section_metadata_authorities:
         matches = cache.setdefault(
@@ -431,9 +619,10 @@ def _section_units(
                 domain=codec.met_location_binding.domain,
             ).value
             value["met_location_display"] = codec.met_location_display
-        for field in ("x", "y", "width", "height"):
-            if field in source:
-                value[field] = source[field]
+        if authority.section in rendered_sections:
+            for field in ("x", "y", "width", "height"):
+                if field in source:
+                    value[field] = source[field]
         units.append(
             RenderUnit(
                 f"section:{target}",
@@ -497,7 +686,7 @@ def _generated_body(
             )
         ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
         return "\n".join(
-            f"#define {item['target']:<40} "
+            f"#define {item['target']:<35} "
             f"{ledger.resolve(item['target'], domain=anchor.domain).value}"
             for item in allocations
         )
@@ -533,12 +722,12 @@ def _generated_body(
             directory = item.get("targetDirectory", item.get("directory"))
             name = item.get("targetSymbol", item.get("symbol"))
             count = item["paletteCount"]
-            palettes = "\n".join(
+            palettes = "\n\n".join(
                 f'    INCGFX_U16("data/tilesets/{role}/{directory}/palettes/{index:02}.pal", ".gbapal"),'
                 for index in range(count)
             )
             blocks.append(
-                f'const u32 gTilesetTiles_{name}[] = INCGFX_U32("data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\nconst u16 gTilesetPalettes_{name}[][16] =\n{{\n{palettes}\n}};'
+                f'const u32 gTilesetTiles_{name}[] = INCGFX_U32("data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\nconst u16 gTilesetPalettes_{name}[][16] =\n{{\n\n{palettes}\n\n}};'
             )
         return "\n\n".join(blocks + [f"#endif // {feature}"])
     if symbol == "tileset-metatiles":
@@ -577,11 +766,9 @@ def _generated_units(
             raise ContentPortError(
                 f"{policy.source_symbol}: generated authority contract drift"
             )
-        options = (
-            {"markerStyle": "preprocessor"}
-            if policy.source_symbol == "trainer-parties"
-            else {}
-        )
+        options: dict[str, object] = {"markerDialect": "legacy-import"}
+        if policy.source_symbol == "trainer-parties":
+            options.update({"markerStyle": "preprocessor", "blankLineBeforeEnd": True})
         units.append(
             RenderUnit(
                 f"generated:{policy.source_symbol}",
@@ -614,6 +801,7 @@ def derive_desired_state(
             *_group_units(snapshot_descriptor),
             *_section_units(snapshot_descriptor, state, root),
             *_asset_units(snapshot_descriptor, state),
+            *_trainer_units(snapshot_descriptor, state, root),
             *_generated_units(snapshot_descriptor, state, root),
         ]
         manifest, payloads = render_units(

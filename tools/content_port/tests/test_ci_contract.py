@@ -15,10 +15,15 @@ class CiContractTests(unittest.TestCase):
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
         cls.makefile = MAKEFILE.read_text(encoding="utf-8")
 
-    def test_dedicated_job_has_stable_required_check_name(self) -> None:
+    def test_dedicated_job_has_stable_identity_and_runtime_budget(self) -> None:
         self.assertRegex(
             self.workflow,
-            r"(?m)^  donor-contracts:\n    name: Donor Contracts$",
+            (
+                r"(?m)^  donor-contracts:\n"
+                r"    name: Donor Contracts\n"
+                r"    runs-on: ubuntu-latest\n"
+                r"    timeout-minutes: 30$"
+            ),
         )
 
     def test_mechanics_job_has_bounded_runtime_budget(self) -> None:

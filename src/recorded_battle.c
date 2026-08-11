@@ -18,6 +18,8 @@
 #include "text.h"
 #include "battle_setup.h"
 #include "frontier_util.h"
+#include "constants/apprentice.h"
+#include "constants/battle_frontier.h"
 #include "constants/trainers.h"
 #include "constants/rgb.h"
 
@@ -65,6 +67,7 @@ static u8 sApprenticeLanguage;
 
 static u8 GetNextRecordedDataByte(u8 *, u8 *, u8 *);
 static bool32 CopyRecordedBattleFromSave(struct RecordedBattleSave *);
+static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *);
 static void RecordedBattle_RestoreSavedParties(void);
 static void CB2_RecordedBattle(void);
 
@@ -270,6 +273,143 @@ static bool32 IsRecordedBattleSaveValid(struct RecordedBattleSave *save)
     return TRUE;
 }
 
+static u16 GetNormalizedRecordedBattlePartnerId(const struct RecordedBattleSave *save)
+{
+    if (!(save->battleFlags & BATTLE_TYPE_INGAME_PARTNER))
+        return save->partnerId;
+    if (save->partnerId < RECORDED_BATTLE_LEGACY_PARTNER_BASE
+     || save->partnerId >= RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_COUNT)
+        return save->partnerId;
+
+    return TRAINER_PARTNER(save->partnerId - RECORDED_BATTLE_LEGACY_PARTNER_BASE);
+}
+
+static bool32 IsRecordedBattleParticipantMetadataValid(const struct RecordedBattleSave *save, u16 trainerId)
+{
+    if (trainerId >= TRAINER_RECORD_MIXING_FRIEND
+     && trainerId < TRAINER_RECORD_MIXING_APPRENTICE)
+        return save->recordMixFriendClass < FACILITY_CLASSES_COUNT;
+    if (trainerId >= TRAINER_RECORD_MIXING_APPRENTICE
+     && trainerId < TRAINER_EREADER)
+        return save->apprenticeId < NUM_APPRENTICES;
+
+    return TRUE;
+}
+
+static bool32 IsRecordedFrontierBrainFacilityValid(const struct RecordedBattleSave *save)
+{
+    switch (save->battleFlags & BATTLE_TYPE_FRONTIER)
+    {
+    case BATTLE_TYPE_BATTLE_TOWER:
+        // Pike trainer battles reuse the Battle Tower battle flag.
+        return save->frontierFacility == FRONTIER_FACILITY_TOWER
+            || save->frontierFacility == FRONTIER_FACILITY_PIKE;
+    case BATTLE_TYPE_DOME:
+        return save->frontierFacility == FRONTIER_FACILITY_DOME;
+    case BATTLE_TYPE_PALACE:
+        return save->frontierFacility == FRONTIER_FACILITY_PALACE;
+    case BATTLE_TYPE_ARENA:
+        return save->frontierFacility == FRONTIER_FACILITY_ARENA;
+    case BATTLE_TYPE_FACTORY:
+        return save->frontierFacility == FRONTIER_FACILITY_FACTORY;
+    case BATTLE_TYPE_PYRAMID:
+        return save->frontierFacility == FRONTIER_FACILITY_PYRAMID;
+    default:
+        return FALSE;
+    }
+}
+
+static bool32 IsRecordedFrontierTrainerModeValid(const struct RecordedBattleSave *save)
+{
+    switch (save->battleFlags & BATTLE_TYPE_FRONTIER)
+    {
+    case BATTLE_TYPE_BATTLE_TOWER:
+    case BATTLE_TYPE_DOME:
+    case BATTLE_TYPE_PALACE:
+    case BATTLE_TYPE_ARENA:
+    case BATTLE_TYPE_FACTORY:
+    case BATTLE_TYPE_PYRAMID:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+static bool32 IsRecordedFrontierOpponentValid(const struct RecordedBattleSave *save, u16 trainerId)
+{
+    if (trainerId < FRONTIER_TRAINERS_COUNT)
+        return TRUE;
+    if (trainerId == TRAINER_FRONTIER_BRAIN)
+        return IsRecordedFrontierBrainFacilityValid(save);
+
+    // Record-mix friends and apprentices are Battle Tower-only. E-Reader battles
+    // carry their own unrecordable battle flag and never enter this namespace.
+    if (trainerId < TRAINER_EREADER)
+        return (save->battleFlags & BATTLE_TYPE_FRONTIER) == BATTLE_TYPE_BATTLE_TOWER
+            && save->frontierFacility == FRONTIER_FACILITY_TOWER;
+
+    return FALSE;
+}
+
+static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *save)
+{
+    u16 partnerId;
+
+    if (!IsRecordedBattleSaveValid(save))
+        return FALSE;
+
+    if (!(save->battleFlags & BATTLE_TYPE_RECORDED_LINK)
+     && save->textSpeed > OPTIONS_TEXT_SPEED_INSTANT)
+        return FALSE;
+    if ((save->battleFlags & BATTLE_TYPE_FRONTIER)
+     && save->lvlMode > FRONTIER_LVL_TENT)
+        return FALSE;
+
+    partnerId = GetNormalizedRecordedBattlePartnerId(save);
+
+    if (!BattleSetup_TryPreflightOrdinaryBattle(
+            save->opponentA,
+            save->opponentB,
+            partnerId,
+            save->battleFlags))
+        return FALSE;
+
+    if ((save->battleFlags & BATTLE_TYPE_FRONTIER)
+     && (save->battleFlags & BATTLE_TYPE_TRAINER))
+    {
+        if (!IsRecordedFrontierTrainerModeValid(save))
+            return FALSE;
+        if (!IsRecordedFrontierOpponentValid(save, save->opponentA))
+            return FALSE;
+        if (!IsRecordedBattleParticipantMetadataValid(save, save->opponentA))
+            return FALSE;
+        if (save->battleFlags & BATTLE_TYPE_TWO_OPPONENTS)
+        {
+            if (!IsRecordedFrontierOpponentValid(save, save->opponentB))
+                return FALSE;
+            if (!IsRecordedBattleParticipantMetadataValid(save, save->opponentB))
+                return FALSE;
+        }
+        if (save->battleFlags & BATTLE_TYPE_INGAME_PARTNER)
+        {
+            if (save->frontierFacility != FRONTIER_FACILITY_TOWER)
+                return FALSE;
+            if (!IsRecordedBattleParticipantMetadataValid(save, partnerId))
+                return FALSE;
+        }
+    }
+
+    save->partnerId = partnerId;
+    return TRUE;
+}
+
+#if TESTING
+bool32 RecordedBattle_TestValidateAndNormalizeSave(struct RecordedBattleSave *save)
+{
+    return ValidateAndNormalizeRecordedBattleSave(save);
+}
+#endif
+
 static bool32 RecordedBattleToSave(struct RecordedBattleSave *battleSave, struct RecordedBattleSave *saveSector)
 {
     memset(saveSector, 0, SECTOR_SIZE);
@@ -448,7 +588,7 @@ static bool32 TryCopyRecordedBattleSaveData(struct RecordedBattleSave *dst, stru
 
     memcpy(dst, saveBuffer, sizeof(struct RecordedBattleSave));
 
-    if (!IsRecordedBattleSaveValid(dst))
+    if (!ValidateAndNormalizeRecordedBattleSave(dst))
         return FALSE;
 
     return TRUE;

@@ -1,12 +1,4 @@
-=== TRAINER_NONE ===
-Name: PH
-Class: Pkmn Trainer 1
-Pic: Hiker Frlg
-Gender: Male
-Music: Male
-Double Battle: No
-
-=== TRAINER_YOUNGSTER_BEN ===
+=== TRAINER_FRLG_YOUNGSTER_BEN ===
 Name: BEN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -23,7 +15,7 @@ Ekans
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_CALVIN ===
+=== TRAINER_FRLG_YOUNGSTER_CALVIN ===
 Name: CALVIN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -36,7 +28,7 @@ Spearow
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_JOSH ===
+=== TRAINER_FRLG_YOUNGSTER_JOSH ===
 Name: JOSH
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -57,7 +49,7 @@ Zubat
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_TIMMY ===
+=== TRAINER_FRLG_YOUNGSTER_TIMMY ===
 Name: TIMMY
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -74,7 +66,7 @@ Ekans
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_JOEY ===
+=== TRAINER_FRLG_YOUNGSTER_JOEY ===
 Name: JOEY
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -91,7 +83,7 @@ Spearow
 Level: 15
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_DAN ===
+=== TRAINER_FRLG_YOUNGSTER_DAN ===
 Name: DAN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -104,7 +96,7 @@ Slowpoke
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_CHAD ===
+=== TRAINER_FRLG_YOUNGSTER_CHAD ===
 Name: CHAD
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -121,7 +113,7 @@ Sandshrew
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_TYLER ===
+=== TRAINER_FRLG_YOUNGSTER_TYLER ===
 Name: TYLER
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -134,7 +126,7 @@ Nidoran M
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_EDDIE ===
+=== TRAINER_FRLG_YOUNGSTER_EDDIE ===
 Name: EDDIE
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -147,7 +139,7 @@ Ekans
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_DILLON ===
+=== TRAINER_FRLG_YOUNGSTER_DILLON ===
 Name: DILLON
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -164,7 +156,7 @@ Zubat
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_YASU ===
+=== TRAINER_FRLG_YOUNGSTER_YASU ===
 Name: YASU
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -185,7 +177,7 @@ Raticate
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_DAVE ===
+=== TRAINER_FRLG_YOUNGSTER_DAVE ===
 Name: DAVE
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -202,7 +194,7 @@ Nidorino
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_BEN_2 ===
+=== TRAINER_FRLG_YOUNGSTER_BEN_2 ===
 Name: BEN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -219,7 +211,7 @@ Ekans
 Level: 17
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_BUG_CATCHER_RICK ===
+=== TRAINER_FRLG_BUG_CATCHER_RICK ===
 Name: RICK
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -236,7 +228,7 @@ Caterpie
 Level: 6
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_DOUG ===
+=== TRAINER_FRLG_BUG_CATCHER_DOUG ===
 Name: DOUG
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -257,7 +249,7 @@ Weedle
 Level: 7
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_SAMMY ===
+=== TRAINER_FRLG_BUG_CATCHER_SAMMY ===
 Name: SAMMY
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -270,7 +262,7 @@ Weedle
 Level: 9
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_COLTON ===
+=== TRAINER_FRLG_BUG_CATCHER_COLTON ===
 Name: COLTON
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -291,7 +283,7 @@ Caterpie
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_GREG ===
+=== TRAINER_FRLG_BUG_CATCHER_GREG ===
 Name: GREG
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -316,7 +308,7 @@ Metapod
 Level: 9
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_JAMES ===
+=== TRAINER_FRLG_BUG_CATCHER_JAMES ===
 Name: JAMES
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -333,7 +325,7 @@ Metapod
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_KENT ===
+=== TRAINER_FRLG_BUG_CATCHER_KENT ===
 Name: KENT
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -350,7 +342,7 @@ Kakuna
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_ROBBY ===
+=== TRAINER_FRLG_BUG_CATCHER_ROBBY ===
 Name: ROBBY
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -371,7 +363,7 @@ Caterpie
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_CALE ===
+=== TRAINER_FRLG_BUG_CATCHER_CALE ===
 Name: CALE
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -396,7 +388,7 @@ Kakuna
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_KEIGO ===
+=== TRAINER_FRLG_BUG_CATCHER_KEIGO ===
 Name: KEIGO
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -417,7 +409,7 @@ Weedle
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_ELIJAH ===
+=== TRAINER_FRLG_BUG_CATCHER_ELIJAH ===
 Name: ELIJAH
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -430,7 +422,7 @@ Butterfree
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_BRENT ===
+=== TRAINER_FRLG_BUG_CATCHER_BRENT ===
 Name: BRENT
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -447,7 +439,7 @@ Beedrill
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_CONNER ===
+=== TRAINER_FRLG_BUG_CATCHER_CONNER ===
 Name: CONNER
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -468,7 +460,7 @@ Venonat
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_JANICE ===
+=== TRAINER_FRLG_LASS_JANICE ===
 Name: JANICE
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -485,7 +477,7 @@ Pidgey
 Level: 9
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_SALLY ===
+=== TRAINER_FRLG_LASS_SALLY ===
 Name: SALLY
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -502,7 +494,7 @@ Nidoran F
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_ROBIN ===
+=== TRAINER_FRLG_LASS_ROBIN ===
 Name: ROBIN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -515,7 +507,7 @@ Jigglypuff
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_CRISSY ===
+=== TRAINER_FRLG_LASS_CRISSY ===
 Name: CRISSY
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -536,7 +528,7 @@ Parasect
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_MIRIAM ===
+=== TRAINER_FRLG_LASS_MIRIAM ===
 Name: MIRIAM
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -553,7 +545,7 @@ Bellsprout
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_IRIS ===
+=== TRAINER_FRLG_LASS_IRIS ===
 Name: IRIS
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -566,7 +558,7 @@ Clefairy
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_RELI ===
+=== TRAINER_FRLG_LASS_RELI ===
 Name: RELI
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -583,7 +575,7 @@ Nidoran F
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_ALI ===
+=== TRAINER_FRLG_LASS_ALI ===
 Name: ALI
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -604,7 +596,7 @@ Bellsprout
 Level: 12
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_HALEY ===
+=== TRAINER_FRLG_LASS_HALEY ===
 Name: HALEY
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -625,7 +617,7 @@ Oddish
 Level: 13
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_ANN ===
+=== TRAINER_FRLG_LASS_ANN ===
 Name: ANN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -642,7 +634,7 @@ Nidoran F
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_DAWN ===
+=== TRAINER_FRLG_LASS_DAWN ===
 Name: DAWN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -659,7 +651,7 @@ Pikachu
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_PAIGE ===
+=== TRAINER_FRLG_LASS_PAIGE ===
 Name: PAIGE
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -676,7 +668,7 @@ Nidorina
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_ANDREA ===
+=== TRAINER_FRLG_LASS_ANDREA ===
 Name: ANDREA
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -697,7 +689,7 @@ Meowth
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_MEGAN ===
+=== TRAINER_FRLG_LASS_MEGAN ===
 Name: MEGAN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -726,7 +718,7 @@ Pikachu
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_JULIA ===
+=== TRAINER_FRLG_LASS_JULIA ===
 Name: JULIA
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -743,7 +735,7 @@ Clefairy
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_KAY ===
+=== TRAINER_FRLG_LASS_KAY ===
 Name: KAY
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -760,7 +752,7 @@ Weepinbell
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_LISA ===
+=== TRAINER_FRLG_LASS_LISA ===
 Name: LISA
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -777,7 +769,7 @@ Gloom
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_EDMOND ===
+=== TRAINER_FRLG_SAILOR_EDMOND ===
 Name: EDMOND
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -794,7 +786,7 @@ Shellder
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_TREVOR ===
+=== TRAINER_FRLG_SAILOR_TREVOR ===
 Name: TREVOR
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -811,7 +803,7 @@ Tentacool
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_LEONARD ===
+=== TRAINER_FRLG_SAILOR_LEONARD ===
 Name: LEONARD
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -824,7 +816,7 @@ Shellder
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_DUNCAN ===
+=== TRAINER_FRLG_SAILOR_DUNCAN ===
 Name: DUNCAN
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -845,7 +837,7 @@ Tentacool
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_HUEY ===
+=== TRAINER_FRLG_SAILOR_HUEY ===
 Name: HUEY
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -862,7 +854,7 @@ Staryu
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_DYLAN ===
+=== TRAINER_FRLG_SAILOR_DYLAN ===
 Name: DYLAN
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -883,7 +875,7 @@ Horsea
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_PHILLIP ===
+=== TRAINER_FRLG_SAILOR_PHILLIP ===
 Name: PHILLIP
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -896,7 +888,7 @@ Machop
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SAILOR_DWAYNE ===
+=== TRAINER_FRLG_SAILOR_DWAYNE ===
 Name: DWAYNE
 Class: Sailor Frlg
 Pic: Sailor Frlg
@@ -913,7 +905,7 @@ Pikachu
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_LIAM ===
+=== TRAINER_FRLG_CAMPER_LIAM ===
 Name: LIAM
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -935,7 +927,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Defense Curl
 - Sand Attack
 
-=== TRAINER_CAMPER_SHANE ===
+=== TRAINER_FRLG_CAMPER_SHANE ===
 Name: SHANE
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -952,7 +944,7 @@ Ekans
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_ETHAN ===
+=== TRAINER_FRLG_CAMPER_ETHAN ===
 Name: ETHAN
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -965,7 +957,7 @@ Mankey
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_RICKY ===
+=== TRAINER_FRLG_CAMPER_RICKY ===
 Name: RICKY
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -978,7 +970,7 @@ Squirtle
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_JEFF ===
+=== TRAINER_FRLG_CAMPER_JEFF ===
 Name: JEFF
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -995,7 +987,7 @@ Raticate
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_CHRIS ===
+=== TRAINER_FRLG_CAMPER_CHRIS ===
 Name: CHRIS
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -1012,7 +1004,7 @@ Charmander
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_DREW ===
+=== TRAINER_FRLG_CAMPER_DREW ===
 Name: DREW
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -1037,7 +1029,7 @@ Sandshrew
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_DIANA ===
+=== TRAINER_FRLG_PICNICKER_DIANA ===
 Name: DIANA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1050,7 +1042,7 @@ Goldeen
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_NANCY ===
+=== TRAINER_FRLG_PICNICKER_NANCY ===
 Name: NANCY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1067,7 +1059,7 @@ Pikachu
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_ISABELLE ===
+=== TRAINER_FRLG_PICNICKER_ISABELLE ===
 Name: ISABELLE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1088,7 +1080,7 @@ Pidgey
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_KELSEY ===
+=== TRAINER_FRLG_PICNICKER_KELSEY ===
 Name: KELSEY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1105,7 +1097,7 @@ Nidoran F
 Level: 15
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_ALICIA ===
+=== TRAINER_FRLG_PICNICKER_ALICIA ===
 Name: ALICIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1130,7 +1122,7 @@ Bellsprout
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_CAITLIN ===
+=== TRAINER_FRLG_PICNICKER_CAITLIN ===
 Name: CAITLIN
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1143,7 +1135,7 @@ Meowth
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_HEIDI ===
+=== TRAINER_FRLG_PICNICKER_HEIDI ===
 Name: HEIDI
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1160,7 +1152,7 @@ Clefairy
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_CAROL ===
+=== TRAINER_FRLG_PICNICKER_CAROL ===
 Name: CAROL
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1177,7 +1169,7 @@ Pidgeotto
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_SOFIA ===
+=== TRAINER_FRLG_PICNICKER_SOFIA ===
 Name: SOFIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1198,7 +1190,7 @@ Meowth
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_MARTHA ===
+=== TRAINER_FRLG_PICNICKER_MARTHA ===
 Name: MARTHA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1215,7 +1207,7 @@ Bulbasaur
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_TINA ===
+=== TRAINER_FRLG_PICNICKER_TINA ===
 Name: TINA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1232,7 +1224,7 @@ Ivysaur
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_HANNAH ===
+=== TRAINER_FRLG_PICNICKER_HANNAH ===
 Name: HANNAH
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -1261,7 +1253,7 @@ Meowth
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_POKEMANIAC_MARK ===
+=== TRAINER_FRLG_POKEMANIAC_MARK ===
 Name: MARK
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1278,7 +1270,7 @@ Lickitung
 Level: 29
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_HERMAN ===
+=== TRAINER_FRLG_POKEMANIAC_HERMAN ===
 Name: HERMAN
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1295,7 +1287,7 @@ Slowpoke
 Level: 20
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_COOPER ===
+=== TRAINER_FRLG_POKEMANIAC_COOPER ===
 Name: COOPER
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1316,7 +1308,7 @@ Slowpoke
 Level: 20
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_STEVE ===
+=== TRAINER_FRLG_POKEMANIAC_STEVE ===
 Name: STEVE
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1333,7 +1325,7 @@ Cubone
 Level: 22
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_WINSTON ===
+=== TRAINER_FRLG_POKEMANIAC_WINSTON ===
 Name: WINSTON
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1346,7 +1338,7 @@ Slowpoke
 Level: 25
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_DAWSON ===
+=== TRAINER_FRLG_POKEMANIAC_DAWSON ===
 Name: DAWSON
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1367,7 +1359,7 @@ Lickitung
 Level: 40
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_POKEMANIAC_ASHTON ===
+=== TRAINER_FRLG_POKEMANIAC_ASHTON ===
 Name: ASHTON
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -1384,7 +1376,7 @@ Slowpoke
 Level: 23
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_SUPER_NERD_JOVAN ===
+=== TRAINER_FRLG_SUPER_NERD_JOVAN ===
 Name: JOVAN
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1401,7 +1393,7 @@ Voltorb
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_MIGUEL ===
+=== TRAINER_FRLG_SUPER_NERD_MIGUEL ===
 Name: MIGUEL
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1422,7 +1414,7 @@ Koffing
 Level: 12
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_AIDAN ===
+=== TRAINER_FRLG_SUPER_NERD_AIDAN ===
 Name: AIDAN
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1463,7 +1455,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Thunder Shock
 - Tackle
 
-=== TRAINER_SUPER_NERD_GLENN ===
+=== TRAINER_FRLG_SUPER_NERD_GLENN ===
 Name: GLENN
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1484,7 +1476,7 @@ Grimer
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_LESLIE ===
+=== TRAINER_FRLG_SUPER_NERD_LESLIE ===
 Name: LESLIE
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1501,7 +1493,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Self Destruct
 
-=== TRAINER_SUPER_NERD_ERIK ===
+=== TRAINER_FRLG_SUPER_NERD_ERIK ===
 Name: ERIK
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1522,7 +1514,7 @@ Ninetales
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_AVERY ===
+=== TRAINER_FRLG_SUPER_NERD_AVERY ===
 Name: AVERY
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1547,7 +1539,7 @@ Growlithe
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_DEREK ===
+=== TRAINER_FRLG_SUPER_NERD_DEREK ===
 Name: DEREK
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1560,7 +1552,7 @@ Rapidash
 Level: 41
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SUPER_NERD_ZAC ===
+=== TRAINER_FRLG_SUPER_NERD_ZAC ===
 Name: ZAC
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -1577,7 +1569,7 @@ Vulpix
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_MARCOS ===
+=== TRAINER_FRLG_HIKER_MARCOS ===
 Name: MARCOS
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1598,7 +1590,7 @@ Onix
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_FRANKLIN ===
+=== TRAINER_FRLG_HIKER_FRANKLIN ===
 Name: FRANKLIN
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1615,7 +1607,7 @@ Geodude
 Level: 15
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_NOB ===
+=== TRAINER_FRLG_HIKER_NOB ===
 Name: NOB
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1640,7 +1632,7 @@ Geodude
 Level: 13
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_WAYNE ===
+=== TRAINER_FRLG_HIKER_WAYNE ===
 Name: WAYNE
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1653,7 +1645,7 @@ Onix
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_ALAN ===
+=== TRAINER_FRLG_HIKER_ALAN ===
 Name: ALAN
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1678,7 +1670,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Bind
 - Screech
 
-=== TRAINER_HIKER_BRICE ===
+=== TRAINER_FRLG_HIKER_BRICE ===
 Name: BRICE
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1699,7 +1691,7 @@ Geodude
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_CLARK ===
+=== TRAINER_FRLG_HIKER_CLARK ===
 Name: CLARK
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1724,7 +1716,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Bind
 - Screech
 
-=== TRAINER_HIKER_TRENT ===
+=== TRAINER_FRLG_HIKER_TRENT ===
 Name: TRENT
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1741,7 +1733,7 @@ Graveler
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_DUDLEY ===
+=== TRAINER_FRLG_HIKER_DUDLEY ===
 Name: DUDLEY
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1774,7 +1766,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Mud Sport
 - Defense Curl
 
-=== TRAINER_HIKER_ALLEN ===
+=== TRAINER_FRLG_HIKER_ALLEN ===
 Name: ALLEN
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1791,7 +1783,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Mud Sport
 - Defense Curl
 
-=== TRAINER_HIKER_ERIC ===
+=== TRAINER_FRLG_HIKER_ERIC ===
 Name: ERIC
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1808,7 +1800,7 @@ Onix
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_LENNY ===
+=== TRAINER_FRLG_HIKER_LENNY ===
 Name: LENNY
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1833,7 +1825,7 @@ Geodude
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_OLIVER ===
+=== TRAINER_FRLG_HIKER_OLIVER ===
 Name: OLIVER
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1854,7 +1846,7 @@ Geodude
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_LUCAS ===
+=== TRAINER_FRLG_HIKER_LUCAS ===
 Name: LUCAS
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -1879,7 +1871,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Mud Sport
 - Defense Curl
 
-=== TRAINER_BIKER_JARED ===
+=== TRAINER_FRLG_BIKER_JARED ===
 Name: JARED
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -1912,7 +1904,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_MALIK ===
+=== TRAINER_FRLG_BIKER_MALIK ===
 Name: MALIK
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -1937,7 +1929,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sludge
 - Disable
 
-=== TRAINER_BIKER_ERNEST ===
+=== TRAINER_FRLG_BIKER_ERNEST ===
 Name: ERNEST
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -1986,7 +1978,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Disable
 - Pound
 
-=== TRAINER_BIKER_ALEX ===
+=== TRAINER_FRLG_BIKER_ALEX ===
 Name: ALEX
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2019,7 +2011,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_LAO ===
+=== TRAINER_FRLG_BIKER_LAO ===
 Name: LAO
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2044,7 +2036,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_HIDEO ===
+=== TRAINER_FRLG_BIKER_HIDEO ===
 Name: HIDEO
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2057,7 +2049,7 @@ Weezing
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIKER_RUBEN ===
+=== TRAINER_FRLG_BIKER_RUBEN ===
 Name: RUBEN
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2090,7 +2082,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_BILLY ===
+=== TRAINER_FRLG_BIKER_BILLY ===
 Name: BILLY
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2103,7 +2095,7 @@ Muk
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIKER_NIKOLAS ===
+=== TRAINER_FRLG_BIKER_NIKOLAS ===
 Name: NIKOLAS
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2128,7 +2120,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Screech
 - Charge
 
-=== TRAINER_BIKER_JAXON ===
+=== TRAINER_FRLG_BIKER_JAXON ===
 Name: JAXON
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2153,7 +2145,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sludge
 - Disable
 
-=== TRAINER_BIKER_WILLIAM ===
+=== TRAINER_FRLG_BIKER_WILLIAM ===
 Name: WILLIAM
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2202,7 +2194,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Self Destruct
 - Tackle
 
-=== TRAINER_BIKER_LUKAS ===
+=== TRAINER_FRLG_BIKER_LUKAS ===
 Name: LUKAS
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2243,7 +2235,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_ISAAC ===
+=== TRAINER_FRLG_BIKER_ISAAC ===
 Name: ISAAC
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2276,7 +2268,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_BIKER_GERALD ===
+=== TRAINER_FRLG_BIKER_GERALD ===
 Name: GERALD
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -2301,7 +2293,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sludge
 - Disable
 
-=== TRAINER_BURGLAR_QUINN ===
+=== TRAINER_FRLG_BURGLAR_QUINN ===
 Name: QUINN
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2322,7 +2314,7 @@ Ninetales
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BURGLAR_RAMON ===
+=== TRAINER_FRLG_BURGLAR_RAMON ===
 Name: RAMON
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2335,7 +2327,7 @@ Ponyta
 Level: 41
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BURGLAR_DUSTY ===
+=== TRAINER_FRLG_BURGLAR_DUSTY ===
 Name: DUSTY
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2352,7 +2344,7 @@ Growlithe
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BURGLAR_ARNIE ===
+=== TRAINER_FRLG_BURGLAR_ARNIE ===
 Name: ARNIE
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2369,7 +2361,7 @@ Charmeleon
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BURGLAR_SIMON ===
+=== TRAINER_FRLG_BURGLAR_SIMON ===
 Name: SIMON
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2382,7 +2374,7 @@ Ninetales
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BURGLAR_LEWIS ===
+=== TRAINER_FRLG_BURGLAR_LEWIS ===
 Name: LEWIS
 Class: Burglar Frlg
 Pic: Burglar Frlg
@@ -2399,7 +2391,7 @@ Ponyta
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_ENGINEER_BAILY ===
+=== TRAINER_FRLG_ENGINEER_BAILY ===
 Name: BAILY
 Class: Engineer Frlg
 Pic: Engineer Frlg
@@ -2416,7 +2408,7 @@ Magnemite
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_ENGINEER_BRAXTON ===
+=== TRAINER_FRLG_ENGINEER_BRAXTON ===
 Name: BRAXTON
 Class: Engineer Frlg
 Pic: Engineer Frlg
@@ -2429,7 +2421,7 @@ Magnemite
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_ENGINEER_BERNIE ===
+=== TRAINER_FRLG_ENGINEER_BERNIE ===
 Name: BERNIE
 Class: Engineer Frlg
 Pic: Engineer Frlg
@@ -2450,7 +2442,7 @@ Magneton
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_DALE ===
+=== TRAINER_FRLG_FISHERMAN_DALE ===
 Name: DALE
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2471,7 +2463,7 @@ Goldeen
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_BARNY ===
+=== TRAINER_FRLG_FISHERMAN_BARNY ===
 Name: BARNY
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2492,7 +2484,7 @@ Shellder
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_NED ===
+=== TRAINER_FRLG_FISHERMAN_NED ===
 Name: NED
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2513,7 +2505,7 @@ Goldeen
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_CHIP ===
+=== TRAINER_FRLG_FISHERMAN_CHIP ===
 Name: CHIP
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2530,7 +2522,7 @@ Goldeen
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_HANK ===
+=== TRAINER_FRLG_FISHERMAN_HANK ===
 Name: HANK
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2543,7 +2535,7 @@ Goldeen
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_ELLIOT ===
+=== TRAINER_FRLG_FISHERMAN_ELLIOT ===
 Name: ELLIOT
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2568,7 +2560,7 @@ Horsea
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_RONALD ===
+=== TRAINER_FRLG_FISHERMAN_RONALD ===
 Name: RONALD
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2593,7 +2585,7 @@ Seaking
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_CLAUDE ===
+=== TRAINER_FRLG_FISHERMAN_CLAUDE ===
 Name: CLAUDE
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2610,7 +2602,7 @@ Cloyster
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_WADE ===
+=== TRAINER_FRLG_FISHERMAN_WADE ===
 Name: WADE
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2643,7 +2635,7 @@ Magikarp
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_NOLAN ===
+=== TRAINER_FRLG_FISHERMAN_NOLAN ===
 Name: NOLAN
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2660,7 +2652,7 @@ Goldeen
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_ANDREW ===
+=== TRAINER_FRLG_FISHERMAN_ANDREW ===
 Name: ANDREW
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -2677,7 +2669,7 @@ Magikarp
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_LUIS ===
+=== TRAINER_FRLG_SWIMMER_MALE_LUIS ===
 Name: LUIS
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2694,7 +2686,7 @@ Shellder
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_RICHARD ===
+=== TRAINER_FRLG_SWIMMER_MALE_RICHARD ===
 Name: RICHARD
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2711,7 +2703,7 @@ Shellder
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_REECE ===
+=== TRAINER_FRLG_SWIMMER_MALE_REECE ===
 Name: REECE
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2732,7 +2724,7 @@ Staryu
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_MATTHEW ===
+=== TRAINER_FRLG_SWIMMER_MALE_MATTHEW ===
 Name: MATTHEW
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2749,7 +2741,7 @@ Poliwhirl
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_DOUGLAS ===
+=== TRAINER_FRLG_SWIMMER_MALE_DOUGLAS ===
 Name: DOUGLAS
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2774,7 +2766,7 @@ Goldeen
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_DAVID ===
+=== TRAINER_FRLG_SWIMMER_MALE_DAVID ===
 Name: DAVID
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2795,7 +2787,7 @@ Seaking
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_TONY ===
+=== TRAINER_FRLG_SWIMMER_MALE_TONY ===
 Name: TONY
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2812,7 +2804,7 @@ Horsea
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_AXLE ===
+=== TRAINER_FRLG_SWIMMER_MALE_AXLE ===
 Name: AXLE
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2841,7 +2833,7 @@ Tentacruel
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_BARRY ===
+=== TRAINER_FRLG_SWIMMER_MALE_BARRY ===
 Name: BARRY
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2858,7 +2850,7 @@ Cloyster
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_DEAN ===
+=== TRAINER_FRLG_SWIMMER_MALE_DEAN ===
 Name: DEAN
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2871,7 +2863,7 @@ Staryu
 Level: 35
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_DARRIN ===
+=== TRAINER_FRLG_SWIMMER_MALE_DARRIN ===
 Name: DARRIN
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2896,7 +2888,7 @@ Horsea
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_SPENCER ===
+=== TRAINER_FRLG_SWIMMER_MALE_SPENCER ===
 Name: SPENCER
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2913,7 +2905,7 @@ Tentacruel
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_JACK ===
+=== TRAINER_FRLG_SWIMMER_MALE_JACK ===
 Name: JACK
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2926,7 +2918,7 @@ Starmie
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_JEROME ===
+=== TRAINER_FRLG_SWIMMER_MALE_JEROME ===
 Name: JEROME
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2943,7 +2935,7 @@ Wartortle
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_ROLAND ===
+=== TRAINER_FRLG_SWIMMER_MALE_ROLAND ===
 Name: ROLAND
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -2964,7 +2956,7 @@ Seadra
 Level: 32
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_KOJI ===
+=== TRAINER_FRLG_CUE_BALL_KOJI ===
 Name: KOJI
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -2985,7 +2977,7 @@ Machop
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_LUKE ===
+=== TRAINER_FRLG_CUE_BALL_LUKE ===
 Name: LUKE
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3002,7 +2994,7 @@ Machop
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_CAMRON ===
+=== TRAINER_FRLG_CUE_BALL_CAMRON ===
 Name: CAMRON
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3019,7 +3011,7 @@ Machop
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_RAUL ===
+=== TRAINER_FRLG_CUE_BALL_RAUL ===
 Name: RAUL
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3036,7 +3028,7 @@ Primeape
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_ISAIAH ===
+=== TRAINER_FRLG_CUE_BALL_ISAIAH ===
 Name: ISAIAH
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3053,7 +3045,7 @@ Machamp
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_ZEEK ===
+=== TRAINER_FRLG_CUE_BALL_ZEEK ===
 Name: ZEEK
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3066,7 +3058,7 @@ Machoke
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_JAMAL ===
+=== TRAINER_FRLG_CUE_BALL_JAMAL ===
 Name: JAMAL
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3091,7 +3083,7 @@ Machop
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_COREY ===
+=== TRAINER_FRLG_CUE_BALL_COREY ===
 Name: COREY
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3108,7 +3100,7 @@ Machoke
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CUE_BALL_CHASE ===
+=== TRAINER_FRLG_CUE_BALL_CHASE ===
 Name: CHASE
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -3129,7 +3121,7 @@ Tentacruel
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_HUGO ===
+=== TRAINER_FRLG_GAMER_HUGO ===
 Name: HUGO
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3146,7 +3138,7 @@ Horsea
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_JASPER ===
+=== TRAINER_FRLG_GAMER_JASPER ===
 Name: JASPER
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3163,7 +3155,7 @@ Oddish
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_DIRK ===
+=== TRAINER_FRLG_GAMER_DIRK ===
 Name: DIRK
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3180,7 +3172,7 @@ Magnemite
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_DARIAN ===
+=== TRAINER_FRLG_GAMER_DARIAN ===
 Name: DARIAN
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3197,7 +3189,7 @@ Vulpix
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_STAN ===
+=== TRAINER_FRLG_GAMER_STAN ===
 Name: STAN
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3218,7 +3210,7 @@ Poliwhirl
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GAMER_RICH ===
+=== TRAINER_FRLG_GAMER_RICH ===
 Name: RICH
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -3235,7 +3227,7 @@ Vulpix
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_BRIDGET ===
+=== TRAINER_FRLG_BEAUTY_BRIDGET ===
 Name: BRIDGET
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3260,7 +3252,7 @@ Bellsprout
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_TAMIA ===
+=== TRAINER_FRLG_BEAUTY_TAMIA ===
 Name: TAMIA
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3277,7 +3269,7 @@ Bellsprout
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_LORI ===
+=== TRAINER_FRLG_BEAUTY_LORI ===
 Name: LORI
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3290,7 +3282,7 @@ Exeggcute
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_LOLA ===
+=== TRAINER_FRLG_BEAUTY_LOLA ===
 Name: LOLA
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3311,7 +3303,7 @@ Rattata
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_SHEILA ===
+=== TRAINER_FRLG_BEAUTY_SHEILA ===
 Name: SHEILA
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3328,7 +3320,7 @@ Meowth
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_TIFFANY ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_TIFFANY ===
 Name: TIFFANY
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3341,7 +3333,7 @@ Seaking
 Level: 35
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_NORA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_NORA ===
 Name: NORA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3362,7 +3354,7 @@ Cloyster
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_MELISSA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_MELISSA ===
 Name: MELISSA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3379,7 +3371,7 @@ Seaking
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_GRACE ===
+=== TRAINER_FRLG_BEAUTY_GRACE ===
 Name: GRACE
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3396,7 +3388,7 @@ Wigglytuff
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_OLIVIA ===
+=== TRAINER_FRLG_BEAUTY_OLIVIA ===
 Name: OLIVIA
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -3413,7 +3405,7 @@ Ivysaur
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BEAUTY_LAUREN ===
+=== TRAINER_FRLG_BEAUTY_LAUREN ===
 Name: LAUREN
 Class: Beauty Frlg
 Pic: Swimmer F Frlg
@@ -3434,7 +3426,7 @@ Weepinbell
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_ANYA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_ANYA ===
 Name: ANYA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3463,7 +3455,7 @@ Poliwag
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_ALICE ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_ALICE ===
 Name: ALICE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3480,7 +3472,7 @@ Seaking
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_CONNIE ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_CONNIE ===
 Name: CONNIE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3501,7 +3493,7 @@ Staryu
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_SHIRLEY ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_SHIRLEY ===
 Name: SHIRLEY
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -3522,7 +3514,7 @@ Seadra
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PSYCHIC_JOHAN ===
+=== TRAINER_FRLG_PSYCHIC_JOHAN ===
 Name: JOHAN
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -3547,7 +3539,7 @@ Kadabra
 Level: 31
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_PSYCHIC_TYRON ===
+=== TRAINER_FRLG_PSYCHIC_TYRON ===
 Name: TYRON
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -3564,7 +3556,7 @@ Kadabra
 Level: 34
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_PSYCHIC_CAMERON ===
+=== TRAINER_FRLG_PSYCHIC_CAMERON ===
 Name: CAMERON
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -3585,7 +3577,7 @@ Slowbro
 Level: 33
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_PSYCHIC_PRESTON ===
+=== TRAINER_FRLG_PSYCHIC_PRESTON ===
 Name: PRESTON
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -3598,7 +3590,7 @@ Slowbro
 Level: 38
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_ROCKER_RANDALL ===
+=== TRAINER_FRLG_ROCKER_RANDALL ===
 Name: RANDALL
 Class: Rocker Frlg
 Pic: Rocker Frlg
@@ -3619,7 +3611,7 @@ Voltorb
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_ROCKER_LUCA ===
+=== TRAINER_FRLG_ROCKER_LUCA ===
 Name: LUCA
 Class: Rocker Frlg
 Pic: Rocker Frlg
@@ -3636,7 +3628,7 @@ Electrode
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_DALTON ===
+=== TRAINER_FRLG_JUGGLER_DALTON ===
 Name: DALTON
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3653,7 +3645,7 @@ Mr Mime
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_NELSON ===
+=== TRAINER_FRLG_JUGGLER_NELSON ===
 Name: NELSON
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3678,7 +3670,7 @@ Kadabra
 Level: 41
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_KIRK ===
+=== TRAINER_FRLG_JUGGLER_KIRK ===
 Name: KIRK
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3703,7 +3695,7 @@ Drowzee
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_SHAWN ===
+=== TRAINER_FRLG_JUGGLER_SHAWN ===
 Name: SHAWN
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3720,7 +3712,7 @@ Hypno
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_GREGORY ===
+=== TRAINER_FRLG_JUGGLER_GREGORY ===
 Name: GREGORY
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3737,7 +3729,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Double Slap
 - Encore
 
-=== TRAINER_JUGGLER_EDWARD ===
+=== TRAINER_FRLG_JUGGLER_EDWARD ===
 Name: EDWARD
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3778,7 +3770,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Reflect
 - Encore
 
-=== TRAINER_JUGGLER_KAYDEN ===
+=== TRAINER_FRLG_JUGGLER_KAYDEN ===
 Name: KAYDEN
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3791,7 +3783,7 @@ Hypno
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_NATE ===
+=== TRAINER_FRLG_JUGGLER_NATE ===
 Name: NATE
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -3808,7 +3800,7 @@ Kadabra
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TAMER_PHIL ===
+=== TRAINER_FRLG_TAMER_PHIL ===
 Name: PHIL
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3825,7 +3817,7 @@ Arbok
 Level: 34
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_TAMER_EDGAR ===
+=== TRAINER_FRLG_TAMER_EDGAR ===
 Name: EDGAR
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3846,7 +3838,7 @@ Arbok
 Level: 33
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_TAMER_JASON ===
+=== TRAINER_FRLG_TAMER_JASON ===
 Name: JASON
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3859,7 +3851,7 @@ Rhyhorn
 Level: 43
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_TAMER_COLE ===
+=== TRAINER_FRLG_TAMER_COLE ===
 Name: COLE
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3876,7 +3868,7 @@ Tauros
 Level: 39
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_TAMER_VINCENT ===
+=== TRAINER_FRLG_TAMER_VINCENT ===
 Name: VINCENT
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3893,7 +3885,7 @@ Golduck
 Level: 44
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_TAMER_JOHN ===
+=== TRAINER_FRLG_TAMER_JOHN ===
 Name: JOHN
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -3918,7 +3910,7 @@ Tauros
 Level: 42
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_BIRD_KEEPER_SEBASTIAN ===
+=== TRAINER_FRLG_BIRD_KEEPER_SEBASTIAN ===
 Name: SEBASTIAN
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -3935,7 +3927,7 @@ Pidgeotto
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_PERRY ===
+=== TRAINER_FRLG_BIRD_KEEPER_PERRY ===
 Name: PERRY
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -3964,7 +3956,7 @@ Spearow
 Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_ROBERT ===
+=== TRAINER_FRLG_BIRD_KEEPER_ROBERT ===
 Name: ROBERT
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -3989,7 +3981,7 @@ Fearow
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_DONALD ===
+=== TRAINER_FRLG_BIRD_KEEPER_DONALD ===
 Name: DONALD
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4002,7 +3994,7 @@ Farfetchd
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_BENNY ===
+=== TRAINER_FRLG_BIRD_KEEPER_BENNY ===
 Name: BENNY
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4019,7 +4011,7 @@ Fearow
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_EDWIN ===
+=== TRAINER_FRLG_BIRD_KEEPER_EDWIN ===
 Name: EDWIN
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4044,7 +4036,7 @@ Pidgey
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_CHESTER ===
+=== TRAINER_FRLG_BIRD_KEEPER_CHESTER ===
 Name: CHESTER
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4065,7 +4057,7 @@ Doduo
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_WILTON ===
+=== TRAINER_FRLG_BIRD_KEEPER_WILTON ===
 Name: WILTON
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4082,7 +4074,7 @@ Fearow
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_RAMIRO ===
+=== TRAINER_FRLG_BIRD_KEEPER_RAMIRO ===
 Name: RAMIRO
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4095,7 +4087,7 @@ Dodrio
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_JACOB ===
+=== TRAINER_FRLG_BIRD_KEEPER_JACOB ===
 Name: JACOB
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4120,7 +4112,7 @@ Spearow
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_ROGER ===
+=== TRAINER_FRLG_BIRD_KEEPER_ROGER ===
 Name: ROGER
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4141,7 +4133,7 @@ Pidgeotto
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_REED ===
+=== TRAINER_FRLG_BIRD_KEEPER_REED ===
 Name: REED
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4166,7 +4158,7 @@ Pidgeotto
 Level: 39
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_KEITH ===
+=== TRAINER_FRLG_BIRD_KEEPER_KEITH ===
 Name: KEITH
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4183,7 +4175,7 @@ Fearow
 Level: 39
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_CARTER ===
+=== TRAINER_FRLG_BIRD_KEEPER_CARTER ===
 Name: CARTER
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4204,7 +4196,7 @@ Pidgeotto
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_MITCH ===
+=== TRAINER_FRLG_BIRD_KEEPER_MITCH ===
 Name: MITCH
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4229,7 +4221,7 @@ Fearow
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_BECK ===
+=== TRAINER_FRLG_BIRD_KEEPER_BECK ===
 Name: BECK
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4246,7 +4238,7 @@ Fearow
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_MARLON ===
+=== TRAINER_FRLG_BIRD_KEEPER_MARLON ===
 Name: MARLON
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -4267,7 +4259,7 @@ Fearow
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BLACK_BELT_KOICHI ===
+=== TRAINER_FRLG_BLACK_BELT_KOICHI ===
 Name: KOICHI
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4284,7 +4276,7 @@ Hitmonchan @ Black Belt
 Level: 37
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_MIKE ===
+=== TRAINER_FRLG_BLACK_BELT_MIKE ===
 Name: MIKE
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4305,7 +4297,7 @@ Primeape @ Black Belt
 Level: 31
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_HIDEKI ===
+=== TRAINER_FRLG_BLACK_BELT_HIDEKI ===
 Name: HIDEKI
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4322,7 +4314,7 @@ Machoke @ Black Belt
 Level: 32
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_AARON ===
+=== TRAINER_FRLG_BLACK_BELT_AARON ===
 Name: AARON
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4335,7 +4327,7 @@ Primeape @ Black Belt
 Level: 36
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_HITOSHI ===
+=== TRAINER_FRLG_BLACK_BELT_HITOSHI ===
 Name: HITOSHI
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4356,7 +4348,7 @@ Primeape @ Black Belt
 Level: 31
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_ATSUSHI ===
+=== TRAINER_FRLG_BLACK_BELT_ATSUSHI ===
 Name: ATSUSHI
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4373,7 +4365,7 @@ Machoke @ Black Belt
 Level: 40
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_KIYO ===
+=== TRAINER_FRLG_BLACK_BELT_KIYO ===
 Name: KIYO
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4386,7 +4378,7 @@ Machoke @ Black Belt
 Level: 43
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_TAKASHI ===
+=== TRAINER_FRLG_BLACK_BELT_TAKASHI ===
 Name: TAKASHI
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4407,7 +4399,7 @@ Machoke @ Black Belt
 Level: 38
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_DAISUKE ===
+=== TRAINER_FRLG_BLACK_BELT_DAISUKE ===
 Name: DAISUKE
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -4428,7 +4420,7 @@ Machoke @ Black Belt
 Level: 43
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_OAKS_LAB_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_OAKS_LAB_SQUIRTLE ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4443,7 +4435,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Tackle
 - Tail Whip
 
-=== TRAINER_RIVAL_OAKS_LAB_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_OAKS_LAB_BULBASAUR ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4458,7 +4450,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Tackle
 - Growl
 
-=== TRAINER_RIVAL_OAKS_LAB_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_OAKS_LAB_CHARMANDER ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4473,7 +4465,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Scratch
 - Growl
 
-=== TRAINER_RIVAL_ROUTE22_EARLY_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_EARLY_SQUIRTLE ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4494,7 +4486,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Tackle
 - Tail Whip
 
-=== TRAINER_RIVAL_ROUTE22_EARLY_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_EARLY_BULBASAUR ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4515,7 +4507,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Tackle
 - Growl
 
-=== TRAINER_RIVAL_ROUTE22_EARLY_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_EARLY_CHARMANDER ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4536,7 +4528,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Scratch
 - Growl
 
-=== TRAINER_RIVAL_CERULEAN_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_CERULEAN_SQUIRTLE ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4573,7 +4565,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Withdraw
 - Water Gun
 
-=== TRAINER_RIVAL_CERULEAN_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_CERULEAN_BULBASAUR ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4610,7 +4602,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Vine Whip
 - Leech Seed
 
-=== TRAINER_RIVAL_CERULEAN_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_CERULEAN_CHARMANDER ===
 Name: TERRY
 Class: Rival Early Frlg
 Pic: Rival Early Frlg
@@ -4647,7 +4639,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Growl
 - Scratch
 
-=== TRAINER_SCIENTIST_TED ===
+=== TRAINER_FRLG_SCIENTIST_TED ===
 Name: TED
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4664,7 +4656,7 @@ Weezing
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_CONNOR ===
+=== TRAINER_FRLG_SCIENTIST_CONNOR ===
 Name: CONNOR
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4705,7 +4697,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_SCIENTIST_JERRY ===
+=== TRAINER_FRLG_SCIENTIST_JERRY ===
 Name: JERRY
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4726,7 +4718,7 @@ Magneton
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_JOSE ===
+=== TRAINER_FRLG_SCIENTIST_JOSE ===
 Name: JOSE
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4751,7 +4743,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_SCIENTIST_RODNEY ===
+=== TRAINER_FRLG_SCIENTIST_RODNEY ===
 Name: RODNEY
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4764,7 +4756,7 @@ Electrode
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_BEAU ===
+=== TRAINER_FRLG_SCIENTIST_BEAU ===
 Name: BEAU
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4805,7 +4797,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sonic Boom
 - Supersonic
 
-=== TRAINER_SCIENTIST_TAYLOR ===
+=== TRAINER_FRLG_SCIENTIST_TAYLOR ===
 Name: TAYLOR
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4854,7 +4846,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Self Destruct
 
-=== TRAINER_SCIENTIST_JOSHUA ===
+=== TRAINER_FRLG_SCIENTIST_JOSHUA ===
 Name: JOSHUA
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4871,7 +4863,7 @@ Muk
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_PARKER ===
+=== TRAINER_FRLG_SCIENTIST_PARKER ===
 Name: PARKER
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4888,7 +4880,7 @@ Electrode
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_ED ===
+=== TRAINER_FRLG_SCIENTIST_ED ===
 Name: ED
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4921,7 +4913,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sonic Boom
 - Supersonic
 
-=== TRAINER_SCIENTIST_TRAVIS ===
+=== TRAINER_FRLG_SCIENTIST_TRAVIS ===
 Name: TRAVIS
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4938,7 +4930,7 @@ Koffing
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_BRAYDON ===
+=== TRAINER_FRLG_SCIENTIST_BRAYDON ===
 Name: BRAYDON
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4959,7 +4951,7 @@ Voltorb
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SCIENTIST_IVAN ===
+=== TRAINER_FRLG_SCIENTIST_IVAN ===
 Name: IVAN
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -4976,7 +4968,7 @@ Electrode
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BOSS_GIOVANNI ===
+=== TRAINER_FRLG_BOSS_GIOVANNI ===
 Name: GIOVANNI
 Class: Boss Frlg
 Pic: Leader Giovanni Frlg
@@ -4997,7 +4989,7 @@ Kangaskhan
 Level: 29
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 
-=== TRAINER_BOSS_GIOVANNI_2 ===
+=== TRAINER_FRLG_BOSS_GIOVANNI_2 ===
 Name: GIOVANNI
 Class: Boss Frlg
 Pic: Leader Giovanni Frlg
@@ -5022,7 +5014,7 @@ Nidoqueen
 Level: 41
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 
-=== TRAINER_LEADER_GIOVANNI ===
+=== TRAINER_FRLG_LEADER_GIOVANNI ===
 Name: GIOVANNI
 Class: Leader Frlg
 Pic: Leader Giovanni Frlg
@@ -5072,7 +5064,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Scary Face
 - Earthquake
 
-=== TRAINER_TEAM_ROCKET_GRUNT ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5089,7 +5081,7 @@ Zubat
 Level: 13
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_2 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_2 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5110,7 +5102,7 @@ Zubat
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_3 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_3 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5127,7 +5119,7 @@ Ekans
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_4 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_4 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5144,7 +5136,7 @@ Sandshrew
 Level: 13
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_5 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_5 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5161,7 +5153,7 @@ Drowzee
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_6 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_6 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5178,7 +5170,7 @@ Zubat
 Level: 15
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_7 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_7 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5195,7 +5187,7 @@ Zubat
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_8 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_8 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5212,7 +5204,7 @@ Machop
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_9 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_9 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5229,7 +5221,7 @@ Raticate
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_10 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_10 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5260,7 +5252,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Tackle
 - Poison Gas
 
-=== TRAINER_TEAM_ROCKET_GRUNT_11 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_11 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5285,7 +5277,7 @@ Rattata
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_12 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_12 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5310,7 +5302,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Tackle
 - Poison Gas
 
-=== TRAINER_TEAM_ROCKET_GRUNT_13 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_13 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5358,7 +5350,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Tail Whip
 - Tackle
 
-=== TRAINER_TEAM_ROCKET_GRUNT_14 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_14 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5379,7 +5371,7 @@ Drowzee
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_15 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_15 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5396,7 +5388,7 @@ Machop
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_16 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_16 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5417,7 +5409,7 @@ Sandslash
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_17 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_17 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5438,7 +5430,7 @@ Arbok
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_18 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_18 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5455,7 +5447,7 @@ Zubat
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_19 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_19 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5476,7 +5468,7 @@ Golbat
 Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_20 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_20 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5493,7 +5485,7 @@ Drowzee
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_21 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_21 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5518,7 +5510,7 @@ Zubat
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_22 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_22 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5535,7 +5527,7 @@ Koffing
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_23 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_23 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5552,7 +5544,7 @@ Zubat
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_24 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_24 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5581,7 +5573,7 @@ Zubat
 Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_25 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_25 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5602,7 +5594,7 @@ Raticate
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_26 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_26 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5619,7 +5611,7 @@ Drowzee
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_27 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_27 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5640,7 +5632,7 @@ Cubone
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_28 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_28 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5653,7 +5645,7 @@ Arbok
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_29 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_29 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5666,7 +5658,7 @@ Hypno
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_30 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_30 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5683,7 +5675,7 @@ Machoke
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_31 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_31 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5704,7 +5696,7 @@ Golbat
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_32 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_32 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5745,7 +5737,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Astonish
 - Supersonic
 
-=== TRAINER_TEAM_ROCKET_GRUNT_33 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_33 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5762,7 +5754,7 @@ Cubone
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_34 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_34 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5779,7 +5771,7 @@ Sandslash
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_35 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_35 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5804,7 +5796,7 @@ Rattata
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_36 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_36 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5825,7 +5817,7 @@ Koffing
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_37 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_37 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5846,7 +5838,7 @@ Machop
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_38 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_38 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5867,7 +5859,7 @@ Hypno
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_39 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_39 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5880,7 +5872,7 @@ Machoke
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_40 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_40 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5909,7 +5901,7 @@ Ekans
 Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_41 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_41 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -5930,7 +5922,7 @@ Marowak
 Level: 32
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_COOLTRAINER_SAMUEL ===
+=== TRAINER_FRLG_COOLTRAINER_SAMUEL ===
 Name: SAMUEL
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -5980,7 +5972,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Poison Sting
 - Focus Energy
 
-=== TRAINER_COOLTRAINER_GEORGE ===
+=== TRAINER_FRLG_COOLTRAINER_GEORGE ===
 Name: GEORGE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6030,7 +6022,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Bite
 - Take Down
 
-=== TRAINER_COOLTRAINER_COLBY ===
+=== TRAINER_FRLG_COOLTRAINER_COLBY ===
 Name: COLBY
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6080,7 +6072,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Rapid Spin
 - Rain Dance
 
-=== TRAINER_COOLTRAINER_PAUL ===
+=== TRAINER_FRLG_COOLTRAINER_PAUL ===
 Name: PAUL
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6130,7 +6122,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Screech
 - Disable
 
-=== TRAINER_COOLTRAINER_ROLANDO ===
+=== TRAINER_FRLG_COOLTRAINER_ROLANDO ===
 Name: ROLANDO
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6180,7 +6172,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Smokescreen
 - Scary Face
 
-=== TRAINER_COOLTRAINER_GILBERT ===
+=== TRAINER_FRLG_COOLTRAINER_GILBERT ===
 Name: GILBERT
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6230,7 +6222,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Swagger
 - Tail Whip
 
-=== TRAINER_COOLTRAINER_OWEN ===
+=== TRAINER_FRLG_COOLTRAINER_OWEN ===
 Name: OWEN
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6280,7 +6272,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Stomp
 - Tail Whip
 
-=== TRAINER_COOLTRAINER_BERKE ===
+=== TRAINER_FRLG_COOLTRAINER_BERKE ===
 Name: BERKE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6330,7 +6322,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Supersonic
 - Protect
 
-=== TRAINER_COOLTRAINER_YUJI ===
+=== TRAINER_FRLG_COOLTRAINER_YUJI ===
 Name: YUJI
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6380,7 +6372,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Leer
 - Growl
 
-=== TRAINER_COOLTRAINER_WARREN ===
+=== TRAINER_FRLG_COOLTRAINER_WARREN ===
 Name: WARREN
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -6430,7 +6422,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Poison Sting
 - Double Kick
 
-=== TRAINER_COOLTRAINER_MARY ===
+=== TRAINER_FRLG_COOLTRAINER_MARY ===
 Name: MARY
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6480,7 +6472,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Vine Whip
 - Leech Seed
 
-=== TRAINER_COOLTRAINER_CAROLINE ===
+=== TRAINER_FRLG_COOLTRAINER_CAROLINE ===
 Name: CAROLINE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6530,7 +6522,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Leech Life
 - Poison Powder
 
-=== TRAINER_COOLTRAINER_ALEXA ===
+=== TRAINER_FRLG_COOLTRAINER_ALEXA ===
 Name: ALEXA
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6580,7 +6572,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Soft Boiled
 - Minimize
 
-=== TRAINER_COOLTRAINER_SHANNON ===
+=== TRAINER_FRLG_COOLTRAINER_SHANNON ===
 Name: SHANNON
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6630,7 +6622,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Supersonic
 - Leech Life
 
-=== TRAINER_COOLTRAINER_NAOMI ===
+=== TRAINER_FRLG_COOLTRAINER_NAOMI ===
 Name: NAOMI
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6680,7 +6672,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Confuse Ray
 - Fire Spin
 
-=== TRAINER_COOLTRAINER_BROOKE ===
+=== TRAINER_FRLG_COOLTRAINER_BROOKE ===
 Name: BROOKE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6730,7 +6722,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Sleep Powder
 - Poison Powder
 
-=== TRAINER_COOLTRAINER_AUSTINA ===
+=== TRAINER_FRLG_COOLTRAINER_AUSTINA ===
 Name: AUSTINA
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6780,7 +6772,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Poison Sting
 - Peck
 
-=== TRAINER_COOLTRAINER_JULIE ===
+=== TRAINER_FRLG_COOLTRAINER_JULIE ===
 Name: JULIE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -6830,7 +6822,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Slam
 - Double Team
 
-=== TRAINER_ELITE_FOUR_LORELEI ===
+=== TRAINER_FRLG_ELITE_FOUR_LORELEI ===
 Name: LORELEI
 Class: Elite Four Frlg
 Pic: Elite Four Lorelei Frlg
@@ -6881,7 +6873,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Surf
 - Body Slam
 
-=== TRAINER_ELITE_FOUR_BRUNO ===
+=== TRAINER_FRLG_ELITE_FOUR_BRUNO ===
 Name: BRUNO
 Class: Elite Four Frlg
 Pic: Elite Four Bruno Frlg
@@ -6932,7 +6924,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Scary Face
 - Rock Tomb
 
-=== TRAINER_ELITE_FOUR_AGATHA ===
+=== TRAINER_FRLG_ELITE_FOUR_AGATHA ===
 Name: AGATHA
 Class: Elite Four Frlg
 Pic: Elite Four Agatha Frlg
@@ -6983,7 +6975,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Hypnosis
 - Nightmare
 
-=== TRAINER_ELITE_FOUR_LANCE ===
+=== TRAINER_FRLG_ELITE_FOUR_LANCE ===
 Name: LANCE
 Class: Elite Four Frlg
 Pic: Elite Four Lance Frlg
@@ -7034,7 +7026,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Outrage
 - Wing Attack
 
-=== TRAINER_LEADER_BROCK ===
+=== TRAINER_FRLG_LEADER_BROCK ===
 Name: BROCK
 Class: Leader Frlg
 Pic: Leader Brock Frlg
@@ -7056,7 +7048,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Bind
 - Rock Tomb
 
-=== TRAINER_LEADER_MISTY ===
+=== TRAINER_FRLG_LEADER_MISTY ===
 Name: MISTY
 Class: Leader Frlg
 Pic: Leader Misty Frlg
@@ -7082,7 +7074,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Rapid Spin
 - Water Pulse
 
-=== TRAINER_LEADER_LT_SURGE ===
+=== TRAINER_FRLG_LEADER_LT_SURGE ===
 Name: LT. SURGE
 Class: Leader Frlg
 Pic: Leader Lt Surge Frlg
@@ -7116,7 +7108,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Double Team
 - Shock Wave
 
-=== TRAINER_LEADER_ERIKA ===
+=== TRAINER_FRLG_LEADER_ERIKA ===
 Name: ERIKA
 Class: Leader Frlg
 Pic: Leader Erika Frlg
@@ -7150,7 +7142,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Stun Spore
 - Giga Drain
 
-=== TRAINER_LEADER_KOGA ===
+=== TRAINER_FRLG_LEADER_KOGA ===
 Name: KOGA
 Class: Leader Frlg
 Pic: Leader Koga Frlg
@@ -7192,7 +7184,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smokescreen
 - Toxic
 
-=== TRAINER_LEADER_BLAINE ===
+=== TRAINER_FRLG_LEADER_BLAINE ===
 Name: BLAINE
 Class: Leader Frlg
 Pic: Leader Blaine Frlg
@@ -7234,7 +7226,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Take Down
 - Fire Blast
 
-=== TRAINER_LEADER_SABRINA ===
+=== TRAINER_FRLG_LEADER_SABRINA ===
 Name: SABRINA
 Class: Leader Frlg
 Pic: Leader Sabrina Frlg
@@ -7276,7 +7268,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Future Sight
 - Calm Mind
 
-=== TRAINER_GENTLEMAN_THOMAS ===
+=== TRAINER_FRLG_GENTLEMAN_THOMAS ===
 Name: THOMAS
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -7293,7 +7285,7 @@ Growlithe
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_ARTHUR ===
+=== TRAINER_FRLG_GENTLEMAN_ARTHUR ===
 Name: ARTHUR
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -7310,7 +7302,7 @@ Nidoran F
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_TUCKER ===
+=== TRAINER_FRLG_GENTLEMAN_TUCKER ===
 Name: TUCKER
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -7323,7 +7315,7 @@ Pikachu
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_NORTON ===
+=== TRAINER_FRLG_GENTLEMAN_NORTON ===
 Name: NORTON
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -7336,7 +7328,7 @@ Persian
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_WALTER ===
+=== TRAINER_FRLG_GENTLEMAN_WALTER ===
 Name: WALTER
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -7353,7 +7345,7 @@ Ponyta
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RIVAL_SS_ANNE_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_SS_ANNE_SQUIRTLE ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7378,7 +7370,7 @@ Wartortle
 Level: 20
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_SS_ANNE_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_SS_ANNE_BULBASAUR ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7403,7 +7395,7 @@ Ivysaur
 Level: 20
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_SS_ANNE_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_SS_ANNE_CHARMANDER ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7428,7 +7420,7 @@ Charmeleon
 Level: 20
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_POKEMON_TOWER_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_POKEMON_TOWER_SQUIRTLE ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7457,7 +7449,7 @@ Wartortle
 Level: 25
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_POKEMON_TOWER_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_POKEMON_TOWER_BULBASAUR ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7486,7 +7478,7 @@ Ivysaur
 Level: 25
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_POKEMON_TOWER_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_POKEMON_TOWER_CHARMANDER ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7515,7 +7507,7 @@ Charmeleon
 Level: 25
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_RIVAL_SILPH_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_SILPH_SQUIRTLE ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7544,7 +7536,7 @@ Blastoise
 Level: 40
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_RIVAL_SILPH_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_SILPH_BULBASAUR ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7573,7 +7565,7 @@ Venusaur
 Level: 40
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_RIVAL_SILPH_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_SILPH_CHARMANDER ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7602,7 +7594,7 @@ Charizard
 Level: 40
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_RIVAL_ROUTE22_LATE_SQUIRTLE ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_LATE_SQUIRTLE ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7659,7 +7651,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Bite
 - Rapid Spin
 
-=== TRAINER_RIVAL_ROUTE22_LATE_BULBASAUR ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_LATE_BULBASAUR ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7716,7 +7708,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Growth
 - Synthesis
 
-=== TRAINER_RIVAL_ROUTE22_LATE_CHARMANDER ===
+=== TRAINER_FRLG_RIVAL_ROUTE22_LATE_CHARMANDER ===
 Name: TERRY
 Class: Rival Late Frlg
 Pic: Rival Late Frlg
@@ -7773,7 +7765,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Slash
 - Scary Face
 
-=== TRAINER_CHAMPION_FIRST_SQUIRTLE ===
+=== TRAINER_FRLG_CHAMPION_FIRST_SQUIRTLE ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -7832,7 +7824,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Skull Bash
 - Bite
 
-=== TRAINER_CHAMPION_FIRST_BULBASAUR ===
+=== TRAINER_FRLG_CHAMPION_FIRST_BULBASAUR ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -7891,7 +7883,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Sunny Day
 - Growth
 
-=== TRAINER_CHAMPION_FIRST_CHARMANDER ===
+=== TRAINER_FRLG_CHAMPION_FIRST_CHARMANDER ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -7950,7 +7942,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Slash
 - Fire Spin
 
-=== TRAINER_CHANNELER_PATRICIA ===
+=== TRAINER_FRLG_CHANNELER_PATRICIA ===
 Name: PATRICIA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -7963,7 +7955,7 @@ Gastly
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_CARLY ===
+=== TRAINER_FRLG_CHANNELER_CARLY ===
 Name: CARLY
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -7976,7 +7968,7 @@ Gastly
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_HOPE ===
+=== TRAINER_FRLG_CHANNELER_HOPE ===
 Name: HOPE
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -7989,7 +7981,7 @@ Gastly
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_PAULA ===
+=== TRAINER_FRLG_CHANNELER_PAULA ===
 Name: PAULA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8002,7 +7994,7 @@ Gastly
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_LAUREL ===
+=== TRAINER_FRLG_CHANNELER_LAUREL ===
 Name: LAUREL
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8019,7 +8011,7 @@ Gastly
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_JODY ===
+=== TRAINER_FRLG_CHANNELER_JODY ===
 Name: JODY
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8032,7 +8024,7 @@ Gastly
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_TAMMY ===
+=== TRAINER_FRLG_CHANNELER_TAMMY ===
 Name: TAMMY
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8045,7 +8037,7 @@ Haunter
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_RUTH ===
+=== TRAINER_FRLG_CHANNELER_RUTH ===
 Name: RUTH
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8058,7 +8050,7 @@ Gastly
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_KARINA ===
+=== TRAINER_FRLG_CHANNELER_KARINA ===
 Name: KARINA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8071,7 +8063,7 @@ Gastly
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_JANAE ===
+=== TRAINER_FRLG_CHANNELER_JANAE ===
 Name: JANAE
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8084,7 +8076,7 @@ Gastly
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_ANGELICA ===
+=== TRAINER_FRLG_CHANNELER_ANGELICA ===
 Name: ANGELICA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8105,7 +8097,7 @@ Gastly
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_EMILIA ===
+=== TRAINER_FRLG_CHANNELER_EMILIA ===
 Name: EMILIA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8118,7 +8110,7 @@ Gastly
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_JENNIFER ===
+=== TRAINER_FRLG_CHANNELER_JENNIFER ===
 Name: JENNIFER
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8131,7 +8123,7 @@ Gastly
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_AMANDA ===
+=== TRAINER_FRLG_CHANNELER_AMANDA ===
 Name: AMANDA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8148,7 +8140,7 @@ Haunter
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_STACY ===
+=== TRAINER_FRLG_CHANNELER_STACY ===
 Name: STACY
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8161,7 +8153,7 @@ Haunter
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CHANNELER_TASHA ===
+=== TRAINER_FRLG_CHANNELER_TASHA ===
 Name: TASHA
 Class: Channeler Frlg
 Pic: Channeler Frlg
@@ -8182,7 +8174,7 @@ Haunter
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_JEREMY ===
+=== TRAINER_FRLG_HIKER_JEREMY ===
 Name: JEREMY
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -8199,7 +8191,7 @@ Onix
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_ALMA ===
+=== TRAINER_FRLG_PICNICKER_ALMA ===
 Name: ALMA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8220,7 +8212,7 @@ Horsea
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_SUSIE ===
+=== TRAINER_FRLG_PICNICKER_SUSIE ===
 Name: SUSIE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8249,7 +8241,7 @@ Meowth
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_VALERIE ===
+=== TRAINER_FRLG_PICNICKER_VALERIE ===
 Name: VALERIE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8266,7 +8258,7 @@ Poliwag
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_GWEN ===
+=== TRAINER_FRLG_PICNICKER_GWEN ===
 Name: GWEN
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8291,7 +8283,7 @@ Pidgeotto
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIKER_VIRGIL ===
+=== TRAINER_FRLG_BIKER_VIRGIL ===
 Name: VIRGIL
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -8324,7 +8316,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Smog
 - Tackle
 
-=== TRAINER_CAMPER_FLINT ===
+=== TRAINER_FRLG_CAMPER_FLINT ===
 Name: FLINT
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -8341,7 +8333,7 @@ Ekans
 Level: 14
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_MISSY ===
+=== TRAINER_FRLG_PICNICKER_MISSY ===
 Name: MISSY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8358,7 +8350,7 @@ Seaking
 Level: 31
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_IRENE ===
+=== TRAINER_FRLG_PICNICKER_IRENE ===
 Name: IRENE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8379,7 +8371,7 @@ Seel
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_DANA ===
+=== TRAINER_FRLG_PICNICKER_DANA ===
 Name: DANA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8400,7 +8392,7 @@ Pidgey
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_ARIANA ===
+=== TRAINER_FRLG_PICNICKER_ARIANA ===
 Name: ARIANA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8425,7 +8417,7 @@ Bellsprout
 Level: 19
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_LEAH ===
+=== TRAINER_FRLG_PICNICKER_LEAH ===
 Name: LEAH
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8442,7 +8434,7 @@ Clefairy
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_JUSTIN ===
+=== TRAINER_FRLG_CAMPER_JUSTIN ===
 Name: JUSTIN
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -8459,7 +8451,7 @@ Nidorino
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_YAZMIN ===
+=== TRAINER_FRLG_PICNICKER_YAZMIN ===
 Name: YAZMIN
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8480,7 +8472,7 @@ Tangela
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_KINDRA ===
+=== TRAINER_FRLG_PICNICKER_KINDRA ===
 Name: KINDRA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8501,7 +8493,7 @@ Oddish
 Level: 28
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_BECKY ===
+=== TRAINER_FRLG_PICNICKER_BECKY ===
 Name: BECKY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8518,7 +8510,7 @@ Raichu
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_CELIA ===
+=== TRAINER_FRLG_PICNICKER_CELIA ===
 Name: CELIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -8531,7 +8523,7 @@ Clefairy
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_BROOKS ===
+=== TRAINER_FRLG_GENTLEMAN_BROOKS ===
 Name: BROOKS
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -8544,7 +8536,7 @@ Pikachu
 Level: 23
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_GENTLEMAN_LAMAR ===
+=== TRAINER_FRLG_GENTLEMAN_LAMAR ===
 Name: LAMAR
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -8561,7 +8553,7 @@ Ponyta
 Level: 17
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TWINS_ELI_ANNE ===
+=== TRAINER_FRLG_TWINS_ELI_ANNE ===
 Name: ELI & ANNE
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -8578,7 +8570,7 @@ Jigglypuff
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_COOL_COUPLE_RAY_TYRA ===
+=== TRAINER_FRLG_COOL_COUPLE_RAY_TYRA ===
 Name: RAY & TYRA
 Class: Cool Couple Frlg
 Pic: Cool Couple Frlg
@@ -8603,7 +8595,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Double Kick
 - Poison Sting
 
-=== TRAINER_YOUNG_COUPLE_GIA_JES ===
+=== TRAINER_FRLG_YOUNG_COUPLE_GIA_JES ===
 Name: GIA & JES
 Class: Young Couple Frlg
 Pic: Young Couple Frlg
@@ -8620,7 +8612,7 @@ Nidoran F
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TWINS_KIRI_JAN ===
+=== TRAINER_FRLG_TWINS_KIRI_JAN ===
 Name: KIRI & JAN
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -8637,7 +8629,7 @@ Squirtle
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CRUSH_KIN_RON_MYA ===
+=== TRAINER_FRLG_CRUSH_KIN_RON_MYA ===
 Name: RON & MYA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -8654,7 +8646,7 @@ Hitmonlee @ Black Belt
 Level: 29
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_YOUNG_COUPLE_LEA_JED ===
+=== TRAINER_FRLG_YOUNG_COUPLE_LEA_JED ===
 Name: LEA & JED
 Class: Young Couple Frlg
 Pic: Young Couple Frlg
@@ -8671,7 +8663,7 @@ Ninetales
 Level: 29
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SIS_AND_BRO_LIA_LUC ===
+=== TRAINER_FRLG_SIS_AND_BRO_LIA_LUC ===
 Name: LIA & LUC
 Class: Sis And Bro Frlg
 Pic: Sis And Bro Frlg
@@ -8688,7 +8680,7 @@ Seaking
 Level: 30
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SIS_AND_BRO_LIL_IAN ===
+=== TRAINER_FRLG_SIS_AND_BRO_LIL_IAN ===
 Name: LIL & IAN
 Class: Sis And Bro Frlg
 Pic: Sis And Bro Frlg
@@ -8705,7 +8697,7 @@ Starmie
 Level: 33
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_BEN_3 ===
+=== TRAINER_FRLG_YOUNGSTER_BEN_3 ===
 Name: BEN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8722,7 +8714,7 @@ Ekans
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNGSTER_BEN_4 ===
+=== TRAINER_FRLG_YOUNGSTER_BEN_4 ===
 Name: BEN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8739,7 +8731,7 @@ Arbok
 Level: 48
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_YOUNGSTER_CHAD_2 ===
+=== TRAINER_FRLG_YOUNGSTER_CHAD_2 ===
 Name: CHAD
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8756,7 +8748,7 @@ Sandshrew
 Level: 20
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_LASS_RELI_2 ===
+=== TRAINER_FRLG_LASS_RELI_2 ===
 Name: RELI
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -8773,7 +8765,7 @@ Nidoran F
 Level: 20
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_LASS_RELI_3 ===
+=== TRAINER_FRLG_LASS_RELI_3 ===
 Name: RELI
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -8790,7 +8782,7 @@ Nidorina
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNGSTER_TIMMY_2 ===
+=== TRAINER_FRLG_YOUNGSTER_TIMMY_2 ===
 Name: TIMMY
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8811,7 +8803,7 @@ Zubat
 Level: 19
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_YOUNGSTER_TIMMY_3 ===
+=== TRAINER_FRLG_YOUNGSTER_TIMMY_3 ===
 Name: TIMMY
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8832,7 +8824,7 @@ Golbat
 Level: 27
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNGSTER_TIMMY_4 ===
+=== TRAINER_FRLG_YOUNGSTER_TIMMY_4 ===
 Name: TIMMY
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8853,7 +8845,7 @@ Golbat
 Level: 52
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_YOUNGSTER_CHAD_3 ===
+=== TRAINER_FRLG_YOUNGSTER_CHAD_3 ===
 Name: CHAD
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8870,7 +8862,7 @@ Sandshrew
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_LASS_JANICE_2 ===
+=== TRAINER_FRLG_LASS_JANICE_2 ===
 Name: JANICE
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -8887,7 +8879,7 @@ Pidgeotto
 Level: 20
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_LASS_JANICE_3 ===
+=== TRAINER_FRLG_LASS_JANICE_3 ===
 Name: JANICE
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -8904,7 +8896,7 @@ Pidgeotto
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNGSTER_CHAD_4 ===
+=== TRAINER_FRLG_YOUNGSTER_CHAD_4 ===
 Name: CHAD
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -8921,7 +8913,7 @@ Sandslash
 Level: 48
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_HIKER_FRANKLIN_2 ===
+=== TRAINER_FRLG_HIKER_FRANKLIN_2 ===
 Name: FRANKLIN
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -8938,7 +8930,7 @@ Graveler
 Level: 25
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_PKMN_PROF_PROF_OAK ===
+=== TRAINER_FRLG_PKMN_PROF_PROF_OAK ===
 Name: PROF. OAK
 Class: Pkmn Prof Frlg
 Pic: Professor Oak Frlg
@@ -8951,7 +8943,7 @@ Ekans
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_42 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_42 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt F Frlg
@@ -8968,7 +8960,7 @@ Houndour
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PSYCHIC_JACLYN ===
+=== TRAINER_FRLG_PSYCHIC_JACLYN ===
 Name: JACLYN
 Class: Psychic Frlg
 Pic: Psychic F Frlg
@@ -9001,7 +8993,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Recover
 - Reflect
 
-=== TRAINER_CRUSH_GIRL_SHARON ===
+=== TRAINER_FRLG_CRUSH_GIRL_SHARON ===
 Name: SHARON
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -9018,7 +9010,7 @@ Primeape @ Black Belt
 Level: 37
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_TUBER_AMIRA ===
+=== TRAINER_FRLG_TUBER_AMIRA ===
 Name: AMIRA
 Class: Tuber Frlg
 Pic: Tuber F Frlg
@@ -9039,7 +9031,7 @@ Poliwag
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PKMN_BREEDER_ALIZE ===
+=== TRAINER_FRLG_PKMN_BREEDER_ALIZE ===
 Name: ALIZE
 Class: Pkmn Breeder Frlg
 Pic: Pokemon Breeder Frlg
@@ -9060,7 +9052,7 @@ Marill
 Level: 48
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_PKMN_RANGER_NICOLAS ===
+=== TRAINER_FRLG_PKMN_RANGER_NICOLAS ===
 Name: NICOLAS
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger M Frlg
@@ -9086,7 +9078,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Sleep Powder
 - Stun Spore
 
-=== TRAINER_PKMN_RANGER_MADELINE ===
+=== TRAINER_FRLG_PKMN_RANGER_MADELINE ===
 Name: MADELINE
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger F Frlg
@@ -9112,7 +9104,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Acid
 - Stun Spore
 
-=== TRAINER_AROMA_LADY_NIKKI ===
+=== TRAINER_FRLG_AROMA_LADY_NIKKI ===
 Name: NIKKI
 Class: Aroma Lady Frlg
 Pic: Aroma Lady Frlg
@@ -9129,7 +9121,7 @@ Weepinbell
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RUIN_MANIAC_STANLY ===
+=== TRAINER_FRLG_RUIN_MANIAC_STANLY ===
 Name: STANLY
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -9150,7 +9142,7 @@ Graveler
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LADY_JACKI ===
+=== TRAINER_FRLG_LADY_JACKI ===
 Name: JACKI
 Class: Lady Frlg
 Pic: Lady Frlg
@@ -9168,7 +9160,7 @@ Skiploom @ Stardust
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PAINTER_DAISY ===
+=== TRAINER_FRLG_PAINTER_DAISY ===
 Name: DAISY
 Class: Painter Frlg
 Pic: Painter Frlg
@@ -9185,7 +9177,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Focus Punch
 - Mega Punch
 
-=== TRAINER_BIKER_GOON ===
+=== TRAINER_FRLG_BIKER_GOON ===
 Name: GOON
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -9210,7 +9202,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Minimize
 - Sludge
 
-=== TRAINER_BIKER_GOON_2 ===
+=== TRAINER_FRLG_BIKER_GOON_2 ===
 Name: GOON
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -9227,7 +9219,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sludge
 - Tackle
 
-=== TRAINER_BIKER_GOON_3 ===
+=== TRAINER_FRLG_BIKER_GOON_3 ===
 Name: GOON
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -9240,7 +9232,7 @@ Grimer
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_ANTHONY ===
+=== TRAINER_FRLG_BUG_CATCHER_ANTHONY ===
 Name: ANTHONY
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -9257,7 +9249,7 @@ Caterpie
 Level: 8
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_CHARLIE ===
+=== TRAINER_FRLG_BUG_CATCHER_CHARLIE ===
 Name: CHARLIE
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -9278,7 +9270,7 @@ Metapod
 Level: 7
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TWINS_ELI_ANNE_2 ===
+=== TRAINER_FRLG_TWINS_ELI_ANNE_2 ===
 Name: ELI & ANNE
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -9295,7 +9287,7 @@ Jigglypuff
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNGSTER_JOHNSON ===
+=== TRAINER_FRLG_YOUNGSTER_JOHNSON ===
 Name: JOHNSON
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -9316,7 +9308,7 @@ Raticate
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIKER_RICARDO ===
+=== TRAINER_FRLG_BIKER_RICARDO ===
 Name: RICARDO
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -9349,7 +9341,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Disable
 - Pound
 
-=== TRAINER_BIKER_JAREN ===
+=== TRAINER_FRLG_BIKER_JAREN ===
 Name: JAREN
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -9366,7 +9358,7 @@ Grimer
 Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_43 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_43 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9383,7 +9375,7 @@ Marowak
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_44 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_44 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9408,7 +9400,7 @@ Sandslash
 Level: 35
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_45 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_45 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9429,7 +9421,7 @@ Golbat
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_46 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_46 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9450,7 +9442,7 @@ Raticate
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_47 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_47 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9471,7 +9463,7 @@ Machoke
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_48 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_48 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9488,7 +9480,7 @@ Hypno
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_ADMIN ===
+=== TRAINER_FRLG_TEAM_ROCKET_ADMIN ===
 Name: ADMIN
 Class: Team Rocket Frlg
 Pic: Rocket Grunt F Frlg
@@ -9522,7 +9514,7 @@ IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 - Sleep Powder
 - Stun Spore
 
-=== TRAINER_TEAM_ROCKET_ADMIN_2 ===
+=== TRAINER_FRLG_TEAM_ROCKET_ADMIN_2 ===
 Name: ADMIN
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -9556,7 +9548,7 @@ IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
 - Iron Tail
 - Shadow Ball
 
-=== TRAINER_SCIENTIST_GIDEON ===
+=== TRAINER_FRLG_SCIENTIST_GIDEON ===
 Name: GIDEON
 Class: Scientist Frlg
 Pic: Scientist Frlg
@@ -9605,7 +9597,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Recover
 - Psybeam
 
-=== TRAINER_SWIMMER_FEMALE_AMARA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_AMARA ===
 Name: AMARA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -9626,7 +9618,7 @@ Dewgong
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_MARIA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_MARIA ===
 Name: MARIA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -9643,7 +9635,7 @@ Seadra
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_ABIGAIL ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_ABIGAIL ===
 Name: ABIGAIL
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -9664,7 +9656,7 @@ Golduck
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_FINN ===
+=== TRAINER_FRLG_SWIMMER_MALE_FINN ===
 Name: FINN
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -9677,7 +9669,7 @@ Starmie
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_GARRETT ===
+=== TRAINER_FRLG_SWIMMER_MALE_GARRETT ===
 Name: GARRETT
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -9698,7 +9690,7 @@ Wartortle
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_TOMMY ===
+=== TRAINER_FRLG_FISHERMAN_TOMMY ===
 Name: TOMMY
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -9727,7 +9719,7 @@ Seaking
 Level: 35
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CRUSH_GIRL_TANYA ===
+=== TRAINER_FRLG_CRUSH_GIRL_TANYA ===
 Name: TANYA
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -9744,7 +9736,7 @@ Hitmonchan @ Black Belt
 Level: 38
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_BLACK_BELT_SHEA ===
+=== TRAINER_FRLG_BLACK_BELT_SHEA ===
 Name: SHEA
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -9761,7 +9753,7 @@ Machoke @ Black Belt
 Level: 38
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_BLACK_BELT_HUGH ===
+=== TRAINER_FRLG_BLACK_BELT_HUGH ===
 Name: HUGH
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -9778,7 +9770,7 @@ Machoke @ Black Belt
 Level: 37
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_CAMPER_BRYCE ===
+=== TRAINER_FRLG_CAMPER_BRYCE ===
 Name: BRYCE
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -9799,7 +9791,7 @@ Sandslash
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_CLAIRE ===
+=== TRAINER_FRLG_PICNICKER_CLAIRE ===
 Name: CLAIRE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -9824,7 +9816,7 @@ Clefairy
 Level: 35
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CRUSH_KIN_MIK_KIA ===
+=== TRAINER_FRLG_CRUSH_KIN_MIK_KIA ===
 Name: MIK & KIA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -9841,7 +9833,7 @@ Primeape @ Black Belt
 Level: 39
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_AROMA_LADY_VIOLET ===
+=== TRAINER_FRLG_AROMA_LADY_VIOLET ===
 Name: VIOLET
 Class: Aroma Lady Frlg
 Pic: Aroma Lady Frlg
@@ -9862,7 +9854,7 @@ Ivysaur
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TUBER_ALEXIS ===
+=== TRAINER_FRLG_TUBER_ALEXIS ===
 Name: ALEXIS
 Class: Tuber Frlg
 Pic: Tuber F Frlg
@@ -9887,7 +9879,7 @@ Krabby
 Level: 34
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TWINS_JOY_MEG ===
+=== TRAINER_FRLG_TWINS_JOY_MEG ===
 Name: JOY & MEG
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -9904,7 +9896,7 @@ Clefairy
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_TISHA ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_TISHA ===
 Name: TISHA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -9917,7 +9909,7 @@ Kingler
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PAINTER_CELINA ===
+=== TRAINER_FRLG_PAINTER_CELINA ===
 Name: CELINA
 Class: Painter Frlg
 Pic: Painter Frlg
@@ -9934,7 +9926,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Dive
 - Bounce
 
-=== TRAINER_PAINTER_RAYNA ===
+=== TRAINER_FRLG_PAINTER_RAYNA ===
 Name: RAYNA
 Class: Painter Frlg
 Pic: Painter Frlg
@@ -9951,7 +9943,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Double Edge
 - Self Destruct
 
-=== TRAINER_LADY_GILLIAN ===
+=== TRAINER_FRLG_LADY_GILLIAN ===
 Name: GILLIAN
 Class: Lady Frlg
 Pic: Lady Frlg
@@ -9973,7 +9965,7 @@ Flaaffy @ Nugget
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_DESTIN ===
+=== TRAINER_FRLG_YOUNGSTER_DESTIN ===
 Name: DESTIN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -9990,7 +9982,7 @@ Pidgeotto
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_TOBY ===
+=== TRAINER_FRLG_SWIMMER_MALE_TOBY ===
 Name: TOBY
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -10011,7 +10003,7 @@ Tentacruel
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_49 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_49 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -10032,7 +10024,7 @@ Muk
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TEAM_ROCKET_GRUNT_50 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_50 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt M Frlg
@@ -10057,7 +10049,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Sludge
 - Self Destruct
 
-=== TRAINER_TEAM_ROCKET_GRUNT_51 ===
+=== TRAINER_FRLG_TEAM_ROCKET_GRUNT_51 ===
 Name: GRUNT
 Class: Team Rocket Frlg
 Pic: Rocket Grunt F Frlg
@@ -10078,7 +10070,7 @@ Gloom
 Level: 48
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_BIRD_KEEPER_MILO ===
+=== TRAINER_FRLG_BIRD_KEEPER_MILO ===
 Name: MILO
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -10095,7 +10087,7 @@ Pidgeotto
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_CHAZ ===
+=== TRAINER_FRLG_BIRD_KEEPER_CHAZ ===
 Name: CHAZ
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -10112,7 +10104,7 @@ Fearow
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BIRD_KEEPER_HAROLD ===
+=== TRAINER_FRLG_BIRD_KEEPER_HAROLD ===
 Name: HAROLD
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -10129,7 +10121,7 @@ Noctowl
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_FISHERMAN_TYLOR ===
+=== TRAINER_FRLG_FISHERMAN_TYLOR ===
 Name: TYLOR
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -10146,7 +10138,7 @@ Qwilfish
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_MYMO ===
+=== TRAINER_FRLG_SWIMMER_MALE_MYMO ===
 Name: MYMO
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -10163,7 +10155,7 @@ Wartortle
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_NICOLE ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_NICOLE ===
 Name: NICOLE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -10176,7 +10168,7 @@ Marill
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SIS_AND_BRO_AVA_GEB ===
+=== TRAINER_FRLG_SIS_AND_BRO_AVA_GEB ===
 Name: AVA & GEB
 Class: Sis And Bro Frlg
 Pic: Sis And Bro Frlg
@@ -10193,7 +10185,7 @@ Starmie
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_AROMA_LADY_ROSE ===
+=== TRAINER_FRLG_AROMA_LADY_ROSE ===
 Name: ROSE
 Class: Aroma Lady Frlg
 Pic: Aroma Lady Frlg
@@ -10210,7 +10202,7 @@ Sunflora
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_MALE_SAMIR ===
+=== TRAINER_FRLG_SWIMMER_MALE_SAMIR ===
 Name: SAMIR
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -10223,7 +10215,7 @@ Gyarados
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_SWIMMER_FEMALE_DENISE ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_DENISE ===
 Name: DENISE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -10240,7 +10232,7 @@ Lanturn
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_TWINS_MIU_MIA ===
+=== TRAINER_FRLG_TWINS_MIU_MIA ===
 Name: MIU & MIA
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -10257,7 +10249,7 @@ Pikachu
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_EARL ===
+=== TRAINER_FRLG_HIKER_EARL ===
 Name: EARL
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -10274,7 +10266,7 @@ Machoke
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RUIN_MANIAC_FOSTER ===
+=== TRAINER_FRLG_RUIN_MANIAC_FOSTER ===
 Name: FOSTER
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -10287,7 +10279,7 @@ Golem
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RUIN_MANIAC_LARRY ===
+=== TRAINER_FRLG_RUIN_MANIAC_LARRY ===
 Name: LARRY
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -10304,7 +10296,7 @@ Machoke
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_HIKER_DARYL ===
+=== TRAINER_FRLG_HIKER_DARYL ===
 Name: DARYL
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -10317,7 +10309,7 @@ Sudowoodo
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_POKEMANIAC_HECTOR ===
+=== TRAINER_FRLG_POKEMANIAC_HECTOR ===
 Name: HECTOR
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -10334,7 +10326,7 @@ Kangaskhan
 Level: 49
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_PSYCHIC_DARIO ===
+=== TRAINER_FRLG_PSYCHIC_DARIO ===
 Name: DARIO
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -10351,7 +10343,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Odor Sleuth
 - Agility
 
-=== TRAINER_PSYCHIC_RODETTE ===
+=== TRAINER_FRLG_PSYCHIC_RODETTE ===
 Name: RODETTE
 Class: Psychic Frlg
 Pic: Psychic F Frlg
@@ -10384,7 +10376,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Psych Up
 - Future Sight
 
-=== TRAINER_AROMA_LADY_MIAH ===
+=== TRAINER_FRLG_AROMA_LADY_MIAH ===
 Name: MIAH
 Class: Aroma Lady Frlg
 Pic: Aroma Lady Frlg
@@ -10401,7 +10393,7 @@ Bellossom
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNG_COUPLE_EVE_JON ===
+=== TRAINER_FRLG_YOUNG_COUPLE_EVE_JON ===
 Name: EVE & JON
 Class: Young Couple Frlg
 Pic: Young Couple Frlg
@@ -10418,7 +10410,7 @@ Psyduck
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_JUGGLER_MASON ===
+=== TRAINER_FRLG_JUGGLER_MASON ===
 Name: MASON
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -10459,7 +10451,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Rapid Spin
 - Explosion
 
-=== TRAINER_CRUSH_GIRL_CYNDY ===
+=== TRAINER_FRLG_CRUSH_GIRL_CYNDY ===
 Name: CYNDY
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -10480,7 +10472,7 @@ Machoke @ Black Belt
 Level: 48
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_CRUSH_GIRL_JOCELYN ===
+=== TRAINER_FRLG_CRUSH_GIRL_JOCELYN ===
 Name: JOCELYN
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -10497,7 +10489,7 @@ Hitmonchan @ Black Belt
 Level: 38
 IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 
-=== TRAINER_TAMER_EVAN ===
+=== TRAINER_FRLG_TAMER_EVAN ===
 Name: EVAN
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -10518,7 +10510,7 @@ Ursaring
 Level: 49
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_POKEMANIAC_MARK_2 ===
+=== TRAINER_FRLG_POKEMANIAC_MARK_2 ===
 Name: MARK
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -10535,7 +10527,7 @@ Lickitung
 Level: 33
 IVs: 10 HP / 10 Atk / 10 Def / 10 SpA / 10 SpD / 10 Spe
 
-=== TRAINER_PKMN_RANGER_LOGAN ===
+=== TRAINER_FRLG_PKMN_RANGER_LOGAN ===
 Name: LOGAN
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger M Frlg
@@ -10561,7 +10553,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Confusion
 - Hypnosis
 
-=== TRAINER_PKMN_RANGER_JACKSON ===
+=== TRAINER_FRLG_PKMN_RANGER_JACKSON ===
 Name: JACKSON
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger M Frlg
@@ -10595,7 +10587,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Sleep Powder
 - Stomp
 
-=== TRAINER_PKMN_RANGER_BETH ===
+=== TRAINER_FRLG_PKMN_RANGER_BETH ===
 Name: BETH
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger F Frlg
@@ -10617,7 +10609,7 @@ Gloom
 Level: 38
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_PKMN_RANGER_KATELYN ===
+=== TRAINER_FRLG_PKMN_RANGER_KATELYN ===
 Name: KATELYN
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger F Frlg
@@ -10635,7 +10627,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Minimize
 - Soft Boiled
 
-=== TRAINER_COOLTRAINER_LEROY ===
+=== TRAINER_FRLG_COOLTRAINER_LEROY ===
 Name: LEROY
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -10685,7 +10677,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Snore
 - Rest
 
-=== TRAINER_COOLTRAINER_MICHELLE ===
+=== TRAINER_FRLG_COOLTRAINER_MICHELLE ===
 Name: MICHELLE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -10735,7 +10727,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Stomp
 - Odor Sleuth
 
-=== TRAINER_COOL_COUPLE_LEX_NYA ===
+=== TRAINER_FRLG_COOL_COUPLE_LEX_NYA ===
 Name: LEX & NYA
 Class: Cool Couple Frlg
 Pic: Cool Couple Frlg
@@ -10761,7 +10753,7 @@ IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Pursuit
 - Swagger
 
-=== TRAINER_RUIN_MANIAC_BRANDON ===
+=== TRAINER_FRLG_RUIN_MANIAC_BRANDON ===
 Name: BRANDON
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -10774,7 +10766,7 @@ Onix
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RUIN_MANIAC_BENJAMIN ===
+=== TRAINER_FRLG_RUIN_MANIAC_BENJAMIN ===
 Name: BENJAMIN
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -10807,7 +10799,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Rock Throw
 - Self Destruct
 
-=== TRAINER_PAINTER_EDNA ===
+=== TRAINER_FRLG_PAINTER_EDNA ===
 Name: EDNA
 Class: Painter Frlg
 Pic: Painter Frlg
@@ -10824,7 +10816,7 @@ IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
 - Protect
 - Quick Attack
 
-=== TRAINER_GENTLEMAN_CLIFFORD ===
+=== TRAINER_FRLG_GENTLEMAN_CLIFFORD ===
 Name: CLIFFORD
 Class: Gentleman Frlg
 Pic: Gentleman Frlg
@@ -10841,7 +10833,7 @@ Golduck
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LADY_SELPHY ===
+=== TRAINER_FRLG_LADY_SELPHY ===
 Name: SELPHY
 Class: Lady Frlg
 Pic: Lady Frlg
@@ -10867,7 +10859,7 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Torment
 - Taunt
 
-=== TRAINER_RUIN_MANIAC_LAWSON ===
+=== TRAINER_FRLG_RUIN_MANIAC_LAWSON ===
 Name: LAWSON
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -10888,7 +10880,7 @@ Marowak
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PSYCHIC_LAURA ===
+=== TRAINER_FRLG_PSYCHIC_LAURA ===
 Name: LAURA
 Class: Psychic Frlg
 Pic: Psychic F Frlg
@@ -10909,7 +10901,7 @@ Xatu
 Level: 49
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 
-=== TRAINER_PKMN_BREEDER_BETHANY ===
+=== TRAINER_FRLG_PKMN_BREEDER_BETHANY ===
 Name: BETHANY
 Class: Pkmn Breeder Frlg
 Pic: Pokemon Breeder Frlg
@@ -10922,7 +10914,7 @@ Chansey
 Level: 50
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_PKMN_BREEDER_ALLISON ===
+=== TRAINER_FRLG_PKMN_BREEDER_ALLISON ===
 Name: ALLISON
 Class: Pkmn Breeder Frlg
 Pic: Pokemon Breeder Frlg
@@ -10943,7 +10935,7 @@ Clefable
 Level: 48
 IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
 
-=== TRAINER_BUG_CATCHER_GARRET ===
+=== TRAINER_FRLG_BUG_CATCHER_GARRET ===
 Name: GARRET
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -10956,7 +10948,7 @@ Heracross
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_JONAH ===
+=== TRAINER_FRLG_BUG_CATCHER_JONAH ===
 Name: JONAH
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -10981,7 +10973,7 @@ Beedrill
 Level: 47
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_BUG_CATCHER_VANCE ===
+=== TRAINER_FRLG_BUG_CATCHER_VANCE ===
 Name: VANCE
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -10998,7 +10990,7 @@ Venomoth
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_NASH ===
+=== TRAINER_FRLG_YOUNGSTER_NASH ===
 Name: NASH
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -11019,7 +11011,7 @@ Victreebel
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_YOUNGSTER_CORDELL ===
+=== TRAINER_FRLG_YOUNGSTER_CORDELL ===
 Name: CORDELL
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -11036,7 +11028,7 @@ Farfetchd
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_DALIA ===
+=== TRAINER_FRLG_LASS_DALIA ===
 Name: DALIA
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -11061,7 +11053,7 @@ Skiploom
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_LASS_JOANA ===
+=== TRAINER_FRLG_LASS_JOANA ===
 Name: JOANA
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -11074,7 +11066,7 @@ Snubbull
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_CAMPER_RILEY ===
+=== TRAINER_FRLG_CAMPER_RILEY ===
 Name: RILEY
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11091,7 +11083,7 @@ Heracross
 Level: 50
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_MARCY ===
+=== TRAINER_FRLG_PICNICKER_MARCY ===
 Name: MARCY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11112,7 +11104,7 @@ Parasect
 Level: 49
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_RUIN_MANIAC_LAYTON ===
+=== TRAINER_FRLG_RUIN_MANIAC_LAYTON ===
 Name: LAYTON
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -11133,7 +11125,7 @@ Sandslash
 Level: 48
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-=== TRAINER_PICNICKER_KELSEY_2 ===
+=== TRAINER_FRLG_PICNICKER_KELSEY_2 ===
 Name: KELSEY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11150,7 +11142,7 @@ Nidoran F
 Level: 21
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_PICNICKER_KELSEY_3 ===
+=== TRAINER_FRLG_PICNICKER_KELSEY_3 ===
 Name: KELSEY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11167,7 +11159,7 @@ Nidorina
 Level: 29
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_PICNICKER_KELSEY_4 ===
+=== TRAINER_FRLG_PICNICKER_KELSEY_4 ===
 Name: KELSEY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11184,7 +11176,7 @@ Nidorina
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_CAMPER_RICKY_2 ===
+=== TRAINER_FRLG_CAMPER_RICKY_2 ===
 Name: RICKY
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11197,7 +11189,7 @@ Squirtle
 Level: 22
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_CAMPER_RICKY_3 ===
+=== TRAINER_FRLG_CAMPER_RICKY_3 ===
 Name: RICKY
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11210,7 +11202,7 @@ Wartortle
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_CAMPER_RICKY_4 ===
+=== TRAINER_FRLG_CAMPER_RICKY_4 ===
 Name: RICKY
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11223,7 +11215,7 @@ Wartortle
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_CAMPER_JEFF_2 ===
+=== TRAINER_FRLG_CAMPER_JEFF_2 ===
 Name: JEFF
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11240,7 +11232,7 @@ Raticate
 Level: 21
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_CAMPER_JEFF_3 ===
+=== TRAINER_FRLG_CAMPER_JEFF_3 ===
 Name: JEFF
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11257,7 +11249,7 @@ Raticate
 Level: 29
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_CAMPER_JEFF_4 ===
+=== TRAINER_FRLG_CAMPER_JEFF_4 ===
 Name: JEFF
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11274,7 +11266,7 @@ Raticate
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PICNICKER_ISABELLE_2 ===
+=== TRAINER_FRLG_PICNICKER_ISABELLE_2 ===
 Name: ISABELLE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11295,7 +11287,7 @@ Pidgey
 Level: 18
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_PICNICKER_ISABELLE_3 ===
+=== TRAINER_FRLG_PICNICKER_ISABELLE_3 ===
 Name: ISABELLE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11316,7 +11308,7 @@ Pidgeotto
 Level: 26
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_PICNICKER_ISABELLE_4 ===
+=== TRAINER_FRLG_PICNICKER_ISABELLE_4 ===
 Name: ISABELLE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11337,7 +11329,7 @@ Pidgeot
 Level: 50
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_YOUNGSTER_YASU_2 ===
+=== TRAINER_FRLG_YOUNGSTER_YASU_2 ===
 Name: YASU
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -11358,7 +11350,7 @@ Raticate
 Level: 22
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_YOUNGSTER_YASU_3 ===
+=== TRAINER_FRLG_YOUNGSTER_YASU_3 ===
 Name: YASU
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -11379,7 +11371,7 @@ Raticate
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_ENGINEER_BERNIE_2 ===
+=== TRAINER_FRLG_ENGINEER_BERNIE_2 ===
 Name: BERNIE
 Class: Engineer Frlg
 Pic: Engineer Frlg
@@ -11400,7 +11392,7 @@ Magneton
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_GAMER_DARIAN_2 ===
+=== TRAINER_FRLG_GAMER_DARIAN_2 ===
 Name: DARIAN
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -11417,7 +11409,7 @@ Vulpix
 Level: 29
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_CAMPER_CHRIS_2 ===
+=== TRAINER_FRLG_CAMPER_CHRIS_2 ===
 Name: CHRIS
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11434,7 +11426,7 @@ Charmander
 Level: 24
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_CAMPER_CHRIS_3 ===
+=== TRAINER_FRLG_CAMPER_CHRIS_3 ===
 Name: CHRIS
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11451,7 +11443,7 @@ Charmeleon
 Level: 29
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_CAMPER_CHRIS_4 ===
+=== TRAINER_FRLG_CAMPER_CHRIS_4 ===
 Name: CHRIS
 Class: Camper Frlg
 Pic: Camper Frlg
@@ -11468,7 +11460,7 @@ Charmeleon
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PICNICKER_ALICIA_2 ===
+=== TRAINER_FRLG_PICNICKER_ALICIA_2 ===
 Name: ALICIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11481,7 +11473,7 @@ Meowth
 Level: 25
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_PICNICKER_ALICIA_3 ===
+=== TRAINER_FRLG_PICNICKER_ALICIA_3 ===
 Name: ALICIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11494,7 +11486,7 @@ Persian
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_PICNICKER_ALICIA_4 ===
+=== TRAINER_FRLG_PICNICKER_ALICIA_4 ===
 Name: ALICIA
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11507,7 +11499,7 @@ Persian
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_HIKER_JEREMY_2 ===
+=== TRAINER_FRLG_HIKER_JEREMY_2 ===
 Name: JEREMY
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -11524,7 +11516,7 @@ Onix
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_POKEMANIAC_MARK_3 ===
+=== TRAINER_FRLG_POKEMANIAC_MARK_3 ===
 Name: MARK
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -11541,7 +11533,7 @@ Lickitung
 Level: 54
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_POKEMANIAC_HERMAN_2 ===
+=== TRAINER_FRLG_POKEMANIAC_HERMAN_2 ===
 Name: HERMAN
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -11558,7 +11550,7 @@ Slowbro
 Level: 29
 IVs: 10 HP / 10 Atk / 10 Def / 10 SpA / 10 SpD / 10 Spe
 
-=== TRAINER_POKEMANIAC_HERMAN_3 ===
+=== TRAINER_FRLG_POKEMANIAC_HERMAN_3 ===
 Name: HERMAN
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -11575,7 +11567,7 @@ Slowbro
 Level: 54
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_HIKER_TRENT_2 ===
+=== TRAINER_FRLG_HIKER_TRENT_2 ===
 Name: TRENT
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -11592,7 +11584,7 @@ Graveler
 Level: 31
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_LASS_MEGAN_2 ===
+=== TRAINER_FRLG_LASS_MEGAN_2 ===
 Name: MEGAN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -11621,7 +11613,7 @@ Pikachu
 Level: 22
 IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 
-=== TRAINER_LASS_MEGAN_3 ===
+=== TRAINER_FRLG_LASS_MEGAN_3 ===
 Name: MEGAN
 Class: Lass Frlg
 Pic: Lass Frlg
@@ -11650,7 +11642,7 @@ Raichu
 Level: 48
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SUPER_NERD_GLENN_2 ===
+=== TRAINER_FRLG_SUPER_NERD_GLENN_2 ===
 Name: GLENN
 Class: Super Nerd Frlg
 Pic: Super Nerd Frlg
@@ -11671,7 +11663,7 @@ Muk
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_GAMER_RICH_2 ===
+=== TRAINER_FRLG_GAMER_RICH_2 ===
 Name: RICH
 Class: Gamer Frlg
 Pic: Gamer Frlg
@@ -11688,7 +11680,7 @@ Vulpix
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIKER_JAREN_2 ===
+=== TRAINER_FRLG_BIKER_JAREN_2 ===
 Name: JAREN
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -11705,7 +11697,7 @@ Muk
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_FISHERMAN_ELLIOT_2 ===
+=== TRAINER_FRLG_FISHERMAN_ELLIOT_2 ===
 Name: ELLIOT
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -11730,7 +11722,7 @@ Seadra
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_ROCKER_LUCA_2 ===
+=== TRAINER_FRLG_ROCKER_LUCA_2 ===
 Name: LUCA
 Class: Rocker Frlg
 Pic: Rocker Frlg
@@ -11747,7 +11739,7 @@ Electrode
 Level: 33
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BEAUTY_SHEILA_2 ===
+=== TRAINER_FRLG_BEAUTY_SHEILA_2 ===
 Name: SHEILA
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -11764,7 +11756,7 @@ Persian
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIRD_KEEPER_ROBERT_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_ROBERT_2 ===
 Name: ROBERT
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -11789,7 +11781,7 @@ Fearow
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIRD_KEEPER_ROBERT_3 ===
+=== TRAINER_FRLG_BIRD_KEEPER_ROBERT_3 ===
 Name: ROBERT
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -11814,7 +11806,7 @@ Fearow
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PICNICKER_SUSIE_2 ===
+=== TRAINER_FRLG_PICNICKER_SUSIE_2 ===
 Name: SUSIE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11843,7 +11835,7 @@ Meowth
 Level: 27
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_PICNICKER_SUSIE_3 ===
+=== TRAINER_FRLG_PICNICKER_SUSIE_3 ===
 Name: SUSIE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11872,7 +11864,7 @@ Persian
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PICNICKER_SUSIE_4 ===
+=== TRAINER_FRLG_PICNICKER_SUSIE_4 ===
 Name: SUSIE
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -11901,7 +11893,7 @@ Persian
 Level: 52
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_BIKER_LUKAS_2 ===
+=== TRAINER_FRLG_BIKER_LUKAS_2 ===
 Name: LUKAS
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -11926,7 +11918,7 @@ Weezing
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIRD_KEEPER_BENNY_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_BENNY_2 ===
 Name: BENNY
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -11943,7 +11935,7 @@ Fearow
 Level: 32
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIRD_KEEPER_BENNY_3 ===
+=== TRAINER_FRLG_BIRD_KEEPER_BENNY_3 ===
 Name: BENNY
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -11960,7 +11952,7 @@ Fearow
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIRD_KEEPER_MARLON_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_MARLON_2 ===
 Name: MARLON
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -11981,7 +11973,7 @@ Fearow
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIRD_KEEPER_MARLON_3 ===
+=== TRAINER_FRLG_BIRD_KEEPER_MARLON_3 ===
 Name: MARLON
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12002,7 +11994,7 @@ Fearow
 Level: 48
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BEAUTY_GRACE_2 ===
+=== TRAINER_FRLG_BEAUTY_GRACE_2 ===
 Name: GRACE
 Class: Beauty Frlg
 Pic: Beauty Frlg
@@ -12019,7 +12011,7 @@ Wigglytuff
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIRD_KEEPER_CHESTER_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_CHESTER_2 ===
 Name: CHESTER
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12040,7 +12032,7 @@ Doduo
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIRD_KEEPER_CHESTER_3 ===
+=== TRAINER_FRLG_BIRD_KEEPER_CHESTER_3 ===
 Name: CHESTER
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12061,7 +12053,7 @@ Dodrio
 Level: 48
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PICNICKER_BECKY_2 ===
+=== TRAINER_FRLG_PICNICKER_BECKY_2 ===
 Name: BECKY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -12078,7 +12070,7 @@ Raichu
 Level: 32
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_PICNICKER_BECKY_3 ===
+=== TRAINER_FRLG_PICNICKER_BECKY_3 ===
 Name: BECKY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -12095,7 +12087,7 @@ Raichu
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PICNICKER_BECKY_4 ===
+=== TRAINER_FRLG_PICNICKER_BECKY_4 ===
 Name: BECKY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -12112,7 +12104,7 @@ Raichu
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_CRUSH_KIN_RON_MYA_2 ===
+=== TRAINER_FRLG_CRUSH_KIN_RON_MYA_2 ===
 Name: RON & MYA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -12129,7 +12121,7 @@ Hitmonlee @ Black Belt
 Level: 33
 IVs: 13 HP / 13 Atk / 13 Def / 13 SpA / 13 SpD / 13 Spe
 
-=== TRAINER_CRUSH_KIN_RON_MYA_3 ===
+=== TRAINER_FRLG_CRUSH_KIN_RON_MYA_3 ===
 Name: RON & MYA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -12146,7 +12138,7 @@ Hitmonlee @ Black Belt
 Level: 51
 IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
 
-=== TRAINER_CRUSH_KIN_RON_MYA_4 ===
+=== TRAINER_FRLG_CRUSH_KIN_RON_MYA_4 ===
 Name: RON & MYA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -12163,7 +12155,7 @@ Hitmonlee @ Black Belt
 Level: 56
 IVs: 20 HP / 20 Atk / 20 Def / 20 SpA / 20 SpD / 20 Spe
 
-=== TRAINER_BIKER_RUBEN_2 ===
+=== TRAINER_FRLG_BIKER_RUBEN_2 ===
 Name: RUBEN
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -12184,7 +12176,7 @@ Weezing
 Level: 48
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_CUE_BALL_CAMRON_2 ===
+=== TRAINER_FRLG_CUE_BALL_CAMRON_2 ===
 Name: CAMRON
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -12201,7 +12193,7 @@ Machoke
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIKER_JAXON_2 ===
+=== TRAINER_FRLG_BIKER_JAXON_2 ===
 Name: JAXON
 Class: Biker Frlg
 Pic: Biker Frlg
@@ -12218,7 +12210,7 @@ Muk
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_CUE_BALL_ISAIAH_2 ===
+=== TRAINER_FRLG_CUE_BALL_ISAIAH_2 ===
 Name: ISAIAH
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -12235,7 +12227,7 @@ Machamp
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_CUE_BALL_COREY_2 ===
+=== TRAINER_FRLG_CUE_BALL_COREY_2 ===
 Name: COREY
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg
@@ -12252,7 +12244,7 @@ Machamp
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_BIRD_KEEPER_JACOB_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_JACOB_2 ===
 Name: JACOB
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12277,7 +12269,7 @@ Spearow
 Level: 28
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BIRD_KEEPER_JACOB_3 ===
+=== TRAINER_FRLG_BIRD_KEEPER_JACOB_3 ===
 Name: JACOB
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12302,7 +12294,7 @@ Fearow
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SWIMMER_FEMALE_ALICE_2 ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_ALICE_2 ===
 Name: ALICE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -12319,7 +12311,7 @@ Seaking
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SWIMMER_MALE_DARRIN_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_DARRIN_2 ===
 Name: DARRIN
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -12344,7 +12336,7 @@ Seadra
 Level: 52
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PICNICKER_MISSY_2 ===
+=== TRAINER_FRLG_PICNICKER_MISSY_2 ===
 Name: MISSY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -12361,7 +12353,7 @@ Seaking
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PICNICKER_MISSY_3 ===
+=== TRAINER_FRLG_PICNICKER_MISSY_3 ===
 Name: MISSY
 Class: Picnicker Frlg
 Pic: Picnicker Frlg
@@ -12378,7 +12370,7 @@ Seaking
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_FISHERMAN_WADE_2 ===
+=== TRAINER_FRLG_FISHERMAN_WADE_2 ===
 Name: WADE
 Class: Fisherman Frlg
 Pic: Fisherman Frlg
@@ -12411,7 +12403,7 @@ Magikarp
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SWIMMER_MALE_JACK_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_JACK_2 ===
 Name: JACK
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -12424,7 +12416,7 @@ Starmie
 Level: 50
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SIS_AND_BRO_LIL_IAN_2 ===
+=== TRAINER_FRLG_SIS_AND_BRO_LIL_IAN_2 ===
 Name: LIL & IAN
 Class: Sis And Bro Frlg
 Pic: Sis And Bro Frlg
@@ -12441,7 +12433,7 @@ Starmie
 Level: 50
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SIS_AND_BRO_LIL_IAN_3 ===
+=== TRAINER_FRLG_SIS_AND_BRO_LIL_IAN_3 ===
 Name: LIL & IAN
 Class: Sis And Bro Frlg
 Pic: Sis And Bro Frlg
@@ -12458,7 +12450,7 @@ Starmie
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_SWIMMER_MALE_FINN_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_FINN_2 ===
 Name: FINN
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -12471,7 +12463,7 @@ Starmie
 Level: 50
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_CRUSH_GIRL_SHARON_2 ===
+=== TRAINER_FRLG_CRUSH_GIRL_SHARON_2 ===
 Name: SHARON
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -12488,7 +12480,7 @@ Primeape @ Black Belt
 Level: 50
 IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
 
-=== TRAINER_CRUSH_GIRL_SHARON_3 ===
+=== TRAINER_FRLG_CRUSH_GIRL_SHARON_3 ===
 Name: SHARON
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -12505,7 +12497,7 @@ Primeape @ Black Belt
 Level: 55
 IVs: 20 HP / 20 Atk / 20 Def / 20 SpA / 20 SpD / 20 Spe
 
-=== TRAINER_CRUSH_GIRL_TANYA_2 ===
+=== TRAINER_FRLG_CRUSH_GIRL_TANYA_2 ===
 Name: TANYA
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -12522,7 +12514,7 @@ Hitmonchan @ Black Belt
 Level: 50
 IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
 
-=== TRAINER_CRUSH_GIRL_TANYA_3 ===
+=== TRAINER_FRLG_CRUSH_GIRL_TANYA_3 ===
 Name: TANYA
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -12539,7 +12531,7 @@ Hitmonchan @ Black Belt
 Level: 55
 IVs: 20 HP / 20 Atk / 20 Def / 20 SpA / 20 SpD / 20 Spe
 
-=== TRAINER_BLACK_BELT_SHEA_2 ===
+=== TRAINER_FRLG_BLACK_BELT_SHEA_2 ===
 Name: SHEA
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -12556,7 +12548,7 @@ Machoke @ Black Belt
 Level: 50
 IVs: 21 HP / 21 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe
 
-=== TRAINER_BLACK_BELT_SHEA_3 ===
+=== TRAINER_FRLG_BLACK_BELT_SHEA_3 ===
 Name: SHEA
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -12573,7 +12565,7 @@ Machamp @ Black Belt
 Level: 55
 IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 
-=== TRAINER_BLACK_BELT_HUGH_2 ===
+=== TRAINER_FRLG_BLACK_BELT_HUGH_2 ===
 Name: HUGH
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -12590,7 +12582,7 @@ Machoke @ Black Belt
 Level: 50
 IVs: 21 HP / 21 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe
 
-=== TRAINER_BLACK_BELT_HUGH_3 ===
+=== TRAINER_FRLG_BLACK_BELT_HUGH_3 ===
 Name: HUGH
 Class: Black Belt Frlg
 Pic: Black Belt Frlg
@@ -12607,7 +12599,7 @@ Machamp @ Black Belt
 Level: 55
 IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 
-=== TRAINER_CRUSH_KIN_MIK_KIA_2 ===
+=== TRAINER_FRLG_CRUSH_KIN_MIK_KIA_2 ===
 Name: MIK & KIA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -12624,7 +12616,7 @@ Primeape @ Black Belt
 Level: 51
 IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
 
-=== TRAINER_CRUSH_KIN_MIK_KIA_3 ===
+=== TRAINER_FRLG_CRUSH_KIN_MIK_KIA_3 ===
 Name: MIK & KIA
 Class: Crush Kin Frlg
 Pic: Crush Kin Frlg
@@ -12641,7 +12633,7 @@ Primeape @ Black Belt
 Level: 56
 IVs: 20 HP / 20 Atk / 20 Def / 20 SpA / 20 SpD / 20 Spe
 
-=== TRAINER_TUBER_AMIRA_2 ===
+=== TRAINER_FRLG_TUBER_AMIRA_2 ===
 Name: AMIRA
 Class: Tuber Frlg
 Pic: Tuber F Frlg
@@ -12662,7 +12654,7 @@ Poliwhirl
 Level: 47
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_TWINS_JOY_MEG_2 ===
+=== TRAINER_FRLG_TWINS_JOY_MEG_2 ===
 Name: JOY & MEG
 Class: Twins Frlg
 Pic: Twins Frlg
@@ -12679,7 +12671,7 @@ Clefairy
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_PAINTER_RAYNA_2 ===
+=== TRAINER_FRLG_PAINTER_RAYNA_2 ===
 Name: RAYNA
 Class: Painter Frlg
 Pic: Painter Frlg
@@ -12696,7 +12688,7 @@ IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 - Double Edge
 - Self Destruct
 
-=== TRAINER_YOUNGSTER_DESTIN_2 ===
+=== TRAINER_FRLG_YOUNGSTER_DESTIN_2 ===
 Name: DESTIN
 Class: Youngster Frlg
 Pic: Youngster Frlg
@@ -12713,7 +12705,7 @@ Pidgeot
 Level: 53
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PKMN_BREEDER_ALIZE_2 ===
+=== TRAINER_FRLG_PKMN_BREEDER_ALIZE_2 ===
 Name: ALIZE
 Class: Pkmn Breeder Frlg
 Pic: Pokemon Breeder Frlg
@@ -12734,7 +12726,7 @@ Marill
 Level: 53
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_YOUNG_COUPLE_GIA_JES_2 ===
+=== TRAINER_FRLG_YOUNG_COUPLE_GIA_JES_2 ===
 Name: GIA & JES
 Class: Young Couple Frlg
 Pic: Young Couple Frlg
@@ -12751,7 +12743,7 @@ Nidorino
 Level: 30
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_YOUNG_COUPLE_GIA_JES_3 ===
+=== TRAINER_FRLG_YOUNG_COUPLE_GIA_JES_3 ===
 Name: GIA & JES
 Class: Young Couple Frlg
 Pic: Young Couple Frlg
@@ -12768,7 +12760,7 @@ Nidoqueen
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_BIRD_KEEPER_MILO_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_MILO_2 ===
 Name: MILO
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12785,7 +12777,7 @@ Pidgeot
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_BIRD_KEEPER_CHAZ_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_CHAZ_2 ===
 Name: CHAZ
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12802,7 +12794,7 @@ Fearow
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_BIRD_KEEPER_HAROLD_2 ===
+=== TRAINER_FRLG_BIRD_KEEPER_HAROLD_2 ===
 Name: HAROLD
 Class: Bird Keeper Frlg
 Pic: Bird Keeper Frlg
@@ -12819,7 +12811,7 @@ Noctowl
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_SWIMMER_FEMALE_NICOLE_2 ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_NICOLE_2 ===
 Name: NICOLE
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -12832,7 +12824,7 @@ Marill
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PSYCHIC_JACLYN_2 ===
+=== TRAINER_FRLG_PSYCHIC_JACLYN_2 ===
 Name: JACLYN
 Class: Psychic Frlg
 Pic: Psychic F Frlg
@@ -12865,7 +12857,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Recover
 - Reflect
 
-=== TRAINER_SWIMMER_MALE_SAMIR_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_SAMIR_2 ===
 Name: SAMIR
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -12878,7 +12870,7 @@ Gyarados
 Level: 55
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_HIKER_EARL_2 ===
+=== TRAINER_FRLG_HIKER_EARL_2 ===
 Name: EARL
 Class: Hiker Frlg
 Pic: Hiker Frlg
@@ -12895,7 +12887,7 @@ Machamp
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_RUIN_MANIAC_LARRY_2 ===
+=== TRAINER_FRLG_RUIN_MANIAC_LARRY_2 ===
 Name: LARRY
 Class: Ruin Maniac Frlg
 Pic: Ruin Maniac Frlg
@@ -12912,7 +12904,7 @@ Machoke
 Level: 54
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_POKEMANIAC_HECTOR_2 ===
+=== TRAINER_FRLG_POKEMANIAC_HECTOR_2 ===
 Name: HECTOR
 Class: Pokemaniac Frlg
 Pic: Pokemaniac Frlg
@@ -12929,7 +12921,7 @@ Kangaskhan
 Level: 55
 IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
 
-=== TRAINER_PSYCHIC_DARIO_2 ===
+=== TRAINER_FRLG_PSYCHIC_DARIO_2 ===
 Name: DARIO
 Class: Psychic Frlg
 Pic: Psychic M Frlg
@@ -12946,7 +12938,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Odor Sleuth
 - Agility
 
-=== TRAINER_PSYCHIC_RODETTE_2 ===
+=== TRAINER_FRLG_PSYCHIC_RODETTE_2 ===
 Name: RODETTE
 Class: Psychic Frlg
 Pic: Psychic F Frlg
@@ -12979,7 +12971,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Psych Up
 - Future Sight
 
-=== TRAINER_JUGGLER_MASON_2 ===
+=== TRAINER_FRLG_JUGGLER_MASON_2 ===
 Name: MASON
 Class: Juggler Frlg
 Pic: Juggler Frlg
@@ -13004,7 +12996,7 @@ Pineco
 Level: 52
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_PKMN_RANGER_NICOLAS_2 ===
+=== TRAINER_FRLG_PKMN_RANGER_NICOLAS_2 ===
 Name: NICOLAS
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger M Frlg
@@ -13030,7 +13022,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Sleep Powder
 - Slam
 
-=== TRAINER_PKMN_RANGER_MADELINE_2 ===
+=== TRAINER_FRLG_PKMN_RANGER_MADELINE_2 ===
 Name: MADELINE
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger F Frlg
@@ -13056,7 +13048,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Acid
 - Stun Spore
 
-=== TRAINER_CRUSH_GIRL_CYNDY_2 ===
+=== TRAINER_FRLG_CRUSH_GIRL_CYNDY_2 ===
 Name: CYNDY
 Class: Crush Girl Frlg
 Pic: Crush Girl Frlg
@@ -13077,7 +13069,7 @@ Machamp @ Black Belt
 Level: 54
 IVs: 20 HP / 20 Atk / 20 Def / 20 SpA / 20 SpD / 20 Spe
 
-=== TRAINER_TAMER_EVAN_2 ===
+=== TRAINER_FRLG_TAMER_EVAN_2 ===
 Name: EVAN
 Class: Tamer Frlg
 Pic: Tamer Frlg
@@ -13098,7 +13090,7 @@ Ursaring
 Level: 55
 IVs: 19 HP / 19 Atk / 19 Def / 19 SpA / 19 SpD / 19 Spe
 
-=== TRAINER_PKMN_RANGER_JACKSON_2 ===
+=== TRAINER_FRLG_PKMN_RANGER_JACKSON_2 ===
 Name: JACKSON
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger M Frlg
@@ -13132,7 +13124,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Sleep Powder
 - Stomp
 
-=== TRAINER_PKMN_RANGER_KATELYN_2 ===
+=== TRAINER_FRLG_PKMN_RANGER_KATELYN_2 ===
 Name: KATELYN
 Class: Pkmn Ranger Frlg
 Pic: Pokemon Ranger F Frlg
@@ -13150,7 +13142,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Minimize
 - Soft Boiled
 
-=== TRAINER_COOLTRAINER_LEROY_2 ===
+=== TRAINER_FRLG_COOLTRAINER_LEROY_2 ===
 Name: LEROY
 Class: Cooltrainer Frlg
 Pic: Cooltrainer M Frlg
@@ -13200,7 +13192,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Snore
 - Rest
 
-=== TRAINER_COOLTRAINER_MICHELLE_2 ===
+=== TRAINER_FRLG_COOLTRAINER_MICHELLE_2 ===
 Name: MICHELLE
 Class: Cooltrainer Frlg
 Pic: Cooltrainer F Frlg
@@ -13250,7 +13242,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Stomp
 - Odor Sleuth
 
-=== TRAINER_COOL_COUPLE_LEX_NYA_2 ===
+=== TRAINER_FRLG_COOL_COUPLE_LEX_NYA_2 ===
 Name: LEX & NYA
 Class: Cool Couple Frlg
 Pic: Cool Couple Frlg
@@ -13276,7 +13268,7 @@ IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
 - Pursuit
 - Swagger
 
-=== TRAINER_BUG_CATCHER_COLTON_2 ===
+=== TRAINER_FRLG_BUG_CATCHER_COLTON_2 ===
 Name: COLTON
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -13297,7 +13289,7 @@ Metapod
 Level: 19
 IVs: 2 HP / 2 Atk / 2 Def / 2 SpA / 2 SpD / 2 Spe
 
-=== TRAINER_BUG_CATCHER_COLTON_3 ===
+=== TRAINER_FRLG_BUG_CATCHER_COLTON_3 ===
 Name: COLTON
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -13318,7 +13310,7 @@ Butterfree
 Level: 27
 IVs: 7 HP / 7 Atk / 7 Def / 7 SpA / 7 SpD / 7 Spe
 
-=== TRAINER_BUG_CATCHER_COLTON_4 ===
+=== TRAINER_FRLG_BUG_CATCHER_COLTON_4 ===
 Name: COLTON
 Class: Bug Catcher Frlg
 Pic: Bug Catcher Frlg
@@ -13339,7 +13331,7 @@ Butterfree
 Level: 51
 IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe
 
-=== TRAINER_SWIMMER_MALE_MATTHEW_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_MATTHEW_2 ===
 Name: MATTHEW
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -13356,7 +13348,7 @@ Poliwrath
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SWIMMER_MALE_TONY_2 ===
+=== TRAINER_FRLG_SWIMMER_MALE_TONY_2 ===
 Name: TONY
 Class: Swimmer M Frlg
 Pic: Swimmer M Frlg
@@ -13373,7 +13365,7 @@ Seadra
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_SWIMMER_FEMALE_MELISSA_2 ===
+=== TRAINER_FRLG_SWIMMER_FEMALE_MELISSA_2 ===
 Name: MELISSA
 Class: Swimmer F Frlg
 Pic: Swimmer F Frlg
@@ -13390,7 +13382,7 @@ Seaking
 Level: 49
 IVs: 9 HP / 9 Atk / 9 Def / 9 SpA / 9 SpD / 9 Spe
 
-=== TRAINER_ELITE_FOUR_LORELEI_2 ===
+=== TRAINER_FRLG_ELITE_FOUR_LORELEI_2 ===
 Name: LORELEI
 Class: Elite Four Frlg
 Pic: Elite Four Lorelei Frlg
@@ -13441,7 +13433,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Psychic
 - Thunder
 
-=== TRAINER_ELITE_FOUR_BRUNO_2 ===
+=== TRAINER_FRLG_ELITE_FOUR_BRUNO_2 ===
 Name: BRUNO
 Class: Elite Four Frlg
 Pic: Elite Four Bruno Frlg
@@ -13492,7 +13484,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Brick Break
 - Rock Slide
 
-=== TRAINER_ELITE_FOUR_AGATHA_2 ===
+=== TRAINER_FRLG_ELITE_FOUR_AGATHA_2 ===
 Name: AGATHA
 Class: Elite Four Frlg
 Pic: Elite Four Agatha Frlg
@@ -13543,7 +13535,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Thunderbolt
 - Sludge Bomb
 
-=== TRAINER_ELITE_FOUR_LANCE_2 ===
+=== TRAINER_FRLG_ELITE_FOUR_LANCE_2 ===
 Name: LANCE
 Class: Elite Four Frlg
 Pic: Elite Four Lance Frlg
@@ -13594,7 +13586,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Thunderbolt
 - Ice Beam
 
-=== TRAINER_CHAMPION_REMATCH_SQUIRTLE ===
+=== TRAINER_FRLG_CHAMPION_REMATCH_SQUIRTLE ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -13653,7 +13645,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Earthquake
 - Rain Dance
 
-=== TRAINER_CHAMPION_REMATCH_BULBASAUR ===
+=== TRAINER_FRLG_CHAMPION_REMATCH_BULBASAUR ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -13712,7 +13704,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Earthquake
 - Sunny Day
 
-=== TRAINER_CHAMPION_REMATCH_CHARMANDER ===
+=== TRAINER_FRLG_CHAMPION_REMATCH_CHARMANDER ===
 Name: TERRY
 Class: Champion Frlg
 Pic: Champion Rival Frlg
@@ -13771,7 +13763,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Aerial Ace
 - Earthquake
 
-=== TRAINER_CUE_BALL_PAXTON ===
+=== TRAINER_FRLG_CUE_BALL_PAXTON ===
 Name: PAXTON
 Class: Cue Ball Frlg
 Pic: Cue Ball Frlg

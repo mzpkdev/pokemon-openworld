@@ -110,6 +110,14 @@ void TrainerBattleLoadArgsTrainerA(const u8 *data);
 void TrainerBattleLoadArgsTrainerB(const u8 *data);
 void TrainerBattleLoadArgsSecondTrainer(const u8 *data);
 void InitTrainerBattleParameter(void);
+bool32 BattleSetup_TryPreflightOrdinaryBattle(u16 opponentA, u16 opponentB, u16 partnerId, u32 battleTypeFlags);
+bool32 BattleSetup_TryPreflightTrainerBattleData(const u8 *data);
+bool32 BattleSetup_TryLoadTrainerBattle(const u8 *data);
+
+#if TESTING
+bool32 BattleSetup_TestTryLoadTrainerBattleWithFollower(const u8 *data, u16 partnerId);
+void BattleSetup_TestSetBattledTrainersFlags(u16 opponentA, u16 opponentB);
+#endif
 
 void DoStandardWildBattle_Debug(void);
 void BattleSetup_StartTrainerBattle_Debug(void);

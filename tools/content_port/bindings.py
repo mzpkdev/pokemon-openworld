@@ -11,6 +11,17 @@ from typing import Iterable, Mapping
 from .errors import ContentPortError
 
 
+_RESOLVABLE_STATES = frozenset(
+    {
+        "allocated-binding",
+        "published-binding",
+        "trainer-defeat-bitmap",
+        "trainer-defeat-flag",
+    }
+)
+_LEDGER_STATES = _RESOLVABLE_STATES | {"published-tombstone"}
+
+
 @dataclass(frozen=True)
 class PersistentBinding:
     domain: str
@@ -23,27 +34,27 @@ class PersistentBinding:
 
 class BindingIndex:
     def __init__(self, bindings: Iterable[PersistentBinding]) -> None:
+        all_by_symbol: dict[tuple[str, str], PersistentBinding] = {}
         by_symbol: dict[tuple[str, str], PersistentBinding] = {}
         domains_by_symbol: dict[str, set[str]] = {}
         by_slot: dict[tuple[str, str, int], PersistentBinding] = {}
         pending = list(bindings)
         for binding in pending:
             identity = (binding.domain, binding.symbol)
-            if identity in by_symbol:
+            if identity in all_by_symbol:
                 raise ContentPortError(
                     f"persistent ledger duplicates symbol {binding.domain}:{binding.symbol}"
                 )
-            by_symbol[identity] = binding
-            domains_by_symbol.setdefault(binding.symbol, set()).add(binding.domain)
-        for binding in pending:
-            if binding.state not in {
-                "allocated-binding",
-                "published-binding",
-                "trainer-defeat-flag",
-            }:
+            if binding.state not in _LEDGER_STATES:
                 raise ContentPortError(
                     f"{binding.symbol}: unallocated persistent state {binding.state}"
                 )
+            all_by_symbol[identity] = binding
+            if binding.state not in _RESOLVABLE_STATES:
+                continue
+            by_symbol[identity] = binding
+            domains_by_symbol.setdefault(binding.symbol, set()).add(binding.domain)
+        for binding in pending:
             slot = (binding.domain, binding.storage, binding.value)
             owner = by_slot.get(slot)
             if owner is None:
@@ -58,7 +69,7 @@ class BindingIndex:
         for binding in pending:
             if binding.alias_of is None:
                 continue
-            target = by_symbol.get((binding.domain, binding.alias_of))
+            target = all_by_symbol.get((binding.domain, binding.alias_of))
             if target is None:
                 raise ContentPortError(
                     f"{binding.symbol}: alias target {binding.alias_of} is missing"
@@ -92,7 +103,9 @@ class BindingIndex:
         if binding is None:
             raise ContentPortError(f"persistent symbol {symbol} has no ledger binding")
         if binding.alias_of:
-            return self._by_symbol[(binding.domain, binding.alias_of)]
+            target = self._by_symbol.get((binding.domain, binding.alias_of))
+            if target is not None:
+                return target
         return binding
 
     def __contains__(self, symbol: object) -> bool:

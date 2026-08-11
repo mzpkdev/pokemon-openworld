@@ -1,0 +1,1 @@
+"""Trainer-rematch generator tests."""

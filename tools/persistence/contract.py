@@ -46,6 +46,10 @@ NON_PERSISTENT_CONFIG_BINDINGS = frozenset(
         "FLAG_DEBUG_NO_WILD_ENCOUNTERS",
     )
 )
+# Live post-baseline trainer identities are owned by persistent_ids.json. The
+# save contract retains the colliding pre-ledger TRAINER_* spellings as frozen
+# tombstone evidence instead of silently rewriting that historical projection.
+LEDGER_ONLY_TRAINER_BINDINGS = frozenset(("TRAINER_YOUNGSTER_SAMUEL_JOHTO",))
 ABI_PURPOSES = ("normal", "debug", "release", "test-runner", "headless-test")
 ROOT_TYPES = (
     "SaveBlock1",
@@ -164,6 +168,18 @@ def _prepare_tree(tree: Path) -> Path:
         # the generators needed here; the aggregate `tools` target also runs the
         # git-history check, which is intentionally unavailable in an archive.
         _run(["make", "-s", "-j2", "tools/jsonproc", "tools/mapjson"], tree)
+        # Map generation owns atomic publication of the shared generated root.
+        # Publish its symlink before parallel aggregate generators add outputs;
+        # otherwise one of them can create `current` as a legacy directory first.
+        _run(
+            [
+                "make",
+                "-s",
+                "-j2",
+                "build/generated/allregions/current/.map-build-policy",
+            ],
+            tree,
+        )
         _run(["make", "-s", "-j2", "generated"], tree)
     if not generated.exists():
         raise ContractError("generated include tree was not produced")
@@ -821,7 +837,15 @@ def _bindings(values: dict[str, int]) -> dict[str, list[dict[str, Any]]]:
         entries = [
             {"symbol": name, "value": value}
             for name, value in values.items()
-            if name.startswith(prefixes) and name not in NON_PERSISTENT_CONFIG_BINDINGS
+            if name.startswith(prefixes)
+            and name not in NON_PERSISTENT_CONFIG_BINDINGS
+            and not (
+                domain == "trainerIds"
+                and (
+                    name.startswith("TRAINER_FRLG_")
+                    or name in LEDGER_ONLY_TRAINER_BINDINGS
+                )
+            )
         ]
         result[domain] = sorted(
             entries, key=lambda item: (item["value"], item["symbol"])

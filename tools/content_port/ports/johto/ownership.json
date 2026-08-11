@@ -4085,12 +4085,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route34/map.json",
-      "sha256": "1ea21f4ad0c0a6fa34a71ece24d14b814bb4f26e51b851ca4897bfaf7399fb6c"
+      "sha256": "6af682f7190cd158f0b718b7179083c18f3bc0b2f80722c36e8440ce05a33e5c"
     },
     {
       "kind": "file",
       "path": "data/maps/Route34/scripts.inc",
-      "sha256": "4d24ca1be31701fe5949466f661ff2c93509bb7ccbdb0cd6fcc5f1b54acdfc4d"
+      "sha256": "36c138540b1408319704652c51909d85429a5185c7490478dda9dacdffca4574"
     },
     {
       "kind": "file",
@@ -13325,6 +13325,12 @@
       "name": "rival trainers",
       "path": "src/data/trainers.party",
       "sha256": "778ef338a93ead7aab7a55074d09b88dfd0eb4a8831fcf7e6cea5f6ff9dc02de"
+    },
+    {
+      "kind": "section",
+      "name": "selected trainer parties",
+      "path": "src/data/trainers.party",
+      "sha256": "4ff68d7361ab19bb887dbe94f161fde4d7dc91ba45f09d6fb19e483457c8e5dc"
     }
   ]
 }

@@ -162,6 +162,10 @@ except BlockingIOError:
     pass
 else:
     raise SystemExit("content-port lifetime lock did not survive wrapper exec")
+parallelism = re.search(r"(?:^| )-j([0-9]+)(?: |$)", makeflags)
+if parallelism is None:
+    raise SystemExit(f"Hydra cannot determine runner count from MAKEFLAGS: {makeflags!r}")
+print(f"HYDRA_RUNNERS={parallelism.group(1)}")
 print(makeflags)
 """
             )
@@ -178,6 +182,7 @@ print(makeflags)
                 [
                     "make",
                     "-j4",
+                    "-O",
                     "--no-print-directory",
                     "NODEP=1",
                     "SETUP_PREREQS=0",
@@ -191,7 +196,9 @@ print(makeflags)
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn("jobserver unavailable", result.stderr)
-            hydra_parallelism = re.search(r"(?:^| )-j([0-9]+)(?: |$)", result.stdout)
+            hydra_parallelism = re.search(
+                r"^HYDRA_RUNNERS=([0-9]+)$", result.stdout, re.MULTILINE
+            )
             self.assertIsNotNone(hydra_parallelism, result.stdout)
             assert hydra_parallelism is not None
             self.assertGreater(int(hydra_parallelism.group(1)), 1)

@@ -26,6 +26,7 @@ from tools.persistence.contract import (
     validate_abi,
     _source_evidence,
     _purpose_defines,
+    _prepare_tree,
     _canonicalize_anonymous_layouts,
     _bindings,
     _parse_dwarf,
@@ -105,6 +106,27 @@ def set_path(value, path, replacement):
 
 
 class SaveContractTests(unittest.TestCase):
+    def test_live_trainer_identities_do_not_rewrite_frozen_tombstone_evidence(self):
+        bindings = _bindings(
+            {
+                "TRAINER_YOUNGSTER_BEN": 1,
+                "TRAINER_FRLG_YOUNGSTER_BEN": 858,
+                "TRAINER_YOUNGSTER_SAMUEL_JOHTO": 1481,
+            }
+        )
+        self.assertIn(
+            {"symbol": "TRAINER_YOUNGSTER_BEN", "value": 1},
+            bindings["trainerIds"],
+        )
+        self.assertNotIn(
+            {"symbol": "TRAINER_FRLG_YOUNGSTER_BEN", "value": 858},
+            bindings["trainerIds"],
+        )
+        self.assertNotIn(
+            {"symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481},
+            bindings["trainerIds"],
+        )
+
     @staticmethod
     def _saveblock_unit(*, leaf_size=1, bit_attribute=None, bit_value=0):
         member_attrs = {
@@ -1373,6 +1395,35 @@ class SaveContractTests(unittest.TestCase):
         )
         self.assertTrue(seen_trees)
         self.assertTrue(all(tree != Path("/dirty/task") for tree in seen_trees))
+
+    def test_prepare_tree_publishes_map_root_before_aggregate_generation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tree = Path(tmp)
+            generated = tree / "build/generated/allregions/current"
+            generation = generated.parent / ".generation-test"
+            calls = []
+
+            def fake_run(args, cwd, **kwargs):
+                self.assertEqual(cwd, tree)
+                calls.append(args)
+                if args[-1].endswith("/.map-build-policy"):
+                    generation.mkdir(parents=True)
+                    (generation / ".map-build-policy").write_text("allregions\n")
+                    generated.symlink_to(generation.name, target_is_directory=True)
+                return b""
+
+            with mock.patch("tools.persistence.contract._run", side_effect=fake_run):
+                resolved = _prepare_tree(tree)
+
+        self.assertEqual(resolved, generation)
+        self.assertEqual(
+            [args[-1] for args in calls],
+            [
+                "tools/mapjson",
+                "build/generated/allregions/current/.map-build-policy",
+                "generated",
+            ],
+        )
 
     def test_export_uses_committed_object_not_worktree(self):
         with tempfile.TemporaryDirectory() as tmp:

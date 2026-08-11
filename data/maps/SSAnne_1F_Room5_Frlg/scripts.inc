@@ -2,7 +2,7 @@ SSAnne_1F_Room5_Frlg_MapScripts::
 	.byte 0
 
 SSAnne_1F_Room5_EventScript_Arthur::
-	trainerbattle_single TRAINER_GENTLEMAN_ARTHUR, SSAnne_1F_Room5_Text_ArthurIntro, SSAnne_1F_Room5_Text_ArthurDefeat
+	trainerbattle_single TRAINER_FRLG_GENTLEMAN_ARTHUR, SSAnne_1F_Room5_Text_ArthurIntro, SSAnne_1F_Room5_Text_ArthurDefeat
 	msgbox SSAnne_1F_Room5_Text_ArthurPostBattle, MSGBOX_AUTOCLOSE
 	end
 

@@ -15,15 +15,18 @@ SECTOR_DATA_SIZE = 3968
 SECTOR_FOOTER_OFFSET = 4084
 SECTOR_SIGNATURE = 0x08012025
 ERASED_SECTOR = b"\xff" * SECTOR_SIZE
+SAVE_BLOCK1_SIZE = 0x3D20
+TRAINER_DEFEATED_OFFSET = 0x3CD0
+TRAINER_DEFEATED_SIZE = 78
 
-# Frozen by the canonical debug ROM's serialized layout. These are the exact
+# Defined by the current serialized layout. These are the exact
 # byte counts passed to CalculateChecksum for logical sector ids 0..13.
 PAYLOAD_SIZES = (
     3884,
     3968,
     3968,
     3968,
-    3664,
+    3744,
     3968,
     3968,
     3968,
@@ -109,6 +112,15 @@ class SaveSlot:
             self.logical_sector(sector_id)[: PAYLOAD_SIZES[sector_id]]
             for sector_id in range(1, 5)
         )
+
+    @property
+    def trainer_defeated_bitmap(self) -> bytes:
+        block = self.save_block1
+        if len(block) != SAVE_BLOCK1_SIZE:
+            raise ValueError(f"SaveBlock1 must be {SAVE_BLOCK1_SIZE} bytes")
+        return block[
+            TRAINER_DEFEATED_OFFSET : TRAINER_DEFEATED_OFFSET + TRAINER_DEFEATED_SIZE
+        ]
 
     @property
     def pokemon_storage(self) -> bytes:

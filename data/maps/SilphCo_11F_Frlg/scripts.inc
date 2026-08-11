@@ -65,7 +65,7 @@ SilphCo_11F_EventScript_BattleGiovanni::
 	call_if_eq VAR_TEMP_1, 0, SilphCo_11F_EventScript_GiovanniApproachLeft
 	call_if_eq VAR_TEMP_1, 1, SilphCo_11F_EventScript_GiovanniApproachRight
 	setvar VAR_LAST_TALKED, LOCALID_SILPH_CO_GIOVANNI
-	trainerbattle_no_intro TRAINER_BOSS_GIOVANNI_2, SilphCo_11F_Text_GiovanniDefeat
+	trainerbattle_no_intro TRAINER_FRLG_BOSS_GIOVANNI_2, SilphCo_11F_Text_GiovanniDefeat
 	msgbox SilphCo_11F_Text_GiovanniPostBattle
 	closemessage
 	fadescreen FADE_TO_BLACK
@@ -123,12 +123,12 @@ SilphCo_11F_EventScript_FloorSign::
 	end
 
 SilphCo_11F_EventScript_Grunt1::
-	trainerbattle_single TRAINER_TEAM_ROCKET_GRUNT_40, SilphCo_11F_Text_Grunt1Intro, SilphCo_11F_Text_Grunt1Defeat
+	trainerbattle_single TRAINER_FRLG_TEAM_ROCKET_GRUNT_40, SilphCo_11F_Text_Grunt1Intro, SilphCo_11F_Text_Grunt1Defeat
 	msgbox SilphCo_11F_Text_Grunt1PostBattle, MSGBOX_AUTOCLOSE
 	end
 
 SilphCo_11F_EventScript_Grunt2::
-	trainerbattle_single TRAINER_TEAM_ROCKET_GRUNT_41, SilphCo_11F_Text_Grunt2Intro, SilphCo_11F_Text_Grunt2Defeat
+	trainerbattle_single TRAINER_FRLG_TEAM_ROCKET_GRUNT_41, SilphCo_11F_Text_Grunt2Intro, SilphCo_11F_Text_Grunt2Defeat
 	msgbox SilphCo_11F_Text_Grunt2PostBattle, MSGBOX_AUTOCLOSE
 	end
 

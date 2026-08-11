@@ -27,8 +27,13 @@ enum DifficultyLevel GetBattlePartnerDifficultyLevel(u16 partnerId)
 {
     enum DifficultyLevel difficulty = GetCurrentDifficultyLevel();
 
+    if (difficulty < DIFFICULTY_MIN || difficulty >= DIFFICULTY_COUNT)
+        return DIFFICULTY_NORMAL;
+
     if (partnerId > TRAINER_PARTNER(PARTNER_NONE))
         partnerId -= TRAINER_PARTNER(PARTNER_NONE);
+    if (partnerId >= PARTNER_COUNT)
+        return DIFFICULTY_NORMAL;
 
     if (difficulty == DIFFICULTY_NORMAL)
         return DIFFICULTY_NORMAL;
@@ -41,15 +46,7 @@ enum DifficultyLevel GetBattlePartnerDifficultyLevel(u16 partnerId)
 
 enum DifficultyLevel GetTrainerDifficultyLevel(u16 trainerId)
 {
-    enum DifficultyLevel difficulty = GetCurrentDifficultyLevel();
-
-    if (difficulty == DIFFICULTY_NORMAL)
-        return DIFFICULTY_NORMAL;
-
-    if (gTrainers[difficulty][trainerId].party == NULL)
-        return DIFFICULTY_NORMAL;
-
-    return difficulty;
+    return GetResolvedTrainerDifficultyLevel(trainerId);
 }
 
 void Script_IncreaseDifficulty(void)

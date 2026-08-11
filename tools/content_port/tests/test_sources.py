@@ -22,6 +22,8 @@ from tools.content_port.sources import (
     extract_service_edges,
     resolve_port_sources,
     validate_port_sources,
+    _semantic_record_digest,
+    _validate_selected_trainer_event,
 )
 
 
@@ -525,139 +527,111 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
-        capabilities = tuple(
-            replace(
-                decision,
-                state=CapabilityState.ENABLED,
-                dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
-            )
-            if decision.map_name == "Route29" and decision.capability == "trainers"
-            else decision
-            for decision in descriptor.capabilities
-        )
         _, state = resolve_port_sources(
-            replace(
-                descriptor,
-                capabilities=capabilities,
-                legacy_report=None,
-            ),
+            replace(descriptor, legacy_report=None),
             Path("."),
         )
         expected = {
-            ResourceKey("trainer", "TRAINER_SAWYER_1"),
-            ResourceKey("party", "sParty_Sawyer1"),
-            ResourceKey("species", "SPECIES_GEODUDE"),
-            ResourceKey("trainer-class", "TRAINER_CLASS_HIKER"),
-            ResourceKey("asset", "TRAINER_PIC_HIKER"),
+            ResourceKey("trainer", "TRAINER_SAMUEL"),
+            ResourceKey("party", "sParty_Samuel"),
+            ResourceKey("species", "SPECIES_TEDDIURSA"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_YOUNGSTER"),
+            ResourceKey("asset", "TRAINER_PIC_YOUNGSTER"),
+            ResourceKey("service", "Route34_EventScript_YoungsterSamuel"),
         }
         self.assertTrue(expected <= set(state.resources))
-        self.assertNotIn(ResourceKey("binding", "VAR_TEMP_0"), state.resources)
-        trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAWYER_1"]
+        self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
+        self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
+        trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAMUEL"]
         self.assertRegex(trainer_evidence, r"^[0-9a-f]{64}$")
-        _, repeated_state = resolve_port_sources(
-            replace(
-                descriptor,
-                capabilities=capabilities,
-                legacy_report=None,
+        trainer = state.semantic_values[ResourceKey("trainer", "TRAINER_SAMUEL")]
+        self.assertEqual(trainer["trainer_name"], "SAMUEL")
+        self.assertEqual(trainer["double_battle"], "FALSE")
+        self.assertEqual(trainer["ai_flags"], ("AI_SCRIPT_CHECK_BAD_MOVE",))
+        party = state.semantic_values[ResourceKey("party", "sParty_Samuel")]
+        self.assertEqual(
+            [
+                (member["species"], member["level"], member["iv"])
+                for member in party["members"]
+            ],
+            [
+                ("SPECIES_TEDDIURSA", 12, 0),
+                ("SPECIES_SANDSHREW", 10, 0),
+                ("SPECIES_SPEAROW", 12, 0),
+            ],
+        )
+        event = state.trainer_events["Route34"][0]
+        self.assertEqual(event.trainers, ("TRAINER_SAMUEL",))
+        self.assertEqual(
+            event.instructions[0].operands,
+            (
+                "TRAINER_SAMUEL",
+                "Route34_Text_YoungsterSamuel_Seen",
+                "Route34_Text_YoungsterSamuel_Beaten",
             ),
-            Path("."),
         )
-        self.assertEqual(state.semantic_evidence, repeated_state.semantic_evidence)
-
-        encounter_capabilities = tuple(
-            replace(decision, state=CapabilityState.ENABLED)
-            if decision.map_name == "Route29" and decision.capability == "encounters"
-            else decision
-            for decision in descriptor.capabilities
+        event_key = ResourceKey(
+            "trainer-event", "Route34/0/Route34_EventScript_YoungsterSamuel"
         )
-        _, encounter_state = resolve_port_sources(
-            replace(
-                descriptor,
-                capabilities=encounter_capabilities,
-                legacy_report=None,
+        semantic_event = self._mutable(state.semantic_values[event_key])
+        self.assertEqual(
+            [item["command"] for item in semantic_event["instructions"]],
+            ["trainerbattle_single", "msgbox", "end"],
+        )
+        baseline_digest = _semantic_record_digest("content", event_key, semantic_event)
+        self.assertEqual(
+            baseline_digest,
+            state.semantic_evidence[f"content:{event_key}"],
+        )
+        for label, mutate in (
+            (
+                "operand",
+                lambda value: value["instructions"][0]["operands"].__setitem__(
+                    1, "ChangedIntro"
+                ),
             ),
-            Path("."),
+            (
+                "text",
+                lambda value: value["texts"][0]["fragments"].__setitem__(
+                    0, '"Changed$"'
+                ),
+            ),
+        ):
+            with self.subTest(semantic_mutation=label):
+                mutated = self._mutable(semantic_event)
+                mutate(mutated)
+                self.assertNotEqual(
+                    baseline_digest,
+                    _semantic_record_digest("content", event_key, mutated),
+                )
+        with self.assertRaisesRegex(ContentPortError, "exactly contain"):
+            _validate_selected_trainer_event(replace(event, texts=event.texts[:-1]))
+        duplicate_after = replace(
+            event.instructions[1],
+            operands=(event.instructions[0].operands[1], "MSGBOX_AUTOCLOSE"),
         )
-        self.assertTrue(
-            {
-                ResourceKey("encounter", "gRoute29"),
-                ResourceKey("encounter", "gRoute29_Night"),
-                ResourceKey("species", "SPECIES_PIDGEY"),
-                ResourceKey("species", "SPECIES_HOOTHOOT"),
-            }
-            <= set(encounter_state.resources)
-        )
-
+        with self.assertRaisesRegex(ContentPortError, "must be distinct"):
+            _validate_selected_trainer_event(
+                replace(
+                    event,
+                    instructions=(
+                        event.instructions[0],
+                        duplicate_after,
+                        event.instructions[2],
+                    ),
+                )
+            )
         implicit_trainer_capabilities = tuple(
             replace(decision, state=CapabilityState.ENABLED)
             if decision.map_name == "Route30" and decision.capability == "trainers"
             else decision
             for decision in descriptor.capabilities
         )
-        _, implicit_trainer_state = resolve_port_sources(
-            replace(
-                descriptor,
-                capabilities=implicit_trainer_capabilities,
-                legacy_report=None,
-            ),
-            Path("."),
-        )
-        self.assertTrue(
-            {
-                ResourceKey("trainer", "TRAINER_JOEY"),
-                ResourceKey("trainer", "TRAINER_MIKEY"),
-                ResourceKey("trainer", "TRAINER_DON"),
-            }
-            <= set(implicit_trainer_state.resources)
-        )
-
-        fallback_capabilities = tuple(
-            replace(
-                decision,
-                state=CapabilityState.ENABLED,
-                dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
-            )
-            if decision.map_name == "JohtoVictoryRoad_1F"
-            and decision.capability == "trainers"
-            else decision
-            for decision in descriptor.capabilities
-        )
-        with self.assertRaisesRegex(ContentPortError, "mechanical semantic authority"):
+        with self.assertRaisesRegex(ContentPortError, "explicit trainer dependencies"):
             resolve_port_sources(
                 replace(
                     descriptor,
-                    capabilities=fallback_capabilities,
-                    legacy_report=None,
-                ),
-                Path("."),
-            )
-
-        without_event_capability = tuple(
-            decision
-            for decision in descriptor.capabilities
-            if decision.capability != "interactions"
-        )
-        with self.assertRaisesRegex(ContentPortError, "unknown capability"):
-            resolve_port_sources(
-                replace(
-                    descriptor,
-                    capabilities=without_event_capability,
-                    legacy_report=None,
-                ),
-                Path("."),
-            )
-
-        event_capabilities = tuple(
-            replace(decision, state=CapabilityState.ENABLED)
-            if decision.map_name == "Route30" and decision.capability == "interactions"
-            else decision
-            for decision in descriptor.capabilities
-        )
-        with self.assertRaisesRegex(ContentPortError, "has no classification"):
-            resolve_port_sources(
-                replace(
-                    descriptor,
-                    capabilities=event_capabilities,
+                    capabilities=implicit_trainer_capabilities,
                     legacy_report=None,
                 ),
                 Path("."),
@@ -693,7 +667,10 @@ class SourceGraphTests(unittest.TestCase):
                     replace(
                         descriptor,
                         capabilities=capabilities,
-                        event_entries={unrelated.name: unrelated},
+                        event_entries={
+                            **descriptor.event_entries,
+                            unrelated.name: unrelated,
+                        },
                         legacy_report=None,
                     ),
                     Path("."),

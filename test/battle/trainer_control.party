@@ -293,3 +293,24 @@ Mew
 Oddish
 
 Aron
+
+=== TRAINER_YOUNGSTER_SAMUEL_JOHTO ===
+Name: SAMUEL
+Class: Youngster
+Pic: Youngster
+Gender: Male
+Music: Male
+Battle Type: Singles
+AI: Check Bad Move
+
+Teddiursa
+Level: 12
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Sandshrew
+Level: 10
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Spearow
+Level: 12
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe

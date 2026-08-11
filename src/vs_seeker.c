@@ -22,8 +22,8 @@
 #include "tv.h"
 #include "malloc.h"
 #include "field_screen_effect.h"
-#include "gym_leader_rematch.h"
 #include "sound.h"
+#include "trainer_rematch_registry.h"
 #include "constants/event_object_movement.h"
 #include "constants/event_objects.h"
 #include "constants/items.h"
@@ -182,22 +182,6 @@ static void Task_ResetObjectsRematchWantedState(u8 taskId)
 }
 #undef tIsPlayerFrozen
 #undef tAreObjectsFrozen
-
-u16 VsSeekerConvertLocalIdToTableId(u16 localId)
-{
-    u32 localIdIndex = 0;
-    u32 trainerId = 0;
-
-    for (localIdIndex = 0; localIdIndex < OBJECT_EVENTS_COUNT ; localIdIndex++)
-    {
-        if (sVsSeeker->trainerInfo[localIdIndex].localId == localId)
-        {
-            trainerId = sVsSeeker->trainerInfo[localIdIndex].trainerIdx;
-            return TrainerIdToRematchTableId(gRematchTable,trainerId);
-        }
-    }
-    return -1;
-}
 
 void VsSeekerResetObjectMovementAfterChargeComplete(void)
 {
@@ -482,7 +466,6 @@ static u8 GetVsSeekerResponseInArea(void)
             continue;
         }
 
-        gSaveBlock1Ptr->trainerRematches[VsSeekerConvertLocalIdToTableId(sVsSeeker->trainerInfo[vsSeekerIdx].localId)] = rematchTrainerIdx;
         ShiftStillObjectEventCoords(&gObjectEvents[sVsSeeker->trainerInfo[vsSeekerIdx].objectEventId]);
         StartTrainerObjectMovementScript(&sVsSeeker->trainerInfo[vsSeekerIdx], sMovementScript_TrainerRematch);
         sVsSeeker->trainerIdxArray[sVsSeeker->numRematchableTrainers] = vsSeekerIdx;
@@ -519,18 +502,20 @@ void ClearRematchMovementByTrainerId(void)
     u8 objEventId = 0;
     struct ObjectEventTemplate *objectEventTemplates = gSaveBlock1Ptr->objectEventTemplates;
     struct ObjectEvent *objectEvent;
-
-    int vsSeekerDataIdx = TrainerIdToRematchTableId(gRematchTable, TRAINER_BATTLE_PARAM.opponentA);
+    struct TrainerRematchBinding battleBinding = TrainerRematch_GetBinding(TRAINER_BATTLE_PARAM.opponentA);
 
     if (!I_VS_SEEKER_CHARGING) return;
 
-    if (vsSeekerDataIdx == -1)
+    if (battleBinding.kind != TRAINER_REMATCH_BINDING_VS_SEEKER)
         return;
 
     for (i = 0; i < gMapHeader.events->objectEventCount; i++)
     {
+        struct TrainerRematchBinding objectBinding = TrainerRematch_GetBinding(GetTrainerFlagFromScript(objectEventTemplates[i].script));
+
         if (!ShouldChangeMovementForTrainerType(objectEventTemplates[i].trainerType)
-        || vsSeekerDataIdx != TrainerIdToRematchTableId(gRematchTable, GetTrainerFlagFromScript(objectEventTemplates[i].script)))
+         || objectBinding.kind != TRAINER_REMATCH_BINDING_VS_SEEKER
+         || objectBinding.index != battleBinding.index)
             continue;
 
         TryGetObjectEventIdByLocalIdAndMap(objectEventTemplates[i].localId, gSaveBlock1Ptr->location.mapNum, gSaveBlock1Ptr->location.mapGroup, &objEventId);
@@ -544,49 +529,12 @@ void ClearRematchMovementByTrainerId(void)
     }
 }
 
-static u32 GetGameProgressFlags()
-{
-    const u32 gameProgressFlags[] = {
-        FLAG_VISITED_LAVARIDGE_TOWN,
-        FLAG_VISITED_FORTREE_CITY,
-        FLAG_SYS_GAME_CLEAR,
-        FLAG_DEFEATED_METEOR_FALLS_STEVEN
-    };
-    u32 i = 0, numGameProgressFlags = 0;
-    u32 maxGameProgressFlags = ARRAY_COUNT(gameProgressFlags);
-
-    for (i = 0; i < maxGameProgressFlags; i++)
-    {
-        if (FlagGet(gameProgressFlags[i]))
-            numGameProgressFlags++;
-    }
-
-    return numGameProgressFlags;
-}
-
 u16 GetRematchTrainerIdVSSeeker(u16 trainerId)
 {
-    u32 tableId = FirstBattleTrainerIdToRematchTableId(gRematchTable, trainerId);
-    u32 rematchTrainerIdx = GetGameProgressFlags();
-
-    if (!I_VS_SEEKER_CHARGING)
-        return 0;
-    if (tableId == -1)
-        return 0;
-    if (tableId >= REMATCH_ELITE_FOUR_ENTRIES)
-        return 0;
-    if (tableId >= REMATCH_SPECIAL_TRAINER_START)
-        return GetCurrentGymLeaderRematchLevel();
-
-    while (!HasTrainerBeenFought(gRematchTable[tableId].trainerIds[rematchTrainerIdx-1]))
-    {
-        if (rematchTrainerIdx== 0)
-            break;
-
-        rematchTrainerIdx--;
-    }
-
-    return gRematchTable[tableId].trainerIds[rematchTrainerIdx];
+    // FRLG chain metadata is published for battle preflight, but readiness and
+    // progression remain disabled until the Vs. Seeker frontend is implemented.
+    (void)trainerId;
+    return 0;
 }
 
 bool32 IsVsSeekerEnabled(void)
@@ -752,15 +700,6 @@ static u16 GetTrainerFlagFromScript(const u8 *script)
 
 static void ClearAllTrainerRematchStates(void)
 {
-#if FREE_MATCH_CALL == FALSE
-    u32 i;
-
-    if (!CheckBagHasItem(ITEM_VS_SEEKER, 1))
-        return;
-
-    for (i = 0; i < ARRAY_COUNT(gSaveBlock1Ptr->trainerRematches); i++)
-        gSaveBlock1Ptr->trainerRematches[i] = 0;
-#endif //FREE_MATCH_CALL
 }
 
 #if FREE_MATCH_CALL == FALSE
@@ -809,7 +748,7 @@ static void StartTrainerObjectMovementScript(struct VsSeekerTrainerInfo * traine
 void NativeVsSeekerRematchId(struct ScriptContext *ctx)
 {
     u16 trainerId = ScriptReadHalfword(ctx);
-    if (ctx->breakOnTrainerBattle && HasTrainerBeenFought(trainerId) && !ShouldTryRematchBattleForTrainerId(trainerId))
+    if (ctx->breakOnTrainerBattle && HasTrainerBeenFought(trainerId))
         StopScript(ctx);
 }
 
@@ -831,7 +770,6 @@ static void StartAllRespondantIdleMovements(void)
                 SetTrainerMovementType(objectEvent, sVsSeeker->runningBehaviourEtcArray[i]);
             TryOverrideTemplateCoordsForObjectEvent(objectEvent, sVsSeeker->runningBehaviourEtcArray[i]);
         }
-        gSaveBlock1Ptr->trainerRematches[VsSeekerConvertLocalIdToTableId(sVsSeeker->trainerInfo[j].localId)] = GetRematchTrainerIdVSSeeker(sVsSeeker->trainerInfo[j].trainerIdx);
     }
 #endif //FREE_MATCH_CALL
 }

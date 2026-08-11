@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import contextlib
+import io
 import json
 from pathlib import Path
 import re
@@ -10,6 +12,7 @@ import unittest
 
 from tools.persistence.contract import ContractError, canonical_bytes
 from tools.persistence.ledger import (
+    main,
     render,
     seed_ledger,
     validate_consumer_references,
@@ -85,6 +88,7 @@ class PersistentIdTests(unittest.TestCase):
             render(second, self.sources, right)
             for relative in (
                 "src/data/persistence/trainer_defeat_flags.inc.c",
+                "src/data/persistence/trainer_defeat_bindings.inc.c",
                 "src/data/persistence/location_codecs.inc.c",
                 "include/constants/heal_locations.h",
                 "include/constants/persistent_bindings.h",
@@ -134,6 +138,24 @@ class PersistentIdTests(unittest.TestCase):
                         f"#undef {symbol}\n#define {symbol} {macro}\n", facade
                     )
                     self.assertIn(f"#define {macro} {entry['value']}\n", bindings)
+
+    def test_live_regional_trainer_facades_are_ledger_owned(self):
+        cases = {
+            "TRAINER_FRLG_YOUNGSTER_BEN": 858,
+            "TRAINER_FRLG_CUE_BALL_PAXTON": 1480,
+            "TRAINER_YOUNGSTER_SAMUEL_JOHTO": 1481,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            facade = (
+                output / "include/constants/persistent_opponents.inc.h"
+            ).read_text()
+            bindings = (output / "include/constants/persistent_bindings.h").read_text()
+        for symbol, value in cases.items():
+            macro = f"PERSISTENT_TRAINER_IDS_{symbol}"
+            self.assertIn(f"#undef {symbol}\n#define {symbol} {macro}\n", facade)
+            self.assertIn(f"#define {macro} {value}\n", bindings)
 
     def test_debug_configuration_flags_survive_generated_overlay(self):
         debug_symbols = {
@@ -238,6 +260,7 @@ class PersistentIdTests(unittest.TestCase):
         for item in entries:
             if item["state"]["kind"] not in {
                 "published-binding",
+                "published-tombstone",
                 "trainer-defeat-flag",
             }:
                 continue
@@ -268,6 +291,97 @@ class PersistentIdTests(unittest.TestCase):
             ):
                 validate_published_allocations(entries, self.published_allocations)
             item["value"] = old
+
+    def test_every_bitmap_trainer_binding_is_published(self):
+        live = [
+            item
+            for item in self.ledger["entries"]
+            if item["state"]["kind"] == "trainer-defeat-bitmap"
+        ]
+        published = [
+            item
+            for item in self.published_allocations["entries"]
+            if "physicalBinding" in item
+        ]
+        self.assertEqual(len(live), 624)
+        self.assertEqual(len(published), 624)
+        self.assertEqual(
+            {
+                (item["symbol"], item["value"], item["state"]["bitIndex"])
+                for item in live
+            },
+            {
+                (
+                    item["symbol"],
+                    item["value"],
+                    item["physicalBinding"]["bitIndex"],
+                )
+                for item in published
+            },
+        )
+
+    def test_coordinated_bitmap_trainer_move_is_rejected_by_publication(self):
+        ledger = self.mutated()
+        sources = copy.deepcopy(self.sources)
+        sources["trainerIdentityProjection"]["liveValueOffset"] += 1
+        sources["trainerIdentityProjection"]["additional"][0]["value"] += 1
+        for item in ledger["entries"]:
+            if item["state"]["kind"] == "trainer-defeat-bitmap":
+                item["value"] += 1
+        self.assertEqual(
+            next(
+                item["value"]
+                for item in ledger["entries"]
+                if item["symbol"] == "TRAINER_YOUNGSTER_SAMUEL_JOHTO"
+            ),
+            sources["trainerIdentityProjection"]["additional"][0]["value"],
+        )
+        with self.assertRaisesRegex(
+            ContractError, "published allocations moved/deleted/unreviewed"
+        ):
+            validate_published_allocations(
+                ledger["entries"], self.published_allocations
+            )
+
+    def test_coordinated_bitmap_trainer_deletion_is_rejected_by_publication(self):
+        ledger = self.mutated()
+        sources = copy.deepcopy(self.sources)
+        deleted = sources["trainerIdentityProjection"]["additional"].pop()
+        ledger["entries"] = [
+            item for item in ledger["entries"] if item["symbol"] != deleted["symbol"]
+        ]
+        self.assertNotIn(
+            deleted["symbol"],
+            {item["symbol"] for item in ledger["entries"]},
+        )
+        with self.assertRaisesRegex(
+            ContractError, "published allocations moved/deleted/unreviewed"
+        ):
+            validate_published_allocations(
+                ledger["entries"], self.published_allocations
+            )
+
+    def test_coordinated_bitmap_physical_rewrite_is_rejected_by_publication(self):
+        ledger = self.mutated()
+        sources = copy.deepcopy(self.sources)
+        bitmap = sources["trainerDefeat"]["bitmapStorage"]
+        bitmap["firstTrainerId"] -= 1
+        bitmap["bitCount"] += 1
+        bitmap["byteCount"] = (bitmap["bitCount"] + 7) // 8
+        sources["trainerDefeat"]["publishedCount"] -= 1
+        for item in ledger["entries"]:
+            if item["state"]["kind"] == "trainer-defeat-bitmap":
+                item["state"]["bitIndex"] += 1
+                self.assertEqual(
+                    item["state"]["bitIndex"],
+                    item["value"] - bitmap["firstTrainerId"],
+                )
+        with self.assertRaisesRegex(
+            ContractError, "published allocations moved/deleted/unreviewed"
+        ):
+            validate_published_allocations(
+                ledger["entries"], self.published_allocations
+            )
 
     def test_coordinated_berry_source_and_ledger_renumber_is_rejected(self):
         ledger = self.mutated()
@@ -558,6 +672,225 @@ class PersistentIdTests(unittest.TestCase):
         for trainer_id in range(858):
             with self.subTest(trainer_id=trainer_id):
                 self.assertIn(f"[{trainer_id}] = 0x{0x500 + trainer_id:04X},", table)
+        for trainer_id in range(858, 1482):
+            with self.subTest(trainer_id=trainer_id):
+                self.assertIn(f"[{trainer_id}] = 0xFFFF,", table)
+
+    def test_typed_trainer_table_reproduces_every_published_flag_binding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            table = (
+                output / "src/data/persistence/trainer_defeat_bindings.inc.c"
+            ).read_text()
+        for trainer_id in range(858):
+            with self.subTest(trainer_id=trainer_id):
+                self.assertIn(
+                    f"[{trainer_id}] = {{.id = 0x{0x500 + trainer_id:04X}, "
+                    ".storage = TRAINER_DEFEAT_STORAGE_FLAG, .bit = 0},",
+                    table,
+                )
+        for trainer_id in range(858, 1482):
+            bit_index = trainer_id - 858
+            with self.subTest(trainer_id=trainer_id):
+                self.assertIn(
+                    f"[{trainer_id}] = {{.id = 0x{bit_index // 8:04X}, "
+                    ".storage = TRAINER_DEFEAT_STORAGE_BITMAP, "
+                    f".bit = {bit_index % 8}}},",
+                    table,
+                )
+
+    def test_live_and_tombstone_trainer_projection_is_exact(self):
+        trainer_entries = [
+            item for item in self.ledger["entries"] if item["domain"] == "trainerIds"
+        ]
+        tombstones = [
+            item
+            for item in trainer_entries
+            if item["state"]["kind"] == "published-tombstone"
+        ]
+        live = [
+            item
+            for item in trainer_entries
+            if item["state"]["kind"] == "trainer-defeat-bitmap"
+        ]
+        self.assertEqual(len(tombstones), 623)
+        self.assertEqual(len(live), 624)
+        self.assertEqual({item["value"] for item in live}, set(range(858, 1482)))
+        self.assertEqual({item["state"]["bitIndex"] for item in live}, set(range(624)))
+        for item in live:
+            self.assertEqual(item["state"]["bitIndex"], item["value"] - 858)
+
+    def test_bitmap_binding_mutations_fail_without_generating_output(self):
+        cases = {
+            "moved bitmap binding": lambda item: item["state"].__setitem__(
+                "bitIndex", item["state"]["bitIndex"] + 1
+            ),
+            "out-of-range bitmap bit": lambda item: item["state"].__setitem__(
+                "bitIndex", 624
+            ),
+            "live trainer identity projection moved/deleted": lambda item: (
+                item.__setitem__("symbol", item["symbol"] + "_MOVED")
+            ),
+        }
+        for error, mutate in cases.items():
+            ledger = self.mutated()
+            item = next(
+                entry
+                for entry in ledger["entries"]
+                if entry["state"]["kind"] == "trainer-defeat-bitmap"
+            )
+            mutate(item)
+            with tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / "generated"
+                output.mkdir()
+                marker = output / "marker"
+                marker.write_bytes(b"unchanged")
+                with self.assertRaisesRegex(ContractError, error):
+                    validate_ledger(
+                        ledger,
+                        self.contract,
+                        self.sources,
+                        self.published_allocations,
+                        ROOT,
+                    )
+                self.assertEqual(list(output.iterdir()), [marker])
+
+    def test_tombstoned_trainer_battle_operand_is_rejected(self):
+        tombstone = next(
+            item
+            for item in self.ledger["entries"]
+            if item["state"]["kind"] == "published-tombstone"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            script = repo / "data/maps/Test/scripts.inc"
+            script.parent.mkdir(parents=True)
+            script.write_text(
+                f"\ttrainerbattle_single {tombstone['symbol']}, Intro, Defeat\n"
+            )
+            schema = {
+                "domain": "trainerIds",
+                "paths": ["data/**/*.inc"],
+                "patterns": [
+                    r"^\s*trainerbattle(?:_[A-Za-z0-9_]+)?\s+"
+                    r"(?P<symbol>TRAINER_[A-Za-z0-9_]+)\b"
+                ],
+                "scriptTokens": {
+                    "paths": ["data/**/*.inc"],
+                    "prefixes": ["TRAINER_"],
+                    "opcodePrefixes": ["trainerbattle"],
+                },
+            }
+            with self.assertRaisesRegex(ContractError, "tombstoned trainerIds"):
+                validate_consumer_references(
+                    [
+                        item
+                        for item in self.ledger["entries"]
+                        if item["domain"] == "trainerIds"
+                    ],
+                    [schema],
+                    repo,
+                )
+
+    def test_rejected_trainer_bindings_leave_generated_output_unchanged(self):
+        flag_owner = next(
+            item["value"]
+            for item in self.ledger["entries"]
+            if item["storage"] == "flag-id"
+            and 31 < item["value"] < 0x920
+            and item["value"] not in (0x8FE, 0x8FF)
+        )
+        variable_owner = next(
+            item["value"]
+            for item in self.ledger["entries"]
+            if item["domain"] == "vars"
+            and 0x400F < item["value"] <= 0x40FF
+            and item["value"] not in range(0x40E6, 0x40EC)
+            and item["value"] != 0x40F1
+        )
+        cases = {
+            "malformed": (
+                "malformed",
+                lambda state: state.__setitem__("unexpected", 0),
+            ),
+            "moved": ("moved", lambda state: state.__setitem__("value", 0x85F)),
+            "duplicate": ("duplicate", lambda state: state.__setitem__("value", 0x500)),
+            "daily": ("daily", lambda state: state.__setitem__("value", 0x920)),
+            "transient": ("transient", lambda state: state.__setitem__("value", 1)),
+            "special": ("special", lambda state: state.__setitem__("value", 0x4000)),
+            "debug-reserved": (
+                "debug-reserved",
+                lambda state: state.__setitem__("value", 0x8FE),
+            ),
+            "out-of-range": (
+                "out-of-range",
+                lambda state: state.__setitem__("value", 0x960),
+            ),
+            "external-flag-owner": (
+                "published owner",
+                lambda state: state.__setitem__("value", flag_owner),
+            ),
+            "external-variable-owner": (
+                "published owner",
+                lambda state: (
+                    state.clear(),
+                    state.update(
+                        {
+                            "bit": 7,
+                            "kind": "trainer-defeat-variable-bit",
+                            "value": variable_owner,
+                        }
+                    ),
+                ),
+            ),
+        }
+        trainer_entries = [
+            item
+            for item in self.ledger["entries"]
+            if item["domain"] == "trainerIds"
+            and item["value"] == 1
+            and item["state"]["kind"] == "trainer-defeat-flag"
+        ]
+        self.assertTrue(trainer_entries)
+
+        for label, (error, mutate) in cases.items():
+            ledger = self.mutated()
+            states = [
+                item["state"]
+                for item in ledger["entries"]
+                if item["domain"] == "trainerIds"
+                and item["value"] == 1
+                and item["state"]["kind"] == "trainer-defeat-flag"
+            ]
+            for state in states:
+                mutate(state)
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                ledger_path = root / "persistent_ids.json"
+                output = root / "generated"
+                marker = output / "marker"
+                output.mkdir()
+                marker.write_bytes(b"unchanged")
+                ledger_path.write_text(json.dumps(ledger))
+                stderr = io.StringIO()
+                with self.subTest(case=label):
+                    with contextlib.redirect_stderr(stderr):
+                        self.assertEqual(
+                            main(
+                                [
+                                    "generate",
+                                    "--ledger",
+                                    str(ledger_path),
+                                    "--output-root",
+                                    str(output),
+                                ]
+                            ),
+                            1,
+                        )
+                    self.assertIn(error, stderr.getvalue())
+                    self.assertEqual(marker.read_bytes(), b"unchanged")
+                    self.assertEqual(list(output.iterdir()), [marker])
 
 
 if __name__ == "__main__":

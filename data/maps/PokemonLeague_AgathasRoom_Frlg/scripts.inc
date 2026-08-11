@@ -69,11 +69,11 @@ PokemonLeague_AgathasRoom_EventScript_RematchIntro::
 	return
 
 PokemonLeague_AgathasRoom_EventScript_Battle::
-	trainerbattle_no_intro TRAINER_ELITE_FOUR_AGATHA, PokemonLeague_AgathasRoom_Text_Defeat
+	trainerbattle_no_intro TRAINER_FRLG_ELITE_FOUR_AGATHA, PokemonLeague_AgathasRoom_Text_Defeat
 	return
 
 PokemonLeague_AgathasRoom_EventScript_Rematch::
-	trainerbattle_no_intro TRAINER_ELITE_FOUR_AGATHA_2, PokemonLeague_AgathasRoom_Text_Defeat
+	trainerbattle_no_intro TRAINER_FRLG_ELITE_FOUR_AGATHA_2, PokemonLeague_AgathasRoom_Text_Defeat
 	return
 
 PokemonLeague_AgathasRoom_EventScript_PostBattle::

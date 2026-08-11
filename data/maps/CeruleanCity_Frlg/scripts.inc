@@ -66,15 +66,15 @@ CeruleanCity_EventScript_Rival::
 	end
 
 CeruleanCity_EventScript_RivalSquirtle::
-	trainerbattle_no_intro TRAINER_RIVAL_CERULEAN_SQUIRTLE, CeruleanCity_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_CERULEAN_SQUIRTLE, CeruleanCity_Text_RivalDefeat
 	return
 
 CeruleanCity_EventScript_RivalBulbasaur::
-	trainerbattle_no_intro TRAINER_RIVAL_CERULEAN_BULBASAUR, CeruleanCity_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_CERULEAN_BULBASAUR, CeruleanCity_Text_RivalDefeat
 	return
 
 CeruleanCity_EventScript_RivalCharmander::
-	trainerbattle_no_intro TRAINER_RIVAL_CERULEAN_CHARMANDER, CeruleanCity_Text_RivalDefeat
+	trainerbattle_no_intro TRAINER_FRLG_RIVAL_CERULEAN_CHARMANDER, CeruleanCity_Text_RivalDefeat
 	return
 
 CeruleanCity_EventScript_RivalStartExit::
@@ -164,12 +164,12 @@ CeruleanCity_Movement_RivalExit::
 CeruleanCity_EventScript_Grunt::
 	lock
 	faceplayer
-	goto_if_defeated TRAINER_TEAM_ROCKET_GRUNT_5, CeruleanCity_EventScript_GruntDefeated
+	goto_if_defeated TRAINER_FRLG_TEAM_ROCKET_GRUNT_5, CeruleanCity_EventScript_GruntDefeated
 	message CeruleanCity_Text_GruntIntro
 	waitmessage
 	playbgm MUS_RG_ENCOUNTER_ROCKET, 0
 	waitbuttonpress
-	trainerbattle_no_intro TRAINER_TEAM_ROCKET_GRUNT_5, CeruleanCity_Text_GruntDefeat
+	trainerbattle_no_intro TRAINER_FRLG_TEAM_ROCKET_GRUNT_5, CeruleanCity_Text_GruntDefeat
 	setvar VAR_MAP_SCENE_CERULEAN_CITY_ROCKET, 1
 	goto CeruleanCity_EventScript_GruntDefeated
 	end
@@ -218,7 +218,7 @@ CeruleanCity_EventScript_GruntTrigger::
 	textcolor NPC_TEXT_COLOR_MALE
 	msgbox CeruleanCity_Text_GruntIntro
 	setvar VAR_LAST_TALKED, LOCALID_CERULEAN_GRUNT
-	trainerbattle_no_intro TRAINER_TEAM_ROCKET_GRUNT_5, CeruleanCity_Text_GruntDefeat
+	trainerbattle_no_intro TRAINER_FRLG_TEAM_ROCKET_GRUNT_5, CeruleanCity_Text_GruntDefeat
 	setvar VAR_MAP_SCENE_CERULEAN_CITY_ROCKET, 1
 	goto CeruleanCity_EventScript_GruntDefeated
 	end

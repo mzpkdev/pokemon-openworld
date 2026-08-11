@@ -236,6 +236,26 @@ class DescriptorTests(unittest.TestCase):
                 "level",
             ),
             (
+                "trainerProjections",
+                {
+                    "source": "TRAINER_TEST",
+                    "target": "TRAINER_TARGET",
+                    "class": {"source": "TRAINER_CLASS_TEST", "target": "Ace"},
+                    "pic": {"source": "TRAINER_PIC_TEST", "target": "Ace"},
+                    "gender": "Male",
+                    "music": {
+                        "source": "TRAINER_ENCOUNTER_MUSIC_TEST",
+                        "target": "Male",
+                    },
+                    "ai": [{"source": "AI_TEST", "target": "Basic Trainer"}],
+                },
+                "gender",
+                "ai",
+                [],
+                "$.trainerProjections[0]",
+                "ai",
+            ),
+            (
                 "warpReindexes",
                 {
                     "source": "TestMap",
@@ -364,7 +384,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 508, "deferred": 2380, "story-owned": 160},
+            {"enabled": 509, "deferred": 2379, "story-owned": 160},
         )
         self.assertEqual(
             {
@@ -780,7 +800,7 @@ class DescriptorTests(unittest.TestCase):
                 lambda document: document["materializationProfile"].update(
                     mapScripts="copy"
                 ),
-                "only 'empty' is supported",
+                "unsupported map script profile",
             ),
             (
                 lambda document: document["materializationProfile"].update(
@@ -823,6 +843,44 @@ class DescriptorTests(unittest.TestCase):
                 mutation(document)
                 dump(path, document)
                 with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_trainer_projection_render_tokens_reject_header_injection(self):
+        sample = next(
+            item
+            for family, item, *_ in self.adaptation_policy_cases()
+            if family == "trainerProjections"
+        )
+        cases = (
+            (
+                "identity",
+                lambda item: item.update(
+                    target="TRAINER_TARGET\n=== TRAINER_UNSELECTED ==="
+                ),
+            ),
+            (
+                "class",
+                lambda item: item["class"].update(target="Youngster\nName: Injected"),
+            ),
+            (
+                "ai",
+                lambda item: item["ai"][0].update(
+                    target="Check Bad Move\n=== TRAINER_UNSELECTED ==="
+                ),
+            ),
+        )
+        for label, mutate in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.make_port(root)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                document["trainerProjections"] = [copy.deepcopy(sample)]
+                mutate(document["trainerProjections"][0])
+                dump(path, document)
+                with self.assertRaisesRegex(
+                    ContentPortError, "invalid trainer projection value"
+                ):
                     load_port(root, root / "donors")
 
     def test_every_adaptation_family_rejects_unknown_fields(self):
@@ -958,6 +1016,7 @@ class DescriptorTests(unittest.TestCase):
             ("musicAdaptations", "content"),
             ("tilesetAdaptations", "symbol"),
             ("trainerPresentation", "id"),
+            ("trainerProjections", "source"),
             ("warpReindexes", "path"),
             ("warpRemovals", "path"),
             ("berryTreeAllocations", "path"),

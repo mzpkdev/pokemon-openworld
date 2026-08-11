@@ -13,7 +13,12 @@ from typing import Any, Callable, Iterable, Mapping, Protocol
 
 from .descriptor import PortDescriptor
 from .errors import ContentPortError
-from .model import ResourceKey
+from .model import (
+    ResourceKey,
+    TrainerEventRecord,
+    TrainerScriptInstruction,
+    TrainerText,
+)
 from .ownership import safe_repo_path
 
 
@@ -89,6 +94,9 @@ class PortSourceState:
     inventory: Mapping[str, tuple[str, ...]]
     asset_targets: Mapping[str, str]
     semantic_evidence: Mapping[str, str]
+    semantic_values: Mapping[ResourceKey, Mapping[str, Any]]
+    trainer_events: Mapping[str, tuple[TrainerEventRecord, ...]]
+    materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
 
 
 class RecordLoader(Protocol):
@@ -138,6 +146,28 @@ def _c_list(text: str, field: str, prefix: str) -> list[str]:
     if match is None:
         return []
     return re.findall(rf"\b{re.escape(prefix)}[A-Z0-9_]+\b", match.group(1))
+
+
+def _c_number(text: str, field: str) -> int | None:
+    match = re.search(rf"\.{re.escape(field)}\s*=\s*(\d+)", text)
+    return int(match.group(1)) if match else None
+
+
+def _c_token(text: str, field: str) -> str | None:
+    match = re.search(rf"\.{re.escape(field)}\s*=\s*([A-Z][A-Z0-9_]*)", text)
+    return match.group(1) if match else None
+
+
+def _c_string(text: str, field: str) -> str | None:
+    match = re.search(rf"\.{re.escape(field)}\s*=\s*_\(\s*\"([^\"]*)\"\s*\)", text)
+    return match.group(1) if match else None
+
+
+def _c_expression(text: str, field: str) -> tuple[str, ...]:
+    match = re.search(rf"\.{re.escape(field)}\s*=\s*([^,\n]+)", text)
+    if match is None:
+        return ()
+    return tuple(re.findall(r"\b[A-Z][A-Z0-9_]+\b", match.group(1)))
 
 
 def _index_native_declarations(
@@ -355,11 +385,15 @@ class ExpansionSourceContext(SourceContext):
                         continue
                     held_item = _c_scalar(member_body, "heldItem", "ITEM_")
                     moves = _c_list(member_body, "moves", "MOVE_")
+                    level = _c_number(member_body, "lvl")
+                    iv = _c_number(member_body, "iv")
                     members.append(
                         {
                             "species": species,
                             "held_item": held_item,
                             "moves": moves,
+                            "level": level,
+                            "iv": iv,
                         }
                     )
                     _require_native_leaf(
@@ -391,13 +425,24 @@ class ExpansionSourceContext(SourceContext):
                     starts[index + 1].start() if index + 1 < len(starts) else len(text)
                 )
                 block = text[match.start() : end]
-                parties = sorted(set(re.findall(r"\b(sParty_[A-Za-z0-9_]+)\b", block)))
+                parties = tuple(
+                    dict.fromkeys(re.findall(r"\b(sParty_[A-Za-z0-9_]+)\b", block))
+                )
                 trainer_pic = _c_scalar(block, "trainerPic", "TRAINER_PIC_")
                 encounter_music = _c_scalar(
                     block, "encounterMusic_gender", "TRAINER_ENCOUNTER_MUSIC_"
                 )
                 trainer_class = _c_scalar(block, "trainerClass", "TRAINER_CLASS_")
                 items = _c_list(block, "items", "ITEM_")
+                trainer_name = _c_string(block, "trainerName")
+                double_battle = _c_token(block, "doubleBattle")
+                ai_flags = _c_expression(block, "aiFlags")
+                party_format_match = re.search(
+                    r"\.party\s*=\s*([A-Z][A-Z0-9_]*)\s*\(", block
+                )
+                party_format = (
+                    party_format_match.group(1) if party_format_match else None
+                )
                 for asset in (trainer_pic, encounter_music):
                     if asset is not None:
                         _require_native_leaf(
@@ -426,6 +471,11 @@ class ExpansionSourceContext(SourceContext):
                         "encounter_music": encounter_music,
                         "trainer_class": trainer_class,
                         "items": items,
+                        "trainer_name": trainer_name,
+                        "double_battle": double_battle,
+                        "ai_flags": ai_flags,
+                        "gender": "Female" if "F_TRAINER_FEMALE" in block else "Male",
+                        "party_format": party_format,
                     },
                     Provenance(trainer_path.as_posix(), f":{match.start()}"),
                 )
@@ -529,19 +579,20 @@ class ExpansionSourceContext(SourceContext):
                             map_value, map_record.provenance
                         )
 
-        # Trainer object events name script labels; the actual trainer identity
-        # is a typed operand of the donor's trainerbattle macro. Resolve that
-        # native indirection once so enabling the trainers capability roots the
-        # trainer/party graph without enabling unrelated event effects.
-        from .semantics import load_opcodes, split_operands
+        # Pair every trainer object with its script, text, and typed trainer
+        # dependency. Capability policy selects from these records later; it
+        # never roots every trainer object on a map implicitly.
+        from .semantics import parse_scripts
 
-        opcode_inventory = load_opcodes()
-        script_cache: dict[str, tuple[str, ...]] = {}
+        script_cache: dict[str, Any] = {}
+        trainer_events: dict[ResourceKey, TrainerEventRecord] = {}
         for map_key, map_record in tuple(records.items()):
             if map_key.domain != "map":
                 continue
-            trainer_roots: set[str] = set()
-            for event in map_record.value.get("object_events", []) or []:
+            event_roots: list[str] = []
+            for event_index, event in enumerate(
+                map_record.value.get("object_events", []) or []
+            ):
                 if not isinstance(event, Mapping) or event.get("trainer_type") in {
                     None,
                     0,
@@ -564,54 +615,95 @@ class ExpansionSourceContext(SourceContext):
                     raise ContentPortError(
                         f"{service.provenance.path}: trainer script has no source"
                     )
-                lines = script_cache.get(script_path)
-                if lines is None:
-                    lines = tuple(
-                        (root / script_path).read_text(encoding="utf-8").splitlines()
-                    )
-                    script_cache[script_path] = lines
-                active = False
-                found = False
-                for line_number, raw_line in enumerate(lines, 1):
-                    label_match = re.match(
-                        r"^\s*([A-Za-z_][A-Za-z0-9_]*)::?\s*(?:@.*)?$",
-                        raw_line,
-                    )
-                    if label_match:
-                        active = label_match.group(1) == label
-                        found = found or active
-                        continue
-                    if not active:
-                        continue
-                    stripped = raw_line.split("@", 1)[0].strip()
-                    if not stripped or stripped.startswith((".", "#")):
-                        continue
-                    command_match = re.match(
-                        r"^([A-Za-z_][A-Za-z0-9_]*)\s*(.*?)\s*$", stripped
-                    )
-                    if command_match is None:
-                        continue
-                    command = command_match.group(1)
-                    operands = split_operands(command_match.group(2))
-                    opcode = opcode_inventory.get(command)
-                    if opcode is None:
-                        continue
-                    for domain, operand_index in opcode.dependencies:
-                        if domain != "trainer":
-                            continue
-                        if operand_index >= len(operands):
-                            raise ContentPortError(
-                                f"{script_path}:{line_number}: "
-                                "trainer dependency operand is missing"
-                            )
-                        trainer_roots.add(operands[operand_index])
-                if not found:
+                program = script_cache.get(script_path)
+                if program is None:
+                    try:
+                        program = parse_scripts([script_path], root=root)
+                    except ContentPortError as error:
+                        if "duplicate label" not in str(error):
+                            raise
+                        program = False
+                    script_cache[script_path] = program
+                if program is False:
+                    continue
+                instructions = program.labels.get(label)
+                if instructions is None:
                     raise ContentPortError(
                         f"{service.provenance.path}: trainer label {label} is missing"
                     )
-            if trainer_roots:
+                trainer_roots: list[str] = []
+                text_labels: list[str] = []
+                typed_instructions: list[TrainerScriptInstruction] = []
+                for instruction in instructions:
+                    typed_instructions.append(
+                        TrainerScriptInstruction(
+                            instruction.command, instruction.operands
+                        )
+                    )
+                    opcode = program.opcodes.get(instruction.command)
+                    if opcode is not None:
+                        for domain, operand_index in opcode.dependencies:
+                            if domain != "trainer":
+                                continue
+                            if operand_index >= len(instruction.operands):
+                                raise ContentPortError(
+                                    f"{instruction.source}:{instruction.line}: "
+                                    "trainer dependency operand is missing"
+                                )
+                            trainer_roots.append(instruction.operands[operand_index])
+                    if instruction.command == "trainerbattle_single":
+                        text_labels.extend(instruction.operands[1:3])
+                    elif instruction.command == "msgbox" and instruction.operands:
+                        text_labels.append(instruction.operands[0])
+                if not trainer_roots:
+                    # Some expansion objects use a trainer-shaped movement field
+                    # but dispatch dynamic facilities without a trainer operand.
+                    # They are not selectable paired trainer events.
+                    continue
+                texts: list[TrainerText] = []
+                for text_label in dict.fromkeys(text_labels):
+                    fragments = program.texts.get(text_label)
+                    if fragments is None:
+                        continue
+                    texts.append(TrainerText(text_label, fragments))
+                identity = f"{map_key.name}/{event_index}/{label}"
+                event_key = ResourceKey("trainer-event", identity)
+                typed = TrainerEventRecord(
+                    map_key.name,
+                    event_index,
+                    MappingProxyType(dict(event)),
+                    label,
+                    tuple(dict.fromkeys(trainer_roots)),
+                    tuple(typed_instructions),
+                    tuple(texts),
+                )
+                trainer_events[event_key] = typed
+                records[event_key] = SourceRecord(
+                    {
+                        "service": label,
+                        "trainers": list(typed.trainers),
+                        "object_index": event_index,
+                        "instructions": [
+                            {
+                                "command": instruction.command,
+                                "operands": list(instruction.operands),
+                            }
+                            for instruction in typed.instructions
+                        ],
+                        "texts": [
+                            {
+                                "label": text.label,
+                                "fragments": list(text.fragments),
+                            }
+                            for text in typed.texts
+                        ],
+                    },
+                    service.provenance,
+                )
+                event_roots.append(identity)
+            if event_roots:
                 map_value = dict(map_record.value)
-                map_value["_trainer_roots"] = sorted(trainer_roots)
+                map_value["_trainer_event_roots"] = event_roots
                 records[map_key] = SourceRecord(map_value, map_record.provenance)
 
         layouts_path = root / "data/layouts/layouts.json"
@@ -683,9 +775,16 @@ class ExpansionSourceContext(SourceContext):
             records[ResourceKey("capability", name)] = SourceRecord(
                 capability, Provenance("<descriptor>", f"/capabilities/{name}")
             )
+        self._trainer_events = MappingProxyType(dict(trainer_events))
         super().__init__(
             records=records, aliases=aliases, active_capabilities=active_capabilities
         )
+
+    def trainer_event(self, key: ResourceKey) -> TrainerEventRecord:
+        try:
+            return self._trainer_events[key]
+        except KeyError as error:
+            raise ContentPortError(f"{key}: typed trainer event is missing") from error
 
 
 def json_record(path: Path, pointer: str = "") -> SourceRecord:
@@ -790,14 +889,16 @@ def extract_map_edges(
                 )
             )
     if context.supports("trainers", key):
-        for index, trainer in enumerate(record.value.get("_trainer_roots", ())):
+        for index, trainer_event in enumerate(
+            record.value.get("_trainer_event_roots", ())
+        ):
             candidates.append(
                 _edge(
                     key,
-                    "trainer",
-                    trainer,
+                    "trainer-event",
+                    trainer_event,
                     record,
-                    f"/_trainer_roots/{index}",
+                    f"/_trainer_event_roots/{index}",
                     role="trainer",
                 )
             )
@@ -935,6 +1036,25 @@ def extract_trainer_edges(
             )
             if edge:
                 result.append(edge)
+    return tuple(result)
+
+
+def extract_trainer_event_edges(
+    context: SourceContext, key: ResourceKey, record: SourceRecord
+) -> Iterable[SourceEdge]:
+    del context
+    result: list[SourceEdge] = []
+    service = _edge(
+        key, "service", record.value.get("service"), record, "/service", role="script"
+    )
+    if service:
+        result.append(service)
+    for index, trainer in enumerate(record.value.get("trainers", ())):
+        edge = _edge(
+            key, "trainer", trainer, record, f"/trainers/{index}", role="trainer"
+        )
+        if edge:
+            result.append(edge)
     return tuple(result)
 
 
@@ -1203,6 +1323,7 @@ EXTRACTORS: Mapping[
     "map": extract_map_edges,
     "layout": extract_layout_edges,
     "trainer": extract_trainer_edges,
+    "trainer-event": extract_trainer_event_edges,
     "party": extract_party_edges,
     "encounter": extract_encounter_edges,
     "service": extract_service_edges,
@@ -1262,6 +1383,61 @@ def _freeze_state(value: Any) -> Any:
     if isinstance(value, list | tuple):
         return tuple(_freeze_state(child) for child in value)
     return value
+
+
+def _semantic_record_digest(
+    authority: str, key: ResourceKey, value: Mapping[str, Any]
+) -> str:
+    normalized = _thaw(value)
+    if key.domain == "service":
+        # Snapshot roots are authenticated transport locations, not semantic
+        # payload. Keeping one here makes exact-pin evidence nondeterministic.
+        normalized.pop("script_root", None)
+    return hashlib.sha256(
+        json.dumps(
+            {
+                "authority": authority,
+                "domain": key.domain,
+                "name": key.name,
+                "value": normalized,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _validate_selected_trainer_event(event: TrainerEventRecord) -> None:
+    if tuple(instruction.command for instruction in event.instructions) != (
+        "trainerbattle_single",
+        "msgbox",
+        "end",
+    ) or tuple(len(instruction.operands) for instruction in event.instructions) != (
+        3,
+        2,
+        0,
+    ):
+        raise ContentPortError(
+            f"{event.script_name}: unsupported selected trainer script shape"
+        )
+    expected_text_labels = (
+        event.instructions[0].operands[1],
+        event.instructions[0].operands[2],
+        event.instructions[1].operands[0],
+    )
+    if len(set(expected_text_labels)) != len(expected_text_labels):
+        raise ContentPortError(
+            f"{event.script_name}: selected trainer text labels must be distinct"
+        )
+    if tuple(text.label for text in event.texts) != expected_text_labels:
+        raise ContentPortError(
+            f"{event.script_name}: selected trainer text closure must exactly "
+            "contain intro, defeat, and after text"
+        )
+    if any(not text.fragments for text in event.texts):
+        raise ContentPortError(
+            f"{event.script_name}: selected trainer text must not be empty"
+        )
 
 
 def _path_value(document: Mapping[str, Any], path: str) -> Any:
@@ -1537,7 +1713,7 @@ def resolve_port_sources(
                 ) from error
             selected_role = "target"
         document = _thaw(selected_record.value)
-        for semantic_root_field in ("_encounter_roots", "_trainer_roots"):
+        for semantic_root_field in ("_encounter_roots", "_trainer_event_roots"):
             roots = record.value.get(semantic_root_field)
             if roots:
                 document[semantic_root_field] = list(roots)
@@ -1714,6 +1890,21 @@ def resolve_port_sources(
                 f"{name}/{removal['path']}: warp removal preimage drift"
             )
         warp_removals_by_map.setdefault(name, set()).add(index)
+
+    # Reachability closes over removals below. The established residency
+    # projection is deliberately narrower: it removes only authored deferred
+    # edges and explicit removals, without cascading into retained physical
+    # warps or renumbering their destination operands.
+    materialization_maps = copy.deepcopy(selected_maps)
+    physical_removals: dict[tuple[str, str], set[int]] = {}
+    for item in (*adaptations["deferredEdges"], *adaptations["warpRemovals"]):
+        field_name, raw_index = item["path"].split("/")
+        physical_removals.setdefault((item["source"], field_name), set()).add(
+            int(raw_index)
+        )
+    for (name, field_name), indexes in physical_removals.items():
+        for index in sorted(indexes, reverse=True):
+            del materialization_maps[name][field_name][index]
     deferred_removals: dict[tuple[str, str], list[int]] = {}
     explicit_removals = {
         (item["source"], item["path"]) for item in adaptations["warpRemovals"]
@@ -1996,11 +2187,69 @@ def resolve_port_sources(
     enabled_by_map: dict[str, set[str]] = {}
     for decision in enabled:
         enabled_by_map.setdefault(decision.map_name, set()).add(decision.capability)
+    selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
+    for decision in enabled:
+        if decision.capability != "trainers":
+            continue
+        requested = tuple(
+            dependency
+            for dependency in decision.dependencies
+            if dependency.domain == "trainer"
+        )
+        if len(requested) != len(decision.dependencies) or not requested:
+            raise ContentPortError(
+                f"{decision.map_name}/trainers: enabled trainer capability requires "
+                "only explicit trainer dependencies"
+            )
+        role = "mechanical" if decision.map_name in fallback else "content"
+        roots = tuple(selected_maps[decision.map_name].get("_trainer_event_roots", ()))
+        available = [
+            contexts[role].trainer_event(ResourceKey("trainer-event", root))
+            for root in roots
+        ]
+        chosen: list[TrainerEventRecord] = []
+        for dependency in requested:
+            matches = [
+                event for event in available if event.trainers == (dependency.name,)
+            ]
+            if len(matches) != 1:
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: {dependency} must select exactly "
+                    "one paired trainer event"
+                )
+            chosen.append(matches[0])
+        if len(chosen) != len({event.object_index for event in chosen}):
+            raise ContentPortError(
+                f"{decision.map_name}/trainers: duplicate paired trainer event"
+            )
+        for event in chosen:
+            _validate_selected_trainer_event(event)
+        selected_trainer_events[decision.map_name] = tuple(chosen)
+        selected_maps[decision.map_name]["_trainer_event_roots"] = [
+            f"{event.map_name}/{event.object_index}/{event.script_name}"
+            for event in chosen
+        ]
+        map_key = ResourceKey("map", decision.map_name)
+        source_records[map_key] = SourceRecord(
+            selected_maps[decision.map_name], source_records[map_key].provenance
+        )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
     explicit_dependencies = {
         dependency for decision in enabled for dependency in decision.dependencies
     }
+    selected_trainer_names = {
+        dependency.name
+        for decision in enabled
+        if decision.capability == "trainers"
+        for dependency in decision.dependencies
+        if dependency.domain == "trainer"
+    }
+    projection_sources = {item["source"] for item in adaptations["trainerProjections"]}
+    if projection_sources != selected_trainer_names:
+        raise ContentPortError(
+            "trainer projections must exactly cover enabled trainer dependencies"
+        )
     event_capabilities = {
         decision.capability for decision in descriptor.capabilities
     } - {
@@ -2012,6 +2261,7 @@ def resolve_port_sources(
     semantic_domains = frozenset(
         {
             "trainer",
+            "trainer-event",
             "party",
             "encounter",
             "service",
@@ -2294,6 +2544,7 @@ def resolve_port_sources(
         if "trainers" in capabilities:
             enabled_domain_names.update(
                 (
+                    "trainer-event",
                     "trainer",
                     "party",
                     "species",
@@ -2301,6 +2552,7 @@ def resolve_port_sources(
                     "item",
                     "trainer-class",
                     "asset",
+                    "service",
                 )
             )
         if capabilities & event_capabilities:
@@ -2310,6 +2562,7 @@ def resolve_port_sources(
     semantic_evidence: dict[str, str] = {}
     evidenced_domains = {
         "trainer",
+        "trainer-event",
         "party",
         "encounter",
         "service",
@@ -2331,18 +2584,7 @@ def resolve_port_sources(
             )
         record = source_records[key]
         identity = f"{role}:{key.domain}:{key.name}"
-        semantic_evidence[identity] = hashlib.sha256(
-            json.dumps(
-                {
-                    "authority": role,
-                    "domain": key.domain,
-                    "name": key.name,
-                    "value": _thaw(record.value),
-                },
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        ).hexdigest()
+        semantic_evidence[identity] = _semantic_record_digest(role, key, record.value)
 
     rendered_graph = world_graph_from_maps(selected_maps)
     world_policy = adaptations.get("worldPolicy")
@@ -2672,6 +2914,17 @@ def resolve_port_sources(
         ),
         asset_targets=MappingProxyType(dict(sorted(required_asset_targets.items()))),
         semantic_evidence=MappingProxyType(dict(sorted(semantic_evidence.items()))),
+        semantic_values=MappingProxyType(
+            {
+                key: _freeze_state(source_records[key].value)
+                for key in sorted(closure)
+                if key.domain in semantic_domains
+            }
+        ),
+        trainer_events=MappingProxyType(
+            {name: events for name, events in sorted(selected_trainer_events.items())}
+        ),
+        materialization_maps=_freeze_state(materialization_maps),
     )
     return contract, state
 

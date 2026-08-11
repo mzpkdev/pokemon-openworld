@@ -4,7 +4,13 @@ import json
 
 import pytest
 
-from tools.e2e.save_file import SaveImage, load_fixture_manifest
+from tools.e2e.save_file import (
+    SAVE_BLOCK1_SIZE,
+    TRAINER_DEFEATED_OFFSET,
+    TRAINER_DEFEATED_SIZE,
+    SaveImage,
+    load_fixture_manifest,
+)
 from tools.e2e.skyemu import SkyEmuSession
 from tools.e2e.save_journey import (
     SaveScenarioResult,
@@ -30,6 +36,8 @@ def test_reviewed_fixture_has_valid_flash_and_provenance():
     assert image.sha256 == document["fixture"]["sha256"]
     assert image.active_slot.counter == 1
     assert image.active_slot.physical_index == 1
+    assert len(image.active_slot.save_block1) == SAVE_BLOCK1_SIZE
+    assert image.active_slot.trainer_defeated_bitmap == bytes(TRAINER_DEFEATED_SIZE)
     assert image.semantics() == document["semanticExpectations"]
 
 
@@ -41,6 +49,8 @@ def test_populated_historical_fixture_matches_independent_semantics():
 
     assert image.sha256 == manifest["fixture"]["sha256"]
     assert image.sha256 == POPULATED_SAVE_SHA256
+    assert len(image.active_slot.save_block1) == SAVE_BLOCK1_SIZE
+    assert image.active_slot.trainer_defeated_bitmap == bytes(TRAINER_DEFEATED_SIZE)
     assert manifest["fixture"]["instrumentationPatchSha256"] == (
         INSTRUMENTATION_PATCH_SHA256
     )
@@ -93,6 +103,20 @@ def test_save_validation_rejects_a_corrupt_sector_checksum():
     data[14 * 4096] ^= 0x01
 
     with pytest.raises(ValueError, match="checksum mismatch"):
+        SaveImage.from_bytes(bytes(data))
+
+
+def test_sector_4_checksum_covers_the_new_trainer_bitmap():
+    image = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    data = bytearray(image.data)
+    sector = image.active_slot.logical_sector(4)
+    physical_offset = data.find(sector)
+
+    assert physical_offset >= 0
+    bitmap_sector_offset = TRAINER_DEFEATED_OFFSET - 3 * 3968
+    data[physical_offset + bitmap_sector_offset] ^= 1
+
+    with pytest.raises(ValueError, match="logical sector 4 checksum mismatch"):
         SaveImage.from_bytes(bytes(data))
 
 
