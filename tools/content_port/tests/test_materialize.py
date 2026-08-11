@@ -26,7 +26,11 @@ from tools.content_port.materialize import (
     derive_desired_state,
 )
 from tools.content_port.model import DonorPin, PersistentBindingRef
-from tools.content_port.ownership import OwnershipManifest
+from tools.content_port.ownership import (
+    OwnershipManifest,
+    extract_owned_content,
+    reconcile_owned,
+)
 from tools.content_port.renderers import RenderContext, render_units
 from tools.content_port.sources import resolve_port_sources
 
@@ -82,6 +86,174 @@ class MaterializeTests(unittest.TestCase):
             ).hexdigest(),
             "f2163b8059ef83d28fc87e422705125e8e7517e92cc90b2baf8e27ab5bdaf393",
         )
+
+    def test_clean_installed_baseline_has_exact_samuel_desired_delta(self) -> None:
+        descriptor = self.descriptor()
+        installed = OwnershipManifest.load(PORT / "ownership.json")
+        desired, payloads = derive_desired_state(descriptor, ROOT)
+        installed_by_identity = installed.by_identity
+        desired_by_identity = desired.by_identity
+        selected_party = (
+            "section",
+            "src/data/trainers.party",
+            "selected trainer parties",
+        )
+        self.assertEqual(
+            set(desired_by_identity) - set(installed_by_identity), {selected_party}
+        )
+        self.assertEqual(set(installed_by_identity) - set(desired_by_identity), set())
+        self.assertEqual(
+            {
+                identity
+                for identity in installed_by_identity.keys()
+                & desired_by_identity.keys()
+                if installed_by_identity[identity].sha256
+                != desired_by_identity[identity].sha256
+            },
+            {
+                ("file", "data/maps/Route34/map.json"),
+                ("file", "data/maps/Route34/scripts.inc"),
+            },
+        )
+
+        rival_identity = (
+            "section",
+            "src/data/trainers.party",
+            "rival trainers",
+        )
+        rival = installed_by_identity[rival_identity]
+        rival_bytes = extract_owned_content(ROOT, installed.port, rival)
+        self.assertEqual(payloads[rival_identity], rival_bytes)
+        self.assertTrue(
+            rival_bytes.startswith(
+                b"#if 1 /* // JOHTO IMPORT BEGIN: rival trainers */\n"
+            )
+        )
+        self.assertTrue(
+            rival_bytes.endswith(
+                b"\n#endif /* // JOHTO IMPORT END: rival trainers */\n"
+            )
+        )
+        rival_opponents_identity = (
+            "section",
+            "include/constants/opponents.h",
+            "rival opponents",
+        )
+        rival_opponents = extract_owned_content(
+            ROOT,
+            installed.port,
+            installed_by_identity[rival_opponents_identity],
+        )
+        self.assertEqual(payloads[rival_opponents_identity], rival_opponents)
+        self.assertTrue(
+            rival_opponents.startswith(b"// JOHTO IMPORT BEGIN: rival opponents\n")
+        )
+        self.assertTrue(
+            rival_opponents.endswith(b"// JOHTO IMPORT END: rival opponents\n")
+        )
+
+        for floor in range(1, 7):
+            path = f"data/maps/GoldenrodCity_DepartmentStore_{floor}F/map.json"
+            warps = json.loads(payloads[("file", path)])["warp_events"]
+            self.assertIn(
+                {
+                    "x": 9,
+                    "y": 3,
+                    "elevation": 0,
+                    "dest_map": "MAP_GOLDENROD_CITY_DEPARTMENT_STORE_ELEVATOR",
+                    "dest_warp_id": "0",
+                },
+                warps,
+            )
+        for name in (
+            "GoldenrodCity_DepartmentStore_7F",
+            "GoldenrodCity_DepartmentStore_7FNight",
+        ):
+            warps = json.loads(payloads[("file", f"data/maps/{name}/map.json")])[
+                "warp_events"
+            ]
+            self.assertEqual(warps[0]["dest_warp_id"], "2")
+
+        for section in (
+            "MAPSEC_CHERRYGROVE_CITY",
+            "MAPSEC_NEW_BARK_TOWN",
+            "MAPSEC_ROUTE_28",
+            "MAPSEC_ROUTE_29",
+        ):
+            identity = (
+                "registry-record",
+                "src/data/region_map/region_map_sections.json",
+                "map_sections",
+                section,
+            )
+            self.assertEqual(
+                payloads[identity],
+                json.loads(
+                    extract_owned_content(
+                        ROOT, installed.port, installed_by_identity[identity]
+                    )
+                ),
+            )
+
+        for layout in (
+            "LAYOUT_AZALEA_TOWN",
+            "LAYOUT_NEW_BARK_TOWN",
+            "LAYOUT_TIN_TOWER_ROOF_NIGHT",
+        ):
+            identity = (
+                "registry-record",
+                "data/layouts/layouts.json",
+                "layouts",
+                layout,
+            )
+            self.assertEqual(
+                payloads[identity],
+                json.loads(
+                    extract_owned_content(
+                        ROOT, installed.port, installed_by_identity[identity]
+                    )
+                ),
+            )
+
+        ownership_path = "tools/content_port/ports/johto/ownership.json"
+        owned_paths = {unit.path for unit in (*installed.units, *desired.units)}
+        with tempfile.TemporaryDirectory() as directory:
+            staged = Path(directory)
+            before: dict[str, bytes] = {}
+            for relative in sorted(owned_paths | {ownership_path}):
+                source = ROOT / relative
+                target = staged / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+                before[relative] = source.read_bytes()
+            reconcile_owned(staged, installed, desired, payloads)
+            desired.write(staged / ownership_path)
+            changed_paths = {
+                relative
+                for relative, content in before.items()
+                if (staged / relative).read_bytes() != content
+            }
+            self.assertEqual(
+                changed_paths,
+                {
+                    "data/maps/Route34/map.json",
+                    "data/maps/Route34/scripts.inc",
+                    "src/data/trainers.party",
+                    ownership_path,
+                },
+            )
+            self.assertEqual(
+                (staged / "include/constants/opponents.h").read_bytes(),
+                before["include/constants/opponents.h"],
+            )
+            self.assertEqual(
+                (staged / "data/maps/AzaleaTown/map.json").read_bytes(),
+                before["data/maps/AzaleaTown/map.json"],
+            )
+            unrelated_asset = descriptor.assets["assets"][0]["semanticTarget"]
+            self.assertEqual(
+                (staged / unrelated_asset).read_bytes(), before[unrelated_asset]
+            )
 
     def test_asset_policy_capability_and_support_state_are_render_authority(
         self,
@@ -414,6 +586,18 @@ class MaterializeTests(unittest.TestCase):
         expanded_state = replace(
             state,
             layouts=MappingProxyType({**state.layouts, layout_id: layout}),
+            layout_authorities=MappingProxyType(
+                {
+                    **state.layout_authorities,
+                    layout_id: state.layout_authorities["LAYOUT_NEW_BARK_TOWN"],
+                }
+            ),
+            layout_field_authorities=MappingProxyType(
+                {
+                    **state.layout_field_authorities,
+                    layout_id: state.layout_field_authorities["LAYOUT_NEW_BARK_TOWN"],
+                }
+            ),
         )
         expanded = replace(descriptor, allocation_index=allocation_index)
 

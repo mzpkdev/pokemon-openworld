@@ -35,6 +35,18 @@ class RendererTests(unittest.TestCase):
         )
         self.assertEqual(manifest.units[1].slot, 12)
 
+        source_order = render_unit(
+            context,
+            RenderUnit(
+                "map",
+                "map-json",
+                "data/maps/Test/map.json",
+                {"z": 1, "a": 2},
+                options={"sortKeys": False, "ensureAscii": True},
+            ),
+        )[0]
+        self.assertEqual(source_order.payload_bytes(), b'{\n  "z": 1,\n  "a": 2\n}\n')
+
     def test_binary_tileset_assets_are_byte_exact(self) -> None:
         output = render_unit(
             RenderContext("fixture"),
@@ -61,6 +73,43 @@ class RendererTests(unittest.TestCase):
         self.assertEqual(
             output.payload_bytes(),
             b"// CONTENT PORT BEGIN fixture:headers\nint x;\n// CONTENT PORT END fixture:headers\n",
+        )
+
+    def test_generated_section_can_preserve_legacy_marker_bytes(self) -> None:
+        comment = render_unit(
+            RenderContext("johto"),
+            RenderUnit(
+                "headers",
+                "generated-section",
+                "include/test.h",
+                "int x;",
+                name="headers",
+                options={"markerDialect": "legacy-import"},
+            ),
+        )[0]
+        self.assertEqual(
+            comment.payload_bytes(),
+            b"// JOHTO IMPORT BEGIN: headers\nint x;\n// JOHTO IMPORT END: headers\n",
+        )
+        preprocessor = render_unit(
+            RenderContext("johto"),
+            RenderUnit(
+                "party",
+                "generated-section",
+                "src/data/trainers.party",
+                "party",
+                name="rival trainers",
+                options={
+                    "markerDialect": "legacy-import",
+                    "markerStyle": "preprocessor",
+                    "blankLineBeforeEnd": True,
+                },
+            ),
+        )[0]
+        self.assertEqual(
+            preprocessor.payload_bytes(),
+            b"#if 1 /* // JOHTO IMPORT BEGIN: rival trainers */\nparty\n\n"
+            b"#endif /* // JOHTO IMPORT END: rival trainers */\n",
         )
 
     def test_selected_trainer_script_repairs_separator_and_preserves_text(self) -> None:

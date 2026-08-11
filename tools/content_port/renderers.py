@@ -15,6 +15,7 @@ from .ownership import (
     OwnershipUnit,
     canonical_json,
     content_sha256,
+    legacy_section_markers,
     section_markers,
     validate_relative_path,
 )
@@ -104,7 +105,22 @@ def _trainer_string(value: object, pattern: re.Pattern[str], pointer: str) -> st
 
 
 def _json_output(unit: RenderUnit) -> tuple[OwnedOutput, ...]:
-    return (OwnedOutput("file", unit.path, canonical_json(unit.value)),)
+    sort_keys = unit.options.get("sortKeys", True)
+    if not isinstance(sort_keys, bool):
+        raise ContentPortError(f"{unit.key}: sortKeys must be boolean")
+    ensure_ascii = unit.options.get("ensureAscii", False)
+    if not isinstance(ensure_ascii, bool):
+        raise ContentPortError(f"{unit.key}: ensureAscii must be boolean")
+    payload = (
+        json.dumps(
+            unit.value,
+            sort_keys=sort_keys,
+            indent=2,
+            ensure_ascii=ensure_ascii,
+        )
+        + "\n"
+    ).encode()
+    return (OwnedOutput("file", unit.path, payload),)
 
 
 def render_map_json(
@@ -135,7 +151,29 @@ def render_layout_registry(
     context: RenderContext, unit: RenderUnit
 ) -> tuple[OwnedOutput, ...]:
     del context
-    return _record_output(unit, "layouts")
+    omitted = unit.options.get("omitFields", ())
+    if (
+        not isinstance(omitted, (list, tuple))
+        or any(not isinstance(field, str) for field in omitted)
+        or len(omitted) != len(set(omitted))
+    ):
+        raise ContentPortError(f"{unit.key}: omitFields must be unique strings")
+    if not isinstance(unit.value, dict):
+        raise ContentPortError(f"{unit.key}: layout-registry requires an object")
+    value = {key: item for key, item in unit.value.items() if key not in omitted}
+    return _record_output(
+        RenderUnit(
+            unit.key,
+            unit.renderer,
+            unit.path,
+            value,
+            name=unit.name,
+            registry=unit.registry,
+            record_key=unit.record_key,
+            slot=unit.slot,
+        ),
+        "layouts",
+    )
 
 
 def render_map_group_registry(
@@ -195,14 +233,26 @@ def render_generated_section(
         raise ContentPortError(f"{unit.key}: generated-section requires text or bytes")
     if b"\x00" in body:
         raise ContentPortError(f"{unit.key}: generated text section contains NUL")
-    begin, end = section_markers(context.port, name)
+    dialect = unit.options.get("markerDialect", "content-port")
+    if dialect == "content-port":
+        begin, end = section_markers(context.port, name)
+    elif dialect == "legacy-import":
+        begin, end = legacy_section_markers(context.port, name)
+    else:
+        raise ContentPortError(f"{unit.key}: unknown section marker dialect")
     marker_style = unit.options.get("markerStyle", "comment")
     if marker_style == "preprocessor":
-        content = b"#if 1 /* " + begin + b" */\n"
+        marker_comment = b"// " if dialect == "legacy-import" else b""
+        content = b"#if 1 /* " + marker_comment + begin + b" */\n"
         content += body
         if body and not body.endswith(b"\n"):
             content += b"\n"
-        content += b"#endif /* " + end + b" */\n"
+        blank_line = unit.options.get("blankLineBeforeEnd", False)
+        if not isinstance(blank_line, bool):
+            raise ContentPortError(f"{unit.key}: blankLineBeforeEnd must be boolean")
+        if blank_line:
+            content += b"\n"
+        content += b"#endif /* " + marker_comment + end + b" */\n"
         return (OwnedOutput("section", unit.path, content, name=name),)
     if marker_style != "comment":
         raise ContentPortError(f"{unit.key}: unknown section marker style")

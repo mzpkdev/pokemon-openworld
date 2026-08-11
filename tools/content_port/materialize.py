@@ -197,11 +197,12 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         item["source"]: item for item in descriptor.adaptations["trainerProjections"]
     }
     units: list[RenderUnit] = []
+    materialization_maps = state.materialization_maps or state.maps
     for name, ownership in descriptor.map_ownership.items():
         if ownership != "rendered":
             continue
         allocation = descriptor.allocation_index.map_allocation(name)
-        value = _thaw(state.maps[name])
+        value = _thaw(materialization_maps[name])
         value.pop("_encounter_roots", None)
         value.pop("_trainer_event_roots", None)
         donor_fields = descriptor.adaptations["donorFieldRoles"]
@@ -270,7 +271,13 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
             selected_objects.append(object_event)
         value["object_events"] = selected_objects
         units.append(
-            RenderUnit(f"map:{name}", "map-json", f"data/maps/{name}/map.json", value)
+            RenderUnit(
+                f"map:{name}",
+                "map-json",
+                f"data/maps/{name}/map.json",
+                value,
+                options={"sortKeys": False, "ensureAscii": True},
+            )
         )
         if profile["mapScripts"] == "empty" and rendered_events:
             raise ContentPortError(
@@ -431,6 +438,11 @@ def _layout_units(
         for item in descriptor.adaptations["layoutTilesetRemaps"]
     }
     units: list[RenderUnit] = []
+    preserved_layouts = {
+        allocation.layout
+        for name, allocation in descriptor.allocation_index.maps.items()
+        if descriptor.map_ownership.get(name) == "preserve"
+    }
     for layout_id in descriptor.allocation_index.layouts:
         value = _thaw(state.layouts[layout_id])
         for field in ("primary_tileset", "secondary_tileset"):
@@ -439,6 +451,13 @@ def _layout_units(
                 value[field] = replacement
         value.pop("layout_version", None)
         value["format"] = bindings.layout_format
+        supplemental = tuple(
+            field
+            for field in ("border_height", "border_width")
+            if layout_id not in preserved_layouts
+            and state.layout_field_authorities[layout_id][field]
+            != state.layout_authorities[layout_id]
+        )
         units.append(
             RenderUnit(
                 layout_id,
@@ -447,6 +466,7 @@ def _layout_units(
                 value,
                 record_key=layout_id,
                 slot=descriptor.allocation_index.layout_slot(layout_id),
+                options={"omitFields": supplemental},
             )
         )
     return units
@@ -520,6 +540,11 @@ def _section_units(
     ).value
     codecs = {item.section: item for item in bindings.section_persistence_codecs}
     cache: dict[str, tuple[tuple[Path, Mapping[str, Any]], ...]] = {}
+    rendered_sections = {
+        allocation.section
+        for name, allocation in descriptor.allocation_index.maps.items()
+        if descriptor.map_ownership.get(name) == "rendered"
+    }
     units: list[RenderUnit] = []
     for authority in descriptor.section_metadata_authorities:
         matches = cache.setdefault(
@@ -594,9 +619,10 @@ def _section_units(
                 domain=codec.met_location_binding.domain,
             ).value
             value["met_location_display"] = codec.met_location_display
-        for field in ("x", "y", "width", "height"):
-            if field in source:
-                value[field] = source[field]
+        if authority.section in rendered_sections:
+            for field in ("x", "y", "width", "height"):
+                if field in source:
+                    value[field] = source[field]
         units.append(
             RenderUnit(
                 f"section:{target}",
@@ -660,7 +686,7 @@ def _generated_body(
             )
         ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
         return "\n".join(
-            f"#define {item['target']:<40} "
+            f"#define {item['target']:<35} "
             f"{ledger.resolve(item['target'], domain=anchor.domain).value}"
             for item in allocations
         )
@@ -696,12 +722,12 @@ def _generated_body(
             directory = item.get("targetDirectory", item.get("directory"))
             name = item.get("targetSymbol", item.get("symbol"))
             count = item["paletteCount"]
-            palettes = "\n".join(
+            palettes = "\n\n".join(
                 f'    INCGFX_U16("data/tilesets/{role}/{directory}/palettes/{index:02}.pal", ".gbapal"),'
                 for index in range(count)
             )
             blocks.append(
-                f'const u32 gTilesetTiles_{name}[] = INCGFX_U32("data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\nconst u16 gTilesetPalettes_{name}[][16] =\n{{\n{palettes}\n}};'
+                f'const u32 gTilesetTiles_{name}[] = INCGFX_U32("data/tilesets/{role}/{directory}/tiles.png", ".4bpp.fastSmol");\n\nconst u16 gTilesetPalettes_{name}[][16] =\n{{\n\n{palettes}\n\n}};'
             )
         return "\n\n".join(blocks + [f"#endif // {feature}"])
     if symbol == "tileset-metatiles":
@@ -740,11 +766,9 @@ def _generated_units(
             raise ContentPortError(
                 f"{policy.source_symbol}: generated authority contract drift"
             )
-        options = (
-            {"markerStyle": "preprocessor"}
-            if policy.source_symbol == "trainer-parties"
-            else {}
-        )
+        options: dict[str, object] = {"markerDialect": "legacy-import"}
+        if policy.source_symbol == "trainer-parties":
+            options.update({"markerStyle": "preprocessor", "blankLineBeforeEnd": True})
         units.append(
             RenderUnit(
                 f"generated:{policy.source_symbol}",

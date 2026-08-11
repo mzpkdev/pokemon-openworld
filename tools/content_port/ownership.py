@@ -294,7 +294,11 @@ def _section_span(content: bytes, port: str, name: str) -> tuple[int, int, bytes
     return start, finish, content[start:finish]
 
 
-def _legacy_section_markers(port: str, name: str) -> tuple[bytes, bytes]:
+def legacy_section_markers(port: str, name: str) -> tuple[bytes, bytes]:
+    """Return the exact delimiters used by established pre-platform imports."""
+
+    _validate_token(port, "port name")
+    _validate_token(name, "section name")
     token = port.upper().encode()
     encoded_name = name.encode()
     return (
@@ -307,7 +311,7 @@ def _owned_section_span(content: bytes, port: str, name: str) -> tuple[int, int,
     begin, end = section_markers(port, name)
     if _all_positions(content, begin) or _all_positions(content, end):
         return _section_span(content, port, name)
-    legacy_begin, legacy_end = _legacy_section_markers(port, name)
+    legacy_begin, legacy_end = legacy_section_markers(port, name)
     begin_positions = _all_positions(content, legacy_begin)
     end_positions = _all_positions(content, legacy_end)
     if len(begin_positions) != 1 or len(end_positions) != 1:
@@ -521,7 +525,7 @@ def verify_desired_claims(
             ) from error
         if unit.kind == "section":
             begin, end = section_markers(desired.port, unit.name or "")
-            legacy_begin, legacy_end = _legacy_section_markers(
+            legacy_begin, legacy_end = legacy_section_markers(
                 desired.port, unit.name or ""
             )
             if any(
@@ -741,7 +745,7 @@ def _write_unit(
             begin, end = section_markers(port, unit.name or "")
             begins = _all_positions(content, begin)
             ends = _all_positions(content, end)
-            legacy_begin, legacy_end = _legacy_section_markers(port, unit.name or "")
+            legacy_begin, legacy_end = legacy_section_markers(port, unit.name or "")
             legacy_begins = _all_positions(content, legacy_begin)
             legacy_ends = _all_positions(content, legacy_end)
             if not begins and not ends and not legacy_begins and not legacy_ends:

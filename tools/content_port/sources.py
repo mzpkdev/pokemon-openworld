@@ -96,6 +96,7 @@ class PortSourceState:
     semantic_evidence: Mapping[str, str]
     semantic_values: Mapping[ResourceKey, Mapping[str, Any]]
     trainer_events: Mapping[str, tuple[TrainerEventRecord, ...]]
+    materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
 
 
 class RecordLoader(Protocol):
@@ -1889,6 +1890,21 @@ def resolve_port_sources(
                 f"{name}/{removal['path']}: warp removal preimage drift"
             )
         warp_removals_by_map.setdefault(name, set()).add(index)
+
+    # Reachability closes over removals below. The established residency
+    # projection is deliberately narrower: it removes only authored deferred
+    # edges and explicit removals, without cascading into retained physical
+    # warps or renumbering their destination operands.
+    materialization_maps = copy.deepcopy(selected_maps)
+    physical_removals: dict[tuple[str, str], set[int]] = {}
+    for item in (*adaptations["deferredEdges"], *adaptations["warpRemovals"]):
+        field_name, raw_index = item["path"].split("/")
+        physical_removals.setdefault((item["source"], field_name), set()).add(
+            int(raw_index)
+        )
+    for (name, field_name), indexes in physical_removals.items():
+        for index in sorted(indexes, reverse=True):
+            del materialization_maps[name][field_name][index]
     deferred_removals: dict[tuple[str, str], list[int]] = {}
     explicit_removals = {
         (item["source"], item["path"]) for item in adaptations["warpRemovals"]
@@ -2908,6 +2924,7 @@ def resolve_port_sources(
         trainer_events=MappingProxyType(
             {name: events for name, events in sorted(selected_trainer_events.items())}
         ),
+        materialization_maps=_freeze_state(materialization_maps),
     )
     return contract, state
 
