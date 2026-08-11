@@ -314,6 +314,8 @@ jobs:
             2>&1 | tee build/integrity/generator-schema.log
           make content-port-test \
             2>&1 | tee build/integrity/content-port.log
+          make wild-encounter-test \
+            2>&1 | tee build/integrity/wild-encounters.log
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log
