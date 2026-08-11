@@ -288,6 +288,14 @@ static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *
         return FALSE;
 
     NormalizeRecordedBattlePartnerId(save);
+
+    if (!BattleSetup_TryPreflightOrdinaryBattle(
+            save->opponentA,
+            save->opponentB,
+            save->partnerId,
+            save->battleFlags))
+        return FALSE;
+
     return TRUE;
 }
 

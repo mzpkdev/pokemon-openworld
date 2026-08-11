@@ -119,22 +119,28 @@
 	.endm
 
 	.macro multi_2_vs_2 trainer1Id:req, trainer1LoseText:req, trainer2Id:req, trainer2LoseText:req, partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_2, \trainer1Id, \trainer1LoseText, \trainer2Id, \trainer2LoseText, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle \trainer1Id, \trainer1LoseText, \trainer2Id, \trainer2LoseText, \partnerId
 	multi_do MULTI_BATTLE_2_VS_2
+	9:
 	.endm
 
 	.macro multi_2_vs_1 trainer1Id:req, trainer1LoseText:req, partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_1, \trainer1Id, \trainer1LoseText, TRAINER_NONE, NULL, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle \trainer1Id, \trainer1LoseText, TRAINER_NONE, NULL, \partnerId
 	multi_do MULTI_BATTLE_2_VS_1
+	9:
 	.endm
 
 	@ Wild mons need to be assigned to opponent parties (1 and 3), other slots need to be cleared out.
 	.macro multi_wild partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_WILD, TRAINER_NONE, NULL, TRAINER_NONE, NULL, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle TRAINER_NONE, NULL, TRAINER_NONE, NULL, \partnerId
 	multi_do MULTI_BATTLE_2_VS_WILD
+	9:
 	.endm
 
 	.macro multi_do_fixed type:req
@@ -147,20 +153,26 @@
 	.endm
 
 	.macro multi_fixed_2_vs_2 trainer1Id:req, trainer1LoseText:req, trainer2Id:req, trainer2LoseText:req, partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_2, \trainer1Id, \trainer1LoseText, \trainer2Id, \trainer2LoseText, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle \trainer1Id, \trainer1LoseText, \trainer2Id, \trainer2LoseText, \partnerId
 	multi_do_fixed MULTI_BATTLE_2_VS_2
+	9:
 	.endm
 
 	.macro multi_fixed_2_vs_1 trainer1Id:req, trainer1LoseText:req, partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_1, \trainer1Id, \trainer1LoseText, TRAINER_NONE, NULL, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle \trainer1Id, \trainer1LoseText, TRAINER_NONE, NULL, \partnerId
 	multi_do_fixed MULTI_BATTLE_2_VS_1
+	9:
 	.endm
 
 	@ Wild mons need to be assigned to opponent parties (1 and 3), other slots need to be cleared out.
 	.macro multi_fixed_wild partnerId:req
+	setmultitrainerbattle MULTI_BATTLE_2_VS_WILD, TRAINER_NONE, NULL, TRAINER_NONE, NULL, \partnerId
+	goto_if_eq VAR_RESULT, FALSE, 9f
 	special SavePlayerParty
-	setmultitrainerbattle TRAINER_NONE, NULL, TRAINER_NONE, NULL, \partnerId
 	multi_do_fixed MULTI_BATTLE_2_VS_WILD
+	9:
 	.endm

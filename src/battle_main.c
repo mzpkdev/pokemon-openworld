@@ -2003,39 +2003,38 @@ static enum BattleTrainer GetBattlerTrainerFromParty(struct Pokemon *party)
 
 static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum)
 {
-    u8 retVal;
+    struct ResolvedOrdinaryTrainer resolved;
+    const struct Trainer *trainer;
     bool32 halfTeam = (BattleSideHasTwoTrainers(GetBattlerTrainerFromParty(party) & BIT_SIDE) && !AreMultiPartiesFullTeams());
 
     if (trainerNum == TRAINER_SECRET_BASE)
         return 0;
-    if (GetTrainerStructFromId(trainerNum)->overrideTrainer)
-    {
-        struct Trainer tempTrainer;
-        memcpy(&tempTrainer, GetTrainerStructFromId(trainerNum), sizeof(struct Trainer));
-        const struct Trainer *origTrainer = GetTrainerStructFromId(tempTrainer.overrideTrainer);
-
-        tempTrainer.party = origTrainer->party;
-
-        tempTrainer.poolSize = origTrainer->poolSize;
-        if (tempTrainer.partySize == 0)
-            tempTrainer.partySize = origTrainer->partySize;
-
-        retVal = CreateNPCTrainerPartyFromTrainer(party, (const struct Trainer *)(&tempTrainer), halfTeam, gBattleTypeFlags);
-    }
+    if (gIsDebugBattle)
+        trainer = GetDebugAiTrainer();
+    else if (IsPartnerTrainerId(trainerNum))
+        trainer = GetPartnerTrainerStructFromId(trainerNum);
+    else if (TryResolveOrdinaryTrainer(trainerNum, &resolved))
+        trainer = &resolved.trainer;
     else
-    {
-        retVal = CreateNPCTrainerPartyFromTrainer(party, GetTrainerStructFromId(trainerNum), halfTeam, gBattleTypeFlags);
-    }
-    return retVal;
+        trainer = NULL;
+
+    if (trainer == NULL)
+        return 0;
+    return CreateNPCTrainerPartyFromTrainer(party, trainer, halfTeam, gBattleTypeFlags);
 }
 
 void CreateTrainerPartyForPlayer(void)
 {
+    struct ResolvedOrdinaryTrainer resolved;
+    u16 trainerId = gSpecialVar_0x8004;
+
+    if (!TryResolveOrdinaryTrainer(trainerId, &resolved))
+        return;
     Script_RequestEffects(SCREFF_V1);
 
     ZeroPlayerPartyMons();
-    gPartnerTrainerId = gSpecialVar_0x8004;
-    CreateNPCTrainerPartyFromTrainer(gParties[B_TRAINER_PLAYER], GetTrainerStructFromId(gSpecialVar_0x8004), TRUE, BATTLE_TYPE_TRAINER);
+    gPartnerTrainerId = trainerId;
+    CreateNPCTrainerPartyFromTrainer(gParties[B_TRAINER_PLAYER], &resolved.trainer, TRUE, BATTLE_TYPE_TRAINER);
 }
 
 void VBlankCB_Battle(void)
@@ -3684,11 +3683,18 @@ static void DoBattleIntro(void)
             struct StartingStatuses statusesOpponentB = {0};
 
             // Try to set a status to start the battle with
-            if (gBattleTypeFlags & BATTLE_TYPE_TRAINER && !IsSpecialTrainer(TRAINER_BATTLE_PARAM.opponentA))
+            if (IsOrdinaryTrainerBattleNamespace(gBattleTypeFlags) && !IsSpecialTrainer(TRAINER_BATTLE_PARAM.opponentA))
             {
-                statusesOpponentA = GetTrainerStartingStatusFromId(TRAINER_BATTLE_PARAM.opponentA);
-                if (TRAINER_BATTLE_PARAM.opponentB != 0xFFFF)
-                    statusesOpponentB = GetTrainerStartingStatusFromId(TRAINER_BATTLE_PARAM.opponentB);
+                const struct Trainer *trainer = GetTrainerStructFromId(TRAINER_BATTLE_PARAM.opponentA);
+
+                if (trainer != NULL)
+                    statusesOpponentA = trainer->startingStatus;
+                if (TRAINER_BATTLE_PARAM.opponentB != TRAINER_NONE && TRAINER_BATTLE_PARAM.opponentB != 0xFFFF)
+                {
+                    trainer = GetTrainerStructFromId(TRAINER_BATTLE_PARAM.opponentB);
+                    if (trainer != NULL)
+                        statusesOpponentB = trainer->startingStatus;
+                }
             }
             STARTING_STATUS_DEFINITIONS(UNPACK_STARTING_STATUS_TO_BATTLE);
             gBattleMainFunc = TryDoEventsBeforeFirstTurn;

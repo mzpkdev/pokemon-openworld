@@ -3,6 +3,8 @@
 
 #include "global.h"
 
+struct ScriptContext;
+
 void Task_InitVsSeekerAndCheckForTrainersOnScreen(u8 taskId);
 bool8 UpdateVsSeekerStepCounter(void);
 void MapResetTrainerRematches(u16 mapGroup, u16 mapNum);

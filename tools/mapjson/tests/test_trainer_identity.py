@@ -109,6 +109,7 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         self.assertEqual(generated_symbols, party_symbols)
         self.assertEqual(len(party_sizes), 623)
         self.assertTrue(all(size > 0 for size in party_sizes))
+        self.assertEqual(generated.count("        .isRegistered = TRUE,"), 623)
 
     def test_emerald_trainer_table_composes_both_generated_party_sources(self) -> None:
         data_source = (ROOT / "src" / "data.c").read_text()

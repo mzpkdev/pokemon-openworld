@@ -122,13 +122,41 @@ static u32 GetPartyMonCount(u32 lastId, struct Pokemon *party, bool32 onlyAlive)
 
 static const u8* const *GetTrainerSlideArray(enum DifficultyLevel difficulty, u32 trainerId, u32 slideId)
 {
+    struct ResolvedOrdinaryTrainer resolved;
+
+    if (difficulty >= DIFFICULTY_COUNT || slideId >= TRAINER_SLIDE_COUNT)
+        return NULL;
 #if TESTING
-    return (FlagGet(TESTING_FLAG_TRAINER_SLIDES) ? sTestTrainerSlides[difficulty][trainerId] : NULL);
+    if (!FlagGet(TESTING_FLAG_TRAINER_SLIDES) || trainerId >= TRAINER_PARTNER(PARTNER_COUNT))
+        return NULL;
+    if (IsPartnerTrainerId(trainerId))
+    {
+        if (GetPartnerTrainerStructFromId(trainerId) == NULL)
+            return NULL;
+    }
+    else
+    {
+        if (!TryResolveOrdinaryTrainerAtDifficulty(trainerId, difficulty, &resolved))
+            return NULL;
+        difficulty = resolved.difficulty;
+    }
+    return sTestTrainerSlides[difficulty][trainerId];
 #else
     if (gBattleTypeFlags & BATTLE_TYPE_FRONTIER)
+    {
+        if (trainerId >= FRONTIER_TRAINERS_COUNT)
+            return NULL;
         return sFrontierTrainerSlides[difficulty][trainerId];
-    else
+    }
+    if (IsPartnerTrainerId(trainerId))
+    {
+        if (GetPartnerTrainerStructFromId(trainerId) == NULL)
+            return NULL;
         return sTrainerSlides[difficulty][trainerId];
+    }
+    if (!TryResolveOrdinaryTrainerAtDifficulty(trainerId, difficulty, &resolved))
+        return NULL;
+    return sTrainerSlides[resolved.difficulty][trainerId];
 #endif // TESTING
 }
 
@@ -136,6 +164,9 @@ static bool32 DoesTrainerHaveSlideMessage(enum DifficultyLevel difficulty, u32 t
 {
     const u8* const *trainerSlides = GetTrainerSlideArray(difficulty, trainerId, slideId);
     const u8* const *trainerSlidesNormal = GetTrainerSlideArray(DIFFICULTY_NORMAL, trainerId, slideId);
+
+    if (trainerSlides == NULL || trainerSlidesNormal == NULL)
+        return FALSE;
 
 #if TESTING
     if (VarGet(TESTING_VAR_TRAINER_SLIDES) == slideId)
@@ -161,6 +192,9 @@ void SetTrainerSlideMessage(enum DifficultyLevel difficulty, u32 trainerId, u32 
 {
     const u8* const *trainerSlides = GetTrainerSlideArray(difficulty, trainerId, slideId);
     const u8* const *trainerSlidesNormal = GetTrainerSlideArray(DIFFICULTY_NORMAL, trainerId, slideId);
+
+    if (trainerSlides == NULL || trainerSlidesNormal == NULL)
+        return;
 
     if (trainerSlides[slideId] != NULL)
         gBattleStruct->trainerSlideMsg = trainerSlides[slideId];

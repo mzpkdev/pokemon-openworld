@@ -1954,6 +1954,8 @@ static void fprint_trainers(const char *output_path, FILE *f, struct Parsed *par
             fprintf(f, ",\n");
         }
 
+        fprintf(f, "        .isRegistered = TRUE,\n");
+
         if (trainer->multi_team_line)
         {
             fprintf(f, "#line %d\n", trainer->multi_team_line);

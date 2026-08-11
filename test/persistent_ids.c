@@ -150,6 +150,7 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
         {VAR_0x8000, 0x3333},
         {TESTING_VARS_START, 0x4444},
     };
+    u16 originalVars[ARRAY_COUNT(preservedVars)];
     bool32 defeated = 0x12345678;
 
     FlagClear(flag);
@@ -158,7 +159,10 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
     for (u32 i = 0; i < ARRAY_COUNT(preservedFlags); i++)
         FlagClear(preservedFlags[i]);
     for (u32 i = 0; i < ARRAY_COUNT(preservedVars); i++)
+    {
+        originalVars[i] = VarGet(preservedVars[i].id);
         VarSet(preservedVars[i].id, preservedVars[i].value);
+    }
     for (u32 i = 0; i < ARRAY_COUNT(invalid); i++)
     {
         EXPECT(!PersistentId_TestGetTrainerDefeated(&invalid[i], &defeated));
@@ -191,4 +195,9 @@ TEST("Typed trainer defeat service rejects invalid storage without mutation")
     EXPECT(!PersistentId_GetTrainerDefeated(0, NULL));
     EXPECT(!PersistentId_SetTrainerDefeated(PERSISTENT_TRAINER_COUNT));
     EXPECT(!PersistentId_ClearTrainerDefeated(PERSISTENT_TRAINER_COUNT));
+    for (u32 i = 0; i < ARRAY_COUNT(preservedVars); i++)
+    {
+        VarSet(preservedVars[i].id, originalVars[i]);
+        EXPECT_EQ(VarGet(preservedVars[i].id), originalVars[i]);
+    }
 }

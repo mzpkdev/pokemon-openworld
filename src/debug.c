@@ -2119,9 +2119,9 @@ static void ParseObjectEventScript(const u8 *script)
         ctx->scriptPtr = script + 5;
         sDebugMenuListData->data[0] = ScriptPeekHalfword(ctx);
     }
-    else if (Script_MatchesSpecial(script, SavePlayerParty) && Script_MatchesCallNative(script + 3, SetMultiTrainerBattle, FALSE))
+    else if (Script_MatchesCallNative(script, SetMultiTrainerBattle, FALSE))
     {
-        ctx->scriptPtr = script + 8;
+        ctx->scriptPtr = script + 5;
         SetMultiTrainerBattle(ctx);
     }
     Free(ctx);
