@@ -15,7 +15,7 @@ from tools.e2e.save_journey import (
 from tools.e2e.skyemu import SAVE_BLOCK1_FLAGS_OFFSET
 from tools.e2e.trainer_battle_journey import (
     BATTLE_TYPE_TRAINER,
-    MOVE_SURGING_STRIKES,
+    MOVE_WATER_SPOUT,
     TrainerBattleScenarioRequest,
     TrainerBattleScenarioError,
     TrainerBattleScenarioPhase,
@@ -254,7 +254,7 @@ def test_regional_trainers_share_production_battle_and_persistence(
                 request_id=0xD6000000 | index,
                 trainer_id=oracle.trainer_id,
             ),
-            move_id=MOVE_SURGING_STRIKES,
+            move_id=MOVE_WATER_SPOUT,
         )
         assert ready.trainer_id == oracle.trainer_id
         assert ready.authored_party == oracle.party

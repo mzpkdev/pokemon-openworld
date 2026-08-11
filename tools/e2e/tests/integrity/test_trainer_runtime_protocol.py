@@ -10,6 +10,7 @@ from tools.e2e.trainer_battle_journey import (
     TrainerBattleScenarioStatus,
     TrainerDefeatStorage,
     TrainerRematchBindingKind,
+    select_ordinary_fight_action,
     submit_trainer_battle_request,
 )
 
@@ -116,3 +117,31 @@ def test_result_protocol_decodes_party_chain_and_terminal_proof():
     assert result.battle_outcome == 1
     assert result.defeated_after
     assert result.status is TrainerBattleScenarioStatus.SUCCESS
+
+
+def test_fight_selection_normalizes_every_live_action_cursor():
+    class Game:
+        def __init__(self, cursor):
+            self.cursor = cursor
+            self.presses = []
+
+        def address(self, symbol):
+            assert symbol == "gActionSelectionCursor"
+            return 0x02001000
+
+        def read_u8(self, address):
+            assert address == 0x02001000
+            return self.cursor
+
+        def press(self, button, **frames):
+            self.presses.append((button, frames))
+            if button == "Left":
+                self.cursor &= ~1
+            elif button == "Up":
+                self.cursor &= ~2
+
+    for initial_cursor in range(4):
+        game = Game(initial_cursor)
+        select_ordinary_fight_action(game)
+        assert game.cursor == 0
+        assert [button for button, _ in game.presses] == ["Left", "Up", "A"]

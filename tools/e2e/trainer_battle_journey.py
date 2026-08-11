@@ -12,7 +12,7 @@ TRAINER_BATTLE_SCENARIO_RESULT_SIZE = 64
 BATTLE_TYPE_TRAINER = 1 << 3
 TRAINER_NONE = 0
 REMATCH_STAGE_SKIP = 0xFFFF
-MOVE_SURGING_STRIKES = 746
+MOVE_WATER_SPOUT = 323
 MOVE_SLEEP_TALK = 214
 SPECIES_SWAMPERT = 260
 ABILITY_DAMP = 6
@@ -307,7 +307,7 @@ def wait_for_scenario_terminal(
                 game.step(16)
                 continue
             if game.battler_controller_is(action_handler):
-                game.press("A", hold_frames=2, release_frames=4)
+                select_ordinary_fight_action(game)
                 continue
             if game.battler_controller_is(move_handler):
                 is_asleep = game.read_u32(battle_mons + 80) & 7
@@ -354,8 +354,8 @@ def wait_for_raw_scenario_terminal(
     raise TimeoutError(f"trainer battle request {request_id:#x} did not terminate")
 
 
-def set_battle_party_through_debug_menu(game, *, _remaining: int = 3) -> None:
-    """Give a level-100 Damp Swampert through the shipped debug menu."""
+def set_battle_party_through_debug_menu(game, *, _remaining: int = 6) -> None:
+    """Give six level-100 Damp Swampert through the shipped debug menu."""
     game.set_buttons(R=True)
     game.step()
     game.set_buttons(R=True, Start=True)
@@ -482,13 +482,13 @@ def set_battle_party_through_debug_menu(game, *, _remaining: int = 3) -> None:
     )
     game.press("Right", release_frames=2)
     game.press("Right", release_frames=2)
-    for _ in range(7):
+    for _ in range(3):
         game.press("Up", release_frames=2)
     game.press("Left", release_frames=2)
-    for _ in range(4):
+    for _ in range(2):
         game.press("Up", release_frames=2)
     game.press("Left", release_frames=2)
-    for _ in range(6):
+    for _ in range(3):
         game.press("Up", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
@@ -517,11 +517,11 @@ def set_battle_party_through_debug_menu(game, *, _remaining: int = 3) -> None:
         raise AssertionError("shipped debug battle party was not installed")
     if _remaining > 1:
         set_battle_party_through_debug_menu(game, _remaining=_remaining - 1)
-    if _remaining == 3:
+    if _remaining == 6:
         party_count = game.read_u8(game.address("gPartiesCount"))
-        if party_count != 3:
+        if party_count != 6:
             raise AssertionError(
-                f"shipped debug battle party has {party_count} mons, expected 3"
+                f"shipped debug battle party has {party_count} mons, expected 6"
             )
 
 
@@ -617,6 +617,18 @@ def select_ordinary_move(game, move_index: int, move_id: int) -> None:
         )
 
 
+def select_ordinary_fight_action(game) -> None:
+    """Select Fight through the production action-menu input handler."""
+    game.press("Left", release_frames=4)
+    game.press("Up", release_frames=4)
+    selected_action = game.read_u8(game.address("gActionSelectionCursor"))
+    if selected_action != 0:
+        raise AssertionError(
+            f"ordinary action cursor is {selected_action}, expected Fight"
+        )
+    game.press("A", release_frames=8)
+
+
 def win_battle_through_normal_input(
     game, move_id: int
 ) -> tuple[int, int, int, int, int, int, int, int]:
@@ -679,7 +691,7 @@ def win_battle_through_normal_input(
     sleep_move_index = moves.index(MOVE_SLEEP_TALK)
     if hp == 0 or pp[move_index] == 0:
         raise AssertionError(f"ordinary battle fixture is not ready: hp={hp}, pp={pp}")
-    game.press("A", release_frames=8)
+    select_ordinary_fight_action(game)
     game.wait_until(
         lambda: game.battler_controller_is(move_handlers[0]),
         description="ordinary trainer battle move menu",
@@ -703,7 +715,7 @@ def run_ordinary_trainer_battle(
     game,
     request: TrainerBattleScenarioRequest,
     *,
-    move_id: int = MOVE_SURGING_STRIKES,
+    move_id: int = MOVE_WATER_SPOUT,
 ) -> tuple[TrainerBattleScenarioResult, TrainerBattleScenarioResult]:
     submit_trainer_battle_request(game, request)
     ready = wait_for_battle_ready(game, request)
