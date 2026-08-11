@@ -248,18 +248,17 @@ class MaterializeTests(unittest.TestCase):
                 {f"asset:{target}" for target in state.asset_targets.values()},
             )
             self.assertEqual(policy_target_by_source, dict(state.asset_targets))
-            self.assertEqual(len(first_manifest.units), len(recipe.units) + 1)
-            self.assertEqual(
-                {unit.identity for unit in first_manifest.units},
-                {unit.identity for unit in recipe.units}
-                | {
-                    (
-                        "section",
-                        "src/data/trainers.party",
-                        "selected trainer parties",
-                    )
-                },
-            )
+            actual_identities = tuple(unit.identity for unit in first_manifest.units)
+            expected_identities = {unit.identity for unit in recipe.units} | {
+                (
+                    "section",
+                    "src/data/trainers.party",
+                    "selected trainer parties",
+                )
+            }
+            self.assertEqual(len(actual_identities), len(set(actual_identities)))
+            self.assertEqual(set(actual_identities), expected_identities)
+            self.assertEqual(len(actual_identities), len(expected_identities))
             route30 = json.loads(first_payloads[("file", "data/maps/Route30/map.json")])
             route30_allocation = descriptor.allocation_index.map_allocation("Route30")
             self.assertEqual(route30["id"], route30_allocation.map_id)
