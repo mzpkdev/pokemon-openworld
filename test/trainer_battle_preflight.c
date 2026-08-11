@@ -163,8 +163,10 @@ TEST("Multi party sizing keeps explicit trainer namespaces out of the ordinary r
 
 TEST("Invalid trainer script preflight leaves battle globals unchanged")
 {
+    TrainerBattleParameter original = gTrainerBattleParameter;
     TrainerBattleParameter before;
     TrainerBattleParameter invalid = {0};
+    u32 originalBattleTypeFlags = gBattleTypeFlags;
     u32 battleTypeFlags = 0xA5A5A5A5;
 
     memset(gTrainerBattleParameter.data, 0x5A, sizeof(gTrainerBattleParameter));
@@ -176,6 +178,9 @@ TEST("Invalid trainer script preflight leaves battle globals unchanged")
     EXPECT(!BattleSetup_TryLoadTrainerBattle(invalid.data));
     EXPECT_EQ(memcmp(&gTrainerBattleParameter, &before, sizeof(before)), 0);
     EXPECT_EQ(gBattleTypeFlags, battleTypeFlags);
+
+    gTrainerBattleParameter = original;
+    gBattleTypeFlags = originalBattleTypeFlags;
 }
 
 TEST("Scripted two-opponent battles validate an active follower before loading globals")

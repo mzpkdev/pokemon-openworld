@@ -168,6 +168,18 @@ def _prepare_tree(tree: Path) -> Path:
         # the generators needed here; the aggregate `tools` target also runs the
         # git-history check, which is intentionally unavailable in an archive.
         _run(["make", "-s", "-j2", "tools/jsonproc", "tools/mapjson"], tree)
+        # Map generation owns atomic publication of the shared generated root.
+        # Publish its symlink before parallel aggregate generators add outputs;
+        # otherwise one of them can create `current` as a legacy directory first.
+        _run(
+            [
+                "make",
+                "-s",
+                "-j2",
+                "build/generated/allregions/current/.map-build-policy",
+            ],
+            tree,
+        )
         _run(["make", "-s", "-j2", "generated"], tree)
     if not generated.exists():
         raise ContractError("generated include tree was not produced")

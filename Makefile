@@ -37,6 +37,8 @@ _CONTENT_PORT_IS_GIT_WORKTREE_ROOT := $(shell \
 ifneq ($(CONTENT_PORT_BUILD_LOCK_HELD),1)
 _CONTENT_PORT_BUILD_GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 .PHONY: __content-port-build-lock
+# Explicitly carry GNU Make's numeric jobserver pair across the intermediate
+# Python lifetime-lock process and its exec below.
 __content-port-build-lock:
 	+@if [ -e .git ] || [ -L .git ]; then \
 		root="$$(git rev-parse --show-toplevel)" || exit 2; \
@@ -51,7 +53,7 @@ __content-port-build-lock:
 			*) echo "content-port: invalid transaction state path" >&2; exit 2 ;; \
 		esac; \
 		mkdir -p "$$state" || exit 2; \
-		python3 -c 'import fcntl, os, sys; fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(fd, fcntl.LOCK_SH); os.set_inheritable(fd, True); os.execvp(sys.argv[2], sys.argv[2:])' \
+		python3 -c 'import fcntl, os, re, sys; auth = next((flag.split("=", 1)[1] for flag in os.environ.get("MAKEFLAGS", "").split() if flag.startswith(("--jobserver-auth=", "--jobserver-fds="))), ""); jobserver_fds = tuple(map(int, auth.split(","))) if re.fullmatch(r"[0-9]+,[0-9]+", auth) else (); [os.set_inheritable(fd, True) for fd in jobserver_fds]; lock_fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o644); fcntl.flock(lock_fd, fcntl.LOCK_SH); os.set_inheritable(lock_fd, True); os.execvp(sys.argv[2], sys.argv[2:])' \
 			"$$state/lifetime.lock" $(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
 	else \
 		$(MAKE) CONTENT_PORT_BUILD_LOCK_HELD=1 $(_CONTENT_PORT_BUILD_GOALS); \
