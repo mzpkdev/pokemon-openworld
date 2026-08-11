@@ -4,6 +4,7 @@
 - Scope: Hoenn, Kanto, Sevii, Johto, and later regional content in the sole `pokemon-openworld` ROM
 - Depends on: [Multi-region world integrity](./multi-region-world-integrity.md)
 - Extends: [PKMN-World donor adaptation](./pkmn-world-donor-adaptation.md)
+- Amended by: [Unified-playthrough state model](./unified-playthrough-state-model.md)
 - Content authority: pinned HnS evidence, except reviewed PKMN-World fallbacks
 - Product authority: reviewed `pokemon-openworld` source and generated registries
 
@@ -15,11 +16,11 @@ enter the same Emerald-engine runtime through reviewed data, stable identifiers,
 shared services, and fail-closed generation. A region may supply different data;
 it must not acquire a parallel engine.
 
-The immediate proof target is the remaining non-story Johto content. A porter
-should be able to add pinned donor data, declare adaptations and ownership,
-resolve validation errors, review deterministic output, and run the required
-tests without changing shared engine code. Story quests, cutscenes, villain
-progression, Gym sequencing, and narrative gates remain separate product work.
+The original proof target was the remaining non-story Johto content. The
+unified-playthrough amendment keeps the import, authority, ownership, and
+validation contracts, but moves bulk content behind one playable
+Kanto-to-Johto continuity journey. Story quests, cutscenes, villain progression,
+Gym sequencing, and narrative gates remain separate product work.
 
 This RFC turns that target into an architectural contract. It does not approve
 wholesale donor import, a second Johto runtime, donor compatibility shims, or a
@@ -85,8 +86,8 @@ before linking.
 - Represent regional differences as data consumed by shared services.
 - Reject missing bindings, duplicate ownership, stale generated output, invalid
   references, and implicit regional fallbacks.
-- Prove the foundation with three orthogonal non-story Johto slices before bulk
-  content import begins.
+- Prove the foundation with the unified-playthrough continuity journey before
+  bulk content import begins.
 
 ## Non-goals
 
@@ -236,7 +237,8 @@ The following behavior remains disabled unless separately designed and approved:
 - donor challenge, randomizer, or difficulty modes.
 
 An ordinary content record may depend on a generic capability such as `CAN_SURF`
-or `LEAGUE_JOHTO_CLEARED`. This RFC does not decide how story grants it.
+or `LEAGUE_JOHTO_CLEARED`. The unified-playthrough RFC defines the state and
+resolver boundary; each story still owns the facts that grant its capabilities.
 
 ### Semantic classification
 
@@ -531,86 +533,85 @@ Unexpected mechanics-test assumptions count as failures in this repository.
 Donor-dependent tests run in protected CI with authenticated fixtures; a skipped
 donor contract test is a failure.
 
-## Proof slices
+## Unified-playthrough amendment
 
-Bulk non-story Johto import cannot begin until three orthogonal slices pass.
+The [unified-playthrough state model](./unified-playthrough-state-model.md)
+replaces the original three-slice foundation gate with one playable,
+bidirectional Kanto-to-Johto continuity journey. The importer architecture and
+content safety rules in this RFC remain in force.
 
-### Slice 1: Goldenrod service cluster
+### Retained contracts
 
-Port Route 34, Goldenrod City, Route 35, National Park, the Goldenrod Pokémon
-Center, Department Store, and Route 34 Day Care. This slice covers:
+The amendment retains:
 
-- connected route, city, interior, and park navigation;
-- ambient NPCs, dialogue, and signs;
-- ordinary trainers and persistent defeat state;
-- day and night encounters;
-- visible and hidden items;
-- an explicit shop inventory;
-- healing, checkpoint registration, and whiteout;
-- daycare deposit, experience, withdrawal, compatibility, and egg state;
-- Johto region-map presentation and Fly;
-- save, cold restart, and continue.
+- one region-neutral import engine and declarative Johto port descriptor;
+- expansion-native product data and one shared runtime per behavior;
+- authored allocation and persistent-ID authorities;
+- field-level donor provenance, permission gates, and explicit adaptations;
+- per-map capability policy and dependency-closed activation;
+- deterministic desired-state ownership and transactional publication;
+- fail-closed semantic, world-graph, persistence, and runtime validation;
+- the ban on region-specific runtime workarounds and behavior-erasing donor
+  shims;
+- independent review for shared runtime changes and content activation;
+- existing save compatibility, compact location codecs, and published binding
+  stability.
 
-Story takeover, Gym progression, Radio Tower state, Underground plot, train
-gating, and related actors remain disabled.
+Goldenrod, Whirl Islands, and Victory Road remain useful coverage targets. They
+no longer prove completion of the unified-playthrough foundation and cannot
+block its continuity journey.
 
-### Slice 2: traversal-heavy dungeon
+### Replaced gates
 
-Port the pinned HnS Whirl Islands bounded interior set: `WhirlIslands_1F`,
-`WhirlIslands_B1F`, `WhirlIslands_B1F_Inner`, `WhirlIslands_B2F`,
-`WhirlIslands_B3F`, and `WhirlIslands_Descent`. The Lugia chamber and legendary
-event remain disabled through a reviewed deferred boundary edge. The dependency
-closure includes the already-active Route 41 entrances and validates every return
-warp without activating unrelated Route 41 content. The slice must exercise
-content not covered by Goldenrod:
+Milestone 6's exact Kanto-to-Johto continuity journey replaces all of these
+original requirements:
 
-- cave or dungeon presentation;
-- darkness or Flash where supported;
-- Surf, Whirlpool, Waterfall, Strength, or another named field capability;
-- movable objects or traversal puzzles;
-- multi-floor warps and return paths;
-- encounters and pickups;
-- save and continue inside the dungeon.
+- completion of the Goldenrod service cluster;
+- completion of the Whirl Islands traversal slice;
+- completion of the Route 26 and Victory Road mixed-authority slice;
+- the requirement that all three slices pass before the foundation can be
+  considered playable;
+- the proof-slice clean-tree declaration that prohibited every shared runtime
+  change during product proof.
 
-The slice excludes legendary and narrative events.
+The continuity journey proves the actual product invariant: one character and
+one mutable player state can travel from Kanto into Johto and back through
+ordinary gameplay, save and cold-restart in both regions, use shared services,
+and retain regional and global state meaning.
 
-### Slice 3: mixed authority and compact-code boundary
+### Moved coverage
 
-Port the HnS-owned Route 26 and Reception Gate boundary into the reviewed
-PKMN-World fallback maps `JohtoVictoryRoad_1F`, `JohtoVictoryRoad_B1F`, and
-`JohtoVictoryRoad_B2F`. The fallback uses `MAPSEC_JOHTO_VICTORY_ROAD` value 264,
-which crosses both compact location boundaries. League and story content remain
-disabled. The slice must exercise:
+The old slices move rather than disappear:
 
-- field-level authority and provenance;
-- explicit donor conflict resolution;
-- saved-location and met-location codecs;
-- catching inside Johto Victory Road through an explicit aliased met-location;
-- hatching once on an exactly represented section and once on the aliased high
-  section, followed by save and summary verification;
-- travel across the authority boundary;
-- save, cold restart, continue, and return traversal;
-- explicit unsupported-content outcomes.
+- Goldenrod's shops, daycare, Fly, dense services, and broader city content move
+  to later Johto chapters or focused regression fixtures when those capabilities
+  activate.
+- Whirl Islands' dungeon traversal, field capabilities, movable objects,
+  multi-floor warps, and legendary boundary move to later Johto chapters or
+  focused traversal regressions.
+- Route 26 and Victory Road content, mixed-donor authority, and explicit
+  unsupported outcomes move to later Johto chapters or focused importer
+  regressions.
+- Compact saved-location and met-location boundaries, donor authority,
+  provenance, ownership, transaction safety, and codec validation remain
+  continuous foundation checks. They do not require those three geographic
+  slices to stay covered.
 
-### No-engine-change declaration gate
+Bulk non-story Johto production remains blocked until the continuity journey
+passes. Passing the journey does not activate any moved slice automatically.
 
-Once the prerequisite shared registries exist, each proof-slice content change
-may modify only:
+### Runtime-gap rule
 
-- expansion-native map, script, trainer, encounter, item, service, registry, and
-  asset inputs;
-- the port descriptor, authored allocation lock, authored persistent-ID ledger,
-  and reviewed adaptations;
-- deterministic generated output;
-- tests and fixtures for the slice.
+Milestone 6 may expose a missing shared behavior despite Milestones 4 and 5. A
+shared-runtime change is allowed only when the exact continuity journey produces
+a concrete failure. The change must name the failing step, land independently,
+preserve existing regional behavior, and remove the shared failure without a
+regional workaround.
 
-It may not modify shared C implementations, behavior-bearing headers, assembly
-macros, event opcodes, save structures, linker configuration, build identity, or
-importer mechanism. A clean-tree path audit enforces the boundary.
-
-If a slice requires a shared engine change, the foundation is incomplete. The
-engine change returns to an earlier independently reviewed foundation ticket;
-the slice does not carry a local workaround.
+The journey cannot carry a Johto-specific branch, product-build dispatch,
+alternate service frontend, test-only state mutation, donor no-op, or unrelated
+content. A shared fix lands first, then the journey resumes. A required save
+break, new runtime, or unresolved product decision requires a separate RFC.
 
 ## Delivery sequence
 
@@ -632,23 +633,34 @@ the slice does not carry a local workaround.
 5. Render, validate, and promote a complete desired-state tree.
 6. Run authenticated donor integration contracts in protected CI.
 
-### Phase 3: shared content domains
+### Phase 3: unified-playthrough contract
 
-Migrate trainers, encounters, actors, interactions, pickups, shops, healing,
-trades, daycare, region-map/Fly, progression capabilities, Safari, League,
-environmental assets, and tileset callbacks one domain at a time. Each migration
-must preserve current Hoenn behavior, represent resident Kanto/Sevii behavior,
-and accept Johto data without another implementation.
+Define the five state domains, map-derived region context, coexisting regional
+story facts, derived player capabilities, location-neutral bootstrap seam,
+continuity journey, and forbidden implementations. Amend this RFC in the same
+change so both contracts have one delivery order.
 
-### Phase 4: proof slices
+### Phase 4: regional trainer runtime
 
-Land the Goldenrod service cluster, the traversal-heavy dungeon, and the mixed-
-authority compact-code slice. Each passes its no-engine-change declaration gate
-and real save-cycle E2E tests.
+Unify ordinary trainer identity, lookup, battle launch, defeat state, and rematch
+authority. Preserve published Hoenn bindings and prove one Johto trainer fixture
+through save and cold restart before other shared playthrough primitives begin.
 
-### Phase 5: bulk content production
+### Phase 5: remaining shared playthrough primitives
 
-After all three proof slices pass, import remaining non-story Johto content in
+Land the region-neutral encounter registry, named facts and Cut capability,
+location-neutral bootstrap profiles, shared checkpoints and whiteout, and the
+round-trip Vermilion-to-Olivine gateway as independently reviewable changes.
+
+### Phase 6: continuity journey
+
+Run the exact Kanto-to-Johto round trip defined by the unified-playthrough RFC.
+Any shared runtime gap follows that RFC's independently reviewed runtime-gap
+rule. The complete journey is the product gate.
+
+### Phase 7: bulk content production
+
+After the continuity journey passes, import remaining non-story Johto content in
 dependency-closed batches. Story work remains separately designed and scheduled.
 
 ## Acceptance criteria
@@ -667,8 +679,11 @@ This foundation is complete when:
 - donor bindings and assets carry field-level provenance;
 - authenticated donor tests run without skips in protected CI;
 - the world graph and cross-domain references validate;
-- all three proof slices pass from fresh saves and after cold restart;
-- proof-slice content lands without changing shared engine or importer mechanism;
+- the unified-playthrough trainer and shared-primitive milestones pass their
+  bounded gates before the continuity journey begins;
+- the exact Kanto-to-Johto continuity journey passes through ordinary gameplay,
+  saves, and cold restarts in both regions;
+- shared changes exposed by the journey obey the runtime-gap rule;
 - normal, debug, and optimized release ROMs plus test-runner and headless-test
   artifacts remain within reviewed ROM, EWRAM, and IWRAM budgets;
 - `make check`, `make integrity-check`, `make e2e-core`, `make e2e-extended`, and
@@ -685,8 +700,9 @@ This foundation is complete when:
 - Desired-state publication can delete hand-owned work if ownership is broad or
   path-based only. Ownership must name exact files and generated sections and
   reject unexpected edits before replacement.
-- Goldenrod alone has selection bias toward ordinary services. The dungeon and
-  mixed-authority slices are mandatory before claiming broad portability.
+- The continuity journey covers only the capabilities needed for one playable
+  round trip. Moved Goldenrod, Whirl Islands, and Victory Road coverage remains
+  required when later chapters activate those domains.
 - HnS and PKMN-World disagree or omit data in places. Field-level provenance and
   explicit unsupported outcomes prevent a false unified authority.
 - Donor assets may be technically usable but not redistributable. Permission is a
@@ -744,7 +760,6 @@ typed data.
 
 Use HnS as the pinned Johto content authority, PKMN-World as bounded mechanical
 evidence and only the allowlisted fallback for HnS-absent content, and reviewed
-local OpenWorld adaptations as final product decisions.
-Prove the architecture with the Goldenrod service cluster, a traversal-heavy
-dungeon, and a mixed-authority compact-code slice before bulk non-story Johto
-content import begins.
+local OpenWorld adaptations as final product decisions. Prove the playable
+foundation with the unified-playthrough continuity journey before bulk
+non-story Johto content import begins.
