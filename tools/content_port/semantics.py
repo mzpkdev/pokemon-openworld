@@ -72,6 +72,7 @@ class Opcode:
 class ScriptProgram:
     labels: Mapping[str, tuple[Instruction, ...]]
     opcodes: Mapping[str, Opcode]
+    texts: Mapping[str, tuple[str, ...]]
 
 
 def split_operands(text: str) -> tuple[str, ...]:
@@ -99,6 +100,22 @@ def split_operands(text: str) -> tuple[str, ...]:
     if current or text:
         values.append("".join(current).strip())
     return tuple(value for value in values if value)
+
+
+def split_instruction_operands(command: str, text: str) -> tuple[str, ...]:
+    """Apply only reviewed, command-specific donor syntax adaptations."""
+
+    operands = split_operands(text)
+    if command != "trainerbattle_single" or len(operands) != 2:
+        return operands
+    first = operands[0].split()
+    if (
+        len(first) == 2
+        and re.fullmatch(r"TRAINER_[A-Z0-9_]+", first[0])
+        and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", first[1])
+    ):
+        return (first[0], first[1], operands[1])
+    return operands
 
 
 def _json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -246,6 +263,7 @@ def parse_scripts(
     pending = [Path(path) for path in paths]
     visited: set[Path] = set()
     labels: dict[str, list[Instruction]] = {}
+    texts: dict[str, list[str]] = {}
     global_scope = ""
     current: str | None = None
     while pending:
@@ -317,6 +335,17 @@ def parse_scripts(
                         f"{display}:{line_number}: duplicate label {current}"
                     )
                 labels[current] = []
+                texts[current] = []
+                continue
+            if stripped.startswith(".string"):
+                if current is None:
+                    continue
+                literal = stripped.removeprefix(".string").strip()
+                if not (len(literal) >= 2 and literal[0] == literal[-1] == '"'):
+                    raise ContentPortError(
+                        f"{display}:{line_number}: malformed text string"
+                    )
+                texts[current].append(literal)
                 continue
             if stripped.startswith(".") or stripped.startswith("#"):
                 continue
@@ -331,7 +360,7 @@ def parse_scripts(
             labels[current].append(
                 Instruction(
                     command.group(1),
-                    split_operands(command.group(2)),
+                    split_instruction_operands(command.group(1), command.group(2)),
                     display,
                     line_number,
                     global_scope,
@@ -340,6 +369,7 @@ def parse_scripts(
     return ScriptProgram(
         {key: tuple(value) for key, value in sorted(labels.items())},
         opcodes or load_opcodes(),
+        {key: tuple(value) for key, value in sorted(texts.items()) if value},
     )
 
 

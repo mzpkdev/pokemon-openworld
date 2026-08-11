@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import json
 from pathlib import Path
+import re
 from types import MappingProxyType
 from typing import Callable, Iterable, Mapping
 
@@ -89,6 +90,17 @@ class OwnedOutput:
 
 
 Renderer = Callable[[RenderContext, RenderUnit], Iterable[OwnedOutput]]
+_TRAINER_ID_RE = re.compile(r"^TRAINER_[A-Z0-9_]+$")
+_TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 ?.'-]*$")
+_TRAINER_SPECIES_RE = re.compile(r"^SPECIES_[A-Z0-9_]+$")
+_SCRIPT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_]+$")
+_TEXT_FRAGMENT_RE = re.compile(r'^"(?:[^"\\\r\n]|\\.)*"$')
+
+
+def _trainer_string(value: object, pattern: re.Pattern[str], pointer: str) -> str:
+    if not isinstance(value, str) or pattern.fullmatch(value) is None:
+        raise ContentPortError(f"{pointer}: invalid trainer render token")
+    return value
 
 
 def _json_output(unit: RenderUnit) -> tuple[OwnedOutput, ...]:
@@ -206,6 +218,114 @@ def render_generated_section(
     return (OwnedOutput("section", unit.path, content, name=name),)
 
 
+def render_trainer_script(
+    context: RenderContext, unit: RenderUnit
+) -> tuple[OwnedOutput, ...]:
+    del context
+    if not isinstance(unit.value, dict) or set(unit.value) != {"map", "events"}:
+        raise ContentPortError(f"{unit.key}: trainer-script requires map and events")
+    map_name = unit.value["map"]
+    events = unit.value["events"]
+    if not isinstance(map_name, str) or not isinstance(events, (list, tuple)):
+        raise ContentPortError(f"{unit.key}: invalid trainer-script payload")
+    blocks = [f"{map_name}_MapScripts::\n\t.byte 0"]
+    for event in events:
+        if not isinstance(event, dict) or set(event) != {
+            "script",
+            "instructions",
+            "texts",
+        }:
+            raise ContentPortError(f"{unit.key}: invalid selected trainer event")
+        script_name = _trainer_string(
+            event["script"], _SCRIPT_TOKEN_RE, f"{unit.key}/script"
+        )
+        lines = [f"{script_name}::"]
+        for instruction in event["instructions"]:
+            command = _trainer_string(
+                instruction["command"], _SCRIPT_TOKEN_RE, f"{unit.key}/command"
+            )
+            operands = tuple(
+                _trainer_string(value, _SCRIPT_TOKEN_RE, f"{unit.key}/operand")
+                for value in instruction["operands"]
+            )
+            # Expansion ASM convention uses comma+space; keep this renderer
+            # independent of the donor's reviewed missing-separator adaptation.
+            suffix = f" {', '.join(operands)}" if operands else ""
+            lines.append(f"\t{command}{suffix}")
+        blocks.append("\n".join(lines))
+        for text_record in event["texts"]:
+            label = _trainer_string(
+                text_record["label"], _SCRIPT_TOKEN_RE, f"{unit.key}/text-label"
+            )
+            fragments = tuple(
+                _trainer_string(
+                    fragment, _TEXT_FRAGMENT_RE, f"{unit.key}/text-fragment"
+                )
+                for fragment in text_record["fragments"]
+            )
+            text_lines = [f"{label}:"]
+            text_lines.extend(f"\t.string {fragment}" for fragment in fragments)
+            blocks.append("\n".join(text_lines))
+    return (OwnedOutput("file", unit.path, ("\n\n".join(blocks) + "\n").encode()),)
+
+
+def render_trainer_party(
+    context: RenderContext, unit: RenderUnit
+) -> tuple[OwnedOutput, ...]:
+    if not isinstance(unit.value, (list, tuple)) or not unit.value:
+        raise ContentPortError(f"{unit.key}: trainer-party requires trainer records")
+    blocks: list[str] = []
+    for trainer in unit.value:
+        if not isinstance(trainer, dict):
+            raise ContentPortError(f"{unit.key}: invalid trainer-party record")
+        target = _trainer_string(
+            trainer.get("target"), _TRAINER_ID_RE, f"{unit.key}/target"
+        )
+        display = {
+            field: _trainer_string(
+                trainer.get(field), _TRAINER_DISPLAY_RE, f"{unit.key}/{field}"
+            )
+            for field in ("name", "class", "pic", "gender", "music")
+        }
+        ai = tuple(
+            _trainer_string(value, _TRAINER_DISPLAY_RE, f"{unit.key}/ai")
+            for value in trainer.get("ai", ())
+        )
+        if not ai:
+            raise ContentPortError(f"{unit.key}/ai: trainer AI must not be empty")
+        lines = [
+            f"=== {target} ===",
+            f"Name: {display['name']}",
+            f"Class: {display['class']}",
+            f"Pic: {display['pic']}",
+            f"Gender: {display['gender']}",
+            f"Music: {display['music']}",
+            f"Double Battle: {'Yes' if trainer['double'] else 'No'}",
+            f"AI: {' / '.join(ai)}",
+        ]
+        for member in trainer["party"]:
+            species = _trainer_string(
+                member.get("species"), _TRAINER_SPECIES_RE, f"{unit.key}/species"
+            )
+            lines.extend(
+                (
+                    "",
+                    species,
+                    f"Level: {member['level']}",
+                    f"IVs: {member['iv']} HP / {member['iv']} Atk / "
+                    f"{member['iv']} Def / {member['iv']} SpA / "
+                    f"{member['iv']} SpD / {member['iv']} Spe",
+                )
+            )
+        blocks.append("\n".join(lines))
+    body = "\n\n".join(blocks).encode()
+    name = unit.name or unit.key
+    begin, end = section_markers(context.port, name)
+    content = b"#if 1 /* " + begin + b" */\n" + body + b"\n"
+    content += b"#endif /* " + end + b" */\n"
+    return (OwnedOutput("section", unit.path, content, name=name),)
+
+
 RENDERERS: Mapping[str, Renderer] = MappingProxyType(
     {
         "map-json": render_map_json,
@@ -215,6 +335,8 @@ RENDERERS: Mapping[str, Renderer] = MappingProxyType(
         "tileset-assets": render_tileset_assets,
         "encounter-registry": render_encounter_registry,
         "generated-section": render_generated_section,
+        "trainer-script": render_trainer_script,
+        "trainer-party": render_trainer_party,
     }
 )
 
@@ -224,7 +346,7 @@ def render_unit(context: RenderContext, unit: RenderUnit) -> tuple[OwnedOutput, 
         raise ContentPortError(
             f"{unit.key}: refuses to overwrite hand-owned path {unit.path}"
         )
-    if unit.renderer == "generated-section":
+    if unit.renderer in {"generated-section", "trainer-party"}:
         section = (unit.path, unit.name or unit.key)
         if section in context.hand_owned_sections:
             raise ContentPortError(

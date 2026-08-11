@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import nullcontext
 from dataclasses import replace
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,9 +18,11 @@ from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import (
     _asset_units,
     _group_units,
+    _generated_body,
     _layout_units,
     _map_units,
     _section_units,
+    _trainer_units,
     derive_desired_state,
 )
 from tools.content_port.model import DonorPin, PersistentBindingRef
@@ -43,6 +46,42 @@ class MaterializeTests(unittest.TestCase):
                 self.fail(message)
             self.skipTest(message)
         return load_port(PORT, donor_root)
+
+    def test_selected_samuel_materialization_and_rival_projection_stability(
+        self,
+    ) -> None:
+        descriptor = self.descriptor()
+        _, state = resolve_port_sources(descriptor, ROOT)
+        map_units = {unit.key: unit for unit in _map_units(descriptor, state)}
+        route_map = map_units["map:Route34"].value
+        self.assertEqual(len(route_map["object_events"]), 1)
+        self.assertEqual(
+            route_map["object_events"][0]["script"],
+            "Route34_EventScript_YoungsterSamuel",
+        )
+        script = map_units["map-script:Route34"].value
+        self.assertEqual(
+            script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        )
+        trainer_units = _trainer_units(descriptor, state, ROOT)
+        self.assertEqual(len(trainer_units), 1)
+        self.assertEqual(
+            [member["species"] for member in trainer_units[0].value[0]["party"]],
+            ["SPECIES_TEDDIURSA", "SPECIES_SANDSHREW", "SPECIES_SPEAROW"],
+        )
+        self.assertEqual(
+            hashlib.sha256(
+                _generated_body("trainer-bindings", descriptor, state, ROOT).encode()
+            ).hexdigest(),
+            "e73b027b1743a157afcef41189ea2c80c7172504dd547cb7059f824db05d0f79",
+        )
+        self.assertEqual(
+            hashlib.sha256(
+                _generated_body("trainer-parties", descriptor, state, ROOT).encode()
+            ).hexdigest(),
+            "f2163b8059ef83d28fc87e422705125e8e7517e92cc90b2baf8e27ab5bdaf393",
+        )
 
     def test_asset_policy_capability_and_support_state_are_render_authority(
         self,
@@ -209,10 +248,17 @@ class MaterializeTests(unittest.TestCase):
                 {f"asset:{target}" for target in state.asset_targets.values()},
             )
             self.assertEqual(policy_target_by_source, dict(state.asset_targets))
-            self.assertEqual(len(first_manifest.units), len(recipe.units))
+            self.assertEqual(len(first_manifest.units), len(recipe.units) + 1)
             self.assertEqual(
                 {unit.identity for unit in first_manifest.units},
-                {unit.identity for unit in recipe.units},
+                {unit.identity for unit in recipe.units}
+                | {
+                    (
+                        "section",
+                        "src/data/trainers.party",
+                        "selected trainer parties",
+                    )
+                },
             )
             route30 = json.loads(first_payloads[("file", "data/maps/Route30/map.json")])
             route30_allocation = descriptor.allocation_index.map_allocation("Route30")

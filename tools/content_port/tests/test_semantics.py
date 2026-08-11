@@ -46,6 +46,28 @@ class SemanticsTests(unittest.TestCase):
         ):
             analyze_entry(program, "Entry")
 
+    def test_hns_single_battle_separator_and_text_are_typed(self) -> None:
+        program = self._program(
+            "Entry::\n trainerbattle_single TRAINER_SAMUEL Seen, Beaten\n"
+            " msgbox After, MSGBOX_AUTOCLOSE\n end\n"
+            'Seen:\n .string "Seen$"\nBeaten:\n .string "Beaten$"\n'
+            'After:\n .string "First\\p"\n .string "Second$"\n'
+        )
+        self.assertEqual(
+            program.labels["Entry"][0].operands,
+            ("TRAINER_SAMUEL", "Seen", "Beaten"),
+        )
+        self.assertEqual(program.texts["After"], ('"First\\p"', '"Second$"'))
+
+    def test_separator_adaptation_is_not_applied_to_other_shapes(self) -> None:
+        program = self._program(
+            "Entry::\n trainerbattle_single TRAINER_SAMUEL Seen Beaten, After\n end\n"
+        )
+        self.assertEqual(
+            program.labels["Entry"][0].operands,
+            ("TRAINER_SAMUEL Seen Beaten", "After"),
+        )
+
     def test_includes_cannot_escape_authenticated_root(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             parent = Path(directory)

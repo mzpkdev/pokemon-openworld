@@ -15,7 +15,6 @@ from unittest import mock
 
 from tools.content_port import update as donor_update_module
 from tools.content_port.descriptor import load_port
-from tools.content_port.model import CapabilityState, ResourceKey
 from tools.content_port.update import (
     DonorUpdateError,
     REQUIRED_REVIEW_COMMANDS,
@@ -1200,7 +1199,7 @@ class DonorUpdateTests(unittest.TestCase):
             parties = content / "src/data/trainer_parties.h"
             parties.write_text(
                 parties.read_text().replace(
-                    "    .species = SPECIES_GEODUDE,",
+                    "    .species = SPECIES_TEDDIURSA,",
                     "    .species = SPECIES_ONIX,",
                     1,
                 )
@@ -1209,7 +1208,7 @@ class DonorUpdateTests(unittest.TestCase):
             git(content, "checkout", "-q", port["donors"]["content"]["commit"])
             parties.write_text(
                 parties.read_text().replace(
-                    "    .species = SPECIES_GEODUDE,",
+                    "    .species = SPECIES_TEDDIURSA,",
                     "    .species = SPECIES_ZUBAT,",
                     1,
                 )
@@ -1217,24 +1216,9 @@ class DonorUpdateTests(unittest.TestCase):
             self.assertTrue(git(content, "status", "--porcelain"))
             output = self.root / "live-donor-migration.json"
 
-            def descriptor_with_native_trainer(port_path: Path, donors: Path):
+            def descriptor_without_legacy(port_path: Path, donors: Path):
                 descriptor = load_port(port_path, donors)
-                capabilities = tuple(
-                    replace(
-                        decision,
-                        state=CapabilityState.ENABLED,
-                        dependencies=(ResourceKey("trainer", "TRAINER_SAWYER_1"),),
-                    )
-                    if decision.map_name == "Route29"
-                    and decision.capability == "trainers"
-                    else decision
-                    for decision in descriptor.capabilities
-                )
-                return replace(
-                    descriptor,
-                    capabilities=capabilities,
-                    legacy_report=None,
-                )
+                return replace(descriptor, legacy_report=None)
 
             with (
                 mock.patch(
@@ -1243,7 +1227,7 @@ class DonorUpdateTests(unittest.TestCase):
                 ),
                 mock.patch(
                     "tools.content_port.descriptor.load_port",
-                    side_effect=descriptor_with_native_trainer,
+                    side_effect=descriptor_without_legacy,
                 ),
                 mock.patch("tools.content_port.materialize.derive_desired_state"),
             ):

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from typing import Any, Mapping
 
 from .errors import ContentPortError
 
@@ -43,6 +44,31 @@ class ResourceKey:
 
     def __str__(self) -> str:
         return f"{self.domain}:{self.name}"
+
+
+@dataclass(frozen=True, order=True)
+class TrainerScriptInstruction:
+    command: str
+    operands: tuple[str, ...]
+
+
+@dataclass(frozen=True, order=True)
+class TrainerText:
+    label: str
+    fragments: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class TrainerEventRecord:
+    """One paired trainer object and its authenticated script/text authority."""
+
+    map_name: str
+    object_index: int
+    object_event: Mapping[str, Any]
+    script_name: str
+    trainers: tuple[str, ...]
+    instructions: tuple[TrainerScriptInstruction, ...]
+    texts: tuple[TrainerText, ...]
 
 
 @dataclass(frozen=True)
