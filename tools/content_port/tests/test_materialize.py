@@ -98,23 +98,38 @@ class MaterializeTests(unittest.TestCase):
             "src/data/trainers.party",
             "selected trainer parties",
         )
-        self.assertEqual(
-            set(desired_by_identity) - set(installed_by_identity), {selected_party}
-        )
-        self.assertEqual(set(installed_by_identity) - set(desired_by_identity), set())
-        self.assertEqual(
-            {
-                identity
-                for identity in installed_by_identity.keys()
-                & desired_by_identity.keys()
-                if installed_by_identity[identity].sha256
-                != desired_by_identity[identity].sha256
-            },
-            {
-                ("file", "data/maps/Route34/map.json"),
-                ("file", "data/maps/Route34/scripts.inc"),
-            },
-        )
+        route34_delta = {
+            ("file", "data/maps/Route34/map.json"),
+            ("file", "data/maps/Route34/scripts.inc"),
+        }
+
+        def assert_exact_manifest_delta(
+            baseline: OwnershipManifest, *, reconciled: bool
+        ) -> None:
+            baseline_by_identity = baseline.by_identity
+            self.assertEqual(
+                set(desired_by_identity) - set(baseline_by_identity),
+                set() if reconciled else {selected_party},
+            )
+            self.assertEqual(
+                set(baseline_by_identity) - set(desired_by_identity), set()
+            )
+            self.assertEqual(
+                {
+                    identity
+                    for identity in baseline_by_identity.keys()
+                    & desired_by_identity.keys()
+                    if baseline_by_identity[identity].sha256
+                    != desired_by_identity[identity].sha256
+                },
+                set() if reconciled else route34_delta,
+            )
+
+        already_reconciled = selected_party in installed_by_identity
+        assert_exact_manifest_delta(installed, reconciled=already_reconciled)
+        # Exercise the exact manifest state seen by detached post-reconcile
+        # validation even when this test starts from the pre-reconcile tree.
+        assert_exact_manifest_delta(desired, reconciled=True)
 
         rival_identity = (
             "section",
@@ -233,15 +248,17 @@ class MaterializeTests(unittest.TestCase):
                 for relative, content in before.items()
                 if (staged / relative).read_bytes() != content
             }
-            self.assertEqual(
-                changed_paths,
-                {
+            expected_changed_paths = (
+                set()
+                if already_reconciled
+                else {
                     "data/maps/Route34/map.json",
                     "data/maps/Route34/scripts.inc",
                     "src/data/trainers.party",
                     ownership_path,
-                },
+                }
             )
+            self.assertEqual(changed_paths, expected_changed_paths)
             self.assertEqual(
                 (staged / "include/constants/opponents.h").read_bytes(),
                 before["include/constants/opponents.h"],
