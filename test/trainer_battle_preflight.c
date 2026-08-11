@@ -128,6 +128,126 @@ TEST("Ordinary battle preflight accepts complete one two and partner topologies"
         BATTLE_TYPE_TRAINER | BATTLE_TYPE_DOUBLE | BATTLE_TYPE_MULTI | BATTLE_TYPE_INGAME_PARTNER));
 }
 
+TEST("Plain special battle namespaces validate global in-game partners first")
+{
+    static const u32 explicitNamespaces[] =
+    {
+        BATTLE_TYPE_TRAINER_HILL,
+        BATTLE_TYPE_SECRET_BASE,
+        BATTLE_TYPE_EREADER_TRAINER,
+        BATTLE_TYPE_LINK,
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(explicitNamespaces); i++)
+    {
+        EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+            0xFFFF,
+            0xFFFF,
+            TRAINER_NONE,
+            explicitNamespaces[i]));
+        EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+            0xFFFF,
+            0xFFFF,
+            TRAINER_PARTNER(PARTNER_COUNT),
+            explicitNamespaces[i] | BATTLE_TYPE_INGAME_PARTNER));
+        EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+            0xFFFF,
+            0xFFFF,
+            0xFFFF,
+            explicitNamespaces[i] | BATTLE_TYPE_INGAME_PARTNER));
+        EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+            0xFFFF,
+            0xFFFF,
+            TRAINER_PARTNER(PARTNER_STEVEN),
+            explicitNamespaces[i] | BATTLE_TYPE_INGAME_PARTNER));
+    }
+}
+
+TEST("Battle Tower multi preflight accepts only facility partner IDs")
+{
+    const u32 battleTowerMulti = BATTLE_TYPE_TRAINER | BATTLE_TYPE_BATTLE_TOWER
+                               | BATTLE_TYPE_DOUBLE | BATTLE_TYPE_INGAME_PARTNER
+                               | BATTLE_TYPE_MULTI | BATTLE_TYPE_TWO_OPPONENTS;
+
+    EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+        0,
+        1,
+        0,
+        battleTowerMulti));
+    EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+        TRAINER_FRONTIER_BRAIN,
+        TRAINER_EREADER,
+        TRAINER_EREADER - 1,
+        battleTowerMulti | BATTLE_TYPE_IS_MASTER));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        1,
+        0,
+        battleTowerMulti));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0,
+        0xFFFF,
+        0,
+        battleTowerMulti));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        TRAINER_EREADER,
+        battleTowerMulti));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        TRAINER_PARTNER(PARTNER_STEVEN),
+        battleTowerMulti));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        0xFFFF,
+        battleTowerMulti));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        0,
+        battleTowerMulti & ~BATTLE_TYPE_MULTI));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        0,
+        (battleTowerMulti & ~BATTLE_TYPE_BATTLE_TOWER) | BATTLE_TYPE_DOME));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        0,
+        battleTowerMulti | BATTLE_TYPE_TOWER_LINK_MULTI));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0xFFFF,
+        0xFFFF,
+        0,
+        battleTowerMulti | BATTLE_TYPE_RECORDED_LINK));
+}
+
+TEST("Frontier trainer preflight bounds only active opponent slots")
+{
+    const u32 single = BATTLE_TYPE_TRAINER | BATTLE_TYPE_DOME;
+    const u32 two = single | BATTLE_TYPE_DOUBLE | BATTLE_TYPE_TWO_OPPONENTS;
+
+    EXPECT(BattleSetup_TryPreflightOrdinaryBattle(
+        TRAINER_FRONTIER_BRAIN,
+        0xFFFF,
+        TRAINER_NONE,
+        single));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        TRAINER_FRONTIER_BRAIN + 1,
+        0,
+        TRAINER_NONE,
+        single));
+    EXPECT(!BattleSetup_TryPreflightOrdinaryBattle(
+        0,
+        TRAINER_FRONTIER_BRAIN + 1,
+        TRAINER_NONE,
+        two));
+}
+
 TEST("Multi party sizing keeps explicit trainer namespaces out of the ordinary registry")
 {
     static const u32 explicitNamespaces[] =

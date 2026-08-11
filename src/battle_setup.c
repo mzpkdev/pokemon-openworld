@@ -1050,17 +1050,44 @@ bool32 BattleSetup_TryPreflightOrdinaryBattle(u16 opponentA, u16 opponentB, u16 
     struct ResolvedOrdinaryTrainer resolved;
     const struct Trainer *partner;
 
-    // These namespaces own their trainer identities and parties outside gTrainers.
+    if (battleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
+    {
+        if ((battleTypeFlags & BATTLE_TYPE_FRONTIER)
+         && (battleTypeFlags & BATTLE_TYPE_TRAINER))
+        {
+            // Battle Tower multi partners use the facility trainer namespace.
+            const u32 nativeFlags = BATTLE_TYPE_TRAINER | BATTLE_TYPE_BATTLE_TOWER
+                                  | BATTLE_TYPE_DOUBLE | BATTLE_TYPE_INGAME_PARTNER
+                                  | BATTLE_TYPE_MULTI | BATTLE_TYPE_TWO_OPPONENTS;
+            const u32 allowedFlags = nativeFlags | BATTLE_TYPE_IS_MASTER;
+
+            if ((battleTypeFlags & nativeFlags) != nativeFlags
+             || (battleTypeFlags & ~allowedFlags) != 0
+             || partnerId >= TRAINER_EREADER)
+                return FALSE;
+        }
+        else
+        {
+            partner = GetPartnerTrainerStructFromId(partnerId);
+            if (partner == NULL || partner->party == NULL || partner->partySize == 0 || partner->partySize > PARTY_SIZE)
+                return FALSE;
+        }
+    }
+
+    if ((battleTypeFlags & BATTLE_TYPE_FRONTIER)
+     && (battleTypeFlags & BATTLE_TYPE_TRAINER))
+    {
+        if (opponentA > TRAINER_FRONTIER_BRAIN)
+            return FALSE;
+        if ((battleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
+         && opponentB > TRAINER_FRONTIER_BRAIN)
+            return FALSE;
+    }
+
+    // These namespaces own their opponent identities and parties outside gTrainers.
     if (battleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_TRAINER_HILL
                          | BATTLE_TYPE_SECRET_BASE | BATTLE_TYPE_EREADER_TRAINER))
         return TRUE;
-
-    if (battleTypeFlags & BATTLE_TYPE_INGAME_PARTNER)
-    {
-        partner = GetPartnerTrainerStructFromId(partnerId);
-        if (partner == NULL || partner->party == NULL || partner->partySize == 0 || partner->partySize > PARTY_SIZE)
-            return FALSE;
-    }
 
     // Partner-assisted wild battles have no ordinary opponent.
     if (!(battleTypeFlags & BATTLE_TYPE_TRAINER))
