@@ -16,6 +16,8 @@ MOVE_WATER_SPOUT = 323
 MOVE_SLEEP_TALK = 214
 SPECIES_SWAMPERT = 260
 ABILITY_DAMP = 6
+# The linked ARM debug ABI records status1 at byte 80 in BattlePokemon.
+BATTLE_MON_STATUS1_OFFSET = 80
 
 
 class TrainerBattleScenarioStatus(IntEnum):
@@ -60,6 +62,54 @@ class TrainerDefeatStorage(IntEnum):
     FLAG = 0
     VARIABLE_BIT = 1
     BITMAP = 2
+
+
+class BattleInputPhase(IntEnum):
+    ACTION = 0
+    MOVE = 1
+    EXECUTION = 2
+
+
+@dataclass
+class BattleInputTransaction:
+    """Gate each battle input until the engine consumes the prior command."""
+
+    phase: BattleInputPhase = BattleInputPhase.EXECUTION
+    pending_move: int = 0
+    pending_move_index: int = 0
+    pending_pp: int = 0
+
+    def observe(
+        self,
+        *,
+        action_handler_active: bool,
+        move_handler_active: bool,
+        controller_active: bool,
+        attacker: int,
+        current_move: int,
+        current_pp: int,
+    ) -> None:
+        if self.phase is not BattleInputPhase.EXECUTION:
+            return
+        if (
+            action_handler_active
+            or current_pp < self.pending_pp
+            or (attacker == 0 and current_move == self.pending_move)
+            or (not move_handler_active and not controller_active)
+        ):
+            self.phase = BattleInputPhase.ACTION
+
+    def accept_action(self) -> None:
+        self.phase = BattleInputPhase.MOVE
+
+    def accept_move(self, move_index: int, move_id: int, pp: int) -> None:
+        self.phase = BattleInputPhase.EXECUTION
+        self.pending_move_index = move_index
+        self.pending_move = move_id
+        self.pending_pp = pp
+
+    def accept_party_switch(self) -> None:
+        self.phase = BattleInputPhase.ACTION
 
 
 @dataclass(frozen=True)
@@ -192,6 +242,10 @@ def submit_raw_trainer_battle_request(
     game.resume()
 
 
+def battle_mon_is_asleep(game, battle_mon: int) -> bool:
+    return bool(game.read_u32(battle_mon + BATTLE_MON_STATUS1_OFFSET) & 7)
+
+
 def _raise_scenario_error(result: TrainerBattleScenarioResult) -> None:
     raise AssertionError(
         f"trainer battle request {result.request_id:#x} failed: "
@@ -237,7 +291,14 @@ def wait_for_scenario_terminal(
 ) -> TrainerBattleScenarioResult:
     move_selections = 0
     party_switches = 0
+    party_selection_pending = False
+    target_selection_pending = False
     observed_move_execution = False
+    input_transaction = BattleInputTransaction(
+        pending_move=move_id,
+        pending_move_index=move_index,
+        pending_pp=selected_pp,
+    )
     selected_target_index = game.read_u8(game.address("gBattlerPartyIndexes") + 1)
     selected_target_species = game.read_u16(game.address("gBattleMons") + 140)
     selected_target_fainted = False
@@ -251,13 +312,16 @@ def wait_for_scenario_terminal(
                     raise AssertionError("ordinary move execution was not observed")
                 return result
         if (
-            game.read_u8(game.address("gBattlerAttacker")) == 0
-            and game.read_u16(game.address("gCurrentMove")) == move_id
-            and game.read_u8(game.address("gBattleMons") + 37 + move_index)
-            < selected_pp
+            game.read_u8(
+                game.address("gBattleMons") + 37 + input_transaction.pending_move_index
+            )
+            < input_transaction.pending_pp
         ):
             observed_move_execution = True
         if game.task_active("Task_HandleChooseMonInput"):
+            if party_selection_pending:
+                game.step(16)
+                continue
             party_switches += 1
             game.step(60)
             for _ in range(party_switches):
@@ -268,7 +332,10 @@ def wait_for_scenario_terminal(
                     f"party cursor is on slot {selected_slot}, expected {party_switches}"
                 )
             game.press("A", release_frames=4)
+            party_selection_pending = True
+            input_transaction.accept_party_switch()
             continue
+        party_selection_pending = False
         if game.task_active("Task_HandleSelectionMenuInput"):
             game.press("A", release_frames=8)
             continue
@@ -284,6 +351,21 @@ def wait_for_scenario_terminal(
                 or opponent_species != selected_target_species
             ):
                 selected_target_fainted = False
+            action_handler_active = game.battler_controller_is(action_handler)
+            move_handler_active = game.battler_controller_is(move_handler)
+            controller_active = bool(
+                game.read_u32(game.address("gBattleControllerExecFlags")) & 1
+            )
+            input_transaction.observe(
+                action_handler_active=action_handler_active,
+                move_handler_active=move_handler_active,
+                controller_active=controller_active,
+                attacker=game.read_u8(game.address("gBattlerAttacker")),
+                current_move=game.read_u16(game.address("gCurrentMove")),
+                current_pp=game.read_u8(
+                    battle_mons + 37 + input_transaction.pending_move_index
+                ),
+            )
             if any(
                 game.battler_controller_is(message_handler, battler=battler)
                 for battler in range(4)
@@ -296,9 +378,15 @@ def wait_for_scenario_terminal(
             ):
                 game.step(16)
                 continue
-            if game.battler_controller_is(target_handler):
-                game.press("A", hold_frames=2, release_frames=8)
+            target_handler_active = game.battler_controller_is(target_handler)
+            if target_handler_active and controller_active:
+                if not target_selection_pending:
+                    game.press("A", hold_frames=2, release_frames=8)
+                    target_selection_pending = True
+                else:
+                    game.step(16)
                 continue
+            target_selection_pending = False
             if (
                 game.read_u16(battle_mons + 42) == 0
                 or opponent_hp == 0
@@ -306,17 +394,27 @@ def wait_for_scenario_terminal(
             ):
                 game.step(16)
                 continue
-            if game.battler_controller_is(action_handler):
+            if (
+                action_handler_active
+                and controller_active
+                and input_transaction.phase is BattleInputPhase.ACTION
+            ):
                 select_ordinary_fight_action(game)
+                input_transaction.accept_action()
                 continue
-            if game.battler_controller_is(move_handler):
-                is_asleep = game.read_u32(battle_mons + 80) & 7
+            if (
+                move_handler_active
+                and controller_active
+                and input_transaction.phase is BattleInputPhase.MOVE
+            ):
+                is_asleep = battle_mon_is_asleep(game, battle_mons)
                 selected_index = sleep_move_index if is_asleep else move_index
                 selected_move = MOVE_SLEEP_TALK if is_asleep else move_id
-                selected_pp = game.read_u8(battle_mons + 37 + selected_index)
+                pending_pp = game.read_u8(battle_mons + 37 + selected_index)
                 selected_target_index = opponent_index
                 selected_target_species = opponent_species
                 select_ordinary_move(game, selected_index, selected_move)
+                input_transaction.accept_move(selected_index, selected_move, pending_pp)
                 move_selections += 1
                 continue
         game.step(16)
@@ -354,8 +452,52 @@ def wait_for_raw_scenario_terminal(
     raise TimeoutError(f"trainer battle request {request_id:#x} did not terminate")
 
 
+def grant_full_obedience_through_debug_menu(game) -> None:
+    """Grant all badges through the shipped menu so level-100 fixtures obey."""
+    badge_flags = game.address("gBadgeFlags")
+    final_badge_flag = game.read_u16(badge_flags + 14)
+    if game.read_flag(final_badge_flag):
+        return
+
+    game.set_buttons(R=True)
+    game.step()
+    game.set_buttons(R=True, Start=True)
+    game.step()
+    game.set_buttons(R=False, Start=False)
+    game.step()
+    game.wait_until(
+        lambda: game.task_active("DebugTask_HandleMenuInput_General"),
+        description="debug main menu",
+        max_frames=300,
+    )
+    game.step(4)
+    for _ in range(7):
+        game.press("Down", release_frames=2)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: (
+            (menu_data := game.pointer("sDebugMenuListData"))
+            and game.read_u32(menu_data + 4) == game.address("sDebugMenu_Actions_Flags")
+        ),
+        description="Flags & Vars debug submenu",
+        max_frames=300,
+    )
+    game.step(4)
+    for _ in range(10):
+        game.press("Down", release_frames=2)
+    game.press("A", release_frames=4)
+    if not game.read_flag(final_badge_flag):
+        raise AssertionError("shipped debug menu did not grant the final badge")
+    game.press("B", release_frames=8)
+    game.step(16)
+    game.press("B", release_frames=8)
+    game.wait_for_controls_unlocked(max_frames=600)
+
+
 def set_battle_party_through_debug_menu(game, *, _remaining: int = 6) -> None:
     """Give six level-100 Damp Swampert through the shipped debug menu."""
+    if _remaining == 6:
+        grant_full_obedience_through_debug_menu(game)
     game.set_buttons(R=True)
     game.step()
     game.set_buttons(R=True, Start=True)

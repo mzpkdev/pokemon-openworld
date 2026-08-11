@@ -1,6 +1,9 @@
 import struct
 
 from tools.e2e.trainer_battle_journey import (
+    BattleInputPhase,
+    BattleInputTransaction,
+    BATTLE_MON_STATUS1_OFFSET,
     TRAINER_BATTLE_SCENARIO_REQUEST_SIZE,
     TRAINER_BATTLE_SCENARIO_REQUEST_STATUS_OFFSET,
     TRAINER_BATTLE_SCENARIO_RESULT_SIZE,
@@ -10,9 +13,144 @@ from tools.e2e.trainer_battle_journey import (
     TrainerBattleScenarioStatus,
     TrainerDefeatStorage,
     TrainerRematchBindingKind,
+    battle_mon_is_asleep,
+    grant_full_obedience_through_debug_menu,
     select_ordinary_fight_action,
     submit_trainer_battle_request,
 )
+
+
+def test_move_input_is_one_transaction_while_handler_and_pp_stay_live():
+    transaction = BattleInputTransaction(
+        pending_move=214,
+        pending_move_index=1,
+        pending_pp=10,
+    )
+
+    for _ in range(78):
+        transaction.observe(
+            action_handler_active=False,
+            move_handler_active=True,
+            controller_active=True,
+            attacker=1,
+            current_move=0,
+            current_pp=10,
+        )
+        assert transaction.phase is BattleInputPhase.EXECUTION
+
+    transaction.observe(
+        action_handler_active=False,
+        move_handler_active=True,
+        controller_active=True,
+        attacker=0,
+        current_move=214,
+        current_pp=9,
+    )
+    assert transaction.phase is BattleInputPhase.ACTION
+
+    transaction.observe(
+        action_handler_active=False,
+        move_handler_active=True,
+        controller_active=True,
+        attacker=0,
+        current_move=0,
+        current_pp=9,
+    )
+    assert transaction.phase is BattleInputPhase.ACTION
+
+    transaction.observe(
+        action_handler_active=True,
+        move_handler_active=False,
+        controller_active=True,
+        attacker=0,
+        current_move=0,
+        current_pp=9,
+    )
+    transaction.accept_action()
+    assert transaction.phase is BattleInputPhase.MOVE
+
+    transaction.accept_move(move_index=1, move_id=214, pp=9)
+    assert transaction.phase is BattleInputPhase.EXECUTION
+
+
+def test_sleep_status_uses_status1_not_adjacent_personality_word():
+    class Game:
+        def __init__(self, values):
+            self.values = values
+
+        def read_u32(self, address):
+            return self.values.get(address, 0)
+
+    battle_mon = 0x02001000
+    game = Game(
+        {
+            battle_mon + 76: 7,
+            battle_mon + BATTLE_MON_STATUS1_OFFSET: 0,
+        }
+    )
+    assert not battle_mon_is_asleep(game, battle_mon)
+
+    game.values[battle_mon + BATTLE_MON_STATUS1_OFFSET] = 3
+    assert battle_mon_is_asleep(game, battle_mon)
+
+
+def test_full_obedience_is_granted_through_shipped_debug_menu():
+    class Game:
+        def __init__(self):
+            self.badge = False
+            self.a_presses = 0
+            self.presses = []
+
+        def address(self, symbol):
+            return {
+                "gBadgeFlags": 0x08001000,
+                "sDebugMenu_Actions_Flags": 0x08002000,
+            }[symbol]
+
+        def read_u16(self, address):
+            assert address == 0x0800100E
+            return 0x807
+
+        def read_flag(self, flag):
+            assert flag == 0x807
+            return self.badge
+
+        def set_buttons(self, **_buttons):
+            pass
+
+        def step(self, _frames=1):
+            pass
+
+        def wait_until(self, predicate, **_kwargs):
+            assert predicate()
+
+        def task_active(self, task):
+            assert task == "DebugTask_HandleMenuInput_General"
+            return True
+
+        def pointer(self, symbol):
+            assert symbol == "sDebugMenuListData"
+            return 0x02001000
+
+        def read_u32(self, address):
+            assert address == 0x02001004
+            return 0x08002000
+
+        def press(self, button, **_frames):
+            self.presses.append(button)
+            if button == "A":
+                self.a_presses += 1
+                if self.a_presses == 2:
+                    self.badge = True
+
+        def wait_for_controls_unlocked(self, **_kwargs):
+            pass
+
+    game = Game()
+    grant_full_obedience_through_debug_menu(game)
+
+    assert game.badge
+    assert game.presses == ["Down"] * 7 + ["A"] + ["Down"] * 10 + ["A", "B", "B"]
 
 
 def test_trainer_battle_request_layout_has_one_status_commit_byte():
