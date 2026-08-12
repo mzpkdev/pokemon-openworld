@@ -28,6 +28,34 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.registry_path = self.root / "wild_encounter_registry.json"
         self.output_path = self.root / "wild_encounters.h"
 
+    def test_ordinary_registry_arrays_are_not_public_runtime_authority(self):
+        public_header = (ROOT / "include/wild_encounter.h").read_text(encoding="utf-8")
+        self.assertNotIn(
+            "extern const struct WildPokemonHeader gWildMonHeaders", public_header
+        )
+        self.assertNotIn(
+            "extern const struct WildEncounterTimePolicy gWildMonHeaderTimePolicies",
+            public_header,
+        )
+
+        direct_consumers = []
+        source_root = ROOT / "src"
+        for source in source_root.rglob("*.c"):
+            if source.relative_to(ROOT).as_posix() == "src/wild_encounter.c":
+                continue
+            text = source.read_text(encoding="utf-8")
+            if "gWildMonHeaders" in text or "gWildMonHeaderTimePolicies" in text:
+                direct_consumers.append(source.relative_to(ROOT).as_posix())
+        self.assertEqual(direct_consumers, [])
+
+    def test_both_altering_cave_domains_use_independent_selectors(self):
+        runtime = (ROOT / "src/wild_encounter.c").read_text(encoding="utf-8")
+        area_screen = (ROOT / "src/pokedex_area_screen.c").read_text(encoding="utf-8")
+        self.assertIn("MAP_SIX_ISLAND_ALTERING_CAVE", runtime)
+        self.assertIn("VAR_ALTERING_CAVE_WILD_SET_FRLG", runtime)
+        self.assertIn("MAPSEC_ALTERING_CAVE_FRLG", area_screen)
+        self.assertIn("VAR_ALTERING_CAVE_WILD_SET_FRLG", area_screen)
+
     def generate(
         self,
         encounters=None,
@@ -120,6 +148,17 @@ class WildEncounterGenerationTests(unittest.TestCase):
         )
         self.assertIsNone(generator.PRODUCT_GUARD.search(output))
         self.assertEqual(output.count("const struct WildPokemonHeader "), 3)
+        self.assertIn("static const struct WildPokemonHeader gWildMonHeaders[]", output)
+        self.assertIn(
+            "static const struct WildEncounterRegistry sWildEncounterRegistry", output
+        )
+        self.assertIn(".count = ARRAY_COUNT(gWildMonHeaders),", output)
+        self.assertIn("WildEncounterRegistryParallelArraysMustMatch", output)
+        ordinary_headers = output.split(
+            "static const struct WildEncounterTimePolicy", 1
+        )[0].split("static const struct WildPokemonHeader gWildMonHeaders[]", 1)[1]
+        self.assertNotIn("MAP_GROUP(MAP_UNDEFINED)", ordinary_headers)
+        self.assertEqual(output.count(".mapGroup = MAP_GROUP(MAP_UNDEFINED),"), 2)
         mon_types = generator.Config(
             generator.DEFAULT_CONFIG,
             generator.DEFAULT_RTC_CONSTANTS,

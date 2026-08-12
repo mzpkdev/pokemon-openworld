@@ -6,6 +6,9 @@ import time
 import unittest
 from pathlib import Path
 
+if os.name != "nt":
+    import fcntl
+
 
 ROOT = Path(__file__).resolve().parents[3]
 MAPJSON = ROOT / "tools" / "mapjson" / "mapjson"
@@ -134,6 +137,74 @@ class GenerationIsolationTests(unittest.TestCase):
             self.assertNotEqual(failed.returncode, 0)
             self.assertEqual(digest_tree(output), before)
             self.assertEqual(os.readlink(output), pointer_before)
+
+    def test_map_promotion_preserves_outputs_owned_by_sibling_generators(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mapjson-aggregate-") as directory:
+            output = Path(directory) / "current"
+            initial = generate("emerald", output)
+            self.assertEqual(initial.returncode, 0, initial.stderr)
+
+            sibling = output / "include" / "constants" / "persistent_test.inc.h"
+            sibling.write_text("#define PERSISTENT_TEST 1\n")
+            promoted = generate("allregions", output)
+            self.assertEqual(promoted.returncode, 0, promoted.stderr)
+
+            promoted = generate("firered", output)
+            self.assertEqual(promoted.returncode, 0, promoted.stderr)
+
+            self.assertEqual(sibling.read_text(), "#define PERSISTENT_TEST 1\n")
+            self.assertEqual((output / ".map-build-policy").read_text(), "firered\n")
+            headers = (output / "data/maps/headers.inc").read_text()
+            self.assertNotIn("LittlerootTown/header.inc", headers)
+            self.assertIn("PalletTown_Frlg/header.inc", headers)
+
+    @unittest.skipIf(os.name == "nt", "POSIX lock contention probe")
+    def test_mapjson_and_persistent_ledger_share_publication_lock(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mapjson-ledger-lock-") as directory:
+            base = Path(directory)
+            output = base / "current"
+            initial = generate("emerald", output)
+            self.assertEqual(initial.returncode, 0, initial.stderr)
+
+            lock_path = base / ".generation.lock"
+            with lock_path.open("a+b") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                ledger = subprocess.Popen(
+                    [
+                        "python3",
+                        "-m",
+                        "tools.persistence.ledger",
+                        "generate",
+                        "--output-root",
+                        str(output),
+                    ],
+                    cwd=ROOT,
+                )
+                mapjson = subprocess.Popen(
+                    [
+                        str(MAPJSON),
+                        "generate",
+                        "allregions",
+                        str(GROUPS),
+                        str(LAYOUTS),
+                        str(output),
+                        *(str(path) for path in MAPS),
+                    ],
+                    cwd=ROOT,
+                )
+                time.sleep(5)
+                ledger_was_blocked = ledger.poll() is None
+                mapjson_was_blocked = mapjson.poll() is None
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+            self.assertEqual(ledger.wait(timeout=30), 0)
+            self.assertEqual(mapjson.wait(timeout=30), 0)
+            self.assertTrue(ledger_was_blocked)
+            self.assertTrue(mapjson_was_blocked)
+            self.assertTrue(
+                (output / "include/constants/persistent_opponents.inc.h").is_file()
+            )
+            self.assertEqual((output / ".map-build-policy").read_text(), "allregions\n")
 
     def test_concurrent_publication_uses_unique_trees_and_never_removes_pointer(
         self,

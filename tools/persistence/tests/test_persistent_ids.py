@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import contextlib
+import errno
 import io
 import json
 from pathlib import Path
@@ -12,6 +13,7 @@ import unittest
 
 from tools.persistence.contract import ContractError, canonical_bytes
 from tools.persistence.ledger import (
+    _windows_byte_lock,
     main,
     render,
     seed_ledger,
@@ -70,6 +72,60 @@ class PersistentIdTests(unittest.TestCase):
 
     def mutated(self):
         return copy.deepcopy(self.ledger)
+
+    def test_windows_generation_lock_retries_contention_and_unlocks_once(self):
+        class FakeLock:
+            def __init__(self):
+                self.seeks = 0
+
+            def seek(self, offset):
+                self.seeks += 1
+
+            def fileno(self):
+                return 17
+
+        lock = FakeLock()
+        calls = []
+        sleeps = []
+
+        def locking(fd, mode, size):
+            calls.append((fd, mode, size))
+            if len(calls) < 3:
+                raise OSError(errno.EACCES, "contended")
+
+        with _windows_byte_lock(
+            lock,
+            locking,
+            nonblocking_mode=1,
+            unlock_mode=2,
+            sleep=sleeps.append,
+        ):
+            self.assertEqual(calls, [(17, 1, 1)] * 3)
+
+        self.assertEqual(calls, [(17, 1, 1)] * 3 + [(17, 2, 1)])
+        self.assertEqual(sleeps, [0.01, 0.01])
+        self.assertEqual(lock.seeks, 4)
+
+    def test_windows_generation_lock_does_not_retry_unexpected_errors(self):
+        class FakeLock:
+            def seek(self, offset):
+                pass
+
+            def fileno(self):
+                return 17
+
+        def locking(fd, mode, size):
+            raise OSError(errno.EPERM, "unexpected")
+
+        with self.assertRaisesRegex(OSError, "unexpected"):
+            with _windows_byte_lock(
+                FakeLock(),
+                locking,
+                nonblocking_mode=1,
+                unlock_mode=2,
+                sleep=lambda delay: None,
+            ):
+                self.fail("unexpected lock acquisition")
 
     def test_seed_and_generation_are_byte_identical(self):
         first = seed_ledger(self.contract, self.sources, ROOT)

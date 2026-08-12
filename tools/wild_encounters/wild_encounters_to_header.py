@@ -1083,7 +1083,10 @@ class WildEncounterAssembler:
         self.write_line("},", 1)
 
     def write_pokemon_headers(self, headers):
-        self.write_line(f"const struct WildPokemonHeader {headers['label']}[] =")
+        storage = "static " if headers["label"] == "gWildMonHeaders" else ""
+        self.write_line(
+            f"{storage}const struct WildPokemonHeader {headers['label']}[] ="
+        )
         self.write_line("{")
         for shared_label, map_data in headers["data"].items():
             self.write_line()
@@ -1111,12 +1114,13 @@ class WildEncounterAssembler:
                 self.write_line("},", 3)
             self.write_line("},", 2)
             self.write_line("},", 1)
-        self.write_terminator()
+        if headers["label"] != "gWildMonHeaders":
+            self.write_terminator()
         self.write_line("};")
         if headers["label"] == "gWildMonHeaders":
             self.write_line()
             self.write_line(
-                "const struct WildEncounterTimePolicy gWildMonHeaderTimePolicies[] ="
+                "static const struct WildEncounterTimePolicy gWildMonHeaderTimePolicies[] ="
             )
             self.write_line("{")
             for shared_label in headers["data"]:
@@ -1132,9 +1136,21 @@ class WildEncounterAssembler:
                     self.write_line(f".dayTime = {policy['day_time']},", 2)
                     self.write_line(f".nightTime = {policy['night_time']},", 2)
                 self.write_line("},", 1)
+            self.write_line("};")
+            self.write_line()
             self.write_line(
-                "{ .dayStartMinutes = WILD_ENCOUNTER_TIME_POLICY_NONE },", 1
+                "STATIC_ASSERT(ARRAY_COUNT(gWildMonHeaders) == "
+                "ARRAY_COUNT(gWildMonHeaderTimePolicies), "
+                "WildEncounterRegistryParallelArraysMustMatch);"
             )
+            self.write_line()
+            self.write_line(
+                "static const struct WildEncounterRegistry sWildEncounterRegistry ="
+            )
+            self.write_line("{")
+            self.write_line(".headers = gWildMonHeaders,", 1)
+            self.write_line(".timePolicies = gWildMonHeaderTimePolicies,", 1)
+            self.write_line(".count = ARRAY_COUNT(gWildMonHeaders),", 1)
             self.write_line("};")
 
     def write_encounters(self):

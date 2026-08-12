@@ -1739,44 +1739,29 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
     enum Species species[2];
     int numSpecies;
     u8 slot;
-    int i = 0;
-    enum TimeOfDay timeOfDay;
+    u16 headerId;
+    const struct WildPokemonInfo *wildMonInfo;
 
-    if (gWildMonHeaders[i].mapGroup != MAP_GROUP(MAP_UNDEFINED)) // ??? This check is nonsense.
+    if (TryFindWildEncounterHeader(
+        gRematchTable[matchCallId].mapGroup,
+        gRematchTable[matchCallId].mapNum,
+        &headerId))
     {
-        while (gWildMonHeaders[i].mapGroup != MAP_GROUP(MAP_UNDEFINED))
+        numSpecies = 0;
+        if (TryGetWildEncounterInfo(headerId, WILD_AREA_LAND, &wildMonInfo))
         {
-            if (gWildMonHeaders[i].mapGroup == gRematchTable[matchCallId].mapGroup
-             && gWildMonHeaders[i].mapNum == gRematchTable[matchCallId].mapNum)
-                break;
-
-            i++;
+            slot = GetLandEncounterSlotForMatchCall();
+            species[numSpecies++] = wildMonInfo->wildPokemon[slot].species;
         }
-
-        if (gWildMonHeaders[i].mapGroup != MAP_GROUP(MAP_UNDEFINED))
+        if (TryGetWildEncounterInfo(headerId, WILD_AREA_WATER, &wildMonInfo))
         {
-            timeOfDay = GetTimeOfDayForEncounters(i, WILD_AREA_LAND);
-            numSpecies = 0;
-            if (gWildMonHeaders[i].encounterTypes[timeOfDay].landMonsInfo)
-            {
-                slot = GetLandEncounterSlotForMatchCall();
-                species[numSpecies] = gWildMonHeaders[i].encounterTypes[timeOfDay].landMonsInfo->wildPokemon[slot].species;
-                numSpecies++;
-            }
-
-            timeOfDay = GetTimeOfDayForEncounters(i, WILD_AREA_WATER);
-            if (gWildMonHeaders[i].encounterTypes[timeOfDay].waterMonsInfo)
-            {
-                slot = GetWaterEncounterSlotForMatchCall();
-                species[numSpecies] = gWildMonHeaders[i].encounterTypes[timeOfDay].waterMonsInfo->wildPokemon[slot].species;
-                numSpecies++;
-            }
-
-            if (numSpecies)
-            {
-                StringCopy(destStr, GetSpeciesName(species[Random() % numSpecies]));
-                return;
-            }
+            slot = GetWaterEncounterSlotForMatchCall();
+            species[numSpecies++] = wildMonInfo->wildPokemon[slot].species;
+        }
+        if (numSpecies)
+        {
+            StringCopy(destStr, GetSpeciesName(species[Random() % numSpecies]));
+            return;
         }
     }
 
