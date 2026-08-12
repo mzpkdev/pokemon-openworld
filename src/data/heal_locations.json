@@ -391,6 +391,15 @@
       "respawn_map": "MAP_SIX_ISLAND_POKEMON_CENTER_1F",
       "respawn_npc": "LOCALID_SIX_ISLAND_NURSE",
       "recovery_mode": "HEALER"
+    },
+    {
+      "id": "HEAL_LOCATION_OLIVINE_CITY",
+      "map": "MAP_OLIVINE_CITY",
+      "x": 15,
+      "y": 44,
+      "respawn_map": "MAP_OLIVINE_CITY_POKEMON_CENTER",
+      "respawn_npc": "LOCALID_OLIVINE_NURSE",
+      "recovery_mode": "HEALER"
     }
   ]
 }

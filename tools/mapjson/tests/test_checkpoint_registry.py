@@ -51,7 +51,7 @@ class CheckpointRegistryTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(message, result.stderr)
 
-    def test_registry_and_published_ids_are_exactly_zero_through_42(self):
+    def test_registry_and_published_ids_are_exactly_zero_through_43(self):
         result = self._validate(self.registry)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "checkpoints=valid\n")
@@ -66,8 +66,78 @@ class CheckpointRegistryTests(unittest.TestCase):
         ids = ["HEAL_LOCATION_NONE"] + [
             checkpoint["id"] for checkpoint in self.registry["heal_locations"]
         ]
-        self.assertEqual(len(ids), 43)
-        self.assertEqual([bindings[symbol] for symbol in ids], list(range(43)))
+        self.assertEqual(len(ids), 44)
+        self.assertEqual([bindings[symbol] for symbol in ids], list(range(44)))
+
+    def test_olivine_checkpoint_uses_the_shared_center_contract(self):
+        checkpoint = self.registry["heal_locations"][42]
+        self.assertEqual(
+            checkpoint,
+            {
+                "id": "HEAL_LOCATION_OLIVINE_CITY",
+                "map": "MAP_OLIVINE_CITY",
+                "x": 15,
+                "y": 44,
+                "respawn_map": "MAP_OLIVINE_CITY_POKEMON_CENTER",
+                "respawn_npc": "LOCALID_OLIVINE_NURSE",
+                "recovery_mode": "HEALER",
+            },
+        )
+
+        center = json.loads(
+            (ROOT / "data/maps/OlivineCity_PokemonCenter/map.json").read_text()
+        )
+        self.assertEqual(
+            center["object_events"],
+            [
+                {
+                    "local_id": "LOCALID_OLIVINE_NURSE",
+                    "graphics_id": "OBJ_EVENT_GFX_NURSE",
+                    "x": 7,
+                    "y": 2,
+                    "elevation": 0,
+                    "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+                    "movement_range_x": 0,
+                    "movement_range_y": 0,
+                    "trainer_type": "TRAINER_TYPE_NONE",
+                    "trainer_sight_or_berry_tree_id": "0",
+                    "script": "Common_EventScript_PkmnCenterNurse_Interact",
+                    "flag": "0",
+                }
+            ],
+        )
+        self.assertEqual(center["warp_events"][0]["dest_map"], "MAP_OLIVINE_CITY")
+        self.assertEqual(center["warp_events"][0]["dest_warp_id"], "7")
+
+        city = json.loads((ROOT / "data/maps/OlivineCity/map.json").read_text())
+        center_warps = [
+            warp
+            for warp in city["warp_events"]
+            if warp["dest_map"] == "MAP_OLIVINE_CITY_POKEMON_CENTER"
+        ]
+        self.assertEqual(
+            center_warps,
+            [
+                {
+                    "x": 15,
+                    "y": 43,
+                    "elevation": 0,
+                    "dest_map": "MAP_OLIVINE_CITY_POKEMON_CENTER",
+                    "dest_warp_id": "0",
+                }
+            ],
+        )
+
+        scripts = (
+            ROOT / "data/maps/OlivineCity_PokemonCenter/scripts.inc"
+        ).read_text()
+        self.assertEqual(
+            scripts.strip().splitlines(),
+            [
+                "OlivineCity_PokemonCenter_MapScripts::",
+                "\tpokemon_center_1f_scripts OlivineCity_PokemonCenter_OnTransition, HEAL_LOCATION_OLIVINE_CITY",
+            ],
+        )
 
     def test_missing_checkpoint_is_rejected(self):
         registry = copy.deepcopy(self.registry)

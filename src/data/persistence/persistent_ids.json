@@ -499,6 +499,17 @@
     {
       "alias": null,
       "domain": "checkpoints",
+      "source": "heal-locations",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "heal-location-id",
+      "symbol": "HEAL_LOCATION_OLIVINE_CITY",
+      "value": 43
+    },
+    {
+      "alias": null,
+      "domain": "checkpoints",
       "source": "contract-checkpoints",
       "state": {
         "kind": "published-binding"
