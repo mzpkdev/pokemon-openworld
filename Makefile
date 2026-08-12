@@ -423,7 +423,16 @@ MISC_TOOL_DIR := $(TOOLS_DIR)/misc
 SCRIPT_COMMANDS_HEADER := $(SOURCE_INCLUDE_DIR)/constants/script_commands.h
 AUTO_GEN_TARGETS += $(SCRIPT_COMMANDS_HEADER)
 
-$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py $(SOURCE_INCLUDE_DIR)/config/overworld.h $(SOURCE_INCLUDE_DIR)/config/dexnav.h
+$(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json \
+                                       $(DATA_SRC_SUBDIR)/wild_encounter_registry.json \
+                                       tools/content_port/ports/johto/adaptations.json \
+                                       $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py \
+                                       $(SOURCE_INCLUDE_DIR)/config/overworld.h \
+                                       $(SOURCE_INCLUDE_DIR)/constants/rtc.h \
+                                       $(SOURCE_INCLUDE_DIR)/constants/species.h \
+                                       data/maps/map_groups.json \
+                                       $(wildcard data/maps/*/map.json) \
+                                       $(DATA_SRC_SUBDIR)/region_map/region_map_sections.json
 	python3 $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py
 
 $(SCRIPT_COMMANDS_HEADER): $(MISC_TOOL_DIR)/make_scr_cmd_constants.py $(DATA_ASM_SUBDIR)/script_cmd_table.inc
@@ -444,11 +453,12 @@ MAKEFLAGS += --no-print-directory
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
+RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check
-.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test
+.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -587,6 +597,10 @@ content-port-test: content-port-transaction-check
 content-port-check: content-port-transaction-check
 	python3 -m tools.content_port check --port $(CONTENT_PORT) \
 		--donor-root $(CONTENT_PORT_DONOR_ROOT)
+
+wild-encounter-test: content-port-transaction-check
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+		-s $(WILD_ENCOUNTERS_TOOL_DIR)/tests -p 'test_*.py' -q
 
 content-port-bundle: content-port-transaction-check
 	python3 -m tools.content_port bundle --port $(CONTENT_PORT) \

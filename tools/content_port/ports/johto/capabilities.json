@@ -1777,7 +1777,19 @@
         "ambient-actors": "deferred",
         "interactions": "deferred",
         "trainers": "deferred",
-        "encounters": "deferred",
+        "encounters": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "encounter",
+              "name": "gRoute39"
+            },
+            {
+              "domain": "encounter",
+              "name": "gRoute39_Night"
+            }
+          ]
+        },
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
         "healing-checkpoints": "deferred",

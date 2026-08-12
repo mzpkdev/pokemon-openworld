@@ -344,16 +344,26 @@ def _registry_container(value: object, registry: str) -> object:
     if registry in {"$", "root"}:
         return current
     for part in registry.split("."):
-        if not isinstance(current, dict) or part not in current:
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+            continue
+        if isinstance(current, list) and part.isdecimal():
+            index = int(part)
+            if index < len(current):
+                current = current[index]
+                continue
+        else:
             raise ContentPortError(f"registry {registry!r} does not exist")
-        current = current[part]
+        raise ContentPortError(f"registry {registry!r} does not exist")
     return current
 
 
 def _record_matches_key(record: object, key: str) -> bool:
     return record == key or (
         isinstance(record, dict)
-        and any(record.get(field) == key for field in ("key", "id", "name"))
+        and any(
+            record.get(field) == key for field in ("key", "id", "name", "base_label")
+        )
     )
 
 

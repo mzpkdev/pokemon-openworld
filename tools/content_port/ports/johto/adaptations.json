@@ -7038,6 +7038,32 @@
     {"section":"MAPSEC_JOHTO_INDIGO_PLATEAU","sourceRole":"mechanical","sourceSymbol":"MAPSEC_JOHTO_INDIGO_PLATEAU"},
     {"section":"MAPSEC_MAHOGANY_HIDEOUT","sourceRole":"mechanical","sourceSymbol":"MAPSEC_MAHOGANY_HIDEOUT"}
   ],
+  "encounterProfiles": [
+    {
+      "map": "Route39",
+      "label": "gRoute39",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route39",
+      "label": "gRoute39_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    }
+  ],
+  "encounterTimePolicy": [
+    {
+      "map": "Route39",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute39",
+      "nightLabel": "gRoute39_Night",
+      "fallbackLabel": "gRoute39"
+    }
+  ],
   "targetBindings": {
     "layoutFormat": "johto",
     "sectionKind": "geographic",

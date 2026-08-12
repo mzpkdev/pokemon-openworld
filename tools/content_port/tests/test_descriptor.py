@@ -384,7 +384,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 509, "deferred": 2379, "story-owned": 160},
+            {"enabled": 510, "deferred": 2378, "story-owned": 160},
         )
         self.assertEqual(
             {
@@ -393,6 +393,88 @@ class DescriptorTests(unittest.TestCase):
             },
             {"maps": 254, "layouts": 255, "groups": 25, "sections": 58, "tilesets": 71},
         )
+
+    def test_encounter_materialization_and_time_policy_fail_closed(self):
+        profile = {
+            "map": "TestMap",
+            "label": "gTestMap",
+            "habitat": "land_mons",
+            "authority": "content",
+            "time": "TIME_DAY",
+        }
+        night = {**profile, "label": "gTestMap_Night", "time": "TIME_NIGHT"}
+        time_policy = {
+            "map": "TestMap",
+            "dayStart": "06:00",
+            "nightStart": "18:00",
+            "dayLabel": "gTestMap",
+            "nightLabel": "gTestMap_Night",
+            "fallbackLabel": "gTestMap",
+        }
+        cases = (
+            (
+                lambda profiles, policy: profiles[0].update(habitat="water_mons"),
+                "only land_mons",
+            ),
+            (
+                lambda profiles, policy: profiles[0].update(authority="missing"),
+                "unknown donor role",
+            ),
+            (
+                lambda profiles, policy: profiles[0].update(time="TIME_MORNING"),
+                "expected TIME_DAY or TIME_NIGHT",
+            ),
+            (
+                lambda profiles, policy: policy.update(dayStart="07:00"),
+                "06:00 through 17:59",
+            ),
+            (
+                lambda profiles, policy: policy.update(fallbackLabel="gTestMap_Night"),
+                "do not match profiles",
+            ),
+            (
+                lambda profiles, policy: profiles.append(copy.deepcopy(profiles[0])),
+                "duplicate encounter profile",
+            ),
+            (
+                lambda profiles, policy: profiles.append(
+                    {
+                        **copy.deepcopy(profiles[0]),
+                        "map": "OtherMap",
+                        "label": "gUnconsumedEncounter",
+                    }
+                ),
+                "exactly match enabled encounter dependencies",
+            ),
+        )
+        for mutation, message in cases:
+            with (
+                self.subTest(message=message),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                capability_path = root / "capabilities.json"
+                capability_document = read_json(capability_path)
+                capability_document["capabilities"].append("encounters")
+                capability_document["maps"][0]["capabilities"]["encounters"] = {
+                    "state": "enabled",
+                    "dependencies": [
+                        {"domain": "encounter", "name": "gTestMap"},
+                        {"domain": "encounter", "name": "gTestMap_Night"},
+                    ],
+                }
+                dump(capability_path, capability_document)
+                path = root / "adaptations.json"
+                document = read_json(path)
+                profiles = [copy.deepcopy(profile), copy.deepcopy(night)]
+                policy = copy.deepcopy(time_policy)
+                mutation(profiles, policy)
+                document["encounterProfiles"] = profiles
+                document["encounterTimePolicy"] = [policy]
+                dump(path, document)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
 
     def make_port(self, root: Path) -> dict[str, object]:
         dump(root / "allocation_lock.json", allocation_document())

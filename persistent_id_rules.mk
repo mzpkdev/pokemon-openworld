@@ -26,8 +26,15 @@ $(PERSISTENT_ID_OUTPUTS) &: $(PERSISTENT_ID_LEDGER) $(PERSISTENT_ID_SOURCES) \
 		$(PERSISTENT_HEAL_SOURCE) $(PERSISTENT_LOCATION_SOURCE) $(PERSISTENT_FACILITY_SOURCE) \
 		include/constants/opponents.h include/constants/opponents_frlg.h include/constants/trainers.h include/constants/trainer_hill.h \
 		include/constants/flags.h include/constants/vars.h include/constants/vars_frlg.h \
-		include/constants/game_stat.h include/constants/maps.h include/config/item.h | $(MAP_GENERATION_STAMP)
+		include/constants/game_stat.h include/constants/maps.h include/config/item.h $(MAP_GENERATION_STAMP)
 	python3 -m tools.persistence.ledger generate --output-root $(GENERATED_ROOT)
+
+# Every C translation unit can reach the public persistent-ID facades through
+# global constants headers.  The map generator promotes a complete replacement
+# tree.  Its stamp is therefore a normal generator prerequisite above: if map
+# generation runs again, Make must restore the persistent siblings even when
+# their source authorities did not change.  Objects also wait for that restore.
+$(C_OBJS) $(TEST_OBJS): $(PERSISTENT_ID_OUTPUTS)
 
 $(C_BUILDDIR)/persistent_ids.o: c_dep += $(PERSISTENT_ID_TABLE) $(PERSISTENT_ID_BINDINGS)
 $(C_BUILDDIR)/heal_location.o $(C_BUILDDIR)/region_map.o: c_dep += $(PERSISTENT_HEAL_CONSTANTS)

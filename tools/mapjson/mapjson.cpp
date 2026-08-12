@@ -2602,6 +2602,51 @@ static void process_generation_tree(const MapBuildPolicy &policy, const string &
     remove_generation_work_trees(destination.parent_path());
     std::filesystem::path staging = reserve_generation_staging(destination);
 
+    // GENERATED_ROOT is an aggregate tree: mapjson owns its map products, while
+    // persistence and other generators own sibling files below the same root.
+    // Seed staging from the currently published aggregate before replacing the
+    // map-owned paths. Otherwise a later map promotion can erase siblings that
+    // an outer or nested Make has already finished generating.
+    std::error_code copy_error;
+    if (std::filesystem::exists(destination, copy_error)) {
+        const std::filesystem::path published = std::filesystem::canonical(destination, copy_error);
+        if (copy_error)
+            FATAL_ERROR("Failed to resolve generated aggregate '%s': %s\n",
+                        destination.string().c_str(), copy_error.message().c_str());
+        std::filesystem::copy(published, staging,
+                              std::filesystem::copy_options::recursive
+                            | std::filesystem::copy_options::overwrite_existing,
+                              copy_error);
+        if (copy_error)
+            FATAL_ERROR("Failed to seed generation staging tree from '%s': %s\n",
+                        destination.string().c_str(), copy_error.message().c_str());
+    } else if (copy_error) {
+        FATAL_ERROR("Failed to inspect generated aggregate '%s': %s\n",
+                    destination.string().c_str(), copy_error.message().c_str());
+    }
+
+    // Remove every mapjson-owned path from the aggregate snapshot before
+    // regenerating it, so changing product modes cannot retain excluded maps.
+    const std::filesystem::path map_owned_paths[] = {
+        "data/maps",
+        "data/layouts",
+        "include/constants/map_groups.h",
+        "include/constants/layouts.h",
+        "include/constants/map_event_ids.h",
+        "include/generated/map_section_metadata.h",
+        "src/data/map_group_count.h",
+        "src/data/debug_map_names.h",
+        "src/data/map_section_metadata.inc.c",
+        "integrity-manifest.json",
+        ".map-build-policy",
+    };
+    for (const std::filesystem::path &relative : map_owned_paths) {
+        std::filesystem::remove_all(staging / relative, copy_error);
+        if (copy_error)
+            FATAL_ERROR("Failed to clear map-owned staging path '%s': %s\n",
+                        relative.string().c_str(), copy_error.message().c_str());
+    }
+
     const std::filesystem::path maps_out = staging / "data" / "maps";
     const std::filesystem::path layouts_out = staging / "data" / "layouts";
     const std::filesystem::path constants_out = staging / "include" / "constants";

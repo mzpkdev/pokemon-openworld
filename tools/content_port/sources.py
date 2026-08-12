@@ -549,7 +549,11 @@ class ExpansionSourceContext(SourceContext):
                                 f"/{name}/{index}/species",
                             )
                         records[ResourceKey("encounter", name)] = SourceRecord(
-                            {"maps": [map_name], "species": species},
+                            {
+                                "maps": [map_name],
+                                "species": species,
+                                "profile": copy.deepcopy(dict(encounter)),
+                            },
                             Provenance(encounters_path.as_posix(), f"/{name}/{index}"),
                         )
                         raw_map_key = ResourceKey("map", map_name)
@@ -2300,6 +2304,39 @@ def resolve_port_sources(
                 binding_dependencies.add(edge.target)
 
     semantic_authorities: dict[ResourceKey, str] = {}
+    encounter_policies = {
+        ResourceKey("encounter", str(item["label"])): item
+        for item in adaptations["encounterProfiles"]
+    }
+    enabled_encounter_dependencies = {
+        dependency
+        for decision in enabled
+        if decision.capability == "encounters"
+        for dependency in decision.dependencies
+        if dependency.domain == "encounter"
+    }
+    policy_labels = {
+        ResourceKey("encounter", str(policy[field]))
+        for policy in adaptations["encounterTimePolicy"]
+        for field in ("dayLabel", "nightLabel")
+    }
+    if (
+        set(encounter_policies) != enabled_encounter_dependencies
+        or set(encounter_policies) != policy_labels
+    ):
+        raise ContentPortError(
+            "authored encounter profiles must exactly match enabled encounter "
+            "dependencies and reviewed time-policy labels"
+        )
+    enabled_encounter_maps = {
+        decision.map_name for decision in enabled if decision.capability == "encounters"
+    }
+    if enabled_encounter_maps != {
+        str(item["map"]) for item in adaptations["encounterProfiles"]
+    }:
+        raise ContentPortError(
+            "enabled encounter maps must exactly match authored encounter profiles"
+        )
     event_policy_path = descriptor.event_policy_path
     entries = descriptor.event_entries
     effect_policy = descriptor.effect_policy
@@ -2325,6 +2362,58 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{dependency}: missing from {role} semantic authority"
             ) from error
+        if dependency.domain == "encounter":
+            policy = encounter_policies.get(dependency)
+            if policy is None:
+                raise ContentPortError(
+                    f"{dependency}: reachable encounter has no materialization policy"
+                )
+            expected_role = str(policy["authority"])
+            if role != expected_role:
+                raise ContentPortError(
+                    f"{dependency}: policy authority {expected_role!r} differs from {role!r}"
+                )
+            profile = record.value.get("profile")
+            habitat = str(policy["habitat"])
+            required_profile_fields = {"map", "base_label", habitat}
+            if not isinstance(profile, Mapping) or not required_profile_fields <= set(
+                profile
+            ):
+                raise ContentPortError(
+                    f"{dependency}: authenticated encounter profile is incomplete"
+                )
+            if (
+                profile["base_label"] != dependency.name
+                or profile["map"] != f"MAP_{policy['map'].upper()}"
+            ):
+                raise ContentPortError(
+                    f"{dependency}: authenticated encounter identity differs from policy"
+                )
+            habitat_value = profile[habitat]
+            if not isinstance(habitat_value, Mapping):
+                raise ContentPortError(f"{dependency}/{habitat}: expected an object")
+            mons = habitat_value.get("mons")
+            if not isinstance(mons, list):
+                raise ContentPortError(f"{dependency}/{habitat}/mons: expected a list")
+            projected_species = sorted(
+                {str(mon.get("species")) for mon in mons if isinstance(mon, Mapping)}
+            )
+            if len(projected_species) == 0 or "None" in projected_species:
+                raise ContentPortError(
+                    f"{dependency}/{habitat}: encounter members are malformed"
+                )
+            record = SourceRecord(
+                {
+                    "maps": [profile["map"]],
+                    "species": projected_species,
+                    "profile": {
+                        "map": profile["map"],
+                        "base_label": profile["base_label"],
+                        habitat: copy.deepcopy(habitat_value),
+                    },
+                },
+                record.provenance,
+            )
         semantic_authorities[dependency] = role
         source_records[dependency] = record
         if dependency.domain == "service" and dependency.name not in entries:

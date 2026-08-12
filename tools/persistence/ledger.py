@@ -8,14 +8,23 @@ authority: generation never discovers new numeric assignments from C source.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import errno
 import json
 from collections import defaultdict
+import os
 from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
+import time
 from typing import Any
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 from tools.persistence.contract import ContractError, load_json, write_json
 
@@ -24,6 +33,67 @@ LEDGER_PATH = Path("src/data/persistence/persistent_ids.json")
 SOURCES_PATH = Path("tools/persistence/persistent_sources.json")
 CONTRACT_PATH = Path("tools/integrity/save_contract.json")
 PUBLISHED_ALLOCATIONS_PATH = Path("tools/persistence/published_allocations.json")
+
+
+@contextmanager
+def _windows_byte_lock(
+    lock,
+    locking,
+    *,
+    nonblocking_mode: int,
+    unlock_mode: int,
+    sleep=time.sleep,
+):
+    """Retry only ordinary Windows byte-lock contention, then unlock once."""
+    while True:
+        lock.seek(0)
+        try:
+            locking(lock.fileno(), nonblocking_mode, 1)
+            break
+        except OSError as exc:
+            if exc.errno not in {errno.EACCES, errno.EAGAIN, errno.EDEADLK}:
+                raise
+            sleep(0.01)
+    try:
+        yield
+    finally:
+        lock.seek(0)
+        locking(lock.fileno(), unlock_mode, 1)
+
+
+@contextmanager
+def _generation_lock(output_root: Path):
+    """Serialize aggregate publication with mapjson's generation promotion."""
+    parent = output_root.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    lock_path = parent / ".generation.lock"
+    if os.name == "nt":
+        while True:
+            try:
+                lock = lock_path.open("a+b")
+                break
+            except PermissionError:
+                time.sleep(0.01)
+        if lock_path.stat().st_size == 0:
+            lock.write(b"\0")
+            lock.flush()
+        try:
+            with _windows_byte_lock(
+                lock,
+                msvcrt.locking,
+                nonblocking_mode=msvcrt.LK_NBLCK,
+                unlock_mode=msvcrt.LK_UNLCK,
+            ):
+                yield
+        finally:
+            lock.close()
+    else:
+        with lock_path.open("a+b") as lock:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
 
 def _source_index(sources: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -1297,17 +1367,20 @@ def render(ledger: dict[str, Any], sources: dict[str, Any], output_root: Path) -
     # Render the complete output set off-tree, then promote each finished file.
     # Combined with make's grouped target, a missing sibling always regenerates
     # the whole deterministic set and no consumer can observe a partial file.
-    output_root.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="persistent-ids-", dir=output_root) as tmp:
-        staging = Path(tmp)
-        for relative, content in outputs.items():
-            path = staging / relative
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
-        for relative in outputs:
-            destination = output_root / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            (staging / relative).replace(destination)
+    with _generation_lock(output_root):
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(
+            prefix="persistent-ids-", dir=output_root
+        ) as tmp:
+            staging = Path(tmp)
+            for relative, content in outputs.items():
+                path = staging / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
+            for relative in outputs:
+                destination = output_root / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                (staging / relative).replace(destination)
 
 
 def main(argv: list[str] | None = None) -> int:

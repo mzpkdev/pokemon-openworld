@@ -4,6 +4,7 @@
 #include "rtc.h"
 #include "constants/wild_encounter.h"
 #include "wild_encounter_ow.h"
+#include "wild_encounter_time_policy.h"
 
 #define HEADER_NONE 0xFFFF
 
@@ -44,8 +45,16 @@ struct WildPokemonHeader
     const struct WildEncounterTypes encounterTypes[TIMES_OF_DAY_COUNT];
 };
 
+// Parallel to gWildMonHeaders so WildPokemonHeader keeps its existing ABI.
+struct WildEncounterTimePolicy
+{
+    u16 dayStartMinutes;
+    u16 nightStartMinutes;
+    u8 dayTime;
+    u8 nightTime;
+};
 
-extern const struct WildPokemonHeader gWildMonHeaders[];
+
 extern const struct WildPokemonHeader gBattlePikeWildMonHeaders[];
 extern const struct WildPokemonHeader gBattlePyramidWildMonHeaders[];
 extern const struct WildPokemon gWildFeebas;
@@ -73,6 +82,16 @@ bool8 SetUpMassOutbreakEncounter(u8 flags);
 bool8 DoMassOutbreakEncounterTest(void);
 bool8 AreLegendariesInSootopolisPreventingEncounters(void);
 u16 GetCurrentMapWildMonHeaderId(void);
+u16 GetWildEncounterHeaderCount(void);
+const struct WildPokemonHeader *GetWildEncounterHeader(u16 headerId);
+const struct WildPokemonInfo *GetWildEncounterInfo(u16 headerId, enum WildPokemonArea area);
+const struct WildPokemonInfo *GetWildEncounterInfoAtTime(u16 headerId, enum TimeOfDay timeOfDay, enum WildPokemonArea area);
+bool32 TryGetWildEncounterHeader(u16 headerId, const struct WildPokemonHeader **header);
+bool32 TryFindWildEncounterHeader(u8 mapGroup, u8 mapNum, u16 *headerId);
+bool32 TryGetCurrentWildEncounterHeader(u16 *headerId);
+bool32 TryGetWildEncounterTypes(u16 headerId, enum TimeOfDay timeOfDay, const struct WildEncounterTypes **types);
+enum TimeOfDay ResolveWildEncounterDisplayTime(u16 headerId, enum TimeOfDay displayTime);
+bool32 TryGetWildEncounterInfo(u16 headerId, enum WildPokemonArea area, const struct WildPokemonInfo **info);
 bool8 CheckFeebasAtCoords(s16 x, s16 y);
 u32 ChooseWildMonIndex_Land(void);
 u32 ChooseWildMonIndex_Water(void);

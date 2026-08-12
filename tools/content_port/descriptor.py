@@ -43,7 +43,9 @@ MATERIALIZATION_STRIP_EVENT_KINDS = (
     "coord_events",
     "object_events",
 )
-MATERIALIZED_CAPABILITIES = frozenset({"spatial", "environment-assets", "trainers"})
+MATERIALIZED_CAPABILITIES = frozenset(
+    {"spatial", "environment-assets", "trainers", "encounters"}
+)
 PORT_KEYS = {
     "schemaVersion",
     "allocationLock",
@@ -96,6 +98,8 @@ ADAPTATION_KEYS = {
     "generatedSections",
     "sectionMetadataAuthorities",
     "targetBindings",
+    "encounterProfiles",
+    "encounterTimePolicy",
 }
 LEGACY_MIGRATION_KEYS = {
     "addedPaths",
@@ -341,6 +345,70 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
             f"{donor_pointer}: donor policy field names must be unique"
         )
     content_field = donor_fields["content"]
+
+    encounter_profile_fields = {"map", "label", "habitat", "authority", "time"}
+    encounter_profiles = _policy_records(
+        document,
+        "encounterProfiles",
+        pointer,
+        encounter_profile_fields,
+    )
+    encounter_identities: set[str] = set()
+    for item, item_pointer in encounter_profiles:
+        for field in encounter_profile_fields:
+            _string(item[field], f"{item_pointer}.{field}")
+        if item["authority"] not in donor_fields:
+            raise ContentPortError(
+                f"{item_pointer}.authority: unknown donor role {item['authority']!r}"
+            )
+        if item["habitat"] != "land_mons":
+            raise ContentPortError(
+                f"{item_pointer}.habitat: only land_mons is currently materialized"
+            )
+        if item["time"] not in {"TIME_DAY", "TIME_NIGHT"}:
+            raise ContentPortError(
+                f"{item_pointer}.time: expected TIME_DAY or TIME_NIGHT"
+            )
+        if item["label"] in encounter_identities:
+            raise ContentPortError(
+                f"{item_pointer}.label: duplicate encounter profile identity"
+            )
+        encounter_identities.add(item["label"])
+
+    time_records = _policy_records(
+        document,
+        "encounterTimePolicy",
+        pointer,
+        {"map", "dayStart", "nightStart", "dayLabel", "nightLabel", "fallbackLabel"},
+    )
+    if len(time_records) > 1 or bool(encounter_profiles) != bool(time_records):
+        raise ContentPortError(
+            f"{pointer}.encounterTimePolicy: expected exactly one policy for authored profiles"
+        )
+    if time_records:
+        time_policy, time_pointer = time_records[0]
+        for field in time_policy:
+            _string(time_policy[field], f"{time_pointer}.{field}")
+        if time_policy["dayStart"] != "06:00" or time_policy["nightStart"] != "18:00":
+            raise ContentPortError(
+                f"{time_pointer}: target policy must select day from 06:00 through 17:59"
+            )
+        labels_by_time = {
+            item["time"]: item["label"]
+            for item, _ in encounter_profiles
+            if item["map"] == time_policy["map"]
+        }
+        if (
+            labels_by_time
+            != {
+                "TIME_DAY": time_policy["dayLabel"],
+                "TIME_NIGHT": time_policy["nightLabel"],
+            }
+            or time_policy["fallbackLabel"] != time_policy["dayLabel"]
+        ):
+            raise ContentPortError(
+                f"{time_pointer}: day, night, and fallback labels do not match profiles"
+            )
 
     for item, item_pointer in _policy_records(
         document,
@@ -706,6 +774,69 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
                     f"identity; first declared at {seen[identity]}"
                 )
             seen[identity] = item_pointer
+
+
+def _validate_encounter_profile_reachability(
+    adaptations: Mapping[str, object],
+    capabilities: tuple[CapabilityDecision, ...],
+    pointer: str = "$",
+) -> None:
+    profiles = _array(adaptations["encounterProfiles"], f"{pointer}.encounterProfiles")
+    profile_labels = {
+        _string(
+            _object(raw, f"{pointer}.encounterProfiles[{index}]")["label"],
+            f"{pointer}.encounterProfiles[{index}].label",
+        )
+        for index, raw in enumerate(profiles)
+    }
+    dependency_maps: dict[str, str] = {}
+    for decision in capabilities:
+        if (
+            decision.capability != "encounters"
+            or decision.state is not CapabilityState.ENABLED
+        ):
+            continue
+        for dependency in decision.dependencies:
+            if dependency.domain != "encounter":
+                continue
+            previous = dependency_maps.setdefault(dependency.name, decision.map_name)
+            if previous != decision.map_name:
+                raise ContentPortError(
+                    f"{pointer}.encounterProfiles: encounter dependency "
+                    f"{dependency.name!r} is reachable from multiple maps"
+                )
+    dependency_labels = set(dependency_maps)
+    policies = _array(
+        adaptations["encounterTimePolicy"], f"{pointer}.encounterTimePolicy"
+    )
+    policy_labels = {
+        label
+        for index, raw in enumerate(policies)
+        for label in (
+            _string(
+                _object(raw, f"{pointer}.encounterTimePolicy[{index}]")["dayLabel"],
+                f"{pointer}.encounterTimePolicy[{index}].dayLabel",
+            ),
+            _string(
+                _object(raw, f"{pointer}.encounterTimePolicy[{index}]")["nightLabel"],
+                f"{pointer}.encounterTimePolicy[{index}].nightLabel",
+            ),
+        )
+    }
+    if profile_labels != dependency_labels or profile_labels != policy_labels:
+        raise ContentPortError(
+            f"{pointer}.encounterProfiles: labels must exactly match enabled "
+            "encounter dependencies and reviewed time-policy labels"
+        )
+    for index, raw in enumerate(profiles):
+        item = _object(raw, f"{pointer}.encounterProfiles[{index}]")
+        label = _string(item["label"], f"{pointer}.encounterProfiles[{index}].label")
+        map_name = _string(item["map"], f"{pointer}.encounterProfiles[{index}].map")
+        if dependency_maps[label] != map_name:
+            raise ContentPortError(
+                f"{pointer}.encounterProfiles[{index}].map: does not match enabled "
+                "encounter dependency owner"
+            )
 
 
 def forbid_numeric_policy(value: object, pointer: str = "$") -> None:
@@ -1438,6 +1569,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         "$",
     )
     _validate_adaptation_policy(_thaw(adaptations), "$")
+    _validate_encounter_profile_reachability(_thaw(adaptations), capabilities)
     event_path = _safe_child(port_dir, root["eventPolicy"], "$.eventPolicy")
     events = _load_policy(event_path, {"schemaVersion", "entries", "effects"}, "$")
     # Event semantics are part of the descriptor contract, not deferred until a

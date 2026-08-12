@@ -472,6 +472,31 @@ def _layout_units(
     return units
 
 
+def _encounter_units(
+    descriptor: PortDescriptor, state: PortSourceState
+) -> list[RenderUnit]:
+    units: list[RenderUnit] = []
+    for policy in descriptor.adaptations["encounterProfiles"]:
+        key = ResourceKey("encounter", str(policy["label"]))
+        value = state.semantic_values.get(key)
+        if value is None:
+            raise ContentPortError(f"{key}: encounter profile is not in the closure")
+        profile = value.get("profile")
+        if not isinstance(profile, Mapping):
+            raise ContentPortError(f"{key}: encounter profile payload is missing")
+        units.append(
+            RenderUnit(
+                f"encounter:{key.name}",
+                "encounter-registry",
+                "src/data/wild_encounters.json",
+                _thaw(profile),
+                registry="wild_encounter_groups.0.encounters",
+                record_key=key.name,
+            )
+        )
+    return units
+
+
 def _group_units(descriptor: PortDescriptor) -> list[RenderUnit]:
     members: dict[str, list[tuple[int, str]]] = {
         name: [] for name in descriptor.allocation_index.groups
@@ -802,6 +827,7 @@ def derive_desired_state(
             *_section_units(snapshot_descriptor, state, root),
             *_asset_units(snapshot_descriptor, state),
             *_trainer_units(snapshot_descriptor, state, root),
+            *_encounter_units(snapshot_descriptor, state),
             *_generated_units(snapshot_descriptor, state, root),
         ]
         manifest, payloads = render_units(

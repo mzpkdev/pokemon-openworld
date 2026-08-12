@@ -17,6 +17,7 @@ from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import (
     _asset_units,
+    _encounter_units,
     _group_units,
     _generated_body,
     _layout_units,
@@ -91,7 +92,6 @@ class MaterializeTests(unittest.TestCase):
         descriptor = self.descriptor()
         installed = OwnershipManifest.load(PORT / "ownership.json")
         desired, payloads = derive_desired_state(descriptor, ROOT)
-        installed_by_identity = installed.by_identity
         desired_by_identity = desired.by_identity
         selected_party = (
             "section",
@@ -102,14 +102,23 @@ class MaterializeTests(unittest.TestCase):
             ("file", "data/maps/Route34/map.json"),
             ("file", "data/maps/Route34/scripts.inc"),
         }
+        route39_delta = {
+            (
+                "registry-record",
+                "src/data/wild_encounters.json",
+                "wild_encounter_groups.0.encounters",
+                label,
+            )
+            for label in ("gRoute39", "gRoute39_Night")
+        }
 
-        def assert_exact_manifest_delta(
-            baseline: OwnershipManifest, *, reconciled: bool
-        ) -> None:
+        admitted = {selected_party, *route39_delta}
+
+        def assert_exact_manifest_delta(baseline: OwnershipManifest) -> None:
             baseline_by_identity = baseline.by_identity
             self.assertEqual(
                 set(desired_by_identity) - set(baseline_by_identity),
-                set() if reconciled else {selected_party},
+                admitted - set(baseline_by_identity),
             )
             self.assertEqual(
                 set(baseline_by_identity) - set(desired_by_identity), set()
@@ -122,14 +131,111 @@ class MaterializeTests(unittest.TestCase):
                     if baseline_by_identity[identity].sha256
                     != desired_by_identity[identity].sha256
                 },
-                set() if reconciled else route34_delta,
+                set() if selected_party in baseline_by_identity else route34_delta,
             )
 
-        already_reconciled = selected_party in installed_by_identity
-        assert_exact_manifest_delta(installed, reconciled=already_reconciled)
+        assert_exact_manifest_delta(installed)
         # Exercise the exact manifest state seen by detached post-reconcile
         # validation even when this test starts from the pre-reconcile tree.
-        assert_exact_manifest_delta(desired, reconciled=True)
+        assert_exact_manifest_delta(desired)
+
+    def test_route39_encounters_are_authenticated_land_only_profiles(self) -> None:
+        descriptor = self.descriptor()
+        installed = OwnershipManifest.load(PORT / "ownership.json")
+        desired, payloads = derive_desired_state(descriptor, ROOT)
+        installed_by_identity = installed.by_identity
+        samuel_reconciled = (
+            "section",
+            "src/data/trainers.party",
+            "selected trainer parties",
+        ) in installed_by_identity
+        route39_reconciled = all(
+            (
+                "registry-record",
+                "src/data/wild_encounters.json",
+                "wild_encounter_groups.0.encounters",
+                label,
+            )
+            in installed_by_identity
+            for label in ("gRoute39", "gRoute39_Night")
+        )
+        _, state = resolve_port_sources(descriptor, ROOT)
+        units = _encounter_units(descriptor, state)
+        self.assertEqual(
+            [unit.record_key for unit in units], ["gRoute39", "gRoute39_Night"]
+        )
+        self.assertTrue(
+            all(unit.registry == "wild_encounter_groups.0.encounters" for unit in units)
+        )
+        self.assertTrue(
+            all(set(unit.value) == {"map", "base_label", "land_mons"} for unit in units)
+        )
+        profiles = {unit.record_key: unit.value["land_mons"] for unit in units}
+        self.assertEqual(
+            {
+                label: (profile["encounter_rate"], len(profile["mons"]))
+                for label, profile in profiles.items()
+            },
+            {"gRoute39": (20, 12), "gRoute39_Night": (20, 12)},
+        )
+        self.assertEqual(
+            [
+                (mon["min_level"], mon["max_level"], mon["species"])
+                for mon in profiles["gRoute39"]["mons"]
+            ],
+            [
+                (21, 21, "SPECIES_PONYTA"),
+                (21, 21, "SPECIES_RATICATE"),
+                (21, 21, "SPECIES_MAGNEMITE"),
+                (21, 21, "SPECIES_DODUO"),
+                (21, 21, "SPECIES_PONYTA"),
+                (21, 21, "SPECIES_RATICATE"),
+                (21, 21, "SPECIES_MAGNEMITE"),
+                (21, 21, "SPECIES_DODUO"),
+                (21, 21, "SPECIES_MILTANK"),
+                (21, 21, "SPECIES_TAUROS"),
+                (21, 21, "SPECIES_MILTANK"),
+                (21, 21, "SPECIES_TAUROS"),
+            ],
+        )
+        self.assertEqual(
+            [
+                (mon["min_level"], mon["max_level"], mon["species"])
+                for mon in profiles["gRoute39_Night"]["mons"]
+            ],
+            [
+                (18, 21, "SPECIES_MEOWTH"),
+                (21, 21, "SPECIES_RATICATE"),
+                (20, 20, "SPECIES_MAGNEMITE"),
+                (20, 20, "SPECIES_NOCTOWL"),
+                (18, 21, "SPECIES_MEOWTH"),
+                (21, 21, "SPECIES_RATICATE"),
+                (20, 20, "SPECIES_MAGNEMITE"),
+                (18, 21, "SPECIES_MEOWTH"),
+                (20, 20, "SPECIES_NOCTOWL"),
+                (20, 20, "SPECIES_NOCTOWL"),
+                (20, 20, "SPECIES_NOCTOWL"),
+                (20, 20, "SPECIES_NOCTOWL"),
+            ],
+        )
+        policy = descriptor.adaptations["encounterTimePolicy"][0]
+        self.assertEqual(
+            (policy["dayStart"], policy["nightStart"], policy["fallbackLabel"]),
+            ("06:00", "18:00", "gRoute39"),
+        )
+        self.assertEqual(
+            {
+                key: state.semantic_evidence[key]
+                for key in (
+                    "content:encounter:gRoute39",
+                    "content:encounter:gRoute39_Night",
+                )
+            },
+            {
+                "content:encounter:gRoute39": "2186b683bde5b5afd4d94c962f544613b77012c95f9967768d61b6a7f49c6699",
+                "content:encounter:gRoute39_Night": "35d319bec735b29dad3a78a39ef6cf1625c9b6a323e98ac24a4346a607e130f2",
+            },
+        )
 
         rival_identity = (
             "section",
@@ -248,16 +354,20 @@ class MaterializeTests(unittest.TestCase):
                 for relative, content in before.items()
                 if (staged / relative).read_bytes() != content
             }
-            expected_changed_paths = (
-                set()
-                if already_reconciled
-                else {
-                    "data/maps/Route34/map.json",
-                    "data/maps/Route34/scripts.inc",
-                    "src/data/trainers.party",
-                    ownership_path,
-                }
-            )
+            expected_changed_paths = set()
+            if not samuel_reconciled:
+                expected_changed_paths.update(
+                    {
+                        "data/maps/Route34/map.json",
+                        "data/maps/Route34/scripts.inc",
+                        "src/data/trainers.party",
+                        ownership_path,
+                    }
+                )
+            if not route39_reconciled:
+                expected_changed_paths.update(
+                    {"src/data/wild_encounters.json", ownership_path}
+                )
             self.assertEqual(changed_paths, expected_changed_paths)
             self.assertEqual(
                 (staged / "include/constants/opponents.h").read_bytes(),
@@ -392,7 +502,11 @@ class MaterializeTests(unittest.TestCase):
                         records = document
                         if unit.registry not in {"$", "root"}:
                             for part in (unit.registry or "").split("."):
-                                records = records[part]
+                                records = (
+                                    records[int(part)]
+                                    if isinstance(records, list) and part.isdecimal()
+                                    else records[part]
+                                )
                         if isinstance(records, dict):
                             value = records[unit.key]
                         elif unit.slot is not None:
@@ -407,6 +521,7 @@ class MaterializeTests(unittest.TestCase):
                                     record.get("key"),
                                     record.get("id"),
                                     record.get("name"),
+                                    record.get("base_label"),
                                 )
                             )
                         if isinstance(value, dict):
