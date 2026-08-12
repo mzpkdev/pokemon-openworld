@@ -62,7 +62,7 @@ Route23_EventScript_CheckBoulderBadge::
 	end
 
 Route23_EventScript_CheckCascadeBadge::
-	goto_if_set FLAG_BADGE02_GET, Route23_EventScript_RecognizeBadge
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE, Route23_EventScript_RecognizeBadge
 	goto Route23_EventScript_MissingBadge
 	end
 
@@ -133,7 +133,7 @@ Route23_EventScript_CheckBoulderBadgeTrigger::
 	end
 
 Route23_EventScript_CheckCascadeBadgeTrigger::
-	goto_if_set FLAG_BADGE02_GET, Route23_EventScript_RecognizeBadgeTrigger
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE, Route23_EventScript_RecognizeBadgeTrigger
 	goto Route23_EventScript_MissingBadgeTrigger
 	end
 
@@ -239,4 +239,3 @@ Text_OnlyPassWithBadgeOhGoAhead::
 	.string "Oh! That is the {STR_VAR_1}!{PAUSE_MUSIC}{PLAY_BGM}{MUS_LEVEL_UP}{PAUSE 0x60}{RESUME_MUSIC}\p"
 	.string "Okay, then.\n"
 	.string "Please, go right ahead.$"
-

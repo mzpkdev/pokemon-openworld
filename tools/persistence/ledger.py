@@ -263,6 +263,12 @@ def seed_ledger(
 ) -> dict[str, Any]:
     source_by_id = _source_index(sources)
     storage_by_id = _storage_index(sources)
+    regional_fact_symbols = {
+        fact["symbol"]
+        for source in source_by_id.values()
+        if source.get("kind") == "regional-fact-policy"
+        for fact in load_json(repo / source["path"]).get("exact", [])
+    }
     entries: list[dict[str, Any]] = []
     for domain, bindings in sorted(contract["publishedBindings"].items()):
         source_id = _published_source(domain, source_by_id)
@@ -271,6 +277,8 @@ def seed_ledger(
         if storage not in storage_by_id:
             raise ContractError(f"source {source_id}: unallocated storage {storage}")
         for binding in bindings:
+            if domain == "flags" and binding["symbol"] in regional_fact_symbols:
+                continue
             value = binding["value"]
             state: dict[str, Any] = {"kind": "published-binding"}
             if (
@@ -1141,8 +1149,14 @@ def validate_frozen_bindings(
     published = {
         (item["domain"], item["symbol"]): item["value"]
         for item in entries
-        if item["state"]["kind"]
-        in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+        if (
+            item["state"]["kind"]
+            in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+            or (
+                item["source"] == "regional-facts"
+                and item["state"]["kind"] == "allocated-binding"
+            )
+        )
     }
     frozen = {
         (domain, item["symbol"]): item["value"]

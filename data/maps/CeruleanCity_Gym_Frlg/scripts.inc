@@ -12,6 +12,7 @@ CeruleanCity_Gym_EventScript_Misty::
 CeruleanCity_Gym_EventScript_MistyDefeated::
 	famechecker FAMECHECKER_MISTY, 1
 	setflag FLAG_DEFEATED_MISTY
+	setflag FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE
 	setflag FLAG_BADGE02_GET
 	setrespawn HEAL_LOCATION_CERULEAN_CITY
 	set_gym_trainers_frlg 2
@@ -59,7 +60,7 @@ CeruleanCity_Gym_EventScript_GymGuyPostVictory::
 
 CeruleanCity_Gym_EventScript_GymStatue::
 	lockall
-	goto_if_set FLAG_BADGE02_GET, CeruleanCity_Gym_EventScript_GymStatuePostVictory
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE, CeruleanCity_Gym_EventScript_GymStatuePostVictory
 	msgbox CeruleanCity_Gym_Text_GymStatue
 	releaseall
 	end
@@ -160,4 +161,3 @@ CeruleanCity_Gym_Text_GymStatuePlayerWon::
 	.string "LEADER: MISTY\p"
 	.string "WINNING TRAINERS:\n"
 	.string "{RIVAL}, {PLAYER}$"
-
