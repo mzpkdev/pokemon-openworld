@@ -22,9 +22,7 @@ class StartProfileStatus(IntEnum):
 
 
 def submit_start_profile(game, profile: int, request_id: int) -> None:
-    payload = struct.pack(
-        "<IHBB", request_id, 1, profile, StartProfileStatus.IDLE
-    )
+    payload = struct.pack("<IHBB", request_id, 1, profile, StartProfileStatus.IDLE)
     assert len(payload) == START_PROFILE_REQUEST_SIZE
     address = game.address("gDebugNewGameStartProfileRequest")
     game.pause()

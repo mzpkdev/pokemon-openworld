@@ -14,8 +14,16 @@ from tools.e2e.start_profile import (
 DIR_SOUTH = 1
 PROFILE_EXPECTATIONS = {
     StartProfile.HOENN: {"map": (25, 40), "position": None, "checkpoint": None},
-    StartProfile.KANTO: {"map": (37, 0), "position": (6, 8), "checkpoint": (37, 0, 6, 8)},
-    StartProfile.JOHTO: {"map": (89, 0), "position": (15, 44), "checkpoint": (89, 0, 15, 44)},
+    StartProfile.KANTO: {
+        "map": (37, 0),
+        "position": (6, 8),
+        "checkpoint": (37, 0, 6, 8),
+    },
+    StartProfile.JOHTO: {
+        "map": (89, 0),
+        "position": (15, 44),
+        "checkpoint": (89, 0, 15, 44),
+    },
 }
 
 
@@ -65,7 +73,9 @@ def _save_and_settle(game):
 
 
 @pytest.mark.parametrize("profile", list(StartProfile))
-def test_profile_start_and_transient_selector_are_save_neutral(session_factory, profile):
+def test_profile_start_and_transient_selector_are_save_neutral(
+    session_factory, profile
+):
     game = session_factory()
     quickstart_with_profile(game, profile, 0x53544110 + profile)
     assert start_profile_status(game) == StartProfileStatus.ACCEPTED

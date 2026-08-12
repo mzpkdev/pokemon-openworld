@@ -12,9 +12,7 @@ from tools.start_profiles.verify_artifacts import (
 
 def _variant(root: Path, name: str, *, debug: bool) -> tuple[Path, Path]:
     rom = bytearray(64)
-    rom[8:16] = bytes(
-        (1, 0, 0, int(debug), 3, 8 if debug else 0, 7 if debug else 0, 0)
-    )
+    rom[8:16] = bytes((1, 0, 0, int(debug), 3, 8 if debug else 0, 7 if debug else 0, 0))
     rom[24 : 24 + len(EXPECTED_PROFILES)] = EXPECTED_PROFILES
     rom_path = root / f"{name}.gba"
     sym_path = root / f"{name}.sym"
@@ -49,9 +47,8 @@ def test_hoenn_truck_retains_gender_owned_checkpoint_policy() -> None:
     scripts = Path("data/maps/InsideOfTruck/scripts.inc").read_text()
     male = scripts.index("InsideOfTruck_EventScript_SetIntroFlagsMale::")
     female = scripts.index("InsideOfTruck_EventScript_SetIntroFlagsFemale::")
-    assert "setrespawn HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F" in scripts[
-        male:female
-    ]
-    assert "setrespawn HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F" in scripts[
-        female:
-    ]
+    assert (
+        "setrespawn HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F"
+        in scripts[male:female]
+    )
+    assert "setrespawn HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE_2F" in scripts[female:]

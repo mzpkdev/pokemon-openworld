@@ -60,8 +60,7 @@ class CheckpointRegistryTests(unittest.TestCase):
         bindings = {
             entry["symbol"]: entry["value"]
             for entry in entries
-            if entry["domain"] == "checkpoints"
-            and entry["source"] == "heal-locations"
+            if entry["domain"] == "checkpoints" and entry["source"] == "heal-locations"
         }
         ids = ["HEAL_LOCATION_NONE"] + [
             checkpoint["id"] for checkpoint in self.registry["heal_locations"]
@@ -128,9 +127,7 @@ class CheckpointRegistryTests(unittest.TestCase):
             ],
         )
 
-        scripts = (
-            ROOT / "data/maps/OlivineCity_PokemonCenter/scripts.inc"
-        ).read_text()
+        scripts = (ROOT / "data/maps/OlivineCity_PokemonCenter/scripts.inc").read_text()
         self.assertEqual(
             scripts.strip().splitlines(),
             [
@@ -157,7 +154,9 @@ class CheckpointRegistryTests(unittest.TestCase):
         )
 
     def test_out_of_bounds_heal_and_destination_coordinates_are_rejected(self):
-        self.assertRejected(self._mutated(x=65535), "heal location is outside map bounds")
+        self.assertRejected(
+            self._mutated(x=65535), "heal location is outside map bounds"
+        )
         self.assertRejected(
             self._mutated(respawn_x=65535, respawn_y=7),
             "whiteout destination is outside map bounds",

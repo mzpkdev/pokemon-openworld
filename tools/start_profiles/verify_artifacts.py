@@ -38,7 +38,9 @@ def read_rom_symbol(rom: bytes, symbols: dict[str, int], name: str, size: int) -
     try:
         address = symbols[name]
     except KeyError as error:
-        raise StartProfileContractError(f"linked symbols do not define {name}") from error
+        raise StartProfileContractError(
+            f"linked symbols do not define {name}"
+        ) from error
     offset = (address & ~1) - ROM_BASE
     if offset < 0 or offset + size > len(rom):
         raise StartProfileContractError(f"{name} points outside the ROM artifact")
@@ -49,8 +51,8 @@ def verify_variant(rom_path: Path, sym_path: Path, *, debug: bool) -> None:
     rom = rom_path.read_bytes()
     symbols = parse_symbols(sym_path)
     contract = read_rom_symbol(rom, symbols, CONTRACT_SYMBOL, 8)
-    abi, default, selector, count, request_size, status_offset, reserved = struct.unpack(
-        "<H6B", contract
+    abi, default, selector, count, request_size, status_offset, reserved = (
+        struct.unpack("<H6B", contract)
     )
     expected = (1, 0, int(debug), 3, 8 if debug else 0, 7 if debug else 0, 0)
     actual = (abi, default, selector, count, request_size, status_offset, reserved)
