@@ -613,6 +613,32 @@ bool32 TryGetWildEncounterTypes(u16 headerId, enum TimeOfDay timeOfDay, const st
     return TRUE;
 }
 
+enum TimeOfDay ResolveWildEncounterDisplayTime(u16 headerId, enum TimeOfDay displayTime)
+{
+    static const u16 sDisplayMinutes[TIMES_OF_DAY_COUNT] =
+    {
+        [TIME_MORNING] = 6 * 60,
+        [TIME_DAY] = 12 * 60,
+        [TIME_EVENING] = 18 * 60,
+        [TIME_NIGHT] = 0,
+    };
+    const struct WildEncounterTimePolicy *timePolicy;
+
+    if (headerId >= sWildEncounterRegistry.count || (u32)displayTime >= TIMES_OF_DAY_COUNT)
+        return displayTime;
+
+    timePolicy = &sWildEncounterRegistry.timePolicies[headerId];
+    if (timePolicy->dayStartMinutes == WILD_ENCOUNTER_TIME_POLICY_NONE)
+        return displayTime;
+
+    return ResolveWildEncounterPolicyTime(
+        sDisplayMinutes[displayTime],
+        timePolicy->dayStartMinutes,
+        timePolicy->nightStartMinutes,
+        timePolicy->dayTime,
+        timePolicy->nightTime);
+}
+
 const struct WildPokemonInfo *GetWildEncounterInfo(u16 headerId, enum WildPokemonArea area)
 {
     const struct WildPokemonInfo *info;

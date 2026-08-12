@@ -48,6 +48,11 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 direct_consumers.append(source.relative_to(ROOT).as_posix())
         self.assertEqual(direct_consumers, [])
 
+    def test_pokedex_resolves_display_bucket_through_map_policy(self):
+        contents = (ROOT / "src/pokedex_area_screen.c").read_text(encoding="utf-8")
+        self.assertIn("ResolveWildEncounterDisplayTime(i, gAreaTimeOfDay)", contents)
+        self.assertNotIn("TryGetWildEncounterTypes(i, gAreaTimeOfDay", contents)
+
     def test_both_altering_cave_domains_use_independent_selectors(self):
         runtime = (ROOT / "src/wild_encounter.c").read_text(encoding="utf-8")
         area_screen = (ROOT / "src/pokedex_area_screen.c").read_text(encoding="utf-8")

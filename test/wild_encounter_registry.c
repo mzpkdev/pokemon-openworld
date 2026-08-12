@@ -151,3 +151,23 @@ TEST("Resident wild method resolver preserves Route 39 all-minute policy")
     EXPECT_EQ(GetWildEncounterInfoAtTime(route39Id, TIME_DAY, WILD_AREA_HIDDEN), NULL);
     SetTimeOfDay(savedOverride);
 }
+
+TEST("Pokedex display buckets honor per-map encounter time policy")
+{
+    u16 route39Id;
+    u16 ordinaryId;
+
+    EXPECT(TryFindWildEncounterHeader(MAP_GROUP(MAP_ROUTE39), MAP_NUM(MAP_ROUTE39), &route39Id));
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(route39Id, TIME_MORNING), TIME_DAY);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(route39Id, TIME_DAY), TIME_DAY);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(route39Id, TIME_EVENING), TIME_NIGHT);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(route39Id, TIME_NIGHT), TIME_NIGHT);
+
+    EXPECT(TryFindWildEncounterHeader(MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), &ordinaryId));
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(ordinaryId, TIME_MORNING), TIME_MORNING);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(ordinaryId, TIME_DAY), TIME_DAY);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(ordinaryId, TIME_EVENING), TIME_EVENING);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(ordinaryId, TIME_NIGHT), TIME_NIGHT);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(GetWildEncounterHeaderCount(), TIME_DAY), TIME_DAY);
+    EXPECT_EQ(ResolveWildEncounterDisplayTime(route39Id, TIMES_OF_DAY_COUNT), TIMES_OF_DAY_COUNT);
+}

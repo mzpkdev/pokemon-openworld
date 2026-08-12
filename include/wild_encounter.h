@@ -90,6 +90,7 @@ bool32 TryGetWildEncounterHeader(u16 headerId, const struct WildPokemonHeader **
 bool32 TryFindWildEncounterHeader(u8 mapGroup, u8 mapNum, u16 *headerId);
 bool32 TryGetCurrentWildEncounterHeader(u16 *headerId);
 bool32 TryGetWildEncounterTypes(u16 headerId, enum TimeOfDay timeOfDay, const struct WildEncounterTypes **types);
+enum TimeOfDay ResolveWildEncounterDisplayTime(u16 headerId, enum TimeOfDay displayTime);
 bool32 TryGetWildEncounterInfo(u16 headerId, enum WildPokemonArea area, const struct WildPokemonInfo **info);
 bool8 CheckFeebasAtCoords(s16 x, s16 y);
 u32 ChooseWildMonIndex_Land(void);

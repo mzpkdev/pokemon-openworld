@@ -82,7 +82,7 @@ struct OverworldArea
     MapSectionId regionMapSectionId;
 };
 
-struct
+struct PokedexAreaScreen
 {
     /*0x000*/ void (*callback)(void); // unused
     /*0x004*/ MainCallback prev; // unused
@@ -105,16 +105,23 @@ struct
     /*0x6E0*/ u16 numAreaMarkerSprites;
     /*0x6E2*/ u16 alteringCaveCounter;
     /*0x6E4*/ u16 alteringCaveId;
-    u16 alteringCaveCounterFrlg;
-    u16 alteringCaveIdFrlg;
-    /*0x6E8*/ u8 *screenSwitchState;
-    /*0x6EC*/ struct RegionMap regionMap;
-    /*0xF70*/ u8 charBuffer[64];
-    /*0xFB0*/ struct Sprite *areaUnknownSprites[3];
-    /*0xFBC*/ u8 areaUnknownGraphicsBuffer[0x600];
-    /*0xFC0*/ u8 areaScreenLabelIds[NUM_LABEL_WINDOWS];
-    /*0xFC8*/ u8 areaState;
+    /*0x6E6*/ u16 alteringCaveCounterFrlg;
+    /*0x6E8*/ u16 alteringCaveIdFrlg;
+    /*0x6EC*/ u8 *screenSwitchState;
+    /*0x6F0*/ struct RegionMap regionMap;
+    /*0xF74*/ u8 charBuffer[64];
+    /*0xFB4*/ struct Sprite *areaUnknownSprites[3];
+    /*0xFC0*/ u8 areaUnknownGraphicsBuffer[0x600];
+    /*0x15C0*/ u8 areaScreenLabelIds[NUM_LABEL_WINDOWS];
+    /*0x15C2*/ u8 areaState;
 } static EWRAM_DATA *sPokedexAreaScreen = NULL;
+
+STATIC_ASSERT(__builtin_offsetof(struct PokedexAreaScreen, alteringCaveCounterFrlg) == 0x6E6, PokedexAreaFrlgCounterOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PokedexAreaScreen, alteringCaveIdFrlg) == 0x6E8, PokedexAreaFrlgIdOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PokedexAreaScreen, screenSwitchState) == 0x6EC, PokedexAreaScreenSwitchOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PokedexAreaScreen, regionMap) == 0x6F0, PokedexAreaRegionMapOffset);
+STATIC_ASSERT(__builtin_offsetof(struct PokedexAreaScreen, areaState) == 0x15C2, PokedexAreaStateOffset);
+STATIC_ASSERT(sizeof(struct PokedexAreaScreen) == 0x15C4, PokedexAreaScreenSize);
 
 EWRAM_DATA u8 gAreaTimeOfDay = 0;
 
@@ -348,7 +355,7 @@ static void FindMapsWithMon(enum Species species)
         if (GetRegionMapType(headerSectionId) != currentRegionMapType)
             continue;
 
-        if (TryGetWildEncounterTypes(i, gAreaTimeOfDay, &encounterTypes)
+        if (TryGetWildEncounterTypes(i, ResolveWildEncounterDisplayTime(i, gAreaTimeOfDay), &encounterTypes)
          && MapHasSpecies(encounterTypes, headerSectionId, species))
         {
             switch (wildHeader->mapGroup)
