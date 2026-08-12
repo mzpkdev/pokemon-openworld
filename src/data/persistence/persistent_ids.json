@@ -19805,6 +19805,20 @@
       "value": 31
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x020",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+      "value": 32
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19816,6 +19830,20 @@
       "value": 32
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x021",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+      "value": 33
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19825,6 +19853,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x021",
       "value": 33
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x022",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE",
+      "value": 34
     },
     {
       "alias": null,

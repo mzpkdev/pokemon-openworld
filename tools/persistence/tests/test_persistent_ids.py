@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import contextlib
 import errno
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -12,6 +13,11 @@ import subprocess
 import unittest
 
 from tools.persistence.contract import ContractError, canonical_bytes
+from tools.persistence.historical_flags import (
+    FLASH_SIZE,
+    SECTOR_SIZE,
+    inspect_historical_flags,
+)
 from tools.persistence.ledger import (
     _windows_byte_lock,
     main,
@@ -23,6 +29,7 @@ from tools.persistence.ledger import (
     validate_location_codecs,
     validate_published_allocation_history,
     validate_published_allocations,
+    validate_regional_fact_policy,
 )
 
 
@@ -68,6 +75,9 @@ class PersistentIdTests(unittest.TestCase):
         )
         cls.published_allocations = json.loads(
             (ROOT / "tools/persistence/published_allocations.json").read_text()
+        )
+        cls.regional_fact_policy = json.loads(
+            (ROOT / "tools/persistence/regional_fact_bindings.json").read_text()
         )
 
     def mutated(self):
@@ -194,6 +204,111 @@ class PersistentIdTests(unittest.TestCase):
                         f"#undef {symbol}\n#define {symbol} {macro}\n", facade
                     )
                     self.assertIn(f"#define {macro} {entry['value']}\n", bindings)
+
+    def test_regional_fact_classification_and_fixture_evidence_is_valid(self):
+        validate_regional_fact_policy(self.ledger["entries"], self.sources, ROOT)
+        self.assertEqual(
+            {item["fact"] for item in self.regional_fact_policy["exact"]},
+            {
+                "HOENN_STONE_BADGE",
+                "KANTO_CASCADE_BADGE",
+                "JOHTO_HIVE_BADGE",
+            },
+        )
+        self.assertEqual(
+            {
+                item["symbol"]: item["shippedCutGrant"]
+                for item in self.regional_fact_policy["ambiguous"]
+            },
+            {"FLAG_BADGE01_GET": True, "FLAG_BADGE02_GET": False},
+        )
+        self.assertEqual(
+            {item["value"] for item in self.regional_fact_policy["unused"]},
+            {0x20, 0x21, 0x22},
+        )
+
+    def test_regional_fact_fixture_digest_mutation_fails_closed(self):
+        fixture = self.regional_fact_policy["historicalFixtures"][0]
+        data = bytearray((ROOT / fixture["path"]).read_bytes())
+        data[-1] ^= 1
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mutated.sav"
+            path.write_bytes(data)
+            with self.assertRaisesRegex(ContractError, "fixture digest changed"):
+                inspect_historical_flags(
+                    path,
+                    fixture["sha256"],
+                    {item["value"] for item in self.regional_fact_policy["exact"]},
+                )
+
+    def test_regional_fact_fixture_checksum_mutation_fails_closed(self):
+        fixture = self.regional_fact_policy["historicalFixtures"][0]
+        data = bytearray((ROOT / fixture["path"]).read_bytes())
+        self.assertEqual(len(data), FLASH_SIZE)
+        for sector_start in range(0, 2 * 14 * SECTOR_SIZE, SECTOR_SIZE):
+            sector = data[sector_start : sector_start + SECTOR_SIZE]
+            if sector != b"\xff" * SECTOR_SIZE:
+                data[sector_start] ^= 1
+                break
+        else:
+            self.fail("historical fixture has no populated normal-save sector")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bad-checksum.sav"
+            path.write_bytes(data)
+            with self.assertRaisesRegex(ContractError, "invalid slot"):
+                inspect_historical_flags(
+                    path,
+                    hashlib.sha256(data).hexdigest(),
+                    {item["value"] for item in self.regional_fact_policy["exact"]},
+                )
+
+    def test_regional_fact_policy_fixtures_are_make_prerequisites(self):
+        expected = {
+            item["path"] for item in self.regional_fact_policy["historicalFixtures"]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "generated"
+            target = output / "include/constants/persistent_bindings.h"
+            database = subprocess.run(
+                [
+                    "make",
+                    "-f",
+                    "persistent_id_rules.mk",
+                    "-pn",
+                    f"GENERATED_ROOT={output}",
+                    str(target),
+                ],
+                cwd=ROOT,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout
+        target_rule = next(
+            line for line in database.splitlines() if line.startswith(f"{target}:")
+        )
+        self.assertTrue(expected)
+        for fixture in expected:
+            with self.subTest(fixture=fixture):
+                self.assertIn(fixture, target_rule.split())
+
+    def test_regional_fact_flags_are_distinct_generated_public_bindings(self):
+        exact = self.regional_fact_policy["exact"]
+        self.assertEqual(len({item["symbol"] for item in exact}), 3)
+        self.assertEqual({item["value"] for item in exact}, {0x20, 0x21, 0x22})
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)
+            render(self.ledger, self.sources, output)
+            facade = (output / "include/constants/persistent_flags.inc.h").read_text()
+            bindings = (output / "include/constants/persistent_bindings.h").read_text()
+        for item in exact:
+            macro = f"PERSISTENT_FLAGS_{item['symbol']}"
+            with self.subTest(symbol=item["symbol"]):
+                self.assertIn(
+                    f"#undef {item['symbol']}\n#define {item['symbol']} {macro}\n",
+                    facade,
+                )
+                self.assertIn(f"#define {macro} {item['value']}\n", bindings)
 
     def test_live_regional_trainer_facades_are_ledger_owned(self):
         cases = {
