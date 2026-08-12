@@ -5823,7 +5823,7 @@
       "source": "VermilionCity_PortInside",
       "path": "warp_events/0",
       "kind": "warp",
-      "destination": "MAP_VERMILION_CITY_PORT_OUTSIDE"
+      "destination": "MAP_VERMILION_CITY"
     }
   ],
   "graphicsAdaptations": [
@@ -6657,9 +6657,9 @@
     {
       "source": "VermilionCity_PortInside",
       "path": "warp_events/0",
-      "destination": "MAP_VERMILION_CITY_PORT_OUTSIDE",
-      "destWarpId": "0",
-      "reason": "strip the cross-region port transition from residency-only materialization"
+      "destination": "MAP_VERMILION_CITY",
+      "destWarpId": "2",
+      "reason": "exclude the Kanto city exit from the Johto residency closure"
     }
   ],
   "berryTreeAllocations": [
@@ -6683,7 +6683,32 @@
       "NewBarkTown"
     ],
     "gateways": [],
-    "scriptWarps": [],
+    "scriptWarps": [
+      {
+        "source": "OlivineCity_PortInside",
+        "destination": "VermilionCity_PortInside",
+        "script": "OlivineCity_PortInside_EventScript_Sailor",
+        "label": "OlivineCity_PortInside_EventScript_TravelToVermilion",
+        "command": "warp",
+        "index": 0,
+        "x": 8,
+        "y": 16,
+        "sourceRegion": "REGION_JOHTO",
+        "targetRegion": "REGION_KANTO"
+      },
+      {
+        "source": "VermilionCity_PortInside",
+        "destination": "OlivineCity_PortInside",
+        "script": "VermilionCity_PortInside_EventScript_Sailor",
+        "label": "VermilionCity_PortInside_EventScript_TravelToOlivine",
+        "command": "warp",
+        "index": 0,
+        "x": 8,
+        "y": 16,
+        "sourceRegion": "REGION_KANTO",
+        "targetRegion": "REGION_JOHTO"
+      }
+    ],
     "dynamicWarps": [],
     "unreachableShells": [
       "GoldenrodCity_DepartmentStore_7FNight",
@@ -6702,8 +6727,7 @@
       "SafariZone1",
       "SafariZone2",
       "SafariZone3",
-      "SafariZoneIndoor",
-      "VermilionCity_PortInside"
+      "SafariZoneIndoor"
     ]
   },
   "generatedSections": [

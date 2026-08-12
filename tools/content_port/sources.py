@@ -1767,6 +1767,17 @@ def _bind_script_warp_policy(
     return frozenset(gateway_keys)
 
 
+def _automatic_unreachable_shells(
+    graph: Any, warp_removals_by_map: Mapping[str, set[int]]
+) -> frozenset[str]:
+    outgoing_sources = {edge.source for edge in graph.edges}
+    return frozenset(
+        name
+        for name, indexes in warp_removals_by_map.items()
+        if indexes and name not in outgoing_sources
+    )
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -2935,10 +2946,8 @@ def resolve_port_sources(
             inter_region_gateways=frozenset(gateway_keys),
             roots=frozenset(world_policy["roots"]),
             unreachable_shells=frozenset(world_policy["unreachableShells"])
-            | frozenset(
-                name
-                for name, indexes in warp_removals_by_map.items()
-                if indexes and not selected_maps[name].get("warp_events")
+            | _automatic_unreachable_shells(
+                rendered_graph, warp_removals_by_map
             ),
         ),
     )

@@ -34,7 +34,7 @@
       [
         "VermilionCity_PortInside",
         "warp",
-        "MAP_VERMILION_CITY_PORT_OUTSIDE"
+        "MAP_VERMILION_CITY"
       ]
     ],
     "groups": [
@@ -952,8 +952,49 @@
       "OlivineCity_EventScript_Teacher",
       "OlivineCity_PokemonCenter_MapScripts",
       "OlivineCity_PokemonCenter_OnTransition",
+      "OlivineCity_PortInside_EventScript_Oak",
+      "OlivineCity_PortInside_MapScripts",
+      "OlivineCity_PortInside_Movement_OakFixDex",
+      "OlivineCity_PortInside_Movement_OakLeave",
+      "OlivineCity_PortInside_Movement_PlayerMoveOver",
+      "OlivineCity_PortInside_Text_Nationaldex1",
+      "OlivineCity_PortInside_Text_Nationaldex2",
+      "OlivineCity_PortInside_Text_Nationaldex3",
+      "OlivineCity_PortInside_Text_Nationaldex4",
       "OlivineCity_Text_PokecenterFisher",
       "OlivineCity_Text_PokecenterTeacher",
+      "OlivinePort_EventScript_ChoseBattleFrontier",
+      "OlivinePort_EventScript_ChoseBirthIsland",
+      "OlivinePort_EventScript_ChoseFarawayIsland",
+      "OlivinePort_EventScript_ChoseSouthernIsland",
+      "OlivinePort_EventScript_ChoseVermilion",
+      "OlivinePort_EventScript_CooltrainerF",
+      "OlivinePort_EventScript_EnterShip",
+      "OlivinePort_EventScript_Fisher1",
+      "OlivinePort_EventScript_Fisher2",
+      "OlivinePort_EventScript_Sailor",
+      "OlivinePort_EventScript_Sailor_AfterKanto",
+      "OlivinePort_EventScript_Sailor_MaidenVoyage",
+      "OlivinePort_EventScript_Sailor_NoCredentials",
+      "OlivinePort_EventScript_Sailor_Refused",
+      "OlivinePort_EventScript_Youngster",
+      "OlivinePort_Movement_BoatLeave",
+      "OlivinePort_Movement_PlayerEnterBoat",
+      "OlivinePort_Movement_SailorEnterBoat",
+      "OlivinePort_Text_AskBoard",
+      "OlivinePort_Text_AskTicket",
+      "OlivinePort_Text_CantBoard",
+      "OlivinePort_Text_ComeAgain",
+      "OlivinePort_Text_CooltrainerF",
+      "OlivinePort_Text_FishingGuru1",
+      "OlivinePort_Text_FishingGuru2",
+      "OlivinePort_Text_FlashTicket",
+      "OlivinePort_Text_NoPass",
+      "OlivinePort_Text_NoTicket",
+      "OlivinePort_Text_SailorBeforeHOF",
+      "OlivinePort_Text_SailorGetOnBoard",
+      "OlivinePort_Text_WhereSail",
+      "OlivinePort_Text_Youngster",
       "Route28House_EventScript_Celebrity",
       "Route28House_EventScript_CelebrityAfter",
       "Route28House_Text_Celebrity1",
@@ -997,7 +1038,37 @@
       "Route29_Text_TuscanyNope",
       "Route29_Text_TuscanyTuesday",
       "Route29_Text_Youngster",
-      "Route29_Trigger_Monview"
+      "Route29_Trigger_Monview",
+      "VermilionCity_PortInside_MapScripts",
+      "VermilionPortIndoor_EventScript_Nerd",
+      "VermilionPortIndoor_EventScript_Teacher",
+      "VermilionPortPassage_Text_Teacher",
+      "VermilionPort_EventScript_ChoseBattleFrontier",
+      "VermilionPort_EventScript_ChoseBirthIsland",
+      "VermilionPort_EventScript_ChoseFarawayIsland",
+      "VermilionPort_EventScript_ChoseOlivine",
+      "VermilionPort_EventScript_ChoseSouthernIsland",
+      "VermilionPort_EventScript_EnterShip",
+      "VermilionPort_EventScript_Sailor",
+      "VermilionPort_EventScript_SailorCantSail",
+      "VermilionPort_EventScript_Sailor_AfterKanto",
+      "VermilionPort_EventScript_Sailor_MaidenVoyage",
+      "VermilionPort_EventScript_Sailor_NoCredentials",
+      "VermilionPort_EventScript_Sailor_Refused",
+      "VermilionPort_Movement_BoatLeave",
+      "VermilionPort_Movement_PlayerEnterBoat",
+      "VermilionPort_Movement_SailorEnterBoat",
+      "VermilionPort_Text_AskBoard",
+      "VermilionPort_Text_AskTicket",
+      "VermilionPort_Text_CantBoard",
+      "VermilionPort_Text_ComeAgain",
+      "VermilionPort_Text_FlashTicket",
+      "VermilionPort_Text_NoPass",
+      "VermilionPort_Text_NoTicket",
+      "VermilionPort_Text_SailorCantSail",
+      "VermilionPort_Text_SailorGetOnBoard",
+      "VermilionPort_Text_SuperNerd",
+      "VermilionPort_Text_WhereSail"
     ],
     "tilesets": [
       "gTileset_AzaleaTown",
@@ -1260,6 +1331,16 @@
         "sha256": "5d235ac5f23272fd68b441e89c59da0a267312dc6e8baa6998b8047e3fdfe495"
       },
       {
+        "bytes": 3320,
+        "path": "data/maps/OlivineCity_PortInside/map.json",
+        "sha256": "7e5b40076713f78aa692b03fda1d1306b0cc401ae1d8c790d525f80f5144de81"
+      },
+      {
+        "bytes": 8657,
+        "path": "data/maps/OlivineCity_PortInside/scripts.inc",
+        "sha256": "f53f6a18792700bff31efdd4f4cea702e77da533fbb57ab3394a5e6feb352dbf"
+      },
+      {
         "bytes": 6835,
         "path": "data/maps/Route28/map.json",
         "sha256": "5f7008fbc52b2101ee1e8faf9f1e924343040891afc1558c72cf69e8208a6878"
@@ -1288,6 +1369,16 @@
         "bytes": 6372,
         "path": "data/maps/Route29/scripts.inc",
         "sha256": "827898ea289c7b579db4f3e172bf20e04096a8b505c26ed70133041769682c73"
+      },
+      {
+        "bytes": 2185,
+        "path": "data/maps/VermilionCity_PortInside/map.json",
+        "sha256": "d35cbff02a4c8bad53e4e2f4dc56f5cfb07c3a7af2d5fc4f4cc2d32692215e75"
+      },
+      {
+        "bytes": 5900,
+        "path": "data/maps/VermilionCity_PortInside/scripts.inc",
+        "sha256": "6716bebcf39660da732659762aa74cc9967abc6ba6e49137a1f3310103c3c576"
       }
     ]
   },

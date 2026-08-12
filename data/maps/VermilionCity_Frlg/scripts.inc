@@ -49,6 +49,21 @@ VermilionCity_EventScript_OldMan1SSAnneLeft::
 VermilionCity_EventScript_FerrySailor::
 	lock
 	faceplayer
+	msgbox VermilionCity_Text_EnterFastShipTerminal, MSGBOX_YESNO
+	switch VAR_RESULT
+	case YES, VermilionCity_EventScript_EnterFastShipTerminal
+	case NO, VermilionCity_EventScript_FerrySailorLegacy
+	release
+	end
+
+VermilionCity_EventScript_EnterFastShipTerminal::
+	closemessage
+	warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 16
+	waitstate
+	release
+	end
+
+VermilionCity_EventScript_FerrySailorLegacy::
 	goto_if_eq VAR_MAP_SCENE_VERMILION_CITY, 3, VermilionCity_EventScript_CheckSeagallopPresent
 	msgbox VermilionCity_Text_WelcomeToTheSSAnne
 	release
@@ -321,6 +336,10 @@ VermilionCity_Text_VermilionHarbor::
 VermilionCity_Text_WelcomeToTheSSAnne::
 	.string "Welcome to the S.S. ANNE!$"
 
+VermilionCity_Text_EnterFastShipTerminal::
+	.string "The FAST SHIP terminal connects\n"
+	.string "VERMILION and OLIVINE. Go in?$"
+
 VermilionCity_Text_DoYouHaveATicket::
 	.string "Welcome to the S.S. ANNE!\p"
 	.string "Excuse me, do you have a ticket?$"
@@ -393,4 +412,3 @@ VermilionCity_Text_Route2AideHasPackageForYou::
 	.string "ROUTE 2, {PLAYER}.\p"
 	.string "If you're in the ROUTE 2 area,\n"
 	.string "please look for him.$"
-

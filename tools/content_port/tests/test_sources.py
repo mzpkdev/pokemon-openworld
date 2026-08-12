@@ -22,12 +22,14 @@ from tools.content_port.sources import (
     extract_service_edges,
     resolve_port_sources,
     validate_port_sources,
+    _automatic_unreachable_shells,
     _semantic_record_digest,
     _bind_script_warp_policy,
     _extract_preserved_script_warps,
     _validate_selected_trainer_event,
 )
 from tools.content_port.world_graph import (
+    WorldEdge,
     WorldPolicy,
     validate_world_graph,
     with_script_warps,
@@ -234,6 +236,42 @@ class SourceGraphTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ContentPortError, "unsupported persistent"):
                 _extract_preserved_script_warps(maps, ownership, root)
+
+    def test_script_warp_keeps_last_static_warp_removal_from_becoming_a_shell(
+        self,
+    ) -> None:
+        maps = {
+            name: {
+                "id": f"MAP_{name}",
+                "region": "REGION_A",
+                "connections": [],
+                "warp_events": [],
+            }
+            for name in ("PORT", "DESTINATION", "SHELL")
+        }
+        graph = with_script_warps(
+            world_graph_from_maps(maps),
+            (
+                WorldEdge(
+                    "PORT",
+                    "DESTINATION",
+                    "script-warp",
+                    0,
+                    script_entry="Port_EventScript_Travel",
+                    script_label="Port_EventScript_Travel",
+                    command="warp",
+                    x=1,
+                    y=2,
+                ),
+            ),
+        )
+
+        self.assertEqual(
+            _automatic_unreachable_shells(
+                graph, {"PORT": {0}, "SHELL": {0}}
+            ),
+            frozenset({"SHELL"}),
+        )
 
     def test_rejects_descriptor_dependency_graph(self) -> None:
         key = ResourceKey("capability", "spatial")
