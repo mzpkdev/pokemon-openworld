@@ -1,2 +1,2 @@
 OlivineCity_PokemonCenter_MapScripts::
-	.byte 0
+	pokemon_center_1f_scripts OlivineCity_PokemonCenter_OnTransition, HEAL_LOCATION_OLIVINE_CITY

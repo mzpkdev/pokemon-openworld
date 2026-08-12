@@ -35,6 +35,8 @@ MAP_GENERATOR_POLICY_INPUTS := \
 	tools/mapjson/required_map_defines.json \
 	tools/mapjson/product_exclusions.json \
 	tools/mapjson/product_hidden_item_flags.json \
+	tools/persistence/published_allocations.json \
+	src/data/heal_locations.json \
 	src/data/region_map/region_map_sections.json \
 	src/data/region_map/map_section_compatibility.json
 MAP_CONNECTIONS := $(MAP_NAMES:%=$(MAPS_OUTDIR)/%/connections.inc)

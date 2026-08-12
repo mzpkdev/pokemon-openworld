@@ -451,13 +451,13 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check build-variant-isolation-check
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
 .PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
@@ -675,6 +675,15 @@ build-variant-isolation-check: content-port-transaction-check
 	@grep -Eq 'DebugAction_Util_Warp_SelectNamedMapGroup' $(FILE_NAME)-debug.sym
 	@grep -Eq 'gDebugNamedWarpRegistryIdentity' $(FILE_NAME)-debug.sym
 	@! grep -Eq 'DebugAction_Util_Warp_Select(MapGroup|Map|Warp)$$' $(FILE_NAME).sym $(FILE_NAME)-debug.sym
+
+start-profile-contract-check: content-port-transaction-check
+	@test -f $(FILE_NAME).gba -a -f $(FILE_NAME).sym -a -f $(FILE_NAME)-debug.gba -a -f $(FILE_NAME)-debug.sym || { \
+		echo "Build normal and debug ROM/symbol artifacts before checking start profiles." >&2; \
+		exit 1; \
+	}
+	python3 tools/start_profiles/verify_artifacts.py \
+		--normal-rom $(FILE_NAME).gba --normal-sym $(FILE_NAME).sym \
+		--debug-rom $(FILE_NAME)-debug.gba --debug-sym $(FILE_NAME)-debug.sym
 
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)

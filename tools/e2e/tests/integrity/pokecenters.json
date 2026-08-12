@@ -3,7 +3,8 @@
   "ordinaryNurses": [
     "OldaleTown_PokemonCenter_1F",
     "PewterCity_PokemonCenter_1F_Frlg",
-    "SevenIsland_PokemonCenter_1F_Frlg"
+    "SevenIsland_PokemonCenter_1F_Frlg",
+    "OlivineCity_PokemonCenter"
   ],
   "facilityNurses": [
     "TrainerHill_Entrance",
@@ -12,7 +13,7 @@
   "whiteoutCases": [
     "OldaleTown_PokemonCenter_1F",
     "PewterCity_PokemonCenter_1F_Frlg",
-    "IndigoPlateau_PokemonCenter_1F_Frlg"
+    "OlivineCity_PokemonCenter"
   ],
   "runtimeCases": {
     "OldaleTown_PokemonCenter_1F": {
@@ -34,6 +35,12 @@
       "nurseLocalId": 2
     },
     "SevenIsland_PokemonCenter_1F_Frlg": {
+      "x": 7,
+      "y": 3,
+      "direction": "Up",
+      "nurseLocalId": 1
+    },
+    "OlivineCity_PokemonCenter": {
       "x": 7,
       "y": 3,
       "direction": "Up",

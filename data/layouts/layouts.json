@@ -10835,6 +10835,8 @@
       "name": "OlivineCity_PokemonCenter_Layout",
       "width": 16,
       "height": 10,
+      "border_width": 0,
+      "border_height": 0,
       "primary_tileset": "gTileset_Johto_Building",
       "secondary_tileset": "gTileset_Kanto_PokemonCenter",
       "border_filepath": "data/layouts/OlivineCity_PokemonCenter/border.bin",

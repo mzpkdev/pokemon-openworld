@@ -2432,10 +2432,150 @@ static bool global_script_registry_defines(const string &owner)
     return false;
 }
 
+static void validate_checkpoint_registry(const Json &checkpoints_data,
+                                         const Json &published_bindings_data,
+                                         const Json &layouts_data,
+                                         const map<string, Json> &maps_by_name,
+                                         const map<string, string> &map_names_by_id,
+                                         const set<string> &grouped_names)
+{
+    require_product_registry(checkpoints_data["heal_locations"].type() == Json::Type::ARRAY,
+                             "checkpoint registry lacks heal_locations array");
+    require_product_registry(published_bindings_data["entries"].type() == Json::Type::ARRAY,
+                             "published allocation ledger lacks entries array");
+
+    map<string, std::pair<int, int>> layout_dimensions;
+    for (const Json &layout : layouts_data["layouts"].array_items()) {
+        layout_dimensions.emplace(json_to_string(layout, "id"),
+                                  std::make_pair(layout["width"].int_value(),
+                                                 layout["height"].int_value()));
+    }
+
+    map<string, int> published;
+    for (const Json &binding : published_bindings_data["entries"].array_items()) {
+        if (json_to_string(binding, "domain", true) != "checkpoints"
+         || json_to_string(binding, "source", true) != "heal-locations")
+            continue;
+        const string symbol = json_to_string(binding, "symbol");
+        require_product_registry(binding["value"].type() == Json::Type::NUMBER,
+                                 "checkpoint binding '" + symbol + "' lacks numeric value");
+        require_product_registry(published.emplace(symbol, binding["value"].int_value()).second,
+                                 "duplicate published checkpoint binding '" + symbol + "'");
+    }
+    require_product_registry(published.count("HEAL_LOCATION_NONE")
+                          && published.at("HEAL_LOCATION_NONE") == 0,
+                             "checkpoint binding HEAL_LOCATION_NONE must remain 0");
+
+    const vector<Json> checkpoints = checkpoints_data["heal_locations"].array_items();
+    require_product_registry(published.size() == checkpoints.size() + 1,
+                             "checkpoint registry is missing a published checkpoint");
+    set<string> ids;
+    set<string> locations;
+    const set<string> allowed_fields = {
+        "id", "map", "x", "y", "respawn_map", "respawn_npc",
+        "respawn_x", "respawn_y", "recovery_mode",
+    };
+    for (size_t index = 0; index < checkpoints.size(); index++) {
+        const Json &checkpoint = checkpoints[index];
+        require_product_registry(checkpoint.type() == Json::Type::OBJECT,
+                                 "checkpoint registry contains an empty slot");
+        const string id = json_to_string(checkpoint, "id");
+        for (const auto &[field, unused] : checkpoint.object_items()) {
+            (void)unused;
+            require_product_registry(allowed_fields.count(field),
+                                     "checkpoint '" + id + "' has unknown field '" + field + "'");
+        }
+        require_product_registry(is_stable_identifier(id) && ids.insert(id).second,
+                                 "checkpoint registry has duplicate or unstable id '" + id + "'");
+        const auto binding = published.find(id);
+        require_product_registry(binding != published.end(),
+                                 "checkpoint '" + id + "' lacks a published binding");
+        require_product_registry(binding->second == static_cast<int>(index + 1),
+                                 "checkpoint '" + id + "' changed its serialized binding");
+
+        const string map_id = json_to_string(checkpoint, "map");
+        const string respawn_map_id = json_to_string(checkpoint, "respawn_map");
+        require_product_registry(map_names_by_id.count(map_id),
+                                 "checkpoint '" + id + "' names missing map '" + map_id + "'");
+        require_product_registry(map_names_by_id.count(respawn_map_id),
+                                 "checkpoint '" + id + "' names invalid destination '" + respawn_map_id + "'");
+        const string map_name = map_names_by_id.at(map_id);
+        const string respawn_map_name = map_names_by_id.at(respawn_map_id);
+        require_product_registry(grouped_names.count(map_name),
+                                 "checkpoint '" + id + "' source map is outside the product registry");
+        require_product_registry(grouped_names.count(respawn_map_name),
+                                 "checkpoint '" + id + "' destination is outside the product registry");
+
+        auto coordinate = [&](const string &field) {
+            const Json value = checkpoint[field];
+            require_product_registry(value.type() == Json::Type::NUMBER
+                                  && value.number_value() == value.int_value()
+                                  && value.int_value() >= 0
+                                  && value.int_value() <= 65535,
+                                     "checkpoint '" + id + "' has invalid " + field);
+            return value.int_value();
+        };
+        const int x = coordinate("x");
+        const int y = coordinate("y");
+        const bool has_respawn_x = checkpoint["respawn_x"].type() != Json::Type::NUL;
+        const bool has_respawn_y = checkpoint["respawn_y"].type() != Json::Type::NUL;
+        require_product_registry(has_respawn_x == has_respawn_y,
+                                 "checkpoint '" + id + "' must author both respawn coordinates or neither");
+        const int respawn_x = has_respawn_x ? coordinate("respawn_x") : 7;
+        const int respawn_y = has_respawn_y ? coordinate("respawn_y") : 4;
+
+        auto require_in_bounds = [&](const string &owner, int px, int py, const string &kind) {
+            const string layout_id = json_to_string(maps_by_name.at(owner), "layout");
+            const auto dimensions = layout_dimensions.find(layout_id);
+            require_product_registry(dimensions != layout_dimensions.end(),
+                                     "checkpoint '" + id + "' map lacks layout dimensions");
+            require_product_registry(px < dimensions->second.first && py < dimensions->second.second,
+                                     "checkpoint '" + id + "' " + kind + " is outside map bounds");
+        };
+        require_in_bounds(map_name, x, y, "heal location");
+        require_in_bounds(respawn_map_name, respawn_x, respawn_y, "whiteout destination");
+        require_product_registry(locations.insert(map_id + ":" + std::to_string(x)
+                                                + ":" + std::to_string(y)).second,
+                                 "checkpoint '" + id + "' duplicates a heal location");
+
+        const string recovery_mode = json_to_string(checkpoint, "recovery_mode");
+        const string healer = json_to_string(checkpoint, "respawn_npc");
+        require_product_registry(recovery_mode == "DIRECT" || recovery_mode == "HEALER",
+                                 "checkpoint '" + id + "' has invalid recovery mode '"
+                                     + recovery_mode + "'");
+        if (recovery_mode == "DIRECT") {
+            require_product_registry(healer == "LOCALID_NONE",
+                                     "direct checkpoint '" + id + "' must not name a healer actor");
+            require_product_registry(map_id == respawn_map_id && x == respawn_x && y == respawn_y,
+                                     "direct checkpoint '" + id + "' destination must equal its heal location");
+            continue;
+        }
+
+        require_product_registry(healer != "LOCALID_NONE" && is_stable_identifier(healer),
+                                 "healer checkpoint '" + id + "' lacks a healer actor");
+        const Json &destination = maps_by_name.at(respawn_map_name);
+        const string events_owner = destination["shared_events_map"] == Json()
+                                  ? respawn_map_name
+                                  : json_to_string(destination, "shared_events_map");
+        require_product_registry(maps_by_name.count(events_owner),
+                                 "checkpoint '" + id + "' names missing healer event owner");
+        int healer_matches = 0;
+        for (const Json &object : maps_by_name.at(events_owner)["object_events"].array_items()) {
+            if (json_to_string(object, "local_id", true) == healer)
+                healer_matches++;
+        }
+        require_product_registry(healer_matches == 1,
+                                 "checkpoint '" + id + "' healer actor '" + healer
+                                     + "' is not owned exactly once by destination events");
+    }
+}
+
 static void validate_product_inputs(const MapBuildPolicy &policy,
                                     const string &groups_filepath,
                                     const string &layouts_filepath,
-                                    const vector<string> &map_filepaths)
+                                    const vector<string> &map_filepaths,
+                                    const string &checkpoints_filepath = "src/data/heal_locations.json",
+                                    const string &published_bindings_filepath = "tools/persistence/published_allocations.json")
 {
     if (!policy.IsProduct())
         return;
@@ -2585,6 +2725,11 @@ static void validate_product_inputs(const MapBuildPolicy &policy,
                                      "map '" + events_owner + "' warp names missing map id '" + destination + "'");
         }
     }
+
+    validate_checkpoint_registry(
+        read_json_file(checkpoints_filepath, "validating checkpoint registry"),
+        read_json_file(published_bindings_filepath, "validating published checkpoint bindings"),
+        layouts_data, maps_by_name, map_names_by_id, grouped_names);
 
     // Map-section validation owns the metadata, compact codecs, reverse maps,
     // stable frozen range, and invalid/reserved sentinels as one contract.
@@ -2772,6 +2917,16 @@ int main(int argc, char *argv[]) {
             FATAL_ERROR("Script registry '%s' does not define '%s_MapScripts'.\n", argv[4], argv[3]);
         cout << "owner=" << argv[3] << "\n";
     }
+    else if (mode == "checkpoints") {
+        if (argc < 8)
+            FATAL_ERROR("USAGE: mapjson checkpoints <build-mode> <groups_file> <layouts_file> <checkpoint_registry> <published_bindings> <map_file> [additional_map_files]\n");
+        infer_separator(argv[3]);
+        vector<string> map_filepaths;
+        for (int i = 7; i < argc; i++)
+            map_filepaths.push_back(argv[i]);
+        validate_product_inputs(policy, argv[3], argv[4], map_filepaths, argv[5], argv[6]);
+        cout << "checkpoints=valid\n";
+    }
     else if (mode == "generate") {
         if (argc < 7)
             FATAL_ERROR("USAGE: mapjson generate <build-mode> <groups_file> <layouts_file> <output_root> <map_file> [additional_map_files]\n");
@@ -2782,7 +2937,7 @@ int main(int argc, char *argv[]) {
         process_generation_tree(policy, argv[3], argv[4], argv[5], map_filepaths);
     }
     else {
-        FATAL_ERROR("ERROR: <mode> must be 'generate', 'layouts', 'map', 'event_constants', 'groups', 'policy', 'sections', or 'script_registry'.\n");
+        FATAL_ERROR("ERROR: <mode> must be 'checkpoints', 'generate', 'layouts', 'map', 'event_constants', 'groups', 'policy', 'sections', or 'script_registry'.\n");
     }
 
     return 0;

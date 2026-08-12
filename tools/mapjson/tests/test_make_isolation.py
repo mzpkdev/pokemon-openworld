@@ -278,6 +278,8 @@ print(makeflags)
         )
         for dependency in (
             "tools/mapjson/required_map_defines.json",
+            "tools/persistence/published_allocations.json",
+            "src/data/heal_locations.json",
             "src/data/tilesets/headers.h",
             "src/data/tilesets/metatiles.h",
             "data/tilesets/primary/general/metatiles.bin",
@@ -346,6 +348,8 @@ print(makeflags)
                     ("tools/mapjson/required_map_defines.json", "{}\n"),
                     ("tools/mapjson/product_exclusions.json", "{}\n"),
                     ("tools/mapjson/product_hidden_item_flags.json", "{}\n"),
+                    ("tools/persistence/published_allocations.json", "{}\n"),
+                    ("src/data/heal_locations.json", "{}\n"),
                 ):
                     path = temp / relative
                     path.parent.mkdir(parents=True, exist_ok=True)

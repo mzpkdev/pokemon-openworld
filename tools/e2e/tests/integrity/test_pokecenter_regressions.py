@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import struct
 
 import pytest
 
+from tools.e2e.save_journey import cold_restart_and_continue, save_from_start_menu
 from tools.e2e.skyemu import (
     IntegrityLoadError,
     IntegrityLoadPhase,
     IntegrityLoadStatus,
     IntegrityMapLoadRequest,
 )
+from tools.e2e.start_profile import StartProfile, quickstart_with_profile
 from tools.e2e.tests.integrity.manifest import (
     integrity_manifest_path,
     load_manifest_maps,
@@ -224,6 +227,46 @@ def _interact_with_nurse(game, case: dict, mon: int, max_hp: int) -> None:
     _drive_heal_dialogue(game, mon, max_hp)
 
 
+def _last_heal_location(game) -> tuple[int, int, int, int, int]:
+    raw = game.read(game.save_block1() + 0x1C, 8)
+    map_group, map_num, warp_id, _padding, x, y = struct.unpack("<bbbBhh", raw)
+    return map_group, map_num, warp_id, x, y
+
+
+def _force_whiteout_and_wait_for_center(game, entry, case: dict) -> None:
+    mon, max_hp = _damage_and_poison_lead(game)
+    main = game.address("gMain")
+    _assert_writable_ram(main, G_MAIN_STATE_OFFSET + 1, "gMain")
+    game.write_u8(main + G_MAIN_STATE_OFFSET, 0)
+    game.write(main + 4, (game.address("CB2_WhiteOut") | 1).to_bytes(4, "little"))
+
+    saw_heal_task = False
+    for _ in range(4_000):
+        saw_heal_task |= game.task_active("Task_PokecenterHeal")
+        settled = (
+            saw_heal_task
+            and game.map_id() == entry.map_id
+            and game.read_u16(mon + POKEMON_HP_OFFSET) == max_hp
+            and game.read_u32(mon + POKEMON_STATUS_OFFSET) == 0
+            and not game.controls_locked()
+            and game.script_status() == SCRIPT_IDLE
+        )
+        if settled:
+            break
+        game.press("A", hold_frames=1, release_frames=1)
+    else:
+        raise AssertionError(
+            "whiteout did not heal at the selected center and settle; "
+            f"task={saw_heal_task}, map={game.map_id()}, "
+            f"hp={game.read_u16(mon + POKEMON_HP_OFFSET)}/{max_hp}, "
+            f"status=0x{game.read_u32(mon + POKEMON_STATUS_OFFSET):08x}, "
+            f"locked={game.controls_locked()}, script={game.script_status()}"
+        )
+
+    assert saw_heal_task
+    assert game.read_u16(game.address("gSpecialVar_LastTalked")) == case["nurseLocalId"]
+
+
 @pytest.mark.parametrize("map_name", CONTRACT["ordinaryNurses"])
 def test_nurse_heals_and_returns_control(integrity_game, map_name):
     _boot_with_party(integrity_game)
@@ -257,43 +300,62 @@ def test_facility_nurse_skips_union_room_probe(integrity_game, map_name):
 def test_whiteout_heals_at_last_center_and_returns_control(integrity_game, map_name):
     _boot_with_party(integrity_game)
     _, entry, case = _load_case(integrity_game, map_name, 0xF5000003)
-    mon, max_hp = _damage_and_poison_lead(integrity_game)
-    main = integrity_game.address("gMain")
-    _assert_writable_ram(main, G_MAIN_STATE_OFFSET + 1, "gMain")
-    integrity_game.write_u8(main + G_MAIN_STATE_OFFSET, 0)
-    integrity_game.write(
-        main + 4, (integrity_game.address("CB2_WhiteOut") | 1).to_bytes(4, "little")
-    )
+    _force_whiteout_and_wait_for_center(integrity_game, entry, case)
 
-    saw_heal_task = False
-    for _ in range(4_000):
-        saw_heal_task |= integrity_game.task_active("Task_PokecenterHeal")
-        settled = (
-            saw_heal_task
-            and integrity_game.map_id() == entry.map_id
-            and integrity_game.read_u16(mon + POKEMON_HP_OFFSET) == max_hp
-            and integrity_game.read_u32(mon + POKEMON_STATUS_OFFSET) == 0
-            and not integrity_game.controls_locked()
-            and integrity_game.script_status() == SCRIPT_IDLE
-        )
-        if settled:
-            break
-        integrity_game.press("A", hold_frames=1, release_frames=1)
-    else:
-        raise AssertionError(
-            "whiteout did not heal at the selected center and settle; "
-            f"task={saw_heal_task}, map={integrity_game.map_id()}, "
-            f"hp={integrity_game.read_u16(mon + POKEMON_HP_OFFSET)}/{max_hp}, "
-            f"status=0x{integrity_game.read_u32(mon + POKEMON_STATUS_OFFSET):08x}, "
-            f"locked={integrity_game.controls_locked()}, "
-            f"script={integrity_game.script_status()}"
-        )
 
-    assert saw_heal_task
-    assert (
-        integrity_game.read_u16(integrity_game.address("gSpecialVar_LastTalked"))
-        == case["nurseLocalId"]
+def test_olivine_checkpoint_survives_cross_region_save_restart_and_whiteout(
+    session_factory,
+):
+    game = session_factory()
+    quickstart_with_profile(game, StartProfile.JOHTO, 0xF5000010)
+    maps = _maps_by_name()
+    olivine_city = maps["OlivineCity"]
+    olivine_center = maps["OlivineCity_PokemonCenter"]
+    assert game.map_id() == olivine_city.map_id
+    assert not game.controls_locked()
+    _add_debug_party(game)
+
+    _, loaded_center, olivine_case = _load_case(
+        game, "OlivineCity_PokemonCenter", 0xF5000011
     )
+    assert loaded_center == olivine_center
+    mon, max_hp = _damage_and_poison_lead(game)
+    _interact_with_nurse(game, olivine_case, mon, max_hp)
+    expected_checkpoint = (
+        olivine_city.group,
+        olivine_city.number,
+        -1,
+        15,
+        44,
+    )
+    assert _last_heal_location(game) == expected_checkpoint
+
+    pallet = maps["PalletTown_Frlg"]
+    travel = game.request_map_load(
+        IntegrityMapLoadRequest(
+            request_id=0xF5000012,
+            map_group=pallet.group,
+            map_num=pallet.number,
+            x=6,
+            y=8,
+        ),
+        max_frames=1_800,
+    )
+    assert travel.status is IntegrityLoadStatus.SUCCESS
+    assert travel.phase is IntegrityLoadPhase.FIELD_READY
+    assert travel.error is IntegrityLoadError.NONE
+    game.wait_for_controls_unlocked(max_frames=1_200)
+    assert game.map_id() == pallet.map_id
+    assert _last_heal_location(game) == expected_checkpoint
+
+    save_from_start_menu(game)
+    game.wait_for_controls_unlocked(max_frames=1_200)
+    cold_restart_and_continue(game)
+    assert game.map_id() == pallet.map_id
+    assert _last_heal_location(game) == expected_checkpoint
+
+    _force_whiteout_and_wait_for_center(game, olivine_center, olivine_case)
+    assert _last_heal_location(game) == expected_checkpoint
 
 
 def _hold_direction_until_map(game, direction: str, destination):
