@@ -1754,7 +1754,16 @@ def _bind_script_warp_policy(
             raise ContentPortError(
                 f"worldPolicy.scriptWarps/{index}: script warp region evidence drift"
             )
+        if edge.key in gateway_keys:
+            raise ContentPortError("duplicate script warp declaration")
         gateway_keys.add(edge.key)
+    observed_keys = {
+        edge.key for edge in graph.edges if edge.kind == "script-warp"
+    }
+    if gateway_keys != observed_keys:
+        raise ContentPortError(
+            "script warp policy differs from resolved topology"
+        )
     return frozenset(gateway_keys)
 
 

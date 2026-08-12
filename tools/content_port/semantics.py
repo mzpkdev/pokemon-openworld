@@ -35,34 +35,16 @@ EFFECT_KINDS = frozenset(
 ENTRY_CLASSIFICATIONS = frozenset({"enabled", "story-owned", "deferred", "unsupported"})
 SCRIPT_WARP_COMMANDS = frozenset(
     {
+        # Ferry reachability may follow only unconditional control transfer or
+        # the expansion's explicit switch/case choice idiom. Conditional
+        # goto/call helpers read comparison, flag, or general-variable state.
         "call",
-        "call_if",
-        "call_if_eq",
-        "call_if_ge",
-        "call_if_gt",
-        "call_if_le",
-        "call_if_lt",
-        "call_if_ne",
-        "call_if_set",
-        "call_if_unset",
         "case",
         "closemessage",
-        "compare",
-        "compare_local_to_local",
-        "compare_local_to_value",
         "delay",
         "end",
         "faceplayer",
         "goto",
-        "goto_if",
-        "goto_if_eq",
-        "goto_if_ge",
-        "goto_if_gt",
-        "goto_if_le",
-        "goto_if_lt",
-        "goto_if_ne",
-        "goto_if_set",
-        "goto_if_unset",
         "lock",
         "lockall",
         "message",
@@ -550,6 +532,7 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
     result: list[ScriptWarp] = []
     reached: list[Instruction] = []
     unresolved_calls: list[tuple[Instruction, str]] = []
+    invalid_choice_control: list[tuple[Instruction, str]] = []
     pending = [entry]
     visited: set[str] = set()
     while pending:
@@ -558,8 +541,22 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
             continue
         visited.add(label)
         warp_index = 0
+        choice_switch = False
         for instruction in program.labels[label]:
             reached.append(instruction)
+            if instruction.command == "switch":
+                choice_switch = instruction.operands == ("VAR_RESULT",)
+                if not choice_switch:
+                    invalid_choice_control.append(
+                        (instruction, "choice switch must inspect VAR_RESULT")
+                    )
+            elif instruction.command == "case" and not choice_switch:
+                invalid_choice_control.append(
+                    (
+                        instruction,
+                        "case requires a preceding switch VAR_RESULT in the same label",
+                    )
+                )
             opcode = program.opcodes.get(instruction.command)
             if opcode is None:
                 opcode = SCRIPT_WARP_COMMAND_SPECS.get(instruction.command)
@@ -626,6 +623,11 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
             if opcode.terminal:
                 break
     if result:
+        if invalid_choice_control:
+            instruction, message = invalid_choice_control[0]
+            raise ContentPortError(
+                f"{instruction.source}:{instruction.line}: script-warp {message}"
+            )
         if unresolved_calls:
             instruction, target = unresolved_calls[0]
             raise ContentPortError(

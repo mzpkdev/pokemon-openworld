@@ -160,15 +160,28 @@ class SourceGraphTests(unittest.TestCase):
                 ),
             )
 
-            with self.assertRaisesRegex(ContentPortError, "declared gateway"):
-                validate_world_graph(
-                    graph,
-                    WorldPolicy(
-                        inter_region_gateways=_bind_script_warp_policy(
-                            graph, declarations[:1], ownership, entries
-                        ),
-                        roots=frozenset({"A"}),
-                    ),
+            with self.assertRaisesRegex(
+                ContentPortError, "policy differs from resolved topology"
+            ):
+                _bind_script_warp_policy(
+                    graph, declarations[:1], ownership, entries
+                )
+
+            same_region_maps = json.loads(json.dumps(maps))
+            same_region_maps["B"]["region"] = "REGION_A"
+            same_region_graph = with_script_warps(
+                world_graph_from_maps(same_region_maps), evidence
+            )
+            same_region_declaration = json.loads(json.dumps(declarations[:1]))
+            same_region_declaration[0]["targetRegion"] = "REGION_A"
+            with self.assertRaisesRegex(
+                ContentPortError, "policy differs from resolved topology"
+            ):
+                _bind_script_warp_policy(
+                    same_region_graph,
+                    same_region_declaration,
+                    ownership,
+                    entries,
                 )
 
             for field, value, message in (

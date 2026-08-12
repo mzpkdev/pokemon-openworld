@@ -146,6 +146,24 @@ class SemanticsTests(unittest.TestCase):
         with self.assertRaisesRegex(ContentPortError, "unsupported command setflag"):
             extract_script_warps(program, "Entry")
 
+    def test_script_warp_closure_rejects_story_flag_condition(self) -> None:
+        program = self._program(
+            "Entry::\n goto_if_set FLAG_BADGE01_GET, .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "unsupported command goto_if_set"
+        ):
+            extract_script_warps(program, "Entry")
+
+    def test_script_warp_choice_switch_must_use_result(self) -> None:
+        program = self._program(
+            "Entry::\n switch VAR_STORY\n case 1, .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(ContentPortError, "must inspect VAR_RESULT"):
+            extract_script_warps(program, "Entry")
+
     def test_persistent_script_warp_effect_is_not_world_graph_evidence(self) -> None:
         program = self._program("Entry::\n setwarp MAP_OTHER_REGION, 6, 7\n end\n")
         with self.assertRaisesRegex(ContentPortError, "unsupported persistent"):
