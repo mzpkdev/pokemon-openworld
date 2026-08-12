@@ -101,13 +101,27 @@ class SemanticsTests(unittest.TestCase):
     def test_script_warp_control_reaches_case_and_supports_warpsilent(self) -> None:
         program = self._program(
             "Entry::\n switch VAR_RESULT\n case 1, .Travel\n end\n"
-            ".Travel::\n warpsilent MAP_OTHER, 6, 7\n end\n"
+            ".Travel::\n warpsilent MAP_OTHER, 6, 7\n waitstate\n end\n"
         )
         evidence = extract_script_warps(program, "Entry")
         self.assertEqual(
             (evidence[0].label, evidence[0].index, evidence[0].command),
             ("Entry.Travel", 0, "warpsilent"),
         )
+
+    def test_script_warp_closure_rejects_unresolved_called_target(self) -> None:
+        program = self._program(
+            "Entry::\n call GlobalMutatingService\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(
+            ContentPortError,
+            "unresolved control target GlobalMutatingService",
+        ):
+            extract_script_warps(program, "Entry")
+
+    def test_external_call_without_local_warp_yields_no_evidence(self) -> None:
+        program = self._program("Entry::\n call GlobalService\n end\n")
+        self.assertEqual(extract_script_warps(program, "Entry"), ())
 
     def test_script_warp_control_accepts_legacy_case_separator(self) -> None:
         program = self._program(

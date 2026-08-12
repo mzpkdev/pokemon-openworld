@@ -73,6 +73,7 @@ SCRIPT_WARP_COMMANDS = frozenset(
         "switch",
         "waitbuttonpress",
         "waitmessage",
+        "waitstate",
         "warp",
         "warpsilent",
     }
@@ -121,6 +122,7 @@ SCRIPT_WARP_COMMAND_SPECS = {
     "message": Opcode(),
     "switch": Opcode(),
     "waitbuttonpress": Opcode(),
+    "waitstate": Opcode(),
 }
 
 
@@ -547,6 +549,7 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
         raise ContentPortError(f"script entry {entry} is missing")
     result: list[ScriptWarp] = []
     reached: list[Instruction] = []
+    unresolved_calls: list[tuple[Instruction, str]] = []
     pending = [entry]
     visited: set[str] = set()
     while pending:
@@ -617,11 +620,18 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
                     # Expansion map script units call globally linked common
                     # services that are outside the map-owned source unit. They
                     # cannot provide map-owned warp evidence for this entry.
+                    unresolved_calls.append((instruction, raw_target))
                     continue
                 pending.append(target)
             if opcode.terminal:
                 break
     if result:
+        if unresolved_calls:
+            instruction, target = unresolved_calls[0]
+            raise ContentPortError(
+                f"{instruction.source}:{instruction.line}: unresolved control "
+                f"target {target} in script-warp closure"
+            )
         for instruction in reached:
             if instruction.command not in SCRIPT_WARP_COMMANDS:
                 raise ContentPortError(
