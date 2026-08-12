@@ -48,6 +48,7 @@
 #include "mirage_tower.h"
 #include "money.h"
 #include "new_game.h"
+#include "new_game_start_profile.h"
 #include "oras_dowse.h"
 #include "palette.h"
 #include "play_time.h"
@@ -1029,6 +1030,11 @@ void ResetInitialPlayerAvatarState(void)
     sInitialPlayerAvatarState.transitionFlags = PLAYER_AVATAR_FLAG_ON_FOOT;
 }
 
+void SetInitialPlayerAvatarStateDirection(enum Direction direction)
+{
+    sInitialPlayerAvatarState.direction = direction;
+}
+
 void StoreInitialPlayerAvatarState(void)
 {
     sInitialPlayerAvatarState.direction = GetPlayerFacingDirection();
@@ -1967,15 +1973,22 @@ static bool8 RunFieldCallback(void)
 
 void CB2_NewGame(void)
 {
+    enum NewGameStartProfileId startProfile;
+
     FieldClearVBlankHBlankCallbacks();
     StopMapMusic();
     ResetSafariZoneFlag_();
     NewGameInitData();
+    startProfile = NewGameStartProfile_ConsumeSelection();
     ResetInitialPlayerAvatarState();
+    NewGameStartProfile_Apply(startProfile);
     PlayTimeCounter_Start();
     ScriptContext_Init();
     UnlockPlayerFieldControls();
-    gFieldCallback = ExecuteTruckSequence;
+    if (NewGameStartProfile_UsesTruckOnboarding(startProfile))
+        gFieldCallback = ExecuteTruckSequence;
+    else
+        gFieldCallback = FieldCB_DefaultWarpExit;
     gFieldCallback2 = NULL;
     DoMapLoadLoop(&gMain.state);
     SetFieldVBlankCallback();

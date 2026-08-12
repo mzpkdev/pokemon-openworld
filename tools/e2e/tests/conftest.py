@@ -44,11 +44,12 @@ def session_factory(request, tmp_path):
     sessions = []
 
     def create(*, battery_save=None):
+        session_workdir = tmp_path / f"session-{len(sessions)}"
         session = SkyEmuSession(
             binary=Path(os.environ["SKYEMU"]),
             rom=Path(os.environ["E2E_ROM"]),
             symbols=Symbols(Path(os.environ["E2E_SYMS"])),
-            workdir=tmp_path,
+            workdir=session_workdir,
             battery_save=battery_save,
         )
         sessions.append(session)
