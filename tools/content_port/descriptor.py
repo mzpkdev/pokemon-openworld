@@ -673,7 +673,13 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
     world = _policy_record(
         document["worldPolicy"],
         world_pointer,
-        {"roots", "unreachableShells", "gateways", "dynamicWarps"},
+        {
+            "roots",
+            "unreachableShells",
+            "gateways",
+            "dynamicWarps",
+            "scriptWarps",
+        },
     )
     _string_array(world["roots"], f"{world_pointer}.roots")
     _string_array(world["unreachableShells"], f"{world_pointer}.unreachableShells")
@@ -690,7 +696,38 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         item = _policy_record(raw, item_pointer, gateway_fields)
         for field in gateway_fields - {"index"}:
             _string(item[field], f"{item_pointer}.{field}")
+        if item["kind"] not in {"connection", "warp"}:
+            raise ContentPortError(
+                f"{item_pointer}.kind: must be 'connection' or 'warp'"
+            )
         _integer(item["index"], f"{item_pointer}.index")
+
+    script_warp_fields = {
+        "source",
+        "destination",
+        "script",
+        "label",
+        "command",
+        "index",
+        "x",
+        "y",
+        "sourceRegion",
+        "targetRegion",
+    }
+    script_warp_pointer = f"{world_pointer}.scriptWarps"
+    for index, raw in enumerate(_array(world["scriptWarps"], script_warp_pointer)):
+        item_pointer = f"{script_warp_pointer}[{index}]"
+        item = _policy_record(raw, item_pointer, script_warp_fields)
+        for field in script_warp_fields - {"index", "x", "y"}:
+            _string(item[field], f"{item_pointer}.{field}")
+        if item["command"] not in {"warp", "warpsilent"}:
+            raise ContentPortError(
+                f"{item_pointer}.command: must be 'warp' or 'warpsilent'"
+            )
+        for field in ("index", "x", "y"):
+            value = _integer(item[field], f"{item_pointer}.{field}")
+            if value < 0:
+                raise ContentPortError(f"{item_pointer}.{field}: must be non-negative")
 
     dynamic_warp_pointer = f"{world_pointer}.dynamicWarps"
     for index, raw in enumerate(_array(world["dynamicWarps"], dynamic_warp_pointer)):
@@ -762,6 +799,11 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
     for family, values, identity_fields in (
         ("gateways", world["gateways"], ("source", "kind", "index")),
         ("dynamicWarps", world["dynamicWarps"], ("source", "index")),
+        (
+            "scriptWarps",
+            world["scriptWarps"],
+            ("source", "script", "label", "index"),
+        ),
     ):
         seen: dict[tuple[object, ...], str] = {}
         for index, raw in enumerate(values):

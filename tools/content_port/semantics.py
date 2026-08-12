@@ -33,6 +33,50 @@ EFFECT_KINDS = frozenset(
     }
 )
 ENTRY_CLASSIFICATIONS = frozenset({"enabled", "story-owned", "deferred", "unsupported"})
+SCRIPT_WARP_COMMANDS = frozenset(
+    {
+        "call",
+        "call_if",
+        "call_if_eq",
+        "call_if_ge",
+        "call_if_gt",
+        "call_if_le",
+        "call_if_lt",
+        "call_if_ne",
+        "call_if_set",
+        "call_if_unset",
+        "case",
+        "closemessage",
+        "compare",
+        "compare_local_to_local",
+        "compare_local_to_value",
+        "delay",
+        "end",
+        "faceplayer",
+        "goto",
+        "goto_if",
+        "goto_if_eq",
+        "goto_if_ge",
+        "goto_if_gt",
+        "goto_if_le",
+        "goto_if_lt",
+        "goto_if_ne",
+        "goto_if_set",
+        "goto_if_unset",
+        "lock",
+        "lockall",
+        "message",
+        "msgbox",
+        "release",
+        "releaseall",
+        "return",
+        "switch",
+        "waitbuttonpress",
+        "waitmessage",
+        "warp",
+        "warpsilent",
+    }
+)
 
 
 @dataclass(frozen=True, order=True)
@@ -68,11 +112,36 @@ class Opcode:
     terminal: bool = False
 
 
+SCRIPT_WARP_COMMAND_SPECS = {
+    # These expansion control/presentation macros are absent from the semantic
+    # effect inventory because enabled-event validation has not needed them.
+    # Their script-warp behavior is nevertheless explicit here: case reaches
+    # its destination, while the others cannot hide another script label.
+    "case": Opcode(calls=(1,)),
+    "message": Opcode(),
+    "switch": Opcode(),
+    "waitbuttonpress": Opcode(),
+}
+
+
 @dataclass(frozen=True)
 class ScriptProgram:
     labels: Mapping[str, tuple[Instruction, ...]]
     opcodes: Mapping[str, Opcode]
     texts: Mapping[str, tuple[str, ...]]
+
+
+@dataclass(frozen=True, order=True)
+class ScriptWarp:
+    entry: str
+    label: str
+    index: int
+    command: str
+    destination: str
+    x: int
+    y: int
+    source: str
+    line: int
 
 
 def split_operands(text: str) -> tuple[str, ...]:
@@ -106,6 +175,29 @@ def split_instruction_operands(command: str, text: str) -> tuple[str, ...]:
     """Apply only reviewed, command-specific donor syntax adaptations."""
 
     operands = split_operands(text)
+    if command == "case" and len(operands) == 1:
+        fields = tuple(text.split())
+        return fields if len(fields) == 2 else operands
+    if command in {"goto_if_set", "goto_if_unset", "call_if_set", "call_if_unset"}:
+        fields = tuple(text.split())
+        return fields if len(fields) == 2 else operands
+    if command in {
+        "call_if_eq",
+        "call_if_ge",
+        "call_if_gt",
+        "call_if_le",
+        "call_if_lt",
+        "call_if_ne",
+        "goto_if_eq",
+        "goto_if_ge",
+        "goto_if_gt",
+        "goto_if_le",
+        "goto_if_lt",
+        "goto_if_ne",
+    } and len(operands) == 2:
+        trailing = operands[1].split()
+        if len(trailing) == 2:
+            return (operands[0], trailing[0], trailing[1])
     if command != "trainerbattle_single" or len(operands) != 2:
         return operands
     first = operands[0].split()
@@ -441,6 +533,102 @@ def analyze_entry(program: ScriptProgram, entry: str) -> tuple[Effect, ...]:
             ),
         )
     )
+
+
+def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp, ...]:
+    """Extract immediate, literal world transitions reachable from one entry.
+
+    The opcode inventory identifies warp effects. Only immediate ``warp`` and
+    ``warpsilent`` commands are admitted as world-graph evidence; saved/dynamic
+    escape points and specialized warp commands need separate runtime contracts.
+    """
+
+    if entry not in program.labels:
+        raise ContentPortError(f"script entry {entry} is missing")
+    result: list[ScriptWarp] = []
+    reached: list[Instruction] = []
+    pending = [entry]
+    visited: set[str] = set()
+    while pending:
+        label = pending.pop()
+        if label in visited:
+            continue
+        visited.add(label)
+        warp_index = 0
+        for instruction in program.labels[label]:
+            reached.append(instruction)
+            opcode = program.opcodes.get(instruction.command)
+            if opcode is None:
+                opcode = SCRIPT_WARP_COMMAND_SPECS.get(instruction.command)
+            if opcode is None:
+                # Unknown non-control macros cannot contribute an edge. If this
+                # closure does contain a warp, the allowlist below rejects them
+                # rather than accidentally treating a state mutation as safe.
+                continue
+            if any(kind == "warp" for kind, _operand in opcode.effects):
+                if instruction.command not in {"warp", "warpsilent"}:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: unsupported "
+                        f"persistent or specialized script warp effect "
+                        f"{instruction.command}"
+                    )
+                if len(instruction.operands) != 3:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: warp requires "
+                        "literal destination, x, and y operands"
+                    )
+                destination, raw_x, raw_y = instruction.operands
+                try:
+                    x = int(raw_x, 0)
+                    y = int(raw_y, 0)
+                except ValueError as exc:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: warp coordinates "
+                        "must be integer literals"
+                    ) from exc
+                if x < 0 or y < 0:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: warp coordinates "
+                        "must be non-negative"
+                    )
+                result.append(
+                    ScriptWarp(
+                        entry,
+                        label,
+                        warp_index,
+                        instruction.command,
+                        destination.removeprefix("MAP_"),
+                        x,
+                        y,
+                        instruction.source,
+                        instruction.line,
+                    )
+                )
+                warp_index += 1
+            for call_index in opcode.calls:
+                if call_index >= len(instruction.operands):
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: "
+                        f"{instruction.command} lacks label operand {call_index}"
+                    )
+                raw_target = instruction.operands[call_index]
+                target = _resolve_label(raw_target, instruction.scope, program.labels)
+                if target is None:
+                    # Expansion map script units call globally linked common
+                    # services that are outside the map-owned source unit. They
+                    # cannot provide map-owned warp evidence for this entry.
+                    continue
+                pending.append(target)
+            if opcode.terminal:
+                break
+    if result:
+        for instruction in reached:
+            if instruction.command not in SCRIPT_WARP_COMMANDS:
+                raise ContentPortError(
+                    f"{instruction.source}:{instruction.line}: unsupported command "
+                    f"{instruction.command} in script-warp closure"
+                )
+    return tuple(sorted(result))
 
 
 EffectKey = tuple[str, str, str | None]

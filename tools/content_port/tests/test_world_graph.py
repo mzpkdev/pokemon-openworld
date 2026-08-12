@@ -4,8 +4,10 @@ import unittest
 
 from tools.content_port.errors import ContentPortError
 from tools.content_port.world_graph import (
+    WorldEdge,
     WorldPolicy,
     validate_world_graph,
+    with_script_warps,
     world_graph_from_maps,
 )
 
@@ -107,6 +109,57 @@ class WorldGraphTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ContentPortError, "out of bounds"):
             validate_world_graph(graph, WorldPolicy())
+
+    def test_script_warps_are_directional_gateway_and_reachability_edges(self) -> None:
+        graph = with_script_warps(
+            world_graph_from_maps(
+                {
+                    "A": map_doc("A", region="kanto"),
+                    "B": map_doc("B", region="johto"),
+                }
+            ),
+            (
+                WorldEdge(
+                    "A",
+                    "B",
+                    "script-warp",
+                    0,
+                    script_entry="A_Travel",
+                    script_label="A_Travel",
+                    command="warp",
+                    x=2,
+                    y=3,
+                ),
+                WorldEdge(
+                    "B",
+                    "A",
+                    "script-warp",
+                    0,
+                    script_entry="B_Travel",
+                    script_label="B_Travel",
+                    command="warp",
+                    x=4,
+                    y=5,
+                ),
+            ),
+        )
+        a_to_b = "A:script-warp:A_Travel:A_Travel:0"
+        b_to_a = "B:script-warp:B_Travel:B_Travel:0"
+        with self.assertRaisesRegex(ContentPortError, "declared gateway"):
+            validate_world_graph(
+                graph,
+                WorldPolicy(
+                    inter_region_gateways=frozenset({a_to_b}),
+                    roots=frozenset({"A"}),
+                ),
+            )
+        validate_world_graph(
+            graph,
+            WorldPolicy(
+                inter_region_gateways=frozenset({a_to_b, b_to_a}),
+                roots=frozenset({"A"}),
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -320,6 +320,7 @@ class DescriptorTests(unittest.TestCase):
                     "unreachableShells": [],
                     "gateways": [],
                     "dynamicWarps": [],
+                    "scriptWarps": [],
                 },
                 "roots",
                 "roots",
@@ -344,6 +345,26 @@ class DescriptorTests(unittest.TestCase):
                 "index",
             ),
             (
+                "worldScriptWarp",
+                {
+                    "source": "TestMap",
+                    "destination": "OtherMap",
+                    "script": "TestMap_EventScript_Travel",
+                    "label": "TestMap_EventScript_Travel",
+                    "command": "warp",
+                    "index": 0,
+                    "x": 3,
+                    "y": 4,
+                    "sourceRegion": "REGION_TEST",
+                    "targetRegion": "REGION_OTHER",
+                },
+                "targetRegion",
+                "index",
+                True,
+                "$.worldPolicy.scriptWarps[0]",
+                "index",
+            ),
+            (
                 "worldDynamicWarp",
                 {"source": "TestMap", "index": 0, "token": "WARP_ID_DYNAMIC"},
                 "token",
@@ -364,6 +385,9 @@ class DescriptorTests(unittest.TestCase):
         if family == "worldDynamicWarp":
             document["worldPolicy"]["dynamicWarps"] = [sample]  # type: ignore[index]
             return document["worldPolicy"]["dynamicWarps"][0]  # type: ignore[index]
+        if family == "worldScriptWarp":
+            document["worldPolicy"]["scriptWarps"] = [sample]  # type: ignore[index]
+            return document["worldPolicy"]["scriptWarps"][0]  # type: ignore[index]
         if isinstance(document[family], list):
             document[family] = [sample]
             return document[family][0]  # type: ignore[index]
@@ -522,6 +546,7 @@ class DescriptorTests(unittest.TestCase):
                     "unreachableShells": [],
                     "gateways": [],
                     "dynamicWarps": [],
+                    "scriptWarps": [],
                 },
             }
         )
@@ -1104,6 +1129,7 @@ class DescriptorTests(unittest.TestCase):
             ("berryTreeAllocations", "path"),
             ("worldGateway", "index"),
             ("worldDynamicWarp", "index"),
+            ("worldScriptWarp", "index"),
         )
         for family, identity_field in cases:
             with (
@@ -1122,6 +1148,9 @@ class DescriptorTests(unittest.TestCase):
                 elif family == "worldDynamicWarp":
                     records = document["worldPolicy"]["dynamicWarps"]  # type: ignore[index]
                     pointer = "$.worldPolicy.dynamicWarps[1]"
+                elif family == "worldScriptWarp":
+                    records = document["worldPolicy"]["scriptWarps"]  # type: ignore[index]
+                    pointer = "$.worldPolicy.scriptWarps[1]"
                 else:
                     records = document[family]
                     pointer = f"$.{family}[1]"

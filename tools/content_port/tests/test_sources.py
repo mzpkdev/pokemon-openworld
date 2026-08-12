@@ -23,7 +23,15 @@ from tools.content_port.sources import (
     resolve_port_sources,
     validate_port_sources,
     _semantic_record_digest,
+    _bind_script_warp_policy,
+    _extract_preserved_script_warps,
     _validate_selected_trainer_event,
+)
+from tools.content_port.world_graph import (
+    WorldPolicy,
+    validate_world_graph,
+    with_script_warps,
+    world_graph_from_maps,
 )
 
 
@@ -88,6 +96,131 @@ class SourceGraphTests(unittest.TestCase):
         self.assertEqual(
             str(edge.provenance), "data/maps/Town/map.json/connections/0/map"
         )
+
+    def test_script_warp_policy_binds_parsed_owned_evidence_exactly(self) -> None:
+        maps = {
+            "A": {
+                "id": "MAP_A",
+                "region": "REGION_A",
+                "connections": [],
+                "warp_events": [],
+                "object_events": [{"script": "A_EventScript_Travel"}],
+            },
+            "B": {
+                "id": "MAP_B",
+                "region": "REGION_B",
+                "connections": [],
+                "warp_events": [],
+                "object_events": [{"script": "B_EventScript_Travel"}],
+            },
+        }
+        ownership = {"A": "preserve", "B": "preserve"}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, destination, x, y in (
+                ("A", "B", 3, 4),
+                ("B", "A", 5, 6),
+            ):
+                path = root / "data" / "maps" / name / "scripts.inc"
+                path.parent.mkdir(parents=True)
+                path.write_text(
+                    f"{name}_EventScript_Travel::\n msgbox Text, MSGBOX_YESNO\n"
+                    f" warp MAP_{destination}, {x}, {y}\n end\n",
+                    encoding="utf-8",
+                )
+            evidence, entries = _extract_preserved_script_warps(
+                maps, ownership, root
+            )
+            graph = with_script_warps(world_graph_from_maps(maps), evidence)
+            declarations = [
+                {
+                    "source": source,
+                    "destination": destination,
+                    "script": f"{source}_EventScript_Travel",
+                    "label": f"{source}_EventScript_Travel",
+                    "command": "warp",
+                    "index": 0,
+                    "x": x,
+                    "y": y,
+                    "sourceRegion": f"REGION_{source}",
+                    "targetRegion": f"REGION_{destination}",
+                }
+                for source, destination, x, y in (
+                    ("A", "B", 3, 4),
+                    ("B", "A", 5, 6),
+                )
+            ]
+            gateways = _bind_script_warp_policy(
+                graph, declarations, ownership, entries
+            )
+            validate_world_graph(
+                graph,
+                WorldPolicy(
+                    inter_region_gateways=gateways, roots=frozenset({"A"})
+                ),
+            )
+
+            with self.assertRaisesRegex(ContentPortError, "declared gateway"):
+                validate_world_graph(
+                    graph,
+                    WorldPolicy(
+                        inter_region_gateways=_bind_script_warp_policy(
+                            graph, declarations[:1], ownership, entries
+                        ),
+                        roots=frozenset({"A"}),
+                    ),
+                )
+
+            for field, value, message in (
+                ("destination", "MISSING", "stale script warp"),
+                ("x", 99, "stale script warp"),
+                ("command", "warpsilent", "stale script warp"),
+                ("index", 1, "stale script warp"),
+                ("sourceRegion", "REGION_WRONG", "region evidence drift"),
+                ("targetRegion", "REGION_WRONG", "region evidence drift"),
+            ):
+                with self.subTest(field=field):
+                    drifted = json.loads(json.dumps(declarations))
+                    drifted[0][field] = value
+                    with self.assertRaisesRegex(ContentPortError, message):
+                        _bind_script_warp_policy(
+                            graph, drifted, ownership, entries
+                        )
+
+            wrong_entry = json.loads(json.dumps(declarations))
+            wrong_entry[0]["script"] = "B_EventScript_Travel"
+            with self.assertRaisesRegex(ContentPortError, "not owned"):
+                _bind_script_warp_policy(graph, wrong_entry, ownership, entries)
+            wrong_ownership = dict(ownership, A="rendered")
+            with self.assertRaisesRegex(ContentPortError, "does not preserve"):
+                _bind_script_warp_policy(
+                    graph, declarations, wrong_ownership, entries
+                )
+
+            missing_script = root / "data" / "maps" / "B" / "scripts.inc"
+            missing_script.unlink()
+            incomplete_evidence, incomplete_entries = _extract_preserved_script_warps(
+                maps, ownership, root
+            )
+            incomplete_graph = with_script_warps(
+                world_graph_from_maps(maps), incomplete_evidence
+            )
+            self.assertEqual(
+                {edge.source for edge in incomplete_evidence},
+                {"A"},
+            )
+            with self.assertRaisesRegex(ContentPortError, "not owned"):
+                _bind_script_warp_policy(
+                    incomplete_graph, declarations, ownership, incomplete_entries
+                )
+
+            persistent = root / "data" / "maps" / "A" / "scripts.inc"
+            persistent.write_text(
+                "A_EventScript_Travel::\n setwarp MAP_B, 3, 4\n end\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ContentPortError, "unsupported persistent"):
+                _extract_preserved_script_warps(maps, ownership, root)
 
     def test_rejects_descriptor_dependency_graph(self) -> None:
         key = ResourceKey("capability", "spatial")
