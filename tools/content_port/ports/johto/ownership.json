@@ -3914,16 +3914,6 @@
     },
     {
       "kind": "file",
-      "path": "data/maps/OlivineCity_PokemonCenter/map.json",
-      "sha256": "d4c534db6cd688596d4066a8b9eb20ee4400fbf7bc60ab3325533215f90ea7ac"
-    },
-    {
-      "kind": "file",
-      "path": "data/maps/OlivineCity_PokemonCenter/scripts.inc",
-      "sha256": "15590d578582884700d2a107f7b62bffe0c35619890779651674b2d2fe90d338"
-    },
-    {
-      "kind": "file",
       "path": "data/maps/OlivineCity_PortInside/map.json",
       "sha256": "891e49186583de2987058d7fdf39d274d4700b77ec1d21883f7a093aa32a58c3"
     },
@@ -11584,7 +11574,7 @@
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "0cbdfc9633cb7dc1526e5a5975d55b2c493ffd2c94acc718d2ae43159a78cb5e",
+      "sha256": "37e329a33d6fb6911d3579db4ec977486824496fdc542f6f10c96d2285901f15",
       "slot": 919
     },
     {

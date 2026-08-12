@@ -948,6 +948,12 @@
       "NewBarkTown_Text_Silver1",
       "NewBarkTown_Text_Silver2",
       "NewBarkTown_Text_Wooper",
+      "OlivineCity_EventScript_Fisher",
+      "OlivineCity_EventScript_Teacher",
+      "OlivineCity_PokemonCenter_MapScripts",
+      "OlivineCity_PokemonCenter_OnTransition",
+      "OlivineCity_Text_PokecenterFisher",
+      "OlivineCity_Text_PokecenterTeacher",
       "Route28House_EventScript_Celebrity",
       "Route28House_EventScript_CelebrityAfter",
       "Route28House_Text_Celebrity1",
@@ -1242,6 +1248,16 @@
         "bytes": 1445,
         "path": "data/maps/NewBarkTown_PlayersHouse_2F/scripts.inc",
         "sha256": "5f5b0e3779e63c1197973de615a7e618c5f9340502725d5b65e7362a9c6917bd"
+      },
+      {
+        "bytes": 2789,
+        "path": "data/maps/OlivineCity_PokemonCenter/map.json",
+        "sha256": "335fc7cbd3271dd0c4f4ee10f0c68ad3a1236274a932fe05a853cbd1cccfb186"
+      },
+      {
+        "bytes": 957,
+        "path": "data/maps/OlivineCity_PokemonCenter/scripts.inc",
+        "sha256": "5d235ac5f23272fd68b441e89c59da0a267312dc6e8baa6998b8047e3fdfe495"
       },
       {
         "bytes": 6835,
