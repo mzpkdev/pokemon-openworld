@@ -77,6 +77,7 @@
 #include "vs_seeker.h"
 #include "frontier_util.h"
 #include "constants/abilities.h"
+#include "constants/battle_frontier.h"
 #include "constants/event_object_movement.h"
 #include "constants/event_objects.h"
 #include "constants/layouts.h"
@@ -84,6 +85,7 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "constants/trainer_hill.h"
+#include "constants/vars.h"
 #include "constants/weather.h"
 #ifdef DEBUG
 #include "integrity_map_load.h"
@@ -2164,6 +2166,16 @@ static void FieldCB_FadeTryShowMapPopup(void)
     FieldCB_WarpExitFadeFromBlack();
 }
 
+u8 GetFacilityChallengeStatusOnContinue(u8 saveStatus, u8 challengeStatus, u8 facility, u8 specialSaveWarpFlags)
+{
+    if (saveStatus != SAVE_STATUS_ERROR
+     && challengeStatus == CHALLENGE_STATUS_PAUSED
+     && facility == FRONTIER_FACILITY_TOWER
+     && !(specialSaveWarpFlags & LOBBY_SAVEWARP))
+        return CHALLENGE_STATUS_SAVING;
+    return challengeStatus;
+}
+
 void CB2_ContinueSavedGame(void)
 {
     u8 trainerHillMapId;
@@ -2173,6 +2185,13 @@ void CB2_ContinueSavedGame(void)
     ResetSafariZoneFlag_();
     if (gSaveFileStatus == SAVE_STATUS_ERROR)
         ResetWinStreaks();
+    else
+        gSaveBlock2Ptr->frontier.challengeStatus = GetFacilityChallengeStatusOnContinue(
+            gSaveFileStatus,
+            gSaveBlock2Ptr->frontier.challengeStatus,
+            VarGet(VAR_FRONTIER_FACILITY),
+            gSaveBlock2Ptr->specialSaveWarpFlags
+        );
 
     LoadSaveblockMapHeader();
     ClearDiveAndHoleWarps();

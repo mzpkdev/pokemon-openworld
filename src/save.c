@@ -5,13 +5,16 @@
 #include "save.h"
 #include "task.h"
 #include "decompress.h"
+#include "event_data.h"
 #include "load_save.h"
 #include "overworld.h"
 #include "hall_of_fame.h"
 #include "pokemon_storage_system.h"
 #include "trainer_hill.h"
 #include "link.h"
+#include "constants/battle_frontier.h"
 #include "constants/game_stat.h"
+#include "constants/vars.h"
 
 static u16 CalculateChecksum(void *, u16);
 static bool8 ReadFlashSector(u8, struct SaveSector *);
@@ -710,13 +713,49 @@ static void UpdateSaveAddresses(void)
     }
 }
 
+u8 GetSerializedFacilityChallengeStatus(u8 saveType, u8 challengeStatus, bool8 challengePaused)
+{
+    if ((saveType == SAVE_NORMAL || saveType == SAVE_OVERWRITE_DIFFERENT_FILE)
+     && challengeStatus == CHALLENGE_STATUS_SAVING
+     && challengePaused)
+        return CHALLENGE_STATUS_PAUSED;
+    return challengeStatus;
+}
+
+void PrepareFacilitySaveStatus(u8 saveType, bool8 challengePaused, struct FacilitySaveStatusState *state)
+{
+    u8 challengeStatus = GetSerializedFacilityChallengeStatus(saveType, state->challengeStatus, challengePaused);
+
+    if (challengeStatus != state->challengeStatus)
+        state->challengeStatusVar = 0;
+    state->challengeStatus = challengeStatus;
+}
+
+void RestoreFacilitySaveStatus(struct FacilitySaveStatusState *state, const struct FacilitySaveStatusState *original)
+{
+    *state = *original;
+}
+
 u8 HandleSavingData(u8 saveType)
 {
     u8 i;
+    struct FacilitySaveStatusState challengeStatus =
+    {
+        .challengeStatus = gSaveBlock2Ptr->frontier.challengeStatus,
+        .challengeStatusVar = VarGet(VAR_TEMP_CHALLENGE_STATUS),
+    };
+    struct FacilitySaveStatusState serializedChallengeStatus = challengeStatus;
     u32 *backupVar = gTrainerHillVBlankCounter;
 
     gTrainerHillVBlankCounter = NULL;
     UpdateSaveAddresses();
+    // Continue resumes a paused facility challenge as SAVING in RAM. A full
+    // field save must retain the PAUSED record and re-arm its map callback so
+    // the next Continue can resume it again, without changing the active
+    // runtime state after the write.
+    PrepareFacilitySaveStatus(saveType, gSaveBlock2Ptr->frontier.challengePaused, &serializedChallengeStatus);
+    gSaveBlock2Ptr->frontier.challengeStatus = serializedChallengeStatus.challengeStatus;
+    VarSet(VAR_TEMP_CHALLENGE_STATUS, serializedChallengeStatus.challengeStatusVar);
     switch (saveType)
     {
     case SAVE_HALL_OF_FAME_ERASE_BEFORE:
@@ -766,6 +805,9 @@ u8 HandleSavingData(u8 saveType)
         WriteSaveSectorOrSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
         break;
     }
+    RestoreFacilitySaveStatus(&serializedChallengeStatus, &challengeStatus);
+    gSaveBlock2Ptr->frontier.challengeStatus = serializedChallengeStatus.challengeStatus;
+    VarSet(VAR_TEMP_CHALLENGE_STATUS, serializedChallengeStatus.challengeStatusVar);
     gTrainerHillVBlankCounter = backupVar;
     return 0;
 }

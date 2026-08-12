@@ -14,7 +14,13 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from tools.e2e.save_file import SaveImage, is_strictly_newer_save_counter
+from tools.e2e.save_file import (
+    FLASH_SIZE,
+    SECTORS_PER_SLOT,
+    SECTOR_SIZE,
+    SaveImage,
+    is_strictly_newer_save_counter,
+)
 
 
 BUTTONS = ("A", "B", "Up", "Down", "Left", "Right", "L", "R", "Start", "Select")
@@ -240,6 +246,31 @@ class SkyEmuSession:
     def battery_snapshot(self) -> SaveImage:
         return SaveImage.from_path(self.battery_path)
 
+    @staticmethod
+    def _complete_save_image_for_wait(data: bytes) -> SaveImage:
+        if len(data) != FLASH_SIZE:
+            SaveImage.from_bytes(data)
+        slots = []
+        for slot_index in range(2):
+            isolated = bytearray(b"\xff" * FLASH_SIZE)
+            start = slot_index * SECTORS_PER_SLOT * SECTOR_SIZE
+            end = start + SECTORS_PER_SLOT * SECTOR_SIZE
+            isolated[start:end] = data[start:end]
+            try:
+                slots.append(SaveImage.from_bytes(bytes(isolated)).active_slot)
+            except ValueError:
+                continue
+        if not slots:
+            raise ValueError("battery save has no complete valid save slot")
+        active = slots[0]
+        for candidate in slots[1:]:
+            if is_strictly_newer_save_counter(candidate.counter, active.counter):
+                active = candidate
+        return SaveImage(data=data, slots=tuple(slots), active_slot=active)
+
+    def battery_snapshot_for_wait(self) -> SaveImage:
+        return self._complete_save_image_for_wait(self.battery_path.read_bytes())
+
     def wait_for_battery_change(
         self,
         before: SaveImage | bytes,
@@ -249,21 +280,32 @@ class SkyEmuSession:
         release_frames: int = 4,
     ) -> SaveImage:
         """Wait for an in-game flash write, accepting only a complete valid image."""
-        before_image = (
-            before if isinstance(before, SaveImage) else SaveImage.from_bytes(before)
-        )
-        last_error: ValueError | None = None
+        before_counter: int | None
+        if isinstance(before, SaveImage):
+            before_counter = before.active_slot.counter
+        elif not before:
+            before_counter = None
+        else:
+            try:
+                before_counter = SkyEmuSession._complete_save_image_for_wait(
+                    before
+                ).active_slot.counter
+            except ValueError:
+                if len(before) != FLASH_SIZE:
+                    raise
+                before_counter = None
+        last_error: ValueError | FileNotFoundError | None = None
         for _ in range(max_pulses):
             self.press(button, release_frames=release_frames)
             try:
-                current = self.battery_snapshot()
-            except ValueError as error:
+                current = self.battery_snapshot_for_wait()
+            except (ValueError, FileNotFoundError) as error:
                 # The emulator can expose the file between sector writes. Keep
-                # advancing until the complete slot is coherent.
+                # advancing until the file exists and its complete slot is coherent.
                 last_error = error
                 continue
-            if is_strictly_newer_save_counter(
-                current.active_slot.counter, before_image.active_slot.counter
+            if before_counter is None or is_strictly_newer_save_counter(
+                current.active_slot.counter, before_counter
             ):
                 return current
         detail = "" if last_error is None else f"; last validation error: {last_error}"
