@@ -400,7 +400,7 @@ class DescriptorTests(unittest.TestCase):
         self.assertEqual(len(descriptor.allocation_index.maps), 254)
         self.assertEqual(len(descriptor.map_ownership), 254)
         self.assertEqual(len(descriptor.capabilities), 254 * 12)
-        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 17)
+        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 19)
         state_counts: dict[str, int] = {}
         for decision in descriptor.capabilities:
             state_counts[decision.state.value] = (
@@ -408,7 +408,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 510, "deferred": 2368, "story-owned": 170},
+            {"enabled": 510, "deferred": 2348, "story-owned": 190},
         )
         self.assertEqual(
             {
