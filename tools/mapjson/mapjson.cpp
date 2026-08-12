@@ -2674,11 +2674,6 @@ static void validate_product_inputs(const MapBuildPolicy &policy,
         group_number++;
     }
 
-    validate_checkpoint_registry(
-        read_json_file(checkpoints_filepath, "validating checkpoint registry"),
-        read_json_file(published_bindings_filepath, "validating published checkpoint bindings"),
-        layouts_data, maps_by_name, map_names_by_id, grouped_names);
-
     for (const auto &[map_name, map_data] : maps_by_name) {
         if (!policy.IncludesRegion(json_to_string(map_data, "region")))
             continue;
@@ -2730,6 +2725,11 @@ static void validate_product_inputs(const MapBuildPolicy &policy,
                                      "map '" + events_owner + "' warp names missing map id '" + destination + "'");
         }
     }
+
+    validate_checkpoint_registry(
+        read_json_file(checkpoints_filepath, "validating checkpoint registry"),
+        read_json_file(published_bindings_filepath, "validating published checkpoint bindings"),
+        layouts_data, maps_by_name, map_names_by_id, grouped_names);
 
     // Map-section validation owns the metadata, compact codecs, reverse maps,
     // stable frozen range, and invalid/reserved sentinels as one contract.
