@@ -401,6 +401,8 @@
     ["gWildMonHeaders","gNewBarkTown_Night","gNewBarkTown","johto","TIME_NIGHT",null,null,null],
     ["gWildMonHeaders","gCherrygroveCity","gCherrygroveCity","johto","TIME_FALLBACK",null,null,null],
     ["gWildMonHeaders","gCherrygroveCity_Night","gCherrygroveCity","johto","TIME_NIGHT",null,null,null],
+    ["gWildMonHeaders","gRoute39","gRoute39","johto","TIME_FALLBACK",null,null,null],
+    ["gWildMonHeaders","gRoute39_Night","gRoute39","johto","TIME_NIGHT",null,null,null],
     ["gBattlePyramidWildMonHeaders","gBattlePyramid_1","gBattlePyramid_1","hoenn","TIME_FALLBACK",null,null,null],
     ["gBattlePyramidWildMonHeaders","gBattlePyramid_2","gBattlePyramid_2","hoenn","TIME_FALLBACK",null,null,null],
     ["gBattlePyramidWildMonHeaders","gBattlePyramid_3","gBattlePyramid_3","hoenn","TIME_FALLBACK",null,null,null],

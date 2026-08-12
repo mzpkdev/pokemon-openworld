@@ -19,6 +19,7 @@ DEFAULT_MAP_GROUPS = ROOT / "data/maps/map_groups.json"
 DEFAULT_MAPS_ROOT = ROOT / "data/maps"
 DEFAULT_MAP_SECTIONS = ROOT / "src/data/region_map/region_map_sections.json"
 DEFAULT_SPECIES = ROOT / "include/constants/species.h"
+DEFAULT_TIME_POLICIES = ROOT / "tools/content_port/ports/johto/adaptations.json"
 
 PROFILE_FIELDS = (
     "group",
@@ -32,26 +33,35 @@ PROFILE_FIELDS = (
 )
 FALLBACK_TIME_ROLE = "TIME_FALLBACK"
 RESIDENCIES = {"hoenn", "kanto", "sevii", "johto"}
-REVIEWED_PROFILE_COUNT = 407
+REVIEWED_PROFILE_COUNT = 409
 REVIEWED_RESIDENCY_COUNTS = {
     "hoenn": 135,
     "kanto": 132,
     "sevii": 132,
-    "johto": 8,
+    "johto": 10,
 }
 # SHA-256 of compact JSON containing every PROFILE_FIELDS value in registry order.
 REVIEWED_ORDERED_PROFILE_SHA256 = (
-    "4f076c8e814f49001b67a312af251eb5919ebc9b60f74758162f8a316693357e"
+    "4f4c826ed8c64339317e70a069f366ce4928fc51606d0bf86945d3487124c2c7"
 )
 # Deliberately revised only when authenticated authored encounter content changes.
 REVIEWED_AUTHORED_CONTRACT_SHA256 = (
-    "d6e1e1f95b22fd4f3f0f6314a1c92000ffd039944efab305d0b15708c23fe082"
+    "2503c282752a86638bbeda5b64d2536df632de29b5658e9a06d7c52ac030367d"
 )
 NON_MAP_RESIDENCY = {
     "gBattlePyramidWildMonHeaders": "hoenn",
     "gBattlePikeWildMonHeaders": "hoenn",
 }
 DEFAULT_OUTPUT_MODE = 0o644
+REQUIRED_RUNTIME_TIME_POLICIES = {
+    "Route39": {
+        "dayStart": "06:00",
+        "nightStart": "18:00",
+        "dayLabel": "gRoute39",
+        "nightLabel": "gRoute39_Night",
+        "fallbackLabel": "gRoute39",
+    }
+}
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 MAP_IDENTIFIER = re.compile(r"^MAP_[A-Z0-9_]+$")
 SPECIES_IDENTIFIER = re.compile(r"^SPECIES_[A-Z0-9_]+$")
@@ -325,27 +335,31 @@ def _load_species(path):
     return species
 
 
-def _resolve_profile_time(profile, config):
+def _resolve_profile_time(profile, config, time_policy_labels=None):
+    if time_policy_labels and profile["label"] in time_policy_labels:
+        return time_policy_labels[profile["label"]]["time"]
     if profile["time"] == FALLBACK_TIME_ROLE:
         return config.runtime_canonical_time
     return profile["time"]
 
 
-def _profile_emits_runtime(profile, config):
+def _profile_emits_runtime(profile, config, time_policy_labels=None):
     if profile["alternate_of"] is not None:
         return False
+    if time_policy_labels and profile["label"] in time_policy_labels:
+        return True
     return config.time_encounters or profile["time"] == FALLBACK_TIME_ROLE
 
 
-def _select_runtime_profiles(profiles, config):
+def _select_runtime_profiles(profiles, config, time_policy_labels=None):
     bindings = {}
     for profile in profiles:
-        if not _profile_emits_runtime(profile, config):
+        if not _profile_emits_runtime(profile, config, time_policy_labels):
             continue
         binding = (
             profile["group"],
             profile["header"],
-            _resolve_profile_time(profile, config),
+            _resolve_profile_time(profile, config, time_policy_labels),
         )
         existing = bindings.get(binding)
         if existing is None:
@@ -413,7 +427,6 @@ def _parse_registry(registry, config):
                     f"{location}/variant_index: expected non-negative integer"
                 )
         profiles.append(profile)
-    _select_runtime_profiles(profiles, config)
     return profiles
 
 
@@ -818,14 +831,172 @@ def validate_inputs(encounters, registry, config, maps, species):
     return profiles
 
 
+def _parse_policy_clock(value, location):
+    if (
+        not isinstance(value, str)
+        or re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", value) is None
+    ):
+        raise ValidationError(f"{location}: expected 24-hour HH:MM")
+    hours, minutes = (int(part) for part in value.split(":"))
+    return hours * 60 + minutes
+
+
+def _load_time_policies(path, profiles, encounters, config):
+    document = _load_json(path)
+    policy_rows = (
+        document.get("encounterTimePolicy") if isinstance(document, dict) else None
+    )
+    profile_rows = (
+        document.get("encounterProfiles") if isinstance(document, dict) else None
+    )
+    if not isinstance(policy_rows, list) or not isinstance(profile_rows, list):
+        raise ValidationError(
+            f"{path}: encounterTimePolicy and encounterProfiles must be lists"
+        )
+
+    registry_by_label = {profile["label"]: profile for profile in profiles}
+    encounter_by_label = {
+        encounter["base_label"]: encounter
+        for group in encounters["wild_encounter_groups"]
+        for encounter in group["encounters"]
+    }
+    authored_profile_by_label = {}
+    for index, row in enumerate(profile_rows):
+        location = f"{path}/encounterProfiles/{index}"
+        _require_exact_keys(
+            row, {"map", "label", "habitat", "authority", "time"}, location
+        )
+        label = _require_identifier(row["label"], f"{location}/label")
+        _require_identifier(row["map"], f"{location}/map")
+        _require_identifier(row["habitat"], f"{location}/habitat")
+        if row["authority"] != "content":
+            raise ValidationError(f"{location}/authority: expected content")
+        if row["time"] not in config.times_of_day:
+            raise ValidationError(f"{location}/time: unresolved time")
+        if label in authored_profile_by_label:
+            raise ValidationError(f"{location}: duplicate authored profile {label}")
+        authored_profile_by_label[label] = row
+
+    policies = []
+    labels = {}
+    headers = {}
+    policy_by_map = {}
+    for index, row in enumerate(policy_rows):
+        location = f"{path}/encounterTimePolicy/{index}"
+        _require_exact_keys(
+            row,
+            {
+                "map",
+                "dayStart",
+                "nightStart",
+                "dayLabel",
+                "nightLabel",
+                "fallbackLabel",
+            },
+            location,
+        )
+        if row["map"] in policy_by_map:
+            raise ValidationError(f"{location}: duplicate map time policy")
+        policy_by_map[row["map"]] = {
+            key: value for key, value in row.items() if key != "map"
+        }
+        day_label = _require_identifier(row["dayLabel"], f"{location}/dayLabel")
+        night_label = _require_identifier(row["nightLabel"], f"{location}/nightLabel")
+        if row["fallbackLabel"] != day_label:
+            raise ValidationError(f"{location}: fallbackLabel must equal dayLabel")
+        if day_label == night_label or day_label in labels or night_label in labels:
+            raise ValidationError(f"{location}: duplicate policy profile identity")
+        if day_label not in registry_by_label or night_label not in registry_by_label:
+            raise ValidationError(f"{location}: unresolved policy profile")
+        day_profile = registry_by_label[day_label]
+        night_profile = registry_by_label[night_label]
+        if (
+            day_profile["group"] != "gWildMonHeaders"
+            or night_profile["group"] != "gWildMonHeaders"
+            or day_profile["header"] != night_profile["header"]
+            or day_profile["alternate_of"] is not None
+            or night_profile["alternate_of"] is not None
+        ):
+            raise ValidationError(
+                f"{location}: policy profiles must share one runtime header"
+            )
+        expected_map = "MAP_" + re.sub(r"(?<!^)(?=[A-Z])", "_", row["map"]).upper()
+        if (
+            encounter_by_label[day_label].get("map") != expected_map
+            or encounter_by_label[night_label].get("map") != expected_map
+        ):
+            raise ValidationError(
+                f"{location}: policy map does not match encounter profiles"
+            )
+        authored_day = authored_profile_by_label.get(day_label)
+        authored_night = authored_profile_by_label.get(night_label)
+        if authored_day is None or authored_night is None:
+            raise ValidationError(f"{location}: missing typed encounter profile")
+        if (
+            authored_day["map"] != row["map"]
+            or authored_night["map"] != row["map"]
+            or authored_day["habitat"] != "land_mons"
+            or authored_night["habitat"] != "land_mons"
+            or authored_day["authority"] != "content"
+            or authored_night["authority"] != "content"
+            or authored_day["time"] != "TIME_DAY"
+            or authored_night["time"] != "TIME_NIGHT"
+            or day_profile["time"] != FALLBACK_TIME_ROLE
+            or night_profile["time"] != authored_night["time"]
+        ):
+            raise ValidationError(f"{location}: invalid typed encounter profile")
+        day_start = _parse_policy_clock(row["dayStart"], f"{location}/dayStart")
+        night_start = _parse_policy_clock(row["nightStart"], f"{location}/nightStart")
+        if day_start >= night_start:
+            raise ValidationError(
+                f"{location}: daytime interval must not wrap midnight"
+            )
+        policy = {
+            "header": day_profile["header"],
+            "day_start": day_start,
+            "night_start": night_start,
+            "day_time": authored_day["time"],
+            "night_time": authored_night["time"],
+        }
+        if policy["header"] in headers:
+            raise ValidationError(f"{location}: duplicate header time policy")
+        headers[policy["header"]] = policy
+        labels[day_label] = {"time": policy["day_time"], "policy": policy}
+        labels[night_label] = {"time": policy["night_time"], "policy": policy}
+        policies.append(policy)
+    if policy_by_map != REQUIRED_RUNTIME_TIME_POLICIES:
+        raise ValidationError(
+            f"{path}: runtime encounter time policy does not match reviewed authority"
+        )
+    if set(authored_profile_by_label) != set(labels):
+        raise ValidationError(
+            f"{path}: encounterProfiles must exactly match profiles consumed by "
+            "encounterTimePolicy"
+        )
+    return labels, headers
+
+
 class WildEncounterAssembler:
-    def __init__(self, output_file, json_data, config, profiles):
+    def __init__(
+        self,
+        output_file,
+        json_data,
+        config,
+        profiles,
+        time_policy_labels,
+        time_policy_headers,
+    ):
         self.output_file = output_file
         self.json_data = json_data
         self.config = config
         self.runtime_profile_labels = {
-            profile["label"] for profile in _select_runtime_profiles(profiles, config)
+            profile["label"]
+            for profile in _select_runtime_profiles(
+                profiles, config, time_policy_labels
+            )
         }
+        self.time_policy_labels = time_policy_labels
+        self.time_policy_headers = time_policy_headers
         self.profiles = iter(profiles)
 
     def write_line(self, line="", indents=0):
@@ -925,6 +1096,7 @@ class WildEncounterAssembler:
                 if (
                     not self.config.time_encounters
                     and time != self.config.runtime_canonical_time
+                    and time not in map_data
                 ):
                     continue
                 self.write_line(f"[{time}] =", 4)
@@ -941,6 +1113,29 @@ class WildEncounterAssembler:
             self.write_line("},", 1)
         self.write_terminator()
         self.write_line("};")
+        if headers["label"] == "gWildMonHeaders":
+            self.write_line()
+            self.write_line(
+                "const struct WildEncounterTimePolicy gWildMonHeaderTimePolicies[] ="
+            )
+            self.write_line("{")
+            for shared_label in headers["data"]:
+                policy = self.time_policy_headers.get(shared_label)
+                self.write_line("{", 1)
+                if policy is None:
+                    self.write_line(
+                        ".dayStartMinutes = WILD_ENCOUNTER_TIME_POLICY_NONE,", 2
+                    )
+                else:
+                    self.write_line(f".dayStartMinutes = {policy['day_start']},", 2)
+                    self.write_line(f".nightStartMinutes = {policy['night_start']},", 2)
+                    self.write_line(f".dayTime = {policy['day_time']},", 2)
+                    self.write_line(f".nightTime = {policy['night_time']},", 2)
+                self.write_line("},", 1)
+            self.write_line(
+                "{ .dayStartMinutes = WILD_ENCOUNTER_TIME_POLICY_NONE },", 1
+            )
+            self.write_line("};")
 
     def write_encounters(self):
         for group in self.json_data["wild_encounter_groups"]:
@@ -958,7 +1153,9 @@ class WildEncounterAssembler:
                     map_num = f"MAP_NUM({map_name})"
                 map_num_counter += 1
                 shared_label = profile["header"]
-                time = _resolve_profile_time(profile, self.config)
+                time = _resolve_profile_time(
+                    profile, self.config, self.time_policy_labels
+                )
                 if shared_label not in headers["data"]:
                     headers["data"][shared_label] = {
                         "mapGroup": map_group,
@@ -990,9 +1187,13 @@ class WildEncounterAssembler:
             self.write_pokemon_headers(headers)
 
 
-def render_header(encounters, config, profiles):
+def render_header(
+    encounters, config, profiles, time_policy_labels, time_policy_headers
+):
     output = io.StringIO()
-    assembler = WildEncounterAssembler(output, encounters, config, profiles)
+    assembler = WildEncounterAssembler(
+        output, encounters, config, profiles, time_policy_labels, time_policy_headers
+    )
     assembler.write_header()
     assembler.write_macros()
     assembler.write_encounters()
@@ -1043,6 +1244,7 @@ def generate(
     maps_root=DEFAULT_MAPS_ROOT,
     map_sections_path=DEFAULT_MAP_SECTIONS,
     species_path=DEFAULT_SPECIES,
+    time_policies_path=DEFAULT_TIME_POLICIES,
 ):
     encounters = _load_json(encounters_path)
     registry = _load_json(registry_path)
@@ -1050,7 +1252,13 @@ def generate(
     maps = _load_map_authority(map_groups_path, maps_root, map_sections_path)
     species = _load_species(species_path)
     profiles = validate_inputs(encounters, registry, config, maps, species)
-    rendered = render_header(encounters, config, profiles)
+    time_policy_labels, time_policy_headers = _load_time_policies(
+        time_policies_path, profiles, encounters, config
+    )
+    _select_runtime_profiles(profiles, config, time_policy_labels)
+    rendered = render_header(
+        encounters, config, profiles, time_policy_labels, time_policy_headers
+    )
     _atomic_write(output_path, rendered)
 
 
@@ -1067,6 +1275,7 @@ def _arguments():
     parser.add_argument("--maps-root", type=Path, default=DEFAULT_MAPS_ROOT)
     parser.add_argument("--map-sections", type=Path, default=DEFAULT_MAP_SECTIONS)
     parser.add_argument("--species", type=Path, default=DEFAULT_SPECIES)
+    parser.add_argument("--time-policies", type=Path, default=DEFAULT_TIME_POLICIES)
     return parser.parse_args()
 
 
@@ -1083,6 +1292,7 @@ def main():
             arguments.maps_root,
             arguments.map_sections,
             arguments.species,
+            arguments.time_policies,
         )
     except ValidationError as error:
         raise SystemExit(f"wild encounter generation failed: {error}") from error

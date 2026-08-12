@@ -425,6 +425,7 @@ AUTO_GEN_TARGETS += $(SCRIPT_COMMANDS_HEADER)
 
 $(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json \
                                        $(DATA_SRC_SUBDIR)/wild_encounter_registry.json \
+                                       tools/content_port/ports/johto/adaptations.json \
                                        $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py \
                                        $(SOURCE_INCLUDE_DIR)/config/overworld.h \
                                        $(SOURCE_INCLUDE_DIR)/constants/rtc.h \

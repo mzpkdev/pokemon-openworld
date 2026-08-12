@@ -455,13 +455,30 @@ u16 GetCurrentMapWildMonHeaderId(void)
 enum TimeOfDay GetTimeOfDayForEncounters(u32 headerId, enum WildPokemonArea area)
 {
     const struct WildPokemonInfo *wildMonInfo;
+    const struct WildEncounterTimePolicy *timePolicy;
     enum TimeOfDay timeOfDay = GetTimeOfDay();
+
+    if (InBattlePike() || CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
+    {
+        if (!OW_TIME_OF_DAY_ENCOUNTERS)
+            return TIME_OF_DAY_DEFAULT;
+        return OW_TIME_OF_DAY_FALLBACK;
+    }
+
+    timePolicy = &gWildMonHeaderTimePolicies[headerId];
+    if (timePolicy->dayStartMinutes != WILD_ENCOUNTER_TIME_POLICY_NONE)
+    {
+        u16 minuteOfDay = GetApparentTimeOfDayMinutes();
+        return ResolveWildEncounterPolicyTime(
+            minuteOfDay,
+            timePolicy->dayStartMinutes,
+            timePolicy->nightStartMinutes,
+            timePolicy->dayTime,
+            timePolicy->nightTime);
+    }
 
     if (!OW_TIME_OF_DAY_ENCOUNTERS)
         return TIME_OF_DAY_DEFAULT;
-
-    if (InBattlePike() || CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
-        return OW_TIME_OF_DAY_FALLBACK;
 
     switch (area)
     {

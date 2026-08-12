@@ -1,5 +1,6 @@
 #include "global.h"
 #include "overworld.h"
+#include "wild_encounter_time_policy.h"
 #include "battle_pyramid.h"
 #include "battle_setup.h"
 #include "battle_util.h"
@@ -1721,9 +1722,11 @@ const struct BlendSettings gTimeOfDayBlend[] =
 void UpdateTimeOfDay(bool32 updateBlend)
 {
     s32 hours, minutes;
+    u16 apparentMinutes;
     RtcCalcLocalTime();
-    hours = sHoursOverride ? sHoursOverride : gLocalTime.hours;
-    minutes = sHoursOverride ? 0 : gLocalTime.minutes;
+    apparentMinutes = GetApparentTimeOfDayMinutes();
+    hours = apparentMinutes / 60;
+    minutes = apparentMinutes % 60;
 
     if (IsBetweenHours(hours, MORNING_HOUR_BEGIN, MORNING_HOUR_MIDDLE)) // night->morning
     {
@@ -1788,6 +1791,13 @@ void UpdateTimeOfDay(bool32 updateBlend)
         }
         gTimeOfDay = TIME_DAY;
     }
+}
+
+u16 GetApparentTimeOfDayMinutes(void)
+{
+    return ResolveApparentTimeMinutes(
+        gLocalTime.hours, gLocalTime.minutes, sHoursOverride
+    );
 }
 
 #undef MORNING_HOUR_MIDDLE

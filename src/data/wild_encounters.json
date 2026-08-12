@@ -37814,6 +37814,144 @@
               }
             ]
           }
+        },
+        {
+          "base_label": "gRoute39",
+          "land_mons": {
+            "encounter_rate": 20,
+            "mons": [
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_PONYTA"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_MAGNEMITE"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_DODUO"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_PONYTA"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_MAGNEMITE"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_DODUO"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_MILTANK"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_TAUROS"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_MILTANK"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_TAUROS"
+              }
+            ]
+          },
+          "map": "MAP_ROUTE39"
+        },
+        {
+          "base_label": "gRoute39_Night",
+          "land_mons": {
+            "encounter_rate": 20,
+            "mons": [
+              {
+                "max_level": 21,
+                "min_level": 18,
+                "species": "SPECIES_MEOWTH"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_MAGNEMITE"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_NOCTOWL"
+              },
+              {
+                "max_level": 21,
+                "min_level": 18,
+                "species": "SPECIES_MEOWTH"
+              },
+              {
+                "max_level": 21,
+                "min_level": 21,
+                "species": "SPECIES_RATICATE"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_MAGNEMITE"
+              },
+              {
+                "max_level": 21,
+                "min_level": 18,
+                "species": "SPECIES_MEOWTH"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_NOCTOWL"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_NOCTOWL"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_NOCTOWL"
+              },
+              {
+                "max_level": 20,
+                "min_level": 20,
+                "species": "SPECIES_NOCTOWL"
+              }
+            ]
+          },
+          "map": "MAP_ROUTE39"
         }
       ]
     },

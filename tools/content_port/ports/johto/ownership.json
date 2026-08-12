@@ -13267,6 +13267,20 @@
       "slot": 240
     },
     {
+      "key": "gRoute39",
+      "kind": "registry-record",
+      "path": "src/data/wild_encounters.json",
+      "registry": "wild_encounter_groups.0.encounters",
+      "sha256": "c7a5073a817634c077937f9070b8d2147d2c3b94d07da25cc55385b04a5e7d94"
+    },
+    {
+      "key": "gRoute39_Night",
+      "kind": "registry-record",
+      "path": "src/data/wild_encounters.json",
+      "registry": "wild_encounter_groups.0.encounters",
+      "sha256": "36cc2446e3a8b004f9ab2c3c8b3326380b64ce8c393d2cab283ddb373edfb525"
+    },
+    {
       "kind": "section",
       "name": "map scripts",
       "path": "data/event_scripts.s",

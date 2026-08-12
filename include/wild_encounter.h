@@ -4,6 +4,7 @@
 #include "rtc.h"
 #include "constants/wild_encounter.h"
 #include "wild_encounter_ow.h"
+#include "wild_encounter_time_policy.h"
 
 #define HEADER_NONE 0xFFFF
 
@@ -44,8 +45,18 @@ struct WildPokemonHeader
     const struct WildEncounterTypes encounterTypes[TIMES_OF_DAY_COUNT];
 };
 
+// Parallel to gWildMonHeaders so WildPokemonHeader keeps its existing ABI.
+struct WildEncounterTimePolicy
+{
+    u16 dayStartMinutes;
+    u16 nightStartMinutes;
+    u8 dayTime;
+    u8 nightTime;
+};
+
 
 extern const struct WildPokemonHeader gWildMonHeaders[];
+extern const struct WildEncounterTimePolicy gWildMonHeaderTimePolicies[];
 extern const struct WildPokemonHeader gBattlePikeWildMonHeaders[];
 extern const struct WildPokemonHeader gBattlePyramidWildMonHeaders[];
 extern const struct WildPokemon gWildFeebas;

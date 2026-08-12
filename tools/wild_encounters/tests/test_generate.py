@@ -1,6 +1,7 @@
 import copy
 import json
 import re
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -28,7 +29,12 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.output_path = self.root / "wild_encounters.h"
 
     def generate(
-        self, encounters=None, registry=None, config_path=None, rtc_constants_path=None
+        self,
+        encounters=None,
+        registry=None,
+        config_path=None,
+        rtc_constants_path=None,
+        time_policies_path=None,
     ):
         encounters = self.encounters if encounters is None else encounters
         registry = self.registry if registry is None else registry
@@ -46,6 +52,11 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 if rtc_constants_path is None
                 else rtc_constants_path
             ),
+            time_policies_path=(
+                generator.DEFAULT_TIME_POLICIES
+                if time_policies_path is None
+                else time_policies_path
+            ),
         )
         return self.output_path.read_text(encoding="utf-8")
 
@@ -55,6 +66,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
         registry=None,
         config_path=None,
         rtc_constants_path=None,
+        time_policies_path=None,
     ):
         self.output_path.write_bytes(b"reviewed output\n")
         encounters = self.encounters if encounters is None else encounters
@@ -73,6 +85,11 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     generator.DEFAULT_RTC_CONSTANTS
                     if rtc_constants_path is None
                     else rtc_constants_path
+                ),
+                time_policies_path=(
+                    generator.DEFAULT_TIME_POLICIES
+                    if time_policies_path is None
+                    else time_policies_path
                 ),
             )
         self.assertEqual(self.output_path.read_bytes(), b"reviewed output\n")
@@ -93,13 +110,13 @@ class WildEncounterGenerationTests(unittest.TestCase):
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()
         profiles = self.registry["profiles"]
-        self.assertEqual(len(profiles), 407)
+        self.assertEqual(len(profiles), 409)
         self.assertEqual(
             {
                 residency: sum(row[3] == residency for row in profiles)
                 for residency in generator.RESIDENCIES
             },
-            {"hoenn": 135, "kanto": 132, "sevii": 132, "johto": 8},
+            {"hoenn": 135, "kanto": 132, "sevii": 132, "johto": 10},
         )
         self.assertIsNone(generator.PRODUCT_GUARD.search(output))
         self.assertEqual(output.count("const struct WildPokemonHeader "), 3)
@@ -197,6 +214,201 @@ class WildEncounterGenerationTests(unittest.TestCase):
             references = [output.index(f"&{label}_LandMonsInfo") for label in labels]
             self.assertEqual(references, sorted(references))
 
+    def test_vermilion_old_rod_uses_one_firered_canonical_profile(self):
+        fire_red = self.find_encounter(self.encounters, "sVermilionCity_FireRed")
+        leaf_green = self.find_encounter(self.encounters, "sVermilionCity_LeafGreen")
+        fishing_field = next(
+            field
+            for field in self.encounters["wild_encounter_groups"][0]["fields"]
+            if field["type"] == "fishing_mons"
+        )
+        old_rod_slots = fishing_field["groups"]["old_rod"]
+        self.assertEqual(old_rod_slots, [0, 1])
+        self.assertEqual(
+            [fishing_field["encounter_rates"][slot] for slot in old_rod_slots],
+            [70, 30],
+        )
+
+        def old_rod_projection(encounter):
+            fishing = encounter["fishing_mons"]
+            return {
+                "encounter_rate": fishing["encounter_rate"],
+                "mons": [fishing["mons"][slot] for slot in old_rod_slots],
+            }
+
+        fire_red_projection = old_rod_projection(fire_red)
+        leaf_green_projection = old_rod_projection(leaf_green)
+        self.assertEqual(
+            json.dumps(
+                fire_red_projection, sort_keys=True, separators=(",", ":")
+            ).encode(),
+            json.dumps(
+                leaf_green_projection, sort_keys=True, separators=(",", ":")
+            ).encode(),
+        )
+        self.assertEqual(
+            fire_red_projection,
+            {
+                "encounter_rate": 10,
+                "mons": [
+                    {
+                        "min_level": 5,
+                        "max_level": 5,
+                        "species": "SPECIES_MAGIKARP",
+                    },
+                    {
+                        "min_level": 5,
+                        "max_level": 5,
+                        "species": "SPECIES_MAGIKARP",
+                    },
+                ],
+            },
+        )
+        self.assertIsNone(self.find_profile(self.registry, "sVermilionCity_FireRed")[5])
+        self.assertEqual(
+            self.find_profile(self.registry, "sVermilionCity_LeafGreen")[5],
+            "sVermilionCity_FireRed",
+        )
+        output = self.generate()
+        self.assertIn("sVermilionCity_FireRed_FishingMons", output)
+        self.assertNotIn("sVermilionCity_LeafGreen", output)
+
+    def test_route39_profiles_use_target_time_and_fallback_roles(self):
+        day = self.find_encounter(self.encounters, "gRoute39")
+        night = self.find_encounter(self.encounters, "gRoute39_Night")
+        self.assertEqual(
+            (day["land_mons"]["encounter_rate"], night["land_mons"]["encounter_rate"]),
+            (20, 20),
+        )
+        self.assertEqual(
+            (len(day["land_mons"]["mons"]), len(night["land_mons"]["mons"])),
+            (12, 12),
+        )
+        self.assertEqual(
+            self.find_profile(self.registry, "gRoute39")[4],
+            generator.FALLBACK_TIME_ROLE,
+        )
+        self.assertEqual(
+            self.find_profile(self.registry, "gRoute39_Night")[2:5],
+            ["gRoute39", "johto", "TIME_NIGHT"],
+        )
+        output = self.generate()
+        self.assertIn("const struct WildPokemon gRoute39_LandMons[]", output)
+        self.assertIn("const struct WildPokemon gRoute39_Night_LandMons[]", output)
+        route_39_start = output.index(".mapGroup = MAP_GROUP(MAP_ROUTE39),")
+        route_39_end = output.index(".mapGroup = ", route_39_start + 1)
+        route_39 = output[route_39_start:route_39_end]
+        self.assertRegex(
+            route_39,
+            re.compile(
+                r"\[TIME_DAY\].*?&gRoute39_LandMonsInfo.*?"
+                r"\[TIME_NIGHT\].*?&gRoute39_Night_LandMonsInfo",
+                re.DOTALL,
+            ),
+        )
+        self.assertIn(".dayStartMinutes = 360,", output)
+        self.assertIn(".nightStartMinutes = 1080,", output)
+        self.assertIn(".dayTime = TIME_DAY,", output)
+        self.assertIn(".nightTime = TIME_NIGHT,", output)
+
+    def test_compiled_route39_policy_resolves_every_minute_and_boundaries(self):
+        source = self.root / "route39_policy_test.c"
+        executable = self.root / "route39_policy_test"
+        source.write_text(
+            """
+#include "wild_encounter_time_policy.h"
+
+int main(void)
+{
+    unsigned short minute;
+    const unsigned char day = 1;
+    const unsigned char night = 3;
+
+    for (minute = 0; minute < 1440; minute++)
+    {
+        unsigned char expected = minute >= 360 && minute < 1080 ? day : night;
+        if (ResolveWildEncounterPolicyTime(minute, 360, 1080, day, night) != expected)
+            return 1;
+    }
+    if (ResolveWildEncounterPolicyTime(359, 360, 1080, day, night) != night)
+        return 2;
+    if (ResolveWildEncounterPolicyTime(360, 360, 1080, day, night) != day)
+        return 3;
+    if (ResolveWildEncounterPolicyTime(1079, 360, 1080, day, night) != day)
+        return 4;
+    if (ResolveWildEncounterPolicyTime(1080, 360, 1080, day, night) != night)
+        return 5;
+    if (ResolveWildEncounterPolicyTime(
+            ResolveApparentTimeMinutes(5, 59, 18), 360, 1080, day, night) != night)
+        return 6;
+    if (ResolveWildEncounterPolicyTime(
+            ResolveApparentTimeMinutes(5, 59, 6), 360, 1080, day, night) != day)
+        return 7;
+    if (ResolveApparentTimeMinutes(5, 59, 18) != 18 * 60)
+        return 8;
+    if (ResolveApparentTimeMinutes(5, 59, 6) != 6 * 60)
+        return 9;
+    if (ResolveApparentTimeMinutes(5, 59, 0) != 5 * 60 + 59)
+        return 10;
+    if (ResolveWildEncounterPolicyTime(
+            ResolveApparentTimeMinutes(5, 59, 0), 360, 1080, day, night) != night)
+        return 11;
+    return 0;
+}
+""",
+            encoding="utf-8",
+        )
+        subprocess.run(
+            [
+                "cc",
+                "-std=c11",
+                "-Wall",
+                "-Wextra",
+                "-Werror",
+                "-I",
+                str(ROOT / "include"),
+                str(source),
+                "-o",
+                str(executable),
+            ],
+            check=True,
+        )
+        subprocess.run([str(executable)], check=True)
+
+    def test_invalid_route39_runtime_policy_fails_before_output_replacement(self):
+        policy = json.loads(generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8"))
+        policy["encounterTimePolicy"][0]["nightStart"] = "24:00"
+        policy_path = self.root / "invalid-adaptations.json"
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        policy["encounterTimePolicy"] = []
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        policy = json.loads(generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8"))
+        extra = copy.deepcopy(policy["encounterProfiles"][0])
+        extra["label"] = "gUnconsumedRoute39Evidence"
+        policy["encounterProfiles"].append(extra)
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        for label, wrong_time in (
+            ("gRoute39", "TIME_MORNING"),
+            ("gRoute39_Night", "TIME_EVENING"),
+        ):
+            with self.subTest(label=label, wrong_time=wrong_time):
+                policy = json.loads(
+                    generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8")
+                )
+                next(
+                    profile
+                    for profile in policy["encounterProfiles"]
+                    if profile["label"] == label
+                )["time"] = wrong_time
+                policy_path.write_text(json.dumps(policy), encoding="utf-8")
+                self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
     def test_runtime_time_resolution_for_enabled_and_disabled_configs(self):
         config_source = generator.DEFAULT_CONFIG.read_text(encoding="utf-8")
         rtc_source = generator.DEFAULT_RTC_CONSTANTS.read_text(encoding="utf-8")
@@ -235,6 +447,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 output = self.generate(config_path=config_path)
                 route_101 = map_entry(output, "MAP_ROUTE101")
                 route_29 = map_entry(output, "MAP_ROUTE29")
+                route_39 = map_entry(output, "MAP_ROUTE39")
                 for time in times:
                     self.assertEqual(
                         land_binding(route_101, time),
@@ -246,6 +459,11 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     elif time == fallback_time:
                         expected_route_29 = "&gRoute29_LandMonsInfo"
                     self.assertEqual(land_binding(route_29, time), expected_route_29)
+                    expected_route_39 = {
+                        "TIME_DAY": "&gRoute39_LandMonsInfo",
+                        "TIME_NIGHT": "&gRoute39_Night_LandMonsInfo",
+                    }.get(time, "NULL")
+                    self.assertEqual(land_binding(route_39, time), expected_route_39)
                 if fallback_time == "TIME_NIGHT":
                     self.assertNotIn(
                         "const struct WildPokemon gRoute29_LandMons[]", output
@@ -280,6 +498,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 )
                 route_101 = map_entry(output, "MAP_ROUTE101")
                 route_29 = map_entry(output, "MAP_ROUTE29")
+                route_39 = map_entry(output, "MAP_ROUTE39")
                 self.assertEqual(
                     land_binding(route_101, default_time),
                     "&gRoute101_LandMonsInfo",
@@ -291,6 +510,14 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     self.assertIsNone(land_binding(route_101, time))
                     self.assertIsNone(land_binding(route_29, time))
                 self.assertNotIn("gRoute29_Night", output)
+                self.assertEqual(
+                    land_binding(route_39, "TIME_DAY"),
+                    "&gRoute39_LandMonsInfo",
+                )
+                self.assertEqual(
+                    land_binding(route_39, "TIME_NIGHT"),
+                    "&gRoute39_Night_LandMonsInfo",
+                )
 
         invalid_config = self.root / "overworld-invalid.h"
         invalid_config.write_text(
