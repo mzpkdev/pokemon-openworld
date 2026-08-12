@@ -29,6 +29,7 @@
 #include "integrity_map_load.h"
 #include "integrity_capture.h"
 #include "debug_save_scenario.h"
+#include "debug_field_move_probe.h"
 #include "debug_trainer_battle_scenario.h"
 #endif
 
@@ -147,6 +148,7 @@ void AgbMainLoop(void)
         IntegrityMapLoad_Update();
         IntegrityCapture_Update();
         DebugSaveScenario_Update();
+        DebugFieldMoveProbe_Update();
         DebugTrainerBattleScenario_Update();
 #endif
 

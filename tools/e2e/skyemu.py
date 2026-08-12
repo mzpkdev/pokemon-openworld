@@ -14,7 +14,7 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from tools.e2e.save_file import SaveImage
+from tools.e2e.save_file import SaveImage, is_strictly_newer_save_counter
 
 
 BUTTONS = ("A", "B", "Up", "Down", "Left", "Right", "L", "R", "Start", "Select")
@@ -249,7 +249,9 @@ class SkyEmuSession:
         release_frames: int = 4,
     ) -> SaveImage:
         """Wait for an in-game flash write, accepting only a complete valid image."""
-        before_data = before.data if isinstance(before, SaveImage) else before
+        before_image = (
+            before if isinstance(before, SaveImage) else SaveImage.from_bytes(before)
+        )
         last_error: ValueError | None = None
         for _ in range(max_pulses):
             self.press(button, release_frames=release_frames)
@@ -260,7 +262,9 @@ class SkyEmuSession:
                 # advancing until the complete slot is coherent.
                 last_error = error
                 continue
-            if current.data != before_data:
+            if is_strictly_newer_save_counter(
+                current.active_slot.counter, before_image.active_slot.counter
+            ):
                 return current
         detail = "" if last_error is None else f"; last validation error: {last_error}"
         raise AssertionError(

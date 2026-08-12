@@ -1,15 +1,19 @@
 from pathlib import Path
 import copy
 import json
+import struct
 
 import pytest
 
 from tools.e2e.save_file import (
     SAVE_BLOCK1_SIZE,
+    SECTOR_FOOTER_OFFSET,
+    SECTOR_SIZE,
     TRAINER_DEFEATED_OFFSET,
     TRAINER_DEFEATED_SIZE,
     SaveImage,
     load_fixture_manifest,
+    with_saved_flags,
 )
 from tools.e2e.skyemu import SkyEmuSession
 from tools.e2e.save_journey import (
@@ -134,6 +138,50 @@ def test_complete_newer_slot_survives_partial_older_slot():
     image = SaveImage.from_bytes(bytes(data))
 
     assert image.active_slot.physical_index == 1
+
+
+def test_battery_wait_rejects_partial_target_slot_with_changed_bytes():
+    before = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    partial_data = bytearray(before.data)
+    for sector_index in range(14):
+        struct.pack_into(
+            "<I",
+            partial_data,
+            sector_index * SECTOR_SIZE + SECTOR_FOOTER_OFFSET + 8,
+            before.active_slot.counter + 1,
+        )
+    partial_data[5 * SECTOR_SIZE : 6 * SECTOR_SIZE] = b"\xff" * SECTOR_SIZE
+    partial = SaveImage.from_bytes(bytes(partial_data))
+    assert partial.data != before.data
+    assert partial.active_slot.counter == before.active_slot.counter
+
+    class Session:
+        def press(self, _button, *, release_frames):
+            assert release_frames == 4
+
+        def battery_snapshot(self):
+            return partial
+
+    with pytest.raises(AssertionError, match="battery save did not change"):
+        SkyEmuSession.wait_for_battery_change(Session(), before, max_pulses=1)
+
+
+def test_saved_flag_variants_are_checksum_valid_and_do_not_change_other_bytes():
+    original = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    variant = with_saved_flags(original, {0x867: True, 0x868: False})
+    block = variant.active_slot.save_block1
+
+    assert block[0x1270 + 0x867 // 8] & (1 << (0x867 % 8))
+    assert not block[0x1270 + 0x868 // 8] & (1 << (0x868 % 8))
+    restored = with_saved_flags(variant, {0x867: False})
+    assert restored.data == original.data
+
+
+def test_saved_flag_variants_reject_nonserialized_flags():
+    original = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    with pytest.raises(ValueError, match="outside the serialized range"):
+        with_saved_flags(original, {0x960: True})
 
 
 class _FakeProcess:

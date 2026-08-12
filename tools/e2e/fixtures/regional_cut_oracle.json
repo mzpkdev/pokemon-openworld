@@ -1,0 +1,16 @@
+{
+  "matrix": [
+    {"cutUnlocked": false, "legacySlot1": false, "legacySlot2": false, "name": "neither"},
+    {"cutUnlocked": true, "legacySlot1": true, "legacySlot2": false, "name": "slot1"},
+    {"cutUnlocked": false, "legacySlot1": false, "legacySlot2": true, "name": "slot2"},
+    {"cutUnlocked": true, "legacySlot1": true, "legacySlot2": true, "name": "both"}
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "baseFixture": "hoenn_continue.sav",
+    "baseFixtureSha256": "b912fe76db8fd2e2858aba3c719208121a3546e2c7eecfb2729b19688f7a6605",
+    "commit": "135b32ca92",
+    "instrumentationPatchSha256": "2922b3c4fdc604ff3cf85623a4d703f6ff16244c5a911f6b2e27b94dc860cd5c",
+    "instrumentedRomSha256": "c0b5b866507ecc591340c889a3da0f28199bf238b25866307e4d7aa1e32c3cfb"
+  }
+}

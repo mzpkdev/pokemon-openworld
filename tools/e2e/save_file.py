@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import struct
-from typing import Any
+from typing import Any, Mapping
 
 
 FLASH_SIZE = 128 * 1024
@@ -44,6 +44,12 @@ SUBSTRUCT_OFFSETS = (
     (2, 3, 1, 1, 3, 2, 2, 3, 1, 1, 3, 2, 0, 0, 0, 0, 0, 0, 3, 2, 3, 2, 1, 1),
     (3, 2, 3, 2, 1, 1, 3, 2, 3, 2, 1, 1, 3, 2, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0),
 )
+
+
+def is_strictly_newer_save_counter(candidate: int, previous: int) -> bool:
+    """Compare uint32 save generations using the game's wrap-safe ordering."""
+    delta = (candidate - previous) & 0xFFFFFFFF
+    return 0 < delta < 0x80000000
 
 
 def calculate_checksum(data: bytes, size: int) -> int:
@@ -128,6 +134,14 @@ class SaveSlot:
             self.logical_sector(sector_id)[: PAYLOAD_SIZES[sector_id]]
             for sector_id in range(5, 14)
         )
+
+    def saved_flag(self, flag_id: int) -> bool:
+        if not 0 <= flag_id < 0x960:
+            raise ValueError(
+                f"saved flag is outside the serialized range: {flag_id:#x}"
+            )
+        value = self.save_block1[0x1270 + flag_id // 8]
+        return bool(value & (1 << (flag_id % 8)))
 
 
 @dataclass(frozen=True)
@@ -224,8 +238,7 @@ class SaveImage:
             raise ValueError("battery save has no complete valid save slot")
         active = slots[0]
         for candidate in slots[1:]:
-            delta = (candidate.counter - active.counter) & 0xFFFFFFFF
-            if 0 < delta < 0x80000000:
+            if is_strictly_newer_save_counter(candidate.counter, active.counter):
                 active = candidate
         return cls(data=data, slots=tuple(slots), active_slot=active)
 
@@ -311,6 +324,52 @@ class SaveImage:
                 "meaning": "no active or paused Battle Frontier challenge",
             },
         }
+
+
+def with_saved_flags(image: SaveImage, flags: Mapping[int, bool]) -> SaveImage:
+    """Return a checksum-valid variant with the same flags in every complete slot."""
+    output = bytearray(image.data)
+    for flag_id in flags:
+        if not 0 <= flag_id < 0x960:
+            raise ValueError(
+                f"saved flag is outside the serialized range: {flag_id:#x}"
+            )
+
+    for slot in image.slots:
+        for flag_id, enabled in flags.items():
+            block_offset = 0x1270 + flag_id // 8
+            sector_id = 1 + block_offset // SECTOR_DATA_SIZE
+            sector_offset = block_offset % SECTOR_DATA_SIZE
+            bit = 1 << (flag_id % 8)
+
+            physical_sector = None
+            slot_start = slot.physical_index * SECTORS_PER_SLOT
+            for physical_index in range(SECTORS_PER_SLOT):
+                absolute_index = slot_start + physical_index
+                start = absolute_index * SECTOR_SIZE
+                candidate_id = struct.unpack_from(
+                    "<H", output, start + SECTOR_FOOTER_OFFSET
+                )[0]
+                if candidate_id == sector_id:
+                    physical_sector = absolute_index
+                    break
+            if physical_sector is None:
+                raise ValueError(
+                    f"save slot {slot.physical_index} lacks logical sector {sector_id}"
+                )
+
+            start = physical_sector * SECTOR_SIZE
+            value_offset = start + sector_offset
+            if enabled:
+                output[value_offset] |= bit
+            else:
+                output[value_offset] &= ~bit
+            checksum = calculate_checksum(
+                output[start : start + SECTOR_SIZE], PAYLOAD_SIZES[sector_id]
+            )
+            struct.pack_into("<H", output, start + SECTOR_FOOTER_OFFSET + 2, checksum)
+
+    return SaveImage.from_bytes(bytes(output))
 
 
 def load_fixture_manifest(path: Path) -> tuple[dict[str, Any], SaveImage]:
