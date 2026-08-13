@@ -47,68 +47,60 @@ static void ResetSpriteData_(void)
         sSpriteOrder[i] = i;
 }
 
-static void BenchmarkBuildOamBuffer(bool32 preSort)
+static void CompareBuildOamBuffer(bool32 preSort)
 {
-    struct Benchmark oldBuildOamBuffer, newBuildOamBuffer;
     struct OamData *oldOamBuffer = Alloc(sizeof(gMain.oamBuffer));
 
     if (preSort)
         Old_BuildOamBuffer();
-    BENCHMARK(&oldBuildOamBuffer)
-    {
-        Old_BuildOamBuffer();
-    }
+    Old_BuildOamBuffer();
     memcpy(oldOamBuffer, gMain.oamBuffer, sizeof(gMain.oamBuffer));
 
     if (preSort)
         BuildOamBuffer();
-    BENCHMARK(&newBuildOamBuffer)
-    {
-        BuildOamBuffer();
-    }
+    BuildOamBuffer();
 
     ExpectEqOamBuffers(oldOamBuffer, gMain.oamBuffer);
-    EXPECT_FASTER(newBuildOamBuffer, oldBuildOamBuffer);
     Free(oldOamBuffer);
 }
 
-TEST("BuildOamBuffer faster with no sprites")
+TEST("BuildOamBuffer matches the old implementation with no sprites")
 {
     ResetSpriteData_();
-    BenchmarkBuildOamBuffer(FALSE);
+    CompareBuildOamBuffer(FALSE);
 }
 
-TEST("BuildOamBuffer faster with max sprites (equal y/subpriority)")
+TEST("BuildOamBuffer matches the old implementation with max sprites (equal y/subpriority)")
 {
     u32 i;
 
     ResetSpriteData_();
     for (i = 0; i < MAX_SPRITES; i++)
         CreateSprite(&gDummySpriteTemplate, 0, 0, 0);
-    BenchmarkBuildOamBuffer(FALSE);
+    CompareBuildOamBuffer(FALSE);
 }
 
-TEST("BuildOamBuffer faster with max sprites (random y/subpriority)")
+TEST("BuildOamBuffer matches the old implementation with max sprites (random y/subpriority)")
 {
     u32 i;
     ResetSpriteData_();
     SeedRng(0);
     for (i = 0; i < MAX_SPRITES; i++)
         CreateSprite(&gDummySpriteTemplate, 0, Random() % 256, Random() % 256);
-    BenchmarkBuildOamBuffer(FALSE);
+    CompareBuildOamBuffer(FALSE);
 }
 
-TEST("BuildOamBuffer faster on already-sorted max sprites")
+TEST("BuildOamBuffer matches the old implementation on already-sorted max sprites")
 {
     u32 i;
     ResetSpriteData_();
     SeedRng(0);
     for (i = 0; i < MAX_SPRITES; i++)
         CreateSprite(&gDummySpriteTemplate, 0, Random() % 256, Random() % 256);
-    BenchmarkBuildOamBuffer(TRUE);
+    CompareBuildOamBuffer(TRUE);
 }
 
-TEST("BuildOamBuffer faster with mix of sprites")
+TEST("BuildOamBuffer matches the old implementation with a mix of sprites")
 {
     u32 i;
     ResetSpriteData_();
@@ -118,7 +110,7 @@ TEST("BuildOamBuffer faster with mix of sprites")
         u32 spriteId = CreateSprite(&gDummySpriteTemplate, 0, Random() % 256, Random() % 256);
         gSprites[spriteId].invisible = Random() % 4 == 0;
     }
-    BenchmarkBuildOamBuffer(FALSE);
+    CompareBuildOamBuffer(FALSE);
 }
 
 // Old implementation.

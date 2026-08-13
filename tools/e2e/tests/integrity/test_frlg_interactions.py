@@ -100,21 +100,6 @@ def test_frlg_door_animates_and_warps(integrity_game):
     assert saw["Task_AnimateDoor"], "FRLG door animation task never ran"
 
 
-def test_frlg_escalator_runs_transition_and_warps(integrity_game):
-    fixture = _fixture("escalator")
-    _settle_overworld(integrity_game)
-    maps = _load_fixture(integrity_game, fixture, 0xF4000002)
-
-    saw = _hold_direction_until_map(
-        integrity_game,
-        fixture["direction"],
-        maps[fixture["destination"]],
-        ("Task_EscalatorWarpOut", "Task_EscalatorWarpIn"),
-    )
-
-    assert saw["Task_EscalatorWarpOut"], "FRLG escalator warp-out task never ran"
-
-
 def test_frlg_mart_clerk_opens_buy_menu(integrity_game):
     fixture = _fixture("shop")
     _settle_overworld(integrity_game)

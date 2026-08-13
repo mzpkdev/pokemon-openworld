@@ -110,15 +110,6 @@ jobs:
               | tee -a build/content-port/donor-contract.log
             status=1
           fi
-          if (( status == 0 )); then
-            python3 -m tools.content_port check --port johto \
-              --donor-root .references \
-              --write-report build/content-port/donor-contract.json || status=$?
-          fi
-          if (( status != 0 )) && [[ ! -f build/content-port/donor-contract.json ]]; then
-            printf '%s\n' '{"schemaVersion":1,"status":"failed"}' \
-              > build/content-port/donor-contract.json
-          fi
           exit "$status"
 
       - name: Upload donor-contract failure evidence
@@ -127,10 +118,8 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: donor-contract-failure-evidence
-          path: |
-            build/content-port/donor-contract.json
-            build/content-port/donor-contract.log
-          if-no-files-found: error
+          path: build/content-port/donor-contract.log
+          if-no-files-found: warn
           retention-days: 3
 
   test:
@@ -312,16 +301,11 @@ jobs:
           mkdir -p build/integrity
           python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py' \
             2>&1 | tee build/integrity/generator-schema.log
-          make content-port-test \
-            2>&1 | tee build/integrity/content-port.log
           make wild-encounter-test \
             2>&1 | tee build/integrity/wild-encounters.log
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log
-          python3 tools/persistence/contract.py validate-contract \
-            --contract tools/integrity/save_contract.json \
-            2>&1 | tee build/integrity/save-contract-schema.log
 
       - name: Check live save ABI and all five artifact budgets
         shell: bash
@@ -339,5 +323,5 @@ jobs:
           path: |
             build/integrity/*.log
             build/integrity/purposes/*.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 3

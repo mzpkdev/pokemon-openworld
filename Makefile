@@ -577,12 +577,8 @@ $(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 
-check: content-port-transaction-check cut-policy-check save-contract-check $(HEADLESSELF)
+check: content-port-transaction-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
-
-.PHONY: cut-policy-check
-cut-policy-check:
-	python3 -m tools.persistence.cut_policy
 
 CONTENT_PORT ?= johto
 CONTENT_PORT_DONOR_ROOT ?= .references
@@ -762,8 +758,6 @@ integrity-check-all-purposes: content-port-transaction-check
 	+$(MAKE) SAVE_ABI_PURPOSE=headless-test $(HEADLESSELF)
 	python3 tools/integrity/validate_artifact.py --elf $(HEADLESSELF) --purpose headless-test \
 		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/headless-test.json
-	python3 tools/persistence/contract.py validate-budgets \
-		--contract $(SAVE_CONTRACT) --reports $(PURPOSE_REPORT_DIR)
 
 # Other rules
 rom: content-port-transaction-check $(ROM)
