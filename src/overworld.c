@@ -411,7 +411,7 @@ void Overworld_ResetStateAfterFly(void)
     ResetInitialPlayerAvatarState();
     FlagClear(FLAG_SYS_CYCLING_ROAD);
     FlagClear(FLAG_SYS_CRUISE_MODE);
-    FlagClear(FLAG_SYS_SAFARI_MODE);
+    ResetSafariZoneFlag();
     VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0);
     FlagClear(FLAG_SYS_USE_STRENGTH);
     FlagClear(FLAG_SYS_USE_FLASH);
@@ -422,7 +422,7 @@ void Overworld_ResetStateAfterTeleport(void)
     ResetInitialPlayerAvatarState();
     FlagClear(FLAG_SYS_CYCLING_ROAD);
     FlagClear(FLAG_SYS_CRUISE_MODE);
-    FlagClear(FLAG_SYS_SAFARI_MODE);
+    ResetSafariZoneFlag();
     VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0);
     FlagClear(FLAG_SYS_USE_STRENGTH);
     FlagClear(FLAG_SYS_USE_FLASH);
@@ -434,7 +434,7 @@ void Overworld_ResetStateAfterDigEscRope(void)
     ResetInitialPlayerAvatarState();
     FlagClear(FLAG_SYS_CYCLING_ROAD);
     FlagClear(FLAG_SYS_CRUISE_MODE);
-    FlagClear(FLAG_SYS_SAFARI_MODE);
+    ResetSafariZoneFlag();
     VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0);
     FlagClear(FLAG_SYS_USE_STRENGTH);
     FlagClear(FLAG_SYS_USE_FLASH);
@@ -469,7 +469,7 @@ static void Overworld_ResetStateAfterWhiteOut(void)
     ResetInitialPlayerAvatarState();
     FlagClear(FLAG_SYS_CYCLING_ROAD);
     FlagClear(FLAG_SYS_CRUISE_MODE);
-    FlagClear(FLAG_SYS_SAFARI_MODE);
+    ResetSafariZoneFlag();
     VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0);
     FlagClear(FLAG_SYS_USE_STRENGTH);
     FlagClear(FLAG_SYS_USE_FLASH);
@@ -487,7 +487,7 @@ static void Overworld_ResetStateAfterWhiteOut(void)
 
 static void UpdateMiscOverworldStates(void)
 {
-    FlagClear(FLAG_SYS_SAFARI_MODE);
+    ResetSafariZoneFlag();
     VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0);
     ChooseAmbientCrySpecies();
     ResetCyclingRoadChallengeData();

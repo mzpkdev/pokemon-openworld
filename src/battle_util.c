@@ -743,7 +743,7 @@ void HandleAction_WatchesCarefully(void)
     gBattlerAttacker = gBattlerByTurnOrder[gCurrentTurnActionNumber];
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
-    if (IS_FRLG)
+    if (SafariZoneUsesKantoRules())
     {
         if (gBattleStruct->safariRockThrowCounter != 0)
         {
@@ -812,7 +812,7 @@ void HandleAction_ThrowPokeblock(void)
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
-    if (IS_FRLG)
+    if (SafariZoneUsesKantoRules())
     {
         // throw bait
         gBattleStruct->safariBaitThrowCounter += Random() % 5 + 2;
@@ -862,7 +862,7 @@ void HandleAction_GoNear(void)
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
-    if (IS_FRLG)
+    if (SafariZoneUsesKantoRules())
     {
         // throw rock
         gBattleStruct->safariRockThrowCounter += Random() % 5 + 2;

@@ -73,7 +73,7 @@ Route121_SafariZoneEntrance_EventScript_TryEnterSafariZone::
 	hidemoneybox
 	applymovement LOCALID_PLAYER, Route121_SafariZoneEntrance_Movement_EnterSafariZone
 	waitmovement 0
-	special EnterSafariMode
+	special EnterHoennSafariMode
 	setvar VAR_SAFARI_ZONE_STATE, 2
 	clearflag FLAG_GOOD_LUCK_SAFARI_ZONE
 	warp MAP_SAFARI_ZONE_SOUTH, 32, 33
@@ -128,4 +128,3 @@ Route121_SafariZoneEntrance_Movement_EnterSafariZone:
 Route121_SafariZoneEntrance_EventScript_TrainerTipSign::
 	msgbox Route121_SafariZoneEntrance_Text_TrainerTip, MSGBOX_SIGN
 	end
-

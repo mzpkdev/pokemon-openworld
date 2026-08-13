@@ -225,7 +225,7 @@ gSpecials::
 	def_special RotatingGate_InitPuzzleAndGraphics
 	def_special SetSSTidalFlag
 	def_special ResetSSTidalFlag
-	def_special EnterSafariMode
+	def_special EnterHoennSafariMode
 	def_special ExitSafariMode
 	def_special GetPokeblockFeederInFront
 	def_special OpenPokeblockCaseOnFeeder, waitstate=1
@@ -639,3 +639,5 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
+	def_special EnterKantoSafariMode
+	def_special GetSafariZoneFacility

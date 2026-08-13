@@ -50,11 +50,20 @@ SafariZone_South_EventScript_Youngster::
 SafariZone_South_EventScript_ExitAttendant::
 	lock
 	faceplayer
+	specialvar VAR_RESULT, GetSafariZoneFacility
+	goto_if_ne VAR_RESULT, SAFARI_ZONE_FACILITY_HOENN_ROUTE_121, SafariZone_South_EventScript_InvalidSession
 	goto_if_unset FLAG_GOOD_LUCK_SAFARI_ZONE, SafariZone_South_EventScript_GoodLuck
 	msgbox SafariZone_South_Text_StillHaveTimeExit, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, SafariZone_South_EventScript_ExitEarly
 	msgbox SafariZone_South_Text_EnjoyTheRestOfYourAdventure, MSGBOX_DEFAULT
 	release
+	end
+
+SafariZone_South_EventScript_InvalidSession::
+	setvar VAR_SAFARI_ZONE_STATE, 1
+	special ExitSafariMode
+	warpdoor MAP_ROUTE121_SAFARI_ZONE_ENTRANCE, 2, 5
+	waitstate
 	end
 
 SafariZone_South_EventScript_GoodLuck::
