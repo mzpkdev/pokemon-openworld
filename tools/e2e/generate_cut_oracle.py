@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproduce the historical ROM Cut oracle for derived legacy-save variants."""
+"""Reproduce the historical field-capability oracle for legacy-save variants."""
 
 import argparse
 import hashlib
@@ -23,14 +23,19 @@ from tools.e2e.skyemu import SkyEmuSession, Symbols
 
 ORACLE_PATH = Path("tools/e2e/fixtures/regional_cut_oracle.json")
 BASE_FIXTURE_PATH = Path("tools/e2e/fixtures/hoenn_continue.sav")
-FLAG_BADGE01_GET = 0x867
-FLAG_BADGE02_GET = 0x868
-FIELD_MOVE_CUT = 0
-MATRIX = (
-    ("neither", False, False),
-    ("slot1", True, False),
-    ("slot2", False, True),
-    ("both", True, True),
+CAPABILITIES = (
+    ("CUT", 0, 0x867),
+    ("FLASH", 1, 0x868),
+    ("ROCK_SMASH", 2, 0x869),
+    ("STRENGTH", 3, 0x86A),
+    ("SURF", 4, 0x86B),
+    ("FLY", 5, 0x86C),
+    ("DIVE", 6, 0x86D),
+    ("WATERFALL", 7, 0x86E),
+)
+LEGACY_FLAGS = tuple(flag for _, _, flag in CAPABILITIES)
+MATRIX = (("none", None),) + tuple(
+    (f"slot{index}", index - 1) for index in range(1, len(CAPABILITIES) + 1)
 )
 OVERLAY_FILES = (
     "include/debug_field_move_probe.h",
@@ -40,16 +45,16 @@ SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 def load_reviewed_oracle(path: Path) -> dict:
-    """Load only the exact, reviewed historical Cut oracle contract."""
+    """Load only the exact, reviewed historical capability oracle contract."""
     oracle = json.loads(path.read_text())
     if not isinstance(oracle, dict) or set(oracle) != {
         "schemaVersion",
         "source",
         "matrix",
     }:
-        raise ValueError("reviewed Cut oracle has malformed top-level keys")
-    if type(oracle["schemaVersion"]) is not int or oracle["schemaVersion"] != 1:
-        raise ValueError("reviewed Cut oracle has unsupported schemaVersion")
+        raise ValueError("reviewed capability oracle has malformed top-level keys")
+    if type(oracle["schemaVersion"]) is not int or oracle["schemaVersion"] != 2:
+        raise ValueError("reviewed capability oracle has unsupported schemaVersion")
 
     source = oracle["source"]
     source_keys = {
@@ -60,11 +65,11 @@ def load_reviewed_oracle(path: Path) -> dict:
         "instrumentedRomSha256",
     }
     if not isinstance(source, dict) or set(source) != source_keys:
-        raise ValueError("reviewed Cut oracle has malformed source keys")
+        raise ValueError("reviewed capability oracle has malformed source keys")
     if source["commit"] != SOURCE_COMMIT:
-        raise ValueError("reviewed Cut oracle has unexpected source commit")
+        raise ValueError("reviewed capability oracle has unexpected source commit")
     if source["baseFixture"] != BASE_FIXTURE_PATH.name:
-        raise ValueError("reviewed Cut oracle has unexpected base fixture")
+        raise ValueError("reviewed capability oracle has unexpected base fixture")
     for key in (
         "baseFixtureSha256",
         "instrumentationPatchSha256",
@@ -73,28 +78,29 @@ def load_reviewed_oracle(path: Path) -> dict:
         if not isinstance(source[key], str) or not SHA256_PATTERN.fullmatch(
             source[key]
         ):
-            raise ValueError(f"reviewed Cut oracle has malformed {key}")
+            raise ValueError(f"reviewed capability oracle has malformed {key}")
 
     matrix = oracle["matrix"]
     if not isinstance(matrix, list) or len(matrix) != len(MATRIX):
-        raise ValueError("reviewed Cut oracle has malformed matrix")
-    for item, (name, slot1, slot2) in zip(matrix, MATRIX, strict=True):
+        raise ValueError("reviewed capability oracle has malformed matrix")
+    for item, (name, granted_index) in zip(matrix, MATRIX, strict=True):
         if not isinstance(item, dict) or set(item) != {
             "name",
-            "legacySlot1",
-            "legacySlot2",
-            "cutUnlocked",
+            "legacySlots",
+            "unlockedCapabilities",
         }:
-            raise ValueError("reviewed Cut oracle has malformed matrix keys")
+            raise ValueError("reviewed capability oracle has malformed matrix keys")
+        expected_slots = [index == granted_index for index in range(len(CAPABILITIES))]
+        expected_unlocked = (
+            [] if granted_index is None else [CAPABILITIES[granted_index][0]]
+        )
         if (
             item["name"] != name
-            or type(item["legacySlot1"]) is not bool
-            or item["legacySlot1"] is not slot1
-            or type(item["legacySlot2"]) is not bool
-            or item["legacySlot2"] is not slot2
-            or type(item["cutUnlocked"]) is not bool
+            or item["legacySlots"] != expected_slots
+            or any(type(value) is not bool for value in item["legacySlots"])
+            or item["unlockedCapabilities"] != expected_unlocked
         ):
-            raise ValueError("reviewed Cut oracle has malformed matrix entry")
+            raise ValueError("reviewed capability oracle has malformed matrix entry")
     return oracle
 
 
@@ -166,7 +172,7 @@ def _continue_to_overworld(game) -> None:
         if game.callback_is("CB2_Overworld"):
             break
     else:
-        raise AssertionError("historical Cut fixture did not Continue")
+        raise AssertionError("historical capability fixture did not Continue")
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
@@ -180,10 +186,13 @@ def capture_oracle(source_tree: Path, skyemu: Path) -> dict:
             source_tree, historical_tree
         )
         results = []
-        for index, (name, slot1, slot2) in enumerate(MATRIX):
+        for index, (name, granted_index) in enumerate(MATRIX):
+            legacy_slots = [
+                slot_index == granted_index for slot_index in range(len(CAPABILITIES))
+            ]
             variant = with_saved_flags(
                 base,
-                {FLAG_BADGE01_GET: slot1, FLAG_BADGE02_GET: slot2},
+                dict(zip(LEGACY_FLAGS, legacy_slots, strict=True)),
             )
             save = root / f"{name}.sav"
             save.write_bytes(variant.data)
@@ -196,20 +205,29 @@ def capture_oracle(source_tree: Path, skyemu: Path) -> dict:
             )
             try:
                 _continue_to_overworld(game)
-                unlocked = probe_field_move(game, FIELD_MOVE_CUT, 0x43555400 + index)
+                unlocked = [
+                    capability
+                    for move_index, (capability, field_move, _) in enumerate(
+                        CAPABILITIES
+                    )
+                    if probe_field_move(
+                        game,
+                        field_move,
+                        0x43415000 + index * len(CAPABILITIES) + move_index,
+                    )
+                ]
             finally:
                 game.close()
             results.append(
                 {
                     "name": name,
-                    "legacySlot1": slot1,
-                    "legacySlot2": slot2,
-                    "cutUnlocked": unlocked,
+                    "legacySlots": legacy_slots,
+                    "unlockedCapabilities": unlocked,
                 }
             )
 
         return {
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "source": {
                 "commit": SOURCE_COMMIT,
                 "baseFixture": BASE_FIXTURE_PATH.name,
@@ -237,7 +255,9 @@ def run(
         None if args.candidate_output is None else args.candidate_output.resolve()
     )
     if candidate_output == reviewed_path:
-        raise ValueError("candidate output cannot overwrite the reviewed Cut oracle")
+        raise ValueError(
+            "candidate output cannot overwrite the reviewed capability oracle"
+        )
 
     actual = capture(source_tree, args.skyemu.resolve())
     if args.candidate_output is not None:
@@ -256,7 +276,9 @@ def run(
 
     reviewed = load_reviewed_oracle(reviewed_path)
     if actual != reviewed:
-        raise ValueError("historical Cut oracle reproduction disagrees with review")
+        raise ValueError(
+            "historical capability oracle reproduction disagrees with review"
+        )
 
 
 def main() -> None:

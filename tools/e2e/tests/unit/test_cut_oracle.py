@@ -6,8 +6,8 @@ import pytest
 
 from tools.e2e.generate_cut_oracle import (
     BASE_FIXTURE_PATH,
-    FLAG_BADGE01_GET,
-    FLAG_BADGE02_GET,
+    CAPABILITIES,
+    LEGACY_FLAGS,
     ORACLE_PATH,
     instrumentation_overlay,
     load_reviewed_oracle,
@@ -20,7 +20,7 @@ from tools.e2e.save_file import SaveImage, with_saved_flags
 ROOT = Path(__file__).parents[4]
 
 
-def test_cut_oracle_binds_committed_overlay_and_reviewed_base_fixture():
+def test_capability_oracle_binds_committed_overlay_and_reviewed_base_fixture():
     oracle = load_reviewed_oracle(ROOT / ORACLE_PATH)
     image = SaveImage.from_path(ROOT / BASE_FIXTURE_PATH)
     bases, overlay = instrumentation_overlay(ROOT)
@@ -32,28 +32,26 @@ def test_cut_oracle_binds_committed_overlay_and_reviewed_base_fixture():
     )
 
 
-def test_cut_oracle_matrix_is_complete_and_variants_add_no_regional_facts():
+def test_capability_oracle_matrix_is_complete_and_variants_add_no_regional_facts():
     oracle = load_reviewed_oracle(ROOT / ORACLE_PATH)
     image = SaveImage.from_path(ROOT / BASE_FIXTURE_PATH)
     scenarios = {
-        (item["legacySlot1"], item["legacySlot2"]): item["cutUnlocked"]
+        tuple(item["legacySlots"]): item["unlockedCapabilities"]
         for item in oracle["matrix"]
     }
 
     assert scenarios == {
-        (False, False): False,
-        (True, False): True,
-        (False, True): False,
-        (True, True): True,
-    }
-    for slot1, slot2 in scenarios:
-        variant = with_saved_flags(
-            image, {FLAG_BADGE01_GET: slot1, FLAG_BADGE02_GET: slot2}
+        tuple(index == granted for index in range(len(CAPABILITIES))): (
+            [] if granted is None else [CAPABILITIES[granted][0]]
         )
-        assert variant.active_slot.saved_flag(FLAG_BADGE01_GET) is slot1
-        assert variant.active_slot.saved_flag(FLAG_BADGE02_GET) is slot2
+        for granted in (None, *range(len(CAPABILITIES)))
+    }
+    for slots in scenarios:
+        variant = with_saved_flags(image, dict(zip(LEGACY_FLAGS, slots, strict=True)))
+        for flag, enabled in zip(LEGACY_FLAGS, slots, strict=True):
+            assert variant.active_slot.saved_flag(flag) is enabled
         assert all(
-            not variant.active_slot.saved_flag(flag) for flag in (0x20, 0x21, 0x22)
+            not variant.active_slot.saved_flag(flag) for flag in range(0x20, 0x35)
         )
 
 
@@ -88,7 +86,7 @@ def test_candidate_cannot_overwrite_reviewed_oracle_before_capture():
             {"reviewStatus": "UNREVIEWED_CANDIDATE_DO_NOT_USE_AS_ORACLE"}
         ),
         lambda oracle: oracle["source"].update({"unexpected": "value"}),
-        lambda oracle: oracle["matrix"][0].pop("cutUnlocked"),
+        lambda oracle: oracle["matrix"][0].pop("unlockedCapabilities"),
     ],
     ids=["unreviewed-candidate", "extra-source-key", "missing-matrix-key"],
 )
