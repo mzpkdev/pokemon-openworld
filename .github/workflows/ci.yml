@@ -191,7 +191,7 @@ jobs:
 
   test:
     name: Signed Bundle / Validate (Mechanics)
-    needs: build
+    needs: [build, bundle-preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -250,7 +250,7 @@ jobs:
 
   build:
     name: Signed Bundle / Prepare Artifacts
-    needs: bundle-preflight
+    needs: [format, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -287,21 +287,11 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
-      - name: Download preflight evidence and receipt
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          pattern: content-port-preflight-*
-          path: build/content-port/preflight
-          merge-multiple: true
-
       - name: Materialize the exact bundle candidate
         env:
           CONTENT_PORT_REQUIRE_DONORS: "1"
           CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
         run: |
-          python3 -m tools.content_port check --port johto \
-            --donor-root "$CONTENT_PORT_DONOR_ROOT" \
-            --compare-report build/content-port/preflight/donor-contract.json
           python3 -m tools.content_port candidate --port johto \
             --donor-root "$CONTENT_PORT_DONOR_ROOT" \
             --output build/content-port/candidate
@@ -361,8 +351,6 @@ jobs:
           tools/mgba-rom-test-hydra/mgba-rom-test-hydra
           build/content-port/candidate
           build/content-port/artifact-manifest.json
-          build/content-port/preflight/donor-contract.json
-          build/content-port/preflight/preflight-receipt.json
 
       - name: Upload prepared validation artifacts
         # actions/upload-artifact v7
@@ -393,7 +381,7 @@ jobs:
 
   e2e:
     name: Signed Bundle / Validate (E2E ${{ matrix.name }})
-    needs: build
+    needs: [build, bundle-preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -415,6 +403,13 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download preflight evidence and receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-preflight-*
+          path: build/content-port/preflight
+          merge-multiple: true
 
       - name: Download prepared validation artifacts
         # actions/download-artifact v8
@@ -479,7 +474,7 @@ jobs:
 
   integrity:
     name: Signed Bundle / Validate (ROM Integrity)
-    needs: build
+    needs: [build, bundle-preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -490,6 +485,13 @@ jobs:
 
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
+
+      - name: Download preflight evidence and receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-preflight-*
+          path: build/content-port/preflight
+          merge-multiple: true
 
       - name: Download prepared validation artifacts
         # actions/download-artifact v8
@@ -571,6 +573,13 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download preflight evidence and receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-preflight-*
+          path: build/content-port/preflight
+          merge-multiple: true
 
       - name: Download prepared validation artifacts
         # actions/download-artifact v8

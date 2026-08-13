@@ -41,6 +41,100 @@ def run(root: Path, *command: str) -> None:
 
 
 class BundleTests(unittest.TestCase):
+    def test_substituted_preflight_contract_is_rejected_before_validation(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_repo(root)
+            marker = root / "validator-ran"
+            policy = {
+                "schemaVersion": 2,
+                "preflightCommands": [],
+                "preparationCommands": [],
+                "validators": [
+                    {
+                        "id": "validator",
+                        "command": [
+                            "python3",
+                            "-c",
+                            "from pathlib import Path; Path('validator-ran').touch()",
+                        ],
+                    }
+                ],
+                "artifacts": ["build/artifact"],
+            }
+            policy_path = root / "tools/content_port/project.json"
+            policy_path.parent.mkdir(parents=True)
+            policy_path.write_bytes(canonical_json(policy))
+            run(root, "git", "add", policy_path.relative_to(root).as_posix())
+            run(root, "git", "commit", "-q", "-m", "policy")
+            head = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=root, text=True
+            ).strip()
+
+            build = root / "build"
+            candidate = build / "candidate"
+            candidate.mkdir(parents=True)
+            (candidate / "desired.patch").write_bytes(b"")
+            (candidate / "ownership.json").write_bytes(
+                canonical_json(OwnershipManifest("test", ()).to_json())
+            )
+            (candidate / "report.json").write_bytes(
+                canonical_json(
+                    {
+                        "schemaVersion": 1,
+                        "port": "test",
+                        "baseCommit": head,
+                        "patchSha256": content_sha256(b""),
+                        "ownedUnitCount": 0,
+                        "contract": {"proof": "candidate-authenticated"},
+                    }
+                )
+            )
+            (build / "artifact").write_bytes(b"prepared")
+            artifact_manifest = build / "artifact-manifest.json"
+            write_artifact_manifest(root, artifact_manifest)
+
+            substituted_contract = build / "substituted-donor-contract.json"
+            substituted_contract.write_bytes(
+                canonical_json({"proof": "canonical-but-substituted"})
+            )
+            substituted_receipt = build / "substituted-preflight.json"
+            write_preflight_receipt(root, substituted_contract, substituted_receipt)
+
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "donor contract does not match candidate-derived evidence",
+            ):
+                run_ci_validator(
+                    root,
+                    "validator",
+                    candidate,
+                    artifact_manifest,
+                    substituted_receipt,
+                    substituted_contract,
+                    Path("build/results/validator"),
+                    build / "receipts/validator.json",
+                )
+            self.assertFalse(marker.exists())
+
+            output = build / "final"
+            with self.assertRaisesRegex(
+                ContentPortError,
+                "donor contract does not match candidate-derived evidence",
+            ):
+                finalize_ci_bundle(
+                    root,
+                    candidate,
+                    artifact_manifest,
+                    substituted_receipt,
+                    substituted_contract,
+                    build / "receipts",
+                    output,
+                )
+            self.assertFalse(output.exists())
+
     def test_ci_finalization_binds_candidate_and_canonical_artifact_manifest(
         self,
     ) -> None:

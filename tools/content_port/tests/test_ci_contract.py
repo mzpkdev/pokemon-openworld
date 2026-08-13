@@ -51,7 +51,7 @@ class CiContractTests(unittest.TestCase):
             (
                 r"(?m)^  test:\n"
                 r"    name: Signed Bundle / Validate \(Mechanics\)\n"
-                r"    needs: build\n"
+                r"    needs: \[build, bundle-preflight\]\n"
                 r"    runs-on: ubuntu-latest\n"
                 r"    timeout-minutes: 30$"
             ),
@@ -87,13 +87,8 @@ class CiContractTests(unittest.TestCase):
             '            --donor-root "$CONTENT_PORT_DONOR_ROOT"',
             self.workflow,
         )
-        self.assertIn(
-            "python3 -m tools.content_port check --port johto \\\n"
-            '            --donor-root "$CONTENT_PORT_DONOR_ROOT" \\\n'
-            "            --compare-report "
-            "build/content-port/preflight/donor-contract.json",
-            self.workflow,
-        )
+        build_job = self.workflow.split("  build:\n", 1)[1].split("  e2e:\n", 1)[0]
+        self.assertNotIn("--compare-report", build_job)
 
     def test_required_mode_commands_and_failure_artifact_are_pinned(self) -> None:
         required_fragments = (
@@ -173,7 +168,7 @@ class CiContractTests(unittest.TestCase):
             "name: Signed Bundle / Preflight",
             "needs: [format, lint, donor-contracts]",
             "name: Signed Bundle / Prepare Artifacts",
-            "needs: bundle-preflight",
+            "needs: [format, lint]",
             'make CONTENT_PORT_BUILD_JOBS="$(nproc)" content-port-bundle-artifacts',
             "name: content-port-validation-artifacts",
             "python3 -m tools.content_port candidate --port johto",
@@ -224,6 +219,34 @@ class CiContractTests(unittest.TestCase):
             "      - name: Pack prepared validation artifacts\n", 1
         )[1].split("      - name: Upload prepared validation artifacts\n", 1)[0]
         self.assertIn(header, archive)
+        self.assertNotIn("donor-contract.json", archive)
+        self.assertNotIn("preflight-receipt.json", archive)
+
+    def test_preflight_evidence_joins_artifacts_at_each_validation_boundary(
+        self,
+    ) -> None:
+        jobs = {
+            "test": ("  build:\n", "needs: [build, bundle-preflight]"),
+            "e2e": ("  integrity:\n", "needs: [build, bundle-preflight]"),
+            "integrity": ("  bundle-attest:\n", "needs: [build, bundle-preflight]"),
+            "bundle-attest": (None, "needs: [test, e2e, integrity]"),
+        }
+        download = (
+            "          pattern: content-port-preflight-*\n"
+            "          path: build/content-port/preflight\n"
+            "          merge-multiple: true"
+        )
+        for job, (next_job, dependency) in jobs.items():
+            with self.subTest(job=job):
+                body = self.workflow.split(f"  {job}:\n", 1)[1]
+                if next_job is not None:
+                    body = body.split(next_job, 1)[0]
+                self.assertIn(dependency, body)
+                self.assertEqual(body.count(download), 1)
+
+        build_job = self.workflow.split("  build:\n", 1)[1].split("  e2e:\n", 1)[0]
+        self.assertNotIn("content-port-preflight-*", build_job)
+        self.assertNotIn("build/content-port/preflight", build_job)
 
     def test_validator_transport_archive_stays_outside_checkout(self) -> None:
         self.assertEqual(
