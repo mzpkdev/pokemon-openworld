@@ -901,7 +901,7 @@ class FaultInjectionTests(unittest.TestCase):
     def test_render_and_validation_faults_leave_repo_and_bundle_unchanged(self) -> None:
         cases = (
             ("after-render:('file', 'new.txt')", []),
-            ("after-validation:validation-0", [("python3", "-c", "pass")]),
+            ("after-validation:0", [("python3", "-c", "pass")]),
         )
         for fault, commands in cases:
             with self.subTest(fault=fault), tempfile.TemporaryDirectory() as directory:
