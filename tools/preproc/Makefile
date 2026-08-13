@@ -8,6 +8,8 @@ SRCS := asm_file.cpp c_file.cpp charmap.cpp preproc.cpp string_parser.cpp \
 HEADERS := asm_file.h c_file.h char_util.h charmap.h preproc.h string_parser.h \
 	utf8.h io.h
 
+EXPANSION_CHARACTERS := ../../include/constants/characters.h
+
 ifeq ($(OS),Windows_NT)
 EXE := .exe
 else
@@ -19,7 +21,7 @@ endif
 all: preproc$(EXE)
 	@:
 
-preproc$(EXE): $(SRCS) $(HEADERS)
+preproc$(EXE): $(SRCS) $(HEADERS) $(EXPANSION_CHARACTERS)
 	$(CXX) $(CXXFLAGS) $(SRCS) -o $@ $(LDFLAGS)
 
 clean:
