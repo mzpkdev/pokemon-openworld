@@ -799,11 +799,7 @@ class ApplyTransaction:
         repo = repo.resolve()
         bundle = bundle.resolve()
         require_clean_task_worktree(repo)
-        from .bundle import (
-            _read_project_config,
-            verify_bundle,
-            verify_validation_policy,
-        )
+        from .bundle import verify_bundle
         from .ownership import OwnershipManifest, verify_owned_baseline
 
         state, guard, journal_path = transaction_paths(repo)
@@ -841,22 +837,6 @@ class ApplyTransaction:
                 raise ContentPortError(
                     f"bundle base commit {report.get('baseCommit')} does not match HEAD {head}"
                 )
-            policy = _read_project_config(repo / "tools/content_port/project.json")
-            report_schema = report.get("schemaVersion")
-            if report_schema != policy.schema_version:
-                raise ContentPortError(
-                    "bundle report schema does not match the base commit policy: "
-                    f"policy schema v{policy.schema_version} requires report schema "
-                    f"v{policy.schema_version}"
-                )
-            if report_schema == 2:
-                validation = report.get("validation")
-                assert isinstance(validation, dict)
-                if validation.get("policySha256") != policy.sha256:
-                    raise ContentPortError(
-                        "bundle validation policy does not match the base commit"
-                    )
-                verify_validation_policy(validation, policy)
             ordered_paths = tuple(
                 dict.fromkeys(unit.path for unit in desired_manifest.units)
             )

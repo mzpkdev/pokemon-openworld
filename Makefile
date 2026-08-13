@@ -451,14 +451,14 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu _e2e-wheelhouse e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
-RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-bundle-artifacts content-port-test
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu _e2e-wheelhouse e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
-.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-bundle-artifacts content-port-test wild-encounter-test
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
+.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -577,14 +577,7 @@ $(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 
-ifeq ($(CONTENT_PORT_PREBUILT),1)
-CONTENT_PORT_CHECK_ARTIFACT :=
-else
-CONTENT_PORT_CHECK_ARTIFACT := $(HEADLESSELF)
-endif
-
-check: content-port-transaction-check cut-policy-check save-contract-check $(CONTENT_PORT_CHECK_ARTIFACT)
-	@test -f $(HEADLESSELF) || { echo "Missing prepared mechanics artifact: $(HEADLESSELF)" >&2; exit 1; }
+check: content-port-transaction-check cut-policy-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
 
 .PHONY: cut-policy-check
@@ -594,8 +587,6 @@ cut-policy-check:
 CONTENT_PORT ?= johto
 CONTENT_PORT_DONOR_ROOT ?= .references
 CONTENT_PORT_OUTPUT ?= $(BUILD_DIR)/content-port/$(CONTENT_PORT)
-CONTENT_PORT_JOBS ?= $(shell nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
-CONTENT_PORT_BUILD_JOBS ?= $(CONTENT_PORT_JOBS)
 
 content-port-transaction-check:
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
@@ -617,14 +608,7 @@ wild-encounter-test: content-port-transaction-check
 
 content-port-bundle: content-port-transaction-check
 	python3 -m tools.content_port bundle --port $(CONTENT_PORT) \
-		--donor-root $(CONTENT_PORT_DONOR_ROOT) --output $(CONTENT_PORT_OUTPUT) \
-		--jobs $(CONTENT_PORT_JOBS)
-
-content-port-bundle-artifacts: content-port-transaction-check
-	+$(MAKE) -j$(CONTENT_PORT_BUILD_JOBS) -O $(FILE_NAME).gba $(FILE_NAME).sym
-	+$(MAKE) -j$(CONTENT_PORT_BUILD_JOBS) -O DEBUG=1 $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.sym
-	+$(MAKE) -j$(CONTENT_PORT_BUILD_JOBS) -O $(FILE_NAME)-test-headless.elf
-	+$(MAKE) _e2e-skyemu _e2e-wheelhouse $(E2E_REQUIREMENTS_STAMP)
+		--donor-root $(CONTENT_PORT_DONOR_ROOT) --output $(CONTENT_PORT_OUTPUT)
 
 RUFF_VENV := $(BUILD_DIR)/ruff-venv
 RUFF_PYTHON := $(RUFF_VENV)/bin/python
@@ -651,18 +635,14 @@ lint: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 lint-check: content-port-transaction-check $(RUFF_REQUIREMENTS_STAMP)
 	$(RUFF) check .
 
-E2E_VENV ?= $(BUILD_DIR)/e2e-venv
+E2E_VENV := $(BUILD_DIR)/e2e-venv
 E2E_PYTHON := $(E2E_VENV)/bin/python
 E2E_REQUIREMENTS := tools/e2e/requirements.txt
-E2E_REQUIREMENTS_STAMP := $(E2E_VENV)/.requirements-v2
-E2E_WHEELHOUSE := $(BUILD_DIR)/e2e-wheelhouse
-E2E_WHEELHOUSE_STAMP := $(E2E_WHEELHOUSE)/.requirements-v2
+E2E_REQUIREMENTS_STAMP := $(E2E_VENV)/.requirements-v1
 E2E_TOOLS_DIR := $(BUILD_DIR)/e2e-tools
 E2E_ROM := $(FILE_NAME)-debug.gba
 E2E_SYMS := $(FILE_NAME)-debug.sym
 SKYEMU := $(E2E_TOOLS_DIR)/SkyEmu-v5
-E2E_RESULTS ?= test-results/e2e
-E2E_PYTEST_CACHE ?= $(E2E_RESULTS)/pytest-cache
 
 # E2E-only parsing deliberately omits the ROM rules above. Re-enter make once
 # with the debug purpose selected so the artifacts are refreshed by the same
@@ -712,52 +692,27 @@ start-profile-contract-check: content-port-transaction-check
 $(E2E_PYTHON):
 	python3 -m venv $(E2E_VENV)
 
-_e2e-wheelhouse: $(E2E_REQUIREMENTS)
-ifeq ($(E2E_PREBUILT_DEPENDENCIES),1)
-	@test -f $(E2E_WHEELHOUSE_STAMP) && \
-		find $(E2E_WHEELHOUSE) -maxdepth 1 -type f -name '*.whl' -print -quit | grep -q . || { \
-		echo "Missing prepared E2E dependency wheelhouse: $(E2E_WHEELHOUSE)" >&2; exit 1; \
-	}
-else
-_e2e-wheelhouse: $(E2E_WHEELHOUSE_STAMP)
-
-$(E2E_WHEELHOUSE_STAMP): $(E2E_REQUIREMENTS)
-	rm -rf $(E2E_WHEELHOUSE)
-	mkdir -p $(E2E_WHEELHOUSE)
-	python3 -m pip download --disable-pip-version-check \
-		--require-hashes --only-binary=:all: \
-		--dest $(E2E_WHEELHOUSE) -r $(E2E_REQUIREMENTS)
-	@touch $(E2E_WHEELHOUSE_STAMP)
-endif
-
-$(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON) | _e2e-wheelhouse
-	$(E2E_PYTHON) -m pip install --disable-pip-version-check --no-index \
-		--no-cache-dir \
-		--require-hashes --only-binary=:all: \
-		--find-links $(E2E_WHEELHOUSE) -r $(E2E_REQUIREMENTS)
+$(E2E_REQUIREMENTS_STAMP): $(E2E_REQUIREMENTS) $(E2E_PYTHON)
+	$(E2E_PYTHON) -m pip install --disable-pip-version-check -r $(E2E_REQUIREMENTS)
 	@touch $@
 
 _e2e-skyemu: tools/e2e/install_skyemu.py
-ifeq ($(E2E_PREBUILT_RUNTIME),1)
-	@test -x $(SKYEMU) || { echo "Missing prepared E2E runtime: $(SKYEMU)" >&2; exit 1; }
-else
 	python3 tools/e2e/install_skyemu.py --output $(SKYEMU)
-endif
 
-e2e-core: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu _e2e-wheelhouse $(E2E_REQUIREMENTS_STAMP)
+e2e-core: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=$(E2E_RESULTS) E2E_SUITE=core \
-	$(E2E_PYTHON) tools/e2e/run.py core --cache-dir $(E2E_PYTEST_CACHE)
+	E2E_RESULTS=test-results/e2e E2E_SUITE=core \
+	$(E2E_PYTHON) tools/e2e/run.py core
 
-e2e-extended: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu _e2e-wheelhouse $(E2E_REQUIREMENTS_STAMP)
+e2e-extended: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=$(E2E_RESULTS) E2E_SUITE=extended \
-	$(E2E_PYTHON) tools/e2e/run.py extended --cache-dir $(E2E_PYTEST_CACHE)
+	E2E_RESULTS=test-results/e2e E2E_SUITE=extended \
+	$(E2E_PYTHON) tools/e2e/run.py extended
 
-e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu _e2e-wheelhouse $(E2E_REQUIREMENTS_STAMP)
+e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=$(E2E_RESULTS) E2E_SUITE=integrity \
-	$(E2E_PYTHON) tools/e2e/run.py integrity --cache-dir $(E2E_PYTEST_CACHE)
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
+	$(E2E_PYTHON) tools/e2e/run.py integrity
 
 CAPACITY_POLICY := tools/integrity/capacity_policy.json
 SAVE_CONTRACT := tools/integrity/save_contract.json
@@ -787,13 +742,7 @@ $(C_BUILDDIR)/save_abi.o: $(LINKED_SAVE_ABI)
 save-contract-check: content-port-transaction-check $(LINKED_SAVE_ABI)
 
 integrity-check: content-port-transaction-check $(CAPACITY_POLICY) save-contract-check
-ifeq ($(CONTENT_PORT_PREBUILT),1)
-	@test -f $(ROM) -a -f $(MAP) -a -f $(SYM) || { \
-		echo "Missing prepared integrity artifacts: $(ROM), $(MAP), or $(SYM)" >&2; exit 1; \
-	}
-else
 	+$(MAKE) $(ROM) $(SYM)
-endif
 	@mkdir -p $(dir $(INTEGRITY_REPORT))
 	python3 tools/integrity/validate_artifact.py \
 		--rom $(ROM) --map $(MAP) --sym $(SYM) \
