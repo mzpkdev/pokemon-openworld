@@ -97,6 +97,16 @@ JOHTO_FORMAT_CLOSURE_MAPS = list(JOHTO_LOCK["maps"])
 JOHTO_FORMAT_CLOSURE_LAYOUTS = list(JOHTO_LOCK["layouts"])
 ACTIVE_JOHTO_GROUPS = {item["name"] for item in JOHTO_LOCK["groups"]}
 REVIEWED_CROSS_GEOGRAPHY_MAPS = _reviewed_cross_geography_maps()
+
+
+def expected_map_geography(map_name: Any, group_name: Any) -> str | None:
+    """Return the reviewed geographic region for a map in its product group."""
+    group_region = group_content_region(group_name)
+    if group_region is None:
+        return None
+    return REVIEWED_CROSS_GEOGRAPHY_MAPS.get(map_name, group_region)
+
+
 INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
 ACTIVE_JOHTO_SECTIONS = {
     item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS
@@ -250,6 +260,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     if sorted(group["number"] for group in groups) != list(range(EXPECTED_GROUPS)):
         raise ManifestError("group numbers must be contiguous from zero")
     group_counts = {group["number"]: group["mapCount"] for group in groups}
+    group_names = {group["number"]: group.get("name") for group in groups}
     group_regions = {
         group["number"]: group_content_region(group.get("name")) for group in groups
     }
@@ -367,8 +378,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
                 f"{entry['regionMapSection']} is {section['value']}, "
                 f"not {entry['regionMapSectionValue']}"
             )
-        expected_region = REVIEWED_CROSS_GEOGRAPHY_MAPS.get(
-            entry.get("name"), group_regions[entry["group"]]
+        expected_region = expected_map_geography(
+            entry.get("name"), group_names[entry["group"]]
         )
         if entry.get("region") != expected_region:
             raise ManifestError(

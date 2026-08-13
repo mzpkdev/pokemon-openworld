@@ -14,9 +14,9 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .manifest import ManifestError, group_content_region, load_manifest
+    from .manifest import ManifestError, expected_map_geography, load_manifest
 except ImportError:  # Direct script execution.
-    from manifest import ManifestError, group_content_region, load_manifest
+    from manifest import ManifestError, expected_map_geography, load_manifest
 
 try:
     from tools.persistence.contract import (
@@ -645,8 +645,8 @@ def validate_map_headers(
                 f"not {entry.get('regionMapSectionValue')}"
             )
         group = groups_by_number.get(entry.get("group"))
-        expected_region = (
-            group_content_region(group.get("name")) if group is not None else None
+        expected_region = expected_map_geography(
+            entry.get("name"), group.get("name") if group is not None else None
         )
         if expected_region is None:
             raise ValidationError(
