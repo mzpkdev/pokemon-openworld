@@ -58,7 +58,7 @@ VermilionCity_EventScript_FerrySailor::
 
 VermilionCity_EventScript_EnterFastShipTerminal::
 	closemessage
-	warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 16
+	warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 9
 	waitstate
 	release
 	end
