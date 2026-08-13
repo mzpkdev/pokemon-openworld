@@ -6,22 +6,33 @@ import tempfile
 import unittest
 
 from tools.persistence.contract import ContractError
-from tools.persistence.cut_policy import ROOT, validate
+from tools.persistence.cut_policy import (
+    EXACT_STORY_PRODUCERS,
+    EXACT_STORY_READERS,
+    ROOT,
+    validate,
+)
 
 
-POLICY_FILES = (
-    "src/field_move.c",
-    "src/player_capability.c",
-    "src/regional_fact.c",
-    "include/player_capability.h",
-    "include/regional_fact.h",
-    "include/config/overworld.h",
-    "tools/persistence/regional_fact_bindings.json",
-    "data/maps/RustboroCity_Gym/scripts.inc",
-    "data/maps/RustboroCity/scripts.inc",
-    "data/maps/RustboroCity_PokemonSchool/scripts.inc",
-    "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
-    "data/scripts/route23.inc",
+POLICY_FILES = tuple(
+    dict.fromkeys(
+        (
+            "src/field_move.c",
+            "src/player_capability.c",
+            "src/regional_fact.c",
+            "include/player_capability.h",
+            "include/regional_fact.h",
+            "include/config/overworld.h",
+            "tools/persistence/regional_fact_bindings.json",
+            "data/maps/RustboroCity_Gym/scripts.inc",
+            "data/maps/RustboroCity/scripts.inc",
+            "data/maps/RustboroCity_PokemonSchool/scripts.inc",
+            "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
+            "data/scripts/route23.inc",
+            *(path for path, _, _, _ in EXACT_STORY_PRODUCERS),
+            *(path for path, _, _, _ in EXACT_STORY_READERS),
+        )
+    )
 )
 
 
@@ -51,6 +62,21 @@ class FieldCapabilityPolicyTests(unittest.TestCase):
         source = path.read_text(encoding="utf-8")
         self.assertIn(old, source)
         path.write_text(source.replace(old, new, 1), encoding="utf-8")
+
+    def replace_in_script_block(
+        self, relative: str, label: str, old: str, new: str
+    ) -> None:
+        path = self.root / relative
+        source = path.read_text(encoding="utf-8")
+        start = source.index(f"{label}::")
+        next_label = source.find("::", start + len(label) + 2)
+        end = len(source) if next_label == -1 else source.rfind("\n", 0, next_label)
+        block = source[start:end]
+        self.assertIn(old, block)
+        path.write_text(
+            source[:start] + block.replace(old, new, 1) + source[end:],
+            encoding="utf-8",
+        )
 
     def test_current_policy_passes(self):
         validate(self.root)
@@ -274,7 +300,7 @@ class FieldCapabilityPolicyTests(unittest.TestCase):
         path = "data/maps/RustboroCity/scripts.inc"
         fact = "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE"
         for replacement, error in (
-            ("FLAG_BADGE03_GET", "omits.*HOENN_STONE"),
+            ("FLAG_BADGE03_GET", "ambiguous exact reader"),
             ("FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE", "omits.*HOENN_STONE"),
             ("FLAG_BADGE01_GET", "ambiguous exact reader"),
         ):
@@ -285,11 +311,49 @@ class FieldCapabilityPolicyTests(unittest.TestCase):
                 self.reset_policy()
 
     def test_exact_producer_requires_both_writes(self):
-        path = "data/maps/RustboroCity_Gym/scripts.inc"
-        for flag in ("FLAG_REGIONAL_FACT_HOENN_STONE_BADGE", "FLAG_BADGE01_GET"):
-            with self.subTest(flag=flag):
-                self.replace(path, f"\tsetflag {flag}\n", "")
-                with self.assertRaisesRegex(ContractError, "omits dual-write"):
+        for path, label, semantic_fact, flat_badge in EXACT_STORY_PRODUCERS:
+            for flag in (semantic_fact, flat_badge):
+                with self.subTest(label=label, flag=flag):
+                    self.replace_in_script_block(path, label, f"\tsetflag {flag}\n", "")
+                    with self.assertRaisesRegex(ContractError, "omits dual-write"):
+                        validate(self.root)
+                    self.reset_policy()
+
+    def test_every_exact_reader_rejects_flat_badge_regression(self):
+        for path, label, command, semantic_fact in EXACT_STORY_READERS:
+            with self.subTest(label=label):
+                self.replace_in_script_block(
+                    path,
+                    label,
+                    f"{command} {semantic_fact},",
+                    f"{command} FLAG_BADGE01_GET,",
+                )
+                with self.assertRaisesRegex(ContractError, "ambiguous exact reader"):
+                    validate(self.root)
+                self.reset_policy()
+
+    def test_story_paths_reject_product_selectors(self):
+        mutations = (
+            (
+                EXACT_STORY_PRODUCERS[0][0],
+                EXACT_STORY_PRODUCERS[0][1],
+                "\tsetflag FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+            ),
+            (
+                EXACT_STORY_READERS[-1][0],
+                EXACT_STORY_READERS[-1][1],
+                "\tgoto_if_set FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE,",
+            ),
+        )
+        for path, label, marker in mutations:
+            with self.subTest(label=label):
+                self.replace_in_script_block(
+                    path,
+                    label,
+                    marker,
+                    f"\tgoto_if_eq GAME_VERSION, 0, {label}\n{marker}",
+                )
+                with self.assertRaisesRegex(ContractError, "forbidden selector"):
                     validate(self.root)
                 self.reset_policy()
 

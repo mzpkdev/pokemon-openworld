@@ -22,6 +22,354 @@ FORBIDDEN_SELECTOR = re.compile(
     re.IGNORECASE,
 )
 
+EXACT_STORY_PRODUCERS = (
+    (
+        "data/maps/RustboroCity_Gym/scripts.inc",
+        "RustboroCity_Gym_EventScript_RoxanneDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+        "FLAG_BADGE01_GET",
+    ),
+    (
+        "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
+        "CeruleanCity_Gym_EventScript_MistyDefeated",
+        "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+        "FLAG_BADGE02_GET",
+    ),
+    (
+        "data/maps/DewfordTown_Gym/scripts.inc",
+        "DewfordTown_Gym_EventScript_BrawlyDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE",
+        "FLAG_BADGE02_GET",
+    ),
+    (
+        "data/maps/PewterCity_Gym_Frlg/scripts.inc",
+        "PewterCity_Gym_EventScript_DefeatedBrock",
+        "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE",
+        "FLAG_BADGE01_GET",
+    ),
+    (
+        "data/maps/MauvilleCity_Gym/scripts.inc",
+        "MauvilleCity_Gym_EventScript_WattsonDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE",
+        "FLAG_BADGE03_GET",
+    ),
+    (
+        "data/maps/VermilionCity_Gym_Frlg/scripts.inc",
+        "VermilionCity_Gym_EventScript_DefeatedLtSurge",
+        "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE",
+        "FLAG_BADGE03_GET",
+    ),
+    (
+        "data/maps/LavaridgeTown_Gym_1F/scripts.inc",
+        "LavaridgeTown_Gym_1F_EventScript_FlanneryDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE",
+        "FLAG_BADGE04_GET",
+    ),
+    (
+        "data/maps/CeladonCity_Gym_Frlg/scripts.inc",
+        "CeladonCity_Gym_EventScript_DefeatedErika",
+        "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE",
+        "FLAG_BADGE04_GET",
+    ),
+    (
+        "data/maps/PetalburgCity_Gym/scripts.inc",
+        "PetalburgCity_Gym_EventScript_NormanBattle",
+        "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE",
+        "FLAG_BADGE05_GET",
+    ),
+    (
+        "data/maps/FuchsiaCity_Gym_Frlg/scripts.inc",
+        "FuchsiaCity_Gym_EventScript_DefeatedKoga",
+        "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE",
+        "FLAG_BADGE05_GET",
+    ),
+    (
+        "data/maps/FortreeCity_Gym/scripts.inc",
+        "FortreeCity_Gym_EventScript_WinonaDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE",
+        "FLAG_BADGE06_GET",
+    ),
+    (
+        "data/maps/SaffronCity_Gym_Frlg/scripts.inc",
+        "SaffronCity_Gym_EventScript_DefeatedSabrina",
+        "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE",
+        "FLAG_BADGE06_GET",
+    ),
+    (
+        "data/maps/MossdeepCity_Gym/scripts.inc",
+        "MossdeepCity_Gym_EventScript_TateAndLizaDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_MIND_BADGE",
+        "FLAG_BADGE07_GET",
+    ),
+    (
+        "data/maps/SootopolisCity_Gym_1F/scripts.inc",
+        "SootopolisCity_Gym_1F_EventScript_JuanDefeated",
+        "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE",
+        "FLAG_BADGE08_GET",
+    ),
+    (
+        "data/maps/CinnabarIsland_Gym_Frlg/scripts.inc",
+        "CinnabarIsland_Gym_EventScript_DefeatedBlaine",
+        "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE",
+        "FLAG_BADGE07_GET",
+    ),
+)
+
+EXACT_STORY_READERS = (
+    (
+        "data/maps/RustboroCity_Gym/scripts.inc",
+        "RustboroCity_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+    ),
+    (
+        "data/maps/RustboroCity_Gym/scripts.inc",
+        "RustboroCity_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+    ),
+    (
+        "data/maps/RustboroCity/scripts.inc",
+        "RustboroCity_EventScript_Man1",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+    ),
+    (
+        "data/maps/RustboroCity_PokemonSchool/scripts.inc",
+        "RustboroCity_PokemonSchool_EventScript_Scott",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+    ),
+    (
+        "data/maps/RustboroCity_PokemonSchool/scripts.inc",
+        "RustboroCity_PokemonSchool_EventScript_ScottSpokeAlready",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
+    ),
+    (
+        "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
+        "CeruleanCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckCascadeBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckCascadeBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+    ),
+    (
+        "data/maps/DewfordTown_Gym/scripts.inc",
+        "DewfordTown_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE",
+    ),
+    (
+        "data/maps/DewfordTown_Gym/scripts.inc",
+        "DewfordTown_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE",
+    ),
+    (
+        "data/maps/PewterCity_Gym_Frlg/scripts.inc",
+        "PewterCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckBoulderBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckBoulderBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE",
+    ),
+    (
+        "data/maps/MauvilleCity_Gym/scripts.inc",
+        "MauvilleCity_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE",
+    ),
+    (
+        "data/maps/MauvilleCity_Gym/scripts.inc",
+        "MauvilleCity_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE",
+    ),
+    (
+        "data/maps/VermilionCity_Gym_Frlg/scripts.inc",
+        "VermilionCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckThunderBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckThunderBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE",
+    ),
+    (
+        "data/maps/LavaridgeTown_Gym_1F/scripts.inc",
+        "LavaridgeTown_Gym_1F_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE",
+    ),
+    (
+        "data/maps/LavaridgeTown_Gym_1F/scripts.inc",
+        "LavaridgeTown_Gym_1F_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE",
+    ),
+    (
+        "data/maps/CeladonCity_Gym_Frlg/scripts.inc",
+        "CeladonCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckRainbowBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckRainbowBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE",
+    ),
+    (
+        "data/maps/PetalburgCity_Gym/scripts.inc",
+        "PetalburgCity_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE",
+    ),
+    (
+        "data/maps/PetalburgCity_Gym/scripts.inc",
+        "PetalburgCity_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE",
+    ),
+    (
+        "data/scripts/players_house.inc",
+        "PlayersHouse_1F_EventScript_CheckGiveAmuletCoin",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE",
+    ),
+    (
+        "data/maps/FuchsiaCity_Gym_Frlg/scripts.inc",
+        "FuchsiaCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckSoulBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckSoulBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE",
+    ),
+    (
+        "data/maps/FortreeCity_Gym/scripts.inc",
+        "FortreeCity_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE",
+    ),
+    (
+        "data/maps/FortreeCity_Gym/scripts.inc",
+        "FortreeCity_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE",
+    ),
+    (
+        "data/maps/SootopolisCity_Gym_1F/scripts.inc",
+        "SootopolisCity_Gym_1F_EventScript_Juan",
+        "goto_if_unset",
+        "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE",
+    ),
+    (
+        "data/maps/SaffronCity_Gym_Frlg/scripts.inc",
+        "SaffronCity_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckMarshBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckMarshBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE",
+    ),
+    (
+        "data/maps/MossdeepCity_Gym/scripts.inc",
+        "MossdeepCity_Gym_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_MIND_BADGE",
+    ),
+    (
+        "data/maps/MossdeepCity_Gym/scripts.inc",
+        "MossdeepCity_Gym_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_MIND_BADGE",
+    ),
+    (
+        "data/maps/SootopolisCity_Gym_1F/scripts.inc",
+        "SootopolisCity_Gym_1F_EventScript_LeftGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE",
+    ),
+    (
+        "data/maps/SootopolisCity_Gym_1F/scripts.inc",
+        "SootopolisCity_Gym_1F_EventScript_RightGymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE",
+    ),
+    (
+        "data/maps/CinnabarIsland_Gym_Frlg/scripts.inc",
+        "CinnabarIsland_Gym_EventScript_GymStatue",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckVolcanoBadge",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE",
+    ),
+    (
+        "data/scripts/route23.inc",
+        "Route23_EventScript_CheckVolcanoBadgeTrigger",
+        "goto_if_set",
+        "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE",
+    ),
+)
+
 
 def _without_comments(source: str) -> str:
     return re.sub(r"//[^\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
@@ -267,81 +615,55 @@ def _validate_field_move_routing(root: Path, bindings: dict) -> None:
             )
 
 
-def _validate_cut_story_compatibility(root: Path) -> None:
-    exact_story_readers = (
-        (
-            "data/maps/RustboroCity_Gym/scripts.inc",
-            "RustboroCity_Gym_EventScript_LeftGymStatue",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        ),
-        (
-            "data/maps/RustboroCity_Gym/scripts.inc",
-            "RustboroCity_Gym_EventScript_RightGymStatue",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        ),
-        (
-            "data/maps/RustboroCity/scripts.inc",
-            "RustboroCity_EventScript_Man1",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        ),
-        (
-            "data/maps/RustboroCity_PokemonSchool/scripts.inc",
-            "RustboroCity_PokemonSchool_EventScript_Scott",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        ),
-        (
-            "data/maps/RustboroCity_PokemonSchool/scripts.inc",
-            "RustboroCity_PokemonSchool_EventScript_ScottSpokeAlready",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        ),
-        (
-            "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
-            "CeruleanCity_Gym_EventScript_GymStatue",
-            "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
-        ),
-        (
-            "data/scripts/route23.inc",
-            "Route23_EventScript_CheckCascadeBadge",
-            "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
-        ),
-        (
-            "data/scripts/route23.inc",
-            "Route23_EventScript_CheckCascadeBadgeTrigger",
-            "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
-        ),
-    )
-    exact_facts = {
-        "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-        "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
+def _validate_regional_badge_story_compatibility(root: Path, bindings: dict) -> None:
+    exact_facts = {entry["symbol"] for entry in bindings["exact"]}
+    admitted_facts = {
+        entry["symbol"]
+        for entry in bindings["exact"]
+        if entry["fact"].startswith(("HOENN_", "KANTO_"))
     }
-    for path, label, expected_fact in exact_story_readers:
+    inventoried_producers = {
+        semantic_fact for _, _, semantic_fact, _ in EXACT_STORY_PRODUCERS
+    }
+    if inventoried_producers != admitted_facts:
+        raise ContractError(
+            "regional facts: producer inventory differs from admitted Hoenn/Kanto facts"
+        )
+    inventoried_readers = {
+        semantic_fact for _, _, _, semantic_fact in EXACT_STORY_READERS
+    }
+    if inventoried_readers != admitted_facts:
+        raise ContractError(
+            "regional facts: reader inventory differs from admitted Hoenn/Kanto facts"
+        )
+    if len(EXACT_STORY_PRODUCERS) != len(
+        {(path, label) for path, label, _, _ in EXACT_STORY_PRODUCERS}
+    ):
+        raise ContractError("regional facts: duplicate producer inventory entry")
+    if len(EXACT_STORY_READERS) != len(
+        {(path, label) for path, label, _, _ in EXACT_STORY_READERS}
+    ):
+        raise ContractError("regional facts: duplicate reader inventory entry")
+
+    ambiguous_flags = {entry["symbol"] for entry in bindings["ambiguous"]}
+    for path, label, command, expected_fact in EXACT_STORY_READERS:
         block = _script_block(root / path, label, root)
-        if "FLAG_BADGE01_GET" in block or "FLAG_BADGE02_GET" in block:
+        _reject_selector(block)
+        if any(flag in block for flag in ambiguous_flags):
             raise ContractError(f"regional facts: ambiguous exact reader {label}")
-        if f"goto_if_set {expected_fact}," not in block:
+        if f"{command} {expected_fact}," not in block:
             raise ContractError(f"regional facts: {label} omits {expected_fact}")
         if any(fact in block for fact in exact_facts - {expected_fact}):
             raise ContractError(f"regional facts: wrong exact fact in {label}")
 
-    exact_story_producers = (
-        (
-            "data/maps/RustboroCity_Gym/scripts.inc",
-            "RustboroCity_Gym_EventScript_RoxanneDefeated",
-            "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE",
-            "FLAG_BADGE01_GET",
-        ),
-        (
-            "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
-            "CeruleanCity_Gym_EventScript_MistyDefeated",
-            "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE",
-            "FLAG_BADGE02_GET",
-        ),
-    )
-    for path, label, semantic_fact, flat_badge in exact_story_producers:
+    for path, label, semantic_fact, flat_badge in EXACT_STORY_PRODUCERS:
         block = _script_block(root / path, label, root)
+        _reject_selector(block)
         for flag in (semantic_fact, flat_badge):
-            if f"setflag {flag}" not in block:
+            if block.count(f"setflag {flag}") != 1:
                 raise ContractError(f"regional facts: {label} omits dual-write {flag}")
+        if any(fact in block for fact in exact_facts - {semantic_fact}):
+            raise ContractError(f"regional facts: wrong exact fact in {label}")
 
 
 def validate(root: Path = ROOT) -> None:
@@ -350,7 +672,7 @@ def validate(root: Path = ROOT) -> None:
     _validate_resolver(root, bindings)
     _validate_field_move_routing(root, bindings)
 
-    _validate_cut_story_compatibility(root)
+    _validate_regional_badge_story_compatibility(root, bindings)
 
 
 if __name__ == "__main__":
