@@ -346,3 +346,22 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     )
     assert arrived_catch is not None
     assert (arrived_catch["personality"], arrived_catch["otId"]) == caught_identity_baseline
+
+    # Leave the terminal and harbor by their ordinary doors, then continue on
+    # foot through Olivine toward Route 39.
+    game.move_to(x=8, y=10)
+    game.advance_until(
+        lambda: game.map_id() == maps["OlivineCity_PortOutside"].map_id,
+        description="ordinary Olivine ferry terminal exit",
+        max_pulses=300,
+        button="Up",
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
+    game.move_to(x=15, y=0)
+    game.advance_until(
+        lambda: game.map_id() == maps["OlivineCity"].map_id,
+        description="ordinary Olivine harbor exit",
+        max_pulses=300,
+        button="Up",
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
