@@ -1,47 +1,126 @@
 {
-  "schemaVersion": 1,
-  "validationCommands": [
-    [
-      "python3",
-      "-m",
-      "unittest",
-      "discover",
-      "-s",
-      "tools/content_port/tests",
-      "-p",
-      "test_*.py",
-      "-q"
-    ],
-    [
-      "python3",
-      "-m",
-      "unittest",
-      "discover",
-      "-s",
-      "tools/persistence/tests",
-      "-p",
-      "test_*.py",
-      "-q"
-    ],
-    [
-      "make",
-      "check"
-    ],
-    [
-      "make",
-      "integrity-check"
-    ],
-    [
-      "make",
-      "e2e-core"
-    ],
-    [
-      "make",
-      "e2e-extended"
-    ],
-    [
-      "make",
-      "e2e-integrity"
-    ]
+  "schemaVersion": 2,
+  "preflightCommands": [
+    {
+      "id": "format",
+      "command": ["make", "format-check"]
+    },
+    {
+      "id": "lint",
+      "command": ["make", "lint-check"]
+    },
+    {
+      "id": "content-port-tests",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/content_port/tests",
+        "-p",
+        "test_*.py",
+        "-q"
+      ]
+    },
+    {
+      "id": "persistence-tests",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/persistence/tests",
+        "-p",
+        "test_*.py",
+        "-q"
+      ]
+    }
+  ],
+  "preparationCommands": [
+    {
+      "id": "bundle-artifacts",
+      "command": ["make", "content-port-bundle-artifacts"]
+    }
+  ],
+  "validators": [
+    {
+      "id": "mechanics",
+      "command": [
+        "make",
+        "NODEP=1",
+        "SETUP_PREREQS=0",
+        "CONTENT_PORT_PREBUILT=1",
+        "check"
+      ]
+    },
+    {
+      "id": "rom-integrity",
+      "command": [
+        "make",
+        "NODEP=1",
+        "SETUP_PREREQS=0",
+        "CONTENT_PORT_PREBUILT=1",
+        "INTEGRITY_REPORT={results}/integrity.json",
+        "integrity-check"
+      ]
+    },
+    {
+      "id": "e2e-core",
+      "command": [
+        "make",
+        "E2E_PREBUILT_DEBUG=1",
+        "E2E_PREBUILT_RUNTIME=1",
+        "E2E_PREBUILT_DEPENDENCIES=1",
+        "E2E_RESULTS={results}",
+        "E2E_VENV={results}/venv",
+        "E2E_PYTEST_CACHE={results}/pytest-cache",
+        "e2e-core"
+      ]
+    },
+    {
+      "id": "e2e-extended",
+      "command": [
+        "make",
+        "E2E_PREBUILT_DEBUG=1",
+        "E2E_PREBUILT_RUNTIME=1",
+        "E2E_PREBUILT_DEPENDENCIES=1",
+        "E2E_RESULTS={results}",
+        "E2E_VENV={results}/venv",
+        "E2E_PYTEST_CACHE={results}/pytest-cache",
+        "e2e-extended"
+      ]
+    },
+    {
+      "id": "e2e-integrity",
+      "command": [
+        "make",
+        "E2E_PREBUILT_DEBUG=1",
+        "E2E_PREBUILT_RUNTIME=1",
+        "E2E_PREBUILT_DEPENDENCIES=1",
+        "E2E_RESULTS={results}",
+        "E2E_VENV={results}/venv",
+        "E2E_PYTEST_CACHE={results}/pytest-cache",
+        "e2e-integrity"
+      ]
+    }
+  ],
+  "artifacts": [
+    "pokemon-openworld.gba",
+    "pokemon-openworld.map",
+    "pokemon-openworld.sym",
+    "pokemon-openworld-debug.gba",
+    "pokemon-openworld-debug.sym",
+    "pokemon-openworld-test-headless.elf",
+    "tools/mgba/mgba-rom-test",
+    "tools/mgba-rom-test-hydra/mgba-rom-test-hydra",
+    "tools/patchelf/patchelf",
+    "include/constants/region_map_sections.h",
+    "build/e2e-tools/SkyEmu-v5",
+    "tools/e2e/requirements.txt",
+    "build/e2e-wheelhouse",
+    "build/generated",
+    "build/save-contract"
   ]
 }

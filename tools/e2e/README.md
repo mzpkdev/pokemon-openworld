@@ -124,8 +124,10 @@ rival battle started. Its milestone assertions cover the clock, rival
 introduction, Birch rescue, starter and first battle, Route 103 victory, and
 final Pokédex story state.
 
-The first run creates the ignored `build/e2e-venv` and downloads the
-digest-checked emulator into `build/e2e-tools`. Each test gives SkyEmu isolated
+The first run creates the ignored `build/e2e-venv`, downloads the fully resolved
+hash-locked binary wheels in `tools/e2e/requirements.txt`, and installs them
+offline with hash verification. It also downloads the digest-checked emulator
+into `build/e2e-tools`. Each test gives SkyEmu isolated
 XDG settings that keep its HTTP mode truly headless. Failed tests write
 `game.sav`, `screen.png`, `game.state`, and `skyemu.log` below
 `test-results/e2e/<suite>/`, for both ordinary and fixture-backed sessions. If
