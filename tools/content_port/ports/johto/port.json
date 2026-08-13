@@ -5,6 +5,7 @@
   "eventPolicy": "events.json",
   "adaptations": "adaptations.json",
   "assetPolicy": "assets.json",
+  "animationPolicy": "animation_policy.json",
   "legacyReport": "legacy_report.json",
   "donors": {
     "mechanical": {

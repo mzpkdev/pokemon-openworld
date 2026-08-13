@@ -1,0 +1,1171 @@
+{
+  "schemaVersion": 1,
+  "queueCapacity": 20,
+  "ownershipBoundary": {
+    "runtimeCode": "preserved-and-digest-checked",
+    "requiredFrames": "content-port-generated",
+    "policyAuthority": "animation_policy.json"
+  },
+  "codePayloads": [
+    {
+      "donor": "content",
+      "path": "src/tileset_anims.c",
+      "sha256": "8256c76e2da0c6562ec4049a70c832eabd84fa81f29ae68b2a89bccdff15b54e",
+      "targetPath": "src/tileset_anims.c",
+      "targetOwnership": "preserved",
+      "disposition": "required",
+      "reason": "Authenticated donor callback, schedule, and frame-binding evidence; later runtime code is adapted in the preserved expansion source.",
+      "targetSha256": "b62d836a5611174563c2155f41d896efa6110d7be476c8164d073df9abe1273c"
+    }
+  ],
+  "residentTilesets": [
+    {
+      "tileset": "Johto_General",
+      "disposition": "required",
+      "reason": "Mandatory animated primary variant."
+    },
+    {
+      "tileset": "Johto_NorthEast",
+      "disposition": "required",
+      "reason": "Mandatory animated primary variant."
+    },
+    {
+      "tileset": "Johto_South",
+      "disposition": "required",
+      "reason": "Mandatory animated primary variant."
+    },
+    {
+      "tileset": "Johto_NorthWest",
+      "disposition": "required",
+      "reason": "Mandatory animated primary variant."
+    },
+    {
+      "tileset": "NationalPark",
+      "disposition": "required",
+      "reason": "Mandatory secondary fountain and flower binding."
+    },
+    {
+      "tileset": "EcruteakTheater",
+      "disposition": "required",
+      "reason": "Mandatory secondary flower binding."
+    },
+    {
+      "tileset": "AzaleaTown_Gym",
+      "disposition": "required",
+      "reason": "Mandatory secondary yellow-flower binding."
+    },
+    {
+      "tileset": "BlackthornGym",
+      "disposition": "required",
+      "reason": "Mandatory dedicated expansion-native binding."
+    },
+    {
+      "tileset": "Johto_Building",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "NewBarkTown",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "CherrygroveCity",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Kanto_PokemonCenter",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "JohtoMart",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "House_Lab",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PlayersHouse",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Gate_Standard",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PowerPlant_GeneratorRoom",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Route32",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "RuinsOfAlphWriting",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "RuinsOfAlph_B1F",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "RuinsOfAlph_Outside",
+      "disposition": "intentionally-unused",
+      "reason": "Donor flag frames have no executable binding."
+    },
+    {
+      "tileset": "TrainerSchool",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "VioletCity",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "AzaleaTown",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Barn",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Cafe",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Cave_Default",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Cave_Gray",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Ecruteak_City",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Goldenrod",
+      "disposition": "intentionally-unused",
+      "reason": "Fountain and windy-water frames lack an executable donor binding."
+    },
+    {
+      "tileset": "GoldenrodCity_TrainStation",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "GoldenrodDepartmentStore",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "GoldenrodGameCorner",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "GoldenrodUndergroundRocket",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "GoldenrodUndergroundTunnel",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Goldenrod_Underground_Storage",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "IlexForest",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "JohtoBikeShop",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "KurtsHouse",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PokemonDayCare",
+      "disposition": "intentionally-unused",
+      "reason": "Flower frames have no executable donor binding."
+    },
+    {
+      "tileset": "ShopRooftop",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "BellchimeTrail",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "BurnedTower",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "CianwoodCity",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "CianwoodCity_Gym",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "EcruteakCity_Gym",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Lighthouse",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "OlivineCity",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PortIndoor",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Route38_Farmland",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "WhirlIslands",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Blackthorn",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Cave_DragonsDen",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "Cave_Ice",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "DragonsDen_Shrine",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "House_2",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "MahoganyTown",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "MtSilverSnow",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PokemonCenter_White",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "SafariZone_Entrance",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "SafariZoneJohto",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "ssaqua",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed Johto animation binding."
+    }
+  ],
+  "callbacks": [
+    {
+      "callback": "InitTilesetAnim_JohtoGeneral",
+      "disposition": "required",
+      "reason": "Executable primary donor callback shared by the four reviewed variants."
+    },
+    {
+      "callback": "InitTilesetAnim_NationalPark",
+      "disposition": "required",
+      "reason": "Executable secondary donor callback."
+    },
+    {
+      "callback": "InitTilesetAnim_EcruteakTheater",
+      "disposition": "required",
+      "reason": "Executable secondary donor callback; spelling is donor evidence only."
+    },
+    {
+      "callback": "InitTilesetAnim_AzaleaTown_Gym",
+      "disposition": "required",
+      "reason": "Executable secondary donor callback."
+    },
+    {
+      "callback": "InitTilesetAnim_BlackthornGym",
+      "disposition": "required",
+      "reason": "Donor Blackthorn binding is evidence; Phase 2 must adapt it to a dedicated callback."
+    }
+  ],
+  "frameSets": [
+    {
+      "id": "johto_general.flower",
+      "sourceDirectory": "data/tilesets/primary/johto_general/anim/flower",
+      "targetDirectory": "data/tilesets/primary/johto_general/anim/flower",
+      "frameCount": 5,
+      "inventorySha256": "99aab01aa8c18f16d122282b5ac7e1d7d25c44b625e79fa45bc20beecc475620",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled at primary tiles 508-511, referenced by current metatiles.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_general.sandwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_general/anim/sandwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_general/anim/sandwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "f2c19914da8193c3a801f31a09bce79d08d7f8488d3a3f39e3fb9733724d960f",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled at primary tiles 416-433, referenced by current metatiles.",
+      "sourceTilesPerFrame": 18,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_general.water_current_landwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_general/anim/water_current_landwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_general/anim/water_current_landwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "b05659b87c009cd502448ff0d9b87ceaea60e55dcd119ac7a46da8eb77fcc69b",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Combined donor sheet supplies reviewed water-edge/current and waterfall slices.",
+      "sourceTilesPerFrame": 48,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_east.flower",
+      "sourceDirectory": "data/tilesets/primary/johto_north_east/anim/flower",
+      "targetDirectory": "data/tilesets/primary/johto_north_east/anim/flower",
+      "frameCount": 5,
+      "inventorySha256": "99aab01aa8c18f16d122282b5ac7e1d7d25c44b625e79fa45bc20beecc475620",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_east.sandwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_north_east/anim/sandwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_north_east/anim/sandwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "f2c19914da8193c3a801f31a09bce79d08d7f8488d3a3f39e3fb9733724d960f",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 18,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_east.water_current_landwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "b05659b87c009cd502448ff0d9b87ceaea60e55dcd119ac7a46da8eb77fcc69b",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 48,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_south.flower",
+      "sourceDirectory": "data/tilesets/primary/johto_south/anim/flower",
+      "targetDirectory": "data/tilesets/primary/johto_south/anim/flower",
+      "frameCount": 5,
+      "inventorySha256": "99aab01aa8c18f16d122282b5ac7e1d7d25c44b625e79fa45bc20beecc475620",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_south.sandwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_south/anim/sandwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_south/anim/sandwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "f2c19914da8193c3a801f31a09bce79d08d7f8488d3a3f39e3fb9733724d960f",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 18,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_south.water_current_landwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_south/anim/water_current_landwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_south/anim/water_current_landwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "b05659b87c009cd502448ff0d9b87ceaea60e55dcd119ac7a46da8eb77fcc69b",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 48,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_west.flower",
+      "sourceDirectory": "data/tilesets/primary/johto_north_west/anim/flower",
+      "targetDirectory": "data/tilesets/primary/johto_north_west/anim/flower",
+      "frameCount": 5,
+      "inventorySha256": "99aab01aa8c18f16d122282b5ac7e1d7d25c44b625e79fa45bc20beecc475620",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_west.sandwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_north_west/anim/sandwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_north_west/anim/sandwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "f2c19914da8193c3a801f31a09bce79d08d7f8488d3a3f39e3fb9733724d960f",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 18,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "johto_north_west.water_current_landwatersedge",
+      "sourceDirectory": "data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge",
+      "targetDirectory": "data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge",
+      "frameCount": 8,
+      "inventorySha256": "b05659b87c009cd502448ff0d9b87ceaea60e55dcd119ac7a46da8eb77fcc69b",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
+      "sourceTilesPerFrame": 48,
+      "evidenceKind": "issue-owned-candidate",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "national_park.large_fountain",
+      "sourceDirectory": "data/tilesets/secondary/national_park/anim/large_fountain",
+      "targetDirectory": "data/tilesets/secondary/national_park/anim/large_fountain",
+      "frameCount": 4,
+      "inventorySha256": "fce2edd86be0b3834aa9ac3f2ab2127b17989dbfdfce131cf4cada7eb954e577",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled and metatile-backed at secondary tiles 88-95.",
+      "sourceTilesPerFrame": 8,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "national_park.small_fountain",
+      "sourceDirectory": "data/tilesets/secondary/national_park/anim/small_fountain",
+      "targetDirectory": "data/tilesets/secondary/national_park/anim/small_fountain",
+      "frameCount": 5,
+      "inventorySha256": "b28a2ab1206edaa06ebe34bbb56f2fbe68831b65e2ddde002308f0e35fc4dcfb",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled and metatile-backed at secondary tiles 104-111.",
+      "sourceTilesPerFrame": 8,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "national_park.red_flower",
+      "sourceDirectory": "data/tilesets/secondary/national_park/anim/red_flower",
+      "targetDirectory": "data/tilesets/secondary/national_park/anim/red_flower",
+      "frameCount": 3,
+      "inventorySha256": "95a4e7d37e39694623396edb8bb962ba4f34906e5d17c348709af1b342304652",
+      "requiredFrames": [
+        0,
+        1,
+        2
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled and metatile-backed at secondary tiles 96-99.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "national_park.yellow_flower",
+      "sourceDirectory": "data/tilesets/secondary/national_park/anim/yellow_flower",
+      "targetDirectory": "data/tilesets/secondary/national_park/anim/yellow_flower",
+      "frameCount": 3,
+      "inventorySha256": "540cec3e9df4b5be73747ebfb94dc42dfe36c110e83528c57b66e3d12ac72dc8",
+      "requiredFrames": [
+        0,
+        1,
+        2
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled and metatile-backed at secondary tiles 100-103.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "ecruteak_theater.flower",
+      "sourceDirectory": "data/tilesets/secondary/ecruteak_theater/anim/flower",
+      "targetDirectory": "data/tilesets/secondary/ecruteak_theater/anim/flower",
+      "frameCount": 5,
+      "inventorySha256": "9a20c110ad14a6fd98692e92cde1a3716822188de351b880d904fd9c99a525b2",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "Scheduled and metatile-backed at secondary tiles 104-107.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "azalea_town_gym.yellow_flower",
+      "sourceDirectory": "data/tilesets/secondary/azalea_town_gym/anim/yellow_flower",
+      "targetDirectory": "data/tilesets/secondary/azalea_town_gym/anim/yellow_flower",
+      "frameCount": 3,
+      "inventorySha256": "d6daf949bda172da1c127071bdd7c5dff79955aa013a6f86184aa5689f1b36c3",
+      "requiredFrames": [
+        0,
+        1,
+        2
+      ],
+      "unusedFrames": [],
+      "disposition": "required",
+      "reason": "The donor callback schedules only yellow flowers at secondary tiles 99-102.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "azalea_town_gym.red_flower",
+      "sourceDirectory": "data/tilesets/secondary/azalea_town_gym/anim/red_flower",
+      "targetDirectory": "data/tilesets/secondary/azalea_town_gym/anim/red_flower",
+      "frameCount": 3,
+      "inventorySha256": "2ce984b516879e0fdfe309b5a7ed65074247eea042f8d742c856048a763f08c2",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No executable donor schedule targets these frames.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "goldenrod.fountain",
+      "sourceDirectory": "data/tilesets/secondary/goldenrod/anim/fountain",
+      "targetDirectory": "data/tilesets/secondary/goldenrod/anim/fountain",
+      "frameCount": 2,
+      "inventorySha256": "690fb0af3b2e4430238bfb9369c1937b35aa584dcc2b75b3e446eb2fd1c486f6",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No Goldenrod callback exists in executable donor bindings.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "goldenrod.windy_water",
+      "sourceDirectory": "data/tilesets/secondary/goldenrod/anim/windy_water",
+      "targetDirectory": "data/tilesets/secondary/goldenrod/anim/windy_water",
+      "frameCount": 8,
+      "inventorySha256": "cd72a72bf78bb7cb5efcc4bac2da17a9e42e3e7763d9eb2a4fa673219c6521f6",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No Goldenrod callback exists in executable donor bindings.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "pokemon_day_care.red_flower",
+      "sourceDirectory": "data/tilesets/secondary/pokemon_day_care/anim/red_flower",
+      "targetDirectory": "data/tilesets/secondary/pokemon_day_care/anim/red_flower",
+      "frameCount": 3,
+      "inventorySha256": "5c0192eb41e2225ed4cd7edb187cd99934f68e93b43003d128cd8b31755695de",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No Day Care callback exists in executable donor bindings.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "pokemon_day_care.yellow_flower",
+      "sourceDirectory": "data/tilesets/secondary/pokemon_day_care/anim/yellow_flower",
+      "targetDirectory": "data/tilesets/secondary/pokemon_day_care/anim/yellow_flower",
+      "frameCount": 3,
+      "inventorySha256": "88e47875b52ae3a0d7883960814b76bff193c61317db7112fc945f8a6da1f483",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No Day Care callback exists in executable donor bindings.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "ruins_of_alph_outside.flag",
+      "sourceDirectory": "data/tilesets/secondary/ruins_of_alph_outside/anim/flag",
+      "targetDirectory": "data/tilesets/secondary/ruins_of_alph_outside/anim/flag",
+      "frameCount": 4,
+      "inventorySha256": "b06ed96f1c7fc4c7835e22a1abc85283fe3bea4424c6c52746e2961517a59830",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "No Ruins of Alph callback exists in executable donor bindings.",
+      "sourceTilesPerFrame": 6,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    },
+    {
+      "id": "blackthorn_gym.cave_lava",
+      "sourceDirectory": "data/tilesets/secondary/cave/anim/lava",
+      "targetDirectory": "data/tilesets/secondary/blackthorn_gym/anim/lava",
+      "frameCount": 8,
+      "inventorySha256": "9911fcdea06409d0af0dd10bbf7f4d06d7d4befe23c1dd4c0f230b9c5d9fdb95",
+      "requiredFrames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "unusedFrames": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "disposition": "required",
+      "reason": "Donor Blackthorn binds Lavaridge, whose executable pointer table schedules only frames 0-3; current gym metatiles reference destination tiles 961-964.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-executable",
+      "targetSelection": "selected-phase-2"
+    },
+    {
+      "id": "blackthorn_gym.lavaridge_steam",
+      "sourceDirectory": "data/tilesets/secondary/lavaridge/anim/steam",
+      "targetDirectory": "data/tilesets/secondary/lavaridge/anim/steam",
+      "frameCount": 4,
+      "inventorySha256": "c1f62b75ce31e64f6dd4fd25939ba2ba7d161101a19654ec20e4003ec9b5f967",
+      "requiredFrames": [],
+      "unusedFrames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "disposition": "intentionally-unused",
+      "reason": "The donor steam transfer body is commented out and does not execute.",
+      "sourceTilesPerFrame": 4,
+      "evidenceKind": "donor-inactive",
+      "targetSelection": "not-selected"
+    }
+  ],
+  "schedules": [
+    {
+      "tileset": "Johto_General",
+      "callback": "InitTilesetAnim_JohtoGeneral",
+      "counterMax": 256,
+      "transfers": [
+        {
+          "frameSet": "johto_general.sandwatersedge",
+          "period": 8,
+          "phase": 0,
+          "destinationTile": 416,
+          "tileCount": 18,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_general.flower",
+          "period": 16,
+          "phase": 2,
+          "destinationTile": 508,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_general.water_current_landwatersedge",
+          "period": 16,
+          "phase": 3,
+          "destinationTile": 450,
+          "tileCount": 12,
+          "sourceTileOffset": 34
+        }
+      ],
+      "reason": "Selected target binding preserves the authenticated executable cadence with expansion-native scheduler state.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "Johto_NorthEast",
+      "callback": "InitTilesetAnim_JohtoGeneral",
+      "counterMax": 256,
+      "transfers": [
+        {
+          "frameSet": "johto_north_east.sandwatersedge",
+          "period": 8,
+          "phase": 0,
+          "destinationTile": 416,
+          "tileCount": 18,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_north_east.flower",
+          "period": 16,
+          "phase": 2,
+          "destinationTile": 508,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_north_east.water_current_landwatersedge",
+          "period": 16,
+          "phase": 3,
+          "destinationTile": 450,
+          "tileCount": 12,
+          "sourceTileOffset": 34
+        }
+      ],
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "Johto_South",
+      "callback": "InitTilesetAnim_JohtoGeneral",
+      "counterMax": 256,
+      "transfers": [
+        {
+          "frameSet": "johto_south.sandwatersedge",
+          "period": 8,
+          "phase": 0,
+          "destinationTile": 416,
+          "tileCount": 18,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_south.flower",
+          "period": 16,
+          "phase": 2,
+          "destinationTile": 508,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_south.water_current_landwatersedge",
+          "period": 16,
+          "phase": 3,
+          "destinationTile": 450,
+          "tileCount": 12,
+          "sourceTileOffset": 34
+        }
+      ],
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "Johto_NorthWest",
+      "callback": "InitTilesetAnim_JohtoGeneral",
+      "counterMax": 256,
+      "transfers": [
+        {
+          "frameSet": "johto_north_west.sandwatersedge",
+          "period": 8,
+          "phase": 0,
+          "destinationTile": 416,
+          "tileCount": 18,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_north_west.flower",
+          "period": 16,
+          "phase": 2,
+          "destinationTile": 508,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "johto_north_west.water_current_landwatersedge",
+          "period": 16,
+          "phase": 3,
+          "destinationTile": 450,
+          "tileCount": 12,
+          "sourceTileOffset": 34
+        }
+      ],
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "NationalPark",
+      "callback": "InitTilesetAnim_NationalPark",
+      "counterMax": 960,
+      "transfers": [
+        {
+          "frameSet": "national_park.large_fountain",
+          "period": 10,
+          "phase": 0,
+          "destinationTile": 728,
+          "tileCount": 8,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "national_park.small_fountain",
+          "period": 12,
+          "phase": 1,
+          "destinationTile": 744,
+          "tileCount": 8,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "national_park.red_flower",
+          "period": 16,
+          "phase": 2,
+          "destinationTile": 736,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        },
+        {
+          "frameSet": "national_park.yellow_flower",
+          "period": 16,
+          "phase": 12,
+          "destinationTile": 740,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        }
+      ],
+      "reason": "All four donor transfers are current-metatile-backed.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "EcruteakTheater",
+      "callback": "InitTilesetAnim_EcruteakTheater",
+      "counterMax": 960,
+      "transfers": [
+        {
+          "frameSet": "ecruteak_theater.flower",
+          "period": 10,
+          "phase": 0,
+          "destinationTile": 744,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        }
+      ],
+      "reason": "Donor executable flower transfer.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "AzaleaTown_Gym",
+      "callback": "InitTilesetAnim_AzaleaTown_Gym",
+      "counterMax": 960,
+      "transfers": [
+        {
+          "frameSet": "azalea_town_gym.yellow_flower",
+          "period": 10,
+          "phase": 0,
+          "destinationTile": 739,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        }
+      ],
+      "reason": "Only the donor yellow-flower set is scheduled.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    },
+    {
+      "tileset": "BlackthornGym",
+      "callback": "InitTilesetAnim_BlackthornGym",
+      "counterMax": 160,
+      "transfers": [
+        {
+          "frameSet": "blackthorn_gym.cave_lava",
+          "period": 16,
+          "phase": 1,
+          "destinationTile": 961,
+          "tileCount": 4,
+          "sourceTileOffset": 0
+        }
+      ],
+      "reason": "Dedicated expansion-native Blackthorn callback preserves the evidenced 160-tick counter, phase-1 period-16 cadence, and frames 0-3 without scheduling Lavaridge steam.",
+      "evidenceKind": "donor-executable",
+      "runtimeDisposition": "selected-phase-2"
+    }
+  ],
+  "inactiveTransfers": [
+    {
+      "id": "primary.full-water-416-445",
+      "disposition": "intentionally-unused",
+      "reason": "The active donor callback never calls QueueAnimTiles_General_Water; reviewed slices cover the referenced ranges without overlapping DMA."
+    },
+    {
+      "id": "primary.dormant-land-water-edge-480-489",
+      "disposition": "intentionally-unused",
+      "reason": "The active donor Johto callback calls this queue, but its body returns before DMA; no runtime transfer is scheduled."
+    },
+    {
+      "id": "goldenrod.fountain-and-windy-water",
+      "disposition": "intentionally-unused",
+      "reason": "Frames exist but no donor header callback or executable schedule binds them."
+    },
+    {
+      "id": "azalea-gym.red-flowers",
+      "disposition": "intentionally-unused",
+      "reason": "Frames exist but only yellow flowers enter the donor executable pointer table."
+    },
+    {
+      "id": "day-care.flowers",
+      "disposition": "intentionally-unused",
+      "reason": "Frames exist without a donor callback or executable schedule."
+    },
+    {
+      "id": "ruins-of-alph.flags",
+      "disposition": "intentionally-unused",
+      "reason": "Frames exist without a donor callback or executable schedule."
+    },
+    {
+      "id": "blackthorn.lavaridge-steam",
+      "disposition": "intentionally-unused",
+      "reason": "The donor callback body for steam is commented out."
+    },
+    {
+      "id": "blackthorn.cave-lava-frames-4-7",
+      "disposition": "intentionally-unused",
+      "reason": "The executable donor pointer table contains only frames 0-3."
+    }
+  ]
+}

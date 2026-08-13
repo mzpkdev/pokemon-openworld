@@ -45,6 +45,14 @@ def git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
+def has_verifiable_git_checkout(repo: Path) -> bool:
+    try:
+        git(repo, "rev-parse", "--verify", "HEAD^{commit}")
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    return True
+
+
 def make_commit(repo: Path, message: str) -> str:
     git(repo, "add", ".")
     git(repo, "commit", "-m", message)
@@ -1165,12 +1173,15 @@ class DonorUpdateTests(unittest.TestCase):
             (
                 path
                 for path in candidates
-                if all((path / name).is_dir() for name in ("pokemonHnS", "PKMN-World"))
+                if all(
+                    has_verifiable_git_checkout(path / name)
+                    for name in ("pokemonHnS", "PKMN-World")
+                )
             ),
             None,
         )
         if source_donor_root is None:
-            self.skipTest("pinned donor checkouts are not present")
+            self.skipTest("verifiable pinned donor Git checkouts are not present")
 
         donor_root = self.root / "live-donors"
         donor_root.mkdir()

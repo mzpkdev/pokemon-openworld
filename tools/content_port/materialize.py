@@ -164,6 +164,31 @@ def _asset_units(
     return units
 
 
+def _animation_units(descriptor: PortDescriptor) -> list[RenderUnit]:
+    """Materialize only policy-required frames from the authenticated donor."""
+    from .animations import required_frame_payloads, verify_preserved_runtime_payloads
+
+    if not descriptor.animations:
+        return []
+    verify_preserved_runtime_payloads(
+        descriptor.animations,
+        target_root=descriptor.event_policy_path.parents[4],
+    )
+    donor_root = descriptor.donor("content").root
+    units: list[RenderUnit] = []
+    for source, target in required_frame_payloads(descriptor.animations):
+        payload = _read_source(donor_root, source, f"animation frame {source}")
+        units.append(
+            RenderUnit(
+                f"animation:{target}",
+                "tileset-assets",
+                target,
+                {target: payload},
+            )
+        )
+    return units
+
+
 def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[RenderUnit]:
     for decision in descriptor.capabilities:
         if (
@@ -774,8 +799,9 @@ def _generated_body(
         for item in tilesets:
             name = item.get("targetSymbol", item.get("symbol"))
             secondary = "TRUE" if item["secondary"] else "FALSE"
+            callback = item.get("animationCallback", "NULL")
             blocks.append(
-                f"const struct Tileset gTileset_{name} =\n{{\n    .isCompressed = TRUE,\n    .flags = TILESET_FLAGS({secondary}, METATILE_ATTRIBUTES_EMERALD_U16),\n    .tiles = gTilesetTiles_{name},\n    .palettes = gTilesetPalettes_{name},\n    .metatiles = gMetatiles_{name},\n    .metatileAttributes = gMetatileAttributes_{name},\n    .callback = NULL,\n}};"
+                f"const struct Tileset gTileset_{name} =\n{{\n    .isCompressed = TRUE,\n    .flags = TILESET_FLAGS({secondary}, METATILE_ATTRIBUTES_EMERALD_U16),\n    .tiles = gTilesetTiles_{name},\n    .palettes = gTilesetPalettes_{name},\n    .metatiles = gMetatiles_{name},\n    .metatileAttributes = gMetatileAttributes_{name},\n    .callback = {callback},\n}};"
             )
         return "\n\n".join(blocks + [f"#endif // {feature}"])
     raise ContentPortError(f"unknown generated source symbol {symbol!r}")
@@ -826,6 +852,7 @@ def derive_desired_state(
             *_group_units(snapshot_descriptor),
             *_section_units(snapshot_descriptor, state, root),
             *_asset_units(snapshot_descriptor, state),
+            *_animation_units(snapshot_descriptor),
             *_trainer_units(snapshot_descriptor, state, root),
             *_encounter_units(snapshot_descriptor, state),
             *_generated_units(snapshot_descriptor, state, root),

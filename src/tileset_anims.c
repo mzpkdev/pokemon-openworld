@@ -6,6 +6,8 @@
 #include "task.h"
 #include "battle_transition.h"
 #include "fieldmap.h"
+#include "tilesets.h"
+#include "tileset_anims.h"
 
 static EWRAM_DATA struct {
     const u16 *src;
@@ -43,6 +45,8 @@ static void TilesetAnim_MauvilleGym(u16);
 static void TilesetAnim_BikeShop(u16);
 static void TilesetAnim_BattlePyramid(u16);
 static void TilesetAnim_BattleDome(u16);
+static void TilesetAnim_JohtoGeneral(u16);
+static void TilesetAnim_JohtoSecondary(u16);
 static void QueueAnimTiles_General_Flower(u16);
 static void QueueAnimTiles_General_Water(u16);
 static void QueueAnimTiles_General_SandWaterEdge(u16);
@@ -544,6 +548,167 @@ static const u16 *const sTilesetAnims_BattleDomeFloorLightPals[] = {
     gTilesetAnims_BattleDomePals0_3,
 };
 
+// Johto uses one scheduler implementation with variant-specific frame tables.
+static const u16 sTilesetAnims_JohtoGeneral_Flower0[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Flower1[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Flower2[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Flower3[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/flower/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Flower4[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/flower/4.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoGeneral_Flower[] = {sTilesetAnims_JohtoGeneral_Flower0, sTilesetAnims_JohtoGeneral_Flower1, sTilesetAnims_JohtoGeneral_Flower2, sTilesetAnims_JohtoGeneral_Flower3, sTilesetAnims_JohtoGeneral_Flower4};
+static const u16 sTilesetAnims_JohtoGeneral_Sand0[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand1[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand2[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand3[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand4[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand5[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand6[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Sand7[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/sandwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoGeneral_Sand[] = {sTilesetAnims_JohtoGeneral_Sand0, sTilesetAnims_JohtoGeneral_Sand1, sTilesetAnims_JohtoGeneral_Sand2, sTilesetAnims_JohtoGeneral_Sand3, sTilesetAnims_JohtoGeneral_Sand4, sTilesetAnims_JohtoGeneral_Sand5, sTilesetAnims_JohtoGeneral_Sand6, sTilesetAnims_JohtoGeneral_Sand7};
+static const u16 sTilesetAnims_JohtoGeneral_Water0[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water1[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water2[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water3[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water4[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water5[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water6[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoGeneral_Water7[] = INCGFX_U16("data/tilesets/primary/johto_general/anim/water_current_landwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoGeneral_Water[] = {sTilesetAnims_JohtoGeneral_Water0, sTilesetAnims_JohtoGeneral_Water1, sTilesetAnims_JohtoGeneral_Water2, sTilesetAnims_JohtoGeneral_Water3, sTilesetAnims_JohtoGeneral_Water4, sTilesetAnims_JohtoGeneral_Water5, sTilesetAnims_JohtoGeneral_Water6, sTilesetAnims_JohtoGeneral_Water7};
+static const u16 sTilesetAnims_JohtoNorthEast_Flower0[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Flower1[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Flower2[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Flower3[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/flower/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Flower4[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/flower/4.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthEast_Flower[] = {sTilesetAnims_JohtoNorthEast_Flower0, sTilesetAnims_JohtoNorthEast_Flower1, sTilesetAnims_JohtoNorthEast_Flower2, sTilesetAnims_JohtoNorthEast_Flower3, sTilesetAnims_JohtoNorthEast_Flower4};
+static const u16 sTilesetAnims_JohtoNorthEast_Sand0[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand1[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand2[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand3[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand4[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand5[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand6[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Sand7[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/sandwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthEast_Sand[] = {sTilesetAnims_JohtoNorthEast_Sand0, sTilesetAnims_JohtoNorthEast_Sand1, sTilesetAnims_JohtoNorthEast_Sand2, sTilesetAnims_JohtoNorthEast_Sand3, sTilesetAnims_JohtoNorthEast_Sand4, sTilesetAnims_JohtoNorthEast_Sand5, sTilesetAnims_JohtoNorthEast_Sand6, sTilesetAnims_JohtoNorthEast_Sand7};
+static const u16 sTilesetAnims_JohtoNorthEast_Water0[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water1[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water2[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water3[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water4[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water5[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water6[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthEast_Water7[] = INCGFX_U16("data/tilesets/primary/johto_north_east/anim/water_current_landwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthEast_Water[] = {sTilesetAnims_JohtoNorthEast_Water0, sTilesetAnims_JohtoNorthEast_Water1, sTilesetAnims_JohtoNorthEast_Water2, sTilesetAnims_JohtoNorthEast_Water3, sTilesetAnims_JohtoNorthEast_Water4, sTilesetAnims_JohtoNorthEast_Water5, sTilesetAnims_JohtoNorthEast_Water6, sTilesetAnims_JohtoNorthEast_Water7};
+static const u16 sTilesetAnims_JohtoSouth_Flower0[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Flower1[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Flower2[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Flower3[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/flower/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Flower4[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/flower/4.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoSouth_Flower[] = {sTilesetAnims_JohtoSouth_Flower0, sTilesetAnims_JohtoSouth_Flower1, sTilesetAnims_JohtoSouth_Flower2, sTilesetAnims_JohtoSouth_Flower3, sTilesetAnims_JohtoSouth_Flower4};
+static const u16 sTilesetAnims_JohtoSouth_Sand0[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand1[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand2[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand3[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand4[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand5[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand6[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Sand7[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/sandwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoSouth_Sand[] = {sTilesetAnims_JohtoSouth_Sand0, sTilesetAnims_JohtoSouth_Sand1, sTilesetAnims_JohtoSouth_Sand2, sTilesetAnims_JohtoSouth_Sand3, sTilesetAnims_JohtoSouth_Sand4, sTilesetAnims_JohtoSouth_Sand5, sTilesetAnims_JohtoSouth_Sand6, sTilesetAnims_JohtoSouth_Sand7};
+static const u16 sTilesetAnims_JohtoSouth_Water0[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water1[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water2[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water3[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water4[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water5[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water6[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoSouth_Water7[] = INCGFX_U16("data/tilesets/primary/johto_south/anim/water_current_landwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoSouth_Water[] = {sTilesetAnims_JohtoSouth_Water0, sTilesetAnims_JohtoSouth_Water1, sTilesetAnims_JohtoSouth_Water2, sTilesetAnims_JohtoSouth_Water3, sTilesetAnims_JohtoSouth_Water4, sTilesetAnims_JohtoSouth_Water5, sTilesetAnims_JohtoSouth_Water6, sTilesetAnims_JohtoSouth_Water7};
+static const u16 sTilesetAnims_JohtoNorthWest_Flower0[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Flower1[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Flower2[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Flower3[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/flower/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Flower4[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/flower/4.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthWest_Flower[] = {sTilesetAnims_JohtoNorthWest_Flower0, sTilesetAnims_JohtoNorthWest_Flower1, sTilesetAnims_JohtoNorthWest_Flower2, sTilesetAnims_JohtoNorthWest_Flower3, sTilesetAnims_JohtoNorthWest_Flower4};
+static const u16 sTilesetAnims_JohtoNorthWest_Sand0[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand1[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand2[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand3[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand4[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand5[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand6[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Sand7[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/sandwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthWest_Sand[] = {sTilesetAnims_JohtoNorthWest_Sand0, sTilesetAnims_JohtoNorthWest_Sand1, sTilesetAnims_JohtoNorthWest_Sand2, sTilesetAnims_JohtoNorthWest_Sand3, sTilesetAnims_JohtoNorthWest_Sand4, sTilesetAnims_JohtoNorthWest_Sand5, sTilesetAnims_JohtoNorthWest_Sand6, sTilesetAnims_JohtoNorthWest_Sand7};
+static const u16 sTilesetAnims_JohtoNorthWest_Water0[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/0.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water1[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/1.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water2[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/2.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water3[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/3.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water4[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/4.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water5[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/5.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water6[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/6.png", ".4bpp");
+static const u16 sTilesetAnims_JohtoNorthWest_Water7[] = INCGFX_U16("data/tilesets/primary/johto_north_west/anim/water_current_landwatersedge/7.png", ".4bpp");
+static const u16 *const sTilesetAnims_JohtoNorthWest_Water[] = {sTilesetAnims_JohtoNorthWest_Water0, sTilesetAnims_JohtoNorthWest_Water1, sTilesetAnims_JohtoNorthWest_Water2, sTilesetAnims_JohtoNorthWest_Water3, sTilesetAnims_JohtoNorthWest_Water4, sTilesetAnims_JohtoNorthWest_Water5, sTilesetAnims_JohtoNorthWest_Water6, sTilesetAnims_JohtoNorthWest_Water7};
+static const u16 sTilesetAnims_NationalParkLarge0[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/large_fountain/0.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkLarge1[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/large_fountain/1.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkLarge2[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/large_fountain/2.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkLarge3[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/large_fountain/3.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkSmall0[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/small_fountain/0.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkSmall1[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/small_fountain/1.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkSmall2[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/small_fountain/2.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkSmall3[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/small_fountain/3.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkSmall4[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/small_fountain/4.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkRed0[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/red_flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkRed1[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/red_flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkRed2[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/red_flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkYellow0[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/yellow_flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkYellow1[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/yellow_flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_NationalParkYellow2[] = INCGFX_U16("data/tilesets/secondary/national_park/anim/yellow_flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_EcruteakTheater0[] = INCGFX_U16("data/tilesets/secondary/ecruteak_theater/anim/flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_EcruteakTheater1[] = INCGFX_U16("data/tilesets/secondary/ecruteak_theater/anim/flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_EcruteakTheater2[] = INCGFX_U16("data/tilesets/secondary/ecruteak_theater/anim/flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_EcruteakTheater3[] = INCGFX_U16("data/tilesets/secondary/ecruteak_theater/anim/flower/3.png", ".4bpp");
+static const u16 sTilesetAnims_EcruteakTheater4[] = INCGFX_U16("data/tilesets/secondary/ecruteak_theater/anim/flower/4.png", ".4bpp");
+static const u16 sTilesetAnims_AzaleaGym0[] = INCGFX_U16("data/tilesets/secondary/azalea_town_gym/anim/yellow_flower/0.png", ".4bpp");
+static const u16 sTilesetAnims_AzaleaGym1[] = INCGFX_U16("data/tilesets/secondary/azalea_town_gym/anim/yellow_flower/1.png", ".4bpp");
+static const u16 sTilesetAnims_AzaleaGym2[] = INCGFX_U16("data/tilesets/secondary/azalea_town_gym/anim/yellow_flower/2.png", ".4bpp");
+static const u16 sTilesetAnims_BlackthornGym0[] = INCGFX_U16("data/tilesets/secondary/blackthorn_gym/anim/lava/0.png", ".4bpp");
+static const u16 sTilesetAnims_BlackthornGym1[] = INCGFX_U16("data/tilesets/secondary/blackthorn_gym/anim/lava/1.png", ".4bpp");
+static const u16 sTilesetAnims_BlackthornGym2[] = INCGFX_U16("data/tilesets/secondary/blackthorn_gym/anim/lava/2.png", ".4bpp");
+static const u16 sTilesetAnims_BlackthornGym3[] = INCGFX_U16("data/tilesets/secondary/blackthorn_gym/anim/lava/3.png", ".4bpp");
+
+struct JohtoAnimTransfer
+{
+    const u16 *const *frames;
+    u8 frameCount;
+    u8 period;
+    u8 phase;
+    u8 sourceTileOffset;
+    u16 destinationTileOffset;
+    u8 tileCount;
+};
+
+#define FRAME_LIST(name, ...) static const u16 *const sTilesetAnims_##name[] = {__VA_ARGS__}
+FRAME_LIST(NationalParkLarge, sTilesetAnims_NationalParkLarge0, sTilesetAnims_NationalParkLarge1, sTilesetAnims_NationalParkLarge2, sTilesetAnims_NationalParkLarge3);
+FRAME_LIST(NationalParkSmall, sTilesetAnims_NationalParkSmall0, sTilesetAnims_NationalParkSmall1, sTilesetAnims_NationalParkSmall2, sTilesetAnims_NationalParkSmall3, sTilesetAnims_NationalParkSmall4);
+FRAME_LIST(NationalParkRed, sTilesetAnims_NationalParkRed0, sTilesetAnims_NationalParkRed1, sTilesetAnims_NationalParkRed2, sTilesetAnims_NationalParkRed1);
+FRAME_LIST(NationalParkYellow, sTilesetAnims_NationalParkYellow2, sTilesetAnims_NationalParkYellow1, sTilesetAnims_NationalParkYellow0, sTilesetAnims_NationalParkYellow1);
+FRAME_LIST(EcruteakTheater, sTilesetAnims_EcruteakTheater0, sTilesetAnims_EcruteakTheater1, sTilesetAnims_EcruteakTheater2, sTilesetAnims_EcruteakTheater3, sTilesetAnims_EcruteakTheater4);
+FRAME_LIST(AzaleaGym, sTilesetAnims_AzaleaGym0, sTilesetAnims_AzaleaGym1, sTilesetAnims_AzaleaGym2, sTilesetAnims_AzaleaGym1);
+FRAME_LIST(BlackthornGym, sTilesetAnims_BlackthornGym0, sTilesetAnims_BlackthornGym1, sTilesetAnims_BlackthornGym2, sTilesetAnims_BlackthornGym3);
+#undef FRAME_LIST
+
+static const struct JohtoAnimTransfer sNationalParkTransfers[] = {
+    {sTilesetAnims_NationalParkLarge, 4, 10, 0, 0, 88, 8},
+    {sTilesetAnims_NationalParkSmall, 5, 12, 1, 0, 104, 8},
+    {sTilesetAnims_NationalParkRed, 4, 16, 2, 0, 96, 4},
+    {sTilesetAnims_NationalParkYellow, 4, 16, 12, 0, 100, 4},
+};
+static const struct JohtoAnimTransfer sEcruteakTheaterTransfers[] = {{sTilesetAnims_EcruteakTheater, 5, 10, 0, 0, 104, 4}};
+static const struct JohtoAnimTransfer sAzaleaGymTransfers[] = {{sTilesetAnims_AzaleaGym, 4, 10, 0, 0, 99, 4}};
+static const struct JohtoAnimTransfer sBlackthornGymTransfers[] = {{sTilesetAnims_BlackthornGym, 4, 16, 1, 0, 321, 4}};
+static const struct JohtoAnimTransfer *sJohtoSecondaryTransfers;
+static u8 sJohtoSecondaryTransferCount;
+static const u16 *const *sJohtoFlowerFrames;
+static const u16 *const *sJohtoSandFrames;
+static const u16 *const *sJohtoWaterFrames;
+
 static void ResetTilesetAnimBuffer(void)
 {
     sTilesetDMA3TransferBufferSize = 0;
@@ -620,6 +785,49 @@ void InitTilesetAnim_General(void)
     sPrimaryTilesetAnimCounter = 0;
     sPrimaryTilesetAnimCounterMax = 256;
     sPrimaryTilesetAnimCallback = TilesetAnim_General;
+}
+
+void InitTilesetAnim_JohtoGeneral(void)
+{
+    const struct Tileset *tileset = gMapHeader.mapLayout->primaryTileset;
+
+    if (tileset == &gTileset_Johto_NorthEast)
+    {
+        sJohtoFlowerFrames = sTilesetAnims_JohtoNorthEast_Flower;
+        sJohtoSandFrames = sTilesetAnims_JohtoNorthEast_Sand;
+        sJohtoWaterFrames = sTilesetAnims_JohtoNorthEast_Water;
+    }
+    else if (tileset == &gTileset_Johto_South)
+    {
+        sJohtoFlowerFrames = sTilesetAnims_JohtoSouth_Flower;
+        sJohtoSandFrames = sTilesetAnims_JohtoSouth_Sand;
+        sJohtoWaterFrames = sTilesetAnims_JohtoSouth_Water;
+    }
+    else if (tileset == &gTileset_Johto_NorthWest)
+    {
+        sJohtoFlowerFrames = sTilesetAnims_JohtoNorthWest_Flower;
+        sJohtoSandFrames = sTilesetAnims_JohtoNorthWest_Sand;
+        sJohtoWaterFrames = sTilesetAnims_JohtoNorthWest_Water;
+    }
+    else
+    {
+        sJohtoFlowerFrames = sTilesetAnims_JohtoGeneral_Flower;
+        sJohtoSandFrames = sTilesetAnims_JohtoGeneral_Sand;
+        sJohtoWaterFrames = sTilesetAnims_JohtoGeneral_Water;
+    }
+    sPrimaryTilesetAnimCounter = 0;
+    sPrimaryTilesetAnimCounterMax = 256;
+    sPrimaryTilesetAnimCallback = TilesetAnim_JohtoGeneral;
+}
+
+static void TilesetAnim_JohtoGeneral(u16 timer)
+{
+    if (timer % 8 == 0)
+        AppendTilesetAnimToBuffer(sJohtoSandFrames[(timer / 8) % 8], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(416)), 18 * TILE_SIZE_4BPP);
+    if (timer % 16 == 2)
+        AppendTilesetAnimToBuffer(sJohtoFlowerFrames[(timer / 16) % 5], (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(508)), 4 * TILE_SIZE_4BPP);
+    if (timer % 16 == 3)
+        AppendTilesetAnimToBuffer(sJohtoWaterFrames[(timer / 16) % 8] + 34 * TILE_SIZE_4BPP / sizeof(u16), (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(450)), 12 * TILE_SIZE_4BPP);
 }
 
 void InitTilesetAnim_Building(void)
@@ -714,6 +922,153 @@ void InitTilesetAnim_Lavaridge(void)
     sSecondaryTilesetAnimCounterMax = sPrimaryTilesetAnimCounterMax;
     sSecondaryTilesetAnimCallback = TilesetAnim_Lavaridge;
 }
+
+static void InitTilesetAnim_JohtoSecondary(const struct JohtoAnimTransfer *transfers, u8 transferCount, u16 counterMax)
+{
+    sJohtoSecondaryTransfers = transfers;
+    sJohtoSecondaryTransferCount = transferCount;
+    sSecondaryTilesetAnimCounter = 0;
+    sSecondaryTilesetAnimCounterMax = counterMax;
+    sSecondaryTilesetAnimCallback = TilesetAnim_JohtoSecondary;
+}
+
+void InitTilesetAnim_NationalPark(void)
+{
+    InitTilesetAnim_JohtoSecondary(sNationalParkTransfers, ARRAY_COUNT(sNationalParkTransfers), 960);
+}
+
+void InitTilesetAnim_EcruteakTheater(void)
+{
+    InitTilesetAnim_JohtoSecondary(sEcruteakTheaterTransfers, ARRAY_COUNT(sEcruteakTheaterTransfers), 960);
+}
+
+void InitTilesetAnim_AzaleaTown_Gym(void)
+{
+    InitTilesetAnim_JohtoSecondary(sAzaleaGymTransfers, ARRAY_COUNT(sAzaleaGymTransfers), 960);
+}
+
+void InitTilesetAnim_BlackthornGym(void)
+{
+    InitTilesetAnim_JohtoSecondary(sBlackthornGymTransfers, ARRAY_COUNT(sBlackthornGymTransfers), 160);
+}
+
+static void TilesetAnim_JohtoSecondary(u16 timer)
+{
+    u8 i;
+    u16 primaryTileCount = GetNumTilesInPrimary(gMapHeader.mapLayout);
+
+    for (i = 0; i < sJohtoSecondaryTransferCount; i++)
+    {
+        const struct JohtoAnimTransfer *transfer = &sJohtoSecondaryTransfers[i];
+        if (timer % transfer->period == transfer->phase)
+        {
+            u16 frame = (timer / transfer->period) % transfer->frameCount;
+            AppendTilesetAnimToBuffer(
+                transfer->frames[frame] + transfer->sourceTileOffset * TILE_SIZE_4BPP / sizeof(u16),
+                (u16 *)(BG_VRAM + TILE_OFFSET_4BPP(primaryTileCount + transfer->destinationTileOffset)),
+                transfer->tileCount * TILE_SIZE_4BPP);
+        }
+    }
+}
+
+#if TESTING
+u8 TilesetAnimTest_GetTransferCount(void)
+{
+    return sTilesetDMA3TransferBufferSize;
+}
+
+void TilesetAnimTest_GetTransfer(u8 index, struct TilesetAnimTestTransfer *transfer)
+{
+    transfer->src = sTilesetDMA3TransferBuffer[index].src;
+    transfer->dest = sTilesetDMA3TransferBuffer[index].dest;
+    transfer->size = sTilesetDMA3TransferBuffer[index].size;
+}
+
+void TilesetAnimTest_GetState(struct TilesetAnimTestState *state)
+{
+    state->primaryCounter = sPrimaryTilesetAnimCounter;
+    state->primaryCounterMax = sPrimaryTilesetAnimCounterMax;
+    state->secondaryCounter = sSecondaryTilesetAnimCounter;
+    state->secondaryCounterMax = sSecondaryTilesetAnimCounterMax;
+    state->primaryCallback = sPrimaryTilesetAnimCallback;
+    state->secondaryCallback = sSecondaryTilesetAnimCallback;
+}
+
+#define RETURN_RAW_FRAMES_3(name)                  \
+    switch (frameNumber)                           \
+    {                                              \
+    case 0: return name##0;                        \
+    case 1: return name##1;                        \
+    case 2: return name##2;                        \
+    default: return NULL;                          \
+    }
+#define RETURN_RAW_FRAMES_4(name)                  \
+    switch (frameNumber)                           \
+    {                                              \
+    case 0: return name##0;                        \
+    case 1: return name##1;                        \
+    case 2: return name##2;                        \
+    case 3: return name##3;                        \
+    default: return NULL;                          \
+    }
+#define RETURN_RAW_FRAMES_5(name)                  \
+    switch (frameNumber)                           \
+    {                                              \
+    case 0: return name##0;                        \
+    case 1: return name##1;                        \
+    case 2: return name##2;                        \
+    case 3: return name##3;                        \
+    case 4: return name##4;                        \
+    default: return NULL;                          \
+    }
+#define RETURN_RAW_FRAMES_8(name)                  \
+    switch (frameNumber)                           \
+    {                                              \
+    case 0: return name##0;                        \
+    case 1: return name##1;                        \
+    case 2: return name##2;                        \
+    case 3: return name##3;                        \
+    case 4: return name##4;                        \
+    case 5: return name##5;                        \
+    case 6: return name##6;                        \
+    case 7: return name##7;                        \
+    default: return NULL;                          \
+    }
+
+const u16 *TilesetAnimTest_GetJohtoRawFrame(enum TilesetAnimTestJohtoAsset asset, u8 frameNumber)
+{
+    // Resolve immutable numbered assets directly. Deliberately do not read the
+    // production playback lists: those lists are what the ROM tests verify.
+    switch (asset)
+    {
+    case TILESET_ANIM_TEST_JOHTO_GENERAL_FLOWER:     RETURN_RAW_FRAMES_5(sTilesetAnims_JohtoGeneral_Flower);
+    case TILESET_ANIM_TEST_JOHTO_GENERAL_SAND:       RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoGeneral_Sand);
+    case TILESET_ANIM_TEST_JOHTO_GENERAL_WATER:      RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoGeneral_Water);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_EAST_FLOWER: RETURN_RAW_FRAMES_5(sTilesetAnims_JohtoNorthEast_Flower);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_EAST_SAND:   RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoNorthEast_Sand);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_EAST_WATER:  RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoNorthEast_Water);
+    case TILESET_ANIM_TEST_JOHTO_SOUTH_FLOWER:      RETURN_RAW_FRAMES_5(sTilesetAnims_JohtoSouth_Flower);
+    case TILESET_ANIM_TEST_JOHTO_SOUTH_SAND:        RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoSouth_Sand);
+    case TILESET_ANIM_TEST_JOHTO_SOUTH_WATER:       RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoSouth_Water);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_WEST_FLOWER: RETURN_RAW_FRAMES_5(sTilesetAnims_JohtoNorthWest_Flower);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_WEST_SAND:   RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoNorthWest_Sand);
+    case TILESET_ANIM_TEST_JOHTO_NORTH_WEST_WATER:  RETURN_RAW_FRAMES_8(sTilesetAnims_JohtoNorthWest_Water);
+    case TILESET_ANIM_TEST_NATIONAL_PARK_LARGE:      RETURN_RAW_FRAMES_4(sTilesetAnims_NationalParkLarge);
+    case TILESET_ANIM_TEST_NATIONAL_PARK_SMALL:      RETURN_RAW_FRAMES_5(sTilesetAnims_NationalParkSmall);
+    case TILESET_ANIM_TEST_NATIONAL_PARK_RED:        RETURN_RAW_FRAMES_3(sTilesetAnims_NationalParkRed);
+    case TILESET_ANIM_TEST_NATIONAL_PARK_YELLOW:     RETURN_RAW_FRAMES_3(sTilesetAnims_NationalParkYellow);
+    case TILESET_ANIM_TEST_ECRUTEAK_THEATER:         RETURN_RAW_FRAMES_5(sTilesetAnims_EcruteakTheater);
+    case TILESET_ANIM_TEST_AZALEA_GYM:               RETURN_RAW_FRAMES_3(sTilesetAnims_AzaleaGym);
+    case TILESET_ANIM_TEST_BLACKTHORN_GYM:           RETURN_RAW_FRAMES_4(sTilesetAnims_BlackthornGym);
+    }
+    return NULL;
+}
+
+#undef RETURN_RAW_FRAMES_3
+#undef RETURN_RAW_FRAMES_4
+#undef RETURN_RAW_FRAMES_5
+#undef RETURN_RAW_FRAMES_8
+#endif
 
 void InitTilesetAnim_Fallarbor(void)
 {
@@ -1431,4 +1786,3 @@ void InitTilesetAnim_CeladonGym(void)
     sSecondaryTilesetAnimCounterMax = 256;
     sSecondaryTilesetAnimCallback = TilesetAnim_CeladonGym;
 }
-
