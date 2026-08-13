@@ -1,0 +1,26 @@
+name: Issue
+description: Report a problem or propose a change.
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: What happened or should change?
+      placeholder: Describe the outcome in a few sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Why does this matter?
+      placeholder: Explain the impact on players or contributors.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add logs, screenshots, saves, or examples when useful.
