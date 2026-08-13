@@ -40,6 +40,11 @@ scripts and events run, the expected map is active, scripts settle, and player
 control returns. Structural loads suppress story scripts and events only during
 the exhaustive sweep; representative loads restore them.
 
+Pull-request CI limits the structural sweep to every exterior map with a
+Pokémon Center entrance across Hoenn, Kanto, Johto, and the seven Sevii
+Islands, plus the three starting towns. Local `make e2e-integrity` keeps the
+exhaustive sweep by default; set `E2E_MAP_SWEEP=frontages` to match CI.
+
 Johto residency is deliberately non-gameplay: imported scripts and gameplay
 events are empty, while load-critical layouts, tilesets, sections, headers, and
 internal spatial edges remain. It does not provide NPCs, dialogue, trainers,

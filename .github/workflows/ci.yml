@@ -269,6 +269,8 @@ jobs:
             zlib1g
 
       - name: Run E2E suite
+        env:
+          E2E_MAP_SWEEP: frontages
         run: make E2E_PREBUILT_DEBUG=1 ${{ matrix.target }}
 
       - name: Upload failure evidence
