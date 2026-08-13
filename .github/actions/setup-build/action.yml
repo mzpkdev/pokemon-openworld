@@ -48,7 +48,22 @@ runs:
           pkg-config \
           python3
 
+    - name: Identify native build environment
+      id: native-build-environment
+      shell: bash
+      run: |
+        set -o pipefail
+        identity="$({
+          gcc --version &&
+          g++ --version &&
+          ld --version &&
+          ldd --version &&
+          pkg-config --modversion libpng
+        } | sha256sum | cut -d' ' -f1)"
+        echo "digest=${identity}" >> "$GITHUB_OUTPUT"
+
     - name: Restore build tools
+      id: build-tools-cache
       # actions/cache v5
       uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
       with:
@@ -67,7 +82,41 @@ runs:
           tools/compresSmol/compresSmol
           tools/compresSmol/compresSmolTilemap
           tools/wav2agb/wav2agb
-        key: gba-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/actions/setup-build/action.yml', 'tools/*/Makefile', 'tools/**/*.c', 'tools/**/*.cpp', 'tools/**/*.h') }}
+        key: gba-tools-${{ runner.os }}-${{ runner.arch }}-${{ steps.native-build-environment.outputs.digest }}-${{ hashFiles('.github/actions/setup-build/action.yml', 'tools/*/Makefile', 'tools/**/*.c', 'tools/**/*.cpp', 'tools/**/*.h', 'include/config/battle.h', 'include/config/general.h', 'include/constants/characters.h') }}
+
+    - name: Refresh cached build tool timestamps
+      if: steps.build-tools-cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        # The cache key authenticates these binaries against every host-tool
+        # source. Refresh them after checkout so fresh source mtimes alone do
+        # not make Make rebuild an exact cache hit.
+        tools=(
+          tools/bin2c/bin2c
+          tools/gbafix/gbafix
+          tools/gbagfx/gbagfx
+          tools/jsonproc/jsonproc
+          tools/mapjson/mapjson
+          tools/mid2agb/mid2agb
+          tools/preproc/preproc
+          tools/ramscrgen/ramscrgen
+          tools/rsfont/rsfont
+          tools/scaninc/scaninc
+          tools/trainerproc/trainerproc
+          tools/compresSmol/compresSmol
+          tools/compresSmol/compresSmolTilemap
+          tools/wav2agb/wav2agb
+        )
+        for tool in "${tools[@]}"; do
+          if [[ ! -e "${tool}" ]]; then
+            continue
+          fi
+          if [[ ! -f "${tool}" || -L "${tool}" || ! -x "${tool}" ]]; then
+            echo "Cached build tool is not a regular executable: ${tool}" >&2
+            exit 1
+          fi
+          touch -- "${tool}"
+        done
 
     - name: Verify build toolchain
       shell: bash

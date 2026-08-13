@@ -186,9 +186,11 @@ jobs:
         uses: ./.github/actions/setup-build
 
       - name: Build Emerald
+        if: github.event_name != 'pull_request'
         run: make -j"$(nproc)" -O emerald syms
 
       - name: Stage build files
+        if: github.event_name != 'pull_request'
         run: |
           mkdir release
           cp pokemon-openworld.gba release/pokemon-openworld.gba
@@ -201,6 +203,7 @@ jobs:
           pokemon-openworld-debug.gba pokemon-openworld-debug.sym
 
       - name: Check normal/debug shared debug-menu symbols
+        if: github.event_name != 'pull_request'
         run: make build-variant-isolation-check
 
       - name: Check for modified tracked files
@@ -214,13 +217,18 @@ jobs:
       - name: Stage debug build files
         run: |
           mkdir debug-release
-          cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
-          cp pokemon-openworld-debug.map release/pokemon-openworld-debug.map
-          cp pokemon-openworld-debug.sym release/pokemon-openworld-debug.sym
           cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
+          cp pokemon-openworld-debug.map debug-release/pokemon-openworld-debug.map
           cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
 
+      - name: Stage and validate release artifact
+        if: github.event_name != 'pull_request'
+        run: |
+          cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
+          .github/release/release.py validate-assets release
+
       - name: Upload build artifacts
+        if: github.event_name != 'pull_request'
         # actions/upload-artifact v7
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -323,12 +331,20 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
-      - name: Download normal and debug build artifacts
+      - name: Download release build artifact
+        if: github.event_name != 'pull_request'
         # actions/download-artifact v8
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: pokemon-openworld
           path: build/prebuilt
+
+      - name: Download debug build artifact
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: pokemon-openworld-debug
+          path: build/debug-prebuilt
 
       - name: Check deterministic generation and schemas
         shell: bash
@@ -344,6 +360,7 @@ jobs:
             2>&1 | tee build/integrity/persistence.log
 
       - name: Build and audit release ROM
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -o pipefail
@@ -351,19 +368,33 @@ jobs:
             INTEGRITY_REPORT=build/integrity/purposes/release.json \
             2>&1 | tee build/integrity/rom-purpose-capacity.log
 
+      - name: Generate Integrity manifest for prebuilt ROMs
+        run: |
+          make -C tools/mapjson
+          make NODEP=1 SETUP_PREREQS=0 \
+            build/generated/allregions/current/integrity-manifest.json
+
       - name: Audit prebuilt normal and debug ROMs
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -o pipefail
-          for purpose in normal debug; do
+          purposes=(debug)
+          if [[ "$EVENT_NAME" != pull_request ]]; then
+            purposes=(normal debug)
+          fi
+          for purpose in "${purposes[@]}"; do
             suffix=
+            artifact_root=build/prebuilt
             if [[ "$purpose" == debug ]]; then
               suffix=-debug
+              artifact_root=build/debug-prebuilt
             fi
             python3 tools/integrity/validate_artifact.py \
-              --rom "build/prebuilt/pokemon-openworld${suffix}.gba" \
-              --map "build/prebuilt/pokemon-openworld${suffix}.map" \
-              --sym "build/prebuilt/pokemon-openworld${suffix}.sym" \
+              --rom "${artifact_root}/pokemon-openworld${suffix}.gba" \
+              --map "${artifact_root}/pokemon-openworld${suffix}.map" \
+              --sym "${artifact_root}/pokemon-openworld${suffix}.sym" \
               --manifest build/generated/allregions/current/integrity-manifest.json \
               --capacity-policy tools/integrity/capacity_policy.json \
               --save-contract tools/integrity/save_contract.json \
