@@ -1555,7 +1555,7 @@ const struct Tileset gTileset_Johto_General =
     .palettes = gTilesetPalettes_Johto_General,
     .metatiles = gMetatiles_Johto_General,
     .metatileAttributes = gMetatileAttributes_Johto_General,
-    .callback = NULL,
+    .callback = InitTilesetAnim_JohtoGeneral,
 };
 
 const struct Tileset gTileset_Johto_Building =
@@ -1577,7 +1577,7 @@ const struct Tileset gTileset_Johto_NorthEast =
     .palettes = gTilesetPalettes_Johto_NorthEast,
     .metatiles = gMetatiles_Johto_NorthEast,
     .metatileAttributes = gMetatileAttributes_Johto_NorthEast,
-    .callback = NULL,
+    .callback = InitTilesetAnim_JohtoGeneral,
 };
 
 const struct Tileset gTileset_NewBarkTown =
@@ -1665,7 +1665,7 @@ const struct Tileset gTileset_EcruteakTheater =
     .palettes = gTilesetPalettes_EcruteakTheater,
     .metatiles = gMetatiles_EcruteakTheater,
     .metatileAttributes = gMetatileAttributes_EcruteakTheater,
-    .callback = NULL,
+    .callback = InitTilesetAnim_EcruteakTheater,
 };
 
 const struct Tileset gTileset_PowerPlant_GeneratorRoom =
@@ -1753,7 +1753,7 @@ const struct Tileset gTileset_Johto_South =
     .palettes = gTilesetPalettes_Johto_South,
     .metatiles = gMetatiles_Johto_South,
     .metatileAttributes = gMetatileAttributes_Johto_South,
-    .callback = NULL,
+    .callback = InitTilesetAnim_JohtoGeneral,
 };
 
 const struct Tileset gTileset_AzaleaTown =
@@ -1775,7 +1775,7 @@ const struct Tileset gTileset_AzaleaTown_Gym =
     .palettes = gTilesetPalettes_AzaleaTown_Gym,
     .metatiles = gMetatiles_AzaleaTown_Gym,
     .metatileAttributes = gMetatileAttributes_AzaleaTown_Gym,
-    .callback = NULL,
+    .callback = InitTilesetAnim_AzaleaTown_Gym,
 };
 
 const struct Tileset gTileset_Barn =
@@ -1951,7 +1951,7 @@ const struct Tileset gTileset_NationalPark =
     .palettes = gTilesetPalettes_NationalPark,
     .metatiles = gMetatiles_NationalPark,
     .metatileAttributes = gMetatileAttributes_NationalPark,
-    .callback = NULL,
+    .callback = InitTilesetAnim_NationalPark,
 };
 
 const struct Tileset gTileset_JohtoPokemonDayCare =
@@ -2039,7 +2039,7 @@ const struct Tileset gTileset_Johto_NorthWest =
     .palettes = gTilesetPalettes_Johto_NorthWest,
     .metatiles = gMetatiles_Johto_NorthWest,
     .metatileAttributes = gMetatileAttributes_Johto_NorthWest,
-    .callback = NULL,
+    .callback = InitTilesetAnim_JohtoGeneral,
 };
 
 const struct Tileset gTileset_Lighthouse =
@@ -2116,7 +2116,7 @@ const struct Tileset gTileset_BlackthornGym =
     .palettes = gTilesetPalettes_BlackthornGym,
     .metatiles = gMetatiles_BlackthornGym,
     .metatileAttributes = gMetatileAttributes_BlackthornGym,
-    .callback = NULL,
+    .callback = InitTilesetAnim_BlackthornGym,
 };
 
 const struct Tileset gTileset_Cave_DragonsDen =

@@ -524,7 +524,8 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "paletteCount",
         "authority",
     }
-    tileset_aliases = {"targetDirectory", "targetSymbol"}
+    tileset_aliases = {"targetDirectory", "targetSymbol", "animationCallback"}
+    tileset_target_aliases = {"targetDirectory", "targetSymbol"}
     seen_tilesets: dict[str, str] = {}
     for item, item_pointer in _policy_records(
         document,
@@ -536,8 +537,9 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         for field in ("role", "directory", "symbol", "authority"):
             _string(item[field], f"{item_pointer}.{field}")
         present_aliases = set(item) & tileset_aliases
-        if present_aliases and present_aliases != tileset_aliases:
-            missing = sorted(tileset_aliases - present_aliases)
+        present_target_aliases = present_aliases & tileset_target_aliases
+        if present_target_aliases and present_target_aliases != tileset_target_aliases:
+            missing = sorted(tileset_target_aliases - present_target_aliases)
             raise ContentPortError(f"{item_pointer}: missing field {missing[0]!r}")
         for field in present_aliases:
             _string(item[field], f"{item_pointer}.{field}")
@@ -911,6 +913,7 @@ class PortDescriptor:
     effect_policy: Mapping[EffectKey, str]
     event_policy_path: Path
     assets: Mapping[str, object]
+    animations: Mapping[str, object]
     legacy_report: Mapping[str, object] | None
     layout_binary_authorities: tuple[LayoutBinaryAuthority, ...]
     layout_field_authorities: tuple[LayoutFieldAuthority, ...]
@@ -1569,9 +1572,13 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         raise ContentPortError(f"port descriptor directory does not exist: {port_dir}")
     port_path = port_dir / "port.json"
     root = _object(read_json(port_path), "$")
+    if port_dir.name == "johto" and "animationPolicy" not in root:
+        raise ContentPortError("$.animationPolicy: required for the Johto port")
     present_port_keys = (
         PORT_KEYS if "legacyReport" in root else PORT_KEYS - {"legacyReport"}
     )
+    if "animationPolicy" in root:
+        present_port_keys = present_port_keys | {"animationPolicy"}
     _exact_keys(root, present_port_keys, "$")
     if root["schemaVersion"] != 1:
         raise ContentPortError("$.schemaVersion: unsupported port schema")
@@ -1674,6 +1681,33 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     if not required_roles.issubset(donors_by_role):
         missing = sorted(required_roles - set(donors_by_role))
         raise ContentPortError(f"$.donors: missing authority donor role {missing[0]!r}")
+    from .animations import load_animation_policy
+
+    tileset_adaptations = adaptations["tilesetAdaptations"]
+    assert isinstance(tileset_adaptations, tuple)
+    resident_tilesets = {
+        str(item["symbol"]) for item in tileset_adaptations if isinstance(item, Mapping)
+    }
+    resident_animation_contracts = {
+        str(item["symbol"]): item
+        for item in tileset_adaptations
+        if isinstance(item, Mapping)
+    }
+    animations = (
+        load_animation_policy(
+            _safe_child(port_dir, root["animationPolicy"], "$.animationPolicy"),
+            donor_root=donors_by_role["content"].root,
+            target_root=(
+                port_dir.parents[3]
+                if (port_dir.parents[3] / "src/tileset_anims.c").is_file()
+                else Path.cwd()
+            ),
+            resident_tilesets=resident_tilesets,
+            resident_contracts=resident_animation_contracts,
+        )
+        if "animationPolicy" in root
+        else MappingProxyType({})
+    )
     (
         layout_binary_authorities,
         layout_field_authorities,
@@ -1697,6 +1731,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         effect_policy=effect_policy,
         event_policy_path=event_path,
         assets=assets,
+        animations=animations,
         legacy_report=legacy,
         layout_binary_authorities=layout_binary_authorities,
         layout_field_authorities=layout_field_authorities,

@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from tools.content_port.animations import required_frame_payloads
 from tools.content_port.errors import ContentPortError
 from tools.content_port.ownership import (
     OwnershipManifest,
@@ -64,6 +65,10 @@ class OwnershipTests(unittest.TestCase):
         manifest.verify(root)
         assets = json.loads((port / "assets.json").read_text())["assets"]
         expected_assets = {asset["semanticTarget"] for asset in assets}
+        animation_policy = json.loads((port / "animation_policy.json").read_text())
+        expected_assets.update(
+            target for _, target in required_frame_payloads(animation_policy)
+        )
         owned_assets = {
             unit.path
             for unit in manifest.units

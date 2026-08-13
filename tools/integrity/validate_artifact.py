@@ -14,6 +14,20 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from tools.content_port.animations import (
+        MANDATORY_BINDINGS,
+        TILESET_ANIM_QUEUE_CAPACITY,
+        maximum_combined_queue_demand,
+    )
+except ImportError:  # Direct script execution from outside the repository root.
+    sys.path.insert(0, str(Path(__file__).parents[2]))
+    from tools.content_port.animations import (
+        MANDATORY_BINDINGS,
+        TILESET_ANIM_QUEUE_CAPACITY,
+        maximum_combined_queue_demand,
+    )
+
+try:
     from .manifest import ManifestError, expected_map_geography, load_manifest
 except ImportError:  # Direct script execution.
     from manifest import ManifestError, expected_map_geography, load_manifest
@@ -33,6 +47,7 @@ except ImportError:  # Direct script execution from outside the repository root.
     )
 
 
+ROOT = Path(__file__).parents[2]
 ROM_BASE = 0x08000000
 ROM_LIMIT = 32 * 1024 * 1024
 CAPACITY_SCHEMA_VERSION = 2
@@ -68,6 +83,34 @@ EWRAM_LIMIT = 256 * 1024
 IWRAM_LIMIT = 32 * 1024
 SAVE_ABI_MAGIC = 0x53414249
 SAVE_ABI_VERSION = 1
+ANIMATION_POLICY = ROOT / "tools/content_port/ports/johto/animation_policy.json"
+PRIMARY_ANIMATION_TILESETS = {
+    "Johto_General",
+    "Johto_NorthEast",
+    "Johto_South",
+    "Johto_NorthWest",
+}
+ANIMATION_FRAME_SYMBOL_PREFIXES = {
+    "johto_general.flower": "sTilesetAnims_JohtoGeneral_Flower",
+    "johto_general.sandwatersedge": "sTilesetAnims_JohtoGeneral_Sand",
+    "johto_general.water_current_landwatersedge": "sTilesetAnims_JohtoGeneral_Water",
+    "johto_north_east.flower": "sTilesetAnims_JohtoNorthEast_Flower",
+    "johto_north_east.sandwatersedge": "sTilesetAnims_JohtoNorthEast_Sand",
+    "johto_north_east.water_current_landwatersedge": "sTilesetAnims_JohtoNorthEast_Water",
+    "johto_south.flower": "sTilesetAnims_JohtoSouth_Flower",
+    "johto_south.sandwatersedge": "sTilesetAnims_JohtoSouth_Sand",
+    "johto_south.water_current_landwatersedge": "sTilesetAnims_JohtoSouth_Water",
+    "johto_north_west.flower": "sTilesetAnims_JohtoNorthWest_Flower",
+    "johto_north_west.sandwatersedge": "sTilesetAnims_JohtoNorthWest_Sand",
+    "johto_north_west.water_current_landwatersedge": "sTilesetAnims_JohtoNorthWest_Water",
+    "national_park.large_fountain": "sTilesetAnims_NationalParkLarge",
+    "national_park.small_fountain": "sTilesetAnims_NationalParkSmall",
+    "national_park.red_flower": "sTilesetAnims_NationalParkRed",
+    "national_park.yellow_flower": "sTilesetAnims_NationalParkYellow",
+    "ecruteak_theater.flower": "sTilesetAnims_EcruteakTheater",
+    "azalea_town_gym.yellow_flower": "sTilesetAnims_AzaleaGym",
+    "blackthorn_gym.cave_lava": "sTilesetAnims_BlackthornGym",
+}
 
 
 class ValidationError(ValueError):
@@ -339,21 +382,24 @@ def validate_elf_artifact(
         raise ValidationError(
             f"cannot inspect ELF {elf_path}: {error.stderr.strip()}"
         ) from error
+    symbol_records = parse_elf_symbols(metadata)
     linked_save_abi = validate_elf_linked_save_abi(
         elf_path,
         parse_elf_sections(metadata),
-        parse_elf_symbols(metadata),
+        symbol_records,
         contract,
         purpose,
     )
     result = enforce_purpose_usage(
         purpose, measure_elf_capacity(elf_path), contract, elf_path
     )
+    animation = validate_linked_animation_contract(symbol_records, ANIMATION_POLICY)
     return {
         "schemaVersion": 1,
         "artifact": str(elf_path),
         **result,
         "saveContract": {"sha256": digest, "linkedAbi": linked_save_abi},
+        "tilesetAnimations": animation,
     }
 
 
@@ -438,8 +484,8 @@ def load_capacity_policy(path: Path) -> dict[str, Any]:
     return policy
 
 
-def parse_symbols(path: Path) -> dict[str, int]:
-    symbols: dict[str, int] = {}
+def parse_symbol_records(path: Path) -> dict[str, tuple[int, int]]:
+    symbols: dict[str, tuple[int, int]] = {}
     try:
         lines = path.read_text(errors="strict").splitlines()
     except OSError as error:
@@ -449,12 +495,120 @@ def parse_symbols(path: Path) -> dict[str, int]:
         if len(fields) >= 4:
             try:
                 address = int(fields[0], 16)
+                size = int(fields[2], 16)
             except ValueError:
                 continue
-            symbols[fields[-1]] = address
+            symbols[fields[-1]] = (address, size)
+    # Release LTO marks many retained product symbols HIDDEN; the established
+    # objdump pipeline omits those records even though they remain in the ELF.
+    elf_path = path.with_suffix(".elf")
+    if path.suffix == ".sym" and elf_path.is_file():
+        try:
+            metadata = subprocess.run(
+                ["arm-none-eabi-readelf", "-Ws", str(elf_path)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            ).stdout
+        except (FileNotFoundError, subprocess.CalledProcessError) as error:
+            raise ValidationError(
+                f"cannot inspect linked symbols in {elf_path}"
+            ) from error
+        symbols.update(parse_elf_symbols(metadata))
     if not symbols:
         raise ValidationError(f"no symbols parsed from {path}")
     return symbols
+
+
+def parse_symbols(path: Path) -> dict[str, int]:
+    return {name: record[0] for name, record in parse_symbol_records(path).items()}
+
+
+def validate_linked_animation_contract(
+    symbols: dict[str, tuple[int, int]], policy_path: Path
+) -> dict[str, Any]:
+    def require_extent(symbol: str, *, function: bool = False) -> tuple[int, int]:
+        if symbol not in symbols:
+            raise ValidationError(f"linked animation symbol is missing: {symbol}")
+        address, size = symbols[symbol]
+        start = address & ~1 if function else address
+        end = start + size
+        if size <= 0 or start < ROM_BASE or end > ROM_BASE + ROM_LIMIT or end <= start:
+            raise ValidationError(
+                f"linked animation symbol is outside ROM: {symbol} at 0x{address:08x}+{size}"
+            )
+        return address, size
+
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValidationError(
+            f"cannot read animation policy {policy_path}: {error}"
+        ) from error
+    schedules = policy.get("schedules")
+    frame_sets = policy.get("frameSets")
+    if (
+        policy.get("queueCapacity") != TILESET_ANIM_QUEUE_CAPACITY
+        or not isinstance(schedules, list)
+        or not isinstance(frame_sets, list)
+    ):
+        raise ValidationError("animation policy lacks linked-artifact evidence")
+    schedule_by_name = {
+        item.get("tileset"): item for item in schedules if isinstance(item, dict)
+    }
+    if set(schedule_by_name) != MANDATORY_BINDINGS:
+        raise ValidationError(
+            "animation policy does not cover mandatory linked tilesets"
+        )
+    callbacks = {str(item.get("callback")) for item in schedules}
+    for callback in callbacks:
+        require_extent(callback, function=True)
+
+    linked_frames = 0
+    for frame_set in frame_sets:
+        if not isinstance(frame_set, dict) or not frame_set.get("requiredFrames"):
+            continue
+        frame_id = str(frame_set.get("id"))
+        prefix = ANIMATION_FRAME_SYMBOL_PREFIXES.get(frame_id)
+        if prefix is None:
+            raise ValidationError(
+                f"animation frame set lacks linked identity: {frame_id}"
+            )
+        expected_size = int(frame_set.get("sourceTilesPerFrame", 0)) * 32
+        for frame in frame_set["requiredFrames"]:
+            symbol = f"{prefix}{frame}"
+            _, actual_size = require_extent(symbol)
+            if actual_size != expected_size:
+                raise ValidationError(
+                    f"linked animation frame {symbol} is {actual_size} bytes, expected {expected_size}"
+                )
+            linked_frames += 1
+
+    primary = [schedule_by_name[name] for name in PRIMARY_ANIMATION_TILESETS]
+    secondary = [
+        schedule
+        for name, schedule in schedule_by_name.items()
+        if name not in PRIMARY_ANIMATION_TILESETS
+    ]
+    peak = max(
+        maximum_combined_queue_demand(first, second)
+        for first in primary
+        for second in secondary
+    )
+    if peak > TILESET_ANIM_QUEUE_CAPACITY:
+        raise ValidationError(
+            f"linked animation queue demand {peak} exceeds capacity {TILESET_ANIM_QUEUE_CAPACITY}"
+        )
+    return {
+        "callbacks": len(callbacks),
+        "frames": linked_frames,
+        "queue": {
+            "capacityEntries": TILESET_ANIM_QUEUE_CAPACITY,
+            "peakEntries": peak,
+            "remainingEntries": TILESET_ANIM_QUEUE_CAPACITY - peak,
+        },
+    }
 
 
 def require_rom_address(name: str, value: int, rom_end: int) -> None:
@@ -868,7 +1022,8 @@ def validate_artifact(
     ):
         raise ValidationError("ROM header does not identify the Emerald product")
 
-    symbols = parse_symbols(sym_path)
+    symbol_records = parse_symbol_records(sym_path)
+    symbols = {name: record[0] for name, record in symbol_records.items()}
     rom_end = symbols.get("__rom_end")
     if rom_end is None:
         raise ValidationError("linked symbols do not define __rom_end")
@@ -898,6 +1053,7 @@ def validate_artifact(
     validate_count_sentinels(manifest, symbols)
     validate_section_metadata(rom, manifest, symbols, rom_end)
     validate_section_codecs(rom, manifest, symbols, rom_end)
+    animation = validate_linked_animation_contract(symbol_records, ANIMATION_POLICY)
 
     linker_map = map_path.read_text(errors="strict")
 
@@ -960,6 +1116,7 @@ def validate_artifact(
             "baselineCommit": save_contract.get("baselineCommit"),
             "linkedAbi": linked_save_abi,
         },
+        "tilesetAnimations": animation,
         "linkerMapBytes": len(linker_map.encode()),
     }
     return report

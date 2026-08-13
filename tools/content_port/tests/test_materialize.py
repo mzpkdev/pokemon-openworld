@@ -883,6 +883,9 @@ class MaterializeTests(unittest.TestCase):
                 patch("tools.content_port.materialize._section_units", return_value=[]),
                 patch("tools.content_port.materialize._asset_units", return_value=[]),
                 patch(
+                    "tools.content_port.materialize._animation_units", return_value=[]
+                ),
+                patch(
                     "tools.content_port.materialize._generated_units", return_value=[]
                 ),
             ):
