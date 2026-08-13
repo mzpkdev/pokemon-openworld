@@ -1636,6 +1636,7 @@ def _extract_preserved_script_warps(
     """Return parsed script-warp edges and their map-owned entry inventory."""
 
     from .semantics import extract_script_warps, parse_scripts
+
     owned_entries: dict[str, frozenset[str]] = {}
     result: list[WorldEdge] = []
     map_aliases = {
@@ -1757,13 +1758,9 @@ def _bind_script_warp_policy(
         if edge.key in gateway_keys:
             raise ContentPortError("duplicate script warp declaration")
         gateway_keys.add(edge.key)
-    observed_keys = {
-        edge.key for edge in graph.edges if edge.kind == "script-warp"
-    }
+    observed_keys = {edge.key for edge in graph.edges if edge.kind == "script-warp"}
     if gateway_keys != observed_keys:
-        raise ContentPortError(
-            "script warp policy differs from resolved topology"
-        )
+        raise ContentPortError("script warp policy differs from resolved topology")
     return frozenset(gateway_keys)
 
 
@@ -2946,9 +2943,7 @@ def resolve_port_sources(
             inter_region_gateways=frozenset(gateway_keys),
             roots=frozenset(world_policy["roots"]),
             unreachable_shells=frozenset(world_policy["unreachableShells"])
-            | _automatic_unreachable_shells(
-                rendered_graph, warp_removals_by_map
-            ),
+            | _automatic_unreachable_shells(rendered_graph, warp_removals_by_map),
         ),
     )
 

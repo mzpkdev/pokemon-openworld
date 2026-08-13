@@ -501,9 +501,7 @@ class IntegrityToolTests(unittest.TestCase):
                     validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
 
     def test_artifact_honors_reviewed_vermilion_geography(self) -> None:
-        generated = json.loads(
-            (self.generated / "integrity-manifest.json").read_text()
-        )
+        generated = json.loads((self.generated / "integrity-manifest.json").read_text())
         entry = copy.deepcopy(
             next(
                 item
@@ -513,9 +511,7 @@ class IntegrityToolTests(unittest.TestCase):
         )
         group = copy.deepcopy(
             next(
-                item
-                for item in generated["groups"]
-                if item["number"] == entry["group"]
+                item for item in generated["groups"] if item["number"] == entry["group"]
             )
         )
         section = copy.deepcopy(

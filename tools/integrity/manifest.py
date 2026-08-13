@@ -108,9 +108,7 @@ def expected_map_geography(map_name: Any, group_name: Any) -> str | None:
 
 
 INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
-ACTIVE_JOHTO_SECTIONS = {
-    item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS
-}
+ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935
 BASE_REVIEWED_MAPS = 939

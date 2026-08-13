@@ -165,20 +165,24 @@ def split_instruction_operands(command: str, text: str) -> tuple[str, ...]:
     if command in {"goto_if_set", "goto_if_unset", "call_if_set", "call_if_unset"}:
         fields = tuple(text.split())
         return fields if len(fields) == 2 else operands
-    if command in {
-        "call_if_eq",
-        "call_if_ge",
-        "call_if_gt",
-        "call_if_le",
-        "call_if_lt",
-        "call_if_ne",
-        "goto_if_eq",
-        "goto_if_ge",
-        "goto_if_gt",
-        "goto_if_le",
-        "goto_if_lt",
-        "goto_if_ne",
-    } and len(operands) == 2:
+    if (
+        command
+        in {
+            "call_if_eq",
+            "call_if_ge",
+            "call_if_gt",
+            "call_if_le",
+            "call_if_lt",
+            "call_if_ne",
+            "goto_if_eq",
+            "goto_if_ge",
+            "goto_if_gt",
+            "goto_if_le",
+            "goto_if_lt",
+            "goto_if_ne",
+        }
+        and len(operands) == 2
+    ):
         trailing = operands[1].split()
         if len(trailing) == 2:
             return (operands[0], trailing[0], trailing[1])

@@ -85,7 +85,9 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _canonical_bag(game, block1: int, encryption_key: int) -> tuple[tuple[int, int], ...]:
+def _canonical_bag(
+    game, block1: int, encryption_key: int
+) -> tuple[tuple[int, int], ...]:
     slots = []
     for index in range(BAG_SLOT_COUNT):
         slot = game.read(block1 + BAG_OFFSET + index * BAG_SLOT_SIZE, BAG_SLOT_SIZE)
@@ -122,9 +124,7 @@ def _continuity_snapshot(game, scenario_result) -> dict[str, object]:
         ),
         # Map transitions deliberately rotate the save encryption key. Compare
         # canonical values, not ciphertext that must change during travel.
-        "money": int.from_bytes(
-            game.read(block1 + MONEY_OFFSET, MONEY_SIZE), "little"
-        )
+        "money": int.from_bytes(game.read(block1 + MONEY_OFFSET, MONEY_SIZE), "little")
         ^ encryption_key,
         "pcItems": _digest(game.read(block1 + PC_ITEMS_OFFSET, PC_ITEMS_SIZE)),
         "bag": _canonical_bag(game, block1, encryption_key),
@@ -140,9 +140,7 @@ def _continuity_snapshot(game, scenario_result) -> dict[str, object]:
         # regional facts. Comparing the full ranges prevents a travel helper
         # from hiding a narrowly targeted story mutation.
         "persistentFlagsAndVars": _digest(
-            _read_chunked(
-                game, block1 + FLAGS_AND_VARS_OFFSET, FLAGS_AND_VARS_SIZE
-            )
+            _read_chunked(game, block1 + FLAGS_AND_VARS_OFFSET, FLAGS_AND_VARS_SIZE)
         ),
     }
 
@@ -201,15 +199,12 @@ def _load_source(game, entry, request_id: int) -> None:
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
-@pytest.mark.parametrize(
-    ("source_name", "destination_name", "request_id"), FERRY_LEGS
-)
+@pytest.mark.parametrize(("source_name", "destination_name", "request_id"), FERRY_LEGS)
 def test_ferry_leg_preserves_state_and_returns_control(
     integrity_game, source_name, destination_name, request_id
 ):
     maps = {
-        entry.name: entry
-        for entry in load_manifest_maps(integrity_manifest_path())
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
     source = maps[source_name]
     destination = maps[destination_name]

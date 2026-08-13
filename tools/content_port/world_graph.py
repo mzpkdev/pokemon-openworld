@@ -144,9 +144,7 @@ def world_graph_from_maps(
     return WorldGraph(nodes, tuple(sorted(edges)))
 
 
-def with_script_warps(
-    graph: WorldGraph, edges: Iterable[WorldEdge]
-) -> WorldGraph:
+def with_script_warps(graph: WorldGraph, edges: Iterable[WorldEdge]) -> WorldGraph:
     script_edges = tuple(edges)
     if any(edge.kind != "script-warp" for edge in script_edges):
         raise ContentPortError("script-warp evidence contains a non-script edge")

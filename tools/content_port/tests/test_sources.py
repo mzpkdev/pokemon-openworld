@@ -130,9 +130,7 @@ class SourceGraphTests(unittest.TestCase):
                     f" warp MAP_{destination}, {x}, {y}\n end\n",
                     encoding="utf-8",
                 )
-            evidence, entries = _extract_preserved_script_warps(
-                maps, ownership, root
-            )
+            evidence, entries = _extract_preserved_script_warps(maps, ownership, root)
             graph = with_script_warps(world_graph_from_maps(maps), evidence)
             declarations = [
                 {
@@ -152,22 +150,16 @@ class SourceGraphTests(unittest.TestCase):
                     ("B", "A", 5, 6),
                 )
             ]
-            gateways = _bind_script_warp_policy(
-                graph, declarations, ownership, entries
-            )
+            gateways = _bind_script_warp_policy(graph, declarations, ownership, entries)
             validate_world_graph(
                 graph,
-                WorldPolicy(
-                    inter_region_gateways=gateways, roots=frozenset({"A"})
-                ),
+                WorldPolicy(inter_region_gateways=gateways, roots=frozenset({"A"})),
             )
 
             with self.assertRaisesRegex(
                 ContentPortError, "policy differs from resolved topology"
             ):
-                _bind_script_warp_policy(
-                    graph, declarations[:1], ownership, entries
-                )
+                _bind_script_warp_policy(graph, declarations[:1], ownership, entries)
 
             same_region_maps = json.loads(json.dumps(maps))
             same_region_maps["B"]["region"] = "REGION_A"
@@ -198,9 +190,7 @@ class SourceGraphTests(unittest.TestCase):
                     drifted = json.loads(json.dumps(declarations))
                     drifted[0][field] = value
                     with self.assertRaisesRegex(ContentPortError, message):
-                        _bind_script_warp_policy(
-                            graph, drifted, ownership, entries
-                        )
+                        _bind_script_warp_policy(graph, drifted, ownership, entries)
 
             wrong_entry = json.loads(json.dumps(declarations))
             wrong_entry[0]["script"] = "B_EventScript_Travel"
@@ -208,9 +198,7 @@ class SourceGraphTests(unittest.TestCase):
                 _bind_script_warp_policy(graph, wrong_entry, ownership, entries)
             wrong_ownership = dict(ownership, A="rendered")
             with self.assertRaisesRegex(ContentPortError, "does not preserve"):
-                _bind_script_warp_policy(
-                    graph, declarations, wrong_ownership, entries
-                )
+                _bind_script_warp_policy(graph, declarations, wrong_ownership, entries)
 
             missing_script = root / "data" / "maps" / "B" / "scripts.inc"
             missing_script.unlink()
@@ -267,9 +255,7 @@ class SourceGraphTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            _automatic_unreachable_shells(
-                graph, {"PORT": {0}, "SHELL": {0}}
-            ),
+            _automatic_unreachable_shells(graph, {"PORT": {0}, "SHELL": {0}}),
             frozenset({"SHELL"}),
         )
 

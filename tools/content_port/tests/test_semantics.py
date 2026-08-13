@@ -47,7 +47,9 @@ class SemanticsTests(unittest.TestCase):
         ):
             analyze_entry(program, "Entry")
 
-    def test_script_warp_evidence_binds_reached_command_and_literal_destination(self) -> None:
+    def test_script_warp_evidence_binds_reached_command_and_literal_destination(
+        self,
+    ) -> None:
         program = self._program(
             "Entry::\n msgbox TravelText, MSGBOX_YESNO\n call .Travel\n end\n"
             ".Travel::\n warp MAP_OTHER_REGION, 6, 7\n end\n"
@@ -67,7 +69,9 @@ class SemanticsTests(unittest.TestCase):
             ("Entry", "Entry.Travel", 0, "warp", "OTHER_REGION", 6, 7),
         )
 
-    def test_script_warp_identity_is_label_local_and_ignores_harmless_edits(self) -> None:
+    def test_script_warp_identity_is_label_local_and_ignores_harmless_edits(
+        self,
+    ) -> None:
         before = self._program(
             "Entry::\n msgbox TravelText, MSGBOX_YESNO\n warp MAP_OTHER, 1, 2\n end\n"
         )
