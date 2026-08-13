@@ -75,6 +75,41 @@ class TransactionRepository:
         (root / "unrelated.txt").write_bytes(b"outside transaction\n")
         self.ownership = root / "tools/content_port/ports/fixture/ownership.json"
         self.ownership.parent.mkdir(parents=True)
+        self.permission_evidence = root / "CREDITS.md"
+        self.permission_evidence.write_bytes(b"Reviewed permission\n")
+        permission = {
+            "decision": "reviewed",
+            "path": "CREDITS.md",
+            "permission": "redistributable",
+            "sha256": hashlib.sha256(self.permission_evidence.read_bytes()).hexdigest(),
+        }
+        permission_key = hashlib.sha256(canonical_bytes(permission)).hexdigest()
+        (self.ownership.parent / "port.json").write_bytes(
+            canonical({"assetPolicy": "assets.json"})
+        )
+        (self.ownership.parent / "assets.json").write_bytes(
+            canonical(
+                {
+                    "schemaVersion": 1,
+                    "permissionRecords": {permission_key: permission},
+                    "assets": [
+                        {
+                            "key": "fixture-art",
+                            "donor": "fixture",
+                            "sourcePath": "fixture.png",
+                            "semanticTarget": "graphics/fixture.4bpp",
+                            "sourceSha256": "1" * 64,
+                            "targetSha256": "2" * 64,
+                            "conversionCommand": ["convert", "fixture.png"],
+                            "permission": "redistributable",
+                            "permissionEvidence": permission_key,
+                            "capability": "environment-assets",
+                            "supportState": "enabled",
+                        }
+                    ],
+                }
+            )
+        )
         self.baseline_manifest = canonical(
             {
                 "schemaVersion": 1,
@@ -93,8 +128,9 @@ class TransactionRepository:
             root,
             "add",
             "alpha.txt",
+            "CREDITS.md",
             "unrelated.txt",
-            self.ownership.relative_to(root).as_posix(),
+            "tools/content_port/ports/fixture",
         )
         git(root, "commit", "-q", "-m", "fixture")
         self.head = git(root, "rev-parse", "HEAD").strip()
@@ -449,6 +485,22 @@ class CliTests(unittest.TestCase):
         with redirect_stderr(error):
             self.assertEqual(main(command), 2)
         self.assertIn("unexpected edit", error.getvalue())
+
+    def test_ownership_check_rejects_permission_evidence_drift_without_donors(
+        self,
+    ) -> None:
+        command = [
+            "ownership-check",
+            "--repo",
+            str(self.repo),
+            "--port",
+            "fixture",
+        ]
+        self.fixture.permission_evidence.write_bytes(b"Changed permission\n")
+        error = io.StringIO()
+        with redirect_stderr(error):
+            self.assertEqual(main(command), 2)
+        self.assertIn("permission evidence is stale", error.getvalue())
 
     def test_transaction_check_refuses_active_guard(self) -> None:
         bundle = self.fixture.bundle()

@@ -43,12 +43,29 @@ def _port_dir(repo: Path, port: str) -> Path:
 
 
 def verify_ownership(repo: Path, port: str) -> None:
-    """Verify installed content-port ownership without loading donor trees."""
+    """Verify installed content and local permission evidence without donors."""
 
     require_no_active_transaction(repo)
+    from .descriptor import read_json
     from .ownership import OwnershipManifest
+    from .update import validate_assets
 
-    OwnershipManifest.load(_port_dir(repo, port) / "ownership.json").verify(repo)
+    port_dir = _port_dir(repo, port)
+    OwnershipManifest.load(port_dir / "ownership.json").verify(repo)
+    descriptor = read_json(port_dir / "port.json")
+    if not isinstance(descriptor, Mapping):
+        raise ContentPortError("port.json: expected an object")
+    asset_policy = descriptor.get("assetPolicy")
+    if (
+        not isinstance(asset_policy, str)
+        or not asset_policy
+        or Path(asset_policy).name != asset_policy
+    ):
+        raise ContentPortError("port.json: invalid assetPolicy path")
+    assets = read_json(port_dir / asset_policy)
+    if not isinstance(assets, Mapping):
+        raise ContentPortError(f"{asset_policy}: expected an object")
+    validate_assets(assets, evidence_root=repo, require_redistributable=True)
 
 
 def check_port(
