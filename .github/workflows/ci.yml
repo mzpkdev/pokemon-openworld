@@ -349,6 +349,7 @@ jobs:
           include/constants/region_map_sections.h
           tools/e2e/requirements.txt
           tools/mgba-rom-test-hydra/mgba-rom-test-hydra
+          tools/patchelf/patchelf
           build/content-port/candidate
           build/content-port/artifact-manifest.json
 

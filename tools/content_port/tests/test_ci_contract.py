@@ -203,6 +203,7 @@ class CiContractTests(unittest.TestCase):
         for artifact in (
             '"tools/mgba/mgba-rom-test"',
             '"tools/mgba-rom-test-hydra/mgba-rom-test-hydra"',
+            '"tools/patchelf/patchelf"',
             '"build/generated"',
             '"build/save-contract"',
         ):
@@ -219,6 +220,7 @@ class CiContractTests(unittest.TestCase):
             "      - name: Pack prepared validation artifacts\n", 1
         )[1].split("      - name: Upload prepared validation artifacts\n", 1)[0]
         self.assertIn(header, archive)
+        self.assertIn("tools/patchelf/patchelf", archive)
         self.assertNotIn("donor-contract.json", archive)
         self.assertNotIn("preflight-receipt.json", archive)
 

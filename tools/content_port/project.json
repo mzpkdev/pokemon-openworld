@@ -115,6 +115,7 @@
     "pokemon-openworld-test-headless.elf",
     "tools/mgba/mgba-rom-test",
     "tools/mgba-rom-test-hydra/mgba-rom-test-hydra",
+    "tools/patchelf/patchelf",
     "include/constants/region_map_sections.h",
     "build/e2e-tools/SkyEmu-v5",
     "tools/e2e/requirements.txt",
