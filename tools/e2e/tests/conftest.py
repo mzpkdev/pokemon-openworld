@@ -8,6 +8,13 @@ import pytest
 from tools.e2e.skyemu import SkyEmuSession, Symbols
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "long_journey: emulator gameplay journey reserved for explicit full runs",
+    )
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield

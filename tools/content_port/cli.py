@@ -42,6 +42,32 @@ def _port_dir(repo: Path, port: str) -> Path:
     return repo / "tools" / "content_port" / "ports" / port
 
 
+def verify_ownership(repo: Path, port: str) -> None:
+    """Verify installed content and local permission evidence without donors."""
+
+    require_no_active_transaction(repo)
+    from .descriptor import read_json
+    from .ownership import OwnershipManifest
+    from .update import validate_assets
+
+    port_dir = _port_dir(repo, port)
+    OwnershipManifest.load(port_dir / "ownership.json").verify(repo)
+    descriptor = read_json(port_dir / "port.json")
+    if not isinstance(descriptor, Mapping):
+        raise ContentPortError("port.json: expected an object")
+    asset_policy = descriptor.get("assetPolicy")
+    if (
+        not isinstance(asset_policy, str)
+        or not asset_policy
+        or Path(asset_policy).name != asset_policy
+    ):
+        raise ContentPortError("port.json: invalid assetPolicy path")
+    assets = read_json(port_dir / asset_policy)
+    if not isinstance(assets, Mapping):
+        raise ContentPortError(f"{asset_policy}: expected an object")
+    validate_assets(assets, evidence_root=repo, require_redistributable=True)
+
+
 def check_port(
     repo: Path,
     port: str,
@@ -237,6 +263,11 @@ def parser() -> argparse.ArgumentParser:
         "transaction-check", help="refuse while an apply transaction is active"
     )
     guard.add_argument("--repo", type=_repo, default=Path.cwd())
+    ownership = commands.add_parser(
+        "ownership-check", help="verify installed owned content without donors"
+    )
+    ownership.add_argument("--repo", type=_repo, default=Path.cwd())
+    ownership.add_argument("--port", required=True)
     return result
 
 
@@ -298,6 +329,8 @@ def run(argv: Sequence[str] | None = None) -> int:
         )
     elif args.command == "transaction-check":
         require_no_active_transaction(args.repo)
+    elif args.command == "ownership-check":
+        verify_ownership(args.repo, args.port)
     else:  # pragma: no cover - argparse makes this unreachable
         raise AssertionError(args.command)
     return 0

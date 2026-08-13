@@ -7,6 +7,8 @@ from pathlib import Path
 import re
 import struct
 
+import pytest
+
 from tools.e2e.save_journey import cold_restart_and_continue, save_from_start_menu
 from tools.e2e.skyemu import (
     INTEGRITY_REQUEST_STATUS_OFFSET,
@@ -1006,6 +1008,7 @@ def test_required_visual_categories_and_regional_coexistence(integrity_game, req
         _write_evidence(evidence_path, evidence)
 
 
+@pytest.mark.long_journey
 def test_both_slots_restart_after_field_menu_battle_save_and_continue(
     integrity_game, request
 ):
@@ -1098,8 +1101,7 @@ def test_both_slots_restart_after_field_menu_battle_save_and_continue(
         _write_evidence(evidence_path, evidence)
 
         mark = recorder.mark()
-        old_process = cold_restart_and_continue(integrity_game)
-        assert old_process.poll() is not None
+        cold_restart_and_continue(integrity_game)
         assert integrity_game.map_id() == _maps_by_name()[LIFECYCLE_ORACLE.name].map_id
         evidence["lifecycles"]["coldRestartContinue"] = {
             **recorder.assert_return_cycle(

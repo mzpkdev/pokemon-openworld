@@ -59,6 +59,13 @@ class RepresentativeMap:
     seed_vars: tuple[tuple[int, int], ...]
 
 
+@dataclass(frozen=True)
+class SettlementFrontage:
+    entry: ManifestMap
+    x: int
+    y: int
+
+
 REPRESENTATIVE_REGION_BY_MAP_TYPE = {
     "REGION_MAP_HOENN": "hoenn",
     "REGION_MAP_KANTO": "kanto",
@@ -96,6 +103,12 @@ EXTERIOR_PRIMARY_TILESETS = {
     "gTileset_Johto_NorthEast",
     "gTileset_Johto_NorthWest",
 }
+
+STARTING_TOWNS = ("LittlerootTown", "PalletTown_Frlg", "NewBarkTown")
+SEVII_ISLAND_SETTLEMENTS = tuple(
+    f"{name}Island_Frlg"
+    for name in ("One", "Two", "Three", "Four", "Five", "Six", "Seven")
+)
 
 
 def integrity_manifest_path() -> Path:
@@ -463,6 +476,71 @@ def _representative_kind(entry: ManifestMap) -> str:
         f"representative {entry.name!r} has unsupported manifest layout "
         f"{entry.primary_tileset!r}/{entry.secondary_tileset!r}"
     )
+
+
+def load_settlement_frontages(
+    manifest_maps: Iterable[ManifestMap], maps_root: Path = Path("data/maps")
+) -> list[SettlementFrontage]:
+    maps = list(manifest_maps)
+    maps_by_name = {entry.name: entry for entry in maps}
+    selected: dict[str, SettlementFrontage] = {}
+
+    for entry in maps:
+        if (
+            entry.primary_tileset in INTERIOR_PRIMARY_TILESETS
+            or entry.secondary_tileset in INTERIOR_SECONDARY_TILESETS
+            or entry.secondary_tileset in CAVE_SECONDARY_TILESETS
+        ):
+            continue
+        document = json.loads((maps_root / entry.name / "map.json").read_text())
+        center_warps = [
+            warp
+            for warp in document.get("warp_events", [])
+            if isinstance(warp.get("dest_map"), str)
+            and any(
+                marker in warp["dest_map"]
+                for marker in ("_POKEMON_CENTER", "_POKECENTER")
+            )
+        ]
+        if not center_warps:
+            continue
+        warp = min(
+            center_warps,
+            key=lambda item: (item.get("y", -1), item.get("x", -1)),
+        )
+        x = warp.get("x")
+        y = warp.get("y")
+        if (
+            isinstance(x, bool)
+            or not isinstance(x, int)
+            or isinstance(y, bool)
+            or not isinstance(y, int)
+            or not 0 <= x < entry.width
+            or not 0 <= y + 1 < entry.height
+        ):
+            raise ValueError(f"{entry.name} has an invalid Pokemon Center frontage")
+        selected[entry.name] = SettlementFrontage(entry=entry, x=x, y=y + 1)
+
+    required_names = (*STARTING_TOWNS, *SEVII_ISLAND_SETTLEMENTS)
+    missing = sorted(name for name in required_names if name not in maps_by_name)
+    if missing:
+        raise ValueError(f"settlement frontage maps absent from manifest: {missing}")
+    for name in STARTING_TOWNS:
+        entry = maps_by_name[name]
+        selected[name] = SettlementFrontage(
+            entry=entry,
+            x=entry.width // 2,
+            y=entry.height // 2,
+        )
+    missing_frontages = sorted(
+        name for name in SEVII_ISLAND_SETTLEMENTS if name not in selected
+    )
+    if missing_frontages:
+        raise ValueError(
+            f"Sevii settlements lack Pokemon Center frontages: {missing_frontages}"
+        )
+
+    return [selected[entry.name] for entry in maps if entry.name in selected]
 
 
 def _validate_representative_coverage(

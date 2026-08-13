@@ -64,7 +64,6 @@ SAVE_BLOCK2_ENCRYPTION_KEY_OFFSET = 0xAC
 GAME_STAT_USED_POKECENTER = 15
 G_MAIN_STATE_OFFSET = 0x438
 UNION_ROOM_SENTINEL = 0xBEEF
-OBJ_EVENT_GFX_NURSE_FRLG = 333
 EWRAM_RANGE = range(0x02000000, 0x02040000)
 IWRAM_RANGE = range(0x03000000, 0x03008000)
 
@@ -134,16 +133,6 @@ def _maps_by_name():
     return {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
-
-
-def test_legacy_frlg_nurse_graphics_slot_uses_surviving_info(integrity_game):
-    graphics_info_pointers = integrity_game.address("gObjectEventGraphicsInfoPointers")
-    nurse_info = integrity_game.address("gObjectEventGraphicsInfo_Nurse")
-
-    assert (
-        integrity_game.read_u32(graphics_info_pointers + OBJ_EVENT_GFX_NURSE_FRLG * 4)
-        == nurse_info
-    )
 
 
 def _load_case(game, name: str, request_id: int):

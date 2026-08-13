@@ -70,19 +70,19 @@ python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py'
 python3 -m unittest discover -s tools/persistence/tests -p 'test_*.py'
 make save-contract-check
 make integrity-check
-make -j"$(nproc)" -O integrity-check-all-purposes
+make -j"$(nproc)" -O integrity-check-rom-purposes
 make e2e-integrity
 ```
 
 `make save-contract-check` measures the current ARM ABI and compares it with the
 frozen contract. `make integrity-check` writes the current normal, debug, or
 release linked-artifact report to `build/integrity/<purpose>.json`.
-`make integrity-check-all-purposes` replaces
-`build/integrity/purposes/` with exactly five reports: `normal.json`,
-`debug.json`, `release.json`, `test-runner.json`, and `headless-test.json`. Each
-records the save-contract digest and capacity evidence, and all five validate
-their own purpose-specific linked target-compiler ABI table. The Integrity E2E
-suite writes failure evidence under `test-results/e2e/integrity/`. See
+`make integrity-check-rom-purposes` replaces
+`build/integrity/purposes/` with exactly three reports: `normal.json`,
+`debug.json`, and `release.json`. Each records the save-contract digest and
+capacity evidence, and validates its purpose-specific linked target-compiler
+ABI table. Test binaries are built and exercised by `make check`. The Integrity
+E2E suite writes failure evidence under `test-results/e2e/integrity/`. See
 [the E2E guide](tools/e2e/README.md) for the exact residency contract.
 
 ## Content ports

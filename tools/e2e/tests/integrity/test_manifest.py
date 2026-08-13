@@ -8,6 +8,7 @@ from tools.e2e.tests.integrity.manifest import (
     integrity_manifest_path,
     load_manifest_maps,
     load_representatives,
+    load_settlement_frontages,
 )
 
 
@@ -475,3 +476,32 @@ def test_johto_representative_uses_content_region_during_hoenn_presentation(
         match="declares region 'hoenn'.*manifest geography is 'johto'",
     ):
         load_representatives(representatives, maps)
+
+
+def test_ci_settlement_frontages_cover_every_region_and_sevii_island():
+    maps = load_manifest_maps(integrity_manifest_path())
+    frontages = load_settlement_frontages(maps)
+    names = {frontage.entry.name for frontage in frontages}
+
+    assert {
+        "LittlerootTown",
+        "PalletTown_Frlg",
+        "NewBarkTown",
+        "AzaleaTown",
+        "CianwoodCity",
+    } <= names
+    assert {
+        "OneIsland_Frlg",
+        "TwoIsland_Frlg",
+        "ThreeIsland_Frlg",
+        "FourIsland_Frlg",
+        "FiveIsland_Frlg",
+        "SixIsland_Frlg",
+        "SevenIsland_Frlg",
+    } <= names
+    assert {frontage.entry.region for frontage in frontages} == {
+        "REGION_HOENN",
+        "REGION_KANTO",
+        "REGION_JOHTO",
+    }
+    assert len(frontages) < len(maps)

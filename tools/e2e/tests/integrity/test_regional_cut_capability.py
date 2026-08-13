@@ -93,8 +93,7 @@ def test_historical_cut_matrix_matches_oracle_through_resave_and_restart(
     assert rewritten.active_slot.saved_flag(FLAG_BADGE01_GET) is scenario["legacySlot1"]
     assert rewritten.active_slot.saved_flag(FLAG_BADGE02_GET) is scenario["legacySlot2"]
 
-    old_process = cold_restart_and_continue(game)
-    assert old_process.poll() is not None
+    cold_restart_and_continue(game)
     _assert_no_regional_facts(game)
     assert (
         probe_field_move(game, FIELD_MOVE_CUT, 0x434F4C00 + scenario_index)

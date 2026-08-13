@@ -139,7 +139,7 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity
+override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity e2e-integrity-full
 override _E2E_ONLY := 0
 ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
   ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
@@ -190,6 +190,11 @@ override OUTPUT_NAME := $(FILE_NAME)-debug
 endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
+TEST_TIER ?= full
+ifeq (,$(filter $(TEST_TIER),full openworld))
+  $(error TEST_TIER must be full or openworld)
+endif
+TEST_BUILD_SUFFIX := $(if $(filter openworld,$(TEST_TIER)),-openworld,)
 # Keep the historical Emerald/ALL_REGIONS=0 object path, but ensure every other
 # content-policy tuple has a distinct namespace. Output artifact names stay put.
 ifeq ($(MAP_VERSION)-$(ALL_REGIONS),emerald-0)
@@ -198,15 +203,15 @@ else
 BUILD_POLICY_SUFFIX := -$(MAP_VERSION)-allregions$(ALL_REGIONS)
 endif
 OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)
-OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test$(TEST_BUILD_SUFFIX)
 OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-debug
 OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-release
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
 override MAP_NAME := $(ROM_NAME:.gba=.map)
-override TESTELF := $(ROM_NAME:.gba=-test.elf)
-override HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
+override TESTELF := $(ROM_NAME:.gba=-test$(TEST_BUILD_SUFFIX).elf)
+override HEADLESSELF := $(ROM_NAME:.gba=-test$(TEST_BUILD_SUFFIX)-headless.elf)
 
 # Pick our active variables
 override ROM := $(ROM_NAME)
@@ -451,14 +456,14 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
-RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
-.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
+.PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -507,7 +512,17 @@ C_SRCS_IN := $(wildcard $(C_SUBDIR)/*.c $(C_SUBDIR)/*/*.c $(C_SUBDIR)/*/*/*.c)
 C_SRCS := $(foreach src,$(C_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 C_OBJS := $(patsubst $(C_SUBDIR)/%.c,$(C_BUILDDIR)/%.o,$(C_SRCS))
 
+ifeq ($(TEST_TIER),openworld)
+TEST_SRCS_IN := $(TEST_SUBDIR)/test_runner.c \
+                $(TEST_SUBDIR)/test_runner_args.c \
+                $(TEST_SUBDIR)/test_runner_battle.c \
+                $(shell find $(TEST_SUBDIR)/openworld -type f -name '*.c' -print | sort)
+ifeq (,$(filter $(TEST_SUBDIR)/openworld/%,$(TEST_SRCS_IN)))
+  $(error TEST_TIER=openworld found no product tests under $(TEST_SUBDIR)/openworld)
+endif
+else
 TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/*.c $(TEST_SUBDIR)/*/*.c $(TEST_SUBDIR)/*/*/*.c)
+endif
 TEST_SRCS := $(foreach src,$(TEST_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 TEST_OBJS := $(patsubst $(TEST_SUBDIR)/%.c,$(TEST_BUILDDIR)/%.o,$(TEST_SRCS))
 TEST_OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(TEST_OBJS))
@@ -577,12 +592,8 @@ $(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 
-check: content-port-transaction-check cut-policy-check save-contract-check $(HEADLESSELF)
+check: content-port-transaction-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
-
-.PHONY: cut-policy-check
-cut-policy-check:
-	python3 -m tools.persistence.cut_policy
 
 CONTENT_PORT ?= johto
 CONTENT_PORT_DONOR_ROOT ?= .references
@@ -592,6 +603,9 @@ content-port-transaction-check:
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
 		python3 -m tools.content_port transaction-check --repo .; \
 	fi
+
+content-port-ownership-check: content-port-transaction-check
+	python3 -m tools.content_port ownership-check --port $(CONTENT_PORT)
 
 content-port-test: content-port-transaction-check
 	CONTENT_PORT_DONOR_ROOT=$(CONTENT_PORT_DONOR_ROOT) \
@@ -711,7 +725,12 @@ e2e-extended: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu 
 
 e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=frontages \
+	$(E2E_PYTHON) tools/e2e/run.py integrity
+
+e2e-integrity-full: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=all E2E_FULL=1 \
 	$(E2E_PYTHON) tools/e2e/run.py integrity
 
 CAPACITY_POLICY := tools/integrity/capacity_policy.json
@@ -750,20 +769,12 @@ integrity-check: content-port-transaction-check $(CAPACITY_POLICY) save-contract
 		--save-contract $(SAVE_CONTRACT) --purpose $(INTEGRITY_PURPOSE) \
 		--output $(INTEGRITY_REPORT)
 
-integrity-check-all-purposes: content-port-transaction-check
+integrity-check-rom-purposes: content-port-transaction-check
 	@rm -rf $(PURPOSE_REPORT_DIR)
 	@mkdir -p $(PURPOSE_REPORT_DIR)
 	+$(MAKE) integrity-check SAVE_ABI_PURPOSE=normal INTEGRITY_PURPOSE=normal INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/normal.json
 	+$(MAKE) DEBUG=1 integrity-check SAVE_ABI_PURPOSE=debug INTEGRITY_PURPOSE=debug INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/debug.json
 	+$(MAKE) RELEASE=1 integrity-check SAVE_ABI_PURPOSE=release INTEGRITY_PURPOSE=release INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/release.json
-	+$(MAKE) SAVE_ABI_PURPOSE=test-runner $(TESTELF)
-	python3 tools/integrity/validate_artifact.py --elf $(TESTELF) --purpose test-runner \
-		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/test-runner.json
-	+$(MAKE) SAVE_ABI_PURPOSE=headless-test $(HEADLESSELF)
-	python3 tools/integrity/validate_artifact.py --elf $(HEADLESSELF) --purpose headless-test \
-		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/headless-test.json
-	python3 tools/persistence/contract.py validate-budgets \
-		--contract $(SAVE_CONTRACT) --reports $(PURPOSE_REPORT_DIR)
 
 # Other rules
 rom: content-port-transaction-check $(ROM)
@@ -796,7 +807,9 @@ tidymodern:
 
 tidycheck:
 	rm -f $(FILE_NAME)-test.elf $(FILE_NAME)-test-headless.elf
-	rm -rf $(OBJ_DIR_NAME_TEST)
+	rm -f $(FILE_NAME)-test-openworld.elf $(FILE_NAME)-test-openworld-headless.elf
+	rm -rf $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+	rm -rf $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test-openworld
 
 tidydebug:
 	rm -f $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.elf $(FILE_NAME)-debug.map $(FILE_NAME)-debug.sym

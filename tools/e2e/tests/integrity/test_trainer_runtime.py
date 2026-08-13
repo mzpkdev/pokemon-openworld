@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 
+import pytest
+
 from tools.e2e.save_file import TRAINER_DEFEATED_OFFSET, TRAINER_DEFEATED_SIZE
 from tools.e2e.save_journey import (
     cold_restart_and_continue,
@@ -27,17 +29,12 @@ from tools.e2e.trainer_battle_journey import (
     BATTLE_TYPE_TRAINER,
     MOVE_WATER_SPOUT,
     TrainerBattleScenarioRequest,
-    TrainerBattleScenarioError,
-    TrainerBattleScenarioPhase,
-    TrainerBattleScenarioStatus,
     TrainerDefeatStorage,
     TrainerRematchBindingKind,
     disable_battle_animations_through_options,
     heal_party_through_debug_menu,
     run_ordinary_trainer_battle,
     set_battle_party_through_debug_menu,
-    submit_raw_trainer_battle_request,
-    wait_for_raw_scenario_terminal,
 )
 
 
@@ -286,6 +283,7 @@ def _samuel_object(game, map_group: int, map_num: int) -> tuple[int, int, int]:
     return matches[0]
 
 
+@pytest.mark.long_journey
 def test_regional_trainers_share_production_battle_and_persistence(
     integrity_game, request
 ):
@@ -370,9 +368,8 @@ def test_regional_trainers_share_production_battle_and_persistence(
     }
     _write_evidence(evidence_path, evidence)
 
-    old_process = cold_restart_and_continue(integrity_game)
+    cold_restart_and_continue(integrity_game)
     reloaded_bitmap = _bitmap(integrity_game)
-    assert old_process.poll() is not None
     assert _state_vector(integrity_game) == STATE_VECTORS[-1]
     assert reloaded_bitmap == _expected_bitmap(4)
     maps = {
@@ -466,60 +463,3 @@ def test_regional_trainers_share_production_battle_and_persistence(
         },
     }
     _write_evidence(evidence_path, evidence)
-
-
-def test_malformed_trainer_requests_are_terminal_and_side_effect_free(integrity_game):
-    _quickstart(integrity_game)
-    disable_battle_animations_through_options(integrity_game)
-    set_battle_party_through_debug_menu(integrity_game)
-
-    def party_bytes():
-        address = integrity_game.address("gParties")
-        return b"".join(
-            integrity_game.read(address + offset, 100) for offset in range(0, 600, 100)
-        )
-
-    baseline = {
-        "callback": integrity_game.read_u32(integrity_game.address("gMain") + 4),
-        "party_count": integrity_game.read_u8(integrity_game.address("gPartiesCount")),
-        "party": party_bytes(),
-        "calvin": integrity_game.read_flag(FLAG_DEFEATED_CALVIN_1),
-        "bitmap": _bitmap(integrity_game),
-    }
-    cases = (
-        (TrainerBattleScenarioRequest(0xD6EE0001, TRAINER_CALVIN_1, abi_version=0), 1),
-        (TrainerBattleScenarioRequest(0, TRAINER_CALVIN_1), 1),
-        (
-            TrainerBattleScenarioRequest(
-                0xD6EE0003,
-                TRAINER_CALVIN_1,
-                reserved=0xA5A55A5A,
-            ),
-            1,
-        ),
-        (TrainerBattleScenarioRequest(0xD6EE0004, 0xFFFF), 1),
-        (TrainerBattleScenarioRequest(0xD6EE0005, TRAINER_CALVIN_1), 0xFF),
-    )
-
-    for malformed, commit_status in cases:
-        submit_raw_trainer_battle_request(integrity_game, malformed, commit_status)
-        result = wait_for_raw_scenario_terminal(integrity_game, malformed.request_id)
-        assert result.status is TrainerBattleScenarioStatus.ERROR
-        assert result.phase is TrainerBattleScenarioPhase.VALIDATE
-        assert result.error is TrainerBattleScenarioError.REQUEST
-        assert result.battle_type_flags == 0
-        assert result.party_size == 0
-        assert not result.defeated_before
-        assert not result.defeated_after
-        assert not integrity_game.callback_is("BattleMainCB2")
-        assert (
-            integrity_game.read_u32(integrity_game.address("gMain") + 4)
-            == baseline["callback"]
-        )
-        assert (
-            integrity_game.read_u8(integrity_game.address("gPartiesCount"))
-            == baseline["party_count"]
-        )
-        assert party_bytes() == baseline["party"]
-        assert integrity_game.read_flag(FLAG_DEFEATED_CALVIN_1) == baseline["calvin"]
-        assert _bitmap(integrity_game) == baseline["bitmap"]

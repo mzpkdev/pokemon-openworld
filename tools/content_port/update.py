@@ -59,7 +59,7 @@ REQUIRED_REVIEW_COMMANDS = (
         "python3",
         "-m",
         "unittest",
-        "tools.content_port.tests.test_ci_contract",
+        "tools.content_port.tests.test_donors",
         "-q",
     ),
 )

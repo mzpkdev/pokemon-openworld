@@ -15,6 +15,7 @@ from tools.e2e.tests.integrity.manifest import (
     integrity_manifest_path,
     load_manifest_maps,
     load_representatives,
+    load_settlement_frontages,
 )
 
 
@@ -296,19 +297,19 @@ def _capture_map_failure(
     return output
 
 
-def _request_for(entry, request_id: int, *, structural: bool):
+def _request_for(entry, request_id: int, *, structural: bool, x=None, y=None):
     return IntegrityMapLoadRequest(
         request_id=request_id,
         map_group=entry.group,
         map_num=entry.number,
-        x=entry.width // 2,
-        y=entry.height // 2,
+        x=entry.width // 2 if x is None else x,
+        y=entry.height // 2 if y is None else y,
         suppress_scripts=structural,
         suppress_events=structural,
     )
 
 
-def test_all_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
+def test_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
     manifest_path = integrity_manifest_path()
     maps = load_manifest_maps(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -316,17 +317,31 @@ def test_all_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
     assert len(maps) == expected_maps, (
         f"expected {expected_maps} registered maps, found {len(maps)}"
     )
+    sweep = os.environ.get("E2E_MAP_SWEEP", "frontages")
+    if sweep == "all":
+        frontages = [None] * len(maps)
+    elif sweep == "frontages":
+        frontages = load_settlement_frontages(maps)
+        maps = [frontage.entry for frontage in frontages]
+    else:
+        raise ValueError(f"unsupported E2E_MAP_SWEEP value: {sweep!r}")
 
     _settle_overworld(integrity_game)
     clean_state = tmp_path / "integrity-clean-state.png"
     integrity_game.save_state(clean_state)
     clean_fingerprint = _clean_state_fingerprint(integrity_game)
     failures: list[str] = []
-    for index, entry in enumerate(maps, 1):
+    for index, (entry, frontage) in enumerate(zip(maps, frontages, strict=True), 1):
         _reload_clean_state(
             integrity_game, clean_state, clean_fingerprint, entry, index, len(maps)
         )
-        request = _request_for(entry, 0xF1000000 + index, structural=True)
+        request = _request_for(
+            entry,
+            0xF1000000 + index,
+            structural=True,
+            x=None if frontage is None else frontage.x,
+            y=None if frontage is None else frontage.y,
+        )
         assert request.suppress_scripts and request.suppress_events
         try:
             result = integrity_game.request_map_load(request, max_frames=1_200)

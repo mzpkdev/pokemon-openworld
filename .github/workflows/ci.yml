@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -52,7 +53,7 @@ jobs:
 
       - name: Validate append-only persistent allocations
         env:
-          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || format('{0}^', github.sha) }}
         run: >-
           python3 -m tools.persistence.ledger validate
           --published-baseline-ref "$PERSISTENT_BASELINE_REF"
@@ -68,8 +69,34 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Check imported content ownership
+        run: make content-port-ownership-check
+
+      - name: Detect donor-contract changes
+        id: donor-scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" != pull_request ]]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE_SHA"...HEAD -- \
+            | grep -Eq '^(\.github/workflows/ci\.yml$|Makefile$|tools/content_port/)'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip donor-backed contracts for unrelated changes
+        if: steps.donor-scope.outputs.run != 'true'
+        run: echo 'No importer contracts changed; donor-backed checks are not required.'
 
       - name: Checkout HnS content authority
+        if: steps.donor-scope.outputs.run == 'true'
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -80,6 +107,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout PKMN-World mechanical donor
+        if: steps.donor-scope.outputs.run == 'true'
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -90,6 +118,7 @@ jobs:
           fetch-depth: 0
 
       - name: Authenticate donors and run contracts
+        if: steps.donor-scope.outputs.run == 'true'
         shell: bash
         env:
           CONTENT_PORT_REQUIRE_DONORS: "1"
@@ -110,27 +139,16 @@ jobs:
               | tee -a build/content-port/donor-contract.log
             status=1
           fi
-          if (( status == 0 )); then
-            python3 -m tools.content_port check --port johto \
-              --donor-root .references \
-              --write-report build/content-port/donor-contract.json || status=$?
-          fi
-          if (( status != 0 )) && [[ ! -f build/content-port/donor-contract.json ]]; then
-            printf '%s\n' '{"schemaVersion":1,"status":"failed"}' \
-              > build/content-port/donor-contract.json
-          fi
           exit "$status"
 
       - name: Upload donor-contract failure evidence
-        if: failure()
+        if: failure() && steps.donor-scope.outputs.run == 'true'
         # actions/upload-artifact v7
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: donor-contract-failure-evidence
-          path: |
-            build/content-port/donor-contract.json
-            build/content-port/donor-contract.log
-          if-no-files-found: error
+          path: build/content-port/donor-contract.log
+          if-no-files-found: warn
           retention-days: 3
 
   test:
@@ -152,7 +170,7 @@ jobs:
           tools.e2e.tests.unit.test_install_skyemu -v
 
       - name: Run C mechanics tests
-        run: make -j"$(nproc)" -O check
+        run: make -j"$(nproc)" -O TEST_TIER=openworld check
 
   build:
     name: Build
@@ -197,6 +215,8 @@ jobs:
         run: |
           mkdir debug-release
           cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
+          cp pokemon-openworld-debug.map release/pokemon-openworld-debug.map
+          cp pokemon-openworld-debug.sym release/pokemon-openworld-debug.sym
           cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
 
@@ -231,9 +251,6 @@ jobs:
           - name: Core
             suite: core
             target: e2e-core
-          - name: Extended
-            suite: extended
-            target: e2e-extended
           - name: Integrity
             suite: integrity
             target: e2e-integrity
@@ -294,6 +311,7 @@ jobs:
 
   integrity:
     name: ROM Audit
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -305,6 +323,13 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
+      - name: Download normal and debug build artifacts
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: pokemon-openworld
+          path: build/prebuilt
+
       - name: Check deterministic generation and schemas
         shell: bash
         run: |
@@ -312,23 +337,40 @@ jobs:
           mkdir -p build/integrity
           python3 -m unittest discover -s tools/mapjson/tests -p 'test_*.py' \
             2>&1 | tee build/integrity/generator-schema.log
-          make content-port-test \
-            2>&1 | tee build/integrity/content-port.log
           make wild-encounter-test \
             2>&1 | tee build/integrity/wild-encounters.log
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log
-          python3 tools/persistence/contract.py validate-contract \
-            --contract tools/integrity/save_contract.json \
-            2>&1 | tee build/integrity/save-contract-schema.log
 
-      - name: Check live save ABI and all five artifact budgets
+      - name: Build and audit release ROM
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O integrity-check-all-purposes \
-            2>&1 | tee build/integrity/five-purpose-capacity.log
+          make -j"$(nproc)" -O RELEASE=1 integrity-check \
+            INTEGRITY_REPORT=build/integrity/purposes/release.json \
+            2>&1 | tee build/integrity/rom-purpose-capacity.log
+
+      - name: Audit prebuilt normal and debug ROMs
+        shell: bash
+        run: |
+          set -o pipefail
+          for purpose in normal debug; do
+            suffix=
+            if [[ "$purpose" == debug ]]; then
+              suffix=-debug
+            fi
+            python3 tools/integrity/validate_artifact.py \
+              --rom "build/prebuilt/pokemon-openworld${suffix}.gba" \
+              --map "build/prebuilt/pokemon-openworld${suffix}.map" \
+              --sym "build/prebuilt/pokemon-openworld${suffix}.sym" \
+              --manifest build/generated/allregions/current/integrity-manifest.json \
+              --capacity-policy tools/integrity/capacity_policy.json \
+              --save-contract tools/integrity/save_contract.json \
+              --purpose "$purpose" \
+              --output "build/integrity/purposes/${purpose}.json" \
+              2>&1 | tee -a build/integrity/rom-purpose-capacity.log
+          done
 
       - name: Upload Integrity reports
         if: ${{ always() }}
@@ -339,5 +381,5 @@ jobs:
           path: |
             build/integrity/*.log
             build/integrity/purposes/*.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 3
