@@ -11,6 +11,7 @@ from tools.integrity.manifest import (
     EXPECTED_COUNTS,
     JOHTO_FORMAT_CLOSURE_MAPS,
     ManifestError,
+    REVIEWED_CROSS_GEOGRAPHY_MAPS,
     validate_manifest,
 )
 from tools.integrity.validate_artifact import (
@@ -71,6 +72,10 @@ class IntegrityToolTests(unittest.TestCase):
     def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
         self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
         self.assertEqual(
+            REVIEWED_CROSS_GEOGRAPHY_MAPS,
+            {"VermilionCity_PortInside": "REGION_KANTO"},
+        )
+        self.assertEqual(
             EXPECTED_COUNTS["regions"],
             {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
         )
@@ -95,6 +100,19 @@ class IntegrityToolTests(unittest.TestCase):
                 "UnionRoom_Frlg",
             ],
         )
+        vermilion_drift = copy.deepcopy(original)
+        vermilion = next(
+            entry
+            for entry in vermilion_drift["maps"]
+            if entry["name"] == "VermilionCity_PortInside"
+        )
+        self.assertEqual(vermilion["region"], "REGION_KANTO")
+        vermilion["region"] = "REGION_JOHTO"
+        with self.assertRaisesRegex(
+            ManifestError,
+            "VermilionCity_PortInside.*disagrees.*REGION_KANTO",
+        ):
+            validate_manifest(vermilion_drift)
         mutations = (
             (
                 "unknown name",
