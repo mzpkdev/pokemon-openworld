@@ -4,7 +4,7 @@ ThreeIsland_Port_Frlg_MapScripts::
 
 ThreeIsland_Port_OnTransition::
 	clearflag FLAG_SYS_PC_STORAGE_DISABLED
-	setflag FLAG_SEVII_DETOUR_FINISHED
+	setflag FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED
 	end
 
 ThreeIsland_Port_EventScript_Woman::
@@ -61,4 +61,3 @@ ThreeIsland_Port_Text_EverythingTurnedOutForBest::
 	.string "Those BIKERS ran off, and\n"
 	.string "LOSTELLE was found safe.\p"
 	.string "Everything turned out for the best!$"
-

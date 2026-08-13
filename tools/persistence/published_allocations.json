@@ -689,7 +689,26 @@
     {"domain": "checkpoints", "source": "heal-locations", "storage": "heal-location-id", "symbol": "HEAL_LOCATION_OLIVINE_CITY", "value": 43},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE", "value": 32},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE", "value": 33},
-    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE", "value": 34}
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE", "value": 34},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE", "value": 35},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE", "value": 36},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_ZEPHYR_BADGE", "value": 37},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE", "value": 38},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE", "value": 39},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE", "value": 40},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE", "value": 41},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_PLAIN_BADGE", "value": 42},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE", "value": 43},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE", "value": 44},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE", "value": 45},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE", "value": 46},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE", "value": 47},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_STORM_BADGE", "value": 48},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_MIND_BADGE", "value": 49},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE", "value": 50},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE", "value": 51},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_RISING_BADGE", "value": 52},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED", "value": 673}
   ],
   "schemaVersion": 1
 }

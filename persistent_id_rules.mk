@@ -4,6 +4,8 @@ PERSISTENT_ID_LEDGER := src/data/persistence/persistent_ids.json
 PERSISTENT_ID_SOURCES := tools/persistence/persistent_sources.json
 PERSISTENT_ID_PUBLICATIONS := tools/persistence/published_allocations.json
 PERSISTENT_REGIONAL_FACT_POLICY := tools/persistence/regional_fact_bindings.json
+PERSISTENT_REGIONAL_VARIABLE_POLICY := tools/persistence/regional_variable_bindings.json
+PERSISTENT_RESIDENT_STORY_ADMISSION := tools/persistence/resident_story_admission.json
 PERSISTENT_REGIONAL_FACT_FIXTURES := $(shell python3 -c "import json; print(*(item['path'] for item in json.load(open('$(PERSISTENT_REGIONAL_FACT_POLICY)', encoding='utf-8'))['historicalFixtures']))")
 PERSISTENT_ID_GENERATOR := tools/persistence/ledger.py
 PERSISTENT_HISTORICAL_FLAG_READER := tools/persistence/historical_flags.py
@@ -26,6 +28,7 @@ AUTO_GEN_TARGETS += $(PERSISTENT_ID_OUTPUTS)
 $(PERSISTENT_ID_OUTPUTS) &: $(PERSISTENT_ID_LEDGER) $(PERSISTENT_ID_SOURCES) \
 		$(PERSISTENT_ID_PUBLICATIONS) \
 		$(PERSISTENT_REGIONAL_FACT_POLICY) \
+		$(PERSISTENT_REGIONAL_VARIABLE_POLICY) $(PERSISTENT_RESIDENT_STORY_ADMISSION) \
 		$(PERSISTENT_REGIONAL_FACT_FIXTURES) \
 		$(PERSISTENT_HISTORICAL_FLAG_READER) \
 		tools/integrity/save_contract.json $(PERSISTENT_ID_GENERATOR) \

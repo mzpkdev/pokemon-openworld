@@ -19,6 +19,7 @@ from tools.persistence.historical_flags import (
     inspect_historical_flags,
 )
 from tools.persistence.ledger import (
+    RESIDENT_STORY_SELECTOR,
     _windows_byte_lock,
     main,
     render,
@@ -30,6 +31,8 @@ from tools.persistence.ledger import (
     validate_published_allocation_history,
     validate_published_allocations,
     validate_regional_fact_policy,
+    validate_regional_variable_policy,
+    validate_resident_story_admission,
 )
 
 
@@ -78,6 +81,9 @@ class PersistentIdTests(unittest.TestCase):
         )
         cls.regional_fact_policy = json.loads(
             (ROOT / "tools/persistence/regional_fact_bindings.json").read_text()
+        )
+        cls.regional_variable_policy = json.loads(
+            (ROOT / "tools/persistence/regional_variable_bindings.json").read_text()
         )
 
     def mutated(self):
@@ -213,19 +219,79 @@ class PersistentIdTests(unittest.TestCase):
                 "HOENN_STONE_BADGE",
                 "KANTO_CASCADE_BADGE",
                 "JOHTO_HIVE_BADGE",
+                "HOENN_KNUCKLE_BADGE",
+                "KANTO_BOULDER_BADGE",
+                "JOHTO_ZEPHYR_BADGE",
+                "HOENN_DYNAMO_BADGE",
+                "KANTO_MARSH_BADGE",
+                "HOENN_HEAT_BADGE",
+                "KANTO_RAINBOW_BADGE",
+                "JOHTO_PLAIN_BADGE",
+                "HOENN_BALANCE_BADGE",
+                "KANTO_SOUL_BADGE",
+                "JOHTO_FOG_BADGE",
+                "HOENN_FEATHER_BADGE",
+                "KANTO_THUNDER_BADGE",
+                "JOHTO_STORM_BADGE",
+                "HOENN_MIND_BADGE",
+                "HOENN_RAIN_BADGE",
+                "KANTO_VOLCANO_BADGE",
+                "JOHTO_RISING_BADGE",
+                "SEVII_DETOUR_FINISHED",
             },
         )
         self.assertEqual(
             {
-                item["symbol"]: item["shippedCutGrant"]
+                item["symbol"]: item["shippedCapabilities"]
                 for item in self.regional_fact_policy["ambiguous"]
             },
-            {"FLAG_BADGE01_GET": True, "FLAG_BADGE02_GET": False},
+            {
+                "FLAG_BADGE01_GET": ["CUT"],
+                "FLAG_BADGE02_GET": ["FLASH"],
+                "FLAG_BADGE03_GET": ["ROCK_SMASH"],
+                "FLAG_BADGE04_GET": ["STRENGTH"],
+                "FLAG_BADGE05_GET": ["SURF"],
+                "FLAG_BADGE06_GET": ["FLY"],
+                "FLAG_BADGE07_GET": ["DIVE"],
+                "FLAG_BADGE08_GET": ["WATERFALL"],
+            },
         )
         self.assertEqual(
             {item["value"] for item in self.regional_fact_policy["unused"]},
-            {0x20, 0x21, 0x22},
+            {*range(0x20, 0x35), 0x2A1},
         )
+        self.assertEqual(set(self.regional_fact_policy["unsupported"]), {"DEFOG", "ROCK_CLIMB"})
+
+    def test_regional_variable_and_story_admission_policies_are_valid(self):
+        validate_regional_variable_policy(self.ledger["entries"], self.sources, ROOT)
+        validate_resident_story_admission(self.sources, ROOT)
+        admitted = [
+            item for item in self.regional_variable_policy["entries"]
+            if item["status"] == "admitted"
+        ]
+        self.assertEqual(
+            {item["region"] for item in admitted},
+            {"HOENN", "KANTO", "SEVII", "JOHTO"},
+        )
+        self.assertTrue(all(item["value"] > 0 for item in admitted))
+
+    def test_story_selector_recognizes_runtime_product_and_region_dispatch(self):
+        self.assertIsNotNone(RESIDENT_STORY_SELECTOR.search("if (IS_FRLG) story();"))
+        self.assertIsNotNone(
+            RESIDENT_STORY_SELECTOR.search(
+                "if (GetCurrentRegion() == REGION_KANTO) story();"
+            )
+        )
+
+    def test_regional_variable_policy_rejects_moved_binding(self):
+        entries = self.mutated()["entries"]
+        binding = next(
+            item for item in entries
+            if item["domain"] == "vars" and item["symbol"] == "VAR_CHERRYGROVE_CITY_STATE"
+        )
+        binding["value"] += 1
+        with self.assertRaisesRegex(ContractError, "published binding moved"):
+            validate_regional_variable_policy(entries, self.sources, ROOT)
 
     def test_regional_fact_fixture_digest_mutation_fails_closed(self):
         fixture = self.regional_fact_policy["historicalFixtures"][0]
@@ -294,8 +360,8 @@ class PersistentIdTests(unittest.TestCase):
 
     def test_regional_fact_flags_are_distinct_generated_public_bindings(self):
         exact = self.regional_fact_policy["exact"]
-        self.assertEqual(len({item["symbol"] for item in exact}), 3)
-        self.assertEqual({item["value"] for item in exact}, {0x20, 0x21, 0x22})
+        self.assertEqual(len({item["symbol"] for item in exact}), len(exact))
+        self.assertEqual({item["value"] for item in exact}, {*range(0x20, 0x35), 0x2A1})
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
             render(self.ledger, self.sources, output)

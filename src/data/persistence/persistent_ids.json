@@ -19880,6 +19880,20 @@
       "value": 34
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x023",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE",
+      "value": 35
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19889,6 +19903,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x023",
       "value": 35
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x024",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE",
+      "value": 36
     },
     {
       "alias": null,
@@ -19902,6 +19930,20 @@
       "value": 36
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x025",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_ZEPHYR_BADGE",
+      "value": 37
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19911,6 +19953,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x025",
       "value": 37
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x026",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE",
+      "value": 38
     },
     {
       "alias": null,
@@ -19924,6 +19980,20 @@
       "value": 38
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x027",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE",
+      "value": 39
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19933,6 +20003,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x027",
       "value": 39
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x028",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE",
+      "value": 40
     },
     {
       "alias": null,
@@ -19946,6 +20030,20 @@
       "value": 40
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x029",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE",
+      "value": 41
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19955,6 +20053,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x029",
       "value": 41
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02A",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_PLAIN_BADGE",
+      "value": 42
     },
     {
       "alias": null,
@@ -19968,6 +20080,20 @@
       "value": 42
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02B",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE",
+      "value": 43
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19977,6 +20103,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x02B",
       "value": 43
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02C",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE",
+      "value": 44
     },
     {
       "alias": null,
@@ -19990,6 +20130,20 @@
       "value": 44
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02D",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE",
+      "value": 45
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -19999,6 +20153,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x02D",
       "value": 45
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02E",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE",
+      "value": 46
     },
     {
       "alias": null,
@@ -20012,6 +20180,20 @@
       "value": 46
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x02F",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE",
+      "value": 47
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20021,6 +20203,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x02F",
       "value": 47
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x030",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_STORM_BADGE",
+      "value": 48
     },
     {
       "alias": null,
@@ -20034,6 +20230,20 @@
       "value": 48
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x031",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_MIND_BADGE",
+      "value": 49
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20043,6 +20253,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x031",
       "value": 49
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x032",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE",
+      "value": 50
     },
     {
       "alias": null,
@@ -20056,6 +20280,20 @@
       "value": 50
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x033",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE",
+      "value": 51
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20065,6 +20303,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x033",
       "value": 51
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x034",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_JOHTO_RISING_BADGE",
+      "value": 52
     },
     {
       "alias": null,
@@ -26910,6 +27162,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x2A0",
       "value": 672
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x2A1",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED",
+      "value": 673
     },
     {
       "alias": null,

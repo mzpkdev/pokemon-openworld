@@ -11,6 +11,7 @@ static void ClearCutFacts(void)
     FlagClear(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
     FlagClear(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
     FlagClear(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE);
+    FlagClear(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
     FlagClear(FLAG_BADGE01_GET);
     FlagClear(FLAG_BADGE02_GET);
     FlagClear(FLAG_BADGE03_GET);
@@ -23,6 +24,7 @@ TEST("Regional facts expose distinct fail-closed public queries")
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_HOENN_STONE_BADGE));
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_KANTO_CASCADE_BADGE));
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_JOHTO_HIVE_BADGE));
+    EXPECT(!RegionalFact_Get(REGIONAL_FACT_SEVII_DETOUR_FINISHED));
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_COUNT));
     EXPECT(!RegionalFact_Get((enum RegionalFact)0xFFFF));
 
@@ -30,6 +32,12 @@ TEST("Regional facts expose distinct fail-closed public queries")
     EXPECT(RegionalFact_Get(REGIONAL_FACT_HOENN_STONE_BADGE));
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_KANTO_CASCADE_BADGE));
     EXPECT(!RegionalFact_Get(REGIONAL_FACT_JOHTO_HIVE_BADGE));
+    EXPECT(!RegionalFact_Get(REGIONAL_FACT_SEVII_DETOUR_FINISHED));
+
+    ClearCutFacts();
+    FlagSet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
+    EXPECT(RegionalFact_Get(REGIONAL_FACT_SEVII_DETOUR_FINISHED));
+    EXPECT(!RegionalFact_Get(REGIONAL_FACT_HOENN_STONE_BADGE));
 }
 
 TEST("Every exact regional fact independently grants Cut through one resolver")
