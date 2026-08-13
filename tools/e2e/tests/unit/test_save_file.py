@@ -1,15 +1,19 @@
 from pathlib import Path
 import copy
 import json
+import struct
 
 import pytest
 
 from tools.e2e.save_file import (
     SAVE_BLOCK1_SIZE,
+    SECTOR_FOOTER_OFFSET,
+    SECTOR_SIZE,
     TRAINER_DEFEATED_OFFSET,
     TRAINER_DEFEATED_SIZE,
     SaveImage,
     load_fixture_manifest,
+    with_saved_flags,
 )
 from tools.e2e.skyemu import SkyEmuSession
 from tools.e2e.save_journey import (
@@ -27,6 +31,37 @@ from tools.e2e.tests.conftest import capture_failure_evidence
 
 
 FIXTURES = Path(__file__).parents[2] / "fixtures"
+
+
+def _slot_with_counter(image: SaveImage, slot_index: int, counter: int) -> bytes:
+    data = bytearray(b"\xff" * len(image.data))
+    start = slot_index * 14 * SECTOR_SIZE
+    end = start + 14 * SECTOR_SIZE
+    data[start:end] = image.data[start:end]
+    for sector_index in range(slot_index * 14, (slot_index + 1) * 14):
+        struct.pack_into(
+            "<I",
+            data,
+            sector_index * SECTOR_SIZE + SECTOR_FOOTER_OFFSET + 8,
+            counter,
+        )
+    return bytes(data)
+
+
+class _BatteryWaitSession:
+    def __init__(self, snapshots):
+        self.snapshots = iter(snapshots)
+
+    def press(self, _button, *, release_frames):
+        assert release_frames == 4
+
+    def battery_snapshot_for_wait(self):
+        snapshot = next(self.snapshots)
+        if isinstance(snapshot, Exception):
+            raise snapshot
+        if isinstance(snapshot, SaveImage):
+            return snapshot
+        return SkyEmuSession._complete_save_image_for_wait(snapshot)
 
 
 def test_reviewed_fixture_has_valid_flash_and_provenance():
@@ -134,6 +169,158 @@ def test_complete_newer_slot_survives_partial_older_slot():
     image = SaveImage.from_bytes(bytes(data))
 
     assert image.active_slot.physical_index == 1
+
+
+def test_battery_wait_rejects_partial_target_slot_with_changed_bytes():
+    before = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    partial_data = bytearray(before.data)
+    for sector_index in range(14):
+        struct.pack_into(
+            "<I",
+            partial_data,
+            sector_index * SECTOR_SIZE + SECTOR_FOOTER_OFFSET + 8,
+            before.active_slot.counter + 1,
+        )
+    partial_data[5 * SECTOR_SIZE : 6 * SECTOR_SIZE] = b"\xff" * SECTOR_SIZE
+    partial = SaveImage.from_bytes(bytes(partial_data))
+    assert partial.data != before.data
+    assert partial.active_slot.counter == before.active_slot.counter
+
+    with pytest.raises(AssertionError, match="battery save did not change"):
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession([partial]), before, max_pulses=1
+        )
+
+
+def test_battery_wait_accepts_first_complete_save_from_empty_baseline():
+    complete = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    assert (
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession([complete]), b"", max_pulses=1
+        )
+        is complete
+    )
+
+
+def test_battery_wait_retries_missing_file_before_first_complete_save():
+    complete = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    snapshots = [
+        FileNotFoundError("battery save does not exist yet"),
+        FileNotFoundError("battery save does not exist yet"),
+        complete,
+    ]
+
+    assert (
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession(snapshots), b"", max_pulses=3
+        )
+        is complete
+    )
+
+
+def test_battery_wait_still_requires_newer_counter_after_missing_file():
+    before = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    newer = SaveImage.from_bytes(
+        _slot_with_counter(before, 1, before.active_slot.counter + 1)
+    )
+    snapshots = [FileNotFoundError("transient"), before, newer]
+
+    waited = SkyEmuSession.wait_for_battery_change(
+        _BatteryWaitSession(snapshots), before, max_pulses=3
+    )
+
+    assert waited.active_slot.counter == before.active_slot.counter + 1
+
+
+def test_battery_wait_does_not_swallow_other_io_errors():
+    with pytest.raises(PermissionError, match="permission denied"):
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession([PermissionError("permission denied")]),
+            b"",
+            max_pulses=1,
+        )
+
+
+def test_battery_wait_ignores_partial_write_after_partial_baseline():
+    complete = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    partial_data = bytearray(b"\xff" * len(complete.data))
+    partial_data[:SECTOR_SIZE] = complete.data[:SECTOR_SIZE]
+    snapshots = iter((ValueError("partial write"), complete))
+
+    with pytest.raises(ValueError, match="no complete valid save slot"):
+        SaveImage.from_bytes(bytes(partial_data))
+
+    assert (
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession(snapshots), bytes(partial_data), max_pulses=2
+        )
+        is complete
+    )
+
+
+def test_battery_wait_accepts_new_complete_slot_with_malformed_sibling():
+    before = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    current = bytearray(_slot_with_counter(before, 1, before.active_slot.counter + 1))
+    current[: 14 * SECTOR_SIZE] = before.data[14 * SECTOR_SIZE : 28 * SECTOR_SIZE]
+    struct.pack_into("<I", current, SECTOR_FOOTER_OFFSET + 4, 0)
+
+    with pytest.raises(ValueError, match="invalid signature"):
+        SaveImage.from_bytes(bytes(current))
+    waited = SkyEmuSession.wait_for_battery_change(
+        _BatteryWaitSession([bytes(current)]), before, max_pulses=1
+    )
+
+    assert waited.data == bytes(current)
+    assert waited.active_slot.counter == before.active_slot.counter + 1
+
+
+def test_battery_wait_rejects_equal_complete_counter():
+    before = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    with pytest.raises(AssertionError, match="battery save did not change"):
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession([before]), before, max_pulses=1
+        )
+
+
+def test_battery_wait_accepts_wrapped_newer_counter():
+    fixture = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    before = _slot_with_counter(fixture, 1, 0xFFFFFFFF)
+    current = _slot_with_counter(fixture, 1, 0)
+
+    waited = SkyEmuSession.wait_for_battery_change(
+        _BatteryWaitSession([current]), before, max_pulses=1
+    )
+
+    assert waited.active_slot.counter == 0
+
+
+def test_battery_wait_rejects_wrong_size_baseline():
+    complete = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    with pytest.raises(ValueError, match="exactly 131072 bytes"):
+        SkyEmuSession.wait_for_battery_change(
+            _BatteryWaitSession([complete]), complete.data[:-1], max_pulses=1
+        )
+
+
+def test_saved_flag_variants_are_checksum_valid_and_do_not_change_other_bytes():
+    original = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    variant = with_saved_flags(original, {0x867: True, 0x868: False})
+    block = variant.active_slot.save_block1
+
+    assert block[0x1270 + 0x867 // 8] & (1 << (0x867 % 8))
+    assert not block[0x1270 + 0x868 // 8] & (1 << (0x868 % 8))
+    restored = with_saved_flags(variant, {0x867: False})
+    assert restored.data == original.data
+
+
+def test_saved_flag_variants_reject_nonserialized_flags():
+    original = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    with pytest.raises(ValueError, match="outside the serialized range"):
+        with_saved_flags(original, {0x960: True})
 
 
 class _FakeProcess:

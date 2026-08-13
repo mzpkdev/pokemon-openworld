@@ -102,6 +102,21 @@ story flag and variable helpers, and coordinate-aware overworld movement. The
 fixture copies the ROM and starts one pinned SkyEmu v5 process, so saves and RAM
 cannot leak between tests.
 
+`fixtures/regional_cut_oracle.json` records the Cut result produced by an
+instrumented `135b32ca92` ROM for four checksum-valid variants of the reviewed
+historical Continue fixture: neither legacy badge slot, slot 1, slot 2, and
+both. Tests derive those variants instead of tracking opaque binary copies. The
+manifest binds the base save, minimal DEBUG probe overlay, and historical ROM
+by SHA-256. Reproduce it with:
+
+```sh
+build/e2e-venv/bin/python -m tools.e2e.generate_cut_oracle \
+  --source-tree . --skyemu build/e2e-tools/SkyEmu-v5
+```
+
+For intentional review, pass `--candidate-output`; the generator marks that
+capture unreviewed and never overwrites the oracle.
+
 The Pokédex journey follows the gender-dependent opening route selected by
 Quickstart, disables random wild encounters through the debug ROM flag, and
 uses the battle debug menu's Instant Win only after proving that the Route 103

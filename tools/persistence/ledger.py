@@ -27,6 +27,7 @@ else:
     import fcntl
 
 from tools.persistence.contract import ContractError, load_json, write_json
+from tools.persistence.historical_flags import inspect_historical_flags
 
 SCHEMA_VERSION = 1
 LEDGER_PATH = Path("src/data/persistence/persistent_ids.json")
@@ -139,9 +140,10 @@ def _entry(
     storage: str,
     state: dict[str, Any],
     source: str,
+    alias: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     return {
-        "alias": None,
+        "alias": alias,
         "domain": domain,
         "source": source,
         "state": state,
@@ -261,6 +263,12 @@ def seed_ledger(
 ) -> dict[str, Any]:
     source_by_id = _source_index(sources)
     storage_by_id = _storage_index(sources)
+    regional_fact_symbols = {
+        fact["symbol"]
+        for source in source_by_id.values()
+        if source.get("kind") == "regional-fact-policy"
+        for fact in load_json(repo / source["path"]).get("exact", [])
+    }
     entries: list[dict[str, Any]] = []
     for domain, bindings in sorted(contract["publishedBindings"].items()):
         source_id = _published_source(domain, source_by_id)
@@ -269,6 +277,8 @@ def seed_ledger(
         if storage not in storage_by_id:
             raise ContractError(f"source {source_id}: unallocated storage {storage}")
         for binding in bindings:
+            if domain == "flags" and binding["symbol"] in regional_fact_symbols:
+                continue
             value = binding["value"]
             state: dict[str, Any] = {"kind": "published-binding"}
             if (
@@ -321,6 +331,23 @@ def seed_ledger(
             )
         )
 
+    for source_id, source in source_by_id.items():
+        if source.get("kind") != "regional-fact-policy":
+            continue
+        policy = load_json(repo / source["path"])
+        for fact in policy.get("exact", []):
+            entries.append(
+                _entry(
+                    "flags",
+                    fact["symbol"],
+                    fact["value"],
+                    source["storage"],
+                    {"kind": "allocated-binding"},
+                    source_id,
+                    {"of": fact["unusedBinding"], "owner": source_id},
+                )
+            )
+
     projection = _trainer_identity_projection(contract, sources, repo)
     tombstone_keys = {
         (item["symbol"], item["value"]) for item in projection["tombstones"]
@@ -366,9 +393,16 @@ def seed_ledger(
     for item in entries:
         groups[(item["domain"], item["storage"], item["value"])].append(item)
     for group in groups.values():
-        owner = group[0]["symbol"]
-        for item in group[1:]:
-            item["alias"] = {"of": owner, "owner": item["source"]}
+        if any(item["source"] == "regional-facts" for item in group):
+            owner_item = next(
+                item for item in group if item["state"]["kind"] == "published-binding"
+            )
+        else:
+            owner_item = group[0]
+        owner_item["alias"] = None
+        for item in group:
+            if item is not owner_item:
+                item["alias"] = {"of": owner_item["symbol"], "owner": item["source"]}
 
     return {
         "baselineCommit": contract["baselineCommit"],
@@ -816,6 +850,157 @@ def validate_ledger(
                     )
     validate_location_codecs(ledger.get("locationCodecs"), sources, repo)
     validate_consumer_references(entries, sources.get("consumerSchemas"), repo)
+    validate_regional_fact_policy(entries, sources, repo)
+
+
+def validate_regional_fact_policy(
+    entries: list[dict[str, Any]], sources: dict[str, Any], repo: Path
+) -> None:
+    policy_sources = [
+        source
+        for source in sources.get("sources", [])
+        if source.get("kind") == "regional-fact-policy"
+    ]
+    if len(policy_sources) != 1:
+        raise ContractError("regional facts: expected exactly one reviewed policy")
+    source = policy_sources[0]
+    policy = load_json(repo / source["path"])
+    if not isinstance(policy, dict) or set(policy) != {
+        "ambiguous",
+        "exact",
+        "historicalFixtures",
+        "schemaVersion",
+        "unused",
+    }:
+        raise ContractError("regional facts: malformed reviewed policy")
+    if policy["schemaVersion"] != 1:
+        raise ContractError("regional facts: unsupported policy schema")
+
+    exact = policy["exact"]
+    ambiguous = policy["ambiguous"]
+    unused = policy["unused"]
+    fixtures = policy["historicalFixtures"]
+    if not all(
+        isinstance(items, list) and items
+        for items in (exact, ambiguous, unused, fixtures)
+    ):
+        raise ContractError("regional facts: every classification needs evidence")
+    if len(exact) != 3 or len(ambiguous) != 2 or len(unused) != 3:
+        raise ContractError("regional facts: classification inventory changed")
+
+    by_symbol = {(item["domain"], item["symbol"]): item for item in entries}
+    exact_symbols: set[str] = set()
+    exact_values: set[int] = set()
+    facts: set[str] = set()
+    for index, item in enumerate(exact):
+        if not isinstance(item, dict) or set(item) != {
+            "fact",
+            "symbol",
+            "unusedBinding",
+            "value",
+        }:
+            raise ContractError(f"regional facts: malformed exact binding {index}")
+        if not all(
+            isinstance(item[key], str) and item[key]
+            for key in ("fact", "symbol", "unusedBinding")
+        ):
+            raise ContractError(f"regional facts: invalid exact binding {index}")
+        if not isinstance(item["value"], int) or item["value"] <= 0:
+            raise ContractError(f"regional facts: invalid exact value {index}")
+        binding = by_symbol.get(("flags", item["symbol"]))
+        expected_alias = {"of": item["unusedBinding"], "owner": source["id"]}
+        if (
+            binding is None
+            or binding["source"] != source["id"]
+            or binding["storage"] != "flag-id"
+            or binding["state"] != {"kind": "allocated-binding"}
+            or binding["value"] != item["value"]
+            or binding["alias"] != expected_alias
+        ):
+            raise ContractError(f"regional facts: exact binding moved {item['symbol']}")
+        exact_symbols.add(item["symbol"])
+        exact_values.add(item["value"])
+        facts.add(item["fact"])
+    if len(exact_symbols) != 3 or len(exact_values) != 3 or len(facts) != 3:
+        raise ContractError("regional facts: exact facts must be distinct and nonzero")
+
+    ambiguous_symbols: set[str] = set()
+    for index, item in enumerate(ambiguous):
+        if not isinstance(item, dict) or set(item) != {
+            "shippedCutGrant",
+            "symbol",
+            "value",
+        }:
+            raise ContractError(f"regional facts: malformed ambiguous binding {index}")
+        if not isinstance(item["shippedCutGrant"], bool):
+            raise ContractError(f"regional facts: invalid ambiguous binding {index}")
+        binding = by_symbol.get(("flags", item["symbol"]))
+        if (
+            binding is None
+            or binding["state"] != {"kind": "published-binding"}
+            or binding["value"] != item["value"]
+        ):
+            raise ContractError(
+                f"regional facts: ambiguous binding moved {item['symbol']}"
+            )
+        ambiguous_symbols.add(item["symbol"])
+    if ambiguous_symbols != {"FLAG_BADGE01_GET", "FLAG_BADGE02_GET"}:
+        raise ContractError("regional facts: ambiguous legacy inventory changed")
+
+    unused_by_symbol = {}
+    for index, item in enumerate(unused):
+        if not isinstance(item, dict) or set(item) != {
+            "allocatedTo",
+            "symbol",
+            "value",
+        }:
+            raise ContractError(f"regional facts: malformed unused binding {index}")
+        binding = by_symbol.get(("flags", item["symbol"]))
+        if (
+            binding is None
+            or binding["state"] != {"kind": "published-binding"}
+            or binding["value"] != item["value"]
+            or item["allocatedTo"] not in exact_symbols
+        ):
+            raise ContractError(
+                f"regional facts: unused binding moved {item['symbol']}"
+            )
+        unused_by_symbol[item["symbol"]] = item
+    if set(unused_by_symbol) != {
+        "FLAG_UNUSED_0x020",
+        "FLAG_UNUSED_0x021",
+        "FLAG_UNUSED_0x022",
+    }:
+        raise ContractError("regional facts: reviewed-unused inventory changed")
+    for fact in exact:
+        unused_item = unused_by_symbol.get(fact["unusedBinding"])
+        if (
+            unused_item is None
+            or unused_item["allocatedTo"] != fact["symbol"]
+            or unused_item["value"] != fact["value"]
+        ):
+            raise ContractError("regional facts: unused allocation pairing changed")
+
+    flag_schema = next(
+        schema for schema in sources["consumerSchemas"] if schema["domain"] == "flags"
+    )
+    for symbol in unused_by_symbol:
+        token = re.compile(rf"\b{re.escape(symbol)}\b")
+        for glob in flag_schema["paths"]:
+            for path in repo.glob(glob):
+                if path.is_file() and token.search(
+                    path.read_text(encoding="utf-8", errors="ignore")
+                ):
+                    raise ContractError(
+                        f"regional facts: reviewed-unused binding has consumer {symbol} in {path}"
+                    )
+
+    for index, fixture in enumerate(fixtures):
+        if not isinstance(fixture, dict) or set(fixture) != {"path", "sha256"}:
+            raise ContractError(f"regional facts: malformed historical fixture {index}")
+        inspect_historical_flags(
+            repo / fixture["path"], fixture["sha256"], exact_values
+        )
 
 
 def validate_trainer_identity_projection(
@@ -964,8 +1149,14 @@ def validate_frozen_bindings(
     published = {
         (item["domain"], item["symbol"]): item["value"]
         for item in entries
-        if item["state"]["kind"]
-        in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+        if (
+            item["state"]["kind"]
+            in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+            or (
+                item["source"] == "regional-facts"
+                and item["state"]["kind"] == "allocated-binding"
+            )
+        )
     }
     frozen = {
         (domain, item["symbol"]): item["value"]
@@ -1283,7 +1474,10 @@ def render(ledger: dict[str, Any], sources: dict[str, Any], output_root: Path) -
     facade_specs = {
         "persistent_flags.inc.h": (
             "flags",
-            defined_symbols("include/constants/flags.h", "FLAG_"),
+            defined_symbols("include/constants/flags.h", "FLAG_")
+            | {
+                item["symbol"] for item in entries if item["source"] == "regional-facts"
+            },
         ),
         "persistent_vars.inc.h": (
             "vars",

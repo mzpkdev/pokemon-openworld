@@ -8,10 +8,14 @@ from tools.e2e.generate_populated_fixture import (
 )
 
 from tools.e2e.save_journey import (
+    FIELD_MOVE_PROBE_SIZE,
+    FIELD_MOVE_PROBE_STATUS_OFFSET,
     SAVE_SCENARIO_SIZE,
     SAVE_SCENARIO_STATUS_OFFSET,
+    FieldMoveProbeStatus,
     SaveScenarioRequest,
     SaveScenarioStatus,
+    probe_field_move,
     run_save_scenario,
 )
 
@@ -87,6 +91,66 @@ def test_host_commits_status_last_and_correlates_result():
     )
     assert game.writes[3] == ("resume",)
     assert result.trainer_flag == 64
+
+
+def test_repeated_field_move_probe_ignores_stale_identical_result():
+    class Game:
+        def __init__(self):
+            self.request = bytearray(FIELD_MOVE_PROBE_SIZE)
+            self.result = bytearray(
+                struct.pack(
+                    "<IHBB",
+                    0xC0FFEE,
+                    0,
+                    1,
+                    FieldMoveProbeStatus.SUCCESS,
+                )
+            )
+            self.processed = 0
+
+        def address(self, symbol):
+            return {"gFieldMoveProbeRequest": 0x1000, "gFieldMoveProbeResult": 0x2000}[
+                symbol
+            ]
+
+        def pause(self):
+            pass
+
+        def resume(self):
+            pass
+
+        def write(self, address, payload):
+            target = self.request if address == 0x1000 else self.result
+            target[:] = payload
+
+        def write_u8(self, address, value):
+            assert address == 0x1000 + FIELD_MOVE_PROBE_STATUS_OFFSET
+            self.request[FIELD_MOVE_PROBE_STATUS_OFFSET] = value
+
+        def read(self, address, size):
+            assert (address, size) == (0x2000, FIELD_MOVE_PROBE_SIZE)
+            return bytes(self.result)
+
+        def step(self):
+            request_id, move, status, _reserved = struct.unpack("<IHBB", self.request)
+            if status == FieldMoveProbeStatus.PENDING:
+                self.processed += 1
+                self.request[FIELD_MOVE_PROBE_STATUS_OFFSET] = (
+                    FieldMoveProbeStatus.SUCCESS
+                )
+                self.result[:] = struct.pack(
+                    "<IHBB",
+                    request_id,
+                    move,
+                    self.processed % 2,
+                    FieldMoveProbeStatus.SUCCESS,
+                )
+
+    game = Game()
+
+    assert probe_field_move(game, 0, 0xC0FFEE) is True
+    assert probe_field_move(game, 0, 0xC0FFEE) is False
+    assert game.processed == 2
 
 
 def test_historical_instrumentation_digest_is_tracked_and_mutation_sensitive():

@@ -78,6 +78,12 @@ struct SaveSector
     u32 counter;
 }; // size is SECTOR_SIZE (0x1000)
 
+struct FacilitySaveStatusState
+{
+    u8 challengeStatus;
+    u16 challengeStatusVar;
+};
+
 #define SECTOR_SIGNATURE_OFFSET offsetof(struct SaveSector, signature)
 #define SECTOR_COUNTER_OFFSET   offsetof(struct SaveSector, counter)
 
@@ -97,6 +103,9 @@ extern struct SaveSector gSaveDataBuffer;
 void ClearSaveData(void);
 void Save_ResetSaveCounters(void);
 u8 HandleSavingData(u8 saveType);
+u8 GetSerializedFacilityChallengeStatus(u8 saveType, u8 challengeStatus, bool8 challengePaused);
+void PrepareFacilitySaveStatus(u8 saveType, bool8 challengePaused, struct FacilitySaveStatusState *state);
+void RestoreFacilitySaveStatus(struct FacilitySaveStatusState *state, const struct FacilitySaveStatusState *original);
 u8 TrySavingData(u8 saveType);
 bool8 LinkFullSave_Init(void);
 bool8 LinkFullSave_WriteSector(void);

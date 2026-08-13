@@ -4,16 +4,14 @@
 #include "fldeff.h"
 #include "fldeff_misc.h"
 #include "party_menu.h"
+#include "player_capability.h"
 #include "constants/field_move.h"
 #include "constants/moves.h"
 #include "constants/party_menu.h"
 
 static bool32 IsFieldMoveUnlocked_Cut(void)
 {
-    if (IS_FRLG)
-        return FlagGet(FLAG_BADGE02_GET);
-
-    return FlagGet(FLAG_BADGE01_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_CUT);
 }
 
 static bool32 IsFieldMoveUnlocked_Flash(void)

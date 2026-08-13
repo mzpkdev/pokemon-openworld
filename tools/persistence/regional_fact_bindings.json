@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "exact": [
+    {"fact": "HOENN_STONE_BADGE", "symbol": "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE", "value": 32, "unusedBinding": "FLAG_UNUSED_0x020"},
+    {"fact": "KANTO_CASCADE_BADGE", "symbol": "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE", "value": 33, "unusedBinding": "FLAG_UNUSED_0x021"},
+    {"fact": "JOHTO_HIVE_BADGE", "symbol": "FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE", "value": 34, "unusedBinding": "FLAG_UNUSED_0x022"}
+  ],
+  "ambiguous": [
+    {"symbol": "FLAG_BADGE01_GET", "value": 2151, "shippedCutGrant": true},
+    {"symbol": "FLAG_BADGE02_GET", "value": 2152, "shippedCutGrant": false}
+  ],
+  "unused": [
+    {"symbol": "FLAG_UNUSED_0x020", "value": 32, "allocatedTo": "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE"},
+    {"symbol": "FLAG_UNUSED_0x021", "value": 33, "allocatedTo": "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE"},
+    {"symbol": "FLAG_UNUSED_0x022", "value": 34, "allocatedTo": "FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE"}
+  ],
+  "historicalFixtures": [
+    {"path": "tools/e2e/fixtures/hoenn_continue.sav", "sha256": "b912fe76db8fd2e2858aba3c719208121a3546e2c7eecfb2729b19688f7a6605"},
+    {"path": "tools/e2e/fixtures/hoenn_populated.sav", "sha256": "6ea2d26f4b431543c31c50015678b5c8fc4c3b60d41aba6c7311fd064234448c"}
+  ]
+}

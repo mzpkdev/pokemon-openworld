@@ -4,6 +4,7 @@
     {"id": "contract-destinations", "kind": "frozen-contract", "contractDomain": "destinations", "domains": ["destinations"], "storage": "u32-id"},
     {"id": "contract-facilities", "kind": "frozen-contract", "contractDomain": "facilities", "domains": ["facilities"], "storage": "u32-id"},
     {"id": "contract-flags", "kind": "frozen-contract", "contractDomain": "flags", "domains": ["flags"], "storage": "flag-id"},
+    {"id": "regional-facts", "kind": "regional-fact-policy", "path": "tools/persistence/regional_fact_bindings.json", "domains": ["flags"], "storage": "flag-id"},
     {"id": "contract-game-stats", "kind": "frozen-contract", "contractDomain": "gameStats", "domains": ["gameStats"], "storage": "u32-id"},
     {"id": "contract-met-locations", "kind": "frozen-contract", "contractDomain": "metLocations", "domains": ["metLocations"], "storage": "u8-location"},
     {"id": "contract-reward-state", "kind": "frozen-contract", "contractDomain": "rewardState", "domains": ["rewardState"], "storage": "flag-id"},

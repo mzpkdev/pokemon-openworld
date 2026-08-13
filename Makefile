@@ -577,8 +577,12 @@ $(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 	@cp $(TESTELF) $@
 	$(PATCHELF) $(HEADLESSELF) gTestRunnerHeadless '\x01' gTestRunnerSkipIsFail "$(TEST_SKIP_IS_FAIL)"
 
-check: content-port-transaction-check save-contract-check $(HEADLESSELF)
+check: content-port-transaction-check cut-policy-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
+
+.PHONY: cut-policy-check
+cut-policy-check:
+	python3 -m tools.persistence.cut_policy
 
 CONTENT_PORT ?= johto
 CONTENT_PORT_DONOR_ROOT ?= .references

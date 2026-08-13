@@ -11,6 +11,8 @@ from tools.e2e.save_file import decode_box_pokemon
 MENU_ACTION_SAVE = 5
 SAVE_SCENARIO_SIZE = 36
 SAVE_SCENARIO_STATUS_OFFSET = 21
+FIELD_MOVE_PROBE_SIZE = 8
+FIELD_MOVE_PROBE_STATUS_OFFSET = 6
 
 
 class SaveScenarioStatus(IntEnum):
@@ -19,6 +21,57 @@ class SaveScenarioStatus(IntEnum):
     RUNNING = 2
     SUCCESS = 3
     ERROR = 4
+
+
+class FieldMoveProbeStatus(IntEnum):
+    IDLE = 0
+    PENDING = 1
+    SUCCESS = 2
+    ERROR = 3
+
+
+def probe_field_move(game, field_move: int, request_id: int) -> bool:
+    """Query the same field-move policy entry used by scripts and the party menu."""
+    request = game.address("gFieldMoveProbeRequest")
+    result = game.address("gFieldMoveProbeResult")
+    game.pause()
+    game.write(
+        result,
+        struct.pack(
+            "<IHBB",
+            request_id ^ 0xFFFFFFFF,
+            field_move,
+            0,
+            FieldMoveProbeStatus.IDLE,
+        ),
+    )
+    game.write(
+        request,
+        struct.pack("<IHBB", request_id, field_move, FieldMoveProbeStatus.IDLE, 0),
+    )
+    game.write_u8(
+        request + FIELD_MOVE_PROBE_STATUS_OFFSET, FieldMoveProbeStatus.PENDING
+    )
+    game.resume()
+    # Never inspect the terminal result from an earlier identical request.
+    game.step()
+
+    for _ in range(120):
+        payload = game.read(result, FIELD_MOVE_PROBE_SIZE)
+        result_id, result_move, unlocked, status = struct.unpack("<IHBB", payload)
+        if result_id == request_id and status in (
+            FieldMoveProbeStatus.SUCCESS,
+            FieldMoveProbeStatus.ERROR,
+        ):
+            if status == FieldMoveProbeStatus.ERROR:
+                raise AssertionError(
+                    f"field move probe {request_id:#x} rejected move {field_move}"
+                )
+            assert result_move == field_move
+            assert unlocked in (0, 1)
+            return bool(unlocked)
+        game.step()
+    raise AssertionError(f"field move probe {request_id:#x} timed out")
 
 
 SAVE_SCENARIO_ERRORS = {

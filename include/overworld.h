@@ -180,6 +180,7 @@ void CB2_ReturnToFieldContinueScript(void);
 void CB2_ReturnToFieldContinueScriptPlayMapMusic(void);
 void CB2_ReturnToFieldFadeFromBlack(void);
 void CB2_ContinueSavedGame(void);
+u8 GetFacilityChallengeStatusOnContinue(u8 saveStatus, u8 challengeStatus, u8 facility, u8 specialSaveWarpFlags);
 void ResetAllMultiplayerState(void);
 u32 GetCableClubPartnersReady(void);
 u16 SetInCableClubSeat(void);
