@@ -799,8 +799,9 @@ def _generated_body(
         for item in tilesets:
             name = item.get("targetSymbol", item.get("symbol"))
             secondary = "TRUE" if item["secondary"] else "FALSE"
+            callback = item.get("animationCallback", "NULL")
             blocks.append(
-                f"const struct Tileset gTileset_{name} =\n{{\n    .isCompressed = TRUE,\n    .flags = TILESET_FLAGS({secondary}, METATILE_ATTRIBUTES_EMERALD_U16),\n    .tiles = gTilesetTiles_{name},\n    .palettes = gTilesetPalettes_{name},\n    .metatiles = gMetatiles_{name},\n    .metatileAttributes = gMetatileAttributes_{name},\n    .callback = NULL,\n}};"
+                f"const struct Tileset gTileset_{name} =\n{{\n    .isCompressed = TRUE,\n    .flags = TILESET_FLAGS({secondary}, METATILE_ATTRIBUTES_EMERALD_U16),\n    .tiles = gTilesetTiles_{name},\n    .palettes = gTilesetPalettes_{name},\n    .metatiles = gMetatiles_{name},\n    .metatileAttributes = gMetatileAttributes_{name},\n    .callback = {callback},\n}};"
             )
         return "\n\n".join(blocks + [f"#endif // {feature}"])
     raise ContentPortError(f"unknown generated source symbol {symbol!r}")

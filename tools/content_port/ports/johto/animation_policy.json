@@ -14,7 +14,7 @@
       "targetOwnership": "preserved",
       "disposition": "required",
       "reason": "Authenticated donor callback, schedule, and frame-binding evidence; later runtime code is adapted in the preserved expansion source.",
-      "targetSha256": "81aa3f5e6183868b09c6888e94a08c7badc2053b111b01fc12e1d13197e77702"
+      "targetSha256": "b62d836a5611174563c2155f41d896efa6110d7be476c8164d073df9abe1273c"
     }
   ],
   "residentTilesets": [
@@ -341,7 +341,7 @@
       "reason": "Executable secondary donor callback."
     },
     {
-      "callback": "InitTilesetAnim_ecruteak_theater",
+      "callback": "InitTilesetAnim_EcruteakTheater",
       "disposition": "required",
       "reason": "Executable secondary donor callback; spelling is donor evidence only."
     },
@@ -351,7 +351,7 @@
       "reason": "Executable secondary donor callback."
     },
     {
-      "callback": "InitTilesetAnim_Lavaridge",
+      "callback": "InitTilesetAnim_BlackthornGym",
       "disposition": "required",
       "reason": "Donor Blackthorn binding is evidence; Phase 2 must adapt it to a dedicated callback."
     }
@@ -375,7 +375,7 @@
       "reason": "Scheduled at primary tiles 508-511, referenced by current metatiles.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_general.sandwatersedge",
@@ -398,7 +398,7 @@
       "reason": "Scheduled at primary tiles 416-433, referenced by current metatiles.",
       "sourceTilesPerFrame": 18,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_general.water_current_landwatersedge",
@@ -421,7 +421,7 @@
       "reason": "Combined donor sheet supplies reviewed water-edge/current and waterfall slices.",
       "sourceTilesPerFrame": 48,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_east.flower",
@@ -438,10 +438,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_east.sandwatersedge",
@@ -461,10 +461,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 18,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_east.water_current_landwatersedge",
@@ -484,10 +484,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 48,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_south.flower",
@@ -504,10 +504,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_south.sandwatersedge",
@@ -527,10 +527,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 18,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_south.water_current_landwatersedge",
@@ -550,10 +550,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 48,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_west.flower",
@@ -570,10 +570,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_west.sandwatersedge",
@@ -593,10 +593,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 18,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "johto_north_west.water_current_landwatersedge",
@@ -616,10 +616,10 @@
       ],
       "unusedFrames": [],
       "disposition": "required",
-      "reason": "Mandatory issue-owned variant frame candidate; the donor executable callback uses johto_general frames, and target variant selection remains explicitly deferred to Phase 2.",
+      "reason": "Selected issue-owned variant frames preserve each active primary tileset's authored art while reusing the reviewed cadence and transfer slices.",
       "sourceTilesPerFrame": 48,
       "evidenceKind": "issue-owned-candidate",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "national_park.large_fountain",
@@ -638,7 +638,7 @@
       "reason": "Scheduled and metatile-backed at secondary tiles 88-95.",
       "sourceTilesPerFrame": 8,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "national_park.small_fountain",
@@ -658,7 +658,7 @@
       "reason": "Scheduled and metatile-backed at secondary tiles 104-111.",
       "sourceTilesPerFrame": 8,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "national_park.red_flower",
@@ -676,7 +676,7 @@
       "reason": "Scheduled and metatile-backed at secondary tiles 96-99.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "national_park.yellow_flower",
@@ -694,7 +694,7 @@
       "reason": "Scheduled and metatile-backed at secondary tiles 100-103.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "ecruteak_theater.flower",
@@ -714,7 +714,7 @@
       "reason": "Scheduled and metatile-backed at secondary tiles 104-107.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "azalea_town_gym.yellow_flower",
@@ -732,7 +732,7 @@
       "reason": "The donor callback schedules only yellow flowers at secondary tiles 99-102.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "azalea_town_gym.red_flower",
@@ -869,7 +869,7 @@
       "reason": "Donor Blackthorn binds Lavaridge, whose executable pointer table schedules only frames 0-3; current gym metatiles reference destination tiles 961-964.",
       "sourceTilesPerFrame": 4,
       "evidenceKind": "donor-executable",
-      "targetSelection": "deferred-phase-2"
+      "targetSelection": "selected-phase-2"
     },
     {
       "id": "blackthorn_gym.lavaridge_steam",
@@ -922,9 +922,9 @@
           "sourceTileOffset": 34
         }
       ],
-      "reason": "Authenticated executable donor cadence only; target runtime binding remains deferred to Phase 2.",
+      "reason": "Selected target binding preserves the authenticated executable cadence with expansion-native scheduler state.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "Johto_NorthEast",
@@ -932,7 +932,7 @@
       "counterMax": 256,
       "transfers": [
         {
-          "frameSet": "johto_general.sandwatersedge",
+          "frameSet": "johto_north_east.sandwatersedge",
           "period": 8,
           "phase": 0,
           "destinationTile": 416,
@@ -940,7 +940,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.flower",
+          "frameSet": "johto_north_east.flower",
           "period": 16,
           "phase": 2,
           "destinationTile": 508,
@@ -948,7 +948,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.water_current_landwatersedge",
+          "frameSet": "johto_north_east.water_current_landwatersedge",
           "period": 16,
           "phase": 3,
           "destinationTile": 450,
@@ -956,9 +956,9 @@
           "sourceTileOffset": 34
         }
       ],
-      "reason": "Authenticated donor executable cadence and shared johto_general frame queues only; Phase 2 must select whether and how the issue-owned variant candidates bind in the target.",
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "Johto_South",
@@ -966,7 +966,7 @@
       "counterMax": 256,
       "transfers": [
         {
-          "frameSet": "johto_general.sandwatersedge",
+          "frameSet": "johto_south.sandwatersedge",
           "period": 8,
           "phase": 0,
           "destinationTile": 416,
@@ -974,7 +974,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.flower",
+          "frameSet": "johto_south.flower",
           "period": 16,
           "phase": 2,
           "destinationTile": 508,
@@ -982,7 +982,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.water_current_landwatersedge",
+          "frameSet": "johto_south.water_current_landwatersedge",
           "period": 16,
           "phase": 3,
           "destinationTile": 450,
@@ -990,9 +990,9 @@
           "sourceTileOffset": 34
         }
       ],
-      "reason": "Authenticated donor executable cadence and shared johto_general frame queues only; Phase 2 must select whether and how the issue-owned variant candidates bind in the target.",
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "Johto_NorthWest",
@@ -1000,7 +1000,7 @@
       "counterMax": 256,
       "transfers": [
         {
-          "frameSet": "johto_general.sandwatersedge",
+          "frameSet": "johto_north_west.sandwatersedge",
           "period": 8,
           "phase": 0,
           "destinationTile": 416,
@@ -1008,7 +1008,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.flower",
+          "frameSet": "johto_north_west.flower",
           "period": 16,
           "phase": 2,
           "destinationTile": 508,
@@ -1016,7 +1016,7 @@
           "sourceTileOffset": 0
         },
         {
-          "frameSet": "johto_general.water_current_landwatersedge",
+          "frameSet": "johto_north_west.water_current_landwatersedge",
           "period": 16,
           "phase": 3,
           "destinationTile": 450,
@@ -1024,9 +1024,9 @@
           "sourceTileOffset": 34
         }
       ],
-      "reason": "Authenticated donor executable cadence and shared johto_general frame queues only; Phase 2 must select whether and how the issue-owned variant candidates bind in the target.",
+      "reason": "Selected target schedule reuses the authenticated cadence and destinations while binding this primary tileset's issue-owned frame tables.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "NationalPark",
@@ -1068,11 +1068,11 @@
       ],
       "reason": "All four donor transfers are current-metatile-backed.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "EcruteakTheater",
-      "callback": "InitTilesetAnim_ecruteak_theater",
+      "callback": "InitTilesetAnim_EcruteakTheater",
       "counterMax": 960,
       "transfers": [
         {
@@ -1086,7 +1086,7 @@
       ],
       "reason": "Donor executable flower transfer.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "AzaleaTown_Gym",
@@ -1104,11 +1104,11 @@
       ],
       "reason": "Only the donor yellow-flower set is scheduled.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     },
     {
       "tileset": "BlackthornGym",
-      "callback": "InitTilesetAnim_Lavaridge",
+      "callback": "InitTilesetAnim_BlackthornGym",
       "counterMax": 160,
       "transfers": [
         {
@@ -1120,9 +1120,9 @@
           "sourceTileOffset": 0
         }
       ],
-      "reason": "Authenticated donor Lavaridge evidence only: 160-tick counter and four-frame lava transfer; Phase 2 defers the dedicated expansion-native callback, frame choice, and cadence.",
+      "reason": "Dedicated expansion-native Blackthorn callback preserves the evidenced 160-tick counter, phase-1 period-16 cadence, and frames 0-3 without scheduling Lavaridge steam.",
       "evidenceKind": "donor-executable",
-      "runtimeDisposition": "deferred-phase-2"
+      "runtimeDisposition": "selected-phase-2"
     }
   ],
   "inactiveTransfers": [

@@ -524,7 +524,8 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "paletteCount",
         "authority",
     }
-    tileset_aliases = {"targetDirectory", "targetSymbol"}
+    tileset_aliases = {"targetDirectory", "targetSymbol", "animationCallback"}
+    tileset_target_aliases = {"targetDirectory", "targetSymbol"}
     seen_tilesets: dict[str, str] = {}
     for item, item_pointer in _policy_records(
         document,
@@ -536,8 +537,9 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         for field in ("role", "directory", "symbol", "authority"):
             _string(item[field], f"{item_pointer}.{field}")
         present_aliases = set(item) & tileset_aliases
-        if present_aliases and present_aliases != tileset_aliases:
-            missing = sorted(tileset_aliases - present_aliases)
+        present_target_aliases = present_aliases & tileset_target_aliases
+        if present_target_aliases and present_target_aliases != tileset_target_aliases:
+            missing = sorted(tileset_target_aliases - present_target_aliases)
             raise ContentPortError(f"{item_pointer}: missing field {missing[0]!r}")
         for field in present_aliases:
             _string(item[field], f"{item_pointer}.{field}")
@@ -1690,7 +1692,11 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         load_animation_policy(
             _safe_child(port_dir, root["animationPolicy"], "$.animationPolicy"),
             donor_root=donors_by_role["content"].root,
-            target_root=port_dir.parents[3],
+            target_root=(
+                port_dir.parents[3]
+                if (port_dir.parents[3] / "src/tileset_anims.c").is_file()
+                else Path.cwd()
+            ),
             resident_tilesets=resident_tilesets,
         )
         if "animationPolicy" in root

@@ -153,7 +153,7 @@ class AnimationPolicyTests(unittest.TestCase):
 
         mutated = copy.deepcopy(self.document)
         mutated["schedules"][1]["transfers"][0]["frameSet"] = (
-            "johto_north_east.sandwatersedge"
+            "johto_general.sandwatersedge"
         )
         with self.assertRaisesRegex(ContentPortError, "donor schedule differs"):
             self._load(mutated)
@@ -180,6 +180,123 @@ class AnimationPolicyTests(unittest.TestCase):
                     mutated["schedules"][0]["transfers"][0][field] = value
                 with self.assertRaisesRegex(ContentPortError, message):
                     self._load(mutated)
+
+    def test_phase2_runtime_traces_cover_every_reviewed_transfer(self) -> None:
+        frame_orders = {
+            "national_park.red_flower": (0, 1, 2, 1),
+            "national_park.yellow_flower": (2, 1, 0, 1),
+            "azalea_town_gym.yellow_flower": (0, 1, 2, 1),
+        }
+        observed = []
+        for schedule in self.document["schedules"]:
+            counter_max = schedule["counterMax"]
+            self.assertEqual((counter_max - 1 + 1) % counter_max, 0)
+            for transfer in schedule["transfers"]:
+                period, phase = transfer["period"], transfer["phase"]
+                first = period if phase == 0 else phase
+                order = frame_orders.get(
+                    transfer["frameSet"],
+                    tuple(
+                        next(
+                            item["requiredFrames"]
+                            for item in self.document["frameSets"]
+                            if item["id"] == transfer["frameSet"]
+                        )
+                    ),
+                )
+                observed.append(
+                    (
+                        schedule["tileset"],
+                        transfer["frameSet"],
+                        first,
+                        order[(first // period) % len(order)],
+                        transfer["sourceTileOffset"],
+                        transfer["destinationTile"],
+                        transfer["tileCount"] * 32,
+                    )
+                )
+        self.assertEqual(
+            observed,
+            [
+                ("Johto_General", "johto_general.sandwatersedge", 8, 1, 0, 416, 576),
+                ("Johto_General", "johto_general.flower", 2, 0, 0, 508, 128),
+                (
+                    "Johto_General",
+                    "johto_general.water_current_landwatersedge",
+                    3,
+                    0,
+                    34,
+                    450,
+                    384,
+                ),
+                (
+                    "Johto_NorthEast",
+                    "johto_north_east.sandwatersedge",
+                    8,
+                    1,
+                    0,
+                    416,
+                    576,
+                ),
+                ("Johto_NorthEast", "johto_north_east.flower", 2, 0, 0, 508, 128),
+                (
+                    "Johto_NorthEast",
+                    "johto_north_east.water_current_landwatersedge",
+                    3,
+                    0,
+                    34,
+                    450,
+                    384,
+                ),
+                ("Johto_South", "johto_south.sandwatersedge", 8, 1, 0, 416, 576),
+                ("Johto_South", "johto_south.flower", 2, 0, 0, 508, 128),
+                (
+                    "Johto_South",
+                    "johto_south.water_current_landwatersedge",
+                    3,
+                    0,
+                    34,
+                    450,
+                    384,
+                ),
+                (
+                    "Johto_NorthWest",
+                    "johto_north_west.sandwatersedge",
+                    8,
+                    1,
+                    0,
+                    416,
+                    576,
+                ),
+                ("Johto_NorthWest", "johto_north_west.flower", 2, 0, 0, 508, 128),
+                (
+                    "Johto_NorthWest",
+                    "johto_north_west.water_current_landwatersedge",
+                    3,
+                    0,
+                    34,
+                    450,
+                    384,
+                ),
+                ("NationalPark", "national_park.large_fountain", 10, 1, 0, 728, 256),
+                ("NationalPark", "national_park.small_fountain", 1, 0, 0, 744, 256),
+                ("NationalPark", "national_park.red_flower", 2, 0, 0, 736, 128),
+                ("NationalPark", "national_park.yellow_flower", 12, 2, 0, 740, 128),
+                ("EcruteakTheater", "ecruteak_theater.flower", 10, 1, 0, 744, 128),
+                ("AzaleaTown_Gym", "azalea_town_gym.yellow_flower", 10, 1, 0, 739, 128),
+                ("BlackthornGym", "blackthorn_gym.cave_lava", 1, 0, 0, 961, 128),
+            ],
+        )
+
+    def test_phase2_generated_header_binds_every_mandatory_tileset(self) -> None:
+        header = Path("src/data/tilesets/headers.h").read_text(encoding="utf-8")
+        callbacks = {
+            item["tileset"]: item["callback"] for item in self.document["schedules"]
+        }
+        for tileset, callback in callbacks.items():
+            start = header.index(f"const struct Tileset gTileset_{tileset} =")
+            block = header[start : header.index("};", start)]
+            self.assertIn(f".callback = {callback},", block)
 
     def test_transfer_source_slice_is_authenticated_and_bounded(self) -> None:
         mutated = copy.deepcopy(self.document)

@@ -30,9 +30,9 @@ EXPECTED_CALLBACKS = frozenset(
     {
         "InitTilesetAnim_JohtoGeneral",
         "InitTilesetAnim_NationalPark",
-        "InitTilesetAnim_ecruteak_theater",
+        "InitTilesetAnim_EcruteakTheater",
         "InitTilesetAnim_AzaleaTown_Gym",
-        "InitTilesetAnim_Lavaridge",
+        "InitTilesetAnim_BlackthornGym",
     }
 )
 EXPECTED_FRAME_SETS = {
@@ -260,17 +260,17 @@ EXPECTED_SCHEDULES = {
     "Johto_NorthEast": (
         "InitTilesetAnim_JohtoGeneral",
         256,
-        _primary_transfers("johto_general"),
+        _primary_transfers("johto_north_east"),
     ),
     "Johto_South": (
         "InitTilesetAnim_JohtoGeneral",
         256,
-        _primary_transfers("johto_general"),
+        _primary_transfers("johto_south"),
     ),
     "Johto_NorthWest": (
         "InitTilesetAnim_JohtoGeneral",
         256,
-        _primary_transfers("johto_general"),
+        _primary_transfers("johto_north_west"),
     ),
     "NationalPark": (
         "InitTilesetAnim_NationalPark",
@@ -283,7 +283,7 @@ EXPECTED_SCHEDULES = {
         ),
     ),
     "EcruteakTheater": (
-        "InitTilesetAnim_ecruteak_theater",
+        "InitTilesetAnim_EcruteakTheater",
         960,
         (("ecruteak_theater.flower", 10, 0, 0, 744, 4),),
     ),
@@ -293,7 +293,7 @@ EXPECTED_SCHEDULES = {
         (("azalea_town_gym.yellow_flower", 10, 0, 0, 739, 4),),
     ),
     "BlackthornGym": (
-        "InitTilesetAnim_Lavaridge",
+        "InitTilesetAnim_BlackthornGym",
         160,
         (("blackthorn_gym.cave_lava", 16, 1, 0, 961, 4),),
     ),
@@ -642,7 +642,7 @@ def load_animation_policy(
         expected_selection = (
             "not-selected"
             if frame_set_id in INACTIVE_FRAME_SETS
-            else "deferred-phase-2"
+            else "selected-phase-2"
         )
         if (
             item["evidenceKind"] != expected_evidence
@@ -705,7 +705,7 @@ def load_animation_policy(
             raise ContentPortError(
                 f"{pointer}.evidenceKind: schedule is not donor evidence"
             )
-        if item["runtimeDisposition"] != "deferred-phase-2":
+        if item["runtimeDisposition"] != "selected-phase-2":
             raise ContentPortError(
                 f"{pointer}.runtimeDisposition: target runtime choice is not deferred"
             )
