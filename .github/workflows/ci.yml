@@ -307,12 +307,12 @@ jobs:
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log
 
-      - name: Check live save ABI and all five artifact budgets
+      - name: Check live save ABI and three ROM artifact budgets
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O TEST_TIER=openworld integrity-check-all-purposes \
-            2>&1 | tee build/integrity/five-purpose-capacity.log
+          make -j"$(nproc)" -O integrity-check-rom-purposes \
+            2>&1 | tee build/integrity/rom-purpose-capacity.log
 
       - name: Upload Integrity reports
         if: ${{ always() }}

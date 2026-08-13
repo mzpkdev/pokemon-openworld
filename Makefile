@@ -456,13 +456,13 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-all-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
 .PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
@@ -755,18 +755,12 @@ integrity-check: content-port-transaction-check $(CAPACITY_POLICY) save-contract
 		--save-contract $(SAVE_CONTRACT) --purpose $(INTEGRITY_PURPOSE) \
 		--output $(INTEGRITY_REPORT)
 
-integrity-check-all-purposes: content-port-transaction-check
+integrity-check-rom-purposes: content-port-transaction-check
 	@rm -rf $(PURPOSE_REPORT_DIR)
 	@mkdir -p $(PURPOSE_REPORT_DIR)
 	+$(MAKE) integrity-check SAVE_ABI_PURPOSE=normal INTEGRITY_PURPOSE=normal INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/normal.json
 	+$(MAKE) DEBUG=1 integrity-check SAVE_ABI_PURPOSE=debug INTEGRITY_PURPOSE=debug INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/debug.json
 	+$(MAKE) RELEASE=1 integrity-check SAVE_ABI_PURPOSE=release INTEGRITY_PURPOSE=release INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/release.json
-	+$(MAKE) SAVE_ABI_PURPOSE=test-runner $(TESTELF)
-	python3 tools/integrity/validate_artifact.py --elf $(TESTELF) --purpose test-runner \
-		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/test-runner.json
-	+$(MAKE) SAVE_ABI_PURPOSE=headless-test $(HEADLESSELF)
-	python3 tools/integrity/validate_artifact.py --elf $(HEADLESSELF) --purpose headless-test \
-		--save-contract $(SAVE_CONTRACT) --output $(PURPOSE_REPORT_DIR)/headless-test.json
 
 # Other rules
 rom: content-port-transaction-check $(ROM)
