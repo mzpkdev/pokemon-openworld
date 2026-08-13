@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import subprocess
 import tempfile
@@ -82,6 +84,37 @@ class DonorTests(unittest.TestCase):
             pin = DonorPin("fixture", "example/donor", "0" * 40, "0" * 64, 1, root)
             with self.assertRaisesRegex(ContentPortError, "cannot authenticate"):
                 authenticate_donor(pin, require_git=True)
+
+    def test_stale_gitfile_falls_back_only_when_git_identity_is_optional(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "file").write_text("authenticated bytes", encoding="utf-8")
+            records = source_tree_records(root)
+            pin = DonorPin(
+                "fixture",
+                "example/donor",
+                "a" * 40,
+                records_digest(records),
+                len(records),
+                root,
+            )
+            (root / ".git").write_text(
+                "gitdir: ../../missing/modules/fixture\n", encoding="utf-8"
+            )
+
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr):
+                evidence = authenticate_donor(pin, require_git=False)
+                with self.assertRaisesRegex(ContentPortError, "cannot authenticate"):
+                    authenticate_donor(pin, require_git=True)
+                with self.assertRaisesRegex(ContentPortError, "digest mismatch"):
+                    authenticate_donor(
+                        replace(pin, tree_digest="0" * 64), require_git=False
+                    )
+
+            self.assertEqual(stderr.getvalue(), "")
+            self.assertEqual(evidence.tree_digest, pin.tree_digest)
+            self.assertEqual(evidence.file_count, pin.file_count)
 
     def test_generic_tree_includes_artifacts_unless_pin_explicitly_excludes_them(self):
         with tempfile.TemporaryDirectory() as directory:
