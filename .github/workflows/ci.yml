@@ -141,7 +141,7 @@ jobs:
           tools.e2e.tests.unit.test_install_skyemu -v
 
       - name: Run C mechanics tests
-        run: make -j"$(nproc)" -O check
+        run: make -j"$(nproc)" -O TEST_TIER=openworld check
 
   build:
     name: Build
@@ -311,7 +311,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O integrity-check-all-purposes \
+          make -j"$(nproc)" -O TEST_TIER=openworld integrity-check-all-purposes \
             2>&1 | tee build/integrity/five-purpose-capacity.log
 
       - name: Upload Integrity reports

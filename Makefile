@@ -190,6 +190,11 @@ override OUTPUT_NAME := $(FILE_NAME)-debug
 endif
 
 override ROM_NAME := $(OUTPUT_NAME).gba
+TEST_TIER ?= full
+ifeq (,$(filter $(TEST_TIER),full openworld))
+  $(error TEST_TIER must be full or openworld)
+endif
+TEST_BUILD_SUFFIX := $(if $(filter openworld,$(TEST_TIER)),-openworld,)
 # Keep the historical Emerald/ALL_REGIONS=0 object path, but ensure every other
 # content-policy tuple has a distinct namespace. Output artifact names stay put.
 ifeq ($(MAP_VERSION)-$(ALL_REGIONS),emerald-0)
@@ -198,15 +203,15 @@ else
 BUILD_POLICY_SUFFIX := -$(MAP_VERSION)-allregions$(ALL_REGIONS)
 endif
 OBJ_DIR_NAME := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)
-OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+OBJ_DIR_NAME_TEST := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test$(TEST_BUILD_SUFFIX)
 OBJ_DIR_NAME_DEBUG := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-debug
 OBJ_DIR_NAME_RELEASE := $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-release
 ASSETS_DIR_NAME := $(BUILD_DIR)/assets
 
 override ELF_NAME := $(ROM_NAME:.gba=.elf)
 override MAP_NAME := $(ROM_NAME:.gba=.map)
-override TESTELF := $(ROM_NAME:.gba=-test.elf)
-override HEADLESSELF := $(ROM_NAME:.gba=-test-headless.elf)
+override TESTELF := $(ROM_NAME:.gba=-test$(TEST_BUILD_SUFFIX).elf)
+override HEADLESSELF := $(ROM_NAME:.gba=-test$(TEST_BUILD_SUFFIX)-headless.elf)
 
 # Pick our active variables
 override ROM := $(ROM_NAME)
@@ -507,7 +512,11 @@ C_SRCS_IN := $(wildcard $(C_SUBDIR)/*.c $(C_SUBDIR)/*/*.c $(C_SUBDIR)/*/*/*.c)
 C_SRCS := $(foreach src,$(C_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 C_OBJS := $(patsubst $(C_SUBDIR)/%.c,$(C_BUILDDIR)/%.o,$(C_SRCS))
 
+ifeq ($(TEST_TIER),openworld)
+TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/openworld/*.c)
+else
 TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/*.c $(TEST_SUBDIR)/*/*.c $(TEST_SUBDIR)/*/*/*.c)
+endif
 TEST_SRCS := $(foreach src,$(TEST_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 TEST_OBJS := $(patsubst $(TEST_SUBDIR)/%.c,$(TEST_BUILDDIR)/%.o,$(TEST_SRCS))
 TEST_OBJS_REL := $(patsubst $(OBJ_DIR)/%,%,$(TEST_OBJS))
@@ -790,7 +799,9 @@ tidymodern:
 
 tidycheck:
 	rm -f $(FILE_NAME)-test.elf $(FILE_NAME)-test-headless.elf
-	rm -rf $(OBJ_DIR_NAME_TEST)
+	rm -f $(FILE_NAME)-test-openworld.elf $(FILE_NAME)-test-openworld-headless.elf
+	rm -rf $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test
+	rm -rf $(BUILD_DIR)/$(BUILD_NAME)$(BUILD_POLICY_SUFFIX)-test-openworld
 
 tidydebug:
 	rm -f $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.elf $(FILE_NAME)-debug.map $(FILE_NAME)-debug.sym
