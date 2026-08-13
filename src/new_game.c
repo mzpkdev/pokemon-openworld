@@ -2,6 +2,7 @@
 #include "clock.h"
 #include "new_game.h"
 #include "random.h"
+#include "regional_story_migration.h"
 #include "pokemon.h"
 #include "roamer.h"
 #include "pokemon_size_record.h"
@@ -174,6 +175,7 @@ void NewGameInitData(void)
     PlayTimeCounter_Reset();
     ClearPokedexFlags();
     InitEventData();
+    RegionalStoryMigration_InitializeNewSave();
     ClearTVShowData();
     ResetGabbyAndTy();
     ClearSecretBases();
