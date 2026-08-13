@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
@@ -68,8 +69,34 @@ jobs:
       - name: Checkout
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Check imported content ownership
+        run: make content-port-transaction-check
+
+      - name: Detect donor-contract changes
+        id: donor-scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" != pull_request ]]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE_SHA"...HEAD -- \
+            | grep -Eq '^(\.github/workflows/ci\.yml$|Makefile$|tools/content_port/)'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip donor-backed contracts for unrelated changes
+        if: steps.donor-scope.outputs.run != 'true'
+        run: echo 'No importer contracts changed; donor-backed checks are not required.'
 
       - name: Checkout HnS content authority
+        if: steps.donor-scope.outputs.run == 'true'
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -80,6 +107,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout PKMN-World mechanical donor
+        if: steps.donor-scope.outputs.run == 'true'
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -90,6 +118,7 @@ jobs:
           fetch-depth: 0
 
       - name: Authenticate donors and run contracts
+        if: steps.donor-scope.outputs.run == 'true'
         shell: bash
         env:
           CONTENT_PORT_REQUIRE_DONORS: "1"
@@ -113,7 +142,7 @@ jobs:
           exit "$status"
 
       - name: Upload donor-contract failure evidence
-        if: failure()
+        if: failure() && steps.donor-scope.outputs.run == 'true'
         # actions/upload-artifact v7
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
