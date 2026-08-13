@@ -19,10 +19,16 @@ from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import _animation_units
 
 
-PORT = Path("tools/content_port/ports/johto")
-DONOR_ROOT = Path(os.environ.get("CONTENT_PORT_DONOR_ROOT", ".references"))
-if not DONOR_ROOT.exists():
-    DONOR_ROOT = Path.cwd().parents[2] / ".references"
+ROOT = Path(__file__).resolve().parents[3]
+PORT = ROOT / "tools/content_port/ports/johto"
+if configured_donor_root := os.environ.get("CONTENT_PORT_DONOR_ROOT"):
+    DONOR_ROOT = Path(configured_donor_root).resolve()
+elif (ROOT / ".references").is_dir():
+    DONOR_ROOT = ROOT / ".references"
+elif (ROOT.parents[2] / ".references").is_dir():
+    DONOR_ROOT = ROOT.parents[2] / ".references"
+else:
+    DONOR_ROOT = ROOT / ".references"
 DONOR = DONOR_ROOT / "pokemonHnS"
 
 
@@ -45,7 +51,7 @@ class AnimationPolicyTests(unittest.TestCase):
             load_animation_policy(
                 path,
                 donor_root=DONOR,
-                target_root=target_root or Path.cwd(),
+                target_root=target_root or ROOT,
                 resident_tilesets=self.residents,
                 resident_contracts=(
                     self.resident_contracts if target_root is None else None
@@ -56,7 +62,7 @@ class AnimationPolicyTests(unittest.TestCase):
         policy = load_animation_policy(
             PORT / "animation_policy.json",
             donor_root=DONOR,
-            target_root=Path.cwd(),
+            target_root=ROOT,
             resident_tilesets=self.residents,
         )
         payloads = required_frame_payloads(policy)
@@ -82,6 +88,8 @@ class AnimationPolicyTests(unittest.TestCase):
             self._load(mutated)
 
     def test_unauthenticated_required_code_and_assets_are_rejected(self) -> None:
+        if not DONOR.is_dir():
+            self.skipTest("content donor checkout is required for digest mutations")
         for family, field in (
             ("codePayloads", "sha256"),
             ("frameSets", "inventorySha256"),
@@ -108,6 +116,8 @@ class AnimationPolicyTests(unittest.TestCase):
                     self._load(mutated)
 
     def test_regeneration_owns_exactly_policy_required_frames(self) -> None:
+        if not DONOR.is_dir():
+            self.skipTest("content donor checkout is required for regeneration")
         descriptor = load_port(PORT, DONOR_ROOT)
         expected = {
             target for _, target in required_frame_payloads(descriptor.animations)
@@ -218,7 +228,7 @@ class AnimationPolicyTests(unittest.TestCase):
                 load_animation_policy(
                     path,
                     donor_root=DONOR,
-                    target_root=Path.cwd(),
+                    target_root=ROOT,
                     resident_tilesets=self.residents,
                     resident_contracts=contracts,
                 )
