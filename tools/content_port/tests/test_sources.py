@@ -1093,6 +1093,14 @@ class SourceGraphTests(unittest.TestCase):
                 target_map = target / source_map
                 target_map.parent.mkdir(parents=True)
                 shutil.copyfile(source_map, target_map)
+            for name in sorted(
+                {
+                    warp["source"]
+                    for warp in descriptor.adaptations["worldPolicy"]["scriptWarps"]
+                }
+            ):
+                source_script = Path("data/maps") / name / "scripts.inc"
+                shutil.copyfile(source_script, target / source_script)
             self.assertEqual(
                 validate_port_sources(descriptor, target).inventory["tilesets"], 71
             )
