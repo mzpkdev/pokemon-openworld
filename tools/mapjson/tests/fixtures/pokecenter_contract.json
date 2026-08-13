@@ -290,7 +290,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -304,7 +304,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -318,7 +318,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -337,7 +337,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "0d7733e16e8a7fce5594eeb831eec1d19e71cdc0a9c909dd0ba6bbdccbc7ad46"
+      "fullMapSemanticSha256": "73ec0b0aea2bc29472d89c89654e7ca7f9a82f840cd35dfdd2941cca65d7cc49"
     },
     "CeruleanCity_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -501,7 +501,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -515,7 +515,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -529,7 +529,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -548,7 +548,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "74b96218db4b7a4efa051fe59fc50e8e74251178c9d33a5de74a514f8008427c"
+      "fullMapSemanticSha256": "a25187f7cf01c04d38e1e22eb4fca9d08d4958840810797217d55d7798f62b6a"
     },
     "CinnabarIsland_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -713,7 +713,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -727,7 +727,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -741,7 +741,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -760,7 +760,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "34f97d96ad9f60877839b7e473de039b3404487dc25c0552d31ffe6775740e58"
+      "fullMapSemanticSha256": "de5e99e279a27457067c3921ac2eee7fa92551c0cddb7dc7c347def2633b1bc9"
     },
     "DewfordTown_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -1507,7 +1507,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1521,7 +1521,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1535,7 +1535,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1554,7 +1554,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "7fe24a6de7d5ebfaeba3a7cf4e66cd71b6460861dad32f4671facc431ba22a6f"
+      "fullMapSemanticSha256": "a5e8ba41cae667eb03090b3560ac677f1cfbc6133bc4f0e66fd7cd95b6bc7145"
     },
     "FortreeCity_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -1817,7 +1817,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1831,7 +1831,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1845,7 +1845,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -1864,7 +1864,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "52e4f65c67917132578feb503a3274baf872a30f1d1c7af587934c492adfc768"
+      "fullMapSemanticSha256": "931c571b386efd87d5dc4913d7cbfc159c678d1848b527acbee857eac369d749"
     },
     "FuchsiaCity_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -1986,7 +1986,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2000,7 +2000,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2014,7 +2014,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2033,7 +2033,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "5d605b889311d3d34b154434ab48a77aefad6ad9f9f247fc1df37068b44a7fa1"
+      "fullMapSemanticSha256": "cf8fa16345ddd8a49bcadc042bc285aea5a072102bfb81a36cf6077bff1d200c"
     },
     "IndigoPlateau_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_INDIGO_PLATEAU_POKEMON_CENTER_1F",
@@ -2205,7 +2205,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2219,7 +2219,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2233,7 +2233,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2252,7 +2252,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "9e8a11f31951c3e8d179241cb74ac140f89f3f0a081e0414c3028f509c1c2145"
+      "fullMapSemanticSha256": "7de5d5b9d5f4294bad41030c8a3498ffb26958752c8b71c3ad56db1cc8df2843"
     },
     "LavaridgeTown_PokemonCenter_1F": {
       "layout": "LAYOUT_LAVARIDGE_TOWN_POKEMON_CENTER_1F",
@@ -2550,7 +2550,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2564,7 +2564,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2578,7 +2578,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -2597,7 +2597,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "49d36e8b35ff9ba82237c58234cdc0a4dbc8e235f502b2a56dc07976e0b3927d"
+      "fullMapSemanticSha256": "777e84e343182274f418cd315359beca2dd3dff043403abf86d077b90004c720"
     },
     "LilycoveCity_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -3396,7 +3396,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3410,7 +3410,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3424,7 +3424,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3443,7 +3443,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "d753874006fc8c2ddadcbbc7d18cbf7deb378cb52931763d312180663cb59953"
+      "fullMapSemanticSha256": "96974544a0e84ca974e5b85914f97ce418c7fa615fb860492372956740614947"
     },
     "PacifidlogTown_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -3943,7 +3943,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3957,7 +3957,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3971,7 +3971,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -3990,7 +3990,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "16553131b8b5a4649525397982da0c9ea5bcdb078a797d0f43a4157d408787e9"
+      "fullMapSemanticSha256": "75fa90b3f8763cd9b176ed4f0f095d60117927dada4191c61f5181f2918f0463"
     },
     "Route10_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -4126,7 +4126,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4140,7 +4140,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4154,7 +4154,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4173,7 +4173,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "c0e9a35cef23e7e9c398e8d17775eae9543ba0746ff3d613ddf095a62b17b25c"
+      "fullMapSemanticSha256": "385b9b21086fdb11943f607d39f52969d411efb6a4606defab18ec3c68d4a235"
     },
     "Route4_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -4323,7 +4323,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4337,7 +4337,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4351,7 +4351,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4370,7 +4370,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "5deb69d526ab300eb9c2da5af7aca88666377ae70e58b2d900d2709425014cdc"
+      "fullMapSemanticSha256": "4dc7eee35cd59d3bfc3783f09fe29a400313997608d3d2a55193216f6451f203"
     },
     "RustboroCity_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -4675,7 +4675,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4689,7 +4689,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4703,7 +4703,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4722,7 +4722,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "95627968bf16e626f59f34a1531e00773481d86afb62badc3b576f844317e5ef"
+      "fullMapSemanticSha256": "e2d6e42dee415f2947e5c8821d8198dafce16139deff5b93b73c90d10d9d4ffa"
     },
     "SevenIsland_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -4858,7 +4858,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4872,7 +4872,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4886,7 +4886,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -4905,7 +4905,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "e2c753a9a9e81441cd6ca606a15890d2d542c18fd3d402d45032c4bccdbd4726"
+      "fullMapSemanticSha256": "088edcd7dfd22c4f3cb6f715aeb1e4521bccacd1316ebb897ee7e45b20dd7c15"
     },
     "SixIsland_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -5014,7 +5014,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5028,7 +5028,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5042,7 +5042,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5061,7 +5061,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "ba08d8e757a9bed6994bf1d4ecf51abd14cbedba3445119a2c2700b0e1315f93"
+      "fullMapSemanticSha256": "c206816810e378bca128022c99890396f08963e7de1dd297585f6dbd5597f6d3"
     },
     "SlateportCity_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -5466,7 +5466,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5480,7 +5480,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5494,7 +5494,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5513,7 +5513,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "1e1937913e2e27406801bcf8da9c4405337151838bc5aeec26ea1dad9c21a2d3"
+      "fullMapSemanticSha256": "d4d09e85e8afeb4ba43a0e1bef4ff064177736338ea1856438397c96c594fc18"
     },
     "TwoIsland_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -5607,7 +5607,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5621,7 +5621,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5635,7 +5635,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5654,7 +5654,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "161d803cd6c9f44a8ca439d417417351cce38b5157c640c54dfff43e9864798b"
+      "fullMapSemanticSha256": "4fbb50eddad0de068dad938e38d90d24ef7e95b9e0c1bae63ce9ca697993cdc9"
     },
     "VerdanturfTown_PokemonCenter_1F": {
       "layout": "LAYOUT_POKEMON_CENTER_1F",
@@ -5973,7 +5973,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -5987,7 +5987,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -6001,7 +6001,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -6020,7 +6020,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "2f6990b98d9528c4f95c86ea4fa134a4aaad26c6ef533ac3650e4e55d2d6ae8b"
+      "fullMapSemanticSha256": "af145193147ef4cebd121842b00e343bdbd090bab0df9da3a851c8e19253cc2b"
     },
     "ViridianCity_PokemonCenter_1F_Frlg": {
       "layout": "LAYOUT_POKEMON_CENTER_1F_FRLG",
@@ -6142,7 +6142,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_UnionRoomAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -6156,7 +6156,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_WirelessClubAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -6170,7 +6170,7 @@
           "movement_range_y": 0,
           "trainer_type": "TRAINER_TYPE_NONE",
           "trainer_sight_or_berry_tree_id": "0",
-          "script": "Common_EventScript_DirectCornerAttendant",
+          "script": "Common_EventScript_RegionalCableClubUnavailable",
           "flag": "0"
         },
         {
@@ -6189,7 +6189,7 @@
         }
       ],
       "localSemanticSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "fullMapSemanticSha256": "1c9a54eec4903149d55668b540ec4d3c4c45c57035c84d42e950fcb438977132"
+      "fullMapSemanticSha256": "0d4df0800fd4db4cf7b36d10191ccf64a0b5a89112df6a63d035a9925b25341e"
     }
   }
 }

@@ -131,6 +131,7 @@ gStdScripts::
 gStdScripts_End::
 
 	.include "data/scripts/pokemon_center.inc"
+	.include "data/scripts/resident_story_boundaries.inc"
 
 	.include "data/maps/PetalburgCity/scripts.inc"
 	.include "data/maps/SlateportCity/scripts.inc"
