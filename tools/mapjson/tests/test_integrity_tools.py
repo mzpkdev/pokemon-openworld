@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from tools.integrity.manifest import (
     EXPECTED_ABIS,
@@ -15,15 +16,19 @@ from tools.integrity.manifest import (
     validate_manifest,
 )
 from tools.integrity.validate_artifact import (
+    ANIMATION_FRAME_SYMBOL_PREFIXES,
     ROM_BASE,
+    ROM_LIMIT,
     ValidationError,
     expected_save_abi_values,
     enforce_purpose_usage,
     load_capacity_policy,
     parse_elf_sections,
     parse_elf_symbols,
+    parse_symbol_records,
     validate_elf_linked_save_abi,
     validate_linked_save_abi,
+    validate_linked_animation_contract,
     validate_group_slots,
     validate_layouts,
     validate_map_headers,
@@ -80,6 +85,110 @@ class IntegrityToolTests(unittest.TestCase):
             {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
         )
         self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
+
+    def test_manifest_rejects_missing_reviewed_animation_callback(self) -> None:
+        manifest = json.loads((self.generated / "integrity-manifest.json").read_text())
+        tileset = next(
+            item
+            for item in manifest["tilesets"]
+            if item["name"] == "gTileset_NationalPark"
+        )
+        tileset["callback"] = None
+        tileset["allowNullCallback"] = True
+        with self.assertRaisesRegex(ManifestError, "reviewed animation callback"):
+            validate_manifest(manifest)
+
+    def test_linked_animation_evidence_rejects_missing_or_missized_symbols(
+        self,
+    ) -> None:
+        policy_path = ROOT / "tools/content_port/ports/johto/animation_policy.json"
+        policy = json.loads(policy_path.read_text())
+        symbols = {
+            schedule["callback"]: (0x08000100 + index * 4, 4)
+            for index, schedule in enumerate(policy["schedules"])
+        }
+        for frame_set in policy["frameSets"]:
+            if not frame_set["requiredFrames"]:
+                continue
+            prefix = ANIMATION_FRAME_SYMBOL_PREFIXES[frame_set["id"]]
+            for frame in frame_set["requiredFrames"]:
+                symbols[f"{prefix}{frame}"] = (
+                    0x08001000 + len(symbols) * 4,
+                    frame_set["sourceTilesPerFrame"] * 32,
+                )
+        report = validate_linked_animation_contract(symbols, policy_path)
+        self.assertEqual(report["frames"], 111)
+        self.assertLess(
+            report["queue"]["peakEntries"], report["queue"]["capacityEntries"]
+        )
+
+        mutations = []
+        without_callback = copy.deepcopy(symbols)
+        without_callback.pop("InitTilesetAnim_NationalPark")
+        mutations.append((without_callback, "symbol is missing"))
+        without_frame = copy.deepcopy(symbols)
+        without_frame.pop("sTilesetAnims_JohtoGeneral_Flower0")
+        mutations.append((without_frame, "symbol is missing"))
+        missized_frame = copy.deepcopy(symbols)
+        address, size = missized_frame["sTilesetAnims_JohtoGeneral_Flower0"]
+        missized_frame["sTilesetAnims_JohtoGeneral_Flower0"] = (address, size - 1)
+        mutations.append((missized_frame, "bytes, expected"))
+        for owner in (
+            "InitTilesetAnim_NationalPark",
+            "sTilesetAnims_JohtoGeneral_Flower0",
+        ):
+            _, size = symbols[owner]
+            for label, address in (
+                ("zero", 0),
+                ("below ROM", ROM_BASE - 1),
+                ("above ROM", ROM_BASE + ROM_LIMIT),
+                (
+                    "extent overflow",
+                    ROM_BASE
+                    + ROM_LIMIT
+                    - size
+                    + (2 if owner.startswith("InitTilesetAnim_") else 1),
+                ),
+            ):
+                mutation = copy.deepcopy(symbols)
+                mutation[owner] = (address, size)
+                mutations.append((mutation, "outside ROM"))
+        for mutation, message in mutations:
+            with (
+                self.subTest(message=message),
+                self.assertRaisesRegex(ValidationError, message),
+            ):
+                validate_linked_animation_contract(mutation, policy_path)
+
+        overflow = copy.deepcopy(policy)
+        for schedule in overflow["schedules"]:
+            schedule["transfers"] *= 11
+        with tempfile.TemporaryDirectory(prefix="animation-overflow-") as directory:
+            path = Path(directory) / "policy.json"
+            path.write_text(json.dumps(overflow))
+            with self.assertRaisesRegex(ValidationError, "exceeds capacity"):
+                validate_linked_animation_contract(symbols, path)
+
+    def test_sym_records_are_augmented_from_sibling_elf(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="linked-symbols-") as directory:
+            sym = Path(directory) / "product.sym"
+            sym.write_text("08000100 g 00000004 Existing\n")
+            sym.with_suffix(".elf").touch()
+            metadata = "   1: 08000200    32 OBJECT  GLOBAL HIDDEN     8 HiddenFrame\n"
+            completed = subprocess.CompletedProcess(
+                ["arm-none-eabi-readelf"], 0, stdout=metadata, stderr=""
+            )
+            with mock.patch("subprocess.run", return_value=completed) as run:
+                records = parse_symbol_records(sym)
+            self.assertEqual(records["Existing"], (0x08000100, 4))
+            self.assertEqual(records["HiddenFrame"], (0x08000200, 32))
+            run.assert_called_once_with(
+                ["arm-none-eabi-readelf", "-Ws", str(sym.with_suffix(".elf"))],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
 
     def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
         original = json.loads((self.generated / "integrity-manifest.json").read_text())

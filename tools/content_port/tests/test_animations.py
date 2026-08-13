@@ -8,7 +8,12 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-from tools.content_port.animations import load_animation_policy, required_frame_payloads
+from tools.content_port.animations import (
+    _png_tile_count,
+    load_animation_policy,
+    maximum_combined_queue_demand,
+    required_frame_payloads,
+)
 from tools.content_port.descriptor import load_port
 from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import _animation_units
@@ -27,6 +32,9 @@ class AnimationPolicyTests(unittest.TestCase):
         cls.document = json.loads((PORT / "animation_policy.json").read_text())
         adaptations = json.loads((PORT / "adaptations.json").read_text())
         cls.residents = {item["symbol"] for item in adaptations["tilesetAdaptations"]}
+        cls.resident_contracts = {
+            item["symbol"]: item for item in adaptations["tilesetAdaptations"]
+        }
 
     def _load(
         self, document: dict[str, object], *, target_root: Path | None = None
@@ -39,6 +47,9 @@ class AnimationPolicyTests(unittest.TestCase):
                 donor_root=DONOR,
                 target_root=target_root or Path.cwd(),
                 resident_tilesets=self.residents,
+                resident_contracts=(
+                    self.resident_contracts if target_root is None else None
+                ),
             )
 
     def test_reviewed_policy_authenticates_complete_inventory(self) -> None:
@@ -180,6 +191,61 @@ class AnimationPolicyTests(unittest.TestCase):
                     mutated["schedules"][0]["transfers"][0][field] = value
                 with self.assertRaisesRegex(ContentPortError, message):
                     self._load(mutated)
+
+    def test_phase3_rejects_invalid_slices_destinations_and_schedules(self) -> None:
+        mutations = (
+            ("source slice", 0, 0, "sourceTileOffset", 47, "source tile slice"),
+            ("unreferenced destination", 4, 0, "destinationTile", 752, "unreferenced"),
+            ("out of range", 0, 0, "destinationTile", 630, "out of range"),
+            ("incompatible period", 0, 0, "period", 7, "must divide"),
+        )
+        for label, schedule_index, transfer_index, field, value, message in mutations:
+            with self.subTest(label=label):
+                mutated = copy.deepcopy(self.document)
+                mutated["schedules"][schedule_index]["transfers"][transfer_index][
+                    field
+                ] = value
+                with self.assertRaisesRegex(ContentPortError, message):
+                    self._load(mutated)
+
+    def test_phase3_rejects_callback_and_queue_capacity_drift(self) -> None:
+        contracts = copy.deepcopy(self.resident_contracts)
+        contracts["Johto_General"]["animationCallback"] = "NULL"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "animation_policy.json"
+            path.write_text(json.dumps(self.document), encoding="utf-8")
+            with self.assertRaisesRegex(ContentPortError, "disagrees"):
+                load_animation_policy(
+                    path,
+                    donor_root=DONOR,
+                    target_root=Path.cwd(),
+                    resident_tilesets=self.residents,
+                    resident_contracts=contracts,
+                )
+
+        mutated = copy.deepcopy(self.document)
+        mutated["queueCapacity"] = 1
+        with self.assertRaisesRegex(ContentPortError, "runtime queue"):
+            self._load(mutated)
+
+        transfer = {
+            "period": 1,
+            "phase": 0,
+        }
+        schedule = {"counterMax": 1, "transfers": [transfer] * 11}
+        self.assertEqual(maximum_combined_queue_demand(schedule, schedule), 22)
+
+    def test_phase3_rejects_invalid_frame_dimensions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "bad.png"
+            path.write_bytes(
+                b"\x89PNG\r\n\x1a\n"
+                + b"\0" * 8
+                + (7).to_bytes(4, "big")
+                + (8).to_bytes(4, "big")
+            )
+            with self.assertRaisesRegex(ContentPortError, "whole 8x8 tiles"):
+                _png_tile_count(path, "frame")
 
     def test_phase2_runtime_traces_cover_every_reviewed_transfer(self) -> None:
         frame_orders = {

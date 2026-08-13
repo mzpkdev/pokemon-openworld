@@ -18,6 +18,13 @@ JOHTO_ADAPTATIONS = json.loads(
 JOHTO_LOCK = json.loads(
     (JOHTO_PORT_ROOT / JOHTO_PORT["allocationLock"]).read_text(encoding="utf-8")
 )
+JOHTO_ANIMATIONS = json.loads(
+    (JOHTO_PORT_ROOT / JOHTO_PORT["animationPolicy"]).read_text(encoding="utf-8")
+)
+EXPECTED_ANIMATION_CALLBACKS = {
+    f"gTileset_{item['tileset']}": item["callback"]
+    for item in JOHTO_ANIMATIONS["schedules"]
+}
 
 
 def group_content_region(group_name: Any) -> str | None:
@@ -414,6 +421,13 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         }:
             raise ManifestError(
                 f"tileset {tileset['name']} lacks an exact attribute ABI"
+            )
+    tilesets_by_name = {tileset["name"]: tileset for tileset in tilesets}
+    for name, callback in EXPECTED_ANIMATION_CALLBACKS.items():
+        tileset = tilesets_by_name.get(name)
+        if tileset is None or tileset.get("callback") != callback:
+            raise ManifestError(
+                f"tileset {name} lacks reviewed animation callback {callback}"
             )
     if any(not symbol["name"] or symbol.get("kind") != "rom" for symbol in symbols):
         raise ManifestError("every required symbol must name a ROM resident object")

@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "queueCapacity": 20,
   "ownershipBoundary": {
     "runtimeCode": "preserved-and-digest-checked",
     "requiredFrames": "content-port-generated",

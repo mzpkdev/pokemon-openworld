@@ -1688,6 +1688,11 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     resident_tilesets = {
         str(item["symbol"]) for item in tileset_adaptations if isinstance(item, Mapping)
     }
+    resident_animation_contracts = {
+        str(item["symbol"]): item
+        for item in tileset_adaptations
+        if isinstance(item, Mapping)
+    }
     animations = (
         load_animation_policy(
             _safe_child(port_dir, root["animationPolicy"], "$.animationPolicy"),
@@ -1698,6 +1703,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
                 else Path.cwd()
             ),
             resident_tilesets=resident_tilesets,
+            resident_contracts=resident_animation_contracts,
         )
         if "animationPolicy" in root
         else MappingProxyType({})

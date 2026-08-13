@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import struct
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -35,6 +36,7 @@ EXPECTED_CALLBACKS = frozenset(
         "InitTilesetAnim_BlackthornGym",
     }
 )
+TILESET_ANIM_QUEUE_CAPACITY = 20
 EXPECTED_FRAME_SETS = {
     "johto_general.flower": (
         "data/tilesets/primary/johto_general/anim/flower",
@@ -398,6 +400,37 @@ def _directory_inventory(root: Path, directory: str) -> tuple[list[Path], str, i
     return files, digest.hexdigest(), tile_counts.pop()
 
 
+def _referenced_tiles(path: Path) -> set[int]:
+    try:
+        payload = path.read_bytes()
+    except OSError as error:
+        raise ContentPortError(
+            f"cannot read animation metatiles {path}: {error}"
+        ) from error
+    if not payload or len(payload) % 2:
+        raise ContentPortError(f"animation metatiles are malformed: {path}")
+    return {value & 0x3FF for (value,) in struct.iter_unpack("<H", payload)}
+
+
+def _schedule_transfer_count(schedule: Mapping[str, object], tick: int) -> int:
+    return sum(
+        tick % int(transfer["period"]) == int(transfer["phase"])
+        for transfer in schedule["transfers"]  # type: ignore[union-attr]
+    )
+
+
+def maximum_combined_queue_demand(
+    primary: Mapping[str, object], secondary: Mapping[str, object]
+) -> int:
+    """Return the exact peak queue demand for an aligned primary/secondary pair."""
+    horizon = math.lcm(int(primary["counterMax"]), int(secondary["counterMax"]))
+    return max(
+        _schedule_transfer_count(primary, tick % int(primary["counterMax"]))
+        + _schedule_transfer_count(secondary, tick % int(secondary["counterMax"]))
+        for tick in range(horizon)
+    )
+
+
 def verify_preserved_runtime_payloads(
     policy: Mapping[str, object], *, target_root: Path
 ) -> None:
@@ -422,6 +455,7 @@ def load_animation_policy(
     donor_root: Path,
     target_root: Path,
     resident_tilesets: set[str],
+    resident_contracts: Mapping[str, Mapping[str, object]] | None = None,
 ) -> Mapping[str, object]:
     """Load and authenticate the one reviewed animation policy."""
     try:
@@ -435,6 +469,7 @@ def load_animation_policy(
         "$",
         {
             "schemaVersion",
+            "queueCapacity",
             "ownershipBoundary",
             "codePayloads",
             "residentTilesets",
@@ -446,6 +481,10 @@ def load_animation_policy(
     )
     if root["schemaVersion"] != 1:
         raise ContentPortError("$.schemaVersion: unsupported animation policy schema")
+    if root["queueCapacity"] != TILESET_ANIM_QUEUE_CAPACITY:
+        raise ContentPortError(
+            f"$.queueCapacity: must match the {TILESET_ANIM_QUEUE_CAPACITY}-entry runtime queue"
+        )
     boundary = _record(
         root["ownershipBoundary"],
         "$.ownershipBoundary",
@@ -773,6 +812,32 @@ def load_animation_policy(
                 or not 0 <= phase < transfer["period"]
             ):
                 raise ContentPortError(f"{tp}.phase: expected an integer within period")
+            if counter_max % transfer["period"]:
+                raise ContentPortError(
+                    f"{tp}.period: schedule period must divide its counter maximum"
+                )
+
+            if resident_contracts is not None:
+                contract = resident_contracts[str(item["tileset"])]
+                role = str(contract["role"])
+                lower, upper = (640, 1024) if role == "secondary" else (0, 640)
+                end = destination + transfer["tileCount"]
+                if destination < lower or end > upper:
+                    raise ContentPortError(
+                        f"{tp}: destination transfer is out of range"
+                    )
+                metatiles = (
+                    target_root
+                    / "data/tilesets"
+                    / role
+                    / str(contract["directory"])
+                    / "metatiles.bin"
+                )
+                referenced = _referenced_tiles(metatiles)
+                if not any(tile in referenced for tile in range(destination, end)):
+                    raise ContentPortError(
+                        f"{tp}: active destination is unreferenced by current metatiles"
+                    )
         actual_transfers = tuple(
             (
                 transfer["frameSet"],
@@ -794,6 +859,33 @@ def load_animation_policy(
         ):
             raise ContentPortError(
                 f"{pointer}: donor schedule differs from reviewed authority"
+            )
+
+    if resident_contracts is not None:
+        for name, schedule in schedules.items():
+            contract = resident_contracts[name]
+            if contract.get("animationCallback") != schedule["callback"]:
+                raise ContentPortError(
+                    f"animation callback for {name} disagrees with the reviewed schedule"
+                )
+        primary = [
+            schedule
+            for name, schedule in schedules.items()
+            if resident_contracts[name]["role"] == "primary"
+        ]
+        secondary = [
+            schedule
+            for name, schedule in schedules.items()
+            if resident_contracts[name]["role"] == "secondary"
+        ]
+        peak = max(
+            maximum_combined_queue_demand(first, second)
+            for first in primary
+            for second in secondary
+        )
+        if peak > TILESET_ANIM_QUEUE_CAPACITY:
+            raise ContentPortError(
+                f"animation schedules need {peak} queue entries, capacity is {TILESET_ANIM_QUEUE_CAPACITY}"
             )
     inactive = _records(root, "inactiveTransfers")
     if not inactive:
