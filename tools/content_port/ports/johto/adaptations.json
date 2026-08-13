@@ -6692,7 +6692,7 @@
         "command": "warp",
         "index": 0,
         "x": 8,
-        "y": 16,
+        "y": 9,
         "sourceRegion": "REGION_JOHTO",
         "targetRegion": "REGION_KANTO"
       },

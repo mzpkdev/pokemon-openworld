@@ -23,8 +23,10 @@ from tools.e2e.tests.integrity.manifest import (
 
 SCRIPT_IDLE = 2
 SAILOR_LOCAL_ID = 1
-FERRY_X = 8
-FERRY_Y = 16
+VERMILION_OUTDOOR_SAILOR_LOCAL_ID = 6
+VERMILION_OUTDOOR_ENTRY = (24, 32)
+VERMILION_PORT_ENTRY = (8, 9)
+OLIVINE_PORT_ENTRY = (8, 16)
 POKEMON_STORAGE_SIZE = 0x8560
 FUSION_STORAGE_OFFSET = 0x83D0
 PLAYER_IDENTITY_SIZE = 0x0E
@@ -59,8 +61,22 @@ HEAL_LOCATION_LITTLEROOT_BRENDAN_2F = 1
 TRAINER_RICKY_1 = 64
 
 FERRY_LEGS = (
-    ("VermilionCity_PortInside", "OlivineCity_PortInside", 0xF3300001),
-    ("OlivineCity_PortInside", "VermilionCity_PortInside", 0xF3300002),
+    (
+        "VermilionCity_PortInside",
+        VERMILION_PORT_ENTRY,
+        "OlivineCity_PortInside",
+        OLIVINE_PORT_ENTRY,
+        (8, 15),
+        0xF3300001,
+    ),
+    (
+        "OlivineCity_PortInside",
+        OLIVINE_PORT_ENTRY,
+        "VermilionCity_PortInside",
+        VERMILION_PORT_ENTRY,
+        (8, 8),
+        0xF3300002,
+    ),
 )
 
 
@@ -180,14 +196,14 @@ def _seed_fusion_record(game, scenario_result) -> None:
     assert game.read(destination, PARTY_RECORD_SIZE) == record
 
 
-def _load_source(game, entry, request_id: int) -> None:
+def _load_source(game, entry, coordinates: tuple[int, int], request_id: int) -> None:
     result = game.request_map_load(
         IntegrityMapLoadRequest(
             request_id=request_id,
             map_group=entry.group,
             map_num=entry.number,
-            x=FERRY_X,
-            y=FERRY_Y,
+            x=coordinates[0],
+            y=coordinates[1],
         ),
         max_frames=1_800,
     )
@@ -195,13 +211,29 @@ def _load_source(game, entry, request_id: int) -> None:
     assert result.phase is IntegrityLoadPhase.FIELD_READY
     assert result.error is IntegrityLoadError.NONE
     assert game.map_id() == entry.map_id
-    assert game.position() == (FERRY_X, FERRY_Y)
+    assert game.position() == coordinates
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
-@pytest.mark.parametrize(("source_name", "destination_name", "request_id"), FERRY_LEGS)
+@pytest.mark.parametrize(
+    (
+        "source_name",
+        "source_coordinates",
+        "destination_name",
+        "arrival_coordinates",
+        "walk_coordinates",
+        "request_id",
+    ),
+    FERRY_LEGS,
+)
 def test_ferry_leg_preserves_state_and_returns_control(
-    integrity_game, source_name, destination_name, request_id
+    integrity_game,
+    source_name,
+    source_coordinates,
+    destination_name,
+    arrival_coordinates,
+    walk_coordinates,
+    request_id,
 ):
     maps = {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
@@ -211,7 +243,7 @@ def test_ferry_leg_preserves_state_and_returns_control(
 
     _settle_overworld(integrity_game)
     scenario_result = _populate_continuity_state(integrity_game)
-    _load_source(integrity_game, source, request_id)
+    _load_source(integrity_game, source, source_coordinates, request_id)
     _seed_fusion_record(integrity_game, scenario_result)
     before = _continuity_snapshot(integrity_game, scenario_result)
 
@@ -247,9 +279,87 @@ def test_ferry_leg_preserves_state_and_returns_control(
     )
 
     assert integrity_game.map_id() == destination.map_id
-    assert integrity_game.position() == (FERRY_X, FERRY_Y)
+    assert integrity_game.position() == arrival_coordinates
     assert integrity_game.callback_is("CB2_Overworld")
     assert not integrity_game.controls_locked()
     assert integrity_game.script_status() == SCRIPT_IDLE
     assert integrity_game.movement_idle()
     assert _continuity_snapshot(integrity_game, scenario_result) == before
+    integrity_game.move_to(x=walk_coordinates[0], y=walk_coordinates[1])
+    assert integrity_game.position() == walk_coordinates
+
+
+def test_vermilion_outdoor_sailor_enters_usable_terminal(integrity_game):
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    vermilion = maps["VermilionCity_Frlg"]
+    terminal = maps["VermilionCity_PortInside"]
+
+    _settle_overworld(integrity_game)
+    _load_source(
+        integrity_game,
+        vermilion,
+        VERMILION_OUTDOOR_ENTRY,
+        0xF3300003,
+    )
+
+    integrity_game.face("Down")
+    integrity_game.press("A")
+    integrity_game.wait_until(
+        lambda: (
+            integrity_game.controls_locked()
+            and integrity_game.read_u16(
+                integrity_game.address("gSpecialVar_LastTalked")
+            )
+            == VERMILION_OUTDOOR_SAILOR_LOCAL_ID
+        ),
+        description="Vermilion outdoor ferry sailor interaction",
+        max_frames=120,
+    )
+    integrity_game.advance_until(
+        lambda: integrity_game.map_id() == terminal.map_id,
+        description="public Vermilion ferry terminal entry",
+        max_pulses=600,
+        button="A",
+    )
+    integrity_game.wait_until(
+        lambda: (
+            integrity_game.callback_is("CB2_Overworld")
+            and not integrity_game.controls_locked()
+            and integrity_game.script_status() == SCRIPT_IDLE
+            and integrity_game.movement_idle()
+        ),
+        description="usable Vermilion ferry terminal entry",
+        max_frames=1_800,
+        step_frames=2,
+    )
+
+    assert integrity_game.position() == VERMILION_PORT_ENTRY
+    integrity_game.move_to(x=8, y=3)
+    assert integrity_game.position() == (8, 3)
+
+    integrity_game.advance_until(
+        lambda: integrity_game.map_id() == vermilion.map_id,
+        description="public Vermilion ferry terminal exit",
+        max_pulses=600,
+        button="Up",
+    )
+    integrity_game.wait_until(
+        lambda: (
+            integrity_game.callback_is("CB2_Overworld")
+            and not integrity_game.controls_locked()
+            and integrity_game.script_status() == SCRIPT_IDLE
+            and integrity_game.movement_idle()
+        ),
+        description="usable Vermilion city return",
+        max_frames=1_800,
+        step_frames=2,
+    )
+
+    assert integrity_game.map_id() == vermilion.map_id
+    assert integrity_game.position() == (24, 34)
+    assert integrity_game.callback_is("CB2_Overworld")
+    assert not integrity_game.controls_locked()
+    assert integrity_game.script_status() == SCRIPT_IDLE
+    assert integrity_game.movement_idle()
