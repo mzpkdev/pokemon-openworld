@@ -30,6 +30,21 @@ class CiContractTests(unittest.TestCase):
             ),
         )
 
+    def test_donor_contracts_install_canonical_build_dependencies(self) -> None:
+        donor_job = self.workflow.split("  donor-contracts:\n", 1)[1].split(
+            "  bundle-preflight:\n", 1
+        )[0]
+        setup = "      - name: Set up build dependencies\n        uses: ./.github/actions/setup-build\n"
+        self.assertEqual(donor_job.count(setup), 1)
+        self.assertLess(
+            donor_job.index("uses: actions/checkout@"), donor_job.index(setup)
+        )
+        self.assertLess(
+            donor_job.index(setup), donor_job.index("Checkout HnS content authority")
+        )
+        self.assertNotIn("git clean", donor_job)
+        self.assertNotIn("git reset", donor_job)
+
     def test_mechanics_job_has_bounded_runtime_budget(self) -> None:
         self.assertRegex(
             self.workflow,
