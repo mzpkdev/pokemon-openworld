@@ -213,6 +213,18 @@ class CiContractTests(unittest.TestCase):
         ):
             self.assertIn(artifact, self.project)
 
+        header = "include/constants/region_map_sections.h"
+        self.assertIn(header, self.project_value["artifacts"])
+        self.assertIn(
+            f"AUTO_GEN_TARGETS += {header}",
+            Path("json_data_rules.mk").read_text(encoding="utf-8"),
+        )
+
+        archive = self.workflow.split(
+            "      - name: Pack prepared validation artifacts\n", 1
+        )[1].split("      - name: Upload prepared validation artifacts\n", 1)[0]
+        self.assertIn(header, archive)
+
     def test_validator_transport_archive_stays_outside_checkout(self) -> None:
         self.assertEqual(
             self.workflow.count("path: ${{ runner.temp }}/content-port-validation"),
@@ -242,6 +254,13 @@ class CiContractTests(unittest.TestCase):
         self.assertIn("E2E_VENV ?= $(BUILD_DIR)/e2e-venv", self.makefile)
         self.assertIn("E2E_PYTEST_CACHE ?= $(E2E_RESULTS)/pytest-cache", self.makefile)
         self.assertIn("--no-cache-dir", self.makefile)
+
+        e2e_job = self.workflow.split("  e2e:\n", 1)[1].split("  integrity:\n", 1)[0]
+        validator = "      - name: Run canonical E2E validator\n"
+        before_validator = e2e_job.split(validator, 1)[0]
+        self.assertNotIn("Generate and validate Integrity manifest", e2e_job)
+        self.assertNotIn("integrity-manifest.json", before_validator)
+        self.assertNotIn("make -C tools/mapjson", before_validator)
 
     def test_e2e_failure_upload_matches_validator_results(self) -> None:
         evidence_root = (

@@ -356,6 +356,7 @@ jobs:
           pokemon-openworld-debug.gba
           pokemon-openworld-debug.sym
           pokemon-openworld-test-headless.elf
+          include/constants/region_map_sections.h
           tools/e2e/requirements.txt
           tools/mgba-rom-test-hydra/mgba-rom-test-hydra
           build/content-port/candidate
@@ -430,15 +431,6 @@ jobs:
           if [[ -s build/content-port/candidate/desired.patch ]]; then
             git apply --binary build/content-port/candidate/desired.patch
           fi
-
-      - name: Generate and validate Integrity manifest
-        if: ${{ matrix.suite == 'integrity' }}
-        run: |
-          make -C tools/mapjson
-          make NODEP=1 SETUP_PREREQS=0 \
-            build/generated/allregions/current/integrity-manifest.json
-          python3 tools/integrity/manifest.py \
-            build/generated/allregions/current/integrity-manifest.json
 
       - name: Install E2E runtime dependencies
         run: |
