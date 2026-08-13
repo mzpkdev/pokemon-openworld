@@ -338,3 +338,11 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     )
     game.wait_for_controls_unlocked(max_frames=1_200)
     assert game.position() == (8, 16)
+    assert game.read(game.save_block2(), 8) == player_identity_baseline["name"]
+    assert game.read_u8(game.save_block2() + 8) == player_identity_baseline["gender"]
+    assert game.read(game.save_block2() + 10, 4) == player_identity_baseline["trainer_id"]
+    arrived_catch = decode_box_pokemon(
+        game.read(game.address("gParties") + 3 * 100, 80)
+    )
+    assert arrived_catch is not None
+    assert (arrived_catch["personality"], arrived_catch["otId"]) == caught_identity_baseline
