@@ -4,6 +4,23 @@
 
 Run Make from the repository root. Add `-j"$(nproc)" -O` to compiled targets when you want parallel, grouped output.
 
+### Choosing checks efficiently
+
+Keep the existing build tree: Make's dependency graph is the fastest way to reuse generated files, host tools, and objects. Do not run `make clean` unless investigating a stale-output bug. Do not use `make -n` to inspect these targets because GNU Make still executes recursive `$(MAKE)` recipes; use `make -qp` to check that targets parse and inspect recipes directly instead.
+
+While iterating, run the narrowest test that owns the changed behavior, then run its Make target before handoff:
+
+- For one Python unittest module or test, use `python3 -m unittest <dotted.module>[.<Class>.<test>] -v`. For pytest-based tests, use `python3 -m pytest <path>[::<test>] -q`.
+- For Python changes, run the focused test first, then `make format-check lint-check`.
+- For workflow changes, run `actionlint <changed-workflow-files>`. Also run `.github/release/release.py self-test` when changing release workflows or helpers.
+- For Makefile command orchestration, run the focused tests in `tools.mapjson.tests.test_make_isolation`, then the smallest artifact or check target affected by the change.
+- For Pokemon OpenWorld mechanics C changes, start with `make -j"$(nproc)" -O product-check`.
+- For ROM, linker, generated-data, or shared-header changes, start with `make -j"$(nproc)" -O debug-check`, which matches the PR build purpose. Add `integrity-check` when normal-build behavior can differ and `release-check` only when release flags, optimization, capacity, or release-only behavior can differ.
+- Run E2E only for behavior that needs emulator evidence. Start with `e2e-core`; add the sampled or full integrity suite only when regional traversal or integrity coverage requires it.
+- Always run `git diff --check` before committing. Documentation-only changes normally need no ROM build.
+
+Escalate to `make check` only when shared or inherited engine behavior may be affected, and to `make integrity-check-rom-purposes` only when the change can differ across normal, debug, and release purposes. Record any intentionally skipped expensive check in the PR description.
+
 ### Build artifacts
 
 - `make normal-artifacts` builds the normal `.gba`, `.map`, and `.sym` files.
