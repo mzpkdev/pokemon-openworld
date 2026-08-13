@@ -215,6 +215,8 @@ jobs:
         run: |
           mkdir debug-release
           cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
+          cp pokemon-openworld-debug.map release/pokemon-openworld-debug.map
+          cp pokemon-openworld-debug.sym release/pokemon-openworld-debug.sym
           cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
 
@@ -309,6 +311,7 @@ jobs:
 
   integrity:
     name: ROM Audit
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -319,6 +322,13 @@ jobs:
 
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
+
+      - name: Download normal and debug build artifacts
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: pokemon-openworld
+          path: build/prebuilt
 
       - name: Check deterministic generation and schemas
         shell: bash
@@ -333,12 +343,34 @@ jobs:
             -s tools/persistence/tests -p 'test_*.py' -q \
             2>&1 | tee build/integrity/persistence.log
 
-      - name: Check live save ABI and three ROM artifact budgets
+      - name: Build and audit release ROM
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O integrity-check-rom-purposes \
+          make -j"$(nproc)" -O RELEASE=1 integrity-check \
+            INTEGRITY_REPORT=build/integrity/purposes/release.json \
             2>&1 | tee build/integrity/rom-purpose-capacity.log
+
+      - name: Audit prebuilt normal and debug ROMs
+        shell: bash
+        run: |
+          set -o pipefail
+          for purpose in normal debug; do
+            suffix=
+            if [[ "$purpose" == debug ]]; then
+              suffix=-debug
+            fi
+            python3 tools/integrity/validate_artifact.py \
+              --rom "build/prebuilt/pokemon-openworld${suffix}.gba" \
+              --map "build/prebuilt/pokemon-openworld${suffix}.map" \
+              --sym "build/prebuilt/pokemon-openworld${suffix}.sym" \
+              --manifest build/generated/allregions/current/integrity-manifest.json \
+              --capacity-policy tools/integrity/capacity_policy.json \
+              --save-contract tools/integrity/save_contract.json \
+              --purpose "$purpose" \
+              --output "build/integrity/purposes/${purpose}.json" \
+              2>&1 | tee -a build/integrity/rom-purpose-capacity.log
+          done
 
       - name: Upload Integrity reports
         if: ${{ always() }}
