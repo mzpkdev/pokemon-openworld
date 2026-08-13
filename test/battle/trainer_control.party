@@ -314,3 +314,20 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 Spearow
 Level: 12
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SAILOR_EUGENE_JOHTO ===
+Name: EUGENE
+Class: Sailor
+Pic: Sailor
+Gender: Male
+Music: Male
+Battle Type: Singles
+AI: Check Bad Move
+
+Poliwhirl
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Tauros
+Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe

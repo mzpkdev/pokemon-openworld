@@ -99,6 +99,11 @@ class TrainerRematchDataTests(unittest.TestCase):
             "TRAINER_REMATCH_BINDING_NONE, .index = 0 },",
             first,
         )
+        self.assertIn(
+            "[TRAINER_SAILOR_EUGENE_JOHTO] = { .kind = "
+            "TRAINER_REMATCH_BINDING_NONE, .index = 0 },",
+            first,
+        )
 
     def test_make_rule_regenerates_identical_output(self):
         expected = render(self.manifest, self.values).encode()
@@ -172,7 +177,7 @@ class TrainerRematchDataTests(unittest.TestCase):
             validate_manifest(ben, self.values)
         none = self.mutated()
         none["noneBindings"].reverse()
-        with self.assertRaisesRegex(RematchDataError, "exact Lawson and Samuel"):
+        with self.assertRaisesRegex(RematchDataError, "exact reviewed"):
             validate_manifest(none, self.values)
 
     def test_malformed_manifest_fails_before_output_changes(self):

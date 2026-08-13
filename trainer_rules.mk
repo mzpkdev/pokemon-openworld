@@ -19,4 +19,5 @@ $(BUNDLED_TRAINERPROC): $(TOOLS_DIR)/trainerproc/main.c \
 endif
 
 %.h: %.party $(TRAINERPROC)
-	$(CPP) $(TRAINER_CPPFLAGS) -traditional-cpp - < $< | $(TRAINERPROC) -o $@ -i $< -
+	$(CPP) $(TRAINER_CPPFLAGS) -traditional-cpp - < $< | $(TRAINERPROC) -o $@.tmp -i $< -
+	@if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv $@.tmp $@; fi

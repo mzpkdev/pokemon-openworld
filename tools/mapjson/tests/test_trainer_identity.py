@@ -82,14 +82,15 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             },
         )
 
-    def test_global_bounds_and_authored_samuel_identity_are_literal(self) -> None:
+    def test_global_bounds_and_authored_johto_identities_are_literal(self) -> None:
         opponents = OPPONENTS.read_text()
         definitions = numeric_definitions(OPPONENTS)
         hoenn = {name: value for name, value in definitions.items() if value <= 857}
         self.assertEqual(len(hoenn), 858)
         self.assertEqual(set(hoenn.values()), set(range(858)))
         self.assertEqual(definitions["TRAINER_YOUNGSTER_SAMUEL_JOHTO"], 1481)
-        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1482$")
+        self.assertEqual(definitions["TRAINER_SAILOR_EUGENE_JOHTO"], 1482)
+        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1483$")
         self.assertRegex(opponents, r"(?m)^#define MAX_TRAINERS_COUNT\s+1536$")
 
     def test_every_live_frlg_party_is_generated_and_nonempty(self) -> None:
@@ -126,7 +127,26 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             ["data/trainers.h", "data/trainers_frlg.h"],
         )
         self.assertNotIn("IS_FRLG", body)
-        self.assertEqual(len(PARTY_SECTION.findall(HOENN_PARTIES.read_text())), 859)
+        party_symbols = PARTY_SECTION.findall(HOENN_PARTIES.read_text())
+        self.assertEqual(len(party_symbols), 860)
+        self.assertEqual(
+            party_symbols[-2:],
+            ["TRAINER_SAILOR_EUGENE_JOHTO", "TRAINER_YOUNGSTER_SAMUEL_JOHTO"],
+        )
+        eugene = HOENN_PARTIES.read_text().split(
+            "=== TRAINER_SAILOR_EUGENE_JOHTO ===", 1
+        )[1].split("=== TRAINER_YOUNGSTER_SAMUEL_JOHTO ===", 1)[0]
+        for authored in (
+            "Name: EUGENE",
+            "Class: Sailor",
+            "Pic: Sailor",
+            "Gender: Male",
+            "Music: Male",
+            "AI: Check Bad Move",
+            "SPECIES_POLIWHIRL\nLevel: 20",
+            "SPECIES_TAUROS\nLevel: 22",
+        ):
+            self.assertIn(authored, eugene)
 
     def test_executable_sources_never_use_legacy_frlg_tombstones(self) -> None:
         tracked = subprocess.run(

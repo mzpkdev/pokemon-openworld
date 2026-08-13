@@ -1534,12 +1534,21 @@ def validate_frozen_bindings(
     entries: list[dict[str, Any]], contract: dict[str, Any]
 ) -> None:
     """Reject any deletion, addition, or move in the published baseline projection."""
+    frozen = {
+        (domain, item["symbol"]): item["value"]
+        for domain, bindings in contract["publishedBindings"].items()
+        for item in bindings
+    }
     published = {
         (item["domain"], item["symbol"]): item["value"]
         for item in entries
         if (
             item["state"]["kind"]
             in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+            or (
+                item["state"]["kind"] == "trainer-defeat-bitmap"
+                and (item["domain"], item["symbol"]) in frozen
+            )
             or (
                 item["source"] == "regional-facts"
                 and item["state"]["kind"] == "allocated-binding"
@@ -1551,11 +1560,6 @@ def validate_frozen_bindings(
                 }
             )
         )
-    }
-    frozen = {
-        (domain, item["symbol"]): item["value"]
-        for domain, bindings in contract["publishedBindings"].items()
-        for item in bindings
     }
     if published != frozen:
         missing = sorted(set(frozen) - set(published))[:5]

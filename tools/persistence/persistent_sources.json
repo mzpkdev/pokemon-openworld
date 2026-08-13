@@ -74,17 +74,18 @@
     "liveValueOffset": 857,
     "liveSource": "frlg-trainer-identities",
     "additional": [
-      {"source": "johto-trainer-identities", "symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481}
+      {"source": "johto-trainer-identities", "symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481},
+      {"source": "johto-trainer-identities", "symbol": "TRAINER_SAILOR_EUGENE_JOHTO", "value": 1482}
     ]
   },
   "trainerDefeat": {
-    "count": 1482,
+    "count": 1483,
     "publishedCount": 858,
     "flagBase": 1280,
     "bitmapStorage": {
       "firstTrainerId": 858,
-      "bitCount": 624,
-      "byteCount": 78
+      "bitCount": 625,
+      "byteCount": 79
     },
     "flagStorage": {
       "persistent": [32, 2335],

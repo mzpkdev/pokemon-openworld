@@ -48,6 +48,7 @@ TEST("Trainer rematch registry distinguishes none invalid and Match Call")
 
     EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_FRLG_RUIN_MANIAC_LAWSON).kind, TRAINER_REMATCH_BINDING_NONE);
     EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_YOUNGSTER_SAMUEL_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_SAILOR_EUGENE_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
     EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_FRLG_RIVAL_OAKS_LAB_SQUIRTLE).kind, TRAINER_REMATCH_BINDING_INVALID);
     EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_ROSE_1).kind, TRAINER_REMATCH_BINDING_MATCH_CALL);
     EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_NONE).kind, TRAINER_REMATCH_BINDING_INVALID);
@@ -55,6 +56,7 @@ TEST("Trainer rematch registry distinguishes none invalid and Match Call")
 
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_FRLG_RUIN_MANIAC_LAWSON, 0, &trainerId));
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_YOUNGSTER_SAMUEL_JOHTO, 0, &trainerId));
+    EXPECT(!TrainerRematch_TryResolveStage(TRAINER_SAILOR_EUGENE_JOHTO, 0, &trainerId));
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_FRLG_RIVAL_OAKS_LAB_SQUIRTLE, 0, &trainerId));
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_FRLG_YOUNGSTER_BEN, TRAINER_REMATCH_STAGE_COUNT, &trainerId));
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_FRLG_YOUNGSTER_BEN, 0, NULL));

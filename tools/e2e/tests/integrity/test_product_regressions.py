@@ -41,7 +41,7 @@ def test_existing_hoenn_save_continues(game_from_hoenn_save):
     document, original = load_fixture_manifest(FIXTURE_MANIFEST)
     expected = document["semanticExpectations"]
     assert _migration_marker(original) == bytes(2)
-    assert original.active_slot.trainer_defeated_bitmap == bytes(78)
+    assert original.active_slot.trainer_defeated_bitmap == bytes(79)
     assert original.semantics() == expected
 
     game_from_hoenn_save.wait_for_callback("CB2_InitTitleScreen", max_frames=6_000)
@@ -59,7 +59,7 @@ def test_existing_hoenn_save_continues(game_from_hoenn_save):
 
     rewritten = save_from_start_menu(game_from_hoenn_save)
     assert _migration_marker(rewritten) == REGIONAL_STORY_MIGRATION_MARKER
-    assert rewritten.active_slot.trainer_defeated_bitmap == bytes(78)
+    assert rewritten.active_slot.trainer_defeated_bitmap == bytes(79)
     assert rewritten.semantics() == expected
     cold_restart_and_continue(game_from_hoenn_save)
     assert_runtime_semantics(game_from_hoenn_save, expected)
@@ -76,7 +76,7 @@ def test_populated_historical_save_preserves_reviewed_state(
         POPULATED_FIXTURE_MANIFEST.parent / document["fixture"]["file"]
     )
     assert image.sha256 == document["fixture"]["sha256"]
-    assert image.active_slot.trainer_defeated_bitmap == bytes(78)
+    assert image.active_slot.trainer_defeated_bitmap == bytes(79)
     result_fields = document["generation"]["result"]
     result_fields["status"] = SaveScenarioStatus(result_fields["status"])
     result = SaveScenarioResult(**result_fields)
@@ -105,7 +105,7 @@ def test_populated_historical_save_preserves_reviewed_state(
     # save retains the reviewed paused record so another cold Continue can
     # perform the same documented transition.
     rewritten = save_from_start_menu(game)
-    assert rewritten.active_slot.trainer_defeated_bitmap == bytes(78)
+    assert rewritten.active_slot.trainer_defeated_bitmap == bytes(79)
     assert representative_saved_semantics(rewritten, result) == expected
     cold_restart_and_continue(game)
     after_restart = representative_runtime_semantics(game, result)

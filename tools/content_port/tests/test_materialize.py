@@ -52,7 +52,7 @@ class MaterializeTests(unittest.TestCase):
             self.skipTest(message)
         return load_port(PORT, donor_root)
 
-    def test_selected_samuel_materialization_and_rival_projection_stability(
+    def test_selected_trainers_materialize_without_activating_bystanders(
         self,
     ) -> None:
         descriptor = self.descriptor()
@@ -69,10 +69,59 @@ class MaterializeTests(unittest.TestCase):
             script["events"][0]["instructions"][0]["operands"][0],
             "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
         )
+        route39 = map_units["map:Route39"].value
+        self.assertEqual(len(route39["object_events"]), 1)
+        self.assertEqual(route39["object_events"][0], {
+            "graphics_id": "OBJ_EVENT_GFX_SAILOR",
+            "x": 22,
+            "y": 42,
+            "elevation": 0,
+            "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
+            "movement_range_x": 6,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NORMAL",
+            "trainer_sight_or_berry_tree_id": "6",
+            "script": "Route39_EventScript_Eugene",
+            "flag": "0",
+        })
+        route39_script = map_units["map-script:Route39"].value
+        self.assertEqual(len(route39_script["events"]), 1)
+        self.assertEqual(
+            route39_script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_SAILOR_EUGENE_JOHTO",
+        )
         trainer_units = _trainer_units(descriptor, state, ROOT)
         self.assertEqual(len(trainer_units), 1)
+        parties = {
+            trainer["target"]: trainer["party"]
+            for trainer in trainer_units[0].value
+        }
+        eugene = next(
+            trainer
+            for trainer in trainer_units[0].value
+            if trainer["target"] == "TRAINER_SAILOR_EUGENE_JOHTO"
+        )
         self.assertEqual(
-            [member["species"] for member in trainer_units[0].value[0]["party"]],
+            {key: eugene[key] for key in (
+                "target", "name", "class", "pic", "gender", "music", "double", "ai"
+            )},
+            {
+                "target": "TRAINER_SAILOR_EUGENE_JOHTO",
+                "name": "EUGENE",
+                "class": "Sailor",
+                "pic": "Sailor",
+                "gender": "Male",
+                "music": "Male",
+                "double": False,
+                "ai": ["Check Bad Move"],
+            },
+        )
+        self.assertEqual(
+            [member["species"] for member in parties["TRAINER_SAILOR_EUGENE_JOHTO"]],
+            ["SPECIES_POLIWHIRL", "SPECIES_TAUROS"],
+        )
+        self.assertEqual(
+            [member["species"] for member in parties["TRAINER_YOUNGSTER_SAMUEL_JOHTO"]],
             ["SPECIES_TEDDIURSA", "SPECIES_SANDSHREW", "SPECIES_SPEAROW"],
         )
         self.assertEqual(
