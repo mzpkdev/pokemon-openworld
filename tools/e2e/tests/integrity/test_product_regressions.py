@@ -28,11 +28,19 @@ SPECIES_SEEDOT = 273
 ITEM_NUGGET = 135
 HEAL_LOCATION_LITTLEROOT_BRENDAN_2F = 1
 TRAINER_RICKY_1 = 64
+REGIONAL_STORY_MIGRATION_MARKER_OFFSET = 0x9C2
+REGIONAL_STORY_MIGRATION_MARKER = bytes((0x53, 1))
+
+
+def _migration_marker(image) -> bytes:
+    offset = REGIONAL_STORY_MIGRATION_MARKER_OFFSET
+    return image.active_slot.save_block1[offset : offset + 2]
 
 
 def test_existing_hoenn_save_continues(game_from_hoenn_save):
     document, original = load_fixture_manifest(FIXTURE_MANIFEST)
     expected = document["semanticExpectations"]
+    assert _migration_marker(original) == bytes(2)
     assert original.active_slot.trainer_defeated_bitmap == bytes(78)
     assert original.semantics() == expected
 
@@ -50,11 +58,14 @@ def test_existing_hoenn_save_continues(game_from_hoenn_save):
     assert_runtime_semantics(game_from_hoenn_save, expected)
 
     rewritten = save_from_start_menu(game_from_hoenn_save)
+    assert _migration_marker(rewritten) == REGIONAL_STORY_MIGRATION_MARKER
     assert rewritten.active_slot.trainer_defeated_bitmap == bytes(78)
     assert rewritten.semantics() == expected
     cold_restart_and_continue(game_from_hoenn_save)
     assert_runtime_semantics(game_from_hoenn_save, expected)
-    assert game_from_hoenn_save.battery_snapshot().semantics() == expected
+    restarted = game_from_hoenn_save.battery_snapshot()
+    assert _migration_marker(restarted) == REGIONAL_STORY_MIGRATION_MARKER
+    assert restarted.semantics() == expected
 
 
 def test_populated_historical_save_preserves_reviewed_state(

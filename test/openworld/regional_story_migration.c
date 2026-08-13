@@ -127,7 +127,7 @@ TEST("Historical migration preserves regional fact and variable isolation")
     FlagSet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
     FlagSet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
     VarSet(VAR_SAFARI_ZONE_STATE, 0x1111);
-    VarSet(VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0x2222);
+    VarSet(VAR_MAP_SCENE_CERULEAN_CITY_RIVAL, 0x2222);
     VarSet(VAR_MAP_SCENE_ONE_ISLAND_HARBOR, 0x3333);
     VarSet(VAR_CHERRYGROVE_CITY_STATE, 0x4444);
     memcpy(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags));
