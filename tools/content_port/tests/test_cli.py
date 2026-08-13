@@ -15,13 +15,14 @@ from dataclasses import dataclass
 from unittest.mock import patch
 
 from tools.content_port.cli import _bundle_current_state, check_port, main, parser
-from tools.content_port.bundle import _read_project_config
+from tools.content_port.bundle import _read_project_config, write_preflight_receipt
 from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import DonorPin
 from tools.content_port.ownership import (
     OwnershipManifest,
     OwnershipUnit,
+    canonical_json,
     content_sha256,
 )
 from tools.content_port.update import canonical_bytes, validate_assets
@@ -787,6 +788,7 @@ class CliTests(unittest.TestCase):
         }
         comparison = self.repo / "expected.json"
         comparison.write_bytes(canonical(expected))
+        report_path = self.repo / "build/donor-contract.json"
         with (
             patch(
                 "tools.content_port.descriptor.load_port",
@@ -801,8 +803,39 @@ class CliTests(unittest.TestCase):
                 return_value=Contract(),
             ) as validate,
         ):
-            check_port(self.repo, "fixture", self.repo, compare_report=comparison)
+            report = check_port(
+                self.repo,
+                "fixture",
+                self.repo,
+                compare_report=comparison,
+                write_report=report_path,
+            )
         validate.assert_called_once()
+        self.assertEqual(report_path.read_bytes(), canonical_json(report))
+        self.fixture.project_policy.write_bytes(
+            canonical_json(
+                {
+                    "schemaVersion": 2,
+                    "preflightCommands": [],
+                    "preparationCommands": [],
+                    "validators": [],
+                    "artifacts": [],
+                }
+            )
+        )
+        git(
+            self.repo,
+            "add",
+            self.fixture.project_policy.relative_to(self.repo).as_posix(),
+        )
+        git(self.repo, "commit", "-q", "-m", "validation policy")
+        receipt_path = self.repo / "build/preflight-receipt.json"
+        write_preflight_receipt(self.repo, report_path, receipt_path)
+        receipt = json.loads(receipt_path.read_text())
+        self.assertEqual(
+            receipt["donorContractSha256"],
+            hashlib.sha256(canonical_json(report)).hexdigest(),
+        )
 
         expected["closure"]["maps"] = ["Mutated"]
         comparison.write_bytes(canonical(expected))

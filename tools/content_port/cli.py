@@ -12,6 +12,7 @@ from types import MappingProxyType
 from typing import Mapping, Sequence
 
 from .errors import ContentPortError
+from .ownership import canonical_json
 from .transaction import (
     apply_bundle,
     recover_transaction,
@@ -27,14 +28,10 @@ def _repo(value: str) -> Path:
     return path
 
 
-def _canonical_json(value: object) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
-
-
 def _write_report(path: Path, report: Mapping[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.tmp")
-    temporary.write_bytes(_canonical_json(report))
+    temporary.write_bytes(canonical_json(report))
     temporary.replace(path)
 
 
@@ -119,7 +116,7 @@ def _compare_equivalence(
     """Compare the closure fields shared by legacy and graph-native reports."""
 
     def equivalent(left: object, right: object) -> bool:
-        return _canonical_json(left) == _canonical_json(right)
+        return canonical_json(left) == canonical_json(right)
 
     if not equivalent(actual.get("inventory"), expected.get("inventory")):
         raise ContentPortError(f"content-port inventory differs from {source}")
