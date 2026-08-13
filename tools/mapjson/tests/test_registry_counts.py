@@ -100,6 +100,43 @@ class ProductRegistryTests(unittest.TestCase):
             },
         )
 
+    def test_vermilion_ferry_keeps_kanto_metadata_in_johto_format_closure(self) -> None:
+        ferry = self.maps_by_name["VermilionCity_PortInside"]
+        self.assertEqual(ferry["region"], "REGION_KANTO")
+        self.assertEqual(ferry["region_map_section"], "MAPSEC_VERMILION_CITY")
+
+        grouped_in = [
+            group
+            for group in self.groups["group_order"]
+            if ferry["name"] in self.groups[group]
+        ]
+        self.assertEqual(grouped_in, ["gMapGroup_IndoorSSAqua"])
+        self.assertNotIn(
+            ferry["name"],
+            {entry["name"] for entry in self.manifest["exclusions"]},
+        )
+
+        product = next(
+            entry for entry in self.manifest["maps"] if entry["name"] == ferry["name"]
+        )
+        self.assertEqual(product["region"], "REGION_KANTO")
+        layouts = {entry["id"]: entry for entry in self.manifest["layouts"]}
+        self.assertEqual(layouts[product["layoutId"]]["format"], "johto")
+
+        active_johto_maps = sum(
+            layouts[entry["layoutId"]]["format"] == "johto"
+            for entry in self.manifest["maps"]
+        )
+        active_johto_layouts = sum(
+            entry["format"] == "johto" for entry in self.manifest["layouts"]
+        )
+        self.assertEqual(len(self.manifest["maps"]) - active_johto_maps, 935)
+        self.assertEqual(len(self.manifest["layouts"]) - active_johto_layouts, 785)
+        self.assertEqual(
+            self.manifest["counts"]["regions"],
+            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+        )
+
     def test_route28_is_real_johto_mixed_width_product_fixture(self) -> None:
         source_map = json.loads((ROOT / "data/maps/Route28/map.json").read_text())
         self.assertEqual(source_map["id"], "MAP_ROUTE28")
@@ -146,11 +183,7 @@ class ProductRegistryTests(unittest.TestCase):
             for entry in self.manifest["layouts"]
             if entry["format"] == "johto"
         }
-        referenced = {
-            entry["layoutId"]
-            for entry in self.manifest["maps"]
-            if entry["region"] == "REGION_JOHTO"
-        }
+        referenced = {entry["layoutId"] for entry in self.manifest["maps"]}
         self.assertEqual(johto_layouts - referenced, {"LAYOUT_TIN_TOWER_ROOF_NIGHT"})
         orphan = next(
             entry
@@ -174,7 +207,13 @@ class ProductRegistryTests(unittest.TestCase):
         johto_groups = {
             group["name"] for group in self.manifest["groups"] if group["number"] >= 75
         }
-        self.assertEqual(len(johto_maps), 254)
+        active_johto_maps = {
+            entry["name"]
+            for entry in self.manifest["maps"]
+            if entry["layoutId"] in johto_layouts
+        }
+        self.assertEqual(len(johto_maps), 253)
+        self.assertEqual(len(active_johto_maps), 254)
         self.assertEqual(len(johto_layouts), 255)
         self.assertEqual(len(johto_groups), 25)
         self.assertTrue(FINAL_JOHTO_FALLBACK_MAPS <= johto_maps)

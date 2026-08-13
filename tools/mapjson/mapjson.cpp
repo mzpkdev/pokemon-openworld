@@ -1911,9 +1911,13 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         });
     }
     map<string, string> layout_symbols_by_id;
-    for (const Json &layout : layouts_data["layouts"].array_items())
+    map<string, string> layout_formats_by_id;
+    for (const Json &layout : layouts_data["layouts"].array_items()) {
         layout_symbols_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "name"));
+        layout_formats_by_id.emplace(json_to_string(layout, "id"), json_to_string(layout, "format"));
+    }
     int grouped_map_count = 0;
+    int active_johto_map_count = 0;
     int nonempty_group_count = 0;
     int reviewed_empty_group_count = 0;
 
@@ -1944,6 +1948,8 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             auto layout_symbol = layout_symbols_by_id.find(layout_id);
             require_product_registry(layout_symbol != layout_symbols_by_id.end(),
                                      "map '" + map_name + "' names missing layout '" + layout_id + "'");
+            if (layout_formats_by_id.at(layout_id) == "johto")
+                active_johto_map_count++;
             const bool has_connections = map_data["connections"] != Json()
                 && !map_data["connections"].array_items().empty()
                 && json_to_string(map_data, "connections_no_include", true) != "TRUE";
@@ -1996,6 +2002,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
                                 ? "gMapGroups" : json_to_string(groups_data, "groups_table_label"));
 
     int included_layout_count = 0;
+    int active_johto_layout_count = 0;
     int layout_number = 1;
     set<string> referenced_layout_ids;
     for (const auto &[name, map_data] : maps_by_name)
@@ -2037,6 +2044,8 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (secondary_tileset != "0" && secondary_tileset != "NULL")
                 used_tilesets.insert(secondary_tileset);
             included_layout_count++;
+            if (format == "johto")
+                active_johto_layout_count++;
         }
         layout_number++;
     }
@@ -2092,8 +2101,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (grouped_names.find(name) == grouped_names.end())
                 ungrouped_names.insert(name);
         }
-        const int johto_map_count = region_counts["REGION_JOHTO"];
-        const int expected_grouped_maps = 935 + johto_map_count;
+        const int expected_grouped_maps = 935 + active_johto_map_count;
         require_product_registry(nonempty_group_count + reviewed_empty_group_count == group_number,
                                  "one or more group pointer slots would be null");
         require_product_registry(grouped_map_count == expected_grouped_maps,
@@ -2101,13 +2109,15 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         require_product_registry(static_cast<int>(map_filepaths.size()) == grouped_map_count + 4,
                                  "reviewed map count disagrees with grouped maps plus exclusions");
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
-        require_product_registry(region_counts["REGION_KANTO"] == 421, "expected 421 Kanto/Sevii maps");
-        require_product_registry(johto_map_count > 0, "expected an active Johto closure");
+        require_product_registry(region_counts["REGION_KANTO"] == 422, "expected 422 Kanto/Sevii maps");
+        require_product_registry(region_counts["REGION_JOHTO"] == 253, "expected 253 Johto maps");
+        require_product_registry(active_johto_map_count > 0 && active_johto_layout_count > 0,
+                                 "expected an active Johto-format closure");
         require_product_registry(orphan_johto_layout_ids == set<string> {
                                      "LAYOUT_TIN_TOWER_ROOF_NIGHT",
                                  },
                                  "unexpected active mapless Johto layout closure");
-        require_product_registry(included_layout_count == 786 + johto_map_count,
+        require_product_registry(included_layout_count == 785 + active_johto_layout_count,
                                  "layout count disagrees with the active Johto closure");
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");
