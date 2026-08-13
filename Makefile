@@ -721,7 +721,7 @@ e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu
 
 e2e-integrity-full: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=all \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=all E2E_FULL=1 \
 	$(E2E_PYTHON) tools/e2e/run.py integrity
 
 CAPACITY_POLICY := tools/integrity/capacity_policy.json

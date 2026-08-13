@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -17,7 +18,10 @@ def main() -> int:
             return 2
         print("E2E extended: 0 tests")
         return 0
-    return subprocess.call([sys.executable, "-m", "pytest", "-q", str(suite_dir)])
+    command = [sys.executable, "-m", "pytest", "-q"]
+    if args.suite == "integrity" and os.environ.get("E2E_FULL") != "1":
+        command.extend(("-m", "not long_journey"))
+    return subprocess.call([*command, str(suite_dir)])
 
 
 if __name__ == "__main__":

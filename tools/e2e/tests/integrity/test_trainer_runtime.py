@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 
+import pytest
+
 from tools.e2e.save_file import TRAINER_DEFEATED_OFFSET, TRAINER_DEFEATED_SIZE
 from tools.e2e.save_journey import (
     cold_restart_and_continue,
@@ -281,6 +283,7 @@ def _samuel_object(game, map_group: int, map_num: int) -> tuple[int, int, int]:
     return matches[0]
 
 
+@pytest.mark.long_journey
 def test_regional_trainers_share_production_battle_and_persistence(
     integrity_game, request
 ):

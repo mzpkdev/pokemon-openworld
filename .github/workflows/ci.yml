@@ -220,9 +220,6 @@ jobs:
           - name: Core
             suite: core
             target: e2e-core
-          - name: Extended
-            suite: extended
-            target: e2e-extended
           - name: Integrity
             suite: integrity
             target: e2e-integrity

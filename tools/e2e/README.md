@@ -1,8 +1,8 @@
 # Headless E2E playthroughs
 
-`make e2e-core` runs the fast local smoke suite. `make e2e-extended` runs
-heavy, niche, and historical regressions. The extended suite currently plays
-from Quickstart through receiving the Pokédex. `make e2e-integrity` proves the
+`make e2e-core` runs the fast local smoke suite. `make e2e-extended` explicitly
+runs heavy, niche, and historical regressions, including the journey from
+Quickstart through receiving the Pokédex. `make e2e-integrity` proves the fast
 four-region residency contract described below. There is no aggregate E2E
 target; each suite runs independently.
 
@@ -31,7 +31,7 @@ the settlement-frontage Integrity suite with:
 make e2e-integrity
 ```
 
-Run the exhaustive 1,189-map sweep explicitly with:
+Run the exhaustive 1,189-map sweep and long integrity gameplay journeys with:
 
 ```sh
 make e2e-integrity-full
@@ -48,8 +48,10 @@ representative loads restore them.
 
 The default structural sweep covers every exterior map with a Pokémon Center
 entrance across Hoenn, Kanto, Johto, and the seven Sevii Islands, plus the three
-starting towns. Pull-request CI runs that same target. `make e2e-integrity-full`
-keeps the exhaustive map-residency check available locally.
+starting towns. Pull-request CI runs that same target and excludes long catch,
+hatch, trainer-battle, and animation-lifecycle journeys. Those remain available
+through `make e2e-integrity-full`; the Pokédex journey remains available through
+`make e2e-extended`.
 
 Johto residency is deliberately non-gameplay: imported scripts and gameplay
 events are empty, while load-critical layouts, tilesets, sections, headers, and

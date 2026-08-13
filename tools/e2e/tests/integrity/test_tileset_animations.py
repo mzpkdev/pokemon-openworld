@@ -7,6 +7,8 @@ from pathlib import Path
 import re
 import struct
 
+import pytest
+
 from tools.e2e.save_journey import cold_restart_and_continue, save_from_start_menu
 from tools.e2e.skyemu import (
     INTEGRITY_REQUEST_STATUS_OFFSET,
@@ -1006,6 +1008,7 @@ def test_required_visual_categories_and_regional_coexistence(integrity_game, req
         _write_evidence(evidence_path, evidence)
 
 
+@pytest.mark.long_journey
 def test_both_slots_restart_after_field_menu_battle_save_and_continue(
     integrity_game, request
 ):

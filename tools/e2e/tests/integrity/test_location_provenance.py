@@ -367,6 +367,7 @@ def test_summary_memo_poison_rejects_stale_display_text():
 
 
 @pytest.mark.parametrize("map_name,map_section,expected_code,expected_display", CASES)
+@pytest.mark.long_journey
 def test_catch_hatch_summary_survives_cold_restart(
     integrity_game, map_name, map_section, expected_code, expected_display
 ):
