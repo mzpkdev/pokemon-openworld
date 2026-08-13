@@ -2174,7 +2174,7 @@ class CheckedAssetLedgerTests(unittest.TestCase):
                 self.assertEqual(asset["conversionCommand"], ["copy-bytes"])
                 self.assertEqual(
                     asset["permissionEvidence"],
-                    "0efc89c74162ec6967f3a7b0acf9a8e639f6ec2289ec316bb284673ec45bce05",
+                    "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",
                 )
 
 
