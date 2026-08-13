@@ -897,7 +897,14 @@ def validate_regional_fact_policy(
         raise ContractError("regional facts: expected representative reviewed facts")
 
     admitted_capabilities = {
-        "CUT", "DIVE", "FLASH", "FLY", "ROCK_SMASH", "STRENGTH", "SURF", "WATERFALL",
+        "CUT",
+        "DIVE",
+        "FLASH",
+        "FLY",
+        "ROCK_SMASH",
+        "STRENGTH",
+        "SURF",
+        "WATERFALL",
     }
     if set(unsupported) != {"DEFOG", "ROCK_CLIMB"}:
         raise ContractError("regional facts: unsupported capability inventory changed")
@@ -943,22 +950,39 @@ def validate_regional_fact_policy(
             "value",
         }
         historical_fields = {"historicalSource", "historicalSymbol", "historicalValue"}
-        if not isinstance(item, dict) or set(item) not in (required, required | historical_fields):
+        if not isinstance(item, dict) or set(item) not in (
+            required,
+            required | historical_fields,
+        ):
             raise ContractError(f"regional facts: malformed exact binding {index}")
         if not all(
             isinstance(item[key], str) and item[key]
-            for key in ("fact", "lifetime", "region", "semanticOwner", "symbol", "unusedBinding")
+            for key in (
+                "fact",
+                "lifetime",
+                "region",
+                "semanticOwner",
+                "symbol",
+                "unusedBinding",
+            )
         ):
             raise ContractError(f"regional facts: invalid exact binding {index}")
-        if item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"} or item["lifetime"] != "save":
+        if (
+            item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"}
+            or item["lifetime"] != "save"
+        ):
             raise ContractError(f"regional facts: invalid regional ownership {index}")
         evidence = item["consumerEvidence"]
         if not isinstance(evidence, list) or not evidence:
             raise ContractError(f"regional facts: missing consumer evidence {index}")
         for relative in evidence:
             path = repo / relative
-            if not path.is_file() or item["symbol"] not in path.read_text(encoding="utf-8", errors="ignore"):
-                raise ContractError(f"regional facts: unresolved consumer for {item['symbol']}")
+            if not path.is_file() or item["symbol"] not in path.read_text(
+                encoding="utf-8", errors="ignore"
+            ):
+                raise ContractError(
+                    f"regional facts: unresolved consumer for {item['symbol']}"
+                )
         if not isinstance(item["value"], int) or item["value"] <= 0:
             raise ContractError(f"regional facts: invalid exact value {index}")
         grants = item["grants"]
@@ -969,10 +993,16 @@ def validate_regional_fact_policy(
             or (item["fact"] != "SEVII_DETOUR_FINISHED" and len(grants) != 1)
             or (item["fact"] == "SEVII_DETOUR_FINISHED" and grants)
         ):
-            raise ContractError(f"regional facts: invalid capabilities for exact binding {index}")
+            raise ContractError(
+                f"regional facts: invalid capabilities for exact binding {index}"
+            )
         if "historicalSymbol" in item:
             historical_path = repo / item["historicalSource"]
-            historical_text = historical_path.read_text(encoding="utf-8") if historical_path.is_file() else ""
+            historical_text = (
+                historical_path.read_text(encoding="utf-8")
+                if historical_path.is_file()
+                else ""
+            )
             historical_match = re.search(
                 rf"(?m)^#define\s+{re.escape(item['historicalSymbol'])}\s+(0[xX][0-9A-Fa-f]+|[0-9]+)\b",
                 historical_text,
@@ -983,7 +1013,9 @@ def validate_regional_fact_policy(
                 or int(historical_match.group(1), 0) != item["historicalValue"]
                 or item["historicalValue"] != item["value"]
             ):
-                raise ContractError(f"regional facts: historical meaning moved {item['symbol']}")
+                raise ContractError(
+                    f"regional facts: historical meaning moved {item['symbol']}"
+                )
         binding = by_symbol.get(("flags", item["symbol"]))
         expected_alias = {"of": item["unusedBinding"], "owner": source["id"]}
         if (
@@ -1057,7 +1089,16 @@ def validate_regional_fact_policy(
     expected_legacy = {
         f"FLAG_BADGE{slot:02d}_GET": (0x866 + slot, capability)
         for slot, capability in enumerate(
-            ("CUT", "FLASH", "ROCK_SMASH", "STRENGTH", "SURF", "FLY", "DIVE", "WATERFALL"),
+            (
+                "CUT",
+                "FLASH",
+                "ROCK_SMASH",
+                "STRENGTH",
+                "SURF",
+                "FLY",
+                "DIVE",
+                "WATERFALL",
+            ),
             1,
         )
     }
@@ -1148,23 +1189,46 @@ def validate_regional_variable_policy(
     for index, item in enumerate(policy["entries"]):
         path = f"regional variables: entry {index}"
         common = {
-            "canonicalOwner", "historicalAliases", "lifetime", "producerEvidence",
-            "readerEvidence", "region", "semanticOwner", "status", "symbol", "value",
+            "canonicalOwner",
+            "historicalAliases",
+            "lifetime",
+            "producerEvidence",
+            "readerEvidence",
+            "region",
+            "semanticOwner",
+            "status",
+            "symbol",
+            "value",
         }
-        expected = common | ({"deferredBoundary"} if item.get("status") == "deferred" else set())
+        expected = common | (
+            {"deferredBoundary"} if item.get("status") == "deferred" else set()
+        )
         if not isinstance(item, dict) or set(item) != expected:
             raise ContractError(f"{path}: malformed")
         if item["status"] not in {"admitted", "deferred"}:
             raise ContractError(f"{path}: invalid status")
-        if item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"} or item["lifetime"] != "save":
+        if (
+            item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"}
+            or item["lifetime"] != "save"
+        ):
             raise ContractError(f"{path}: invalid regional ownership")
-        if item["symbol"] in seen or not isinstance(item["value"], int) or item["value"] <= 0:
+        if (
+            item["symbol"] in seen
+            or not isinstance(item["value"], int)
+            or item["value"] <= 0
+        ):
             raise ContractError(f"{path}: identity must be unique and nonzero")
         seen.add(item["symbol"])
         binding = ledger_by_symbol.get(item["symbol"])
-        if binding is None or binding["value"] != item["value"] or binding["state"] != {"kind": "published-binding"}:
+        if (
+            binding is None
+            or binding["value"] != item["value"]
+            or binding["state"] != {"kind": "published-binding"}
+        ):
             raise ContractError(f"{path}: published binding moved")
-        canonical = item["symbol"] if binding["alias"] is None else binding["alias"]["of"]
+        canonical = (
+            item["symbol"] if binding["alias"] is None else binding["alias"]["of"]
+        )
         if canonical != item["canonicalOwner"]:
             raise ContractError(f"{path}: canonical owner changed")
         group_aliases = {
@@ -1202,10 +1266,15 @@ def validate_regional_variable_policy(
                         evidence_path.read_text(encoding="utf-8", errors="ignore")
                     ):
                         raise ContractError(f"{path}: unresolved {evidence_key}")
-        elif not isinstance(item["deferredBoundary"], str) or not item["deferredBoundary"]:
+        elif (
+            not isinstance(item["deferredBoundary"], str)
+            or not item["deferredBoundary"]
+        ):
             raise ContractError(f"{path}: deferred state needs a fail-closed boundary")
     if admitted_regions != {"HOENN", "KANTO", "SEVII", "JOHTO"}:
-        raise ContractError("regional variables: admitted regional inventory is incomplete")
+        raise ContractError(
+            "regional variables: admitted regional inventory is incomplete"
+        )
 
 
 def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> None:
@@ -1213,9 +1282,17 @@ def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> No
     if not isinstance(relative, str) or not relative:
         raise ContractError("resident story: missing checked admission inventory")
     inventory = load_json(repo / relative)
-    if not isinstance(inventory, dict) or set(inventory) != {"entries", "schemaVersion", "selectorScanPaths"}:
+    if not isinstance(inventory, dict) or set(inventory) != {
+        "entries",
+        "schemaVersion",
+        "selectorScanPaths",
+    }:
         raise ContractError("resident story: malformed admission inventory")
-    if inventory["schemaVersion"] != 1 or not isinstance(inventory["entries"], list) or not inventory["entries"]:
+    if (
+        inventory["schemaVersion"] != 1
+        or not isinstance(inventory["entries"], list)
+        or not inventory["entries"]
+    ):
         raise ContractError("resident story: unsupported admission inventory")
     selector = RESIDENT_STORY_SELECTOR
     outcomes: set[str] = set()
@@ -1226,14 +1303,25 @@ def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> No
         required = {"boundary", "id", "outcome", "paths", "rationale"}
         if not isinstance(item, dict) or set(item) != required:
             raise ContractError(f"{path}: malformed")
-        if item["id"] in identifiers or item["outcome"] not in {"admitted", "build-invariant", "deferred", "non-story"}:
+        if item["id"] in identifiers or item["outcome"] not in {
+            "admitted",
+            "build-invariant",
+            "deferred",
+            "non-story",
+        }:
             raise ContractError(f"{path}: invalid classification")
         identifiers.add(item["id"])
         outcomes.add(item["outcome"])
-        if not isinstance(item["paths"], list) or not item["paths"] or not item["rationale"]:
+        if (
+            not isinstance(item["paths"], list)
+            or not item["paths"]
+            or not item["rationale"]
+        ):
             raise ContractError(f"{path}: missing evidence")
         if item["outcome"] == "deferred" and not item["boundary"]:
-            raise ContractError(f"{path}: deferred content needs a fail-closed boundary")
+            raise ContractError(
+                f"{path}: deferred content needs a fail-closed boundary"
+            )
         for relative_path in item["paths"]:
             classified_paths.add(relative_path)
             evidence_path = repo / relative_path
@@ -1241,19 +1329,27 @@ def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> No
                 raise ContractError(f"{path}: missing evidence {relative_path}")
             evidence_text = evidence_path.read_text(encoding="utf-8", errors="ignore")
             if item["outcome"] == "admitted" and selector.search(evidence_text):
-                raise ContractError(f"{path}: admitted story meaning uses product/current-region dispatch")
+                raise ContractError(
+                    f"{path}: admitted story meaning uses product/current-region dispatch"
+                )
             if item["outcome"] == "deferred" and not selector.search(evidence_text):
-                raise ContractError(f"{path}: deferred boundary is not guarded by a legacy selector")
+                raise ContractError(
+                    f"{path}: deferred boundary is not guarded by a legacy selector"
+                )
     if not {"admitted", "deferred", "non-story", "build-invariant"}.issubset(outcomes):
         raise ContractError("resident story: classification outcomes are incomplete")
     discovered: set[str] = set()
     for pattern in inventory["selectorScanPaths"]:
         for path in repo.glob(pattern):
-            if path.is_file() and selector.search(path.read_text(encoding="utf-8", errors="ignore")):
+            if path.is_file() and selector.search(
+                path.read_text(encoding="utf-8", errors="ignore")
+            ):
                 discovered.add(path.relative_to(repo).as_posix())
     unclassified = sorted(discovered - classified_paths)
     if unclassified:
-        raise ContractError(f"resident story: unclassified selector paths {unclassified[:5]}")
+        raise ContractError(
+            f"resident story: unclassified selector paths {unclassified[:5]}"
+        )
 
     admitted_paths = {
         relative_path
@@ -1261,16 +1357,22 @@ def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> No
         if item["outcome"] == "admitted"
         for relative_path in item["paths"]
     }
-    fact_policy = load_json(repo / next(
-        source["path"]
-        for source in sources["sources"]
-        if source.get("kind") == "regional-fact-policy"
-    ))
-    variable_policy = load_json(repo / next(
-        source["path"]
-        for source in sources["sources"]
-        if source.get("kind") == "regional-variable-policy"
-    ))
+    fact_policy = load_json(
+        repo
+        / next(
+            source["path"]
+            for source in sources["sources"]
+            if source.get("kind") == "regional-fact-policy"
+        )
+    )
+    variable_policy = load_json(
+        repo
+        / next(
+            source["path"]
+            for source in sources["sources"]
+            if source.get("kind") == "regional-variable-policy"
+        )
+    )
     admitted_evidence = {
         relative_path
         for item in fact_policy["exact"]
@@ -1284,7 +1386,9 @@ def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> No
     }
     missing_admissions = sorted(admitted_evidence - admitted_paths)
     if missing_admissions:
-        raise ContractError(f"resident story: admitted evidence is unclassified {missing_admissions[:5]}")
+        raise ContractError(
+            f"resident story: admitted evidence is unclassified {missing_admissions[:5]}"
+        )
 
 
 def validate_trainer_identity_projection(

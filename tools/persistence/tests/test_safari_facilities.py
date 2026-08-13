@@ -36,7 +36,7 @@ def function_body(source: str, name: str) -> str:
         cursor += 1
     if depth:
         raise AssertionError(f"unterminated function {name}")
-    return source[match.start():cursor]
+    return source[match.start() : cursor]
 
 
 class SafariFacilityPolicyTests(unittest.TestCase):
@@ -60,7 +60,9 @@ class SafariFacilityPolicyTests(unittest.TestCase):
                 )
                 self.assertIn(contract["scene"], source)
                 self.assertIn(contract["entrance"], source)
-        self.assertGreaterEqual(source.count("specialvar VAR_RESULT, GetSafariZoneFacility"), 2)
+        self.assertGreaterEqual(
+            source.count("specialvar VAR_RESULT, GetSafariZoneFacility"), 2
+        )
 
     def test_safari_rules_do_not_use_product_identity(self):
         functions = {
@@ -102,8 +104,12 @@ class SafariFacilityPolicyTests(unittest.TestCase):
             self.assertIn("goto SafariZone_EventScript_Exit", section)
 
     def test_early_exit_guards_match_the_resident_facility(self):
-        hoenn = (ROOT / "data/maps/SafariZone_South/scripts.inc").read_text(encoding="utf-8")
-        kanto = (ROOT / FACILITIES["KANTO_FUCHSIA"]["entry"]).read_text(encoding="utf-8")
+        hoenn = (ROOT / "data/maps/SafariZone_South/scripts.inc").read_text(
+            encoding="utf-8"
+        )
+        kanto = (ROOT / FACILITIES["KANTO_FUCHSIA"]["entry"]).read_text(
+            encoding="utf-8"
+        )
         self.assertIn(
             "goto_if_ne VAR_RESULT, SAFARI_ZONE_FACILITY_HOENN_ROUTE_121",
             hoenn,
@@ -136,7 +142,9 @@ class SafariFacilityPolicyTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        entry = next(item for item in inventory["entries"] if item["id"] == "safari-facilities")
+        entry = next(
+            item for item in inventory["entries"] if item["id"] == "safari-facilities"
+        )
         self.assertEqual(entry["outcome"], "admitted")
         self.assertIsNone(entry["boundary"])
         self.assertEqual(

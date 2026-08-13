@@ -260,13 +260,16 @@ class PersistentIdTests(unittest.TestCase):
             {item["value"] for item in self.regional_fact_policy["unused"]},
             {*range(0x20, 0x35), 0x2A1},
         )
-        self.assertEqual(set(self.regional_fact_policy["unsupported"]), {"DEFOG", "ROCK_CLIMB"})
+        self.assertEqual(
+            set(self.regional_fact_policy["unsupported"]), {"DEFOG", "ROCK_CLIMB"}
+        )
 
     def test_regional_variable_and_story_admission_policies_are_valid(self):
         validate_regional_variable_policy(self.ledger["entries"], self.sources, ROOT)
         validate_resident_story_admission(self.sources, ROOT)
         admitted = [
-            item for item in self.regional_variable_policy["entries"]
+            item
+            for item in self.regional_variable_policy["entries"]
             if item["status"] == "admitted"
         ]
         self.assertEqual(
@@ -286,8 +289,10 @@ class PersistentIdTests(unittest.TestCase):
     def test_regional_variable_policy_rejects_moved_binding(self):
         entries = self.mutated()["entries"]
         binding = next(
-            item for item in entries
-            if item["domain"] == "vars" and item["symbol"] == "VAR_CHERRYGROVE_CITY_STATE"
+            item
+            for item in entries
+            if item["domain"] == "vars"
+            and item["symbol"] == "VAR_CHERRYGROVE_CITY_STATE"
         )
         binding["value"] += 1
         with self.assertRaisesRegex(ContractError, "published binding moved"):
