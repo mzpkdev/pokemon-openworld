@@ -25,7 +25,8 @@ SCRIPT_IDLE = 2
 SAILOR_LOCAL_ID = 1
 FERRY_X = 8
 FERRY_Y = 16
-POKEMON_STORAGE_SIZE = 0x83D0
+POKEMON_STORAGE_SIZE = 0x8560
+FUSION_STORAGE_OFFSET = 0x83D0
 PLAYER_IDENTITY_SIZE = 0x0E
 POKEDEX_METADATA_OFFSET = 0x18
 POKEDEX_METADATA_SIZE = 0x78
@@ -166,6 +167,21 @@ def _populate_continuity_state(game):
     )
 
 
+def _seed_fusion_record(game, scenario_result) -> None:
+    # No dedicated fusion setup request exists. Follow the established E2E
+    # precondition-mutation pattern while paused, copying a valid Pokemon made
+    # by the shipped save-scenario hook rather than fabricating record bytes.
+    source = game.address("gParties") + scenario_result.party_index * PARTY_RECORD_SIZE
+    record = game.read(source, PARTY_RECORD_SIZE)
+    assert any(record)
+
+    destination = game.pointer("gPokemonStoragePtr") + FUSION_STORAGE_OFFSET
+    game.pause()
+    game.write(destination, record)
+    game.resume()
+    assert game.read(destination, PARTY_RECORD_SIZE) == record
+
+
 def _load_source(game, entry, request_id: int) -> None:
     result = game.request_map_load(
         IntegrityMapLoadRequest(
@@ -201,6 +217,7 @@ def test_ferry_leg_preserves_state_and_returns_control(
     _settle_overworld(integrity_game)
     scenario_result = _populate_continuity_state(integrity_game)
     _load_source(integrity_game, source, request_id)
+    _seed_fusion_record(integrity_game, scenario_result)
     before = _continuity_snapshot(integrity_game, scenario_result)
 
     integrity_game.face("Down")
