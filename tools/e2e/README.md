@@ -25,25 +25,31 @@ The suite targets never publish a ROM. They verify that those two files exist
 after the dependency-graph build and fail with a preparation command if the
 build did not produce them. CI alone uses its same-commit debug artifact from
 the required build job instead of rebuilding it in every E2E matrix job. Run
-the Integrity suite with:
+the settlement-frontage Integrity suite with:
 
 ```sh
 make e2e-integrity
 ```
 
-Integrity uses the generated manifest to structurally initialize every
-registered Hoenn, mainland Kanto, Sevii, and Johto map. That is the meaning of
-**resident**: the map and its required header, layout, tileset, events, scripts,
-connections, section metadata, codecs, and callbacks are present and can be
-initialized. Representative full loads also prove **field-ready**: normal map
-scripts and events run, the expected map is active, scripts settle, and player
-control returns. Structural loads suppress story scripts and events only during
-the exhaustive sweep; representative loads restore them.
+Run the exhaustive 1,189-map sweep explicitly with:
 
-Pull-request CI limits the structural sweep to every exterior map with a
-Pokémon Center entrance across Hoenn, Kanto, Johto, and the seven Sevii
-Islands, plus the three starting towns. Local `make e2e-integrity` keeps the
-exhaustive sweep by default; set `E2E_MAP_SWEEP=frontages` to match CI.
+```sh
+make e2e-integrity-full
+```
+
+Integrity uses the generated manifest to initialize selected resident maps;
+the full target checks every registered Hoenn, mainland Kanto, Sevii, and Johto
+map. **Resident** means the map and its required header, layout, tileset, events,
+scripts, connections, section metadata, codecs, and callbacks are present and
+can be initialized. Representative full loads also prove **field-ready**: normal
+map scripts and events run, the expected map is active, scripts settle, and
+player control returns. Structural loads suppress story scripts and events;
+representative loads restore them.
+
+The default structural sweep covers every exterior map with a Pokémon Center
+entrance across Hoenn, Kanto, Johto, and the seven Sevii Islands, plus the three
+starting towns. Pull-request CI runs that same target. `make e2e-integrity-full`
+keeps the exhaustive map-residency check available locally.
 
 Johto residency is deliberately non-gameplay: imported scripts and gameplay
 events are empty, while load-critical layouts, tilesets, sections, headers, and

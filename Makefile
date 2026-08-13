@@ -139,7 +139,7 @@ endif
 ifneq (,$(filter release tidyrelease,$(MAKECMDGOALS)))
   RELEASE := 1
 endif
-override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity
+override _E2E_SUITE_GOALS := e2e-core e2e-extended e2e-integrity e2e-integrity-full
 override _E2E_ONLY := 0
 ifneq (,$(filter $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
   ifneq (,$(filter-out $(_E2E_SUITE_GOALS),$(MAKECMDGOALS)))
@@ -456,13 +456,13 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
-RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
+RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
-.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
+.PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
 .PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
@@ -716,7 +716,12 @@ e2e-extended: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu 
 
 e2e-integrity: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
 	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
-	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=frontages \
+	$(E2E_PYTHON) tools/e2e/run.py integrity
+
+e2e-integrity-full: content-port-transaction-check _e2e-require-artifacts _e2e-skyemu $(E2E_REQUIREMENTS_STAMP)
+	E2E_ROM=$(E2E_ROM) E2E_SYMS=$(E2E_SYMS) SKYEMU=$(SKYEMU) \
+	E2E_RESULTS=test-results/e2e E2E_SUITE=integrity E2E_MAP_SWEEP=all \
 	$(E2E_PYTHON) tools/e2e/run.py integrity
 
 CAPACITY_POLICY := tools/integrity/capacity_policy.json
