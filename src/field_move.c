@@ -1,5 +1,4 @@
 #include "global.h"
-#include "event_data.h"
 #include "field_move.h"
 #include "fldeff.h"
 #include "fldeff_misc.h"
@@ -16,49 +15,37 @@ static bool32 IsFieldMoveUnlocked_Cut(void)
 
 static bool32 IsFieldMoveUnlocked_Flash(void)
 {
-    if (IS_FRLG)
-        return FlagGet(FLAG_BADGE01_GET);
-
-    return FlagGet(FLAG_BADGE02_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_FLASH);
 }
 
 static bool32 IsFieldMoveUnlocked_RockSmash(void)
 {
-    if (IS_FRLG)
-        return FlagGet(FLAG_BADGE06_GET);
-
-    return FlagGet(FLAG_BADGE03_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_ROCK_SMASH);
 }
 
 static bool32 IsFieldMoveUnlocked_Strength(void)
 {
-    return FlagGet(FLAG_BADGE04_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_STRENGTH);
 }
 
 static bool32 IsFieldMoveUnlocked_Surf(void)
 {
-    return FlagGet(FLAG_BADGE05_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_SURF);
 }
 
 static bool32 IsFieldMoveUnlocked_Fly(void)
 {
-    if (IS_FRLG)
-        return FlagGet(FLAG_BADGE03_GET);
-
-    return FlagGet(FLAG_BADGE06_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_FLY);
 }
 
 static bool32 IsFieldMoveUnlocked_Dive(void)
 {
-    return FlagGet(FLAG_BADGE07_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_DIVE);
 }
 
 static bool32 IsFieldMoveUnlocked_Waterfall(void)
 {
-    if (IS_FRLG)
-        return FlagGet(FLAG_BADGE07_GET);
-
-    return FlagGet(FLAG_BADGE08_GET);
+    return PlayerHasCapability(PLAYER_CAPABILITY_WATERFALL);
 }
 
 static bool32 IsFieldMoveUnlocked_RockClimb(void)
