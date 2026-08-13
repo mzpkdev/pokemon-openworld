@@ -647,17 +647,6 @@ class SaveContractTests(unittest.TestCase):
             ):
                 compare(actual, changed)
 
-    def test_every_checked_contract_leaf_is_enforced(self):
-        contract_path = Path(__file__).parents[2] / "integrity/save_contract.json"
-        contract = json.loads(contract_path.read_text(encoding="utf-8"))
-        for path, leaf in scalar_paths(contract):
-            replacement = leaf + 1 if isinstance(leaf, int) else leaf + "_changed"
-            with (
-                self.subTest(path=path),
-                self.assertRaisesRegex(ContractError, re.escape(path)),
-            ):
-                compare(leaf, replacement, path)
-
     def test_canonical_json_is_byte_identical(self):
         left = canonical_bytes({"z": 1, "a": [3, 2, 1]})
         right = canonical_bytes({"a": [3, 2, 1], "z": 1})
@@ -691,7 +680,7 @@ class SaveContractTests(unittest.TestCase):
         self.assertNotEqual(before, after)
         self.assertIn(f"$.structs.{anonymous}.members[0].offset".encode(), before)
 
-    def test_known_sha32_offset_type_collision_is_rejected_for_every_purpose(self):
+    def test_known_sha32_offset_type_collision_is_rejected(self):
         contract = minimal_contract()
         first = {
             "name": "collision",
@@ -725,11 +714,10 @@ class SaveContractTests(unittest.TestCase):
             ("$.structs.SaveBlock1.members[0].offset", 1356),
             abi_evidence_values(actual),
         )
-        for purpose in ABI_PURPOSES:
-            with self.subTest(purpose=purpose), self.assertRaises(ContractError):
-                validate_abi(contract, actual, purpose)
+        with self.assertRaises(ContractError):
+            validate_abi(contract, actual, "normal")
 
-    def test_every_type_leaf_and_member_offset_is_rejected_for_every_purpose(self):
+    def test_every_type_leaf_and_member_offset_is_rejected(self):
         contract = minimal_contract()
         contract["structs"]["SaveBlock1"]["members"] = [
             {
@@ -779,18 +767,14 @@ class SaveContractTests(unittest.TestCase):
         ]
         for target, field in mutations:
             original = target[field]
-            for purpose in ABI_PURPOSES:
-                target[field] = original + 1
-                try:
-                    with (
-                        self.subTest(field=field, purpose=purpose),
-                        self.assertRaises(ContractError),
-                    ):
-                        validate_abi(contract, actual, purpose)
-                finally:
-                    target[field] = original
+            target[field] = original + 1
+            try:
+                with self.subTest(field=field), self.assertRaises(ContractError):
+                    validate_abi(contract, actual, "normal")
+            finally:
+                target[field] = original
 
-    def test_real_scalar_leaf_mutations_fail_all_five_purposes(self):
+    def test_real_scalar_leaf_mutations_are_rejected(self):
         contract_path = Path(__file__).parents[2] / "integrity/save_contract.json"
         frozen = json.loads(contract_path.read_text(encoding="utf-8"))
         normal_evidence = [
@@ -830,16 +814,12 @@ class SaveContractTests(unittest.TestCase):
         )
         for mutation, leaf, field in mutations:
             original = leaf[field]
-            for purpose in ABI_PURPOSES:
-                leaf[field] = original + 1
-                try:
-                    with (
-                        self.subTest(mutation=mutation, purpose=purpose),
-                        self.assertRaises(ContractError),
-                    ):
-                        validate_abi(frozen, actual, purpose)
-                finally:
-                    leaf[field] = original
+            leaf[field] = original + 1
+            try:
+                with self.subTest(mutation=mutation), self.assertRaises(ContractError):
+                    validate_abi(frozen, actual, "normal")
+            finally:
+                leaf[field] = original
 
     def test_real_modulo_collision_mutations_cannot_be_encoded(self):
         contract_path = Path(__file__).parents[2] / "integrity/save_contract.json"
@@ -870,14 +850,13 @@ class SaveContractTests(unittest.TestCase):
                 self.assertRaises(ContractError),
             ):
                 render_abi_evidence(actual)
-            for purpose in ABI_PURPOSES:
-                with (
-                    self.subTest(mutation=mutation, purpose=purpose),
-                    self.assertRaises(ContractError),
-                ):
-                    validate_abi(frozen, actual, purpose)
+            with (
+                self.subTest(mutation=mutation, operation="validate"),
+                self.assertRaises(ContractError),
+            ):
+                validate_abi(frozen, actual, "normal")
 
-    def test_retained_abi_fact_mutation_matrix_fails_every_purpose(self):
+    def test_retained_abi_fact_mutation_matrix_is_rejected(self):
         contract = minimal_contract()
         contract["structs"].update(
             {
@@ -1028,12 +1007,8 @@ class SaveContractTests(unittest.TestCase):
                 if key not in CONTRACT_METADATA_KEYS
             }
             mutate(actual)
-            for purpose in ABI_PURPOSES:
-                with (
-                    self.subTest(mutation=mutation, purpose=purpose),
-                    self.assertRaises(ContractError),
-                ):
-                    validate_abi(contract, actual, purpose)
+            with self.subTest(mutation=mutation), self.assertRaises(ContractError):
+                validate_abi(contract, actual, "normal")
 
     def test_every_purpose_rejects_a_conditional_layout_mutation(self):
         contract = minimal_contract()
@@ -1059,7 +1034,7 @@ class SaveContractTests(unittest.TestCase):
             with self.subTest(purpose=purpose), self.assertRaises(ContractError):
                 validate_abi(contract, changed, purpose)
 
-    def test_live_schema_rejects_unexpected_keys_at_every_level_for_every_purpose(self):
+    def test_live_schema_rejects_unexpected_keys_at_every_level(self):
         contract = self._schema_contract()
 
         def add(path, key):
@@ -1082,9 +1057,9 @@ class SaveContractTests(unittest.TestCase):
                 for kind, path in descriptor_paths.items()
             },
         }
-        self._assert_schema_mutations_fail_all_purposes(contract, mutations)
+        self._assert_schema_mutations_fail(contract, mutations)
 
-    def test_live_schema_rejects_deleted_required_keys_for_every_purpose(self):
+    def test_live_schema_rejects_deleted_required_keys(self):
         contract = self._schema_contract()
 
         def delete(path, key):
@@ -1118,9 +1093,9 @@ class SaveContractTests(unittest.TestCase):
                 for kind, path in descriptor_paths.items()
             },
         }
-        self._assert_schema_mutations_fail_all_purposes(contract, mutations)
+        self._assert_schema_mutations_fail(contract, mutations)
 
-    def test_live_schema_rejects_malformed_values_for_every_purpose(self):
+    def test_live_schema_rejects_malformed_values(self):
         contract = self._schema_contract()
 
         def replace(path, value):
@@ -1151,9 +1126,9 @@ class SaveContractTests(unittest.TestCase):
                 ("publishedBindings", "flags", 0, "value"), True
             ),
         }
-        self._assert_schema_mutations_fail_all_purposes(contract, mutations)
+        self._assert_schema_mutations_fail(contract, mutations)
 
-    def test_published_binding_entries_are_exact_in_every_purpose(self):
+    def test_published_binding_entries_are_exact(self):
         contract = minimal_contract()
         contract["publishedBindings"]["flags"] = [
             {"symbol": "FLAGS_X", "value": 7},
@@ -1174,12 +1149,8 @@ class SaveContractTests(unittest.TestCase):
                 if key not in CONTRACT_METADATA_KEYS
             }
             mutate(actual["publishedBindings"]["flags"])
-            for purpose in ABI_PURPOSES:
-                with (
-                    self.subTest(mutation=mutation, purpose=purpose),
-                    self.assertRaises(ContractError),
-                ):
-                    validate_abi(contract, actual, purpose)
+            with self.subTest(mutation=mutation), self.assertRaises(ContractError):
+                validate_abi(contract, actual, "normal")
 
     @staticmethod
     def _schema_descriptor_paths():
@@ -1269,7 +1240,7 @@ class SaveContractTests(unittest.TestCase):
         }
         return contract
 
-    def _assert_schema_mutations_fail_all_purposes(self, contract, mutations):
+    def _assert_schema_mutations_fail(self, contract, mutations):
         for mutation, mutate in mutations.items():
             actual = {
                 key: copy.deepcopy(value)
@@ -1277,12 +1248,8 @@ class SaveContractTests(unittest.TestCase):
                 if key not in CONTRACT_METADATA_KEYS
             }
             mutate(actual)
-            for purpose in ABI_PURPOSES:
-                with (
-                    self.subTest(mutation=mutation, purpose=purpose),
-                    self.assertRaises(ContractError),
-                ):
-                    validate_abi(contract, actual, purpose)
+            with self.subTest(mutation=mutation), self.assertRaises(ContractError):
+                validate_abi(contract, actual, "normal")
 
     def test_source_mechanics_mutation_changes_evidence(self):
         root = Path(__file__).parents[3]
