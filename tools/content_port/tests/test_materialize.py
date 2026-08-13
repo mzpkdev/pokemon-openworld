@@ -780,38 +780,37 @@ class MaterializeTests(unittest.TestCase):
             section_remaps.get(allocation.section, allocation.section),
         )
 
-        vermilion_map = next(
-            item
-            for item in _map_units(descriptor, state)
-            if item.key == "map:VermilionCity_PortInside"
-        )
-        vermilion_allocation = descriptor.allocation_index.map_allocation(
-            "VermilionCity_PortInside"
+        route30_map = next(
+            item for item in _map_units(descriptor, state) if item.key == "map:Route30"
         )
         sections_by_slot = {
             item.slot: item for item in _section_units(descriptor, state, ROOT)
         }
-        vermilion_section = sections_by_slot[vermilion_allocation.target_section]
+        route30_section = sections_by_slot[allocation.target_section]
         self.assertEqual(
-            vermilion_map.value["region_map_section"], vermilion_section.record_key
+            route30_map.value["region_map_section"], route30_section.record_key
         )
-        self.assertEqual(vermilion_map.value["region"], "REGION_JOHTO")
-        self.assertEqual(vermilion_section.value["region"], "REGION_JOHTO")
-        self.assertEqual(vermilion_section.slot, 260)
+        self.assertEqual(route30_map.value["region"], "REGION_JOHTO")
+        self.assertEqual(route30_section.value["region"], "REGION_JOHTO")
+        self.assertEqual(route30_section.slot, 214)
         manifest, _ = render_units(
-            RenderContext("johto"), (vermilion_map, vermilion_section)
+            RenderContext("johto"), (route30_map, route30_section)
         )
         self.assertIn(
-            ("file", "data/maps/VermilionCity_PortInside/map.json"),
+            ("file", "data/maps/Route30/map.json"),
             manifest.by_identity,
         )
         section_identity = (
             "registry-record",
             "src/data/region_map/region_map_sections.json",
             "map_sections",
-            "MAPSEC_JOHTO_VERMILION_PORT",
+            "MAPSEC_ROUTE_30",
         )
-        self.assertEqual(manifest.by_identity[section_identity].slot, 260)
+        self.assertEqual(manifest.by_identity[section_identity].slot, 214)
+        self.assertNotIn(
+            "map:VermilionCity_PortInside",
+            {item.key for item in _map_units(descriptor, state)},
+        )
 
     def test_transient_route30_mutation_cannot_enter_snapshot_render(
         self,

@@ -20,6 +20,45 @@ JOHTO_LOCK = json.loads(
 )
 
 
+def group_content_region(group_name: Any) -> str | None:
+    """Return the content origin encoded by the product's map-group namespace."""
+    if not isinstance(group_name, str) or not group_name.startswith("gMapGroup_"):
+        return None
+    if group_name.endswith("_Frlg"):
+        return "REGION_KANTO"
+    if group_name in {item["name"] for item in JOHTO_LOCK["groups"]}:
+        return "REGION_JOHTO"
+    return "REGION_HOENN"
+
+
+def _reviewed_cross_geography_maps() -> dict[str, str]:
+    """Bind map geography exceptions to allocation and authored gateway policy."""
+    allocated_groups = {
+        item["name"]: item["targetGroup"] for item in JOHTO_LOCK["maps"]
+    }
+    claimed_regions: dict[str, str] = {}
+    valid_regions = {"REGION_KANTO", "REGION_JOHTO", "REGION_HOENN"}
+    for gateway in JOHTO_ADAPTATIONS["worldPolicy"]["scriptWarps"]:
+        for map_field, region_field in (
+            ("source", "sourceRegion"),
+            ("destination", "targetRegion"),
+        ):
+            map_name = gateway.get(map_field)
+            region = gateway.get(region_field)
+            if map_name not in allocated_groups or region not in valid_regions:
+                raise RuntimeError("integrity script-warp geography authority drift")
+            previous = claimed_regions.setdefault(map_name, region)
+            if previous != region:
+                raise RuntimeError(
+                    f"integrity script-warp geography conflict for {map_name}"
+                )
+    return {
+        map_name: region
+        for map_name, region in claimed_regions.items()
+        if region != group_content_region(allocated_groups[map_name])
+    }
+
+
 def _validate_final_johto_source_contract() -> None:
     expected = JOHTO_PORT["expectedInventory"]
     actual = {
@@ -54,20 +93,31 @@ def _validate_final_johto_source_contract() -> None:
 
 
 _validate_final_johto_source_contract()
-ACTIVE_JOHTO_MAPS = list(JOHTO_LOCK["maps"])
-ACTIVE_JOHTO_LAYOUTS = list(JOHTO_LOCK["layouts"])
+JOHTO_FORMAT_CLOSURE_MAPS = list(JOHTO_LOCK["maps"])
+JOHTO_FORMAT_CLOSURE_LAYOUTS = list(JOHTO_LOCK["layouts"])
 ACTIVE_JOHTO_GROUPS = {item["name"] for item in JOHTO_LOCK["groups"]}
+REVIEWED_CROSS_GEOGRAPHY_MAPS = _reviewed_cross_geography_maps()
+
+
+def expected_map_geography(map_name: Any, group_name: Any) -> str | None:
+    """Return the reviewed geographic region for a map in its product group."""
+    group_region = group_content_region(group_name)
+    if group_region is None:
+        return None
+    return REVIEWED_CROSS_GEOGRAPHY_MAPS.get(map_name, group_region)
+
+
 INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
-ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in ACTIVE_JOHTO_MAPS}
+ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935
 BASE_REVIEWED_MAPS = 939
 BASE_LAYOUTS = 785
 BASE_MAP_SECTIONS = 209
 EXPECTED_GROUPS = BASE_GROUPS + len(ACTIVE_JOHTO_GROUPS)
-EXPECTED_GROUPED_MAPS = BASE_GROUPED_MAPS + len(ACTIVE_JOHTO_MAPS)
-EXPECTED_REVIEWED_MAPS = BASE_REVIEWED_MAPS + len(ACTIVE_JOHTO_MAPS)
-EXPECTED_LAYOUTS = BASE_LAYOUTS + len(ACTIVE_JOHTO_LAYOUTS)
+EXPECTED_GROUPED_MAPS = BASE_GROUPED_MAPS + len(JOHTO_FORMAT_CLOSURE_MAPS)
+EXPECTED_REVIEWED_MAPS = BASE_REVIEWED_MAPS + len(JOHTO_FORMAT_CLOSURE_MAPS)
+EXPECTED_LAYOUTS = BASE_LAYOUTS + len(JOHTO_FORMAT_CLOSURE_LAYOUTS)
 EXPECTED_MAP_SECTIONS = BASE_MAP_SECTIONS + len(ACTIVE_JOHTO_SECTIONS)
 EXPECTED_COUNTS = {
     "groups": EXPECTED_GROUPS,
@@ -76,8 +126,8 @@ EXPECTED_COUNTS = {
     "layouts": EXPECTED_LAYOUTS,
     "regions": {
         "REGION_HOENN": 518,
-        "REGION_KANTO": 421,
-        "REGION_JOHTO": len(ACTIVE_JOHTO_MAPS),
+        "REGION_KANTO": 422,
+        "REGION_JOHTO": 253,
     },
 }
 EXPECTED_PRODUCT = {
@@ -153,17 +203,6 @@ def _unique(records: list[dict[str, Any]], field: str, owner: str) -> None:
         raise ManifestError(f"{owner} must have unique non-null {field} values")
 
 
-def group_content_region(group_name: Any) -> str | None:
-    """Return the content origin encoded by the product's map-group namespace."""
-    if not isinstance(group_name, str) or not group_name.startswith("gMapGroup_"):
-        return None
-    if group_name.endswith("_Frlg"):
-        return "REGION_KANTO"
-    if group_name in ACTIVE_JOHTO_GROUPS:
-        return "REGION_JOHTO"
-    return "REGION_HOENN"
-
-
 def validate_manifest(manifest: dict[str, Any]) -> None:
     if manifest.get("schemaVersion") != 2:
         raise ManifestError("unsupported integrity manifest schema")
@@ -219,6 +258,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     if sorted(group["number"] for group in groups) != list(range(EXPECTED_GROUPS)):
         raise ManifestError("group numbers must be contiguous from zero")
     group_counts = {group["number"]: group["mapCount"] for group in groups}
+    group_names = {group["number"]: group.get("name") for group in groups}
     group_regions = {
         group["number"]: group_content_region(group.get("name")) for group in groups
     }
@@ -336,7 +376,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
                 f"{entry['regionMapSection']} is {section['value']}, "
                 f"not {entry['regionMapSectionValue']}"
             )
-        expected_region = group_regions[entry["group"]]
+        expected_region = expected_map_geography(
+            entry.get("name"), group_names[entry["group"]]
+        )
         if entry.get("region") != expected_region:
             raise ManifestError(
                 f"map {entry.get('name')} region {entry.get('region')!r} disagrees "

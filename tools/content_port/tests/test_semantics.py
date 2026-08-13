@@ -9,6 +9,7 @@ from tools.content_port.errors import ContentPortError
 from tools.content_port.semantics import (
     EventEntry,
     analyze_entry,
+    extract_script_warps,
     load_event_policy,
     load_opcodes,
     parse_scripts,
@@ -45,6 +46,132 @@ class SemanticsTests(unittest.TestCase):
             ContentPortError, r"main.inc:2: unknown script opcode mystery"
         ):
             analyze_entry(program, "Entry")
+
+    def test_script_warp_evidence_binds_reached_command_and_literal_destination(
+        self,
+    ) -> None:
+        program = self._program(
+            "Entry::\n msgbox TravelText, MSGBOX_YESNO\n call .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER_REGION, 6, 7\n end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(len(evidence), 1)
+        self.assertEqual(
+            (
+                evidence[0].entry,
+                evidence[0].label,
+                evidence[0].index,
+                evidence[0].command,
+                evidence[0].destination,
+                evidence[0].x,
+                evidence[0].y,
+            ),
+            ("Entry", "Entry.Travel", 0, "warp", "OTHER_REGION", 6, 7),
+        )
+
+    def test_script_warp_identity_is_label_local_and_ignores_harmless_edits(
+        self,
+    ) -> None:
+        before = self._program(
+            "Entry::\n msgbox TravelText, MSGBOX_YESNO\n warp MAP_OTHER, 1, 2\n end\n"
+        )
+        after = self._program(
+            "Entry::\n lock\n msgbox TravelText, MSGBOX_YESNO\n"
+            " waitbuttonpress\n warp MAP_OTHER, 1, 2\n end\n"
+        )
+        before_warp = extract_script_warps(before, "Entry")[0]
+        after_warp = extract_script_warps(after, "Entry")[0]
+        self.assertEqual(
+            (
+                before_warp.entry,
+                before_warp.label,
+                before_warp.index,
+                before_warp.command,
+                before_warp.destination,
+                before_warp.x,
+                before_warp.y,
+            ),
+            (
+                after_warp.entry,
+                after_warp.label,
+                after_warp.index,
+                after_warp.command,
+                after_warp.destination,
+                after_warp.x,
+                after_warp.y,
+            ),
+        )
+
+    def test_script_warp_control_reaches_case_and_supports_warpsilent(self) -> None:
+        program = self._program(
+            "Entry::\n switch VAR_RESULT\n case 1, .Travel\n end\n"
+            ".Travel::\n warpsilent MAP_OTHER, 6, 7\n waitstate\n end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(
+            (evidence[0].label, evidence[0].index, evidence[0].command),
+            ("Entry.Travel", 0, "warpsilent"),
+        )
+
+    def test_script_warp_closure_rejects_unresolved_called_target(self) -> None:
+        program = self._program(
+            "Entry::\n call GlobalMutatingService\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(
+            ContentPortError,
+            "unresolved control target GlobalMutatingService",
+        ):
+            extract_script_warps(program, "Entry")
+
+    def test_external_call_without_local_warp_yields_no_evidence(self) -> None:
+        program = self._program("Entry::\n call GlobalService\n end\n")
+        self.assertEqual(extract_script_warps(program, "Entry"), ())
+
+    def test_script_warp_control_accepts_legacy_case_separator(self) -> None:
+        program = self._program(
+            "Entry::\n switch VAR_RESULT\n case 7 .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(evidence[0].label, "Entry.Travel")
+
+    def test_legacy_case_separator_does_not_accept_ambiguous_operands(self) -> None:
+        program = self._program(
+            "Entry::\n case 7 .Travel extra\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(ContentPortError, "lacks label operand 1"):
+            extract_script_warps(program, "Entry")
+
+    def test_script_warp_closure_rejects_state_mutation(self) -> None:
+        program = self._program(
+            "Entry::\n setflag FLAG_BADGE01_GET\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(ContentPortError, "unsupported command setflag"):
+            extract_script_warps(program, "Entry")
+
+    def test_script_warp_closure_rejects_story_flag_condition(self) -> None:
+        program = self._program(
+            "Entry::\n goto_if_set FLAG_BADGE01_GET, .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "unsupported command goto_if_set"
+        ):
+            extract_script_warps(program, "Entry")
+
+    def test_script_warp_choice_switch_must_use_result(self) -> None:
+        program = self._program(
+            "Entry::\n switch VAR_STORY\n case 1, .Travel\n end\n"
+            ".Travel::\n warp MAP_OTHER, 6, 7\n end\n"
+        )
+        with self.assertRaisesRegex(ContentPortError, "must inspect VAR_RESULT"):
+            extract_script_warps(program, "Entry")
+
+    def test_persistent_script_warp_effect_is_not_world_graph_evidence(self) -> None:
+        program = self._program("Entry::\n setwarp MAP_OTHER_REGION, 6, 7\n end\n")
+        with self.assertRaisesRegex(ContentPortError, "unsupported persistent"):
+            extract_script_warps(program, "Entry")
 
     def test_hns_single_battle_separator_and_text_are_typed(self) -> None:
         program = self._program(

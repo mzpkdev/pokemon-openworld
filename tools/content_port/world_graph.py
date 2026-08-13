@@ -25,9 +25,19 @@ class WorldEdge:
     direction: str | None = None
     offset: int | None = None
     target_warp: int | str | None = None
+    script_entry: str | None = None
+    script_label: str | None = None
+    command: str | None = None
+    x: int | None = None
+    y: int | None = None
 
     @property
     def key(self) -> str:
+        if self.kind == "script-warp":
+            return (
+                f"{self.source}:{self.kind}:{self.script_entry}:"
+                f"{self.script_label}:{self.index}"
+            )
         return f"{self.source}:{self.kind}:{self.index}"
 
 
@@ -132,6 +142,31 @@ def world_graph_from_maps(
                 WorldEdge(name, target, "warp", index, target_warp=target_warp)
             )
     return WorldGraph(nodes, tuple(sorted(edges)))
+
+
+def with_script_warps(graph: WorldGraph, edges: Iterable[WorldEdge]) -> WorldGraph:
+    script_edges = tuple(edges)
+    if any(edge.kind != "script-warp" for edge in script_edges):
+        raise ContentPortError("script-warp evidence contains a non-script edge")
+    if any(
+        not edge.source
+        or not edge.target
+        or not edge.script_entry
+        or not edge.script_label
+        or edge.command not in {"warp", "warpsilent"}
+        or type(edge.index) is not int
+        or edge.index < 0
+        or type(edge.x) is not int
+        or edge.x < 0
+        or type(edge.y) is not int
+        or edge.y < 0
+        for edge in script_edges
+    ):
+        raise ContentPortError("script-warp evidence is incomplete or malformed")
+    keys = [edge.key for edge in script_edges]
+    if len(keys) != len(set(keys)):
+        raise ContentPortError("duplicate script-warp evidence identity")
+    return WorldGraph(graph.maps, tuple(sorted((*graph.edges, *script_edges))))
 
 
 def validate_world_graph(graph: WorldGraph, policy: WorldPolicy) -> None:

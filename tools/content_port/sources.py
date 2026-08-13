@@ -20,6 +20,7 @@ from .model import (
     TrainerText,
 )
 from .ownership import safe_repo_path
+from .world_graph import WorldEdge
 
 
 @dataclass(frozen=True, order=True)
@@ -1627,6 +1628,153 @@ def _attribute_fixture_evidence(
     return MappingProxyType(dict(sorted(results.items())))
 
 
+def _extract_preserved_script_warps(
+    maps: Mapping[str, Mapping[str, Any]],
+    ownership: Mapping[str, str],
+    target_root: Path,
+) -> tuple[tuple[WorldEdge, ...], Mapping[str, frozenset[str]]]:
+    """Return parsed script-warp edges and their map-owned entry inventory."""
+
+    from .semantics import extract_script_warps, parse_scripts
+
+    owned_entries: dict[str, frozenset[str]] = {}
+    result: list[WorldEdge] = []
+    map_aliases = {
+        str(document.get("id", name)).removeprefix("MAP_"): name
+        for name, document in maps.items()
+    }
+    for name, document in sorted(maps.items()):
+        if ownership[name] != "preserve":
+            continue
+        entries = frozenset(
+            str(event["script"])
+            for collection in ("object_events", "coord_events", "bg_events")
+            for event in (document.get(collection, []) or [])
+            if isinstance(event, Mapping)
+            and isinstance(event.get("script"), str)
+            and event["script"] not in {"NULL", "0"}
+        )
+        if not entries:
+            owned_entries[name] = frozenset()
+            continue
+        script_path = Path("data") / "maps" / name / "scripts.inc"
+        if not (target_root / script_path).is_file():
+            owned_entries[name] = frozenset()
+            continue
+        program = parse_scripts([script_path], root=target_root)
+        # Map events may intentionally reference globally linked common
+        # services. Only entries actually defined by this map's script unit are
+        # map-owned evidence and eligible for a script-warp declaration.
+        local_entries = frozenset(entry for entry in entries if entry in program.labels)
+        owned_entries[name] = local_entries
+        for entry in sorted(local_entries):
+            for warp in extract_script_warps(program, entry):
+                result.append(
+                    WorldEdge(
+                        name,
+                        map_aliases.get(warp.destination, warp.destination),
+                        "script-warp",
+                        warp.index,
+                        script_entry=warp.entry,
+                        script_label=warp.label,
+                        command=warp.command,
+                        x=warp.x,
+                        y=warp.y,
+                    )
+                )
+    return tuple(result), MappingProxyType(owned_entries)
+
+
+def _bind_script_warp_policy(
+    graph: Any,
+    declarations: object,
+    ownership: Mapping[str, str],
+    owned_entries: Mapping[str, frozenset[str]],
+) -> frozenset[str]:
+    """Bind reviewed policy to independently parsed script-warp evidence."""
+
+    if not isinstance(declarations, list):
+        raise ContentPortError("worldPolicy.scriptWarps must be an array")
+    gateway_keys: set[str] = set()
+    required = {
+        "source",
+        "destination",
+        "script",
+        "label",
+        "command",
+        "index",
+        "x",
+        "y",
+        "sourceRegion",
+        "targetRegion",
+    }
+    for index, item in enumerate(declarations):
+        if not isinstance(item, dict) or set(item) != required:
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: malformed script warp"
+            )
+        source = str(item["source"])
+        if ownership.get(source) != "preserve":
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: source map does not preserve "
+                "script ownership"
+            )
+        if str(item["script"]) not in owned_entries.get(source, frozenset()):
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: script entry is not owned by "
+                f"source map {source}"
+            )
+        matches = [
+            edge
+            for edge in graph.edges
+            if edge.kind == "script-warp"
+            and edge.source == source
+            and edge.target == item["destination"]
+            and edge.script_entry == item["script"]
+            and edge.script_label == item["label"]
+            and edge.command == item["command"]
+            and edge.index == item["index"]
+            and edge.x == item["x"]
+            and edge.y == item["y"]
+        ]
+        if len(matches) != 1:
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: stale script warp declaration"
+            )
+        edge = matches[0]
+        target = graph.maps.get(edge.target)
+        if target is None:
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: destination map is outside the "
+                "closed world graph"
+            )
+        if (
+            graph.maps[edge.source].region != item["sourceRegion"]
+            or target.region != item["targetRegion"]
+        ):
+            raise ContentPortError(
+                f"worldPolicy.scriptWarps/{index}: script warp region evidence drift"
+            )
+        if edge.key in gateway_keys:
+            raise ContentPortError("duplicate script warp declaration")
+        gateway_keys.add(edge.key)
+    observed_keys = {edge.key for edge in graph.edges if edge.kind == "script-warp"}
+    if gateway_keys != observed_keys:
+        raise ContentPortError("script warp policy differs from resolved topology")
+    return frozenset(gateway_keys)
+
+
+def _automatic_unreachable_shells(
+    graph: Any, warp_removals_by_map: Mapping[str, set[int]]
+) -> frozenset[str]:
+    outgoing_sources = {edge.source for edge in graph.edges}
+    return frozenset(
+        name
+        for name, indexes in warp_removals_by_map.items()
+        if indexes and name not in outgoing_sources
+    )
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -1645,7 +1793,12 @@ def resolve_port_sources(
         validate_effects,
         validate_event_policy_capabilities,
     )
-    from .world_graph import WorldPolicy, validate_world_graph, world_graph_from_maps
+    from .world_graph import (
+        WorldPolicy,
+        validate_world_graph,
+        with_script_warps,
+        world_graph_from_maps,
+    )
 
     target_root = Path(repo)
     donor_pins = descriptor.donors_by_role
@@ -2682,10 +2835,11 @@ def resolve_port_sources(
         "unreachableShells",
         "gateways",
         "dynamicWarps",
+        "scriptWarps",
     }:
         raise ContentPortError(
-            "worldPolicy requires exact roots, unreachableShells, gateways, and "
-            "dynamicWarps arrays"
+            "worldPolicy requires exact roots, unreachableShells, gateways, "
+            "dynamicWarps, and scriptWarps arrays"
         )
     if not all(isinstance(item, str) and item for item in world_policy["roots"]):
         raise ContentPortError("worldPolicy.roots must contain map names")
@@ -2693,6 +2847,10 @@ def resolve_port_sources(
         isinstance(item, str) and item for item in world_policy["unreachableShells"]
     ):
         raise ContentPortError("worldPolicy.unreachableShells must contain map names")
+    script_edges, owned_script_entries = _extract_preserved_script_warps(
+        selected_maps, descriptor.map_ownership, target_root
+    )
+    rendered_graph = with_script_warps(rendered_graph, script_edges)
     deferred_dynamic = frozenset(
         edge.key
         for edge in rendered_graph.edges
@@ -2749,7 +2907,8 @@ def resolve_port_sources(
         matches = [
             edge
             for edge in rendered_graph.edges
-            if edge.source == item["source"]
+            if edge.kind != "script-warp"
+            and edge.source == item["source"]
             and edge.target == item["destination"]
             and edge.kind == item["kind"]
             and edge.index == item["index"]
@@ -2767,6 +2926,14 @@ def resolve_port_sources(
                 f"worldPolicy.gateways/{index}: gateway region evidence drift"
             )
         gateway_keys.add(edge.key)
+    gateway_keys.update(
+        _bind_script_warp_policy(
+            rendered_graph,
+            world_policy["scriptWarps"],
+            descriptor.map_ownership,
+            owned_script_entries,
+        )
+    )
     validate_world_graph(
         rendered_graph,
         WorldPolicy(
@@ -2776,11 +2943,7 @@ def resolve_port_sources(
             inter_region_gateways=frozenset(gateway_keys),
             roots=frozenset(world_policy["roots"]),
             unreachable_shells=frozenset(world_policy["unreachableShells"])
-            | frozenset(
-                name
-                for name, indexes in warp_removals_by_map.items()
-                if indexes and not selected_maps[name].get("warp_events")
-            ),
+            | _automatic_unreachable_shells(rendered_graph, warp_removals_by_map),
         ),
     )
 

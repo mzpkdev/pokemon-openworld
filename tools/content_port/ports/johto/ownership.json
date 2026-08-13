@@ -3914,16 +3914,6 @@
     },
     {
       "kind": "file",
-      "path": "data/maps/OlivineCity_PortInside/map.json",
-      "sha256": "891e49186583de2987058d7fdf39d274d4700b77ec1d21883f7a093aa32a58c3"
-    },
-    {
-      "kind": "file",
-      "path": "data/maps/OlivineCity_PortInside/scripts.inc",
-      "sha256": "c4e3dbbd325cd09c2b06ea8062f3242f3588401870cbb56042e28a5d2aef8726"
-    },
-    {
-      "kind": "file",
       "path": "data/maps/OlivineCity_PortOutside/map.json",
       "sha256": "db9d3d9249f87248dbfa2218ed7740034d7b0b90be3a3d6345faf14a3b49222c"
     },
@@ -4771,16 +4761,6 @@
       "kind": "file",
       "path": "data/maps/UnionCave_B2F/scripts.inc",
       "sha256": "366278e9fffb206ca3ef3b73d4a724e5aafa355b57268611111d6296760f3a88"
-    },
-    {
-      "kind": "file",
-      "path": "data/maps/VermilionCity_PortInside/map.json",
-      "sha256": "0aee9d3138a719828f7709ebac6be684ba206178605c9269d685fc046bd5153c"
-    },
-    {
-      "kind": "file",
-      "path": "data/maps/VermilionCity_PortInside/scripts.inc",
-      "sha256": "c650aea2a93fc10e815d06e4bc13ff24cee09d46bc13d693aa9b3d0f664e9767"
     },
     {
       "kind": "file",
@@ -11582,7 +11562,7 @@
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "65063ac31422392a937b56cdec251984c82545465727da6d0f12c928d7c1ade3",
+      "sha256": "5ba2d07a28f2ea68d016d8834e0c75bb2c2ca4e375320bb64178e9be277884e2",
       "slot": 920
     },
     {
@@ -12302,7 +12282,7 @@
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "7f0bdd069183dafbd76cc76fd948cd42fd75e5c31d6c707bc73f6078b9404e34",
+      "sha256": "b4bcaf00e357f73affe5fc043603bb82b20e1a298f83ab777c437c8729221fb5",
       "slot": 1014
     },
     {
@@ -12909,7 +12889,7 @@
       "kind": "registry-record",
       "path": "src/data/region_map/region_map_sections.json",
       "registry": "map_sections",
-      "sha256": "5a5673741872656a13c03bfd2394bf251e1b802e7b941726b387baa82674e455",
+      "sha256": "4b45babf1e757b35d18e5d27e094e5cb2c5a6c00df4666b970015b5405042127",
       "slot": 260
     },
     {

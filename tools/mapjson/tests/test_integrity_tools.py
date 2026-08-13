@@ -6,7 +6,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.integrity.manifest import EXPECTED_ABIS, ManifestError, validate_manifest
+from tools.integrity.manifest import (
+    EXPECTED_ABIS,
+    EXPECTED_COUNTS,
+    JOHTO_FORMAT_CLOSURE_MAPS,
+    ManifestError,
+    REVIEWED_CROSS_GEOGRAPHY_MAPS,
+    validate_manifest,
+)
 from tools.integrity.validate_artifact import (
     ROM_BASE,
     ValidationError,
@@ -62,6 +69,18 @@ class IntegrityToolTests(unittest.TestCase):
         with self.assertRaisesRegex(ManifestError, "wrong registry counts"):
             validate_manifest(manifest)
 
+    def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
+        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
+        self.assertEqual(
+            REVIEWED_CROSS_GEOGRAPHY_MAPS,
+            {"VermilionCity_PortInside": "REGION_KANTO"},
+        )
+        self.assertEqual(
+            EXPECTED_COUNTS["regions"],
+            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+        )
+        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
+
     def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
         original = json.loads((self.generated / "integrity-manifest.json").read_text())
         validate_manifest(original)
@@ -81,6 +100,19 @@ class IntegrityToolTests(unittest.TestCase):
                 "UnionRoom_Frlg",
             ],
         )
+        vermilion_drift = copy.deepcopy(original)
+        vermilion = next(
+            entry
+            for entry in vermilion_drift["maps"]
+            if entry["name"] == "VermilionCity_PortInside"
+        )
+        self.assertEqual(vermilion["region"], "REGION_KANTO")
+        vermilion["region"] = "REGION_JOHTO"
+        with self.assertRaisesRegex(
+            ManifestError,
+            "VermilionCity_PortInside.*disagrees.*REGION_KANTO",
+        ):
+            validate_manifest(vermilion_drift)
         mutations = (
             (
                 "unknown name",
@@ -467,6 +499,64 @@ class IntegrityToolTests(unittest.TestCase):
                 manifest["maps"][0][field] = value
                 with self.assertRaisesRegex(ValidationError, message):
                     validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
+
+    def test_artifact_honors_reviewed_vermilion_geography(self) -> None:
+        generated = json.loads((self.generated / "integrity-manifest.json").read_text())
+        entry = copy.deepcopy(
+            next(
+                item
+                for item in generated["maps"]
+                if item["name"] == "VermilionCity_PortInside"
+            )
+        )
+        group = copy.deepcopy(
+            next(
+                item for item in generated["groups"] if item["number"] == entry["group"]
+            )
+        )
+        section = copy.deepcopy(
+            next(
+                item
+                for item in generated["mapSectionMetadata"]
+                if item["id"] == entry["regionMapSection"]
+            )
+        )
+        manifest = {
+            "abis": {"mapHeader": generated["abis"]["mapHeader"]},
+            "maps": [entry],
+            "groups": [group],
+            "mapSectionMetadata": [section],
+        }
+        rom = bytearray(0x100)
+        symbols = {entry["name"]: ROM_BASE}
+        pointer_fields = ("mapLayout", "mapEvents", "mapScripts", "mapConnections")
+        for index, field in enumerate(pointer_fields, start=1):
+            if entry[field] is not None:
+                symbols[entry[field]] = ROM_BASE + index * 4
+        struct.pack_into(
+            "<IIII",
+            rom,
+            0,
+            *(symbols.get(entry[field], 0) for field in pointer_fields),
+        )
+        struct.pack_into("<H", rom, 0x14, entry["regionMapSectionValue"])
+        rom[0x1C] = entry["battleType"]
+
+        self.assertEqual(group["name"], "gMapGroup_IndoorSSAqua")
+        self.assertEqual(entry["region"], "REGION_KANTO")
+        validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
+
+        entry["region"] = "REGION_JOHTO"
+        with self.assertRaisesRegex(
+            ValidationError,
+            "VermilionCity_PortInside.*disagrees.*REGION_KANTO",
+        ):
+            validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
+
+        entry["region"] = "REGION_KANTO"
+        group["name"] = "IndoorSSAqua"
+        with self.assertRaisesRegex(ValidationError, "invalid map-group metadata"):
+            validate_map_headers(rom, manifest, symbols, ROM_BASE + len(rom))
 
     def test_map_section_metadata_byte_mutation_is_rejected(self) -> None:
         rom = bytearray((3, 0, 0, 0, 1, 1, 4, 0))
