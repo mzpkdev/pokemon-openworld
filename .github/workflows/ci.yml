@@ -53,7 +53,7 @@ jobs:
 
       - name: Validate append-only persistent allocations
         env:
-          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          PERSISTENT_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || format('{0}^', github.sha) }}
         run: >-
           python3 -m tools.persistence.ledger validate
           --published-baseline-ref "$PERSISTENT_BASELINE_REF"
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Check imported content ownership
-        run: make content-port-transaction-check
+        run: make content-port-ownership-check
 
       - name: Detect donor-contract changes
         id: donor-scope

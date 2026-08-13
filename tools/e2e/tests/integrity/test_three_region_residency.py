@@ -317,7 +317,7 @@ def test_manifest_maps_are_structurally_loadable(integrity_game, tmp_path):
     assert len(maps) == expected_maps, (
         f"expected {expected_maps} registered maps, found {len(maps)}"
     )
-    sweep = os.environ.get("E2E_MAP_SWEEP", "all")
+    sweep = os.environ.get("E2E_MAP_SWEEP", "frontages")
     if sweep == "all":
         frontages = [None] * len(maps)
     elif sweep == "frontages":

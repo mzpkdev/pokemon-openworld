@@ -42,6 +42,15 @@ def _port_dir(repo: Path, port: str) -> Path:
     return repo / "tools" / "content_port" / "ports" / port
 
 
+def verify_ownership(repo: Path, port: str) -> None:
+    """Verify installed content-port ownership without loading donor trees."""
+
+    require_no_active_transaction(repo)
+    from .ownership import OwnershipManifest
+
+    OwnershipManifest.load(_port_dir(repo, port) / "ownership.json").verify(repo)
+
+
 def check_port(
     repo: Path,
     port: str,
@@ -237,6 +246,11 @@ def parser() -> argparse.ArgumentParser:
         "transaction-check", help="refuse while an apply transaction is active"
     )
     guard.add_argument("--repo", type=_repo, default=Path.cwd())
+    ownership = commands.add_parser(
+        "ownership-check", help="verify installed owned content without donors"
+    )
+    ownership.add_argument("--repo", type=_repo, default=Path.cwd())
+    ownership.add_argument("--port", required=True)
     return result
 
 
@@ -298,6 +312,8 @@ def run(argv: Sequence[str] | None = None) -> int:
         )
     elif args.command == "transaction-check":
         require_no_active_transaction(args.repo)
+    elif args.command == "ownership-check":
+        verify_ownership(args.repo, args.port)
     else:  # pragma: no cover - argparse makes this unreachable
         raise AssertionError(args.command)
     return 0

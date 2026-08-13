@@ -457,13 +457,13 @@ MAKEFLAGS += --no-print-directory
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
-RULES_NO_SCAN += content-port-transaction-check content-port-check content-port-bundle content-port-test
+RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
-.PHONY: content-port-transaction-check content-port-check content-port-bundle content-port-test wild-encounter-test
+.PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -516,7 +516,10 @@ ifeq ($(TEST_TIER),openworld)
 TEST_SRCS_IN := $(TEST_SUBDIR)/test_runner.c \
                 $(TEST_SUBDIR)/test_runner_args.c \
                 $(TEST_SUBDIR)/test_runner_battle.c \
-                $(wildcard $(TEST_SUBDIR)/openworld/*.c)
+                $(shell find $(TEST_SUBDIR)/openworld -type f -name '*.c' -print | sort)
+ifeq (,$(filter $(TEST_SUBDIR)/openworld/%,$(TEST_SRCS_IN)))
+  $(error TEST_TIER=openworld found no product tests under $(TEST_SUBDIR)/openworld)
+endif
 else
 TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/*.c $(TEST_SUBDIR)/*/*.c $(TEST_SUBDIR)/*/*/*.c)
 endif
@@ -600,6 +603,9 @@ content-port-transaction-check:
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
 		python3 -m tools.content_port transaction-check --repo .; \
 	fi
+
+content-port-ownership-check: content-port-transaction-check
+	python3 -m tools.content_port ownership-check --port $(CONTENT_PORT)
 
 content-port-test: content-port-transaction-check
 	CONTENT_PORT_DONOR_ROOT=$(CONTENT_PORT_DONOR_ROOT) \

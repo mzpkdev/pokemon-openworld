@@ -14,7 +14,12 @@ from contextlib import contextmanager, redirect_stderr
 from dataclasses import dataclass
 from unittest.mock import patch
 
-from tools.content_port.cli import _bundle_current_state, check_port, main, parser
+from tools.content_port.cli import (
+    _bundle_current_state,
+    check_port,
+    main,
+    parser,
+)
 from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import DonorPin
@@ -194,6 +199,7 @@ class CliTests(unittest.TestCase):
             "recover",
             "donor-update",
             "migration-finalize",
+            "ownership-check",
             "transaction-check",
         ):
             self.assertIn(command, help_text)
@@ -428,6 +434,21 @@ class CliTests(unittest.TestCase):
         self.assertEqual((self.repo / "alpha.txt").read_bytes(), b"alpha\n")
         self.assertFalse((self.repo / "created.bin").exists())
         self.assertEqual(git(self.repo, "rev-parse", "HEAD").strip(), self.fixture.head)
+
+    def test_ownership_check_rejects_owned_file_drift_without_donors(self) -> None:
+        command = [
+            "ownership-check",
+            "--repo",
+            str(self.repo),
+            "--port",
+            "fixture",
+        ]
+        self.assertEqual(main(command), 0)
+        (self.repo / "alpha.txt").write_bytes(b"unreviewed drift\n")
+        error = io.StringIO()
+        with redirect_stderr(error):
+            self.assertEqual(main(command), 2)
+        self.assertIn("unexpected edit", error.getvalue())
 
     def test_transaction_check_refuses_active_guard(self) -> None:
         bundle = self.fixture.bundle()

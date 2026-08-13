@@ -19,9 +19,15 @@ def main() -> int:
         print("E2E extended: 0 tests")
         return 0
     command = [sys.executable, "-m", "pytest", "-q"]
-    if args.suite == "integrity" and os.environ.get("E2E_FULL") != "1":
-        command.extend(("-m", "not long_journey"))
-    return subprocess.call([*command, str(suite_dir)])
+    env = os.environ.copy()
+    if args.suite == "integrity":
+        full = env.get("E2E_FULL") == "1"
+        if full:
+            env["E2E_MAP_SWEEP"] = "all"
+        else:
+            env.setdefault("E2E_MAP_SWEEP", "frontages")
+            command.extend(("-m", "not long_journey"))
+    return subprocess.call([*command, str(suite_dir)], env=env)
 
 
 if __name__ == "__main__":
