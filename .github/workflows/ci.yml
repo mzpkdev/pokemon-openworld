@@ -368,6 +368,12 @@ jobs:
             INTEGRITY_REPORT=build/integrity/purposes/release.json \
             2>&1 | tee build/integrity/rom-purpose-capacity.log
 
+      - name: Generate Integrity manifest for prebuilt ROMs
+        run: |
+          make -C tools/mapjson
+          make NODEP=1 SETUP_PREREQS=0 \
+            build/generated/allregions/current/integrity-manifest.json
+
       - name: Audit prebuilt normal and debug ROMs
         shell: bash
         env:
