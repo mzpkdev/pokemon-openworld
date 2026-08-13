@@ -27,13 +27,15 @@ FERRY_X = 8
 FERRY_Y = 16
 POKEMON_STORAGE_SIZE = 0x83D0
 PLAYER_IDENTITY_SIZE = 0x0E
-POKEDEX_OFFSET = 0x18
-POKEDEX_SIZE = 0x78
+POKEDEX_METADATA_OFFSET = 0x18
+POKEDEX_METADATA_SIZE = 0x78
 
 # These ranges are the established serialized SaveBlock1 ABI documented in
 # include/global.h and frozen by tools/integrity/save_contract.json.
 MONEY_OFFSET = 0x490
 MONEY_SIZE = 4
+PARTY_RECORD_SIZE = 100
+PARTY_SIZE = 6
 PC_ITEMS_OFFSET = 0x498
 PC_ITEMS_SIZE = 0x560 - PC_ITEMS_OFFSET
 BAG_OFFSET = 0x560
@@ -43,6 +45,9 @@ LAST_HEAL_LOCATION_OFFSET = 0x1C
 WARP_DATA_SIZE = 8
 FLAGS_AND_VARS_OFFSET = 0x1270
 FLAGS_AND_VARS_SIZE = 0x159C - FLAGS_AND_VARS_OFFSET
+DEX_SEEN_OFFSET = 0x3598
+DEX_CAUGHT_OFFSET = 0x3619
+DEX_FLAG_BYTES = 0x81
 
 SPECIES_PIKACHU = 25
 SPECIES_DITTO = 132
@@ -95,12 +100,25 @@ def _continuity_snapshot(game, scenario_result) -> dict[str, object]:
     encryption_key = game.read_u32(block2 + 0xAC)
     representative = representative_runtime_semantics(game, scenario_result)
     return {
-        # This established semantic view covers the live party, boxed Pokémon,
-        # daycare, reward inventory, healing checkpoint, trainer flags, and
-        # facility/campaign session state.
+        # This established semantic view covers the representative state seeded
+        # by the scenario, including selected facility fields; it is not a full
+        # facility or campaign-state snapshot.
         "representativeState": representative,
         "playerIdentity": game.read(block2, PLAYER_IDENTITY_SIZE),
-        "pokedex": _digest(game.read(block2 + POKEDEX_OFFSET, POKEDEX_SIZE)),
+        "pokedexMetadata": _digest(
+            game.read(block2 + POKEDEX_METADATA_OFFSET, POKEDEX_METADATA_SIZE)
+        ),
+        "pokedexSeen": game.read(block1 + DEX_SEEN_OFFSET, DEX_FLAG_BYTES),
+        "pokedexCaught": game.read(block1 + DEX_CAUGHT_OFFSET, DEX_FLAG_BYTES),
+        # The runtime party is authoritative during ordinary map travel. Read
+        # all six complete 100-byte records so volatile battle/runtime tails,
+        # empty slots, and the live count are protected as well as boxed data.
+        "livePartyCount": game.read_u8(game.address("gPartiesCount")),
+        "liveParty": _read_chunked(
+            game,
+            game.address("gParties"),
+            PARTY_RECORD_SIZE * PARTY_SIZE,
+        ),
         # Map transitions deliberately rotate the save encryption key. Compare
         # canonical values, not ciphertext that must change during travel.
         "money": int.from_bytes(
@@ -120,7 +138,7 @@ def _continuity_snapshot(game, scenario_result) -> dict[str, object]:
         # The complete persistent flag/variable domains include campaign and
         # regional facts. Comparing the full ranges prevents a travel helper
         # from hiding a narrowly targeted story mutation.
-        "campaignAndRegionalFacts": _digest(
+        "persistentFlagsAndVars": _digest(
             _read_chunked(
                 game, block1 + FLAGS_AND_VARS_OFFSET, FLAGS_AND_VARS_SIZE
             )
