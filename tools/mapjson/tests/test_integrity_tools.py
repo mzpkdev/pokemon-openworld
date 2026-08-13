@@ -6,7 +6,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.integrity.manifest import EXPECTED_ABIS, ManifestError, validate_manifest
+from tools.integrity.manifest import (
+    EXPECTED_ABIS,
+    EXPECTED_COUNTS,
+    JOHTO_FORMAT_CLOSURE_MAPS,
+    ManifestError,
+    validate_manifest,
+)
 from tools.integrity.validate_artifact import (
     ROM_BASE,
     ValidationError,
@@ -61,6 +67,14 @@ class IntegrityToolTests(unittest.TestCase):
         manifest["counts"]["groupedMaps"] -= 1
         with self.assertRaisesRegex(ManifestError, "wrong registry counts"):
             validate_manifest(manifest)
+
+    def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
+        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
+        self.assertEqual(
+            EXPECTED_COUNTS["regions"],
+            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+        )
+        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
 
     def test_manifest_binds_section_identity_and_group_content_region(self) -> None:
         original = json.loads((self.generated / "integrity-manifest.json").read_text())
