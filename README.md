@@ -115,6 +115,30 @@ python3 -m tools.content_port apply --repo . \
   --sha256 "${content_port_bundle_sha256:?}"
 ```
 
+Bundle validation runs cheap preflight checks first, prepares the normal, debug,
+mechanics, emulator, and pinned Python wheel artifacts once, then runs the five named
+validators concurrently. `CONTENT_PORT_JOBS` limits validator and build
+parallelism; set it to `1` for the supported serial fallback:
+
+```sh
+make CONTENT_PORT_JOBS=1 content-port-bundle
+```
+
+Each validator writes under its own temporary result directory. A failure stops
+the remaining validators and prints that validator's captured output. The final
+report records the fixed validation policy, prepared artifact hashes, and the
+complete passing validator set alongside the base commit, patch, ownership, and
+donor evidence. The signed artifact identity includes the fully resolved,
+hash-locked E2E requirements and offline wheelhouse, never the host-specific
+virtual environment. Wheel download and offline installation both require every
+pinned hash and accept binary distributions only. CI transports that wheelhouse
+and recreates one virtual environment per E2E job with network resolution
+disabled. A canonical per-path manifest, using the same framing as bundle
+validation, binds the prepared files to `desired.patch`, `ownership.json`, and
+`report.json`; the published digest is the aggregate bundle digest rather than a
+transport archive hash. `E2E_PREBUILT_RUNTIME=1` and
+`E2E_PREBUILT_DEPENDENCIES=1` make missing prepared inputs fail explicitly.
+
 An interrupted apply leaves an active transaction guard. Every build, test,
 integrity, and content-port target refuses that mixed tree until one of these
 commands verifies the transaction and clears it:

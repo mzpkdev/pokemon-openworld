@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from unittest.mock import patch
 
 from tools.content_port.cli import _bundle_current_state, check_port, main, parser
+from tools.content_port.bundle import _read_project_config
 from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.model import DonorPin
@@ -84,12 +85,17 @@ class TransactionRepository:
             }
         )
         self.ownership.write_bytes(self.baseline_manifest)
+        self.project_policy = root / "tools/content_port/project.json"
+        self.project_policy.write_bytes(
+            canonical({"schemaVersion": 1, "validationCommands": []})
+        )
         git(
             root,
             "add",
             "alpha.txt",
             "unrelated.txt",
             self.ownership.relative_to(root).as_posix(),
+            self.project_policy.relative_to(root).as_posix(),
         )
         git(root, "commit", "-q", "-m", "fixture")
         self.head = git(root, "rev-parse", "HEAD").strip()
@@ -189,6 +195,11 @@ class CliTests(unittest.TestCase):
         for command in (
             "check",
             "bundle",
+            "candidate",
+            "artifact-manifest",
+            "finalize-ci-bundle",
+            "preflight-receipt",
+            "run-ci-validator",
             "apply",
             "resume",
             "recover",
@@ -197,6 +208,199 @@ class CliTests(unittest.TestCase):
             "transaction-check",
         ):
             self.assertIn(command, help_text)
+
+    def test_bundle_parser_accepts_serial_fallback_and_rejects_zero_jobs(self) -> None:
+        arguments = [
+            "bundle",
+            "--port",
+            "fixture",
+            "--donor-root",
+            str(self.repo.parent),
+            "--output",
+            str(self.repo.parent / "output"),
+        ]
+        self.assertEqual(parser().parse_args([*arguments, "--jobs", "1"]).jobs, 1)
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            parser().parse_args([*arguments, "--jobs", "0"])
+
+    def test_apply_rejects_validation_policy_from_another_base(self) -> None:
+        policy_path = self.repo / "tools/content_port/project.json"
+        policy_path.write_bytes(
+            canonical(
+                {
+                    "schemaVersion": 2,
+                    "preflightCommands": [],
+                    "preparationCommands": [],
+                    "validators": [],
+                    "artifacts": [],
+                }
+            )
+        )
+        git(self.repo, "add", policy_path.relative_to(self.repo).as_posix())
+        git(self.repo, "commit", "-q", "-m", "validation policy")
+        self.fixture.head = git(self.repo, "rev-parse", "HEAD").strip()
+        bundle = self.fixture.bundle()
+        report = json.loads((bundle / "report.json").read_text())
+        report.update(
+            {
+                "schemaVersion": 2,
+                "validation": {
+                    "schemaVersion": 1,
+                    "policySha256": "0" * 64,
+                    "artifacts": [],
+                    "preflight": [],
+                    "validators": [],
+                },
+            }
+        )
+        (bundle / "report.json").write_bytes(canonical(report))
+        digest = canonical_bundle_digest(bundle)
+
+        error = io.StringIO()
+        with redirect_stderr(error):
+            status = main(
+                [
+                    "apply",
+                    "--repo",
+                    str(self.repo),
+                    "--bundle",
+                    str(bundle),
+                    "--sha256",
+                    digest,
+                ]
+            )
+        self.assertEqual(status, 2)
+        self.assertIn("validation policy does not match", error.getvalue())
+
+    def test_apply_rejects_schema_v1_report_for_schema_v2_base(self) -> None:
+        self.fixture.project_policy.write_bytes(
+            canonical(
+                {
+                    "schemaVersion": 2,
+                    "preflightCommands": [],
+                    "preparationCommands": [],
+                    "validators": [],
+                    "artifacts": [],
+                }
+            )
+        )
+        git(
+            self.repo,
+            "add",
+            self.fixture.project_policy.relative_to(self.repo).as_posix(),
+        )
+        git(self.repo, "commit", "-q", "-m", "schema v2 policy")
+        self.fixture.head = git(self.repo, "rev-parse", "HEAD").strip()
+        bundle = self.fixture.bundle()
+        digest = canonical_bundle_digest(bundle)
+
+        error = io.StringIO()
+        with redirect_stderr(error):
+            status = main(
+                [
+                    "apply",
+                    "--repo",
+                    str(self.repo),
+                    "--bundle",
+                    str(bundle),
+                    "--sha256",
+                    digest,
+                ]
+            )
+        self.assertEqual(status, 2)
+        self.assertIn("policy schema v2 requires report schema v2", error.getvalue())
+        self.fixture.assert_clean()
+
+    def test_apply_accepts_schema_v1_report_for_schema_v1_base(self) -> None:
+        bundle = self.fixture.bundle()
+        report = json.loads((bundle / "report.json").read_text())
+        self.assertEqual(report["schemaVersion"], 1)
+        self.assertNotIn("validation", report)
+        digest = canonical_bundle_digest(bundle)
+
+        self.assertEqual(
+            main(
+                [
+                    "apply",
+                    "--repo",
+                    str(self.repo),
+                    "--bundle",
+                    str(bundle),
+                    "--sha256",
+                    digest,
+                ]
+            ),
+            0,
+        )
+
+    def test_apply_rejects_report_commands_that_do_not_exactly_match_policy(
+        self,
+    ) -> None:
+        policy_path = self.repo / "tools/content_port/project.json"
+        policy_path.write_bytes(
+            canonical(
+                {
+                    "schemaVersion": 2,
+                    "preflightCommands": [
+                        {"id": "preflight", "command": ["tool", "preflight"]}
+                    ],
+                    "preparationCommands": [],
+                    "validators": [
+                        {"id": "validator", "command": ["tool", "validate"]}
+                    ],
+                    "artifacts": ["build/input"],
+                }
+            )
+        )
+        git(self.repo, "add", policy_path.relative_to(self.repo).as_posix())
+        git(self.repo, "commit", "-q", "-m", "validation policy")
+        self.fixture.head = git(self.repo, "rev-parse", "HEAD").strip()
+        bundle = self.fixture.bundle()
+        policy = _read_project_config(policy_path)
+        report = json.loads((bundle / "report.json").read_text())
+        report.update(
+            {
+                "schemaVersion": 2,
+                "validation": {
+                    "schemaVersion": 1,
+                    "policySha256": policy.sha256,
+                    "artifacts": [{"path": "build/input", "sha256": "0" * 64}],
+                    "preflight": [
+                        {
+                            "id": "preflight",
+                            "command": ["tool", "preflight"],
+                            "status": "passed",
+                        }
+                    ],
+                    "validators": [
+                        {
+                            "id": "preflight",
+                            "command": ["tool", "validate"],
+                            "status": "passed",
+                        }
+                    ],
+                },
+            }
+        )
+        (bundle / "report.json").write_bytes(canonical(report))
+        digest = canonical_bundle_digest(bundle)
+
+        error = io.StringIO()
+        with redirect_stderr(error):
+            status = main(
+                [
+                    "apply",
+                    "--repo",
+                    str(self.repo),
+                    "--bundle",
+                    str(bundle),
+                    "--sha256",
+                    digest,
+                ]
+            )
+        self.assertEqual(status, 2)
+        self.assertIn("validators does not match", error.getvalue())
+        self.fixture.assert_clean()
 
     def test_bundle_keeps_compiler_desired_state_separate_from_preimage(self) -> None:
         desired_unit = OwnershipUnit("file", "new.txt", content_sha256(b"new\n"))
@@ -240,6 +444,7 @@ class CliTests(unittest.TestCase):
             payloads,
             {"contract": report},
             revision=revision,
+            validation_jobs=1,
         )
 
     def test_bundle_keeps_captured_base_when_branch_advances_during_derivation(

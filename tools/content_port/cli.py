@@ -152,7 +152,9 @@ def _compare_equivalence(
             )
 
 
-def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path) -> str:
+def _bundle_current_state(
+    repo: Path, port: str, donor_root: Path, output: Path, *, jobs: int = 1
+) -> str:
     """Compile authenticated donor inputs into a checked desired-state bundle."""
 
     require_no_active_transaction(repo)
@@ -179,6 +181,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
             "contract": report,
         },
         revision=revision,
+        validation_jobs=jobs,
     )
     return artifacts.sha256
 
@@ -197,6 +200,56 @@ def parser() -> argparse.ArgumentParser:
     )
     _common_port_arguments(bundle)
     bundle.add_argument("--output", type=Path, required=True)
+    bundle.add_argument(
+        "--jobs",
+        type=_positive_int,
+        default=os.environ.get("CONTENT_PORT_JOBS", str(os.cpu_count() or 1)),
+        help="maximum concurrent validators (default: CPU count)",
+    )
+
+    candidate = commands.add_parser(
+        "candidate", help="build an unvalidated bundle candidate for distributed CI"
+    )
+    _common_port_arguments(candidate)
+    candidate.add_argument("--output", type=Path, required=True)
+
+    artifact_manifest = commands.add_parser(
+        "artifact-manifest", help="write or verify canonical prepared artifact identity"
+    )
+    artifact_manifest.add_argument("--repo", type=_repo, default=Path.cwd())
+    artifact_manifest.add_argument("--output", type=Path)
+    artifact_manifest.add_argument("--verify", type=Path)
+
+    finalize = commands.add_parser(
+        "finalize-ci-bundle", help="bind passed distributed CI evidence to a candidate"
+    )
+    finalize.add_argument("--repo", type=_repo, default=Path.cwd())
+    finalize.add_argument("--candidate", type=Path, required=True)
+    finalize.add_argument("--artifact-manifest", type=Path, required=True)
+    finalize.add_argument("--preflight-receipt", type=Path, required=True)
+    finalize.add_argument("--donor-contract", type=Path, required=True)
+    finalize.add_argument("--receipts", type=Path, required=True)
+    finalize.add_argument("--output", type=Path, required=True)
+
+    preflight_receipt = commands.add_parser(
+        "preflight-receipt", help="record successful prerequisite CI evidence"
+    )
+    preflight_receipt.add_argument("--repo", type=_repo, default=Path.cwd())
+    preflight_receipt.add_argument("--donor-contract", type=Path, required=True)
+    preflight_receipt.add_argument("--output", type=Path, required=True)
+
+    validator = commands.add_parser(
+        "run-ci-validator",
+        help="run one canonical policy validator and write its receipt",
+    )
+    validator.add_argument("--repo", type=_repo, default=Path.cwd())
+    validator.add_argument("--id", required=True)
+    validator.add_argument("--candidate", type=Path, required=True)
+    validator.add_argument("--artifact-manifest", type=Path, required=True)
+    validator.add_argument("--preflight-receipt", type=Path, required=True)
+    validator.add_argument("--donor-contract", type=Path, required=True)
+    validator.add_argument("--results", type=Path, required=True)
+    validator.add_argument("--output", type=Path, required=True)
 
     apply = commands.add_parser("apply", help="apply a verified bundle recoverably")
     apply.add_argument("--repo", type=_repo, default=Path.cwd())
@@ -246,6 +299,13 @@ def _common_port_arguments(command: argparse.ArgumentParser) -> None:
     command.add_argument("--donor-root", type=Path, required=True)
 
 
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be at least 1")
+    return parsed
+
+
 def run(argv: Sequence[str] | None = None) -> int:
     args = parser().parse_args(argv)
     if args.command == "check":
@@ -258,9 +318,83 @@ def run(argv: Sequence[str] | None = None) -> int:
         )
     elif args.command == "bundle":
         digest = _bundle_current_state(
-            args.repo, args.port, args.donor_root, args.output.resolve()
+            args.repo,
+            args.port,
+            args.donor_root,
+            args.output.resolve(),
+            jobs=args.jobs,
         )
         print(digest)
+    elif args.command == "candidate":
+        require_no_active_transaction(args.repo)
+        from .descriptor import load_port
+        from .materialize import derive_desired_state
+        from .bundle import build_bundle
+        from .worktree import detached_worktree, git, require_clean_worktree
+
+        require_clean_worktree(args.repo)
+        raw_revision = git(args.repo, ["rev-parse", "HEAD"], text=True)
+        assert isinstance(raw_revision, str)
+        revision = raw_revision.strip()
+        with detached_worktree(args.repo, revision) as source:
+            report = check_port(source, args.port, args.donor_root)
+            descriptor = load_port(
+                _port_dir(source, args.port), args.donor_root.resolve()
+            )
+            desired, payloads = derive_desired_state(descriptor, source)
+        result = build_bundle(
+            args.repo,
+            args.output.resolve(),
+            desired,
+            payloads,
+            {"contract": report},
+            revision=revision,
+            validation_commands=[],
+        )
+        print(result.sha256)
+    elif args.command == "artifact-manifest":
+        from .bundle import verify_artifact_manifest, write_artifact_manifest
+
+        if (args.output is None) == (args.verify is None):
+            raise ContentPortError(
+                "artifact-manifest requires exactly one of --output or --verify"
+            )
+        if args.output is not None:
+            write_artifact_manifest(args.repo, args.output.resolve())
+        else:
+            verify_artifact_manifest(args.repo, args.verify.resolve())
+    elif args.command == "finalize-ci-bundle":
+        from .bundle import finalize_ci_bundle
+
+        result = finalize_ci_bundle(
+            args.repo,
+            args.candidate.resolve(),
+            args.artifact_manifest.resolve(),
+            args.preflight_receipt.resolve(),
+            args.donor_contract.resolve(),
+            args.receipts.resolve(),
+            args.output.resolve(),
+        )
+        print(result.sha256)
+    elif args.command == "preflight-receipt":
+        from .bundle import write_preflight_receipt
+
+        write_preflight_receipt(
+            args.repo, args.donor_contract.resolve(), args.output.resolve()
+        )
+    elif args.command == "run-ci-validator":
+        from .bundle import run_ci_validator
+
+        run_ci_validator(
+            args.repo,
+            args.id,
+            args.candidate.resolve(),
+            args.artifact_manifest.resolve(),
+            args.preflight_receipt.resolve(),
+            args.donor_contract.resolve(),
+            args.results,
+            args.output.resolve(),
+        )
     elif args.command == "apply":
         from .bundle import verify_bundle
 

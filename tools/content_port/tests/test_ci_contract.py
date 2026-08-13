@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import re
 import unittest
 
 
 WORKFLOW = Path(".github/workflows/ci.yml")
 MAKEFILE = Path("Makefile")
+PROJECT = Path("tools/content_port/project.json")
 
 
 class CiContractTests(unittest.TestCase):
@@ -14,6 +16,8 @@ class CiContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.workflow = WORKFLOW.read_text(encoding="utf-8")
         cls.makefile = MAKEFILE.read_text(encoding="utf-8")
+        cls.project = PROJECT.read_text(encoding="utf-8")
+        cls.project_value = json.loads(cls.project)
 
     def test_dedicated_job_has_stable_identity_and_runtime_budget(self) -> None:
         self.assertRegex(
@@ -31,48 +35,67 @@ class CiContractTests(unittest.TestCase):
             self.workflow,
             (
                 r"(?m)^  test:\n"
-                r"    name: Test\n"
+                r"    name: Signed Bundle / Validate \(Mechanics\)\n"
+                r"    needs: build\n"
                 r"    runs-on: ubuntu-latest\n"
                 r"    timeout-minutes: 30$"
             ),
         )
 
     def test_both_public_donors_are_exactly_pinned_without_credentials(self) -> None:
-        for repository, revision, path in (
+        for repository, revision, directory in (
             (
-                "PokemonHnS-Development/pokemonHnS",
+                "https://github.com/PokemonHnS-Development/pokemonHnS.git",
                 "751823abaf677020bcd72c45fe3e7cb2b8a576e4",
-                ".references/pokemonHnS",
+                "pokemonHnS",
             ),
             (
-                "evilchinesefood/PKMN-World",
+                "https://github.com/evilchinesefood/PKMN-World.git",
                 "d40affe26e58a20f445daad84af5e45be812e69f",
-                ".references/PKMN-World",
+                "PKMN-World",
             ),
         ):
-            checkout = re.compile(
-                rf"repository: {re.escape(repository)}\n"
-                rf"          ref: {revision}\n"
-                rf"          path: {re.escape(path)}\n"
-                r"          persist-credentials: false\n"
-                r"          fetch-depth: 0"
+            checkout = (
+                f'git -C "$CONTENT_PORT_DONOR_ROOT/{directory}" remote add origin '
+                f"\\\n            {repository}"
             )
-            self.assertRegex(self.workflow, checkout)
+            self.assertEqual(self.workflow.count(checkout), 2)
+            self.assertEqual(self.workflow.count(f"--no-tags origin {revision}"), 2)
+
+    def test_candidate_donors_stay_outside_the_candidate_worktree(self) -> None:
+        donor_root = "CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors"
+        self.assertEqual(self.workflow.count(donor_root), 6)
+        self.assertNotIn("path: .references/", self.workflow)
+        self.assertNotIn("--donor-root .references", self.workflow)
+        self.assertIn(
+            "python3 -m tools.content_port candidate --port johto \\\n"
+            '            --donor-root "$CONTENT_PORT_DONOR_ROOT"',
+            self.workflow,
+        )
+        self.assertIn(
+            "python3 -m tools.content_port check --port johto \\\n"
+            '            --donor-root "$CONTENT_PORT_DONOR_ROOT" \\\n'
+            "            --compare-report "
+            "build/content-port/preflight/donor-contract.json",
+            self.workflow,
+        )
 
     def test_required_mode_commands_and_failure_artifact_are_pinned(self) -> None:
         required_fragments = (
             'CONTENT_PORT_REQUIRE_DONORS: "1"',
-            "CONTENT_PORT_DONOR_ROOT: .references",
+            "CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors",
             "make content-port-transaction-check",
             "-s tools/content_port/tests -p 'test_*.py' -q",
             "grep -Eq 'skipped=[1-9][0-9]*'",
             "Donor Contracts requires zero skipped tests.",
             "python3 -m tools.content_port check --port johto",
-            "--donor-root .references",
+            '--donor-root "$CONTENT_PORT_DONOR_ROOT"',
             "--write-report build/content-port/donor-contract.json",
             "if: failure()",
             "name: donor-contract-failure-evidence",
             "build/content-port/donor-contract.json",
+            "-s tools/persistence/tests -p 'test_*.py' -q",
+            "build/content-port/persistence.log",
         )
         for fragment in required_fragments:
             with self.subTest(fragment=fragment):
@@ -89,6 +112,7 @@ class CiContractTests(unittest.TestCase):
             r"^check: content-port-transaction-check ",
             r"^content-port-check: content-port-transaction-check$",
             r"^content-port-bundle: content-port-transaction-check$",
+            r"^content-port-bundle-artifacts: content-port-transaction-check$",
             r"^content-port-test: content-port-transaction-check$",
             r"^e2e-core: content-port-transaction-check ",
             r"^e2e-extended: content-port-transaction-check ",
@@ -128,6 +152,90 @@ class CiContractTests(unittest.TestCase):
                 r"^\$\((?:ROM|SYM)\): content-port-transaction-check", re.MULTILINE
             ),
         )
+
+    def test_signed_bundle_jobs_gate_and_reuse_prepared_artifacts(self) -> None:
+        required_fragments = (
+            "name: Signed Bundle / Preflight",
+            "needs: [format, lint, donor-contracts]",
+            "name: Signed Bundle / Prepare Artifacts",
+            "needs: bundle-preflight",
+            'make CONTENT_PORT_BUILD_JOBS="$(nproc)" content-port-bundle-artifacts',
+            "name: content-port-validation-artifacts",
+            "python3 -m tools.content_port candidate --port johto",
+            "python3 -m tools.content_port artifact-manifest",
+            "name: Signed Bundle / Validate (Mechanics)",
+            "python3 -m tools.content_port run-ci-validator --id mechanics",
+            "name: Signed Bundle / Validate (E2E ${{ matrix.name }})",
+            "fail-fast: true",
+            "python3 -m tools.content_port run-ci-validator --id ${{ matrix.target }}",
+            "name: Signed Bundle / Validate (ROM Integrity)",
+            "name: Signed Bundle / Attest",
+            "needs: [test, e2e, integrity]",
+            'expected=\'["mechanics","rom-integrity","e2e-core","e2e-extended","e2e-integrity"]\'',
+            "python3 -m tools.content_port finalize-ci-bundle",
+            "--receipts build/content-port/receipts",
+            "--preflight-receipt build/content-port/preflight/preflight-receipt.json",
+            "pattern: content-port-receipt-*",
+            "build/content-port/signed-bundle.sha256",
+            "name: signed-bundle-ci-attestation",
+        )
+        for fragment in required_fragments:
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.workflow)
+        self.assertIn("build/e2e-wheelhouse", self.workflow)
+        self.assertNotIn("build/e2e-venv", self.workflow)
+        self.assertIn("--no-index", self.makefile)
+        self.assertIn("--require-hashes --only-binary=:all:", self.makefile)
+        self.assertNotIn("artifacts_sha256=", self.workflow)
+        self.assertNotIn(
+            "sha256sum content-port-validation-artifacts.tar", self.workflow
+        )
+        for artifact in (
+            '"tools/mgba/mgba-rom-test"',
+            '"tools/mgba-rom-test-hydra/mgba-rom-test-hydra"',
+            '"build/generated"',
+            '"build/save-contract"',
+        ):
+            self.assertIn(artifact, self.project)
+
+    def test_validator_transport_archive_stays_outside_checkout(self) -> None:
+        self.assertEqual(
+            self.workflow.count("path: ${{ runner.temp }}/content-port-validation"),
+            4,
+        )
+        self.assertEqual(
+            self.workflow.count(
+                'tar -xf "${RUNNER_TEMP}/content-port-validation/'
+                'content-port-validation-artifacts.tar"'
+            ),
+            4,
+        )
+        self.assertNotIn("tar -xf content-port-validation-artifacts.tar", self.workflow)
+
+    def test_e2e_validators_isolate_generated_runtime_under_results(self) -> None:
+        validators = {
+            item["id"]: item["command"] for item in self.project_value["validators"]
+        }
+        for validator_id in ("e2e-core", "e2e-extended", "e2e-integrity"):
+            with self.subTest(validator_id=validator_id):
+                self.assertIn("E2E_RESULTS={results}", validators[validator_id])
+                self.assertIn("E2E_VENV={results}/venv", validators[validator_id])
+                self.assertIn(
+                    "E2E_PYTEST_CACHE={results}/pytest-cache",
+                    validators[validator_id],
+                )
+        self.assertIn("E2E_VENV ?= $(BUILD_DIR)/e2e-venv", self.makefile)
+        self.assertIn("E2E_PYTEST_CACHE ?= $(E2E_RESULTS)/pytest-cache", self.makefile)
+        self.assertIn("--no-cache-dir", self.makefile)
+
+    def test_e2e_failure_upload_matches_validator_results(self) -> None:
+        evidence_root = (
+            "build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/"
+        )
+        for suffix in ("*.log", "*.png", "*.sav", "*.state", "capture-errors.txt"):
+            with self.subTest(suffix=suffix):
+                self.assertIn(evidence_root + suffix, self.workflow)
+        self.assertNotIn("path: test-results/e2e/${{ matrix.suite }}/", self.workflow)
 
 
 if __name__ == "__main__":

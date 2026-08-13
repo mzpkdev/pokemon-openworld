@@ -70,30 +70,35 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Checkout HnS content authority
-        # actions/checkout v7
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          repository: PokemonHnS-Development/pokemonHnS
-          ref: 751823abaf677020bcd72c45fe3e7cb2b8a576e4
-          path: .references/pokemonHnS
-          persist-credentials: false
-          fetch-depth: 0
+        env:
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
+        run: |
+          mkdir -p "$CONTENT_PORT_DONOR_ROOT"
+          git init --quiet "$CONTENT_PORT_DONOR_ROOT/pokemonHnS"
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" remote add origin \
+            https://github.com/PokemonHnS-Development/pokemonHnS.git
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" fetch --quiet \
+            --depth=1 --no-tags origin 751823abaf677020bcd72c45fe3e7cb2b8a576e4
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" checkout --quiet \
+            --detach FETCH_HEAD
 
       - name: Checkout PKMN-World mechanical donor
-        # actions/checkout v7
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          repository: evilchinesefood/PKMN-World
-          ref: d40affe26e58a20f445daad84af5e45be812e69f
-          path: .references/PKMN-World
-          persist-credentials: false
-          fetch-depth: 0
+        env:
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
+        run: |
+          git init --quiet "$CONTENT_PORT_DONOR_ROOT/PKMN-World"
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" remote add origin \
+            https://github.com/evilchinesefood/PKMN-World.git
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" fetch --quiet \
+            --depth=1 --no-tags origin d40affe26e58a20f445daad84af5e45be812e69f
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" checkout --quiet \
+            --detach FETCH_HEAD
 
       - name: Authenticate donors and run contracts
         shell: bash
         env:
           CONTENT_PORT_REQUIRE_DONORS: "1"
-          CONTENT_PORT_DONOR_ROOT: .references
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
         run: |
           set -o pipefail
           mkdir -p build/content-port
@@ -111,8 +116,13 @@ jobs:
             status=1
           fi
           if (( status == 0 )); then
+            PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+              -s tools/persistence/tests -p 'test_*.py' -q \
+              2>&1 | tee build/content-port/persistence.log || status=$?
+          fi
+          if (( status == 0 )); then
             python3 -m tools.content_port check --port johto \
-              --donor-root .references \
+              --donor-root "$CONTENT_PORT_DONOR_ROOT" \
               --write-report build/content-port/donor-contract.json || status=$?
           fi
           if (( status != 0 )) && [[ ! -f build/content-port/donor-contract.json ]]; then
@@ -130,11 +140,55 @@ jobs:
           path: |
             build/content-port/donor-contract.json
             build/content-port/donor-contract.log
+            build/content-port/persistence.log
           if-no-files-found: error
           retention-days: 3
 
+      - name: Upload signed-bundle preflight evidence
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-preflight-evidence
+          path: |
+            build/content-port/donor-contract.json
+            build/content-port/donor-contract.log
+            build/content-port/persistence.log
+          if-no-files-found: error
+          retention-days: 1
+
+  bundle-preflight:
+    name: Signed Bundle / Preflight
+    needs: [format, lint, donor-contracts]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download preflight evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: content-port-preflight-evidence
+          path: build/content-port
+
+      - name: Record canonical successful preflight
+        run: >-
+          python3 -m tools.content_port preflight-receipt
+          --donor-contract build/content-port/donor-contract.json
+          --output build/content-port/preflight-receipt.json
+
+      - name: Upload canonical preflight receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-preflight-receipt
+          path: build/content-port/preflight-receipt.json
+          if-no-files-found: error
+          retention-days: 1
+
   test:
-    name: Test
+    name: Signed Bundle / Validate (Mechanics)
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -146,16 +200,54 @@ jobs:
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
+      - name: Download preflight evidence and receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-preflight-*
+          path: build/content-port/preflight
+          merge-multiple: true
+
+      - name: Download prepared validation artifacts
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: content-port-validation-artifacts
+          path: ${{ runner.temp }}/content-port-validation
+
+      - name: Restore prepared validation artifacts
+        run: |
+          tar -xf "${RUNNER_TEMP}/content-port-validation/content-port-validation-artifacts.tar"
+          python3 -m tools.content_port artifact-manifest \
+            --verify build/content-port/artifact-manifest.json
+          if [[ -s build/content-port/candidate/desired.patch ]]; then
+            git apply --binary build/content-port/candidate/desired.patch
+          fi
+
       - name: Test SkyEmu installer retry and cache handling
         run: >-
           python3 -W error::ResourceWarning -m unittest
           tools.e2e.tests.unit.test_install_skyemu -v
 
-      - name: Run C mechanics tests
-        run: make -j"$(nproc)" -O check
+      - name: Run canonical mechanics validator
+        run: >-
+          python3 -m tools.content_port run-ci-validator --id mechanics
+          --candidate build/content-port/candidate
+          --artifact-manifest build/content-port/artifact-manifest.json
+          --preflight-receipt build/content-port/preflight/preflight-receipt.json
+          --donor-contract build/content-port/preflight/donor-contract.json
+          --results build/content-port/results/mechanics
+          --output build/content-port/receipts/mechanics.json
+
+      - name: Upload mechanics receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-receipt-mechanics
+          path: build/content-port/receipts/mechanics.json
+          if-no-files-found: error
 
   build:
-    name: Build
+    name: Signed Bundle / Prepare Artifacts
+    needs: bundle-preflight
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -164,11 +256,58 @@ jobs:
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      - name: Checkout HnS content authority
+        env:
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
+        run: |
+          mkdir -p "$CONTENT_PORT_DONOR_ROOT"
+          git init --quiet "$CONTENT_PORT_DONOR_ROOT/pokemonHnS"
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" remote add origin \
+            https://github.com/PokemonHnS-Development/pokemonHnS.git
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" fetch --quiet \
+            --depth=1 --no-tags origin 751823abaf677020bcd72c45fe3e7cb2b8a576e4
+          git -C "$CONTENT_PORT_DONOR_ROOT/pokemonHnS" checkout --quiet \
+            --detach FETCH_HEAD
+
+      - name: Checkout PKMN-World mechanical donor
+        env:
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
+        run: |
+          git init --quiet "$CONTENT_PORT_DONOR_ROOT/PKMN-World"
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" remote add origin \
+            https://github.com/evilchinesefood/PKMN-World.git
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" fetch --quiet \
+            --depth=1 --no-tags origin d40affe26e58a20f445daad84af5e45be812e69f
+          git -C "$CONTENT_PORT_DONOR_ROOT/PKMN-World" checkout --quiet \
+            --detach FETCH_HEAD
+
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
 
-      - name: Build Emerald
-        run: make -j"$(nproc)" -O emerald syms
+      - name: Download preflight evidence and receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-preflight-*
+          path: build/content-port/preflight
+          merge-multiple: true
+
+      - name: Materialize the exact bundle candidate
+        env:
+          CONTENT_PORT_REQUIRE_DONORS: "1"
+          CONTENT_PORT_DONOR_ROOT: ${{ runner.temp }}/content-port-donors
+        run: |
+          python3 -m tools.content_port check --port johto \
+            --donor-root "$CONTENT_PORT_DONOR_ROOT" \
+            --compare-report build/content-port/preflight/donor-contract.json
+          python3 -m tools.content_port candidate --port johto \
+            --donor-root "$CONTENT_PORT_DONOR_ROOT" \
+            --output build/content-port/candidate
+          if [[ -s build/content-port/candidate/desired.patch ]]; then
+            git apply --binary build/content-port/candidate/desired.patch
+          fi
+
+      - name: Prepare shared validation artifacts
+        run: make CONTENT_PORT_BUILD_JOBS="$(nproc)" content-port-bundle-artifacts
 
       - name: Stage build files
         run: |
@@ -177,21 +316,17 @@ jobs:
           cp pokemon-openworld.map release/pokemon-openworld.map
           cp pokemon-openworld.sym release/pokemon-openworld.sym
 
-      - name: Build debug ROM
-        run: >-
-          make -j"$(nproc)" -O DEBUG=1
-          pokemon-openworld-debug.gba pokemon-openworld-debug.sym
-
       - name: Check normal/debug shared debug-menu symbols
         run: make build-variant-isolation-check
 
-      - name: Check for modified tracked files
+      - name: Check prepared tree still matches the candidate
         run: |
-          if ! git diff --quiet HEAD --; then
-            echo 'Uncommitted changes detected:'
-            git diff HEAD --
-            exit 1
-          fi
+          git add --intent-to-add --all -- .
+          git diff --binary --full-index --no-ext-diff --no-color \
+            --src-prefix=a/ --dst-prefix=b/ HEAD -- . \
+            > build/content-port/prepared.patch
+          cmp build/content-port/candidate/desired.patch \
+            build/content-port/prepared.patch
 
       - name: Stage debug build files
         run: |
@@ -199,6 +334,40 @@ jobs:
           cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.gba debug-release/pokemon-openworld-debug.gba
           cp pokemon-openworld-debug.sym debug-release/pokemon-openworld-debug.sym
+
+      - name: Record canonical prepared artifact identity
+        run: >-
+          python3 -m tools.content_port artifact-manifest
+          --output build/content-port/artifact-manifest.json
+
+      - name: Pack prepared validation artifacts
+        run: >-
+          tar -cf content-port-validation-artifacts.tar
+          build/e2e-tools
+          build/e2e-wheelhouse
+          build/generated
+          build/save-contract
+          pokemon-openworld.gba
+          pokemon-openworld.map
+          pokemon-openworld.sym
+          pokemon-openworld-debug.gba
+          pokemon-openworld-debug.sym
+          pokemon-openworld-test-headless.elf
+          tools/e2e/requirements.txt
+          tools/mgba-rom-test-hydra/mgba-rom-test-hydra
+          build/content-port/candidate
+          build/content-port/artifact-manifest.json
+          build/content-port/preflight/donor-contract.json
+          build/content-port/preflight/preflight-receipt.json
+
+      - name: Upload prepared validation artifacts
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-validation-artifacts
+          path: content-port-validation-artifacts.tar
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Upload build artifacts
         # actions/upload-artifact v7
@@ -219,13 +388,13 @@ jobs:
           retention-days: 1
 
   e2e:
-    name: E2E (${{ matrix.name }})
+    name: Signed Bundle / Validate (E2E ${{ matrix.name }})
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           - name: Core
@@ -243,19 +412,21 @@ jobs:
         # actions/checkout v7
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - name: Restore SkyEmu
-        # actions/cache v5
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
-        with:
-          path: build/e2e-tools/SkyEmu-v5
-          key: skyemu-${{ runner.os }}-${{ runner.arch }}-v5-d85797fe449bd97922a3b3f73060db7ebf49ab094ef8f0b0c882fe7357e3c9f3
-
-      - name: Download debug build artifact
+      - name: Download prepared validation artifacts
         # actions/download-artifact v8
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: pokemon-openworld-debug
-          path: .
+          name: content-port-validation-artifacts
+          path: ${{ runner.temp }}/content-port-validation
+
+      - name: Restore prepared validation artifacts
+        run: |
+          tar -xf "${RUNNER_TEMP}/content-port-validation/content-port-validation-artifacts.tar"
+          python3 -m tools.content_port artifact-manifest \
+            --verify build/content-port/artifact-manifest.json
+          if [[ -s build/content-port/candidate/desired.patch ]]; then
+            git apply --binary build/content-port/candidate/desired.patch
+          fi
 
       - name: Generate and validate Integrity manifest
         if: ${{ matrix.suite == 'integrity' }}
@@ -279,8 +450,22 @@ jobs:
             python3-venv \
             zlib1g
 
-      - name: Run E2E suite
-        run: make E2E_PREBUILT_DEBUG=1 ${{ matrix.target }}
+      - name: Run canonical E2E validator
+        run: >-
+          python3 -m tools.content_port run-ci-validator --id ${{ matrix.target }}
+          --candidate build/content-port/candidate
+          --artifact-manifest build/content-port/artifact-manifest.json
+          --preflight-receipt build/content-port/preflight/preflight-receipt.json
+          --donor-contract build/content-port/preflight/donor-contract.json
+          --results build/content-port/results/${{ matrix.target }}
+          --output build/content-port/receipts/${{ matrix.target }}.json
+
+      - name: Upload canonical E2E receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-receipt-${{ matrix.target }}
+          path: build/content-port/receipts/${{ matrix.target }}.json
+          if-no-files-found: error
 
       - name: Upload failure evidence
         if: failure()
@@ -288,12 +473,18 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: e2e-${{ matrix.suite }}-failure-evidence
-          path: test-results/e2e/${{ matrix.suite }}/
+          path: |
+            build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/*.log
+            build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/*.png
+            build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/*.sav
+            build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/*.state
+            build/content-port/results/${{ matrix.target }}/${{ matrix.suite }}/**/capture-errors.txt
           if-no-files-found: warn
           retention-days: 3
 
   integrity:
-    name: ROM Audit
+    name: Signed Bundle / Validate (ROM Integrity)
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -304,6 +495,22 @@ jobs:
 
       - name: Set up build dependencies
         uses: ./.github/actions/setup-build
+
+      - name: Download prepared validation artifacts
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: content-port-validation-artifacts
+          path: ${{ runner.temp }}/content-port-validation
+
+      - name: Restore prepared validation artifacts
+        run: |
+          tar -xf "${RUNNER_TEMP}/content-port-validation/content-port-validation-artifacts.tar"
+          python3 -m tools.content_port artifact-manifest \
+            --verify build/content-port/artifact-manifest.json
+          if [[ -s build/content-port/candidate/desired.patch ]]; then
+            git apply --binary build/content-port/candidate/desired.patch
+          fi
 
       - name: Check deterministic generation and schemas
         shell: bash
@@ -323,6 +530,23 @@ jobs:
             --contract tools/integrity/save_contract.json \
             2>&1 | tee build/integrity/save-contract-schema.log
 
+      - name: Run canonical ROM integrity validator
+        run: >-
+          python3 -m tools.content_port run-ci-validator --id rom-integrity
+          --candidate build/content-port/candidate
+          --artifact-manifest build/content-port/artifact-manifest.json
+          --preflight-receipt build/content-port/preflight/preflight-receipt.json
+          --donor-contract build/content-port/preflight/donor-contract.json
+          --results build/content-port/results/rom-integrity
+          --output build/content-port/receipts/rom-integrity.json
+
+      - name: Upload ROM integrity receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: content-port-receipt-rom-integrity
+          path: build/content-port/receipts/rom-integrity.json
+          if-no-files-found: error
+
       - name: Check live save ABI and all five artifact budgets
         shell: bash
         run: |
@@ -339,5 +563,62 @@ jobs:
           path: |
             build/integrity/*.log
             build/integrity/purposes/*.json
+          if-no-files-found: error
+          retention-days: 3
+
+  bundle-attest:
+    name: Signed Bundle / Attest
+    needs: [test, e2e, integrity]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download prepared validation artifacts
+        # actions/download-artifact v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: content-port-validation-artifacts
+          path: ${{ runner.temp }}/content-port-validation
+
+      - name: Download exact validator receipt set
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: content-port-receipt-*
+          path: build/content-port/receipts
+          merge-multiple: true
+
+      - name: Finalize the exact validated bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xf "${RUNNER_TEMP}/content-port-validation/content-port-validation-artifacts.tar"
+          validators="$(jq -c '[.validators[].id]' tools/content_port/project.json)"
+          expected='["mechanics","rom-integrity","e2e-core","e2e-extended","e2e-integrity"]'
+          if [[ "${validators}" != "${expected}" ]]; then
+            echo "Signed-bundle validator set differs from the CI matrix: ${validators}" >&2
+            exit 1
+          fi
+          python3 -m tools.content_port finalize-ci-bundle \
+            --candidate build/content-port/candidate \
+            --artifact-manifest build/content-port/artifact-manifest.json \
+            --preflight-receipt build/content-port/preflight/preflight-receipt.json \
+            --donor-contract build/content-port/preflight/donor-contract.json \
+            --receipts build/content-port/receipts \
+            --output build/content-port/signed-bundle \
+            > build/content-port/signed-bundle.sha256
+
+      - name: Upload signed-bundle CI attestation
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: signed-bundle-ci-attestation
+          path: |
+            build/content-port/signed-bundle/
+            build/content-port/signed-bundle.sha256
+            build/content-port/artifact-manifest.json
           if-no-files-found: error
           retention-days: 3
