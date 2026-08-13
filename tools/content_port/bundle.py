@@ -744,7 +744,24 @@ def validate_asset_ownership(
     *,
     evidence_root: Path,
 ) -> None:
-    """Require every redistributable asset and only ledgered asset paths."""
+    """Require every redistributable asset and only its ledgered paths."""
+
+    _validate_asset_ownership(
+        manifest,
+        asset_document,
+        evidence_root=evidence_root,
+        reviewed_targets=frozenset(),
+    )
+
+
+def _validate_asset_ownership(
+    manifest: OwnershipManifest,
+    asset_document: Mapping[str, object],
+    *,
+    evidence_root: Path,
+    reviewed_targets: frozenset[str],
+) -> None:
+    """Validate ownership with targets derived inside the fixed revision."""
 
     from .update import validate_assets
 
@@ -765,6 +782,11 @@ def validate_asset_ownership(
             raise ContentPortError(f"asset ownership is missing file unit {path}")
         if owned[path] != digest:
             raise ContentPortError(f"asset ownership hash differs for {path}")
+    missing_reviewed = sorted(reviewed_targets - set(owned))
+    if missing_reviewed:
+        raise ContentPortError(
+            f"asset ownership is missing reviewed file unit {missing_reviewed[0]}"
+        )
     roots = {
         PurePosixPath(*PurePosixPath(path).parts[:2]).as_posix() for path in expected
     }
@@ -773,11 +795,47 @@ def validate_asset_ownership(
         for path in owned
         if any(path == root or path.startswith(f"{root}/") for root in roots)
     }
-    unexpected = sorted(owned_in_asset_roots - set(expected))
+    unexpected = sorted(owned_in_asset_roots - set(expected) - reviewed_targets)
     if unexpected:
         raise ContentPortError(
             f"asset ownership has unledgered file unit {unexpected[0]}"
         )
+
+
+def _reviewed_animation_targets(
+    staging: Path,
+    port: str,
+    *,
+    donor_root: Path | None,
+) -> frozenset[str]:
+    """Authenticate staging policy and return only its immutable target paths."""
+
+    port_dir = staging / f"tools/content_port/ports/{port}"
+    port_path = port_dir / "port.json"
+    if not port_path.is_file():
+        return frozenset()
+    try:
+        port_document = json.loads(port_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ContentPortError(
+            f"cannot load port descriptor {port_path}: {error}"
+        ) from error
+    if not isinstance(port_document, dict):
+        raise ContentPortError(f"port descriptor must be an object: {port_path}")
+    if "animationPolicy" not in port_document:
+        return frozenset()
+    if donor_root is None:
+        raise ContentPortError(
+            "animation ownership validation requires an authenticated donor root"
+        )
+
+    from .animations import required_frame_payloads
+    from .descriptor import load_port
+
+    descriptor = load_port(port_dir, donor_root.resolve())
+    return frozenset(
+        target for _, target in required_frame_payloads(descriptor.animations)
+    )
 
 
 def deterministic_patch(staging: Path, revision: str = "HEAD") -> bytes:
@@ -815,6 +873,7 @@ def build_bundle(
     checked_manifest_path: str | None = None,
     prepare: Callable[[Path], None] | None = None,
     validation_jobs: int = 1,
+    donor_root: Path | None = None,
 ) -> BundleArtifacts:
     """Build desired artifacts against installed ownership in the base revision."""
 
@@ -826,6 +885,11 @@ def build_bundle(
     if output_dir.exists() and output_dir.is_symlink():
         raise ContentPortError(f"bundle output cannot be a symlink: {output_dir}")
     with detached_worktree(repo, revision) as staging:
+        reviewed_animation_targets = _reviewed_animation_targets(
+            staging,
+            desired.port,
+            donor_root=donor_root,
+        )
         asset_path = staging / f"tools/content_port/ports/{desired.port}/assets.json"
         if asset_path.is_file():
             try:
@@ -836,10 +900,11 @@ def build_bundle(
                 ) from error
             if not isinstance(asset_document, dict):
                 raise ContentPortError(f"asset policy must be an object: {asset_path}")
-            validate_asset_ownership(
+            _validate_asset_ownership(
                 desired,
                 asset_document,
                 evidence_root=staging,
+                reviewed_targets=reviewed_animation_targets,
             )
         if validation_commands is not None:
             plan = ProjectValidationPlan(

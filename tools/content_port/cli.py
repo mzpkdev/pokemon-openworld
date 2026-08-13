@@ -179,6 +179,7 @@ def _bundle_current_state(
         },
         revision=revision,
         validation_jobs=jobs,
+        donor_root=donor_root,
     )
     return artifacts.sha256
 
@@ -347,6 +348,7 @@ def run(argv: Sequence[str] | None = None) -> int:
             {"contract": report},
             revision=revision,
             validation_commands=[],
+            donor_root=args.donor_root,
         )
         print(result.sha256)
     elif args.command == "artifact-manifest":

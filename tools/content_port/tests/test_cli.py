@@ -409,7 +409,15 @@ class CliTests(unittest.TestCase):
         payloads = {desired_unit.identity: b"new\n"}
         report = {"inventory": {"maps": 1}}
         output = self.repo.parent / "output"
-        descriptor = object()
+        forged_policy = {
+            "frameSets": [
+                {
+                    "targetDirectory": "data/tilesets/test/rogue",
+                    "requiredFrames": ["forged"],
+                }
+            ]
+        }
+        descriptor = SimpleNamespace(animations=forged_policy)
         revision = git(self.repo, "rev-parse", "HEAD").strip()
         with (
             patch("tools.content_port.cli.check_port", return_value=report) as check,
@@ -446,7 +454,10 @@ class CliTests(unittest.TestCase):
             {"contract": report},
             revision=revision,
             validation_jobs=1,
+            donor_root=self.repo.parent,
         )
+        forged_policy["frameSets"][0]["requiredFrames"] = ["mutated"]
+        self.assertNotIn("animation_policy", build.call_args.kwargs)
 
     def test_bundle_keeps_captured_base_when_branch_advances_during_derivation(
         self,
