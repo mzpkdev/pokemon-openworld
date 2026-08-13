@@ -456,12 +456,16 @@ MAKEFLAGS += --no-print-directory
 .DELETE_ON_ERROR:
 
 RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidydebug tidyrelease generated clean-generated clean-teachables clean-teachables_intermediates
+RULES_NO_SCAN += normal-artifacts debug-artifacts snapshot-artifacts product-check debug-check release-check
+RULES_NO_SCAN += _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
+.PHONY: normal-artifacts debug-artifacts snapshot-artifacts product-check debug-check release-check
+.PHONY: _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
 .PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test
 .PHONY: $(RULES_NO_SCAN)
@@ -594,6 +598,9 @@ $(HEADLESSELF): $(TESTELF) | content-port-transaction-check
 
 check: content-port-transaction-check save-contract-check $(HEADLESSELF)
 	$(ROMTESTHYDRA) $(ROMTEST) $(OBJCOPY) $(HEADLESSELF)
+
+product-check: content-port-transaction-check
+	+$(MAKE) TEST_TIER=openworld check
 
 CONTENT_PORT ?= johto
 CONTENT_PORT_DONOR_ROOT ?= .references
@@ -775,6 +782,56 @@ integrity-check-rom-purposes: content-port-transaction-check
 	+$(MAKE) integrity-check SAVE_ABI_PURPOSE=normal INTEGRITY_PURPOSE=normal INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/normal.json
 	+$(MAKE) DEBUG=1 integrity-check SAVE_ABI_PURPOSE=debug INTEGRITY_PURPOSE=debug INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/debug.json
 	+$(MAKE) RELEASE=1 integrity-check SAVE_ABI_PURPOSE=release INTEGRITY_PURPOSE=release INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/release.json
+
+normal-artifacts: content-port-transaction-check
+	+$(MAKE) $(FILE_NAME).gba $(FILE_NAME).map $(FILE_NAME).sym
+
+debug-artifacts: content-port-transaction-check
+	+$(MAKE) DEBUG=1 $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.map $(FILE_NAME)-debug.sym
+
+SNAPSHOT_DIR ?= $(BUILD_DIR)/snapshot
+
+snapshot-artifacts: content-port-transaction-check
+	+$(MAKE) normal-artifacts
+	+$(MAKE) debug-artifacts
+	@mkdir -p $(SNAPSHOT_DIR)
+	cp $(FILE_NAME).gba $(SNAPSHOT_DIR)/$(FILE_NAME).gba
+	cp $(FILE_NAME).map $(SNAPSHOT_DIR)/$(FILE_NAME).map
+	cp $(FILE_NAME).sym $(SNAPSHOT_DIR)/$(FILE_NAME).sym
+	cp $(FILE_NAME)-debug.gba $(SNAPSHOT_DIR)/$(FILE_NAME)-debug.gba
+	.github/release/release.py validate-assets $(SNAPSHOT_DIR)
+
+debug-check: content-port-transaction-check
+	+$(MAKE) DEBUG=1 integrity-check
+
+release-check: content-port-transaction-check
+	+$(MAKE) RELEASE=1 integrity-check
+
+PREBUILT_NORMAL_DIR ?= $(BUILD_DIR)/prebuilt
+PREBUILT_DEBUG_DIR ?= $(BUILD_DIR)/debug-prebuilt
+PREBUILT_REPORT_DIR ?= $(PURPOSE_REPORT_DIR)
+
+define audit_prebuilt
+	python3 tools/integrity/validate_artifact.py \
+		--rom $(1)/$(FILE_NAME)$(2).gba \
+		--map $(1)/$(FILE_NAME)$(2).map \
+		--sym $(1)/$(FILE_NAME)$(2).sym \
+		--manifest $(INTEGRITY_MANIFEST) --capacity-policy $(CAPACITY_POLICY) \
+		--save-contract $(SAVE_CONTRACT) --purpose $(3) \
+		--output $(PREBUILT_REPORT_DIR)/$(3).json
+endef
+
+_audit-prebuilt-setup: content-port-transaction-check
+	+$(MAKE) -C tools/mapjson
+	+$(MAKE) NODEP=1 SETUP_PREREQS=0 $(INTEGRITY_MANIFEST)
+	@mkdir -p $(PREBUILT_REPORT_DIR)
+
+audit-prebuilt-debug: _audit-prebuilt-setup
+	$(call audit_prebuilt,$(PREBUILT_DEBUG_DIR),-debug,debug)
+
+audit-prebuilt-artifacts: _audit-prebuilt-setup
+	$(call audit_prebuilt,$(PREBUILT_NORMAL_DIR),,normal)
+	$(call audit_prebuilt,$(PREBUILT_DEBUG_DIR),-debug,debug)
 
 # Other rules
 rom: content-port-transaction-check $(ROM)
@@ -1006,17 +1063,17 @@ libagbsyscall:
 ifneq ($(LTO),0)
 LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence
 LDFLAGS += -Xlinker -flto=auto
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
-	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs>"
-	+@cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ $(OBJS_REL) $(LIB)
-	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
+$(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
+	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs>"
+	+@cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$(ELF) $(OBJS_REL) $(LIB)
+	$(FIX) $(ELF) -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 else
 # Output .map file, memory usage readout and gc sections to clean-up unused data
 LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
-	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$@ $(OBJS_REL) $(LIB) | cat
-	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs> | cat"
-	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
+$(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
+	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$(ELF) $(OBJS_REL) $(LIB) | cat
+	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs> | cat"
+	$(FIX) $(ELF) -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 endif
 
 # Builds the rom from the elf file
