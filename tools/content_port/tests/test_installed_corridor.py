@@ -92,6 +92,29 @@ class InstalledCorridorTests(unittest.TestCase):
                 "flag": "0",
             },
         )
+        fast_ship_attendant = next(
+            event
+            for event in vermilion["object_events"]
+            if event.get("local_id") == "LOCALID_VERMILION_FAST_SHIP_ATTENDANT"
+        )
+        self.assertEqual(
+            fast_ship_attendant,
+            {
+                "local_id": "LOCALID_VERMILION_FAST_SHIP_ATTENDANT",
+                "type": "object",
+                "graphics_id": "OBJ_EVENT_GFX_SAILOR_FRLG",
+                "x": 25,
+                "y": 24,
+                "elevation": 3,
+                "movement_type": "MOVEMENT_TYPE_FACE_UP",
+                "movement_range_x": 1,
+                "movement_range_y": 1,
+                "trainer_type": "TRAINER_TYPE_NONE",
+                "trainer_sight_or_berry_tree_id": "0",
+                "script": "VermilionCity_EventScript_FerrySailor",
+                "flag": "0",
+            },
+        )
         self.assertIn(
             (
                 "VermilionCity_EventScript_EnterFastShipTerminal",
