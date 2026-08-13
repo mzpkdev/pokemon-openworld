@@ -49,9 +49,12 @@ class ProductMakeContractTests(unittest.TestCase):
 
     def test_focused_command_targets_keep_stable_build_intent(self) -> None:
         expected_recursive_commands = {
-            "normal-artifacts": "pokemon-openworld.gba pokemon-openworld.sym",
+            "normal-artifacts": (
+                "pokemon-openworld.gba pokemon-openworld.map pokemon-openworld.sym"
+            ),
             "debug-artifacts": (
-                "DEBUG=1 pokemon-openworld-debug.gba pokemon-openworld-debug.sym"
+                "DEBUG=1 pokemon-openworld-debug.gba pokemon-openworld-debug.map "
+                "pokemon-openworld-debug.sym"
             ),
             "product-check": "TEST_TIER=openworld check",
             "debug-check": "DEBUG=1 integrity-check",
@@ -81,6 +84,10 @@ class ProductMakeContractTests(unittest.TestCase):
         self.assertIn("build/prebuilt/pokemon-openworld.gba", all_audits)
         self.assertIn("--purpose normal", all_audits)
         self.assertIn("--purpose debug", all_audits)
+
+        makefile = (ROOT / "Makefile").read_text()
+        self.assertIn("$(ELF) $(MAP) &:", makefile)
+        self.assertIn("-o ../../$(ELF)", makefile)
 
     def make_probe_command(
         self, option: str, makefile: Path, target: Path

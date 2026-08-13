@@ -784,12 +784,10 @@ integrity-check-rom-purposes: content-port-transaction-check
 	+$(MAKE) RELEASE=1 integrity-check SAVE_ABI_PURPOSE=release INTEGRITY_PURPOSE=release INTEGRITY_REPORT=$(PURPOSE_REPORT_DIR)/release.json
 
 normal-artifacts: content-port-transaction-check
-	+$(MAKE) $(FILE_NAME).gba $(FILE_NAME).sym
-	@test -f $(FILE_NAME).map
+	+$(MAKE) $(FILE_NAME).gba $(FILE_NAME).map $(FILE_NAME).sym
 
 debug-artifacts: content-port-transaction-check
-	+$(MAKE) DEBUG=1 $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.sym
-	@test -f $(FILE_NAME)-debug.map
+	+$(MAKE) DEBUG=1 $(FILE_NAME)-debug.gba $(FILE_NAME)-debug.map $(FILE_NAME)-debug.sym
 
 SNAPSHOT_DIR ?= $(BUILD_DIR)/snapshot
 
@@ -1065,17 +1063,17 @@ libagbsyscall:
 ifneq ($(LTO),0)
 LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence
 LDFLAGS += -Xlinker -flto=auto
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
-	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs>"
-	+@cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$@ $(OBJS_REL) $(LIB)
-	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
+$(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
+	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs>"
+	+@cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$(ELF) $(OBJS_REL) $(LIB)
+	$(FIX) $(ELF) -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 else
 # Output .map file, memory usage readout and gc sections to clean-up unused data
 LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence
-$(ELF): $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
-	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$@ $(OBJS_REL) $(LIB) | cat
-	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$@ <objs> <libs> | cat"
-	$(FIX) $@ -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
+$(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
+	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$(ELF) $(OBJS_REL) $(LIB) | cat
+	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs> | cat"
+	$(FIX) $(ELF) -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 endif
 
 # Builds the rom from the elf file

@@ -6,7 +6,7 @@ Run Make from the repository root. Add `-j"$(nproc)" -O` to compiled targets whe
 
 ### Choosing checks efficiently
 
-Keep the existing build tree: Make's dependency graph is the fastest way to reuse generated files, host tools, and objects. Do not run `make clean` unless investigating a stale-output bug. Do not use `make -n` to inspect these targets because GNU Make still executes recursive `$(MAKE)` recipes; use `make -qp` to check that targets parse and inspect recipes directly instead.
+Keep the existing build tree: Make's dependency graph is the fastest way to reuse generated files, host tools, and objects. Do not run `make clean` unless investigating a stale-output bug. Do not use `make -n` or `make -q` to inspect these targets: parsing can perform setup work, recursive `$(MAKE)` recipes still run under `-n`, and `-q` reports ordinary out-of-date targets as failure. Inspect the recipe directly or use the focused Make contract tests instead.
 
 While iterating, run the narrowest test that owns the changed behavior, then run its Make target before handoff:
 
