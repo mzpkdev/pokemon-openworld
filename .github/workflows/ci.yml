@@ -170,7 +170,7 @@ jobs:
           tools.e2e.tests.unit.test_install_skyemu -v
 
       - name: Run C mechanics tests
-        run: make -j"$(nproc)" -O TEST_TIER=openworld check
+        run: make -j"$(nproc)" -O product-check
 
   build:
     name: Build
@@ -187,20 +187,10 @@ jobs:
 
       - name: Build Emerald
         if: github.event_name != 'pull_request'
-        run: make -j"$(nproc)" -O emerald syms
-
-      - name: Stage build files
-        if: github.event_name != 'pull_request'
-        run: |
-          mkdir release
-          cp pokemon-openworld.gba release/pokemon-openworld.gba
-          cp pokemon-openworld.map release/pokemon-openworld.map
-          cp pokemon-openworld.sym release/pokemon-openworld.sym
+        run: make -j"$(nproc)" -O normal-artifacts
 
       - name: Build debug ROM
-        run: >-
-          make -j"$(nproc)" -O DEBUG=1
-          pokemon-openworld-debug.gba pokemon-openworld-debug.sym
+        run: make -j"$(nproc)" -O debug-artifacts
 
       - name: Check normal/debug shared debug-menu symbols
         if: github.event_name != 'pull_request'
@@ -223,9 +213,7 @@ jobs:
 
       - name: Stage and validate release artifact
         if: github.event_name != 'pull_request'
-        run: |
-          cp pokemon-openworld-debug.gba release/pokemon-openworld-debug.gba
-          .github/release/release.py validate-assets release
+        run: make -j"$(nproc)" -O SNAPSHOT_DIR=release snapshot-artifacts
 
       - name: Upload build artifacts
         if: github.event_name != 'pull_request'
@@ -364,15 +352,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          make -j"$(nproc)" -O RELEASE=1 integrity-check \
+          make -j"$(nproc)" -O release-check \
             INTEGRITY_REPORT=build/integrity/purposes/release.json \
             2>&1 | tee build/integrity/rom-purpose-capacity.log
-
-      - name: Generate Integrity manifest for prebuilt ROMs
-        run: |
-          make -C tools/mapjson
-          make NODEP=1 SETUP_PREREQS=0 \
-            build/generated/allregions/current/integrity-manifest.json
 
       - name: Audit prebuilt normal and debug ROMs
         shell: bash
@@ -380,28 +362,12 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -o pipefail
-          purposes=(debug)
           if [[ "$EVENT_NAME" != pull_request ]]; then
-            purposes=(normal debug)
+            target=audit-prebuilt-artifacts
+          else
+            target=audit-prebuilt-debug
           fi
-          for purpose in "${purposes[@]}"; do
-            suffix=
-            artifact_root=build/prebuilt
-            if [[ "$purpose" == debug ]]; then
-              suffix=-debug
-              artifact_root=build/debug-prebuilt
-            fi
-            python3 tools/integrity/validate_artifact.py \
-              --rom "${artifact_root}/pokemon-openworld${suffix}.gba" \
-              --map "${artifact_root}/pokemon-openworld${suffix}.map" \
-              --sym "${artifact_root}/pokemon-openworld${suffix}.sym" \
-              --manifest build/generated/allregions/current/integrity-manifest.json \
-              --capacity-policy tools/integrity/capacity_policy.json \
-              --save-contract tools/integrity/save_contract.json \
-              --purpose "$purpose" \
-              --output "build/integrity/purposes/${purpose}.json" \
-              2>&1 | tee -a build/integrity/rom-purpose-capacity.log
-          done
+          make "$target" 2>&1 | tee -a build/integrity/rom-purpose-capacity.log
 
       - name: Upload Integrity reports
         if: ${{ always() }}

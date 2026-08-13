@@ -40,6 +40,48 @@ class ProductMakeContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
+    def command_recipe(self, target: str) -> str:
+        return self.make_recipe(
+            target,
+            testing=False,
+            assignments=("CONTENT_PORT_BUILD_LOCK_HELD=1", "MAKE=/bin/echo"),
+        )
+
+    def test_focused_command_targets_keep_stable_build_intent(self) -> None:
+        expected_recursive_commands = {
+            "normal-artifacts": "pokemon-openworld.gba pokemon-openworld.sym",
+            "debug-artifacts": (
+                "DEBUG=1 pokemon-openworld-debug.gba pokemon-openworld-debug.sym"
+            ),
+            "product-check": "TEST_TIER=openworld check",
+            "debug-check": "DEBUG=1 integrity-check",
+            "release-check": "RELEASE=1 integrity-check",
+        }
+        for target, command in expected_recursive_commands.items():
+            with self.subTest(target=target):
+                self.assertIn(command, self.command_recipe(target))
+
+        snapshot = self.command_recipe("snapshot-artifacts")
+        self.assertIn("normal-artifacts", snapshot)
+        self.assertIn("debug-artifacts", snapshot)
+        for name in (
+            "pokemon-openworld.gba",
+            "pokemon-openworld.map",
+            "pokemon-openworld.sym",
+            "pokemon-openworld-debug.gba",
+        ):
+            self.assertIn(f"build/snapshot/{name}", snapshot)
+        self.assertIn("validate-assets build/snapshot", snapshot)
+
+        debug_audit = self.command_recipe("audit-prebuilt-debug")
+        self.assertIn("build/debug-prebuilt/pokemon-openworld-debug.gba", debug_audit)
+        self.assertIn("--purpose debug", debug_audit)
+
+        all_audits = self.command_recipe("audit-prebuilt-artifacts")
+        self.assertIn("build/prebuilt/pokemon-openworld.gba", all_audits)
+        self.assertIn("--purpose normal", all_audits)
+        self.assertIn("--purpose debug", all_audits)
+
     def make_probe_command(
         self, option: str, makefile: Path, target: Path
     ) -> list[str]:
