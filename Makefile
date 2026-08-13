@@ -513,7 +513,10 @@ C_SRCS := $(foreach src,$(C_SRCS_IN),$(if $(findstring .inc.c,$(src)),,$(src)))
 C_OBJS := $(patsubst $(C_SUBDIR)/%.c,$(C_BUILDDIR)/%.o,$(C_SRCS))
 
 ifeq ($(TEST_TIER),openworld)
-TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/openworld/*.c)
+TEST_SRCS_IN := $(TEST_SUBDIR)/test_runner.c \
+                $(TEST_SUBDIR)/test_runner_args.c \
+                $(TEST_SUBDIR)/test_runner_battle.c \
+                $(wildcard $(TEST_SUBDIR)/openworld/*.c)
 else
 TEST_SRCS_IN := $(wildcard $(TEST_SUBDIR)/*.c $(TEST_SUBDIR)/*/*.c $(TEST_SUBDIR)/*/*/*.c)
 endif

@@ -142,7 +142,7 @@ SECTIONS {
     ALIGN(4)
     {
         __start_tests = .;
-        test/test_test_runner.o(.tests); /* Sanity checks first. */
+        test/test_test_runner*.o(.tests); /* Sanity checks first when selected. */
         test/*.o(.tests);
         __stop_tests = .;
         test/*.o(.text);
