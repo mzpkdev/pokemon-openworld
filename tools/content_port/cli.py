@@ -207,6 +207,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
         },
         revision=revision,
         released_files=released_files,
+        donor_root=donor_root,
     )
     return artifacts.sha256
 
