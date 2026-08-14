@@ -217,7 +217,23 @@ class DonorNormalizationTests(unittest.TestCase):
         self.assertEqual(donor_profile_condition("gMtSilver_SnowUnused"), "legacy-day")
         self.assertEqual(donor_profile_condition("gMtSilver_Snow"), "modern-day")
         self.assertEqual(donor_provenance_slice(339), "primary-johto-block")
-        self.assertEqual(donor_provenance_slice(442), "supplemental-mixed-tail")
+        self.assertEqual(donor_provenance_slice(503), "supplemental-mixed-tail")
+        with self.assertRaisesRegex(ContentPortError, "outside the reviewed"):
+            donor_provenance_slice(442)
+
+    def test_unknown_nested_donor_fields_fail_closed(self) -> None:
+        changed_fields = copy.deepcopy(FIELDS)
+        changed_fields[0]["new_semantic"] = True
+        with self.assertRaisesRegex(ContentPortError, "unknown field"):
+            normalize_donor_profile(donor_encounter(), changed_fields, source_index=339)
+        changed_encounter = donor_encounter()
+        changed_encounter["land_mons"]["new_semantic"] = True
+        with self.assertRaisesRegex(ContentPortError, "unknown field"):
+            normalize_donor_profile(changed_encounter, FIELDS, source_index=339)
+        changed_encounter = donor_encounter()
+        changed_encounter["land_mons"]["mons"][0]["new_semantic"] = True
+        with self.assertRaisesRegex(ContentPortError, "unknown field"):
+            normalize_donor_profile(changed_encounter, FIELDS, source_index=339)
 
 
 class EcologyTests(unittest.TestCase):

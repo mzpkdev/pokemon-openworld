@@ -37,6 +37,13 @@ SUPPORTED_SOURCE_METHODS = frozenset(
 )
 PRIMARY_HNS_ENCOUNTER_START = 339
 PRIMARY_HNS_ENCOUNTER_END = 441
+SUPPLEMENTAL_HNS_ENCOUNTER_RANGES = (
+    range(503, 521),
+    range(535, 542),
+    range(546, 553),
+    range(567, 569),
+    range(574, 577),
+)
 MT_SILVER_SNOW_CONDITIONS = {
     "gMtSilver_SnowUnused": "legacy-day",
     "gMtSilver_SnowUnused_Night": "legacy-night",
@@ -190,6 +197,10 @@ def _donor_field_index(
     result: dict[str, Mapping[str, Any]] = {}
     for index, raw in enumerate(field_definitions):
         field = _mapping(raw, f"{pointer}[{index}]")
+        expected_keys = {"type", "encounter_rates"}
+        if "groups" in field:
+            expected_keys.add("groups")
+        _exact_keys(field, expected_keys, f"{pointer}[{index}]")
         method = _string(field.get("type"), f"{pointer}[{index}].type")
         if method in result:
             raise ContentPortError(f"{pointer}: duplicate method definition {method!r}")
@@ -222,6 +233,11 @@ def normalize_donor_profile(
         if method_name not in raw:
             continue
         donor_method = _mapping(raw[method_name], f"donor.encounter.{method_name}")
+        _exact_keys(
+            donor_method,
+            {"encounter_rate", "mons"},
+            f"donor.encounter.{method_name}",
+        )
         encounter_rate = _integer(
             donor_method.get("encounter_rate"),
             f"donor.encounter.{method_name}.encounter_rate",
@@ -258,6 +274,11 @@ def normalize_donor_profile(
         slots: list[dict[str, object]] = []
         for slot_index, mon_raw in enumerate(mons):
             mon = _mapping(mon_raw, f"donor.encounter.{method_name}.mons[{slot_index}]")
+            _exact_keys(
+                mon,
+                {"min_level", "max_level", "species"},
+                f"donor.encounter.{method_name}.mons[{slot_index}]",
+            )
             slot: dict[str, object] = {
                 "index": slot_index,
                 "weight": weights[slot_index] if slot_index < len(weights) else None,
@@ -299,7 +320,14 @@ def donor_provenance_slice(source_index: int) -> str:
     source_index = _integer(source_index, "sourceIndex", minimum=0)
     if PRIMARY_HNS_ENCOUNTER_START <= source_index <= PRIMARY_HNS_ENCOUNTER_END:
         return "primary-johto-block"
-    return "supplemental-mixed-tail"
+    if any(
+        source_index in reviewed_range
+        for reviewed_range in SUPPLEMENTAL_HNS_ENCOUNTER_RANGES
+    ):
+        return "supplemental-mixed-tail"
+    raise ContentPortError(
+        f"sourceIndex: {source_index} is outside the reviewed HnS encounter slices"
+    )
 
 
 def build_authenticated_profile_lookup(
