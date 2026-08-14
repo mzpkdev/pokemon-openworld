@@ -242,6 +242,18 @@ class WildEncounterGenerationTests(unittest.TestCase):
         }
         with self.subTest(name="duplicate identity"):
             self.assert_rejected_without_replacement(bands=duplicate_document)
+        for schema_version in (True, 1.0):
+            with self.subTest(name=f"non-integer schema version {schema_version!r}"):
+                self.assert_rejected_without_replacement(
+                    bands={"schema_version": schema_version, "profiles": []}
+                )
+        for species in sorted(generator.NON_ENCOUNTER_SPECIES):
+            sentinel_profile = copy.deepcopy(profile)
+            sentinel_profile["tiers"][0]["entries"][0]["species"] = species
+            with self.subTest(name=f"non-encounter sentinel {species}"):
+                self.assert_rejected_without_replacement(
+                    bands=document(sentinel_profile)
+                )
         for name, invalid_profile in cases.items():
             with self.subTest(name=name):
                 self.assert_rejected_without_replacement(

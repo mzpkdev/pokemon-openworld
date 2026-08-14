@@ -85,6 +85,13 @@ MISSING_BAND_POLICIES = {
     "complete": "WILD_ENCOUNTER_MISSING_BAND_COMPLETE",
     "floor": "WILD_ENCOUNTER_MISSING_BAND_FLOOR",
 }
+NON_ENCOUNTER_SPECIES = {
+    "SPECIES_NONE",
+    "SPECIES_CUSTOM_START",
+    "SPECIES_CUSTOM_END",
+    "SPECIES_EGG",
+    "SPECIES_SHINY_TAG",
+}
 PRODUCT_GUARD = re.compile(
     r"^\s*#\s*(?:if|ifdef|ifndef)\b[^\n]*\b(?:EMERALD|FIRERED|LEAFGREEN)\b",
     re.MULTILINE,
@@ -1014,7 +1021,7 @@ def _load_authored_bands(
 ):
     document = _load_json(path)
     _require_exact_keys(document, {"schema_version", "profiles"}, path)
-    if document["schema_version"] != 1:
+    if type(document["schema_version"]) is not int or document["schema_version"] != 1:
         raise ValidationError(f"{path}/schema_version: expected 1")
     rows = document["profiles"]
     if not isinstance(rows, list):
@@ -1134,7 +1141,7 @@ def _load_authored_bands(
                     f"{entry_location}/species",
                     SPECIES_IDENTIFIER,
                 )
-                if species_id not in species:
+                if species_id not in species or species_id in NON_ENCOUNTER_SPECIES:
                     raise ValidationError(
                         f"{entry_location}/species: unsupported species {species_id}"
                     )
