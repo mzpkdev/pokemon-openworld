@@ -20,7 +20,16 @@ body:
       required: true
 
   - type: textarea
-    id: evidence
+    id: done
     attributes:
-      label: Evidence
-      description: Add logs, screenshots, saves, or examples when useful.
+      label: Done when
+      description: What observable results must be true before this issue can close?
+      placeholder: List concise, verifiable completion criteria.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Add evidence, examples, dependencies, constraints, or related issues when useful.
