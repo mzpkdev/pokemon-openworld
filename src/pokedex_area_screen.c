@@ -130,8 +130,8 @@ static void BuildAreaGlowTilemap(void);
 static void SetAreaHasMon(u16, u16);
 static void SetSpecialMapHasMon(u16, u16);
 static MapSectionId GetRegionMapSectionId(u8, u8);
-static bool8 MapHasSpecies(const struct WildEncounterTypes *, MapSectionId, enum Species);
-static bool8 MonListHasSpecies(const struct WildPokemonInfo *, enum Species, u16);
+static bool8 MapHasSpecies(u16, enum TimeOfDay, MapSectionId, enum Species);
+static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *, enum Species);
 static void DoAreaGlow(void);
 static void Task_ShowPokedexAreaScreen(u8 taskId);
 static void Task_UpdatePokedexAreaScreen(u8 taskId);
@@ -349,14 +349,12 @@ static void FindMapsWithMon(enum Species species)
     for (i = 0; i < GetWildEncounterHeaderCount(); i++)
     {
         const struct WildPokemonHeader *wildHeader = GetWildEncounterHeader(i);
-        const struct WildEncounterTypes *encounterTypes;
         MapSectionId headerSectionId = Overworld_GetMapHeaderByGroupAndId(wildHeader->mapGroup, wildHeader->mapNum)->regionMapSectionId;
 
         if (GetRegionMapType(headerSectionId) != currentRegionMapType)
             continue;
 
-        if (TryGetWildEncounterTypes(i, ResolveWildEncounterDisplayTime(i, gAreaTimeOfDay), &encounterTypes)
-         && MapHasSpecies(encounterTypes, headerSectionId, species))
+        if (MapHasSpecies(i, ResolveWildEncounterDisplayTime(i, gAreaTimeOfDay), headerSectionId, species))
         {
             switch (wildHeader->mapGroup)
             {
@@ -445,8 +443,13 @@ static MapSectionId GetRegionMapSectionId(u8 mapGroup, u8 mapNum)
     return Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum)->regionMapSectionId;
 }
 
-static bool8 MapHasSpecies(const struct WildEncounterTypes *info, MapSectionId headerSectionId, enum Species species)
+static bool8 MapHasSpecies(u16 headerId, enum TimeOfDay timeOfDay, MapSectionId headerSectionId, enum Species species)
 {
+    struct WildEncounterProfileView profile;
+    enum WorldTier tier = WorldTier_Get();
+    static const u8 sFishingRods[] = { OLD_ROD, GOOD_ROD, SUPER_ROD };
+    u16 i;
+
     // If this is a header for Altering Cave, skip it if it's not the current Altering Cave encounter set
     if (headerSectionId == MAPSEC_ALTERING_CAVE)
     {
@@ -461,33 +464,33 @@ static bool8 MapHasSpecies(const struct WildEncounterTypes *info, MapSectionId h
             return FALSE;
     }
 
-    if (MonListHasSpecies(info->landMonsInfo, species, NUM_LAND_MONS_ENCOUNTER_SLOTS))
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
+     && ProfileHasSpecies(&profile, species))
         return TRUE;
-    if (MonListHasSpecies(info->waterMonsInfo, species, NUM_WATER_MONS_ENCOUNTER_SLOTS))
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
+     && ProfileHasSpecies(&profile, species))
         return TRUE;
-// When searching the fishing encounters, this incorrectly uses the size of the land encounters.
-// As a result it's reading out of bounds of the fishing encounters tables.
-#ifdef BUGFIX
-    if (MonListHasSpecies(info->fishingMonsInfo, species, NUM_FISHING_MONS_ENCOUNTER_SLOTS))
-#else
-    if (MonListHasSpecies(info->fishingMonsInfo, species, NUM_LAND_MONS_ENCOUNTER_SLOTS))
-#endif
-        return TRUE;
-    if (MonListHasSpecies(info->rockSmashMonsInfo, species, NUM_ROCK_SMASH_MONS_ENCOUNTER_SLOTS))
+    for (i = 0; i < ARRAY_COUNT(sFishingRods); i++)
+    {
+        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, sFishingRods[i], tier, &profile)
+         && ProfileHasSpecies(&profile, species))
+            return TRUE;
+    }
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_ROCKS, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
+     && ProfileHasSpecies(&profile, species))
         return TRUE;
     return FALSE;
 }
 
-static bool8 MonListHasSpecies(const struct WildPokemonInfo *info, enum Species species, u16 size)
+static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *profile, enum Species species)
 {
+    struct WildEncounterAuthoredEntry entry;
     u16 i;
-    if (info != NULL)
+
+    for (i = 0; i < profile->entryCount; i++)
     {
-        for (i = 0; i < size; i++)
-        {
-            if (info->wildPokemon[i].species == species)
-                return TRUE;
-        }
+        if (TryGetWildEncounterProfileEntry(profile, i, &entry) && entry.species == species)
+            return TRUE;
     }
     return FALSE;
 }

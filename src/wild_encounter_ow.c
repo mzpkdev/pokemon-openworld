@@ -807,7 +807,7 @@ void SetOverworldObjectSpecies(struct ScriptContext *ctx)
 
 static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
 {
-    const struct WildPokemonInfo *wildMonInfo;
+    struct WildEncounterProfileView profile;
     enum WildPokemonArea wildArea;
     enum TimeOfDay timeOfDay;
     u32 headerId = GetCurrentMapWildMonHeaderId();
@@ -846,16 +846,14 @@ static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
     {
         wildArea = WILD_AREA_WATER;
         timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
-        wildMonInfo = GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_WATER);
     }
     else
     {
         wildArea = WILD_AREA_LAND;
         timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
-        wildMonInfo = GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_LAND);
     }
 
-    if (wildMonInfo == NULL)
+    if (!TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
         return FALSE;
 
     /*
@@ -894,11 +892,11 @@ static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
         }
         else
         {
-            return TryGenerateWildMon(wildMonInfo, wildArea, 0);
+            return TryGenerateWildMonFromProfile(&profile, 0);
         }
     }
 
-    return TryGenerateWildMon(wildMonInfo, wildArea, 0);
+    return TryGenerateWildMonFromProfile(&profile, 0);
 }
 
 static bool32 OWE_DoesOWERoamerExist(void)
@@ -971,7 +969,7 @@ static bool32 StartWildBattleWithOWE_CheckDoubleBattle(struct ObjectEvent *owe, 
 {
     enum WildPokemonArea wildArea;
     enum TimeOfDay timeOfDay;
-    const struct WildPokemonInfo *wildMonInfo;
+    struct WildEncounterProfileView profile;
     u32 metatileBehavior = MapGridGetMetatileBehaviorAt(owe->currentCoords.x, owe->currentCoords.y);
 
     if (TryDoDoubleWildBattle())
@@ -982,16 +980,15 @@ static bool32 StartWildBattleWithOWE_CheckDoubleBattle(struct ObjectEvent *owe, 
         {
             wildArea = WILD_AREA_WATER;
             timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
-            wildMonInfo = GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_WATER);
         }
         else
         {
             wildArea = WILD_AREA_LAND;
             timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
-            wildMonInfo = GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_LAND);
         }
 
-        if (TryGenerateWildMon(wildMonInfo, wildArea, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
+        if (TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile)
+         && TryGenerateWildMonFromProfile(&profile, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
         {
             gParties[B_TRAINER_OPPONENT_A][1] = mon1;
             BattleSetup_StartDoubleWildBattle();
@@ -1086,12 +1083,14 @@ static bool32 CheckCurrentWildMonHeaderForOWE(bool32 shouldSpawnWaterMons)
 
     if (shouldSpawnWaterMons)
     {
+        struct WildEncounterProfileView profile;
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
-        return GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_WATER) != NULL;
+        return TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile);
     }
 
+    struct WildEncounterProfileView profile;
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
-    return GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_LAND) != NULL;
+    return TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile);
 }
 
 static u32 GetOldestActiveOWESlot(bool32 forceRemove)
