@@ -23,7 +23,7 @@ State each claim once. Lead with the player or project outcome, keep implementat
 
 Closes #X
 
-<!-- Every pull request must close an issue. Replace X with its issue number and keep the exact "Closes #X" form. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not remove this section, record progress or next steps, or repeat another section. -->
+<!-- Replace X with the linked issue number. If this PR has no linked issue, replace the line above with: No linked issue. Never leave the placeholder unchanged. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not remove this section, record progress or next steps, or repeat another section. -->
 
 ## Visual evidence
 
