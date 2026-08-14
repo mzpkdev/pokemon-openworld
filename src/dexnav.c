@@ -1527,6 +1527,13 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
     return RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, min, max);
 }
 
+#if TESTING
+u8 DexNav_GetEncounterLevelFromMapDataForTesting(enum Species species, enum EncounterType environment)
+{
+    return GetEncounterLevelFromMapData(species, environment);
+}
+#endif
+
 static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, struct WildEncounterProfileView *profile)
 {
     enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, area);
