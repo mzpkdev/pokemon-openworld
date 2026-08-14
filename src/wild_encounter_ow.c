@@ -78,20 +78,6 @@ struct InfoOWE
     bool8 isShiny;
     bool8 isFemale;
     bool8 noDespawn;
-    bool8 hasEncounterSnapshot;
-    u16 encounterHeaderId;
-    enum WildPokemonArea encounterArea;
-    enum TimeOfDay encounterTimeOfDay;
-    enum WorldTier encounterTier;
-};
-
-struct OWESpawnEncounterSnapshot
-{
-    bool8 valid;
-    u16 headerId;
-    enum WildPokemonArea area;
-    enum TimeOfDay timeOfDay;
-    enum WorldTier tier;
 };
 
 
@@ -189,7 +175,6 @@ static void Task_OWEApproachForBattle(u8 taskId);
 static bool32 CheckValidOWESpecies(enum Species speciesId);
 
 static EWRAM_DATA u8 sOWESpawnCountdown = 0;
-static EWRAM_DATA struct OWESpawnEncounterSnapshot sOWESpawnEncounterSnapshots[OWE_SPAWNS_MAX] = {0};
 
 struct AgeSort
 {
@@ -340,14 +325,6 @@ void UpdateOverworldWildEncounter(void)
     owe->disableCoveringGroundEffects = TRUE;
     owe->sOverworldEncounterLevel = infoOWE.noDespawn ? (infoOWE.level | OWE_NO_DESPAWN_FLAG) : infoOWE.level;
     owe->sOverworldEncounterCategory = infoOWE.category;
-    sOWESpawnEncounterSnapshots[spawnSlot] = (struct OWESpawnEncounterSnapshot)
-    {
-        .valid = infoOWE.hasEncounterSnapshot,
-        .headerId = infoOWE.encounterHeaderId,
-        .area = infoOWE.encounterArea,
-        .timeOfDay = infoOWE.encounterTimeOfDay,
-        .tier = infoOWE.encounterTier,
-    };
 
     ObjectEventTurn(owe, gStandardDirections[Random() & 3]);
     SetNewOWESpawnCountdown();
@@ -833,7 +810,6 @@ static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
     struct WildEncounterProfileView profile;
     enum WildPokemonArea wildArea;
     enum TimeOfDay timeOfDay;
-    enum WorldTier tier;
     u32 headerId = GetCurrentMapWildMonHeaderId();
     u32 metatileBehavior = MapGridGetMetatileBehaviorAt(x, y);
 
@@ -877,15 +853,8 @@ static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
         timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
     }
 
-    tier = WorldTier_Get();
-    if (!TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile))
+    if (!TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
         return FALSE;
-
-    info->hasEncounterSnapshot = TRUE;
-    info->encounterHeaderId = headerId;
-    info->encounterArea = wildArea;
-    info->encounterTimeOfDay = timeOfDay;
-    info->encounterTier = tier;
 
     /*
     These functions perform checks of various encounter types in the following order:
@@ -1000,34 +969,25 @@ static bool32 StartWildBattleWithOWE_CheckDoubleBattle(struct ObjectEvent *owe, 
 {
     enum WildPokemonArea wildArea;
     enum TimeOfDay timeOfDay;
-    enum WorldTier tier;
     struct WildEncounterProfileView profile;
+    u32 metatileBehavior = MapGridGetMetatileBehaviorAt(owe->currentCoords.x, owe->currentCoords.y);
 
     if (TryDoDoubleWildBattle())
     {
         struct Pokemon mon1 = gParties[B_TRAINER_OPPONENT_A][0];
-        struct OWESpawnEncounterSnapshot *snapshot = NULL;
 
-        if (GetOverworldWildEncounterType(owe) == OWE_GENERATED)
-            snapshot = &sOWESpawnEncounterSnapshots[GetSpawnSlotByOWELocalId(owe->localId)];
-
-        if (snapshot != NULL && snapshot->valid)
+        if (MetatileBehavior_IsWaterWildEncounter(metatileBehavior))
         {
-            headerId = snapshot->headerId;
-            wildArea = snapshot->area;
-            timeOfDay = snapshot->timeOfDay;
-            tier = snapshot->tier;
+            wildArea = WILD_AREA_WATER;
+            timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
         }
         else
         {
-            u32 metatileBehavior = MapGridGetMetatileBehaviorAt(owe->currentCoords.x, owe->currentCoords.y);
-
-            wildArea = MetatileBehavior_IsWaterWildEncounter(metatileBehavior) ? WILD_AREA_WATER : WILD_AREA_LAND;
+            wildArea = WILD_AREA_LAND;
             timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
-            tier = WorldTier_Get();
         }
 
-        if (TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
+        if (TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile)
          && TryGenerateWildMonFromProfile(&profile, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
         {
             gParties[B_TRAINER_OPPONENT_A][1] = mon1;
@@ -1454,9 +1414,6 @@ void OnOverworldWildEncounterDespawn(struct ObjectEvent *owe)
 
     if (owe->sOverworldEncounterCategory < ROAMER_COUNT)
         RoamerMove(owe->sOverworldEncounterCategory);
-
-    if (type == OWE_GENERATED)
-        sOWESpawnEncounterSnapshots[GetSpawnSlotByOWELocalId(owe->localId)] = (struct OWESpawnEncounterSnapshot){0};
 
     owe->sOverworldEncounterLevel = 0;
     owe->sOverworldEncounterAge = 0;
