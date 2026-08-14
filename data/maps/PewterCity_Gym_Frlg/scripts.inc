@@ -12,6 +12,7 @@ PewterCity_Gym_EventScript_Brock::
 PewterCity_Gym_EventScript_DefeatedBrock::
 	famechecker FAMECHECKER_BROCK, 1
 	setflag FLAG_DEFEATED_BROCK
+	setflag FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE
 	setflag FLAG_BADGE01_GET
 	setvar VAR_MAP_SCENE_PEWTER_CITY, 1
 	setflag FLAG_HIDE_PEWTER_CITY_GYM_GUIDE
@@ -71,7 +72,7 @@ PewterCity_Gym_EventScript_GymGuyAdvice::
 
 PewterCity_Gym_EventScript_GymStatue::
 	lockall
-	goto_if_set FLAG_BADGE01_GET, PewterCity_Gym_EventScript_GymStatuePostVictory
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE, PewterCity_Gym_EventScript_GymStatuePostVictory
 	msgbox PewterCity_Gym_Text_GymStatue
 	releaseall
 	end
@@ -199,4 +200,3 @@ PewterCity_Gym_Text_GymStatuePlayerWon::
 	.string "LEADER: BROCK\p"
 	.string "WINNING TRAINERS:\n"
 	.string "{RIVAL}, {PLAYER}$"
-

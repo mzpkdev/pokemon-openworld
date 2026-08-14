@@ -214,6 +214,7 @@ VermilionCity_Gym_EventScript_DefeatedLtSurge::
 	call_if_unset FLAG_GOT_HM05, VermilionCity_Gym_EventScript_ShowOaksAide
 	clearflag FLAG_HIDE_FAME_CHECKER_LT_SURGE_JOURNAL
 	setflag FLAG_DEFEATED_LT_SURGE
+	setflag FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE
 	setflag FLAG_BADGE03_GET
 	set_gym_trainers_frlg 3
 	goto VermilionCity_Gym_EventScript_GiveTM34
@@ -275,7 +276,7 @@ VermilionCity_Gym_EventScript_GymGuyPostVictory::
 
 VermilionCity_Gym_EventScript_GymStatue::
 	lockall
-	goto_if_set FLAG_BADGE03_GET, VermilionCity_Gym_EventScript_GymStatuePostVictory
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE, VermilionCity_Gym_EventScript_GymStatuePostVictory
 	msgbox VermilionCity_Gym_Text_GymStatue
 	releaseall
 	end
@@ -418,4 +419,3 @@ VermilionCity_Gym_Text_OnlyTrashLocksWereReset::
 	.string "There's only trash here.\p"
 	.string "Hey!\n"
 	.string "The electric locks were reset!$"
-

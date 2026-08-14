@@ -1,11 +1,52 @@
 {
   "matrix": [
-    {"cutUnlocked": false, "legacySlot1": false, "legacySlot2": false, "name": "neither"},
-    {"cutUnlocked": true, "legacySlot1": true, "legacySlot2": false, "name": "slot1"},
-    {"cutUnlocked": false, "legacySlot1": false, "legacySlot2": true, "name": "slot2"},
-    {"cutUnlocked": true, "legacySlot1": true, "legacySlot2": true, "name": "both"}
+    {
+      "legacySlots": [false, false, false, false, false, false, false, false],
+      "name": "none",
+      "unlockedCapabilities": []
+    },
+    {
+      "legacySlots": [true, false, false, false, false, false, false, false],
+      "name": "slot1",
+      "unlockedCapabilities": ["CUT"]
+    },
+    {
+      "legacySlots": [false, true, false, false, false, false, false, false],
+      "name": "slot2",
+      "unlockedCapabilities": ["FLASH"]
+    },
+    {
+      "legacySlots": [false, false, true, false, false, false, false, false],
+      "name": "slot3",
+      "unlockedCapabilities": ["ROCK_SMASH"]
+    },
+    {
+      "legacySlots": [false, false, false, true, false, false, false, false],
+      "name": "slot4",
+      "unlockedCapabilities": ["STRENGTH"]
+    },
+    {
+      "legacySlots": [false, false, false, false, true, false, false, false],
+      "name": "slot5",
+      "unlockedCapabilities": ["SURF"]
+    },
+    {
+      "legacySlots": [false, false, false, false, false, true, false, false],
+      "name": "slot6",
+      "unlockedCapabilities": ["FLY"]
+    },
+    {
+      "legacySlots": [false, false, false, false, false, false, true, false],
+      "name": "slot7",
+      "unlockedCapabilities": ["DIVE"]
+    },
+    {
+      "legacySlots": [false, false, false, false, false, false, false, true],
+      "name": "slot8",
+      "unlockedCapabilities": ["WATERFALL"]
+    }
   ],
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": {
     "baseFixture": "hoenn_continue.sav",
     "baseFixtureSha256": "b912fe76db8fd2e2858aba3c719208121a3546e2c7eecfb2729b19688f7a6605",

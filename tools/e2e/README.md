@@ -115,12 +115,14 @@ story flag and variable helpers, and coordinate-aware overworld movement. The
 fixture copies the ROM and starts one pinned SkyEmu v5 process, so saves and RAM
 cannot leak between tests.
 
-`fixtures/regional_cut_oracle.json` records the Cut result produced by an
-instrumented `135b32ca92` ROM for four checksum-valid variants of the reviewed
-historical Continue fixture: neither legacy badge slot, slot 1, slot 2, and
-both. Tests derive those variants instead of tracking opaque binary copies. The
-manifest binds the base save, minimal DEBUG probe overlay, and historical ROM
-by SHA-256. Reproduce it with:
+`fixtures/regional_cut_oracle.json` records the field-capability results produced
+by an instrumented `135b32ca92` ROM for nine checksum-valid variants of the
+reviewed historical Continue fixture: no legacy badge slot and each of slots 1
+through 8 independently. Tests derive those variants instead of tracking opaque
+binary copies. They prove each legacy bit survives a real resave and cold
+restart, continues to unlock only its historical field move through production
+dispatch, and never creates a regional fact. The manifest binds the base save,
+minimal DEBUG probe overlay, and historical ROM by SHA-256. Reproduce it with:
 
 ```sh
 build/e2e-venv/bin/python -m tools.e2e.generate_cut_oracle \

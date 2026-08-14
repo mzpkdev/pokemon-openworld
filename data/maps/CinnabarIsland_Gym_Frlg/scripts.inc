@@ -56,6 +56,7 @@ CinnabarIsland_Gym_EventScript_Blaine::
 CinnabarIsland_Gym_EventScript_DefeatedBlaine::
 	famechecker FAMECHECKER_BLAINE, 1
 	setflag FLAG_DEFEATED_BLAINE
+	setflag FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE
 	setflag FLAG_BADGE07_GET
 	setrespawn HEAL_LOCATION_CINNABAR_ISLAND
 	setvar VAR_MAP_SCENE_CINNABAR_ISLAND, 1
@@ -184,7 +185,7 @@ CinnabarIsland_Gym_EventScript_GymGuyPostVictory::
 
 CinnabarIsland_Gym_EventScript_GymStatue::
 	lockall
-	goto_if_set FLAG_BADGE07_GET, CinnabarIsland_Gym_EventScript_GymStatuePostVictory
+	goto_if_set FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE, CinnabarIsland_Gym_EventScript_GymStatuePostVictory
 	msgbox CinnabarIsland_Gym_Text_GymStatue
 	releaseall
 	end
@@ -898,4 +899,3 @@ CinnabarIsland_Gym_Text_CorrectGoOnThrough::
 CinnabarIsland_Gym_Text_SorryBadCall::
 	.string "Sorry!\n"
 	.string "Bad call!$"
-
