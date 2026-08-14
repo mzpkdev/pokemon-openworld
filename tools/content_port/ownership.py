@@ -610,6 +610,8 @@ def reconcile_owned(
     previous: OwnershipManifest,
     desired: OwnershipManifest,
     payloads: Mapping[tuple[str, ...], object],
+    *,
+    released_files: Iterable[str] = (),
 ) -> None:
     """Converge exact owned units after proving the checked baseline is untouched."""
 
@@ -620,6 +622,13 @@ def reconcile_owned(
     verify_owned_baseline(root, previous)
     verify_desired_claims(root, previous, desired)
     desired_by_id = desired.by_identity
+    released: set[tuple[str, ...]] = set()
+    for value in released_files:
+        path = str(validate_relative_path(value))
+        identity = ("file", path)
+        if identity in released:
+            raise ContentPortError(f"duplicate released file {path}")
+        released.add(identity)
     if set(payloads) != set(desired_by_id):
         missing = sorted(set(desired_by_id) - set(payloads))
         extra = sorted(set(payloads) - set(desired_by_id))
@@ -635,6 +644,20 @@ def reconcile_owned(
         normalized[identity] = payload
 
     stale = [unit for unit in previous.units if unit.identity not in desired_by_id]
+    stale_files = {unit.identity for unit in stale if unit.kind == "file"}
+    desired_paths = {unit.path for unit in desired.units}
+    still_owned = sorted(
+        identity for identity in released if identity[1] in desired_paths
+    )
+    if still_owned:
+        raise ContentPortError(
+            f"released file still has desired ownership: {still_owned[0][1]}"
+        )
+    invalid_releases = sorted(released - stale_files)
+    if invalid_releases:
+        raise ContentPortError(
+            f"released file is not stale full-file ownership: {invalid_releases[0][1]}"
+        )
     desired_slots = {
         (unit.path, unit.registry, unit.slot): unit
         for unit in desired.units
@@ -663,7 +686,11 @@ def reconcile_owned(
                 f"cannot remove ordered registry slot {stale_unit.slot} before a "
                 f"retained slot in {stale_unit.path}:{stale_unit.registry}"
             )
-    removable = [unit for unit in stale if unit.identity not in replaced_stale]
+    removable = [
+        unit
+        for unit in stale
+        if unit.identity not in replaced_stale and unit.identity not in released
+    ]
     for unit in sorted(
         removable,
         key=lambda item: (

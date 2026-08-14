@@ -910,3 +910,47 @@ def derive_desired_state(
         )
         verify_desired_claims(root, installed, manifest)
         return manifest, payloads
+
+
+def derive_released_map_files(
+    descriptor: PortDescriptor,
+    repo: Path | str,
+    desired: OwnershipManifest,
+) -> frozenset[str]:
+    """Return ledgered full map files explicitly handed to target ownership.
+
+    Map ownership is the descriptor's only full-file release signal. Preserve
+    therefore releases only the map JSON and script source formerly emitted by
+    the map renderer; layouts and other derived resources retain their own
+    independent ownership decisions.
+    """
+
+    root = Path(repo).resolve()
+    installed_path = (
+        root / "tools/content_port/ports" / _port_name(descriptor) / "ownership.json"
+    )
+    installed = (
+        OwnershipManifest.load(installed_path)
+        if installed_path.exists()
+        else OwnershipManifest(_port_name(descriptor), ())
+    )
+    candidates = {
+        path
+        for name, ownership in descriptor.map_ownership.items()
+        if ownership == "preserve"
+        for path in (
+            f"data/maps/{name}/map.json",
+            f"data/maps/{name}/scripts.inc",
+        )
+    }
+    desired_paths = {unit.path for unit in desired.units}
+    collisions = sorted(candidates & desired_paths)
+    if collisions:
+        raise ContentPortError(
+            f"preserved map file still has desired ownership: {collisions[0]}"
+        )
+    return frozenset(
+        unit.path
+        for unit in installed.units
+        if unit.kind == "file" and unit.path in candidates
+    )

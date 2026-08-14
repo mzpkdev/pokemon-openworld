@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -25,10 +25,12 @@ from tools.content_port.materialize import (
     _section_units,
     _trainer_units,
     derive_desired_state,
+    derive_released_map_files,
 )
 from tools.content_port.model import DonorPin, PersistentBindingRef
 from tools.content_port.ownership import (
     OwnershipManifest,
+    OwnershipUnit,
     extract_owned_content,
     reconcile_owned,
 )
@@ -161,6 +163,56 @@ class MaterializeTests(unittest.TestCase):
                 self.fail(message)
             self.skipTest(message)
         return load_port(PORT, donor_root)
+
+    def test_map_preserve_policy_derives_only_ledgered_full_map_releases(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            port = root / "tools/content_port/ports/test"
+            port.mkdir(parents=True)
+            owned = (
+                "data/maps/Preserved/map.json",
+                "data/maps/Preserved/scripts.inc",
+                "data/maps/Rendered/map.json",
+                "data/layouts/Preserved/map.bin",
+            )
+            manifest = OwnershipManifest(
+                "test",
+                tuple(OwnershipUnit("file", path, "0" * 64) for path in owned),
+            )
+            manifest.write(port / "ownership.json")
+            descriptor = SimpleNamespace(
+                path=port / "port.json",
+                map_ownership={"Preserved": "preserve", "Rendered": "rendered"},
+            )
+
+            desired_section = OwnershipUnit(
+                "section",
+                "data/maps/Preserved/scripts.inc",
+                "0" * 64,
+                name="retained",
+            )
+            with self.assertRaisesRegex(
+                ContentPortError, "preserved map file still has desired ownership"
+            ):
+                derive_released_map_files(
+                    descriptor,  # type: ignore[arg-type]
+                    root,
+                    OwnershipManifest("test", (desired_section,)),
+                )
+
+            self.assertEqual(
+                derive_released_map_files(
+                    descriptor,  # type: ignore[arg-type]
+                    root,
+                    OwnershipManifest("test", ()),
+                ),
+                frozenset(
+                    {
+                        "data/maps/Preserved/map.json",
+                        "data/maps/Preserved/scripts.inc",
+                    }
+                ),
+            )
 
     def test_selected_trainers_materialize_without_activating_bystanders(
         self,
