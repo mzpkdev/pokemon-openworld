@@ -644,7 +644,7 @@ class DonorUpdateTests(unittest.TestCase):
         expected_adaptations = {
             f"map:{item['source']}.{item['path']}" for item in policy["adaptations"]
         }
-        self.assertEqual(len(expected_adaptations), 10)
+        self.assertEqual(len(expected_adaptations), 9)
         for donor in ("content", "mechanical"):
             identities = {
                 reference["semanticIdentity"]
