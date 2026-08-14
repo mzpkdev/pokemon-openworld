@@ -1164,7 +1164,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     _walk_route39_grass_until_battle(game)
     route39_stock_before = _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL)
     assert route39_stock_before == 7
-    route39_balls_used = _weaken_then_catch(game)
+    route39_balls_used = _catch_with_battle_bag(game)
     assert game.read_u8(game.address("gPartiesCount")) == 5
     assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == (
         route39_stock_before - route39_balls_used
