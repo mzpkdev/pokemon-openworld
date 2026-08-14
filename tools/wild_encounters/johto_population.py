@@ -4,6 +4,7 @@ import argparse
 import copy
 import json
 import os
+import stat
 import tempfile
 from pathlib import Path
 
@@ -675,10 +676,12 @@ def check_or_write(outputs, write=False):
         for path, document in outputs.items():
             path = Path(path)
             path.parent.mkdir(parents=True, exist_ok=True)
+            output_mode = stat.S_IMODE(path.stat().st_mode) if path.exists() else 0o644
             descriptor, temporary = tempfile.mkstemp(
                 prefix=f".{path.name}.", dir=path.parent
             )
             with os.fdopen(descriptor, "wb") as stream:
+                os.fchmod(stream.fileno(), output_mode)
                 stream.write(_encoded(document))
                 stream.flush()
                 os.fsync(stream.fileno())
