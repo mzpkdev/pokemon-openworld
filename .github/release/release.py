@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import hashlib
 import html
 import json
@@ -27,7 +28,8 @@ ASSET_NAMES = (
 CI_WORKFLOW_PATH = ".github/workflows/ci.yml"
 SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
 VERSION_RE = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
-SOURCE_RE = re.compile(r"build-([0-9a-f]{12})\Z")
+LEGACY_SOURCE_RE = re.compile(r"build-([0-9a-f]{12})\Z")
+CHRONOLOGICAL_SOURCE_RE = re.compile(r"build-([0-9]{8}T[0-9]{6}Z)-([0-9a-f]{12})\Z")
 DIGEST_RE = re.compile(r"sha256:[0-9a-f]{64}\Z")
 CONVENTIONAL_RE = re.compile(
     r"(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)"
@@ -105,9 +107,45 @@ def validate_version(value: str) -> str:
 
 
 def validate_source_tag(value: str) -> str:
-    if not SOURCE_RE.fullmatch(value):
-        fail("source must be build- followed by exactly 12 lowercase hex characters")
+    if LEGACY_SOURCE_RE.fullmatch(value):
+        return value
+    match = CHRONOLOGICAL_SOURCE_RE.fullmatch(value)
+    if not match:
+        fail(
+            "source must be build-YYYYMMDDTHHMMSSZ-<12 lowercase hex> "
+            "or legacy build-<12 lowercase hex>"
+        )
+    try:
+        datetime.strptime(match.group(1), "%Y%m%dT%H%M%SZ")
+    except ValueError as error:
+        fail(f"source contains an invalid UTC timestamp: {error}")
     return value
+
+
+def snapshot_tag(source_sha: str, committed_at: str | None = None) -> str:
+    source_sha = validate_sha(source_sha)
+    committed_at = committed_at or git("show", "-s", "--format=%cI", source_sha)
+    try:
+        timestamp = datetime.fromisoformat(committed_at)
+    except ValueError as error:
+        fail(f"source commit has an invalid committer timestamp: {error}")
+    if timestamp.tzinfo is None:
+        fail("source commit committer timestamp has no UTC offset")
+    utc_timestamp = timestamp.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return f"build-{utc_timestamp}-{source_sha[:12]}"
+
+
+def authenticate_snapshot_tag(source: str, source_sha: str) -> None:
+    validate_source_tag(source)
+    source_sha = validate_sha(source_sha)
+    if CHRONOLOGICAL_SOURCE_RE.fullmatch(source):
+        if source != snapshot_tag(source_sha):
+            fail("snapshot tag is not canonical for its source commit")
+        return
+    legacy = LEGACY_SOURCE_RE.fullmatch(source)
+    assert legacy is not None
+    if legacy.group(1) != source_sha[:12]:
+        fail("snapshot tag suffix does not match its full source SHA")
 
 
 def snapshot_title(source_sha: str) -> str:
@@ -531,10 +569,7 @@ def resolve_stable_source() -> str:
     source_sha = resolve_tag_commit(repo, source)
     if source_sha is None:
         fail("snapshot tag does not exist")
-    suffix = SOURCE_RE.fullmatch(source)
-    assert suffix is not None
-    if suffix.group(1) != source_sha[:12]:
-        fail("snapshot tag suffix does not match its full source SHA")
+    authenticate_snapshot_tag(source, source_sha)
     release = release_for_tag(repo, source)
     if release is None:
         fail("snapshot tag has no published release")
@@ -870,7 +905,7 @@ def stable_latest_policy(
 def publish_snapshot(directory: Path, notes: Path) -> None:
     repo = repository()
     source_sha = validate_sha(env("SOURCE_SHA"))
-    tag = f"build-{source_sha[:12]}"
+    tag = snapshot_tag(source_sha)
     title = snapshot_title(source_sha)
     expected_body = notes.read_text(encoding="utf-8")
     digests = validate_asset_dir(directory)
@@ -1038,15 +1073,50 @@ def expect_failure_containing(
 def self_test() -> None:
     sha = "a" * 40
     other_sha = "b" * 40
+    vector_sha = "763d0ea7dd315b989668ef4087c9add6b64e7907"
+    vector_tag = "build-20260814T224509Z-763d0ea7dd31"
     assert validate_sha(sha) == sha
     assert validate_version("v1.2.3") == "v1.2.3"
     assert validate_source_tag("build-" + "a" * 12)
+    assert validate_source_tag(vector_tag) == vector_tag
+    assert snapshot_tag(vector_sha, "2026-08-14T23:45:09+01:00") == vector_tag
+    assert (
+        snapshot_tag(sha, "2026-01-02T03:04:05+05:30")
+        == "build-20260101T213405Z-aaaaaaaaaaaa"
+    )
     assert snapshot_title(sha) == "Pokémon OpenWorld (snapshot-aaaaaaa)"
     assert stable_title("v1.2.3") == "Pokémon OpenWorld (v1.2.3)"
     for malformed in ("v1.2", "v01.2.3", "1.2.3", "v1.2.3 ", "v1.2.3\n"):
         expect_failure(lambda value=malformed: validate_version(value), malformed)
-    for malformed in ("build-ABCDEF123456", "build-abc", "build-" + "a" * 13):
+    for malformed in (
+        "build-ABCDEF123456",
+        "build-abc",
+        "build-" + "a" * 13,
+        "build-20261314T224509Z-763d0ea7dd31",
+        "build-20260814T224509z-763d0ea7dd31",
+        "build-20260814T224509Z-763D0EA7DD31",
+        "build-20260814T224509Z763d0ea7dd31",
+    ):
         expect_failure(lambda value=malformed: validate_source_tag(value), malformed)
+    with patch(__name__ + ".git", return_value="2026-08-14T23:45:09+01:00"):
+        authenticate_snapshot_tag(vector_tag, vector_sha)
+        authenticate_snapshot_tag("build-763d0ea7dd31", vector_sha)
+        expect_failure(
+            lambda: authenticate_snapshot_tag(
+                "build-20260814T224510Z-763d0ea7dd31", vector_sha
+            ),
+            "noncanonical timestamp",
+        )
+        expect_failure(
+            lambda: authenticate_snapshot_tag(
+                "build-20260814T224509Z-aaaaaaaaaaaa", vector_sha
+            ),
+            "noncanonical suffix",
+        )
+        expect_failure(
+            lambda: authenticate_snapshot_tag("build-aaaaaaaaaaaa", vector_sha),
+            "legacy suffix mismatch",
+        )
     assert revision_range("snapshot", sha, None) == f"{sha}^!"
     assert revision_range("stable", sha, other_sha) == f"{other_sha}..{sha}"
     assert revision_range("stable", sha, None) == sha
@@ -1298,7 +1368,7 @@ def self_test() -> None:
     )
 
     create_args = release_create_args(
-        "build-" + sha[:12],
+        "build-20260102T030405Z-" + sha[:12],
         "owner/repo",
         sha,
         "Snapshot",
@@ -1307,7 +1377,11 @@ def self_test() -> None:
         prerelease=True,
         verify_tag=True,
     )
-    assert create_args[:3] == ["release", "create", "build-" + sha[:12]]
+    assert create_args[:3] == [
+        "release",
+        "create",
+        "build-20260102T030405Z-" + sha[:12],
+    ]
     asset_args_end = 3 + len(ASSET_NAMES)
     assert create_args[3:asset_args_end] == [
         str(Path("release") / name) for name in ASSET_NAMES
@@ -1355,6 +1429,24 @@ def self_test() -> None:
         for name in ASSET_NAMES:
             (assets / name).write_bytes(name.encode())
         digests = validate_asset_dir(assets)
+        notes = root / "notes.md"
+        notes.write_text("generated notes\n", encoding="utf-8")
+        new_tag = "build-20260102T030405Z-" + sha[:12]
+        new_snapshot = fixture_release(new_tag, sha, digests, ASSET_NAMES)
+        with (
+            patch.dict(
+                os.environ,
+                {"GITHUB_REPOSITORY": "owner/repo", "SOURCE_SHA": sha},
+            ),
+            patch(__name__ + ".git", return_value="2026-01-02T03:04:05+00:00"),
+            patch(__name__ + ".resolve_tag_commit", side_effect=[None, sha]),
+            patch(__name__ + ".release_for_tag", side_effect=[None, new_snapshot]),
+            patch(__name__ + ".latest_release_tag", return_value=None),
+            patch(__name__ + ".gh") as gh_mock,
+        ):
+            publish_snapshot(assets, notes)
+        assert gh_mock.call_args.args[:3] == ("release", "create", new_tag)
+
         full = fixture_release("build-" + sha[:12], sha, digests, ASSET_NAMES)
         validate_release_metadata(
             full, "build-" + sha[:12], sha, prerelease=True, title=snapshot_title(sha)

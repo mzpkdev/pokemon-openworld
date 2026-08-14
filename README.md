@@ -18,14 +18,14 @@ Once this release workflow is present on `main`, GitHub Releases publish the
 normal `pokemon-openworld.gba` ROM together with its map and symbol files, plus
 `pokemon-openworld-debug.gba` without its debug symbols. Successful `main`
 builds then produce public prerelease snapshots tagged
-`build-<12-lowercase-hex>`, where the suffix is the start of the immutable
-source commit SHA.
+`build-YYYYMMDDTHHMMSSZ-<12-lowercase-hex>`. The UTC timestamp comes from the
+source commit's committer timestamp, and the suffix starts its immutable SHA.
 
 A maintainer can promote a snapshot to a stable release by manually running the
 `Release` workflow with the snapshot's required `source` tag in
-`build-<12-lowercase-hex>` form. Promotion reuses the snapshot's verified files
-byte for byte and publishes the stable release as latest; it does not rebuild or
-retarget either tag.
+the current form above or legacy `build-<12-lowercase-hex>` form. Promotion
+reuses the snapshot's verified files byte for byte and publishes the stable
+release as latest; it does not rebuild or retarget either tag.
 
 Only snapshots created under this four-asset release contract are eligible for
 stable promotion. Legacy snapshots containing only the normal ROM, map, and
