@@ -341,6 +341,59 @@ TEST("Malformed profile views fail closed without canary or RNG mutation")
     EXPECT_EQ(actualRandom, expectedRandom);
 }
 
+TEST("Oversized authored profile views fail before scanning duplicate entries")
+{
+    static const struct
+    {
+        enum WildPokemonArea area;
+        u8 fishingRod;
+        u16 capacity;
+    } sCases[] =
+    {
+        {WILD_AREA_LAND, WILD_ENCOUNTER_FISHING_ROD_NONE, NUM_LAND_MONS_ENCOUNTER_SLOTS},
+        {WILD_AREA_WATER, WILD_ENCOUNTER_FISHING_ROD_NONE, NUM_WATER_MONS_ENCOUNTER_SLOTS},
+        {WILD_AREA_ROCKS, WILD_ENCOUNTER_FISHING_ROD_NONE, NUM_ROCK_SMASH_MONS_ENCOUNTER_SLOTS},
+        {WILD_AREA_FISHING, OLD_ROD, NUM_FISHING_MONS_OLD_ROD_ENCOUNTER_SLOTS},
+        {WILD_AREA_FISHING, GOOD_ROD, NUM_FISHING_MONS_GOOD_ROD_ENCOUNTER_SLOTS},
+        {WILD_AREA_FISHING, SUPER_ROD, NUM_FISHING_MONS_SUPER_ROD_ENCOUNTER_SLOTS},
+    };
+    const struct WildEncounterAuthoredEntry duplicateEntry = {SPECIES_RATTATA, 1, 4, 4};
+    struct WildEncounterAuthoredEntry entryCanary = {SPECIES_ZUBAT, 77, 7, 8};
+    u16 i;
+
+    for (i = 0; i < ARRAY_COUNT(sCases); i++)
+    {
+        const struct WildEncounterProfileView oversized =
+        {
+            .source = WILD_ENCOUNTER_PROFILE_AUTHORED,
+            .area = sCases[i].area,
+            .fishingRod = sCases[i].fishingRod,
+            .encounterRate = 1,
+            .entryCount = sCases[i].capacity + 1,
+            .totalWeight = sCases[i].capacity + 1,
+            .authoredEntries = &duplicateEntry,
+        };
+        u16 expectedRandom;
+        u16 actualRandom;
+        u8 levelCanary = 77;
+
+        EXPECT(!IsWildEncounterProfileViewValid(&oversized));
+        EXPECT(!TryGetWildEncounterProfileEntry(&oversized, 0, &entryCanary));
+        EXPECT_EQ(entryCanary.species, SPECIES_ZUBAT);
+        EXPECT(!TrySelectWildEncounterProfileEntry(&oversized, 0, &entryCanary));
+        EXPECT_EQ(entryCanary.species, SPECIES_ZUBAT);
+        EXPECT(!TrySelectWildEncounterLevel(&oversized, &duplicateEntry, 0, FALSE, &levelCanary));
+        EXPECT_EQ(levelCanary, 77);
+
+        SeedRng(5000 + i);
+        expectedRandom = Random();
+        SeedRng(5000 + i);
+        EXPECT(!TryGenerateWildMonFromProfile(&oversized, 0));
+        actualRandom = Random();
+        EXPECT_EQ(actualRandom, expectedRandom);
+    }
+}
+
 TEST("Resolver failures preserve outputs and queries consume no RNG")
 {
     struct WildEncounterProfileView view = {.entryCount = 0x1234};

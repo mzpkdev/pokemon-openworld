@@ -868,6 +868,9 @@ bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *vi
      || (view->area == WILD_AREA_FISHING && !IsWildEncounterFishingRodValid(view->fishingRod))
      || (view->area != WILD_AREA_FISHING && view->fishingRod != WILD_ENCOUNTER_FISHING_ROD_NONE))
         return FALSE;
+    if (!TryGetLegacyProfileShape(view->area, view->fishingRod, &expectedStart, &expectedCount, &expectedTotalWeight)
+     || view->entryCount > expectedCount)
+        return FALSE;
 
     if (view->source == WILD_ENCOUNTER_PROFILE_AUTHORED)
     {
@@ -877,7 +880,6 @@ bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *vi
     else if (view->source == WILD_ENCOUNTER_PROFILE_LEGACY)
     {
         if (view->authoredEntries != NULL || view->legacyEntries == NULL
-         || !TryGetLegacyProfileShape(view->area, view->fishingRod, &expectedStart, &expectedCount, &expectedTotalWeight)
          || view->legacyStartIndex != expectedStart || view->entryCount != expectedCount
          || view->totalWeight != expectedTotalWeight)
             return FALSE;
