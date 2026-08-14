@@ -1740,7 +1740,9 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
     int numSpecies;
     u8 slot;
     u16 headerId;
-    const struct WildPokemonInfo *wildMonInfo;
+    enum TimeOfDay timeOfDay;
+    struct WildEncounterProfileView profile;
+    struct WildEncounterAuthoredEntry entry;
 
     if (TryFindWildEncounterHeader(
         gRematchTable[matchCallId].mapGroup,
@@ -1748,15 +1750,27 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
         &headerId))
     {
         numSpecies = 0;
-        if (TryGetWildEncounterInfo(headerId, WILD_AREA_LAND, &wildMonInfo))
+        timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
+        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
         {
-            slot = GetLandEncounterSlotForMatchCall();
-            species[numSpecies++] = wildMonInfo->wildPokemon[slot].species;
+            if (profile.source == WILD_ENCOUNTER_PROFILE_LEGACY)
+            {
+                slot = GetLandEncounterSlotForMatchCall();
+                species[numSpecies++] = profile.legacyEntries[slot].species;
+            }
+            else if (TrySelectWildEncounterProfileEntry(&profile, Random() % profile.totalWeight, &entry))
+                species[numSpecies++] = entry.species;
         }
-        if (TryGetWildEncounterInfo(headerId, WILD_AREA_WATER, &wildMonInfo))
+        timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
+        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
         {
-            slot = GetWaterEncounterSlotForMatchCall();
-            species[numSpecies++] = wildMonInfo->wildPokemon[slot].species;
+            if (profile.source == WILD_ENCOUNTER_PROFILE_LEGACY)
+            {
+                slot = GetWaterEncounterSlotForMatchCall();
+                species[numSpecies++] = profile.legacyEntries[slot].species;
+            }
+            else if (TrySelectWildEncounterProfileEntry(&profile, Random() % profile.totalWeight, &entry))
+                species[numSpecies++] = entry.species;
         }
         if (numSpecies)
         {

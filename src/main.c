@@ -30,6 +30,7 @@
 #include "integrity_capture.h"
 #include "debug_save_scenario.h"
 #include "debug_field_move_probe.h"
+#include "debug_wild_encounter_probe.h"
 #include "debug_trainer_battle_scenario.h"
 #endif
 
@@ -149,6 +150,7 @@ void AgbMainLoop(void)
         IntegrityCapture_Update();
         DebugSaveScenario_Update();
         DebugFieldMoveProbe_Update();
+        DebugWildEncounterProbe_Update();
         DebugTrainerBattleScenario_Update();
 #endif
 

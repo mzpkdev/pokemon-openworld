@@ -33,6 +33,7 @@ ITEM_OLD_ROD = 709
 SPECIES_MAGIKARP = 129
 SPECIES_POLIWHIRL = 61
 SPECIES_TAUROS = 128
+SPECIES_MILTANK = 241
 SPECIES_TREECKO = 252
 SPECIES_TORCHIC = 255
 SPECIES_MUDKIP = 258
@@ -505,6 +506,26 @@ def _fish_until_battle(game) -> None:
         )
         if game.callback_is("BattleMainCB2"):
             return
+
+        stable_field_frames = 0
+        for _ in range(120):
+            if game.callback_is("BattleMainCB2"):
+                return
+            if (
+                game.callback_is("CB2_Overworld")
+                and not game.controls_locked()
+                and game.script_status() == SCRIPT_IDLE
+            ):
+                stable_field_frames += 1
+                if stable_field_frames == 30:
+                    break
+            else:
+                stable_field_frames = 0
+            game.step()
+        else:
+            raise AssertionError(
+                "fishing attempt reached neither battle nor stable field controls"
+            )
         _use_old_rod_from_bag(game)
     raise AssertionError("ordinary Old Rod attempts did not start a wild battle")
 
@@ -711,6 +732,36 @@ def _weaken_then_catch(game) -> int:
             game.press("Down", release_frames=2)
         game.press("A", release_frames=8)
     return _catch_with_battle_bag(game)
+
+
+def _catch_route39_wild(game) -> tuple[int, int]:
+    player_controller = game.address("SetControllerToPlayer")
+    partner_controller = game.address("SetControllerToPlayerPartner")
+    action_handlers = [
+        address
+        for address in game.symbols.addresses("HandleInputChooseAction")
+        if player_controller < address < partner_controller
+    ]
+    assert len(action_handlers) == 1
+    message_handler = game.address("Controller_WaitForString")
+    for _ in range(1_500):
+        if game.battler_controller_is(action_handlers[0]):
+            break
+        if game.task_active("Task_HandleChooseMonInput") or game.callback_is(
+            "CB2_UpdatePartyMenu"
+        ):
+            _choose_healthy_party_mon(game)
+        elif game.battler_controller_is(message_handler):
+            game.press("A", release_frames=4)
+        else:
+            game.press("A", release_frames=2)
+    else:
+        raise AssertionError("Route 39 wild battle action menu not reached")
+
+    species = game.read_u16(game.address("gBattleMons") + 140)
+    if species in (SPECIES_TAUROS, SPECIES_MILTANK):
+        return species, _weaken_then_catch(game)
+    return species, _catch_with_battle_bag(game)
 
 
 def _walk_route39_grass_until_battle(game) -> None:
@@ -1164,13 +1215,14 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     _walk_route39_grass_until_battle(game)
     route39_stock_before = _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL)
     assert route39_stock_before == 7
-    route39_balls_used = _weaken_then_catch(game)
+    route39_species, route39_balls_used = _catch_route39_wild(game)
     assert game.read_u8(game.address("gPartiesCount")) == 5
     assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == (
         route39_stock_before - route39_balls_used
     )
     johto_catch = decode_box_pokemon(game.read(game.address("gParties") + 4 * 100, 80))
     assert johto_catch is not None
+    assert johto_catch["species"] == route39_species
     assert johto_catch["personality"] != 0
     assert johto_catch["otId"] != 0
     assert johto_catch["metLocation"] == MET_LOCATION_ROUTE_39
