@@ -29,9 +29,9 @@ POLICY = json.loads(
     ).read_text()
 )
 REGIONAL_FACT_GRANTS = tuple(
-    (item["value"], item["grants"][0]) for item in POLICY["exact"]
+    (item["value"], item["grants"][0]) for item in POLICY["exact"] if item["grants"]
 )
-REGIONAL_FACTS = tuple(flag for flag, _ in REGIONAL_FACT_GRANTS)
+REGIONAL_FACTS = tuple(item["value"] for item in POLICY["exact"])
 
 
 def _continue_to_overworld(game) -> None:
