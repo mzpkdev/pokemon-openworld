@@ -16,8 +16,5 @@ enum RegionalStoryMigrationResult
 enum RegionalStoryMigrationResult RegionalStoryMigration_Apply(void);
 u8 RegionalStoryMigration_AdjustLoadStatus(u8 saveStatus);
 void RegionalStoryMigration_InitializeNewSave(void);
-#if TESTING
-void RegionalStoryMigration_SuppressFastShipDefaultForTest(bool32 suppress);
-#endif
 
 #endif // GUARD_REGIONAL_STORY_MIGRATION_H

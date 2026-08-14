@@ -11,10 +11,6 @@ struct RegionalStoryMigration
     bool32 (*apply)(void);
 };
 
-#if TESTING
-static bool32 sSuppressFastShipDefaultForTest;
-#endif
-
 static bool32 MigrateUnversionedSave(void)
 {
     // The legacy mechanics grants are intentionally ambiguous. Regional facts
@@ -25,10 +21,6 @@ static bool32 MigrateUnversionedSave(void)
 
 static bool32 MigrateFastShipTerminalDefault(void)
 {
-#if TESTING
-    if (sSuppressFastShipDefaultForTest)
-        return TRUE;
-#endif
     FlagSet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
     return TRUE;
 }
@@ -59,13 +51,6 @@ void RegionalStoryMigration_InitializeNewSave(void)
     StampCurrentMigrationMarker();
     FlagSet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
 }
-
-#if TESTING
-void RegionalStoryMigration_SuppressFastShipDefaultForTest(bool32 suppress)
-{
-    sSuppressFastShipDefaultForTest = suppress;
-}
-#endif
 
 enum RegionalStoryMigrationResult RegionalStoryMigration_Apply(void)
 {

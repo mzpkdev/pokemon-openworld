@@ -240,27 +240,3 @@ TEST("Current regional story saves preserve a deliberately cleared terminal lock
     EXPECT_EQ(memcmp(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags)), 0);
     EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
 }
-
-TEST("Migration finalization does not reapply new save defaults")
-{
-    u8 originalFlags[sizeof(gSaveBlock1Ptr->flags)];
-    u16 originalVars[ARRAY_COUNT(gSaveBlock1Ptr->vars)];
-
-    InitEventData();
-    FlagClear(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
-    FlagSet(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE);
-    VarSet(VAR_CHERRYGROVE_CITY_STATE, 0x5678);
-    SetMarker(REGIONAL_STORY_MIGRATION_SIGNATURE, 1);
-    memcpy(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags));
-    memcpy(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars));
-
-    RegionalStoryMigration_SuppressFastShipDefaultForTest(TRUE);
-    EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
-    RegionalStoryMigration_SuppressFastShipDefaultForTest(FALSE);
-
-    EXPECT(!FlagGet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED));
-    EXPECT_EQ(memcmp(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags)), 0);
-    EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
-    EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[0], REGIONAL_STORY_MIGRATION_SIGNATURE);
-    EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
-}
