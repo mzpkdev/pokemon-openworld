@@ -702,6 +702,13 @@ class SourceGraphTests(unittest.TestCase):
             Path("."),
         )
         expected = {
+            ResourceKey("trainer", "TRAINER_EUGENE"),
+            ResourceKey("party", "sParty_Eugene"),
+            ResourceKey("species", "SPECIES_POLIWHIRL"),
+            ResourceKey("species", "SPECIES_TAUROS"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_SAILOR"),
+            ResourceKey("asset", "TRAINER_PIC_SAILOR"),
+            ResourceKey("service", "Route39_EventScript_Eugene"),
             ResourceKey("trainer", "TRAINER_SAMUEL"),
             ResourceKey("party", "sParty_Samuel"),
             ResourceKey("species", "SPECIES_TEDDIURSA"),
@@ -712,6 +719,38 @@ class SourceGraphTests(unittest.TestCase):
         self.assertTrue(expected <= set(state.resources))
         self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
         self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
+        eugene = state.semantic_values[ResourceKey("trainer", "TRAINER_EUGENE")]
+        self.assertEqual(
+            eugene,
+            {
+                "parties": ("sParty_Eugene",),
+                "trainer_pic": "TRAINER_PIC_SAILOR",
+                "encounter_music": "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_2",
+                "trainer_class": "TRAINER_CLASS_SAILOR",
+                "items": (),
+                "trainer_name": "EUGENE",
+                "double_battle": "FALSE",
+                "ai_flags": ("AI_SCRIPT_CHECK_BAD_MOVE",),
+                "gender": "Male",
+                "party_format": "NO_ITEM_DEFAULT_MOVES",
+            },
+        )
+        self.assertEqual(
+            [
+                (member["species"], member["level"], member["iv"])
+                for member in state.semantic_values[
+                    ResourceKey("party", "sParty_Eugene")
+                ]["members"]
+            ],
+            [("SPECIES_POLIWHIRL", 20, 0), ("SPECIES_TAUROS", 22, 0)],
+        )
+        self.assertEqual(
+            state.semantic_evidence["content:trainer:TRAINER_EUGENE"],
+            "3c1b7eeb66f68e3ad9e9a0b45447d499ecf9ccb15f5d934d61f7c8334f442bfd",
+        )
+        eugene_event = state.trainer_events["Route39"][0]
+        self.assertEqual(eugene_event.trainers, ("TRAINER_EUGENE",))
+        self.assertEqual(eugene_event.script_name, "Route39_EventScript_Eugene")
         trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAMUEL"]
         self.assertRegex(trainer_evidence, r"^[0-9a-f]{64}$")
         trainer = state.semantic_values[ResourceKey("trainer", "TRAINER_SAMUEL")]

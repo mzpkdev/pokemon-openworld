@@ -1776,7 +1776,15 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_EUGENE"
+            }
+          ]
+        },
         "encounters": {
           "state": "enabled",
           "dependencies": [

@@ -16917,6 +16917,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 #endif /* // JOHTO IMPORT END: rival trainers */
 #if 1 /* CONTENT PORT BEGIN johto:selected trainer parties */
+=== TRAINER_SAILOR_EUGENE_JOHTO ===
+Name: EUGENE
+Class: Sailor
+Pic: Sailor
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_POLIWHIRL
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TAUROS
+Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_YOUNGSTER_SAMUEL_JOHTO ===
 Name: SAMUEL
 Class: Youngster

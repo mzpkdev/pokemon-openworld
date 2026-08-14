@@ -49,7 +49,12 @@ NON_PERSISTENT_CONFIG_BINDINGS = frozenset(
 # Live post-baseline trainer identities are owned by persistent_ids.json. The
 # save contract retains the colliding pre-ledger TRAINER_* spellings as frozen
 # tombstone evidence instead of silently rewriting that historical projection.
-LEDGER_ONLY_TRAINER_BINDINGS = frozenset(("TRAINER_YOUNGSTER_SAMUEL_JOHTO",))
+LEDGER_ONLY_TRAINER_BINDINGS = frozenset(
+    (
+        "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        "TRAINER_SAILOR_EUGENE_JOHTO",
+    )
+)
 ABI_PURPOSES = ("normal", "debug", "release", "test-runner", "headless-test")
 ROOT_TYPES = (
     "SaveBlock1",

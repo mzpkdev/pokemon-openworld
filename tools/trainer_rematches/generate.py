@@ -39,6 +39,7 @@ REVIEWED_ROWS_SHA256 = (
 NONE_BINDINGS = {
     "TRAINER_FRLG_RUIN_MANIAC_LAWSON": 1345,
     "TRAINER_YOUNGSTER_SAMUEL_JOHTO": 1481,
+    "TRAINER_SAILOR_EUGENE_JOHTO": 1482,
 }
 BEN = [858, 870, 0xFFFF, 1241, 1242, 0]
 CALVIN = [859, 859, 0, 0, 0, 0]
@@ -104,9 +105,7 @@ def validate_manifest(
 
     none_bindings = manifest["noneBindings"]
     if not isinstance(none_bindings, list) or none_bindings != list(NONE_BINDINGS):
-        raise RematchDataError(
-            "$.noneBindings: expected exact Lawson and Samuel NONE bindings"
-        )
+        raise RematchDataError("$.noneBindings: expected exact reviewed NONE bindings")
     for index, (symbol, expected) in enumerate(NONE_BINDINGS.items()):
         if values.get(symbol) != expected:
             raise RematchDataError(
