@@ -39,6 +39,116 @@ from tools.content_port.sources import resolve_port_sources
 ROOT = Path(__file__).resolve().parents[3]
 PORT = ROOT / "tools/content_port/ports/johto"
 
+LATE_JOHTO_LOCATION_COMPATIBILITY = {
+    "MAPSEC_BLACKTHORN_CITY": (
+        "MAPSEC_BLACKTHORN_CITY",
+        249,
+        "MAPSEC_ROUTE_44",
+    ),
+    "MAPSEC_ROUTE_45": ("MAPSEC_ROUTE_45", 249, "MAPSEC_ROUTE_44"),
+    "MAPSEC_ROUTE_46": ("MAPSEC_ROUTE_46", 210, "MAPSEC_ROUTE_29"),
+    "MAPSEC_ICE_PATH": ("MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"),
+    "MAPSEC_DRAGONS_DEN": ("MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"),
+    "MAPSEC_DARK_CAVE": ("MAPSEC_ROUTE_31", 215, "MAPSEC_ROUTE_31"),
+    "MAPSEC_ROUTE_26": ("MAPSEC_ROUTE_28", 212, "MAPSEC_ROUTE_28"),
+    "MAPSEC_ROUTE_27": ("MAPSEC_NEW_BARK_TOWN", 209, "MAPSEC_NEW_BARK_TOWN"),
+    "MAPSEC_TOHJO_FALLS": (
+        "MAPSEC_NEW_BARK_TOWN",
+        209,
+        "MAPSEC_NEW_BARK_TOWN",
+    ),
+}
+
+LATE_JOHTO_LOCATION_OWNERSHIP_HASHES = {
+    "MAPSEC_BLACKTHORN_CITY": (
+        "b22dfb624554d0ae0f20a6c474cb8a74af75919d148512e5f2509c5f3dded0f8",
+        "16ab70106cd693b054172c6b1a7eae0590b5493fc863dc79002de6c1db9d1be8",
+    ),
+    "MAPSEC_DARK_CAVE": (
+        "d607fceab94c6f58ee9e3657c3f878f28ccb55b1a698c0f86bf91d26b930494d",
+        "388f9481d1af877f27200810b9b62edc32437d6abb40f85fe7e64fcf53042fb0",
+    ),
+    "MAPSEC_DRAGONS_DEN": (
+        "c9083f38be148125a2ea8b1163bde456392702c0a7fb25560b3fdd266adea8bc",
+        "7c37ad4d521f00c6329fc547334095aa6016b3a22f943eb77f1bdba89d21d645",
+    ),
+    "MAPSEC_ICE_PATH": (
+        "6828dd19c3592ffee1028c1ad5023b1b4ddb92e9e55cb4926e06e4ebe5b5292b",
+        "7d8c726b29ac892a873a3d9f97fbfa9affc9d8e2b1c7c5a21bdc0a221c7d3151",
+    ),
+    "MAPSEC_ROUTE_26": (
+        "ce284cb09db820f736f9436b351d1e3bb3cf078f6982eb406fda5af50925885f",
+        "aa1260d784fca27f3de4a70f358c4f127cf6bc0b3e51e1277123f3f5b15b2d6d",
+    ),
+    "MAPSEC_ROUTE_27": (
+        "cfe39fcd79bbe29ca983a1eab56febc03cbb6873ce24e9922e12edbc388f603f",
+        "c11b0c74ff080df15e6da131cc1947cee066c5feea3016838fe8c62cc4c4efc1",
+    ),
+    "MAPSEC_ROUTE_45": (
+        "8c158d66d17120fcc07428fc2d8da5ba778b0d2eb7db4543f75d7c563d17144f",
+        "88beaaf4f9ba8eb46deb43e6da57fec45311054576572f356c673f13743105c7",
+    ),
+    "MAPSEC_ROUTE_46": (
+        "707f1e8b32fa62b9381c340bb10b68a90a135b59bd8961541a3617b257fb9eaa",
+        "f0f1aa1f66c93a2ed011c3ddb035e3c4aa8dd40359250362b1602d8c86bc8ced",
+    ),
+    "MAPSEC_TOHJO_FALLS": (
+        "6bacac6beba838982a9deeec051d047fade005356a0f1d6294e6b049557019dc",
+        "872dbea038bd926624a46d9855fa5232c3528e94d64338469295b4564e1130a6",
+    ),
+}
+
+PRE_CODEC_SAVED_LOCATIONS = {
+    "MAPSEC_BLACKTHORN_CITY": "MAPSEC_BLACKTHORN_CITY",
+    "MAPSEC_ROUTE_45": "MAPSEC_ROUTE_45",
+    "MAPSEC_ROUTE_46": "MAPSEC_ROUTE_46",
+    "MAPSEC_ICE_PATH": None,
+    "MAPSEC_DRAGONS_DEN": None,
+    "MAPSEC_DARK_CAVE": None,
+    "MAPSEC_ROUTE_26": None,
+    "MAPSEC_ROUTE_27": None,
+    "MAPSEC_TOHJO_FALLS": None,
+}
+
+
+def _with_pre_location_refresh_hashes(
+    manifest: OwnershipManifest,
+) -> OwnershipManifest:
+    return OwnershipManifest(
+        port=manifest.port,
+        units=tuple(
+            replace(
+                unit,
+                sha256=LATE_JOHTO_LOCATION_OWNERSHIP_HASHES[unit.key][0],
+            )
+            if (
+                unit.path == "src/data/region_map/region_map_sections.json"
+                and unit.registry == "map_sections"
+                and unit.key in LATE_JOHTO_LOCATION_OWNERSHIP_HASHES
+            )
+            else unit
+            for unit in manifest.units
+        ),
+        schema_version=manifest.schema_version,
+    )
+
+
+def _restore_pre_codec_location_records(root: Path) -> None:
+    path = root / "src/data/region_map/region_map_sections.json"
+    document = json.loads(path.read_text())
+    restored = set()
+    for record in document["map_sections"]:
+        section = record["id"]
+        if section not in PRE_CODEC_SAVED_LOCATIONS:
+            continue
+        record["saved_location"] = PRE_CODEC_SAVED_LOCATIONS[section]
+        record["met_location"] = None
+        record["met_location_display"] = None
+        restored.add(section)
+    if restored != set(PRE_CODEC_SAVED_LOCATIONS):
+        raise AssertionError("pre-codec fixture did not find every reviewed section")
+    path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+
 
 class MaterializeTests(unittest.TestCase):
     def descriptor(self):
@@ -149,77 +259,55 @@ class MaterializeTests(unittest.TestCase):
             "f2163b8059ef83d28fc87e422705125e8e7517e92cc90b2baf8e27ab5bdaf393",
         )
 
-    def test_clean_installed_baseline_has_exact_samuel_desired_delta(self) -> None:
+    def test_installed_baseline_and_location_refresh_have_exact_desired_delta(
+        self,
+    ) -> None:
         descriptor = self.descriptor()
         installed = OwnershipManifest.load(PORT / "ownership.json")
-        desired, payloads = derive_desired_state(descriptor, ROOT)
+        desired, _ = derive_desired_state(descriptor, ROOT)
+        pre_location_refresh = _with_pre_location_refresh_hashes(installed)
         desired_by_identity = desired.by_identity
-        selected_party = (
-            "section",
-            "src/data/trainers.party",
-            "selected trainer parties",
-        )
-        route34_delta = {
-            ("file", "data/maps/Route34/map.json"),
-            ("file", "data/maps/Route34/scripts.inc"),
-        }
-        route39_delta = {
+        location_delta = {
             (
                 "registry-record",
-                "src/data/wild_encounters.json",
-                "wild_encounter_groups.0.encounters",
-                label,
+                "src/data/region_map/region_map_sections.json",
+                "map_sections",
+                section,
             )
-            for label in ("gRoute39", "gRoute39_Night")
+            for section in LATE_JOHTO_LOCATION_OWNERSHIP_HASHES
         }
 
-        admitted = {selected_party, *route39_delta}
-
-        def assert_exact_manifest_delta(baseline: OwnershipManifest) -> None:
+        def manifest_delta(baseline: OwnershipManifest) -> set[tuple[str, ...]]:
             baseline_by_identity = baseline.by_identity
             self.assertEqual(
-                set(desired_by_identity) - set(baseline_by_identity),
-                admitted - set(baseline_by_identity),
+                set(desired_by_identity),
+                set(baseline_by_identity),
             )
-            self.assertEqual(
-                set(baseline_by_identity) - set(desired_by_identity), set()
-            )
-            self.assertEqual(
-                {
-                    identity
-                    for identity in baseline_by_identity.keys()
-                    & desired_by_identity.keys()
-                    if baseline_by_identity[identity].sha256
-                    != desired_by_identity[identity].sha256
-                },
-                set() if selected_party in baseline_by_identity else route34_delta,
-            )
+            return {
+                identity
+                for identity in baseline_by_identity
+                if baseline_by_identity[identity].sha256
+                != desired_by_identity[identity].sha256
+            }
 
-        assert_exact_manifest_delta(installed)
-        # Exercise the exact manifest state seen by detached post-reconcile
-        # validation even when this test starts from the pre-reconcile tree.
-        assert_exact_manifest_delta(desired)
+        self.assertEqual(manifest_delta(installed), set())
+        self.assertEqual(manifest_delta(pre_location_refresh), location_delta)
+        for identity in location_delta:
+            key = identity[-1]
+            self.assertEqual(
+                (
+                    pre_location_refresh.by_identity[identity].sha256,
+                    desired_by_identity[identity].sha256,
+                ),
+                LATE_JOHTO_LOCATION_OWNERSHIP_HASHES[key],
+            )
 
     def test_route39_encounters_are_authenticated_land_only_profiles(self) -> None:
         descriptor = self.descriptor()
         installed = OwnershipManifest.load(PORT / "ownership.json")
         desired, payloads = derive_desired_state(descriptor, ROOT)
+        pre_location_refresh = _with_pre_location_refresh_hashes(installed)
         installed_by_identity = installed.by_identity
-        samuel_reconciled = (
-            "section",
-            "src/data/trainers.party",
-            "selected trainer parties",
-        ) in installed_by_identity
-        route39_reconciled = all(
-            (
-                "registry-record",
-                "src/data/wild_encounters.json",
-                "wild_encounter_groups.0.encounters",
-                label,
-            )
-            in installed_by_identity
-            for label in ("gRoute39", "gRoute39_Night")
-        )
         _, state = resolve_port_sources(descriptor, ROOT)
         units = _encounter_units(descriptor, state)
         self.assertEqual(
@@ -377,6 +465,27 @@ class MaterializeTests(unittest.TestCase):
                 ),
             )
 
+        for section, compatibility in LATE_JOHTO_LOCATION_COMPATIBILITY.items():
+            identity = (
+                "registry-record",
+                "src/data/region_map/region_map_sections.json",
+                "map_sections",
+                section,
+            )
+            record = payloads[identity]
+            self.assertEqual(
+                (
+                    record["saved_location"],
+                    record["met_location"],
+                    record["met_location_display"],
+                ),
+                compatibility,
+            )
+            self.assertEqual(
+                installed_by_identity[identity].sha256,
+                LATE_JOHTO_LOCATION_OWNERSHIP_HASHES[section][1],
+            )
+
         for layout in (
             "LAYOUT_AZALEA_TOWN",
             "LAYOUT_NEW_BARK_TOWN",
@@ -398,38 +507,38 @@ class MaterializeTests(unittest.TestCase):
             )
 
         ownership_path = "tools/content_port/ports/johto/ownership.json"
-        owned_paths = {unit.path for unit in (*installed.units, *desired.units)}
+        owned_paths = {
+            unit.path for unit in (*pre_location_refresh.units, *desired.units)
+        }
         with tempfile.TemporaryDirectory() as directory:
             staged = Path(directory)
-            before: dict[str, bytes] = {}
             for relative in sorted(owned_paths | {ownership_path}):
                 source = ROOT / relative
                 target = staged / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, target)
-                before[relative] = source.read_bytes()
-            reconcile_owned(staged, installed, desired, payloads)
+            _restore_pre_codec_location_records(staged)
+            pre_location_refresh.write(staged / ownership_path)
+            before = {
+                relative: (staged / relative).read_bytes()
+                for relative in sorted(owned_paths | {ownership_path})
+            }
+            reconcile_owned(staged, pre_location_refresh, desired, payloads)
             desired.write(staged / ownership_path)
             changed_paths = {
                 relative
                 for relative, content in before.items()
                 if (staged / relative).read_bytes() != content
             }
-            expected_changed_paths = set()
-            if not samuel_reconciled:
-                expected_changed_paths.update(
-                    {
-                        "data/maps/Route34/map.json",
-                        "data/maps/Route34/scripts.inc",
-                        "src/data/trainers.party",
-                        ownership_path,
-                    }
-                )
-            if not route39_reconciled:
-                expected_changed_paths.update(
-                    {"src/data/wild_encounters.json", ownership_path}
-                )
+            expected_changed_paths = {
+                "src/data/region_map/region_map_sections.json",
+                ownership_path,
+            }
             self.assertEqual(changed_paths, expected_changed_paths)
+            self.assertEqual(
+                (staged / "src/data/wild_encounters.json").read_bytes(),
+                before["src/data/wild_encounters.json"],
+            )
             self.assertEqual(
                 (staged / "include/constants/opponents.h").read_bytes(),
                 before["include/constants/opponents.h"],

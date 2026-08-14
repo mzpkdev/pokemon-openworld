@@ -661,6 +661,13 @@ class LifecycleRecorder:
             maxima = sample["primaryMax"], sample["secondaryMax"]
             if sample["callback2"] == overworld_callback:
                 field_index = index
+                if (
+                    callbacks == expected_callbacks
+                    and maxima == expected_max
+                    and sample["primary"] == 0
+                    and sample["secondary"] == 0
+                ):
+                    reset_index = index
                 break
             if (
                 sample["callback2"] == reset_callback_value

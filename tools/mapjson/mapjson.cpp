@@ -1385,6 +1385,14 @@ struct MapSectionRegistry
     vector<int> metToSection;
 };
 
+struct ReviewedMapSectionAlias
+{
+    string id;
+    string savedLocation;
+    int metLocation;
+    string metLocationDisplay;
+};
+
 static MapSectionRegistry validate_map_section_registry(
     const string &registryPath = "src/data/region_map/region_map_sections.json",
     const string &compatibilityPath = "src/data/region_map/map_section_compatibility.json")
@@ -1431,13 +1439,31 @@ static MapSectionRegistry validate_map_section_registry(
                           && reviewedCodecs["exact"]["last"].type() == Json::Type::NUMBER
                           && reviewedExactFirst == 0 && reviewedExactLast == 251,
                              "reviewed exact map-section codec range changed");
-    require_product_registry(!reviewedAliases.empty()
-                          && json_to_string(reviewedAliases[0], "id") == "MAPSEC_JOHTO_VICTORY_ROAD"
-                          && json_to_string(reviewedAliases[0], "saved_location") == "MAPSEC_VICTORY_ROAD"
-                          && reviewedAliases[0]["met_location"].type() == Json::Type::NUMBER
-                          && reviewedAliases[0]["met_location"].int_value() == 70
-                          && json_to_string(reviewedAliases[0], "met_location_display") == "MAPSEC_VICTORY_ROAD",
+    const vector<ReviewedMapSectionAlias> expectedAliases = {
+        {"MAPSEC_JOHTO_VICTORY_ROAD", "MAPSEC_VICTORY_ROAD", 70, "MAPSEC_VICTORY_ROAD"},
+        {"MAPSEC_BLACKTHORN_CITY", "MAPSEC_BLACKTHORN_CITY", 249, "MAPSEC_ROUTE_44"},
+        {"MAPSEC_ROUTE_45", "MAPSEC_ROUTE_45", 249, "MAPSEC_ROUTE_44"},
+        {"MAPSEC_ROUTE_46", "MAPSEC_ROUTE_46", 210, "MAPSEC_ROUTE_29"},
+        {"MAPSEC_ICE_PATH", "MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"},
+        {"MAPSEC_DRAGONS_DEN", "MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"},
+        {"MAPSEC_DARK_CAVE", "MAPSEC_ROUTE_31", 215, "MAPSEC_ROUTE_31"},
+        {"MAPSEC_ROUTE_26", "MAPSEC_ROUTE_28", 212, "MAPSEC_ROUTE_28"},
+        {"MAPSEC_ROUTE_27", "MAPSEC_NEW_BARK_TOWN", 209, "MAPSEC_NEW_BARK_TOWN"},
+        {"MAPSEC_TOHJO_FALLS", "MAPSEC_NEW_BARK_TOWN", 209, "MAPSEC_NEW_BARK_TOWN"},
+    };
+    require_product_registry(reviewedAliases.size() == expectedAliases.size(),
                              "reviewed map-section aliases changed");
+    for (size_t i = 0; i < expectedAliases.size(); i++)
+    {
+        const ReviewedMapSectionAlias &expected = expectedAliases[i];
+        const Json &actual = reviewedAliases[i];
+        require_product_registry(json_to_string(actual, "id") == expected.id
+                              && json_to_string(actual, "saved_location") == expected.savedLocation
+                              && actual["met_location"].type() == Json::Type::NUMBER
+                              && actual["met_location"].int_value() == expected.metLocation
+                              && json_to_string(actual, "met_location_display") == expected.metLocationDisplay,
+                                 "reviewed map-section aliases changed at index " + std::to_string(i));
+    }
 
     set<string> ids;
     set<int> values;
@@ -1531,9 +1557,13 @@ static MapSectionRegistry validate_map_section_registry(
         }
     }
 
-    set<string> reviewedAliasIds;
+    map<string, Json> reviewedAliasesById;
     for (const Json &alias : reviewedAliases)
-        reviewedAliasIds.insert(json_to_string(alias, "id"));
+    {
+        const string id = json_to_string(alias, "id");
+        require_product_registry(reviewedAliasesById.emplace(id, alias).second,
+                                 "duplicate reviewed map-section alias '" + id + "'");
+    }
     for (const Json &section : sections)
     {
         const string id = json_to_string(section, "id");
@@ -1543,14 +1573,29 @@ static MapSectionRegistry validate_map_section_registry(
         const bool hasSavedAlias = !savedValue.is_null() && json_to_string(section, "saved_location") != id;
         const bool hasMetAlias = !metValue.is_null()
             && (metValue.int_value() != value || json_to_string(section, "met_location_display") != id);
-        const bool reviewedAlias = reviewedAliasIds.count(id);
+        const auto reviewedAliasIt = reviewedAliasesById.find(id);
+        const bool reviewedAlias = reviewedAliasIt != reviewedAliasesById.end();
 
         require_product_registry(!hasSavedAlias || reviewedAlias,
                                  "map section '" + id + "' uses an unreviewed saved-location fallback");
         require_product_registry(!hasMetAlias || reviewedAlias,
                                  "map section '" + id + "' uses an unreviewed met-location fallback");
-        require_product_registry(!reviewedAlias || (hasSavedAlias && hasMetAlias),
+        require_product_registry(!reviewedAlias || (!savedValue.is_null()
+                                                  && !metValue.is_null()
+                                                  && (hasSavedAlias || hasMetAlias)),
                                  "reviewed alias '" + id + "' has an incomplete persistence codec");
+        if (reviewedAlias)
+        {
+            const Json &reviewed = reviewedAliasIt->second;
+            require_product_registry(json_to_string(section, "saved_location")
+                                      == json_to_string(reviewed, "saved_location")
+                                  && metValue.type() == Json::Type::NUMBER
+                                  && metValue.int_value() == reviewed["met_location"].int_value()
+                                  && json_to_string(section, "met_location_display")
+                                      == json_to_string(reviewed, "met_location_display"),
+                                     "reviewed alias '" + id
+                                         + "' does not match its reviewed persistence codec");
+        }
         if (value >= reviewedExactFirst && value <= reviewedExactLast)
         {
             require_product_registry(!savedValue.is_null() && json_to_string(section, "saved_location") == id
@@ -1564,14 +1609,16 @@ static MapSectionRegistry validate_map_section_registry(
             const string savedTarget = json_to_string(section, "saved_location");
             const string metTarget = json_to_string(section, "met_location_display");
             const int savedCode = valuesById.at(savedTarget);
+            const int metTargetValue = valuesById.at(metTarget);
             const int metCode = metValue.int_value();
-            require_product_registry(savedTarget == metTarget && savedCode == metCode,
-                                     "reviewed alias '" + id + "' has inconsistent canonical targets");
             require_product_registry(sectionToSaved.at(savedCode) == savedCode
-                                  && sectionToMet.at(savedCode) == savedCode
-                                  && savedToSection.at(savedCode) == savedCode
-                                  && metToSection.at(metCode) == savedCode,
-                                     "reviewed alias '" + id + "' lacks a canonical reverse owner");
+                                  && savedToSection.at(savedCode) == savedCode,
+                                     "reviewed alias '" + id
+                                         + "' lacks a canonical saved-location reverse owner");
+            require_product_registry(sectionToMet.at(metTargetValue) == metCode
+                                  && metToSection.at(metCode) == metTargetValue,
+                                     "reviewed alias '" + id
+                                         + "' lacks a canonical met-location reverse owner");
         }
     }
 
@@ -1583,7 +1630,7 @@ static MapSectionRegistry validate_map_section_registry(
                                      + "' has an incomplete persistence codec");
         require_product_registry((sectionToSaved.at(value) == value
                                && sectionToMet.at(value) == value)
-                              || reviewedAliasIds.count(id),
+                              || reviewedAliasesById.count(id),
                                  "persistent consumer section '" + id
                                      + "' lacks an exact or reviewed persistence codec");
     }

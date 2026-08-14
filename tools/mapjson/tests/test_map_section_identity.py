@@ -11,6 +11,19 @@ ROOT = Path(__file__).resolve().parents[3]
 MAPJSON = ROOT / "tools" / "mapjson" / "mapjson"
 REGISTRY = ROOT / "src" / "data" / "region_map" / "region_map_sections.json"
 COMPATIBILITY = ROOT / "src" / "data" / "region_map" / "map_section_compatibility.json"
+PERSISTENT_IDS = ROOT / "src" / "data" / "persistence" / "persistent_ids.json"
+REVIEWED_ALIASES = (
+    ("MAPSEC_JOHTO_VICTORY_ROAD", "MAPSEC_VICTORY_ROAD", 70, "MAPSEC_VICTORY_ROAD"),
+    ("MAPSEC_BLACKTHORN_CITY", "MAPSEC_BLACKTHORN_CITY", 249, "MAPSEC_ROUTE_44"),
+    ("MAPSEC_ROUTE_45", "MAPSEC_ROUTE_45", 249, "MAPSEC_ROUTE_44"),
+    ("MAPSEC_ROUTE_46", "MAPSEC_ROUTE_46", 210, "MAPSEC_ROUTE_29"),
+    ("MAPSEC_ICE_PATH", "MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"),
+    ("MAPSEC_DRAGONS_DEN", "MAPSEC_ROUTE_44", 249, "MAPSEC_ROUTE_44"),
+    ("MAPSEC_DARK_CAVE", "MAPSEC_ROUTE_31", 215, "MAPSEC_ROUTE_31"),
+    ("MAPSEC_ROUTE_26", "MAPSEC_ROUTE_28", 212, "MAPSEC_ROUTE_28"),
+    ("MAPSEC_ROUTE_27", "MAPSEC_NEW_BARK_TOWN", 209, "MAPSEC_NEW_BARK_TOWN"),
+    ("MAPSEC_TOHJO_FALLS", "MAPSEC_NEW_BARK_TOWN", 209, "MAPSEC_NEW_BARK_TOWN"),
+)
 
 
 class MapSectionIdentityTests(unittest.TestCase):
@@ -58,17 +71,49 @@ class MapSectionIdentityTests(unittest.TestCase):
             self.assertEqual(section["met_location"], value)
             self.assertEqual(section["met_location_display"], section["id"])
 
-        alias = self.registry["map_sections"][264]
-        self.assertEqual(alias["saved_location"], "MAPSEC_VICTORY_ROAD")
-        self.assertEqual(alias["met_location"], 70)
-        self.assertEqual(alias["met_location_display"], "MAPSEC_VICTORY_ROAD")
+        sections = {section["id"]: section for section in self.registry["map_sections"]}
+        self.assertEqual(
+            self.compatibility["reviewed_codecs"]["aliases"],
+            [
+                {
+                    "id": section_id,
+                    "saved_location": saved_target,
+                    "met_location": compact_code,
+                    "met_location_display": met_target,
+                }
+                for section_id, saved_target, compact_code, met_target in REVIEWED_ALIASES
+            ],
+        )
+        for section_id, saved_target, compact_code, met_target in REVIEWED_ALIASES:
+            with self.subTest(section_id=section_id):
+                alias = sections[section_id]
+                self.assertEqual(alias["saved_location"], saved_target)
+                self.assertEqual(alias["met_location"], compact_code)
+                self.assertEqual(alias["met_location_display"], met_target)
+
+        for value in (252, 253, 254):
+            with self.subTest(saved_reverse_owner=value):
+                section = self.registry["map_sections"][value]
+                self.assertEqual(section["saved_location"], section["id"])
+
+        ledger = json.loads(PERSISTENT_IDS.read_text(encoding="utf-8"))
+        saved_bindings = {
+            record["code"]: (record["section"], record["sectionValue"])
+            for record in ledger["locationCodecs"]["saved"]
+        }
+        self.assertEqual(
+            {code: saved_bindings[code] for code in (252, 253, 254)},
+            {
+                252: ("MAPSEC_BLACKTHORN_CITY", 252),
+                253: ("MAPSEC_ROUTE_45", 253),
+                254: ("MAPSEC_ROUTE_46", 254),
+            },
+        )
 
     def test_disabled_wide_section_codecs_are_emitted_as_invalid(self) -> None:
         result = self.validate()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIsNone(self.registry["map_sections"][0xFC]["met_location"])
-        self.assertIsNone(self.registry["map_sections"][0xFF]["saved_location"])
-        for value in (*range(255, 264), 265, 266):
+        for value in (258, 259, 260, 265, 266):
             with self.subTest(value=value):
                 section = self.registry["map_sections"][value]
                 self.assertIsNone(section["saved_location"])
@@ -171,20 +216,46 @@ class MapSectionIdentityTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(registry["map_sections"][value]["id"], result.stderr)
 
-    def test_reviewed_alias_is_frozen_and_has_one_canonical_reverse_owner(self) -> None:
-        mutations = (
-            ("saved_location", None),
-            ("saved_location", "MAPSEC_LITTLEROOT_TOWN"),
-            ("met_location", 0),
-            ("met_location_display", "MAPSEC_LITTLEROOT_TOWN"),
-        )
-        for field, replacement in mutations:
-            with self.subTest(field=field):
-                registry = self.mutated_registry()
-                registry["map_sections"][264][field] = replacement
-                result = self.validate(registry)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("MAPSEC_JOHTO_VICTORY_ROAD", result.stderr)
+    def test_reviewed_aliases_are_frozen_and_have_canonical_reverse_owners(
+        self,
+    ) -> None:
+        mutations = {
+            "saved_location": "MAPSEC_LITTLEROOT_TOWN",
+            "met_location": 0,
+            "met_location_display": "MAPSEC_LITTLEROOT_TOWN",
+        }
+        section_indexes = {
+            section["id"]: index
+            for index, section in enumerate(self.registry["map_sections"])
+        }
+        for section_id, _, _, _ in REVIEWED_ALIASES:
+            for field, replacement in mutations.items():
+                with self.subTest(section_id=section_id, field=field):
+                    registry = self.mutated_registry()
+                    registry["map_sections"][section_indexes[section_id]][field] = (
+                        replacement
+                    )
+                    result = self.validate(registry)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(section_id, result.stderr)
+
+    def test_reviewed_alias_manifest_fields_are_frozen(self) -> None:
+        mutations = {
+            "id": "MAPSEC_LITTLEROOT_TOWN",
+            "saved_location": "MAPSEC_LITTLEROOT_TOWN",
+            "met_location": 0,
+            "met_location_display": "MAPSEC_LITTLEROOT_TOWN",
+        }
+        for index, (section_id, _, _, _) in enumerate(REVIEWED_ALIASES):
+            for field, replacement in mutations.items():
+                with self.subTest(section_id=section_id, field=field):
+                    compatibility = copy.deepcopy(self.compatibility)
+                    compatibility["reviewed_codecs"]["aliases"][index][field] = (
+                        replacement
+                    )
+                    result = self.validate(compatibility=compatibility)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("reviewed map-section aliases changed", result.stderr)
 
     def test_real_consumer_reference_to_incomplete_shell_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -231,12 +302,6 @@ class MapSectionIdentityTests(unittest.TestCase):
                 result = self.validate(compatibility=compatibility)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("reviewed exact", result.stderr)
-
-        compatibility = copy.deepcopy(self.compatibility)
-        compatibility["reviewed_codecs"]["aliases"][0]["met_location"] = 69
-        result = self.validate(compatibility=compatibility)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("reviewed map-section aliases changed", result.stderr)
 
     def test_reserved_met_origins_are_frozen(self) -> None:
         compatibility = copy.deepcopy(self.compatibility)

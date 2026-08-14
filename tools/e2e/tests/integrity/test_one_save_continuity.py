@@ -789,8 +789,11 @@ def _choose_eugene_move(game, strategy: dict[str, int]) -> None:
     elif species == SPECIES_TREECKO and opponent_species == SPECIES_TAUROS:
         move_index = 0  # Mega Drain preserves Treecko while damaging Tauros.
     elif species == SPECIES_TORCHIC and opponent_species == SPECIES_TAUROS:
-        move_index = 2  # Sand Attack protects the remaining reviewed starters.
-        strategy["tauros_sand_attacks"] += 1
+        if strategy["tauros_sand_attacks"] < 2:
+            move_index = 2  # Two Sand Attacks protect the reviewed party.
+            strategy["tauros_sand_attacks"] += 1
+        else:
+            move_index = 3  # Aerial Ace cannot miss and advances the battle.
     elif species == SPECIES_MUDKIP and opponent_species == SPECIES_TAUROS:
         move_index = 3  # Water Pulse.
     elif species == SPECIES_TORCHIC:
