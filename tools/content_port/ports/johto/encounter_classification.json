@@ -256,7 +256,7 @@
     {
       "map": "NationalPark_BugContest",
       "kind": "special",
-      "owner": "Bug-Catching Contest"
+      "owner": "bug-catching-contest-reservation"
     },
     {
       "map": "Gate_GoldenrodCity_Route35",
@@ -489,7 +489,7 @@
     {
       "map": "TinTower_RoofDay",
       "kind": "special",
-      "owner": "static legendary encounters"
+      "owner": "static-legendary-reservation"
     },
     {
       "map": "OlivineCity",
@@ -574,7 +574,7 @@
     {
       "map": "WhirlIslands_LugiaChamber",
       "kind": "special",
-      "owner": "static legendary encounters"
+      "owner": "static-legendary-reservation"
     },
     {
       "map": "CianwoodCity",
@@ -623,7 +623,7 @@
     {
       "map": "EmbeddedTower",
       "kind": "special",
-      "owner": "static legendary encounters"
+      "owner": "static-legendary-reservation"
     },
     {
       "map": "Mahoganytown",
@@ -768,7 +768,7 @@
     {
       "map": "DragonsDen_Shrine",
       "kind": "special",
-      "owner": "gift encounter"
+      "owner": "gift-encounter-reservation"
     },
     {
       "map": "DarkCave_NorthSide",
@@ -781,67 +781,67 @@
     {
       "map": "SafariZoneGate",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZoneGate_PokemonCenter",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZoneGate_SafariZoneEntrance",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZoneIndoor",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Enterance",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Low_Left",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Low_Mid",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Low_Right",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Top_Mid",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone_Top_Right",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone1",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone2",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "SafariZone3",
       "kind": "special",
-      "owner": "Safari system"
+      "owner": "safari-reservation"
     },
     {
       "map": "MtSilver_Outside",

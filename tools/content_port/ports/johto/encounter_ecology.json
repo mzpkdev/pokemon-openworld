@@ -11,7 +11,7 @@
   "records": [
     {
       "map": "NewBarkTown",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_NEW_BARK_TOWN",
@@ -651,7 +651,7 @@
     },
     {
       "map": "Route29",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE29",
@@ -935,7 +935,7 @@
     },
     {
       "map": "CherrygroveCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_CHERRYGROVE_CITY",
@@ -1486,7 +1486,7 @@
     },
     {
       "map": "Route28",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE28",
@@ -2126,7 +2126,7 @@
     },
     {
       "map": "Route30",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE30",
@@ -2700,7 +2700,7 @@
     },
     {
       "map": "Route31",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE31",
@@ -3238,7 +3238,7 @@
     },
     {
       "map": "Route32",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE32",
@@ -3776,7 +3776,7 @@
     },
     {
       "map": "VioletCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_VIOLET_CITY",
@@ -4416,7 +4416,7 @@
     },
     {
       "map": "RuinsOfAlph_Outside",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_RUINS_OF_ALPH_OUTSIDE",
@@ -4913,7 +4913,7 @@
     },
     {
       "map": "SproutTower_2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_SPROUT_TOWER_2F",
@@ -5115,7 +5115,7 @@
     },
     {
       "map": "SproutTower_3F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_SPROUT_TOWER_3F",
@@ -5317,7 +5317,7 @@
     },
     {
       "map": "RuinsOfAlph_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_RUINS_OF_ALPH_B1F",
@@ -5421,7 +5421,7 @@
     },
     {
       "map": "AzaleaTown",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_AZALEA_TOWN",
@@ -5479,7 +5479,7 @@
     },
     {
       "map": "Route33",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE33",
@@ -5763,7 +5763,7 @@
     },
     {
       "map": "Route34",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE34",
@@ -6301,7 +6301,7 @@
     },
     {
       "map": "IlexForest",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ILEX_FOREST",
@@ -6839,7 +6839,7 @@
     },
     {
       "map": "UnionCave_1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_UNION_CAVE_1F",
@@ -7070,7 +7070,7 @@
     },
     {
       "map": "UnionCave_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_UNION_CAVE_B1F",
@@ -7301,7 +7301,7 @@
     },
     {
       "map": "UnionCave_B2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_UNION_CAVE_B2F",
@@ -7532,7 +7532,7 @@
     },
     {
       "map": "SlowpokeWell_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_SLOWPOKE_WELL_B1F",
@@ -7763,7 +7763,7 @@
     },
     {
       "map": "SlowpokeWell_B2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_SLOWPOKE_WELL_B2F",
@@ -7994,7 +7994,7 @@
     },
     {
       "map": "GoldenrodCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_GOLDENROD_CITY",
@@ -8052,7 +8052,7 @@
     },
     {
       "map": "Route35",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE35",
@@ -8590,7 +8590,7 @@
     },
     {
       "map": "Route36",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE36",
@@ -8874,7 +8874,7 @@
     },
     {
       "map": "Route37",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE37",
@@ -9158,7 +9158,7 @@
     },
     {
       "map": "NationalPark_Normal",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_NATIONAL_PARK_NORMAL",
@@ -9360,7 +9360,7 @@
     },
     {
       "map": "EcruteakCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ECRUTEAK_CITY",
@@ -9911,7 +9911,7 @@
     },
     {
       "map": "Route38",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE38",
@@ -10195,7 +10195,7 @@
     },
     {
       "map": "Route39",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE39",
@@ -10482,7 +10482,7 @@
     },
     {
       "map": "BurnedTower_1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_BURNED_TOWER_1F",
@@ -10684,7 +10684,7 @@
     },
     {
       "map": "BurnedTower_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_BURNED_TOWER_B1F",
@@ -10886,7 +10886,7 @@
     },
     {
       "map": "TinTower_3F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_3F",
@@ -10990,7 +10990,7 @@
     },
     {
       "map": "TinTower_4F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_4F",
@@ -11094,7 +11094,7 @@
     },
     {
       "map": "TinTower_5F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_5F",
@@ -11198,7 +11198,7 @@
     },
     {
       "map": "TinTower_6F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_6F",
@@ -11302,7 +11302,7 @@
     },
     {
       "map": "TinTower_7F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_7F",
@@ -11406,7 +11406,7 @@
     },
     {
       "map": "TinTower_8F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_8F",
@@ -11510,7 +11510,7 @@
     },
     {
       "map": "TinTower_9F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TIN_TOWER_9F",
@@ -11614,7 +11614,7 @@
     },
     {
       "map": "OlivineCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_OLIVINE_CITY",
@@ -12254,7 +12254,7 @@
     },
     {
       "map": "Route40",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE40",
@@ -12395,7 +12395,7 @@
     },
     {
       "map": "Route41",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE41",
@@ -12536,7 +12536,7 @@
     },
     {
       "map": "OlivineCity_PortOutside",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_OLIVINE_CITY_PORT_OUTSIDE",
@@ -13094,7 +13094,7 @@
     },
     {
       "map": "WhirlIslands_1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_1F",
@@ -13550,7 +13550,7 @@
     },
     {
       "map": "WhirlIslands_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_B1F",
@@ -14006,7 +14006,7 @@
     },
     {
       "map": "WhirlIslands_B1F_Inner",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_B1F_INNER",
@@ -14110,7 +14110,7 @@
     },
     {
       "map": "WhirlIslands_B2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_B2F",
@@ -14566,7 +14566,7 @@
     },
     {
       "map": "WhirlIslands_B3F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_B3F",
@@ -14797,7 +14797,7 @@
     },
     {
       "map": "WhirlIslands_Descent",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_WHIRL_ISLANDS_DESCENT",
@@ -15028,7 +15028,7 @@
     },
     {
       "map": "CianwoodCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_CIANWOOD_CITY",
@@ -15538,7 +15538,7 @@
     },
     {
       "map": "Route47",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE47",
@@ -15810,7 +15810,7 @@
     },
     {
       "map": "Route48",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE48",
@@ -15955,7 +15955,7 @@
     },
     {
       "map": "CliffEdgeCave",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_CLIFF_EDGE_CAVE",
@@ -16100,7 +16100,7 @@
     },
     {
       "map": "CliffEdgeGate",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_CLIFF_EDGE_GATE",
@@ -16155,7 +16155,7 @@
     },
     {
       "map": "Mahoganytown",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MAHOGANYTOWN",
@@ -16213,7 +16213,7 @@
     },
     {
       "map": "Route42",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE42",
@@ -16751,7 +16751,7 @@
     },
     {
       "map": "Route43",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE43",
@@ -17289,7 +17289,7 @@
     },
     {
       "map": "Route44",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE44",
@@ -17827,7 +17827,7 @@
     },
     {
       "map": "LakeOfRage",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_LAKE_OF_RAGE",
@@ -18068,7 +18068,7 @@
     },
     {
       "map": "MtMortar_1F_North",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_MORTAR_1F_NORTH",
@@ -18524,7 +18524,7 @@
     },
     {
       "map": "MtMortar_1F_South",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_MORTAR_1F_SOUTH",
@@ -18980,7 +18980,7 @@
     },
     {
       "map": "MtMortar_2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_MORTAR_2F",
@@ -19436,7 +19436,7 @@
     },
     {
       "map": "MtMortar_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_MORTAR_B1F",
@@ -19892,7 +19892,7 @@
     },
     {
       "map": "BlackthornCity",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_BLACKTHORN_CITY",
@@ -20532,7 +20532,7 @@
     },
     {
       "map": "Route45",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE45",
@@ -20856,7 +20856,7 @@
     },
     {
       "map": "Route46",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE46",
@@ -21140,7 +21140,7 @@
     },
     {
       "map": "IcePath_1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ICE_PATH_1F",
@@ -21342,7 +21342,7 @@
     },
     {
       "map": "IcePath_B1F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ICE_PATH_B1F",
@@ -21544,7 +21544,7 @@
     },
     {
       "map": "IcePath_B2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ICE_PATH_B2F",
@@ -21746,7 +21746,7 @@
     },
     {
       "map": "IcePath_B3F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ICE_PATH_B3F",
@@ -21948,7 +21948,7 @@
     },
     {
       "map": "IcePath_B4F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ICE_PATH_B4F",
@@ -22150,7 +22150,7 @@
     },
     {
       "map": "DragonsDen_Cavern",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_DRAGONS_DEN_CAVERN",
@@ -22426,7 +22426,7 @@
     },
     {
       "map": "DarkCave_NorthSide",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_DARK_CAVE_NORTH_SIDE",
@@ -22882,7 +22882,7 @@
     },
     {
       "map": "DarkCave_SouthSide",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_DARK_CAVE_SOUTH_SIDE",
@@ -23113,7 +23113,7 @@
     },
     {
       "map": "MtSilver_Outside",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_OUTSIDE",
@@ -23651,7 +23651,7 @@
     },
     {
       "map": "MtSilver_1F_WaterfallRoom",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_1F_WATERFALL_ROOM",
@@ -24107,7 +24107,7 @@
     },
     {
       "map": "MtSilver_1F_MoltresRoom",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_1F_MOLTRES_ROOM",
@@ -24563,7 +24563,7 @@
     },
     {
       "map": "MtSilver_1F_ItemRoom",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_1F_ITEM_ROOM",
@@ -25023,7 +25023,7 @@
     },
     {
       "map": "MtSilver_2F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_2F",
@@ -25254,7 +25254,7 @@
     },
     {
       "map": "MtSilver_3F",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_3F",
@@ -25358,7 +25358,7 @@
     },
     {
       "map": "MtSilver_MountainSide",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_MOUNTAIN_SIDE",
@@ -25772,12 +25772,12 @@
     },
     {
       "map": "MtSilver_Snow",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_MT_SILVER_SNOW",
           "label": "gMtSilver_SnowUnused",
-          "condition": "unused-day",
+          "condition": "legacy-day",
           "provenanceSlice": "supplemental-mixed-tail",
           "methods": [
             {
@@ -25875,7 +25875,7 @@
         {
           "sourceMap": "MAP_MT_SILVER_SNOW",
           "label": "gMtSilver_SnowUnused_Night",
-          "condition": "unused-night",
+          "condition": "legacy-night",
           "provenanceSlice": "supplemental-mixed-tail",
           "methods": [
             {
@@ -25973,7 +25973,7 @@
         {
           "sourceMap": "MAP_MT_SILVER_SNOW",
           "label": "gMtSilver_Snow",
-          "condition": "snow-day",
+          "condition": "modern-day",
           "provenanceSlice": "supplemental-mixed-tail",
           "methods": [
             {
@@ -26071,7 +26071,7 @@
         {
           "sourceMap": "MAP_MT_SILVER_SNOW",
           "label": "gMtSilver_SnowNight",
-          "condition": "snow-night",
+          "condition": "modern-night",
           "provenanceSlice": "supplemental-mixed-tail",
           "methods": [
             {
@@ -26168,12 +26168,12 @@
         }
       ],
       "reviewNotes": [
-        "Four donor profiles are preserved as explicit unused-day, unused-night, snow-day, and snow-night variants; no variant is selected or normalized here."
+        "Four donor profiles preserve the HnS runtime order: legacy day, legacy night, modern day, and modern night. This inventory does not select or normalize a variant."
       ]
     },
     {
       "map": "Route26",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE26",
@@ -26679,7 +26679,7 @@
     },
     {
       "map": "Route27",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_ROUTE27",
@@ -27220,7 +27220,7 @@
     },
     {
       "map": "TohjoFalls_Cavern",
-      "status": "reviewed",
+      "status": "inventoried",
       "profiles": [
         {
           "sourceMap": "MAP_TOHJO_FALLS_CAVERN",

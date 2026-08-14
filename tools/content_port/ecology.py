@@ -1,4 +1,4 @@
-"""Schema-neutral contracts for reviewed Johto encounter ecology."""
+"""Schema-neutral contracts for inventoried Johto encounter ecology."""
 
 from __future__ import annotations
 
@@ -32,6 +32,17 @@ SLOT_KEYS = frozenset(
     }
 )
 PROVENANCE_SLICES = frozenset({"primary-johto-block", "supplemental-mixed-tail"})
+SUPPORTED_SOURCE_METHODS = frozenset(
+    {"land_mons", "water_mons", "rock_smash_mons", "fishing_mons"}
+)
+PRIMARY_HNS_ENCOUNTER_START = 339
+PRIMARY_HNS_ENCOUNTER_END = 441
+MT_SILVER_SNOW_CONDITIONS = {
+    "gMtSilver_SnowUnused": "legacy-day",
+    "gMtSilver_SnowUnused_Night": "legacy-night",
+    "gMtSilver_Snow": "modern-day",
+    "gMtSilver_SnowNight": "modern-night",
+}
 
 
 def _mapping(value: object, pointer: str) -> Mapping[str, Any]:
@@ -85,7 +96,10 @@ def _canonical_names(values: Iterable[str], pointer: str) -> tuple[str, ...]:
 
 
 def validate_classification_document(
-    document: object, canonical_maps: Iterable[str]
+    document: object,
+    canonical_maps: Iterable[str],
+    *,
+    expected_special_owners: Mapping[str, str] | None = None,
 ) -> None:
     """Validate the exhaustive classification in canonical resident-map order."""
 
@@ -129,6 +143,17 @@ def validate_classification_document(
         if extra:
             raise ContentPortError(f"$.maps: unknown canonical map {extra[0]!r}")
         raise ContentPortError("$.maps: classifications must use canonical map order")
+
+    if expected_special_owners is not None:
+        actual_special_owners = {
+            row["map"]: row["owner"]
+            for row in rows
+            if isinstance(row, dict) and row.get("kind") == "special"
+        }
+        if actual_special_owners != dict(expected_special_owners):
+            raise ContentPortError(
+                "$.maps: special reservations do not match the ownership contract"
+            )
 
 
 def stable_digest(value: object) -> str:
@@ -176,17 +201,22 @@ def normalize_donor_profile(
     encounter: object,
     field_definitions: Iterable[object],
     *,
-    condition: str,
-    provenance_slice: str,
+    source_index: int,
 ) -> dict[str, object]:
     """Convert one authenticated donor encounter without dropping source slots."""
 
     raw = _mapping(encounter, "donor.encounter")
     source_map = _string(raw.get("map"), "donor.encounter.map")
     label = _string(raw.get("base_label"), "donor.encounter.base_label")
-    condition = _string(condition, "condition")
-    provenance_slice = _string(provenance_slice, "provenanceSlice")
+    source_index = _integer(source_index, "sourceIndex", minimum=0)
+    condition = donor_profile_condition(label)
+    provenance_slice = donor_provenance_slice(source_index)
     fields = _donor_field_index(field_definitions)
+    unknown = sorted(set(raw) - {"map", "base_label", *fields})
+    if unknown:
+        raise ContentPortError(
+            f"donor.encounter: unknown encounter field {unknown[0]!r}"
+        )
     methods: list[dict[str, object]] = []
     for method_name, field in fields.items():
         if method_name not in raw:
@@ -254,6 +284,24 @@ def normalize_donor_profile(
     }
 
 
+def donor_profile_condition(label: str) -> str:
+    """Derive the source condition from an HnS profile label."""
+
+    label = _string(label, "donor.encounter.base_label")
+    if label in MT_SILVER_SNOW_CONDITIONS:
+        return MT_SILVER_SNOW_CONDITIONS[label]
+    return "night" if label.endswith("_Night") else "day"
+
+
+def donor_provenance_slice(source_index: int) -> str:
+    """Derive the reconciled 59-map/25-map source slice from donor order."""
+
+    source_index = _integer(source_index, "sourceIndex", minimum=0)
+    if PRIMARY_HNS_ENCOUNTER_START <= source_index <= PRIMARY_HNS_ENCOUNTER_END:
+        return "primary-johto-block"
+    return "supplemental-mixed-tail"
+
+
 def build_authenticated_profile_lookup(
     profiles: Iterable[Mapping[str, object]],
 ) -> dict[tuple[str, str, str], Mapping[str, object]]:
@@ -277,22 +325,6 @@ def donor_profile_matches(
     """Compare the complete normalized values, preserving order and multiplicity."""
 
     return authored == authenticated
-
-
-def source_method_is_runtime_eligible(method: Mapping[str, object]) -> bool:
-    """Identify observations that still need ecology review before runtime use."""
-
-    if method.get("encounterRate") == 0:
-        return False
-    slots = method.get("slots")
-    if not isinstance(slots, list) or not slots:
-        return False
-    return all(
-        isinstance(slot, dict)
-        and slot.get("weight") is not None
-        and slot.get("species") != "SPECIES_NONE"
-        for slot in slots
-    )
 
 
 def _validate_slot(
@@ -451,9 +483,11 @@ def validate_ecology_document(
     source_identity: Mapping[str, object],
     supported_methods: Iterable[str],
     supported_species: Iterable[str],
+    source_map_by_target: Mapping[str, str] | None = None,
+    expected_blocked_maps: Iterable[str] | None = None,
     protected_route39_profile: object | str | None = None,
 ) -> None:
-    """Validate reviewed source facts without interpreting runtime encounter bands."""
+    """Validate inventoried source facts without interpreting runtime bands."""
 
     root = _mapping(document, "$")
     _exact_keys(root, ECOLOGY_KEYS, "$")
@@ -464,6 +498,8 @@ def validate_ecology_document(
     supported_species_set = frozenset(supported_species)
     records = _sequence(root["records"], "$.records")
     actual_maps: list[str] = []
+    actual_blocked_maps: set[str] = set()
+    all_profile_keys: set[tuple[str, str, str]] = set()
     route39_profiles: object | None = None
     for index, raw in enumerate(records):
         pointer = f"$.records[{index}]"
@@ -471,7 +507,7 @@ def validate_ecology_document(
         if "status" not in record:
             raise ContentPortError(f"{pointer}: missing field 'status'")
         status = _string(record["status"], f"{pointer}.status")
-        if status == "reviewed":
+        if status == "inventoried":
             allowed = {"map", "status", "profiles"}
             if "reviewNotes" in record:
                 allowed.add("reviewNotes")
@@ -480,11 +516,12 @@ def validate_ecology_document(
             _exact_keys(record, {"map", "status", "reason", "evidenceNeeded"}, pointer)
         else:
             raise ContentPortError(
-                f"{pointer}.status: expected 'reviewed' or 'blocked'"
+                f"{pointer}.status: expected 'inventoried' or 'blocked'"
             )
         map_name = _string(record["map"], f"{pointer}.map")
         actual_maps.append(map_name)
         if status == "blocked":
+            actual_blocked_maps.add(map_name)
             _string(record["reason"], f"{pointer}.reason")
             _string(record["evidenceNeeded"], f"{pointer}.evidenceNeeded")
             continue
@@ -506,6 +543,22 @@ def validate_ecology_document(
         profile_keys = [result[0] for result in profile_results]
         if len(set(profile_keys)) != len(profile_keys):
             raise ContentPortError(f"{pointer}.profiles: duplicate donor profile key")
+        reused = next((key for key in profile_keys if key in all_profile_keys), None)
+        if reused is not None:
+            raise ContentPortError(
+                f"{pointer}.profiles: donor profile {reused!r} is already assigned"
+            )
+        all_profile_keys.update(profile_keys)
+        if source_map_by_target is not None:
+            expected_source_map = source_map_by_target.get(map_name)
+            if expected_source_map is None:
+                raise ContentPortError(
+                    f"{pointer}.map: missing target-to-donor identity contract"
+                )
+            if any(key[0] != expected_source_map for key in profile_keys):
+                raise ContentPortError(
+                    f"{pointer}.profiles: donor map does not match target map identity"
+                )
         if any(result[1] for result in profile_results) and "reviewNotes" not in record:
             raise ContentPortError(
                 f"{pointer}: source anomalies require explicit reviewNotes"
@@ -529,9 +582,16 @@ def validate_ecology_document(
             raise ContentPortError(f"$.records: non-ordinary map {extra[0]!r}")
         raise ContentPortError("$.records: ecology records must use ordinary-map order")
 
+    if expected_blocked_maps is not None:
+        expected_blocked_set = set(expected_blocked_maps)
+        if actual_blocked_maps != expected_blocked_set:
+            raise ContentPortError(
+                "$.records: blocked maps do not match the evidence gate"
+            )
+
     if protected_route39_profile is not None:
         if route39_profiles is None:
-            raise ContentPortError("$.records: Route39 must remain a reviewed profile")
+            raise ContentPortError("$.records: Route39 must remain inventoried")
         if isinstance(protected_route39_profile, str):
             if DIGEST_RE.fullmatch(protected_route39_profile) is None:
                 raise ContentPortError(

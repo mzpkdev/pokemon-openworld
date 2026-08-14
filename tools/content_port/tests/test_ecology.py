@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import unittest
 from pathlib import Path
 
 from tools.content_port.ecology import (
     build_authenticated_profile_lookup,
+    donor_profile_condition,
+    donor_provenance_slice,
     donor_profile_matches,
     normalize_donor_profile,
-    source_method_is_runtime_eligible,
     stable_digest,
+    SUPPORTED_SOURCE_METHODS,
     validate_classification_document,
     validate_ecology_document,
 )
@@ -29,6 +32,36 @@ SOURCE = {
 }
 SPECIES = {"SPECIES_RATTATA", "SPECIES_SENTRET"}
 METHODS = {"land_mons", "fishing_mons"}
+BLOCKED_MAPS = {
+    "LakeOfRageLowTide",
+    "Route26North",
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
+}
+SPECIAL_OWNERS = {
+    "NationalPark_BugContest": "bug-catching-contest-reservation",
+    "TinTower_RoofDay": "static-legendary-reservation",
+    "WhirlIslands_LugiaChamber": "static-legendary-reservation",
+    "EmbeddedTower": "static-legendary-reservation",
+    "DragonsDen_Shrine": "gift-encounter-reservation",
+    "SafariZoneGate": "safari-reservation",
+    "SafariZoneGate_PokemonCenter": "safari-reservation",
+    "SafariZoneGate_SafariZoneEntrance": "safari-reservation",
+    "SafariZoneIndoor": "safari-reservation",
+    "SafariZone_Enterance": "safari-reservation",
+    "SafariZone_Low_Left": "safari-reservation",
+    "SafariZone_Low_Mid": "safari-reservation",
+    "SafariZone_Low_Right": "safari-reservation",
+    "SafariZone_Top_Mid": "safari-reservation",
+    "SafariZone_Top_Right": "safari-reservation",
+    "SafariZone1": "safari-reservation",
+    "SafariZone2": "safari-reservation",
+    "SafariZone3": "safari-reservation",
+}
+ROUTE39_SOURCE_DIGEST = (
+    "0bc050ec9aeb066e2b5fe3b8c178e0064aeeb636b51649c600c0dbfa4718f033"
+)
 FIELDS = [
     {"type": "land_mons", "encounter_rates": [70, 30]},
     {
@@ -64,8 +97,7 @@ def profile() -> dict:
     return normalize_donor_profile(
         donor_encounter(),
         FIELDS,
-        condition="day",
-        provenance_slice="primary-johto-block",
+        source_index=339,
     )
 
 
@@ -97,6 +129,23 @@ class ClassificationTests(unittest.TestCase):
         validate_classification_document(document, ["Route39", "Route38"])
         with self.assertRaisesRegex(ContentPortError, "canonical map order"):
             validate_classification_document(document, ["Route38", "Route39"])
+
+    def test_special_reservations_are_an_exact_contract(self) -> None:
+        document = {
+            "schemaVersion": 1,
+            "maps": [{"map": "A", "kind": "special", "owner": "static-reservation"}],
+        }
+        validate_classification_document(
+            document,
+            ["A"],
+            expected_special_owners={"A": "static-reservation"},
+        )
+        with self.assertRaisesRegex(ContentPortError, "ownership contract"):
+            validate_classification_document(
+                document,
+                ["A"],
+                expected_special_owners={"A": "other-reservation"},
+            )
 
     def test_classification_is_exhaustive_disjoint_and_strict(self) -> None:
         with self.assertRaisesRegex(ContentPortError, "missing canonical map"):
@@ -162,10 +211,13 @@ class DonorNormalizationTests(unittest.TestCase):
         with self.assertRaisesRegex(ContentPortError, "duplicate donor profile"):
             build_authenticated_profile_lookup([normalized, normalized])
 
-    def test_source_placeholders_are_never_runtime_eligible(self) -> None:
-        normalized = profile()
-        self.assertFalse(source_method_is_runtime_eligible(normalized["methods"][0]))
-        self.assertFalse(source_method_is_runtime_eligible(normalized["methods"][1]))
+    def test_condition_and_slice_are_derived_from_donor_facts(self) -> None:
+        self.assertEqual(donor_profile_condition("gRoute39_Night"), "night")
+        self.assertEqual(donor_profile_condition("gRoute39"), "day")
+        self.assertEqual(donor_profile_condition("gMtSilver_SnowUnused"), "legacy-day")
+        self.assertEqual(donor_profile_condition("gMtSilver_Snow"), "modern-day")
+        self.assertEqual(donor_provenance_slice(339), "primary-johto-block")
+        self.assertEqual(donor_provenance_slice(442), "supplemental-mixed-tail")
 
 
 class EcologyTests(unittest.TestCase):
@@ -181,7 +233,7 @@ class EcologyTests(unittest.TestCase):
                 },
                 {
                     "map": "Route39",
-                    "status": "reviewed",
+                    "status": "inventoried",
                     "profiles": [route39],
                     "reviewNotes": ["Preserves the complete donor observation."],
                 },
@@ -189,7 +241,7 @@ class EcologyTests(unittest.TestCase):
         )
         self.authenticated = build_authenticated_profile_lookup([route39])
 
-    def test_reviewed_and_blocked_records_are_valid(self) -> None:
+    def test_inventoried_and_blocked_records_are_valid(self) -> None:
         protected = copy.deepcopy(self.document["records"][1]["profiles"])
         validate(
             self.document,
@@ -227,6 +279,36 @@ class EcologyTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ContentPortError, "duplicate donor profile"):
             validate(changed, self.authenticated)
+
+    def test_target_identity_and_global_profile_ownership_are_enforced(self) -> None:
+        with self.assertRaisesRegex(ContentPortError, "target map identity"):
+            validate(
+                self.document,
+                self.authenticated,
+                source_map_by_target={"Route39": "MAP_ROUTE38"},
+            )
+        changed = copy.deepcopy(self.document)
+        changed["records"][0] = {
+            "map": "Route38",
+            "status": "inventoried",
+            "profiles": [copy.deepcopy(changed["records"][1]["profiles"][0])],
+            "reviewNotes": ["Synthetic ownership collision."],
+        }
+        with self.assertRaisesRegex(ContentPortError, "already assigned"):
+            validate(changed, self.authenticated)
+
+    def test_blocked_map_gate_is_exact(self) -> None:
+        validate(
+            self.document,
+            self.authenticated,
+            expected_blocked_maps={"Route38"},
+        )
+        with self.assertRaisesRegex(ContentPortError, "evidence gate"):
+            validate(
+                self.document,
+                self.authenticated,
+                expected_blocked_maps={"Route39"},
+            )
 
     def test_source_slot_shape_levels_and_fishing_groups_are_enforced(self) -> None:
         changed = copy.deepcopy(self.document)
@@ -279,33 +361,66 @@ class ProductionArtifactsTests(unittest.TestCase):
             "path": "src/data/wild_encounters.json",
         }
         canonical_maps = [row["map"] for row in capabilities["maps"]]
-        validate_classification_document(classification, canonical_maps)
+        validate_classification_document(
+            classification,
+            canonical_maps,
+            expected_special_owners=SPECIAL_OWNERS,
+        )
         ordinary_maps = [
             row["map"] for row in classification["maps"] if row["kind"] == "ordinary"
         ]
-        species = {
-            slot["species"]
+        species = set(
+            re.findall(
+                r"\bSPECIES_[A-Z0-9_]+\b",
+                (ROOT / "include/constants/species.h").read_text(),
+            )
+        )
+        source_map_by_target = {
+            record["map"]: json.loads(
+                (ROOT / "data/maps" / record["map"] / "map.json").read_text()
+            )["id"]
             for record in ecology_document["records"]
-            for profile_value in record.get("profiles", [])
-            for method in profile_value["methods"]
-            for slot in method["slots"]
-        }
-        methods = {
-            method["method"]
-            for record in ecology_document["records"]
-            for profile_value in record.get("profiles", [])
-            for method in profile_value["methods"]
+            if record["status"] == "inventoried"
         }
         validate_ecology_document(
             ecology_document,
             ordinary_maps,
             None,
             source_identity=source_identity,
-            supported_methods=methods,
+            supported_methods=SUPPORTED_SOURCE_METHODS,
             supported_species=species,
+            source_map_by_target=source_map_by_target,
+            expected_blocked_maps=BLOCKED_MAPS,
+            protected_route39_profile=ROUTE39_SOURCE_DIGEST,
         )
         self.assertEqual(len(canonical_maps), 254)
         self.assertEqual(len(ordinary_maps), 89)
+        kinds = [row["kind"] for row in classification["maps"]]
+        self.assertEqual(kinds.count("ordinary"), 89)
+        self.assertEqual(kinds.count("encounter-free"), 147)
+        self.assertEqual(kinds.count("special"), 18)
+        statuses = [record["status"] for record in ecology_document["records"]]
+        self.assertEqual(statuses.count("inventoried"), 84)
+        self.assertEqual(statuses.count("blocked"), 5)
+        profiles = [
+            profile_value
+            for record in ecology_document["records"]
+            for profile_value in record.get("profiles", [])
+        ]
+        primary = [
+            value
+            for value in profiles
+            if value["provenanceSlice"] == "primary-johto-block"
+        ]
+        supplemental = [
+            value
+            for value in profiles
+            if value["provenanceSlice"] == "supplemental-mixed-tail"
+        ]
+        self.assertEqual(len(primary), 103)
+        self.assertEqual(len({value["sourceMap"] for value in primary}), 59)
+        self.assertEqual(len(supplemental), 37)
+        self.assertEqual(len({value["sourceMap"] for value in supplemental}), 25)
         forbidden = {"tier", "tiers", "band", "bands", "runtime", "fallback"}
 
         def inspect(value: object) -> None:
