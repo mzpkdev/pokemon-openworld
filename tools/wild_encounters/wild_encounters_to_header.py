@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 DEFAULT_REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
+DEFAULT_BANDS = ROOT / "src/data/wild_encounter_bands.json"
 DEFAULT_OUTPUT = ROOT / "src/data/wild_encounters.h"
 DEFAULT_CONFIG = ROOT / "include/config/overworld.h"
 DEFAULT_RTC_CONSTANTS = ROOT / "include/constants/rtc.h"
@@ -65,6 +66,25 @@ REQUIRED_RUNTIME_TIME_POLICIES = {
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 MAP_IDENTIFIER = re.compile(r"^MAP_[A-Z0-9_]+$")
 SPECIES_IDENTIFIER = re.compile(r"^SPECIES_[A-Z0-9_]+$")
+MAX_WORLD_TIER = 3
+MAX_BAND_TOTAL_WEIGHT = 0xFFFF
+METHOD_AREAS = {
+    "land_mons": "WILD_AREA_LAND",
+    "water_mons": "WILD_AREA_WATER",
+    "rock_smash_mons": "WILD_AREA_ROCKS",
+    "fishing_mons": "WILD_AREA_FISHING",
+    "hidden_mons": "WILD_AREA_HIDDEN",
+}
+FISHING_RODS = {
+    "NONE": "WILD_ENCOUNTER_FISHING_ROD_NONE",
+    "OLD_ROD": "OLD_ROD",
+    "GOOD_ROD": "GOOD_ROD",
+    "SUPER_ROD": "SUPER_ROD",
+}
+MISSING_BAND_POLICIES = {
+    "complete": "WILD_ENCOUNTER_MISSING_BAND_COMPLETE",
+    "floor": "WILD_ENCOUNTER_MISSING_BAND_FLOOR",
+}
 PRODUCT_GUARD = re.compile(
     r"^\s*#\s*(?:if|ifdef|ifndef)\b[^\n]*\b(?:EMERALD|FIRERED|LEAFGREEN)\b",
     re.MULTILINE,
@@ -373,6 +393,19 @@ def _select_runtime_profiles(profiles, config, time_policy_labels=None):
             continue
         raise ValidationError(f"registry: duplicate header/time identity {binding}")
     return tuple(bindings.values())
+
+
+def _runtime_header_indices(profiles, config, time_policy_labels):
+    indices = {}
+    next_index = 0
+    for profile in _select_runtime_profiles(profiles, config, time_policy_labels):
+        if profile["group"] != "gWildMonHeaders":
+            continue
+        header = profile["header"]
+        if header not in indices:
+            indices[header] = next_index
+            next_index += 1
+    return indices
 
 
 def _parse_registry(registry, config):
@@ -976,6 +1009,210 @@ def _load_time_policies(path, profiles, encounters, config):
     return labels, headers
 
 
+def _load_authored_bands(
+    path, profiles, encounters, config, species, time_policy_labels
+):
+    document = _load_json(path)
+    _require_exact_keys(document, {"schema_version", "profiles"}, path)
+    if document["schema_version"] != 1:
+        raise ValidationError(f"{path}/schema_version: expected 1")
+    rows = document["profiles"]
+    if not isinstance(rows, list):
+        raise ValidationError(f"{path}/profiles: expected list")
+
+    profile_by_label = {profile["label"]: profile for profile in profiles}
+    encounter_by_label = {
+        encounter["base_label"]: encounter
+        for group in encounters["wild_encounter_groups"]
+        for encounter in group["encounters"]
+    }
+    header_indices = _runtime_header_indices(profiles, config, time_policy_labels)
+    runtime_labels = {
+        profile["label"]
+        for profile in _select_runtime_profiles(profiles, config, time_policy_labels)
+        if profile["group"] == "gWildMonHeaders"
+    }
+    authored = []
+    identities = set()
+    for profile_index, row in enumerate(rows):
+        location = f"{path}/profiles/{profile_index}"
+        _require_exact_keys(
+            row,
+            {
+                "label",
+                "header",
+                "method",
+                "condition",
+                "fishing_rod",
+                "missing_band_policy",
+                "tiers",
+            },
+            location,
+        )
+        label = _require_identifier(row["label"], f"{location}/label")
+        header = _require_identifier(row["header"], f"{location}/header")
+        profile = profile_by_label.get(label)
+        if profile is None or label not in runtime_labels:
+            raise ValidationError(f"{location}/label: unknown canonical profile")
+        if profile["header"] != header or header not in header_indices:
+            raise ValidationError(f"{location}/header: unknown canonical header")
+
+        method = row["method"]
+        if method not in config.mon_types or method not in METHOD_AREAS:
+            raise ValidationError(f"{location}/method: unknown encounter method")
+        if method not in encounter_by_label[label]:
+            raise ValidationError(
+                f"{location}/method: profile does not support {method!r}"
+            )
+
+        authored_condition = row["condition"]
+        if (
+            authored_condition != FALLBACK_TIME_ROLE
+            and authored_condition not in config.times_of_day
+        ):
+            raise ValidationError(f"{location}/condition: unknown time condition")
+        if authored_condition != profile["time"]:
+            raise ValidationError(
+                f"{location}/condition: expected canonical condition {profile['time']}"
+            )
+        resolved_time = _resolve_profile_time(profile, config, time_policy_labels)
+
+        fishing_rod = row["fishing_rod"]
+        if fishing_rod not in FISHING_RODS:
+            raise ValidationError(f"{location}/fishing_rod: unknown rod condition")
+        if method == "fishing_mons":
+            if fishing_rod == "NONE":
+                raise ValidationError(
+                    f"{location}/fishing_rod: fishing method requires a rod"
+                )
+        elif fishing_rod != "NONE":
+            raise ValidationError(
+                f"{location}/fishing_rod: non-fishing method requires NONE"
+            )
+
+        missing_policy = row["missing_band_policy"]
+        if missing_policy not in MISSING_BAND_POLICIES:
+            raise ValidationError(
+                f"{location}/missing_band_policy: expected complete or floor"
+            )
+        tier_rows = row["tiers"]
+        if not isinstance(tier_rows, list) or not tier_rows:
+            raise ValidationError(f"{location}/tiers: expected nonempty list")
+        tiers = []
+        tier_ids = set()
+        for tier_index, tier_row in enumerate(tier_rows):
+            tier_location = f"{location}/tiers/{tier_index}"
+            _require_exact_keys(tier_row, {"tier", "entries"}, tier_location)
+            tier = tier_row["tier"]
+            if (
+                isinstance(tier, bool)
+                or not isinstance(tier, int)
+                or not 0 <= tier <= MAX_WORLD_TIER
+            ):
+                raise ValidationError(
+                    f"{tier_location}/tier: expected integer from 0 through {MAX_WORLD_TIER}"
+                )
+            if tier in tier_ids:
+                raise ValidationError(f"{tier_location}: duplicate tier {tier}")
+            tier_ids.add(tier)
+            entry_rows = tier_row["entries"]
+            if not isinstance(entry_rows, list) or not entry_rows:
+                raise ValidationError(
+                    f"{tier_location}/entries: expected nonempty list"
+                )
+            entries = []
+            total_weight = 0
+            for entry_index, entry_row in enumerate(entry_rows):
+                entry_location = f"{tier_location}/entries/{entry_index}"
+                _require_exact_keys(
+                    entry_row,
+                    {"species", "weight", "min_level", "max_level"},
+                    entry_location,
+                )
+                species_id = _require_identifier(
+                    entry_row["species"],
+                    f"{entry_location}/species",
+                    SPECIES_IDENTIFIER,
+                )
+                if species_id not in species:
+                    raise ValidationError(
+                        f"{entry_location}/species: unsupported species {species_id}"
+                    )
+                weight = entry_row["weight"]
+                if (
+                    isinstance(weight, bool)
+                    or not isinstance(weight, int)
+                    or weight <= 0
+                ):
+                    raise ValidationError(
+                        f"{entry_location}/weight: expected positive integer"
+                    )
+                total_weight += weight
+                if total_weight > MAX_BAND_TOTAL_WEIGHT:
+                    raise ValidationError(
+                        f"{tier_location}: total weight exceeds {MAX_BAND_TOTAL_WEIGHT}"
+                    )
+                min_level = entry_row["min_level"]
+                max_level = entry_row["max_level"]
+                if (
+                    isinstance(min_level, bool)
+                    or not isinstance(min_level, int)
+                    or isinstance(max_level, bool)
+                    or not isinstance(max_level, int)
+                    or not 1 <= min_level <= max_level <= 100
+                ):
+                    raise ValidationError(
+                        f"{entry_location}: levels must satisfy 1 <= min_level <= max_level <= 100"
+                    )
+                entries.append(
+                    {
+                        "species": species_id,
+                        "weight": weight,
+                        "min_level": min_level,
+                        "max_level": max_level,
+                    }
+                )
+            tiers.append(
+                {"tier": tier, "entries": entries, "total_weight": total_weight}
+            )
+
+        if missing_policy == "complete" and tier_ids != set(range(MAX_WORLD_TIER + 1)):
+            raise ValidationError(
+                f"{location}/tiers: complete policy requires tiers 0 through {MAX_WORLD_TIER}"
+            )
+        if missing_policy == "floor" and 0 not in tier_ids:
+            raise ValidationError(f"{location}/tiers: floor policy requires tier 0")
+        tiers.sort(key=lambda tier: tier["tier"])
+        identity = (
+            header_indices[header],
+            METHOD_AREAS[method],
+            resolved_time,
+            fishing_rod,
+        )
+        if identity in identities:
+            raise ValidationError(f"{location}: duplicate authored profile identity")
+        identities.add(identity)
+        authored.append(
+            {
+                "header_id": header_indices[header],
+                "area": METHOD_AREAS[method],
+                "condition": resolved_time,
+                "fishing_rod": FISHING_RODS[fishing_rod],
+                "missing_band_policy": MISSING_BAND_POLICIES[missing_policy],
+                "tiers": tiers,
+            }
+        )
+    authored.sort(
+        key=lambda profile: (
+            profile["header_id"],
+            profile["area"],
+            profile["condition"],
+            profile["fishing_rod"],
+        )
+    )
+    return authored
+
+
 class WildEncounterAssembler:
     def __init__(
         self,
@@ -1203,8 +1440,78 @@ class WildEncounterAssembler:
             self.write_pokemon_headers(headers)
 
 
+def _render_authored_bands(output, authored_profiles):
+    output.write("\n")
+    output.write(
+        f"#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT {len(authored_profiles)}\n"
+    )
+    if not authored_profiles:
+        return
+    output.write("\n")
+    for profile_index, profile in enumerate(authored_profiles):
+        for band_index, band in enumerate(profile["tiers"]):
+            output.write(
+                "static const struct WildEncounterAuthoredEntry "
+                f"sWildEncounterAuthoredEntries_{profile_index}_{band_index}[] =\n"
+            )
+            output.write("{\n")
+            for entry in band["entries"]:
+                output.write(
+                    "    { "
+                    f"{entry['species']}, {entry['weight']}, "
+                    f"{entry['min_level']}, {entry['max_level']}"
+                    " },\n"
+                )
+            output.write("};\n\n")
+        output.write(
+            "static const struct WildEncounterAuthoredBand "
+            f"sWildEncounterAuthoredBands_{profile_index}[] =\n"
+        )
+        output.write("{\n")
+        for band_index, band in enumerate(profile["tiers"]):
+            output.write("    {\n")
+            output.write(f"        .tier = {band['tier']},\n")
+            output.write(
+                "        .entryCount = "
+                f"ARRAY_COUNT(sWildEncounterAuthoredEntries_{profile_index}_{band_index}),\n"
+            )
+            output.write(f"        .totalWeight = {band['total_weight']},\n")
+            output.write(
+                "        .entries = "
+                f"sWildEncounterAuthoredEntries_{profile_index}_{band_index},\n"
+            )
+            output.write("    },\n")
+        output.write("};\n\n")
+    output.write(
+        "static const struct WildEncounterAuthoredProfile "
+        "sWildEncounterAuthoredProfiles[] =\n"
+    )
+    output.write("{\n")
+    for profile_index, profile in enumerate(authored_profiles):
+        output.write("    {\n")
+        output.write(f"        .headerId = {profile['header_id']},\n")
+        output.write(f"        .area = {profile['area']},\n")
+        output.write(f"        .timeOfDay = {profile['condition']},\n")
+        output.write(f"        .fishingRod = {profile['fishing_rod']},\n")
+        output.write(
+            f"        .missingBandPolicy = {profile['missing_band_policy']},\n"
+        )
+        output.write(
+            "        .bandCount = "
+            f"ARRAY_COUNT(sWildEncounterAuthoredBands_{profile_index}),\n"
+        )
+        output.write(f"        .bands = sWildEncounterAuthoredBands_{profile_index},\n")
+        output.write("    },\n")
+    output.write("};\n")
+
+
 def render_header(
-    encounters, config, profiles, time_policy_labels, time_policy_headers
+    encounters,
+    config,
+    profiles,
+    time_policy_labels,
+    time_policy_headers,
+    authored_profiles,
 ):
     output = io.StringIO()
     assembler = WildEncounterAssembler(
@@ -1213,6 +1520,7 @@ def render_header(
     assembler.write_header()
     assembler.write_macros()
     assembler.write_encounters()
+    _render_authored_bands(output, authored_profiles)
     rendered = output.getvalue()
     if PRODUCT_GUARD.search(rendered):
         raise ValidationError("generated output contains a product residency guard")
@@ -1253,6 +1561,7 @@ def _atomic_write(path, content):
 def generate(
     encounters_path=DEFAULT_ENCOUNTERS,
     registry_path=DEFAULT_REGISTRY,
+    bands_path=DEFAULT_BANDS,
     output_path=DEFAULT_OUTPUT,
     config_path=DEFAULT_CONFIG,
     rtc_constants_path=DEFAULT_RTC_CONSTANTS,
@@ -1272,8 +1581,16 @@ def generate(
         time_policies_path, profiles, encounters, config
     )
     _select_runtime_profiles(profiles, config, time_policy_labels)
+    authored_profiles = _load_authored_bands(
+        bands_path, profiles, encounters, config, species, time_policy_labels
+    )
     rendered = render_header(
-        encounters, config, profiles, time_policy_labels, time_policy_headers
+        encounters,
+        config,
+        profiles,
+        time_policy_labels,
+        time_policy_headers,
+        authored_profiles,
     )
     _atomic_write(output_path, rendered)
 
@@ -1284,6 +1601,7 @@ def _arguments():
     )
     parser.add_argument("--encounters", type=Path, default=DEFAULT_ENCOUNTERS)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    parser.add_argument("--bands", type=Path, default=DEFAULT_BANDS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--rtc-constants", type=Path, default=DEFAULT_RTC_CONSTANTS)
@@ -1301,6 +1619,7 @@ def main():
         generate(
             arguments.encounters,
             arguments.registry,
+            arguments.bands,
             arguments.output,
             arguments.config,
             arguments.rtc_constants,
