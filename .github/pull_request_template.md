@@ -21,7 +21,7 @@ State each claim once. Lead with the player or project outcome, keep implementat
 
 ## Context
 
-<!-- Use short bullets for linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not record progress, next steps, or repeat another section. Remove this section when it adds no durable context. -->
+<!-- Start with an existing Closes #123, Fixes #123, or Resolves #123 line when applicable; preserve that closing keyword exactly. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not record progress, next steps, or repeat another section. Remove this section when it adds no durable context. -->
 
 ## Visual evidence
 
