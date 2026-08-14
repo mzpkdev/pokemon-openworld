@@ -49,14 +49,19 @@ VermilionCity_EventScript_OldMan1SSAnneLeft::
 VermilionCity_EventScript_FerrySailor::
 	lock
 	faceplayer
-	msgbox VermilionCity_Text_EnterFastShipTerminal, MSGBOX_YESNO
-	switch VAR_RESULT
-	case YES, VermilionCity_EventScript_EnterFastShipTerminal
-	case NO, VermilionCity_EventScript_FerrySailorLegacy
-	release
+	goto_if_unset FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED, VermilionCity_EventScript_FerrySailorLegacy
+	goto VermilionCity_EventScript_EnterFastShipTerminal
+	end
+
+VermilionCity_EventScript_FastShipAttendant::
+	lock
+	faceplayer
+	goto_if_unset FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED, VermilionCity_EventScript_FastShipTerminalUnavailable
+	goto VermilionCity_EventScript_EnterFastShipTerminal
 	end
 
 VermilionCity_EventScript_EnterFastShipTerminal::
+	msgbox VermilionCity_Text_EnterFastShipTerminal
 	closemessage
 	warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 9
 	waitstate
@@ -66,6 +71,11 @@ VermilionCity_EventScript_EnterFastShipTerminal::
 VermilionCity_EventScript_FerrySailorLegacy::
 	goto_if_eq VAR_MAP_SCENE_VERMILION_CITY, 3, VermilionCity_EventScript_CheckSeagallopPresent
 	msgbox VermilionCity_Text_WelcomeToTheSSAnne
+	release
+	end
+
+VermilionCity_EventScript_FastShipTerminalUnavailable::
+	msgbox VermilionCity_Text_FastShipTerminalUnavailable
 	release
 	end
 
@@ -337,8 +347,12 @@ VermilionCity_Text_WelcomeToTheSSAnne::
 	.string "Welcome to the S.S. ANNE!$"
 
 VermilionCity_Text_EnterFastShipTerminal::
-	.string "The FAST SHIP terminal connects\n"
-	.string "VERMILION and OLIVINE. Go in?$"
+	.string "The FAST SHIP terminal is open.\p"
+	.string "Please proceed to the berth.$"
+
+VermilionCity_Text_FastShipTerminalUnavailable::
+	.string "The FAST SHIP terminal is\n"
+	.string "currently unavailable.$"
 
 VermilionCity_Text_DoYouHaveATicket::
 	.string "Welcome to the S.S. ANNE!\p"

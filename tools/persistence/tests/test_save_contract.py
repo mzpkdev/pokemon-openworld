@@ -106,6 +106,25 @@ def set_path(value, path, replacement):
 
 
 class SaveContractTests(unittest.TestCase):
+    def test_fast_ship_flag_and_frozen_unused_owner_are_both_published(self):
+        bindings = _bindings(
+            {
+                "FLAG_UNUSED_0x8E3": 0x8E3,
+                "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED": 0x8E3,
+            }
+        )["flags"]
+
+        self.assertEqual(
+            bindings,
+            [
+                {"symbol": "FLAG_UNUSED_0x8E3", "value": 0x8E3},
+                {
+                    "symbol": "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED",
+                    "value": 0x8E3,
+                },
+            ],
+        )
+
     def test_live_trainer_identities_do_not_rewrite_frozen_tombstone_evidence(self):
         bindings = _bindings(
             {

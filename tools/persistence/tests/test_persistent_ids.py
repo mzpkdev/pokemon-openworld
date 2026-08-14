@@ -89,6 +89,94 @@ class PersistentIdTests(unittest.TestCase):
     def mutated(self):
         return copy.deepcopy(self.ledger)
 
+    def test_fast_ship_terminal_flag_is_a_ledger_owned_frozen_alias(self):
+        by_symbol = {
+            item["symbol"]: item
+            for item in self.ledger["entries"]
+            if item["domain"] == "flags"
+        }
+
+        self.assertEqual(
+            by_symbol["FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED"],
+            {
+                "alias": {
+                    "of": "FLAG_UNUSED_0x8E3",
+                    "owner": "ss-aqua-travel-state",
+                },
+                "domain": "flags",
+                "source": "ss-aqua-travel-state",
+                "state": {"kind": "allocated-binding"},
+                "storage": "flag-id",
+                "symbol": "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED",
+                "value": 0x8E3,
+            },
+        )
+        self.assertEqual(
+            by_symbol["FLAG_UNUSED_0x8E3"]["state"],
+            {"kind": "published-binding"},
+        )
+
+    def test_contract_listed_explicit_allocation_is_seeded_exactly_once(self):
+        ledger = seed_ledger(self.contract, self.sources, ROOT)
+        matches = [
+            item
+            for item in ledger["entries"]
+            if item["domain"] == "flags"
+            and item["symbol"] == "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED"
+        ]
+
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["state"], {"kind": "allocated-binding"})
+        self.assertEqual(matches[0]["value"], 0x8E3)
+        self.assertEqual(
+            matches[0]["alias"],
+            {"of": "FLAG_UNUSED_0x8E3", "owner": "ss-aqua-travel-state"},
+        )
+
+    def test_published_owner_wins_when_explicit_alias_sorts_first(self):
+        sources = copy.deepcopy(self.sources)
+        sources["explicitAllocations"].append(
+            {
+                "domain": "flags",
+                "symbol": "FLAG_A_SYNTHETIC_ALIAS",
+                "value": 0x8E3,
+                "source": "ss-aqua-travel-state",
+            }
+        )
+
+        ledger = seed_ledger(self.contract, sources, ROOT)
+        group = {
+            item["symbol"]: item
+            for item in ledger["entries"]
+            if item["domain"] == "flags" and item["value"] == 0x8E3
+        }
+
+        self.assertIsNone(group["FLAG_UNUSED_0x8E3"]["alias"])
+        self.assertEqual(
+            group["FLAG_UNUSED_0x8E3"]["state"], {"kind": "published-binding"}
+        )
+        self.assertEqual(
+            group["FLAG_A_SYNTHETIC_ALIAS"]["alias"],
+            {"of": "FLAG_UNUSED_0x8E3", "owner": "ss-aqua-travel-state"},
+        )
+        self.assertEqual(
+            group["FLAG_A_SYNTHETIC_ALIAS"]["state"],
+            {"kind": "allocated-binding"},
+        )
+
+    def test_contract_listed_explicit_allocation_rejects_value_drift(self):
+        entries = copy.deepcopy(self.ledger["entries"])
+        binding = next(
+            item
+            for item in entries
+            if item["domain"] == "flags"
+            and item["symbol"] == "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED"
+        )
+        binding["value"] += 1
+
+        with self.assertRaisesRegex(ContractError, "published bindings moved/deleted"):
+            validate_frozen_bindings(entries, self.contract)
+
     def test_windows_generation_lock_retries_contention_and_unlocks_once(self):
         class FakeLock:
             def __init__(self):

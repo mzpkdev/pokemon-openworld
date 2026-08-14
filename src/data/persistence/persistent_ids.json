@@ -35219,6 +35219,20 @@
       "value": 2275
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x8E3",
+        "owner": "ss-aqua-travel-state"
+      },
+      "domain": "flags",
+      "source": "ss-aqua-travel-state",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED",
+      "value": 2275
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",

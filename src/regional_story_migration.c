@@ -1,6 +1,8 @@
 #include "global.h"
+#include "event_data.h"
 #include "regional_story_migration.h"
 #include "save.h"
+#include "constants/flags.h"
 
 struct RegionalStoryMigration
 {
@@ -8,6 +10,10 @@ struct RegionalStoryMigration
     u8 toVersion;
     bool32 (*apply)(void);
 };
+
+#if TESTING
+static bool32 sSuppressFastShipDefaultForTest;
+#endif
 
 static bool32 MigrateUnversionedSave(void)
 {
@@ -17,9 +23,20 @@ static bool32 MigrateUnversionedSave(void)
     return TRUE;
 }
 
+static bool32 MigrateFastShipTerminalDefault(void)
+{
+#if TESTING
+    if (sSuppressFastShipDefaultForTest)
+        return TRUE;
+#endif
+    FlagSet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
+    return TRUE;
+}
+
 static const struct RegionalStoryMigration sRegionalStoryMigrations[] =
 {
     {0, 1, MigrateUnversionedSave},
+    {1, 2, MigrateFastShipTerminalDefault},
 };
 
 static u8 *MigrationMarker(void)
@@ -29,13 +46,26 @@ static u8 *MigrationMarker(void)
     return gSaveBlock1Ptr->unused_9C2;
 }
 
-void RegionalStoryMigration_InitializeNewSave(void)
+static void StampCurrentMigrationMarker(void)
 {
     u8 *marker = MigrationMarker();
 
     marker[0] = REGIONAL_STORY_MIGRATION_SIGNATURE;
     marker[1] = REGIONAL_STORY_MIGRATION_VERSION;
 }
+
+void RegionalStoryMigration_InitializeNewSave(void)
+{
+    StampCurrentMigrationMarker();
+    FlagSet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
+}
+
+#if TESTING
+void RegionalStoryMigration_SuppressFastShipDefaultForTest(bool32 suppress)
+{
+    sSuppressFastShipDefaultForTest = suppress;
+}
+#endif
 
 enum RegionalStoryMigrationResult RegionalStoryMigration_Apply(void)
 {
@@ -79,7 +109,7 @@ enum RegionalStoryMigrationResult RegionalStoryMigration_Apply(void)
     }
 
     if (applied)
-        RegionalStoryMigration_InitializeNewSave();
+        StampCurrentMigrationMarker();
 
     return applied ? REGIONAL_STORY_MIGRATION_APPLIED : REGIONAL_STORY_MIGRATION_CURRENT;
 }

@@ -63,6 +63,18 @@ def _dynamic_warps(name: str) -> list[tuple[str, str, int, int]]:
     return warps
 
 
+def _script_commands(name: str, label: str) -> list[str]:
+    script = (ROOT / f"data/maps/{name}/scripts.inc").read_text()
+    match = re.search(
+        rf"^{re.escape(label)}::\n(?P<body>.*?)(?=^[A-Za-z0-9_]+::|\Z)",
+        script,
+        re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        raise AssertionError(f"missing script label: {label}")
+    return [line.strip() for line in match.group("body").splitlines() if line.strip()]
+
+
 def _paired_dynamic_transitions(
     name: str,
 ) -> list[tuple[str, str, int, int, str, int, int]]:
@@ -196,6 +208,7 @@ class InstalledCorridorTests(unittest.TestCase):
                 "flag": "0",
             },
         )
+        self.assertEqual(vermilion["object_events"][5], ferry_sailor)
         fast_ship_attendant = next(
             event
             for event in vermilion["object_events"]
@@ -215,18 +228,82 @@ class InstalledCorridorTests(unittest.TestCase):
                 "movement_range_y": 1,
                 "trainer_type": "TRAINER_TYPE_NONE",
                 "trainer_sight_or_berry_tree_id": "0",
-                "script": "VermilionCity_EventScript_FerrySailor",
+                "script": "VermilionCity_EventScript_FastShipAttendant",
                 "flag": "0",
             },
         )
-        self.assertIn(
-            (
-                "VermilionCity_EventScript_EnterFastShipTerminal",
-                "MAP_VERMILION_CITY_PORT_INSIDE",
-                8,
-                9,
+        self.assertEqual(
+            _script_commands(
+                "VermilionCity_Frlg", "VermilionCity_EventScript_FerrySailor"
             ),
-            _script_warps("VermilionCity_Frlg"),
+            [
+                "lock",
+                "faceplayer",
+                "goto_if_unset FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED, VermilionCity_EventScript_FerrySailorLegacy",
+                "goto VermilionCity_EventScript_EnterFastShipTerminal",
+                "end",
+            ],
+        )
+        self.assertEqual(
+            _script_commands(
+                "VermilionCity_Frlg", "VermilionCity_EventScript_FastShipAttendant"
+            ),
+            [
+                "lock",
+                "faceplayer",
+                "goto_if_unset FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED, VermilionCity_EventScript_FastShipTerminalUnavailable",
+                "goto VermilionCity_EventScript_EnterFastShipTerminal",
+                "end",
+            ],
+        )
+        terminal_entry = _script_commands(
+            "VermilionCity_Frlg", "VermilionCity_EventScript_EnterFastShipTerminal"
+        )
+        self.assertEqual(
+            terminal_entry,
+            [
+                "msgbox VermilionCity_Text_EnterFastShipTerminal",
+                "closemessage",
+                "warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 9",
+                "waitstate",
+                "release",
+                "end",
+            ],
+        )
+        self.assertNotIn("MSGBOX_YESNO", "\n".join(terminal_entry))
+        self.assertFalse(
+            any(command.startswith("switch ") for command in terminal_entry)
+        )
+        self.assertEqual(
+            _script_commands(
+                "VermilionCity_Frlg", "VermilionCity_Text_EnterFastShipTerminal"
+            ),
+            [
+                r'.string "The FAST SHIP terminal is open.\p"',
+                r'.string "Please proceed to the berth.$"',
+            ],
+        )
+        self.assertEqual(
+            _script_commands(
+                "VermilionCity_Frlg", "VermilionCity_EventScript_FerrySailorLegacy"
+            ),
+            [
+                "goto_if_eq VAR_MAP_SCENE_VERMILION_CITY, 3, VermilionCity_EventScript_CheckSeagallopPresent",
+                "msgbox VermilionCity_Text_WelcomeToTheSSAnne",
+                "release",
+                "end",
+            ],
+        )
+        self.assertEqual(
+            _script_commands(
+                "VermilionCity_Frlg",
+                "VermilionCity_EventScript_FastShipTerminalUnavailable",
+            ),
+            [
+                "msgbox VermilionCity_Text_FastShipTerminalUnavailable",
+                "release",
+                "end",
+            ],
         )
         self.assertEqual(
             _map("VermilionCity_PortInside")["warp_events"],
