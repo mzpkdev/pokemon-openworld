@@ -1,0 +1,1039 @@
+{
+  "schemaVersion": 1,
+  "maps": [
+    {
+      "map": "NewBarkTown",
+      "kind": "ordinary"
+    },
+    {
+      "map": "NewBarkTown_Lab",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "NewBarkTown_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "NewBarkTown_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_2F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route29",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Gate_Route29_Route46",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CherrygroveCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "CherrygroveCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CherrygroveCity_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CherrygroveCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CherrygroveCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CherrygroveCity_House3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route28",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route28_House",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route30",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route31",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route32",
+      "kind": "ordinary"
+    },
+    {
+      "map": "VioletCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "kind": "ordinary"
+    },
+    {
+      "map": "VioletCity_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VioletCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VioletCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VioletCity_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VioletCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VioletCity_TrainerSchool",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SproutTower_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SproutTower_2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "SproutTower_3F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route32_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_Route31_VioletCity",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route32",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route36",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_Lab",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom4",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "AzaleaTown",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route33",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route34",
+      "kind": "ordinary"
+    },
+    {
+      "map": "IlexForest",
+      "kind": "ordinary"
+    },
+    {
+      "map": "AzaleaTown_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "AzaleaTown_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "AzaleaTown_KurtsHouse",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "AzaleaTown_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "AzaleaTown_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route34_DayCare",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_AzaleaTown_IlexForest",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_IlexForest_Route34",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "UnionCave_1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "UnionCave_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "UnionCave_B2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "SlowpokeWell_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "SlowpokeWell_B2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "GoldenrodCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route35",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route36",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route37",
+      "kind": "ordinary"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "kind": "ordinary"
+    },
+    {
+      "map": "NationalPark_BugContest",
+      "kind": "special",
+      "owner": "Bug-Catching Contest"
+    },
+    {
+      "map": "Gate_GoldenrodCity_Route35",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_NationalPark",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_BikeShop",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_BillsHouse",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreBasement",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreElevator",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_2F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_3F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_4F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_5F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_6F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7FNight",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_FlowerShop",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_GameCorner",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_House3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_2F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_3F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_4F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_5F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_TrainStation",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundEntrance",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundStorage",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundSwitches",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundTunnel",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route38",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route39",
+      "kind": "ordinary"
+    },
+    {
+      "map": "BellchimeTrail",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route38",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_SageOffice1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_SageOffice2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "EcruteakCity_Theater",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route39_Barn",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route39_FarmHouse",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "TinTower_2F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "TinTower_3F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_4F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_5F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_6F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_7F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_8F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_9F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TinTower_RoofDay",
+      "kind": "special",
+      "owner": "static legendary encounters"
+    },
+    {
+      "map": "OlivineCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route40",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route41",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Gate_Route40_TrainerHill_Courtyard",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_Cafe",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_House3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_Lighthouse",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_PortInside",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_B1F_Inner",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_B3F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_Descent",
+      "kind": "ordinary"
+    },
+    {
+      "map": "WhirlIslands_LugiaChamber",
+      "kind": "special",
+      "owner": "static legendary encounters"
+    },
+    {
+      "map": "CianwoodCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route47",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route48",
+      "kind": "ordinary"
+    },
+    {
+      "map": "CianwoodGym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CianwoodHouse1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CianwoodHouse2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CianwoodHouse3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CianwoodPokecenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CianwoodShop",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "CliffEdgeCave",
+      "kind": "ordinary"
+    },
+    {
+      "map": "CliffEdgeGate",
+      "kind": "ordinary"
+    },
+    {
+      "map": "EmbeddedTower",
+      "kind": "special",
+      "owner": "static legendary encounters"
+    },
+    {
+      "map": "Mahoganytown",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route42",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route43",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route44",
+      "kind": "ordinary"
+    },
+    {
+      "map": "LakeOfRage",
+      "kind": "ordinary"
+    },
+    {
+      "map": "LakeOfRageLowTide",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MahoganyTown_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MahoganyTown_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MahoganyTown_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MahoganyTown_Shop",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route42",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_MahoganyTown_Route43",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Gate_Route43",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "LakeOfRage_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "LakeOfRage_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtMortar_2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "BlackthornCity",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route45",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route46",
+      "kind": "ordinary"
+    },
+    {
+      "map": "BlackthornCity_Gym",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BlackthornCity_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BlackthornCity_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BlackthornCity_House3",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BlackthornCity_Mart",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "BlackthornCity_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "IcePath_1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "IcePath_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "IcePath_B2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "IcePath_B3F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "IcePath_B4F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "kind": "ordinary"
+    },
+    {
+      "map": "DragonsDen_Entrance",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "DragonsDen_Shrine",
+      "kind": "special",
+      "owner": "gift encounter"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "kind": "ordinary"
+    },
+    {
+      "map": "DarkCave_SouthSide",
+      "kind": "ordinary"
+    },
+    {
+      "map": "SafariZoneGate",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZoneGate_PokemonCenter",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZoneGate_SafariZoneEntrance",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZoneIndoor",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Enterance",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Low_Left",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Low_Mid",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Low_Right",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Top_Mid",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone_Top_Right",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone1",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone2",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "SafariZone3",
+      "kind": "special",
+      "owner": "Safari system"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_3F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MtSilver_SummitDay",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MtSilver_SummitNight",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MtSilver_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_B1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_CaptainsRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_PlayersRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomNW",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomNE",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomNNE",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomSSW",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomSSE",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomSE",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "SSAqua_RoomSW",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "VermilionCity_PortInside",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route26",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route26North",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route26_House1",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route26_House2",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route27",
+      "kind": "ordinary"
+    },
+    {
+      "map": "Route27_House",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route30_House",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "Route30_MrPokemonsHouse",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "kind": "ordinary"
+    },
+    {
+      "map": "TohjoFalls_GiovanniRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "ReceptionGate",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoIndigoPlateau",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoIndigoPlateau_PokemonCenter",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_BrunosRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_ChampionsRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_HallOfFame",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_KarensRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_KogasRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoPokemonLeague_WillsRoom",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "kind": "ordinary"
+    },
+    {
+      "map": "MahoganyHideout_B1F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MahoganyHideout_B2F",
+      "kind": "encounter-free"
+    },
+    {
+      "map": "MahoganyHideout_B3F",
+      "kind": "encounter-free"
+    }
+  ]
+}
