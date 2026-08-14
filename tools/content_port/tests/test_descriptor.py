@@ -408,7 +408,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 510, "deferred": 2348, "story-owned": 190},
+            {"enabled": 511, "deferred": 2347, "story-owned": 190},
         )
         self.assertEqual(
             {
