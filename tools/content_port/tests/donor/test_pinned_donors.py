@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
 import hashlib
 import json
+import os
 import re
 import unittest
+from pathlib import Path
 
 from tools.content_port.cli import check_port
 from tools.content_port.descriptor import load_port
@@ -16,6 +16,7 @@ from tools.content_port.ecology import (
     normalize_donor_profile,
     validate_ecology_document,
 )
+from tools.content_port.ecology_fallbacks import validate_fallback_document
 
 
 ROUTE39_SOURCE_DIGEST = (
@@ -36,6 +37,11 @@ EXCLUDED_DONOR_MAPS = {
     "MAP_SAFARI_ZONE_LOW_RIGHT",
     "MAP_SAFARI_ZONE_TOP_MID",
     "MAP_SAFARI_ZONE_TOP_RIGHT",
+}
+VICTORY_ROAD_FALLBACKS = {
+    "JohtoVictoryRoad_1F",
+    "JohtoVictoryRoad_B1F",
+    "JohtoVictoryRoad_B2F",
 }
 
 
@@ -151,6 +157,148 @@ class PinnedDonorTests(unittest.TestCase):
             expected_blocked_maps=BLOCKED_MAPS,
             protected_route39_profile=ROUTE39_SOURCE_DIGEST,
         )
+
+        fallbacks = json.loads((johto / "encounter_fallbacks.json").read_text())
+        validate_fallback_document(fallbacks)
+        selected_profiles = {
+            (record["sourceMap"], profile["sourceLabel"], profile["condition"])
+            for record in fallbacks["records"]
+            for profile in record["profiles"]
+        }
+        authenticated_fallback_profiles = {}
+        for encounter in donor_group["encounters"]:
+            key = (
+                encounter["map"],
+                encounter["base_label"],
+                "night" if encounter["base_label"].endswith("_Night") else "day",
+            )
+            if key not in selected_profiles:
+                continue
+            # Fallback selectors may point outside the reconciled Johto inventory
+            # slices. The slice does not affect normalized encounter values, so use
+            # a valid reviewed index and discard that inventory-only annotation.
+            normalized = normalize_donor_profile(
+                encounter,
+                donor_group["fields"],
+                source_index=339,
+            )
+            normalized.pop("provenanceSlice")
+            self.assertNotIn(key, authenticated_fallback_profiles)
+            authenticated_fallback_profiles[key] = normalized
+        self.assertEqual(set(authenticated_fallback_profiles), selected_profiles)
+        for record in fallbacks["records"]:
+            for profile in record["profiles"]:
+                key = (
+                    record["sourceMap"],
+                    profile["sourceLabel"],
+                    profile["condition"],
+                )
+                with self.subTest(fallback_profile=profile["targetLabel"]):
+                    normalized = authenticated_fallback_profiles[key]
+                    self.assertEqual(normalized["sourceMap"], record["sourceMap"])
+                    self.assertEqual(normalized["label"], profile["sourceLabel"])
+                    self.assertEqual(normalized["condition"], profile["condition"])
+                    self.assertTrue(normalized["methods"])
+
+        spatial_root = roots["mechanical"]
+        map_groups = json.loads(
+            (spatial_root / fallbacks["spatialSource"]["mapIndexPath"]).read_text()
+        )
+        authenticated_map_paths = {
+            f"data/maps/{map_name}/map.json"
+            for group_name in map_groups["group_order"]
+            for map_name in map_groups[group_name]
+        }
+        layouts = json.loads(
+            (spatial_root / fallbacks["spatialSource"]["layoutIndexPath"]).read_text()
+        )
+        layouts_by_id = {layout["id"]: layout for layout in layouts["layouts"]}
+
+        for record in fallbacks["records"]:
+            spatial = record["spatialEvidence"]
+            actual = {}
+            for side in ("target", "source"):
+                evidence = spatial[side]
+                map_path = spatial[f"{side}MapPath"]
+                with self.subTest(fallback=record["targetName"], side=side):
+                    self.assertIn(map_path, authenticated_map_paths)
+                    map_document = json.loads(
+                        (spatial_root / map_path).read_text(encoding="utf-8")
+                    )
+                    self.assertEqual(map_document["id"], evidence["mapId"])
+                    self.assertEqual(map_document["layout"], evidence["layoutId"])
+                    self.assertEqual(
+                        map_document["region_map_section"],
+                        evidence["regionMapSection"],
+                    )
+                    layout = layouts_by_id[evidence["layoutId"]]
+                    self.assertEqual(layout["width"], evidence["width"])
+                    self.assertEqual(layout["height"], evidence["height"])
+                    self.assertEqual(
+                        layout["primary_tileset"], evidence["primaryTileset"]
+                    )
+                    self.assertEqual(
+                        layout["secondary_tileset"], evidence["secondaryTileset"]
+                    )
+                    self.assertEqual(
+                        layout["blockdata_filepath"], evidence["mapBinPath"]
+                    )
+                    map_bin = (spatial_root / evidence["mapBinPath"]).read_bytes()
+                    self.assertEqual(
+                        hashlib.sha256(map_bin).hexdigest(),
+                        evidence["mapBinSha256"],
+                    )
+                    actual[side] = (map_document, layout, map_bin)
+
+            target_map, target_layout, target_bin = actual["target"]
+            source_map, source_layout, source_bin = actual["source"]
+            with self.subTest(fallback_relationship=record["targetName"]):
+                self.assertEqual(target_map["id"], record["targetMap"])
+                self.assertEqual(source_map["id"], record["sourceMap"])
+                self.assertNotEqual(target_map["id"], source_map["id"])
+                self.assertNotEqual(target_layout["id"], source_layout["id"])
+                if record["targetName"] in VICTORY_ROAD_FALLBACKS:
+                    self.assertEqual(spatial["relationship"], "byte-identical-layout")
+                    self.assertEqual(target_bin, source_bin)
+                elif record["targetName"] == "LakeOfRageLowTide":
+                    self.assertEqual(spatial["relationship"], "alternate-tide")
+                    self.assertEqual(
+                        target_map["region_map_section"],
+                        source_map["region_map_section"],
+                    )
+                    self.assertEqual(
+                        (target_layout["width"], target_layout["height"]),
+                        (source_layout["width"], source_layout["height"]),
+                    )
+                    self.assertEqual(
+                        (
+                            target_layout["primary_tileset"],
+                            target_layout["secondary_tileset"],
+                        ),
+                        (
+                            source_layout["primary_tileset"],
+                            source_layout["secondary_tileset"],
+                        ),
+                    )
+                    self.assertNotEqual(target_bin, source_bin)
+                else:
+                    self.assertEqual(record["targetName"], "Route26North")
+                    self.assertEqual(
+                        spatial["relationship"], "directly-connected-segment"
+                    )
+                    self.assertEqual(
+                        target_map["region_map_section"],
+                        source_map["region_map_section"],
+                    )
+                    self.assertNotEqual(target_bin, source_bin)
+                    self.assertIn(
+                        {
+                            "map": record["targetMap"],
+                            "offset": 0,
+                            "direction": "up",
+                        },
+                        source_map["connections"],
+                    )
 
 
 if __name__ == "__main__":

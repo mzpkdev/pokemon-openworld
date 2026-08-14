@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "ecologySource": {
+    "role": "ecology",
+    "name": "Pokemon Heart & Soul",
+    "repository": "PokemonHnS-Development/pokemonHnS",
+    "commit": "751823abaf677020bcd72c45fe3e7cb2b8a576e4",
+    "treeDigest": "6fc60f734085eb0ba6df3f68855cc8b91564499fb0f960eb2d7cffe3cc379703",
+    "path": "src/data/wild_encounters.json"
+  },
+  "spatialSource": {
+    "role": "spatial",
+    "name": "PKMN-World",
+    "repository": "evilchinesefood/PKMN-World",
+    "commit": "d40affe26e58a20f445daad84af5e45be812e69f",
+    "treeDigest": "6bca91e491e7e8304f9268aa41a4c9d629d50baa6d3150fe45d55632b6f4f762",
+    "mapIndexPath": "data/maps/map_groups.json",
+    "layoutIndexPath": "data/layouts/layouts.json"
+  },
+  "records": [
+    {
+      "targetMap": "MAP_LAKE_OF_RAGE_LOW_TIDE",
+      "targetName": "LakeOfRageLowTide",
+      "sourceMap": "MAP_LAKE_OF_RAGE",
+      "profiles": [
+        {
+          "sourceLabel": "gLakeOfRage",
+          "targetLabel": "gLakeOfRageLowTide",
+          "condition": "day"
+        }
+      ],
+      "rationale": "Use the reviewed Lake of Rage day ecology for its alternate low-tide spatial state.",
+      "spatialEvidence": {
+        "relationship": "alternate-tide",
+        "targetMapPath": "data/maps/LakeOfRageLowTide/map.json",
+        "sourceMapPath": "data/maps/LakeOfRage/map.json",
+        "target": {
+          "mapId": "MAP_LAKE_OF_RAGE_LOW_TIDE",
+          "layoutId": "LAYOUT_LAKE_OF_RAGE_LOW_TIDE",
+          "regionMapSection": "MAPSEC_LAKE_OF_RAGE",
+          "width": 64,
+          "height": 47,
+          "primaryTileset": "gTileset_Johto_NorthEast",
+          "secondaryTileset": "gTileset_MahoganyTown",
+          "mapBinPath": "data/layouts/LakeOfRageLowTide/map.bin",
+          "mapBinSha256": "6e17c0150e36dfd21f17b2ad3a09aecffe5e14aea53f2107dea0fb9518a4482a"
+        },
+        "source": {
+          "mapId": "MAP_LAKE_OF_RAGE",
+          "layoutId": "LAYOUT_LAKE_OF_RAGE",
+          "regionMapSection": "MAPSEC_LAKE_OF_RAGE",
+          "width": 64,
+          "height": 47,
+          "primaryTileset": "gTileset_Johto_NorthEast",
+          "secondaryTileset": "gTileset_MahoganyTown",
+          "mapBinPath": "data/layouts/LakeOfRage/map.bin",
+          "mapBinSha256": "00ef2ca239a97ba8d8191624c341241aa6e3858fa297a87b564b9088cf6bbf38"
+        },
+        "facts": [
+          {"kind": "same-region-map-section", "value": "MAPSEC_LAKE_OF_RAGE"},
+          {"kind": "same-footprint", "value": "64x47"},
+          {"kind": "same-tilesets", "value": ["gTileset_Johto_NorthEast", "gTileset_MahoganyTown"]},
+          {"kind": "distinct-map-bin", "value": true}
+        ]
+      }
+    },
+    {
+      "targetMap": "MAP_ROUTE26NORTH",
+      "targetName": "Route26North",
+      "sourceMap": "MAP_ROUTE26",
+      "profiles": [
+        {"sourceLabel": "gRoute26", "targetLabel": "gRoute26North", "condition": "day"},
+        {"sourceLabel": "gRoute26_Night", "targetLabel": "gRoute26North_Night", "condition": "night"}
+      ],
+      "rationale": "Continue Route 26 day and night ecology into its directly connected northern segment.",
+      "spatialEvidence": {
+        "relationship": "directly-connected-segment",
+        "targetMapPath": "data/maps/Route26North/map.json",
+        "sourceMapPath": "data/maps/Route26/map.json",
+        "target": {
+          "mapId": "MAP_ROUTE26NORTH",
+          "layoutId": "LAYOUT_ROUTE26NORTH",
+          "regionMapSection": "MAPSEC_ROUTE_26",
+          "width": 39,
+          "height": 30,
+          "primaryTileset": "gTileset_Johto_General",
+          "secondaryTileset": "gTileset_ViridianCity",
+          "mapBinPath": "data/layouts/Route26North/map.bin",
+          "mapBinSha256": "a28d4d6ba9595c1062d22e695306231a48f0b1f7a128d1ee73b8ef34f76a80a7"
+        },
+        "source": {
+          "mapId": "MAP_ROUTE26",
+          "layoutId": "LAYOUT_ROUTE26",
+          "regionMapSection": "MAPSEC_ROUTE_26",
+          "width": 39,
+          "height": 81,
+          "primaryTileset": "gTileset_Johto_General",
+          "secondaryTileset": "gTileset_Blackthorn",
+          "mapBinPath": "data/layouts/Route26/map.bin",
+          "mapBinSha256": "cf225bffc5673c32d00b0e8654bcef7498057e27b4f02bb30b78bb8434fbf14f"
+        },
+        "facts": [
+          {"kind": "same-region-map-section", "value": "MAPSEC_ROUTE_26"},
+          {"kind": "source-direct-connection", "value": {"map": "MAP_ROUTE26NORTH", "offset": 0, "direction": "up"}}
+        ]
+      }
+    },
+    {
+      "targetMap": "MAP_JOHTO_VICTORY_ROAD_1F",
+      "targetName": "JohtoVictoryRoad_1F",
+      "sourceMap": "MAP_VICTORY_ROAD_1F",
+      "profiles": [
+        {"sourceLabel": "gVictoryRoad_1F", "targetLabel": "gJohtoVictoryRoad_1F", "condition": "day"},
+        {"sourceLabel": "gVictoryRoad_1F_Night", "targetLabel": "gJohtoVictoryRoad_1F_Night", "condition": "night"}
+      ],
+      "rationale": "Use the regular Victory Road 1F day and night ecology because the pinned spatial layouts have byte-identical block data.",
+      "spatialEvidence": {
+        "relationship": "byte-identical-layout",
+        "targetMapPath": "data/maps/JohtoVictoryRoad_1F/map.json",
+        "sourceMapPath": "data/maps/VictoryRoad_1F/map.json",
+        "target": {
+          "mapId": "MAP_JOHTO_VICTORY_ROAD_1F",
+          "layoutId": "LAYOUT_JOHTO_VICTORY_ROAD_1F",
+          "regionMapSection": "MAPSEC_JOHTO_VICTORY_ROAD",
+          "width": 46,
+          "height": 45,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/JohtoVictoryRoad_1F/map.bin",
+          "mapBinSha256": "b100693756672442b3f583a8886950d07b68bac1b6eafe07a2b5fe721d1c484e"
+        },
+        "source": {
+          "mapId": "MAP_VICTORY_ROAD_1F",
+          "layoutId": "LAYOUT_VICTORY_ROAD_1F",
+          "regionMapSection": "MAPSEC_VICTORY_ROAD",
+          "width": 46,
+          "height": 45,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/VictoryRoad_1F/map.bin",
+          "mapBinSha256": "b100693756672442b3f583a8886950d07b68bac1b6eafe07a2b5fe721d1c484e"
+        },
+        "facts": [
+          {"kind": "same-footprint", "value": "46x45"},
+          {"kind": "same-tilesets", "value": ["gTileset_General", "gTileset_Cave"]},
+          {"kind": "identical-map-bin-sha256", "value": "b100693756672442b3f583a8886950d07b68bac1b6eafe07a2b5fe721d1c484e"}
+        ]
+      }
+    },
+    {
+      "targetMap": "MAP_JOHTO_VICTORY_ROAD_B1F",
+      "targetName": "JohtoVictoryRoad_B1F",
+      "sourceMap": "MAP_VICTORY_ROAD_B1F",
+      "profiles": [
+        {"sourceLabel": "gVictoryRoad_B1F", "targetLabel": "gJohtoVictoryRoad_B1F", "condition": "day"},
+        {"sourceLabel": "gVictoryRoad_B1F_Night", "targetLabel": "gJohtoVictoryRoad_B1F_Night", "condition": "night"}
+      ],
+      "rationale": "Use the regular Victory Road B1F day and night ecology because the pinned spatial layouts have byte-identical block data.",
+      "spatialEvidence": {
+        "relationship": "byte-identical-layout",
+        "targetMapPath": "data/maps/JohtoVictoryRoad_B1F/map.json",
+        "sourceMapPath": "data/maps/VictoryRoad_B1F/map.json",
+        "target": {
+          "mapId": "MAP_JOHTO_VICTORY_ROAD_B1F",
+          "layoutId": "LAYOUT_JOHTO_VICTORY_ROAD_B1F",
+          "regionMapSection": "MAPSEC_JOHTO_VICTORY_ROAD",
+          "width": 46,
+          "height": 31,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/JohtoVictoryRoad_B1F/map.bin",
+          "mapBinSha256": "574316b10f2989df34eb3a53c3fc4bd946bb0e67bb679e15dfc91997cb47d684"
+        },
+        "source": {
+          "mapId": "MAP_VICTORY_ROAD_B1F",
+          "layoutId": "LAYOUT_VICTORY_ROAD_B1F",
+          "regionMapSection": "MAPSEC_VICTORY_ROAD",
+          "width": 46,
+          "height": 31,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/VictoryRoad_B1F/map.bin",
+          "mapBinSha256": "574316b10f2989df34eb3a53c3fc4bd946bb0e67bb679e15dfc91997cb47d684"
+        },
+        "facts": [
+          {"kind": "same-footprint", "value": "46x31"},
+          {"kind": "same-tilesets", "value": ["gTileset_General", "gTileset_Cave"]},
+          {"kind": "identical-map-bin-sha256", "value": "574316b10f2989df34eb3a53c3fc4bd946bb0e67bb679e15dfc91997cb47d684"}
+        ]
+      }
+    },
+    {
+      "targetMap": "MAP_JOHTO_VICTORY_ROAD_B2F",
+      "targetName": "JohtoVictoryRoad_B2F",
+      "sourceMap": "MAP_VICTORY_ROAD_B2F",
+      "profiles": [
+        {"sourceLabel": "gVictoryRoad_B2F", "targetLabel": "gJohtoVictoryRoad_B2F", "condition": "day"},
+        {"sourceLabel": "gVictoryRoad_B2F_Night", "targetLabel": "gJohtoVictoryRoad_B2F_Night", "condition": "night"}
+      ],
+      "rationale": "Use the regular Victory Road B2F day and night ecology because the pinned spatial layouts have byte-identical block data.",
+      "spatialEvidence": {
+        "relationship": "byte-identical-layout",
+        "targetMapPath": "data/maps/JohtoVictoryRoad_B2F/map.json",
+        "sourceMapPath": "data/maps/VictoryRoad_B2F/map.json",
+        "target": {
+          "mapId": "MAP_JOHTO_VICTORY_ROAD_B2F",
+          "layoutId": "LAYOUT_JOHTO_VICTORY_ROAD_B2F",
+          "regionMapSection": "MAPSEC_JOHTO_VICTORY_ROAD",
+          "width": 46,
+          "height": 31,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/JohtoVictoryRoad_B2F/map.bin",
+          "mapBinSha256": "60f525ef9b6e374604f4dcfd96ef1091b6b9bdaac2b73860b345eb75476c00c0"
+        },
+        "source": {
+          "mapId": "MAP_VICTORY_ROAD_B2F",
+          "layoutId": "LAYOUT_VICTORY_ROAD_B2F",
+          "regionMapSection": "MAPSEC_VICTORY_ROAD",
+          "width": 46,
+          "height": 31,
+          "primaryTileset": "gTileset_General",
+          "secondaryTileset": "gTileset_Cave",
+          "mapBinPath": "data/layouts/VictoryRoad_B2F/map.bin",
+          "mapBinSha256": "60f525ef9b6e374604f4dcfd96ef1091b6b9bdaac2b73860b345eb75476c00c0"
+        },
+        "facts": [
+          {"kind": "same-footprint", "value": "46x31"},
+          {"kind": "same-tilesets", "value": ["gTileset_General", "gTileset_Cave"]},
+          {"kind": "identical-map-bin-sha256", "value": "60f525ef9b6e374604f4dcfd96ef1091b6b9bdaac2b73860b345eb75476c00c0"}
+        ]
+      }
+    }
+  ]
+}

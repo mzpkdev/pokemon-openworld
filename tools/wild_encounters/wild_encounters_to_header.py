@@ -20,7 +20,7 @@ DEFAULT_MAP_GROUPS = ROOT / "data/maps/map_groups.json"
 DEFAULT_MAPS_ROOT = ROOT / "data/maps"
 DEFAULT_MAP_SECTIONS = ROOT / "src/data/region_map/region_map_sections.json"
 DEFAULT_SPECIES = ROOT / "include/constants/species.h"
-DEFAULT_TIME_POLICIES = ROOT / "tools/content_port/ports/johto/adaptations.json"
+DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 PROFILE_FIELDS = (
     "group",
@@ -34,35 +34,26 @@ PROFILE_FIELDS = (
 )
 FALLBACK_TIME_ROLE = "TIME_FALLBACK"
 RESIDENCIES = {"hoenn", "kanto", "sevii", "johto"}
-REVIEWED_PROFILE_COUNT = 409
+REVIEWED_PROFILE_COUNT = 546
 REVIEWED_RESIDENCY_COUNTS = {
     "hoenn": 135,
     "kanto": 132,
     "sevii": 132,
-    "johto": 10,
+    "johto": 147,
 }
 # SHA-256 of compact JSON containing every PROFILE_FIELDS value in registry order.
 REVIEWED_ORDERED_PROFILE_SHA256 = (
-    "4f4c826ed8c64339317e70a069f366ce4928fc51606d0bf86945d3487124c2c7"
+    "d41fbb466a76038891cfe452a11b29a2d4b5b6e557fbe97d7e12b5019e0ab45c"
 )
 # Deliberately revised only when authenticated authored encounter content changes.
 REVIEWED_AUTHORED_CONTRACT_SHA256 = (
-    "2503c282752a86638bbeda5b64d2536df632de29b5658e9a06d7c52ac030367d"
+    "c6efd2cd83d0e66d741aa83c3a682832da91f4ae868d865d9e9a7210c1de87f8"
 )
 NON_MAP_RESIDENCY = {
     "gBattlePyramidWildMonHeaders": "hoenn",
     "gBattlePikeWildMonHeaders": "hoenn",
 }
 DEFAULT_OUTPUT_MODE = 0o644
-REQUIRED_RUNTIME_TIME_POLICIES = {
-    "Route39": {
-        "dayStart": "06:00",
-        "nightStart": "18:00",
-        "dayLabel": "gRoute39",
-        "nightLabel": "gRoute39_Night",
-        "fallbackLabel": "gRoute39",
-    }
-}
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 MAP_IDENTIFIER = re.compile(r"^MAP_[A-Z0-9_]+$")
 SPECIES_IDENTIFIER = re.compile(r"^SPECIES_[A-Z0-9_]+$")
@@ -326,6 +317,14 @@ def _load_map_authority(map_groups_path, maps_root, map_sections_path):
                 )
             map_path = Path(maps_root) / map_name / "map.json"
             map_data = _load_json(map_path)
+            canonical_map_name = _require_identifier(
+                map_data.get("name"), f"{map_path}/name"
+            )
+            if canonical_map_name != map_name:
+                raise ValidationError(
+                    f"{map_path}: map name {canonical_map_name} does not match "
+                    f"registered name {map_name}"
+                )
             map_id = _require_identifier(
                 map_data.get("id"), f"{map_path}/id", MAP_IDENTIFIER
             )
@@ -894,18 +893,23 @@ def _parse_policy_clock(value, location):
     return hours * 60 + minutes
 
 
-def _load_time_policies(path, profiles, encounters, config):
+def _load_time_policies(path, profiles, encounters, config, maps):
     document = _load_json(path)
-    policy_rows = (
-        document.get("encounterTimePolicy") if isinstance(document, dict) else None
+    _require_exact_keys(
+        document,
+        {"schema_version", "encounterProfiles", "encounterTimePolicy"},
+        path,
     )
-    profile_rows = (
-        document.get("encounterProfiles") if isinstance(document, dict) else None
-    )
+    if type(document["schema_version"]) is not int or document["schema_version"] != 1:
+        raise ValidationError(f"{path}/schema_version: expected 1")
+    policy_rows = document["encounterTimePolicy"]
+    profile_rows = document["encounterProfiles"]
     if not isinstance(policy_rows, list) or not isinstance(profile_rows, list):
         raise ValidationError(
             f"{path}: encounterTimePolicy and encounterProfiles must be lists"
         )
+    if not policy_rows:
+        raise ValidationError(f"{path}: encounterTimePolicy must not be empty")
 
     registry_by_label = {profile["label"]: profile for profile in profiles}
     encounter_by_label = {
@@ -913,6 +917,12 @@ def _load_time_policies(path, profiles, encounters, config):
         for group in encounters["wild_encounter_groups"]
         for encounter in group["encounters"]
     }
+    map_id_by_name = {}
+    for map_id, (map_data, _) in maps.items():
+        map_name = map_data["name"]
+        if map_name in map_id_by_name:
+            raise ValidationError(f"map authority: duplicate map name {map_name}")
+        map_id_by_name[map_name] = map_id
     authored_profile_by_label = {}
     for index, row in enumerate(profile_rows):
         location = f"{path}/encounterProfiles/{index}"
@@ -948,11 +958,13 @@ def _load_time_policies(path, profiles, encounters, config):
             },
             location,
         )
-        if row["map"] in policy_by_map:
+        map_name = _require_identifier(row["map"], f"{location}/map")
+        expected_map = map_id_by_name.get(map_name)
+        if expected_map is None:
+            raise ValidationError(f"{location}/map: unresolved canonical map")
+        if map_name in policy_by_map:
             raise ValidationError(f"{location}: duplicate map time policy")
-        policy_by_map[row["map"]] = {
-            key: value for key, value in row.items() if key != "map"
-        }
+        policy_by_map[map_name] = row
         day_label = _require_identifier(row["dayLabel"], f"{location}/dayLabel")
         night_label = _require_identifier(row["nightLabel"], f"{location}/nightLabel")
         if row["fallbackLabel"] != day_label:
@@ -973,7 +985,6 @@ def _load_time_policies(path, profiles, encounters, config):
             raise ValidationError(
                 f"{location}: policy profiles must share one runtime header"
             )
-        expected_map = "MAP_" + re.sub(r"(?<!^)(?=[A-Z])", "_", row["map"]).upper()
         if (
             encounter_by_label[day_label].get("map") != expected_map
             or encounter_by_label[night_label].get("map") != expected_map
@@ -986,10 +997,12 @@ def _load_time_policies(path, profiles, encounters, config):
         if authored_day is None or authored_night is None:
             raise ValidationError(f"{location}: missing typed encounter profile")
         if (
-            authored_day["map"] != row["map"]
-            or authored_night["map"] != row["map"]
-            or authored_day["habitat"] != "land_mons"
-            or authored_night["habitat"] != "land_mons"
+            authored_day["map"] != map_name
+            or authored_night["map"] != map_name
+            or authored_day["habitat"] != authored_night["habitat"]
+            or authored_day["habitat"] not in config.mon_types
+            or authored_day["habitat"] not in encounter_by_label[day_label]
+            or authored_night["habitat"] not in encounter_by_label[night_label]
             or authored_day["authority"] != "content"
             or authored_night["authority"] != "content"
             or authored_day["time"] != "TIME_DAY"
@@ -1000,9 +1013,9 @@ def _load_time_policies(path, profiles, encounters, config):
             raise ValidationError(f"{location}: invalid typed encounter profile")
         day_start = _parse_policy_clock(row["dayStart"], f"{location}/dayStart")
         night_start = _parse_policy_clock(row["nightStart"], f"{location}/nightStart")
-        if day_start >= night_start:
+        if day_start != 6 * 60 or night_start != 18 * 60:
             raise ValidationError(
-                f"{location}: daytime interval must not wrap midnight"
+                f"{location}: dayStart and nightStart must be 06:00 and 18:00"
             )
         policy = {
             "header": day_profile["header"],
@@ -1017,10 +1030,6 @@ def _load_time_policies(path, profiles, encounters, config):
         labels[day_label] = {"time": policy["day_time"], "policy": policy}
         labels[night_label] = {"time": policy["night_time"], "policy": policy}
         policies.append(policy)
-    if policy_by_map != REQUIRED_RUNTIME_TIME_POLICIES:
-        raise ValidationError(
-            f"{path}: runtime encounter time policy does not match reviewed authority"
-        )
     if set(authored_profile_by_label) != set(labels):
         raise ValidationError(
             f"{path}: encounterProfiles must exactly match profiles consumed by "
@@ -1072,9 +1081,16 @@ def _load_authored_bands(
         label = _require_identifier(row["label"], f"{location}/label")
         header = _require_identifier(row["header"], f"{location}/header")
         profile = profile_by_label.get(label)
-        if profile is None or label not in runtime_labels:
+        if profile is None:
             raise ValidationError(f"{location}/label: unknown canonical profile")
-        if profile["header"] != header or header not in header_indices:
+        emits_runtime = label in runtime_labels
+        if not emits_runtime and profile["alternate_of"] is not None:
+            raise ValidationError(f"{location}/label: unknown canonical profile")
+        if (
+            profile["header"] != header
+            or emits_runtime
+            and header not in header_indices
+        ):
             raise ValidationError(f"{location}/header: unknown canonical header")
 
         method = row["method"]
@@ -1223,6 +1239,12 @@ def _load_authored_bands(
         if missing_policy == "floor" and 0 not in tier_ids:
             raise ValidationError(f"{location}/tiers: floor policy requires tier 0")
         tiers.sort(key=lambda tier: tier["tier"])
+        # Canonical day/night profiles can be inactive in supported builds where
+        # time encounters are disabled or the configured fallback collides with
+        # an explicit time slot. Validate their authored data above, but emit only
+        # identities selected by this build's runtime configuration.
+        if not emits_runtime:
+            continue
         identity = (
             header_indices[header],
             METHOD_AREAS[method],
@@ -1618,7 +1640,7 @@ def generate(
     species = _load_species(species_path)
     profiles = validate_inputs(encounters, registry, config, maps, species)
     time_policy_labels, time_policy_headers = _load_time_policies(
-        time_policies_path, profiles, encounters, config
+        time_policies_path, profiles, encounters, config, maps
     )
     _select_runtime_profiles(profiles, config, time_policy_labels)
     authored_profiles = _load_authored_bands(

@@ -1,0 +1,1283 @@
+{
+  "schema_version": 1,
+  "encounterProfiles": [
+    {
+      "map": "NewBarkTown",
+      "label": "gNewBarkTown",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "NewBarkTown",
+      "label": "gNewBarkTown_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route29",
+      "label": "gRoute29",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route29",
+      "label": "gRoute29_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "CherrygroveCity",
+      "label": "gCherrygroveCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "CherrygroveCity",
+      "label": "gCherrygroveCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route28",
+      "label": "gRoute28",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route28",
+      "label": "gRoute28_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route30",
+      "label": "gRoute30",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route30",
+      "label": "gRoute30_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route31",
+      "label": "gRoute31",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route31",
+      "label": "gRoute31_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route32",
+      "label": "gRoute32",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route32",
+      "label": "gRoute32_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "VioletCity",
+      "label": "gVioletCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "VioletCity",
+      "label": "gVioletCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "label": "gRuinsOfAlph",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "label": "gRuinsOfAlph_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "SproutTower_2F",
+      "label": "gSproutTower_2",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "SproutTower_2F",
+      "label": "gSproutTower_2_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "SproutTower_3F",
+      "label": "gSproutTower_3",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "SproutTower_3F",
+      "label": "gSproutTower_3_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route33",
+      "label": "gRoute33",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route33",
+      "label": "gRoute33_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route34",
+      "label": "gRoute34",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route34",
+      "label": "gRoute34_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IlexForest",
+      "label": "gIlexForest",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IlexForest",
+      "label": "gIlexForest_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route35",
+      "label": "gRoute35",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route35",
+      "label": "gRoute35_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route36",
+      "label": "gRoute36",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route36",
+      "label": "gRoute36_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route37",
+      "label": "gRoute37",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route37",
+      "label": "gRoute37_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "label": "gNationalPark",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "label": "gNationalPark_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "EcruteakCity",
+      "label": "gEcruteakCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "EcruteakCity",
+      "label": "gEcruteakCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route38",
+      "label": "gRoute38",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route38",
+      "label": "gRoute38_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "label": "gBurnedTower_1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "label": "gBurnedTower_1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "label": "gBurnedTower_B1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "label": "gBurnedTower_B1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "OlivineCity",
+      "label": "gOlivineCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "OlivineCity",
+      "label": "gOlivineCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "label": "gOlivineCity_PortOutside",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "label": "gOlivineCity_PortOutside_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "label": "gWhirlIslands_1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "label": "gWhirlIslands_1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "label": "gWhirlIslands_B1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "label": "gWhirlIslands_B1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "label": "gWhirlIslands_B2F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "label": "gWhirlIslands_B2F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "CianwoodCity",
+      "label": "gCianwoodCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "CianwoodCity",
+      "label": "gCianwoodCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route42",
+      "label": "gRoute42",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route42",
+      "label": "gRoute42_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route43",
+      "label": "gRoute43",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route43",
+      "label": "gRoute43_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route44",
+      "label": "gRoute44",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route44",
+      "label": "gRoute44_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "label": "gMtMortar_1F_North",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "label": "gMtMortar_1F_North_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "label": "gMtMortar_1F_South",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "label": "gMtMortar_1F_South_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtMortar_2F",
+      "label": "gMtMortar_2F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtMortar_2F",
+      "label": "gMtMortar_2F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "label": "gMtMortar_B1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "label": "gMtMortar_B1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "BlackthornCity",
+      "label": "gBlackthornCity",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "BlackthornCity",
+      "label": "gBlackthornCity_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route46",
+      "label": "gRoute46",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route46",
+      "label": "gRoute46_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IcePath_1F",
+      "label": "gIcePath_1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IcePath_1F",
+      "label": "gIcePath_1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IcePath_B1F",
+      "label": "gIcePath_B1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IcePath_B1F",
+      "label": "gIcePath_B1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IcePath_B2F",
+      "label": "gIcePath_B2F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IcePath_B2F",
+      "label": "gIcePath_B2F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IcePath_B3F",
+      "label": "gIcePath_B3F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IcePath_B3F",
+      "label": "gIcePath_B3F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "IcePath_B4F",
+      "label": "gIcePath_B4F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "IcePath_B4F",
+      "label": "gIcePath_B4F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "label": "gDragonsDen_Cavern",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "label": "gDragonsDen_Cavern_Night",
+      "habitat": "water_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "label": "gDarkCave2",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "label": "gDarkCave2_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "label": "gMtSilver",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "label": "gMtSilver_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "label": "gMtSilver_1F_WaterfallRoom",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "label": "gMtSilver_1F_WaterfallRoom_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "label": "gMtSilver_1F_MoltresRoom",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "label": "gMtSilver_1F_MoltresRoom_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "label": "gMtSilver_1F_ItemRoom",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "label": "gMtSilver_1F_ItemRoom_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "label": "gMtSilver_MountainSide",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "label": "gMtSilver_MountainSide_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "label": "gMtSilver_Snow",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "label": "gMtSilver_Snow_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route26",
+      "label": "gRoute26",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route26",
+      "label": "gRoute26_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route26North",
+      "label": "gRoute26North",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route26North",
+      "label": "gRoute26North_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route27",
+      "label": "gRoute27",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route27",
+      "label": "gRoute27_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "label": "gTohjoFalls",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "label": "gTohjoFalls_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "label": "gJohtoVictoryRoad_1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "label": "gJohtoVictoryRoad_1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "label": "gJohtoVictoryRoad_B1F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "label": "gJohtoVictoryRoad_B1F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "label": "gJohtoVictoryRoad_B2F",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "label": "gJohtoVictoryRoad_B2F_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    },
+    {
+      "map": "Route39",
+      "label": "gRoute39",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_DAY"
+    },
+    {
+      "map": "Route39",
+      "label": "gRoute39_Night",
+      "habitat": "land_mons",
+      "authority": "content",
+      "time": "TIME_NIGHT"
+    }
+  ],
+  "encounterTimePolicy": [
+    {
+      "map": "NewBarkTown",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gNewBarkTown",
+      "nightLabel": "gNewBarkTown_Night",
+      "fallbackLabel": "gNewBarkTown"
+    },
+    {
+      "map": "Route29",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute29",
+      "nightLabel": "gRoute29_Night",
+      "fallbackLabel": "gRoute29"
+    },
+    {
+      "map": "CherrygroveCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gCherrygroveCity",
+      "nightLabel": "gCherrygroveCity_Night",
+      "fallbackLabel": "gCherrygroveCity"
+    },
+    {
+      "map": "Route28",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute28",
+      "nightLabel": "gRoute28_Night",
+      "fallbackLabel": "gRoute28"
+    },
+    {
+      "map": "Route30",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute30",
+      "nightLabel": "gRoute30_Night",
+      "fallbackLabel": "gRoute30"
+    },
+    {
+      "map": "Route31",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute31",
+      "nightLabel": "gRoute31_Night",
+      "fallbackLabel": "gRoute31"
+    },
+    {
+      "map": "Route32",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute32",
+      "nightLabel": "gRoute32_Night",
+      "fallbackLabel": "gRoute32"
+    },
+    {
+      "map": "VioletCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gVioletCity",
+      "nightLabel": "gVioletCity_Night",
+      "fallbackLabel": "gVioletCity"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRuinsOfAlph",
+      "nightLabel": "gRuinsOfAlph_Night",
+      "fallbackLabel": "gRuinsOfAlph"
+    },
+    {
+      "map": "SproutTower_2F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gSproutTower_2",
+      "nightLabel": "gSproutTower_2_Night",
+      "fallbackLabel": "gSproutTower_2"
+    },
+    {
+      "map": "SproutTower_3F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gSproutTower_3",
+      "nightLabel": "gSproutTower_3_Night",
+      "fallbackLabel": "gSproutTower_3"
+    },
+    {
+      "map": "Route33",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute33",
+      "nightLabel": "gRoute33_Night",
+      "fallbackLabel": "gRoute33"
+    },
+    {
+      "map": "Route34",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute34",
+      "nightLabel": "gRoute34_Night",
+      "fallbackLabel": "gRoute34"
+    },
+    {
+      "map": "IlexForest",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIlexForest",
+      "nightLabel": "gIlexForest_Night",
+      "fallbackLabel": "gIlexForest"
+    },
+    {
+      "map": "Route35",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute35",
+      "nightLabel": "gRoute35_Night",
+      "fallbackLabel": "gRoute35"
+    },
+    {
+      "map": "Route36",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute36",
+      "nightLabel": "gRoute36_Night",
+      "fallbackLabel": "gRoute36"
+    },
+    {
+      "map": "Route37",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute37",
+      "nightLabel": "gRoute37_Night",
+      "fallbackLabel": "gRoute37"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gNationalPark",
+      "nightLabel": "gNationalPark_Night",
+      "fallbackLabel": "gNationalPark"
+    },
+    {
+      "map": "EcruteakCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gEcruteakCity",
+      "nightLabel": "gEcruteakCity_Night",
+      "fallbackLabel": "gEcruteakCity"
+    },
+    {
+      "map": "Route38",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute38",
+      "nightLabel": "gRoute38_Night",
+      "fallbackLabel": "gRoute38"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gBurnedTower_1F",
+      "nightLabel": "gBurnedTower_1F_Night",
+      "fallbackLabel": "gBurnedTower_1F"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gBurnedTower_B1F",
+      "nightLabel": "gBurnedTower_B1F_Night",
+      "fallbackLabel": "gBurnedTower_B1F"
+    },
+    {
+      "map": "OlivineCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gOlivineCity",
+      "nightLabel": "gOlivineCity_Night",
+      "fallbackLabel": "gOlivineCity"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gOlivineCity_PortOutside",
+      "nightLabel": "gOlivineCity_PortOutside_Night",
+      "fallbackLabel": "gOlivineCity_PortOutside"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gWhirlIslands_1F",
+      "nightLabel": "gWhirlIslands_1F_Night",
+      "fallbackLabel": "gWhirlIslands_1F"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gWhirlIslands_B1F",
+      "nightLabel": "gWhirlIslands_B1F_Night",
+      "fallbackLabel": "gWhirlIslands_B1F"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gWhirlIslands_B2F",
+      "nightLabel": "gWhirlIslands_B2F_Night",
+      "fallbackLabel": "gWhirlIslands_B2F"
+    },
+    {
+      "map": "CianwoodCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gCianwoodCity",
+      "nightLabel": "gCianwoodCity_Night",
+      "fallbackLabel": "gCianwoodCity"
+    },
+    {
+      "map": "Route42",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute42",
+      "nightLabel": "gRoute42_Night",
+      "fallbackLabel": "gRoute42"
+    },
+    {
+      "map": "Route43",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute43",
+      "nightLabel": "gRoute43_Night",
+      "fallbackLabel": "gRoute43"
+    },
+    {
+      "map": "Route44",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute44",
+      "nightLabel": "gRoute44_Night",
+      "fallbackLabel": "gRoute44"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtMortar_1F_North",
+      "nightLabel": "gMtMortar_1F_North_Night",
+      "fallbackLabel": "gMtMortar_1F_North"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtMortar_1F_South",
+      "nightLabel": "gMtMortar_1F_South_Night",
+      "fallbackLabel": "gMtMortar_1F_South"
+    },
+    {
+      "map": "MtMortar_2F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtMortar_2F",
+      "nightLabel": "gMtMortar_2F_Night",
+      "fallbackLabel": "gMtMortar_2F"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtMortar_B1F",
+      "nightLabel": "gMtMortar_B1F_Night",
+      "fallbackLabel": "gMtMortar_B1F"
+    },
+    {
+      "map": "BlackthornCity",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gBlackthornCity",
+      "nightLabel": "gBlackthornCity_Night",
+      "fallbackLabel": "gBlackthornCity"
+    },
+    {
+      "map": "Route46",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute46",
+      "nightLabel": "gRoute46_Night",
+      "fallbackLabel": "gRoute46"
+    },
+    {
+      "map": "IcePath_1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIcePath_1F",
+      "nightLabel": "gIcePath_1F_Night",
+      "fallbackLabel": "gIcePath_1F"
+    },
+    {
+      "map": "IcePath_B1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIcePath_B1F",
+      "nightLabel": "gIcePath_B1F_Night",
+      "fallbackLabel": "gIcePath_B1F"
+    },
+    {
+      "map": "IcePath_B2F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIcePath_B2F",
+      "nightLabel": "gIcePath_B2F_Night",
+      "fallbackLabel": "gIcePath_B2F"
+    },
+    {
+      "map": "IcePath_B3F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIcePath_B3F",
+      "nightLabel": "gIcePath_B3F_Night",
+      "fallbackLabel": "gIcePath_B3F"
+    },
+    {
+      "map": "IcePath_B4F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gIcePath_B4F",
+      "nightLabel": "gIcePath_B4F_Night",
+      "fallbackLabel": "gIcePath_B4F"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gDragonsDen_Cavern",
+      "nightLabel": "gDragonsDen_Cavern_Night",
+      "fallbackLabel": "gDragonsDen_Cavern"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gDarkCave2",
+      "nightLabel": "gDarkCave2_Night",
+      "fallbackLabel": "gDarkCave2"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver",
+      "nightLabel": "gMtSilver_Night",
+      "fallbackLabel": "gMtSilver"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver_1F_WaterfallRoom",
+      "nightLabel": "gMtSilver_1F_WaterfallRoom_Night",
+      "fallbackLabel": "gMtSilver_1F_WaterfallRoom"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver_1F_MoltresRoom",
+      "nightLabel": "gMtSilver_1F_MoltresRoom_Night",
+      "fallbackLabel": "gMtSilver_1F_MoltresRoom"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver_1F_ItemRoom",
+      "nightLabel": "gMtSilver_1F_ItemRoom_Night",
+      "fallbackLabel": "gMtSilver_1F_ItemRoom"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver_MountainSide",
+      "nightLabel": "gMtSilver_MountainSide_Night",
+      "fallbackLabel": "gMtSilver_MountainSide"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gMtSilver_Snow",
+      "nightLabel": "gMtSilver_Snow_Night",
+      "fallbackLabel": "gMtSilver_Snow"
+    },
+    {
+      "map": "Route26",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute26",
+      "nightLabel": "gRoute26_Night",
+      "fallbackLabel": "gRoute26"
+    },
+    {
+      "map": "Route26North",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute26North",
+      "nightLabel": "gRoute26North_Night",
+      "fallbackLabel": "gRoute26North"
+    },
+    {
+      "map": "Route27",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute27",
+      "nightLabel": "gRoute27_Night",
+      "fallbackLabel": "gRoute27"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gTohjoFalls",
+      "nightLabel": "gTohjoFalls_Night",
+      "fallbackLabel": "gTohjoFalls"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gJohtoVictoryRoad_1F",
+      "nightLabel": "gJohtoVictoryRoad_1F_Night",
+      "fallbackLabel": "gJohtoVictoryRoad_1F"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gJohtoVictoryRoad_B1F",
+      "nightLabel": "gJohtoVictoryRoad_B1F_Night",
+      "fallbackLabel": "gJohtoVictoryRoad_B1F"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gJohtoVictoryRoad_B2F",
+      "nightLabel": "gJohtoVictoryRoad_B2F_Night",
+      "fallbackLabel": "gJohtoVictoryRoad_B2F"
+    },
+    {
+      "map": "Route39",
+      "dayStart": "06:00",
+      "nightStart": "18:00",
+      "dayLabel": "gRoute39",
+      "nightLabel": "gRoute39_Night",
+      "fallbackLabel": "gRoute39"
+    }
+  ]
+}

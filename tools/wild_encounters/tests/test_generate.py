@@ -29,7 +29,43 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.encounters_path = self.root / "wild_encounters.json"
         self.registry_path = self.root / "wild_encounter_registry.json"
         self.bands_path = self.root / "wild_encounter_bands.json"
+        self.time_policies_path = self.root / "wild_encounter_time_policies.json"
         self.output_path = self.root / "wild_encounters.h"
+        self.time_policies_path.write_text(
+            json.dumps(self.route39_time_policies()), encoding="utf-8"
+        )
+
+    @staticmethod
+    def route39_time_policies():
+        return {
+            "schema_version": 1,
+            "encounterProfiles": [
+                {
+                    "map": "Route39",
+                    "label": "gRoute39",
+                    "habitat": "land_mons",
+                    "authority": "content",
+                    "time": "TIME_DAY",
+                },
+                {
+                    "map": "Route39",
+                    "label": "gRoute39_Night",
+                    "habitat": "land_mons",
+                    "authority": "content",
+                    "time": "TIME_NIGHT",
+                },
+            ],
+            "encounterTimePolicy": [
+                {
+                    "map": "Route39",
+                    "dayStart": "06:00",
+                    "nightStart": "18:00",
+                    "dayLabel": "gRoute39",
+                    "nightLabel": "gRoute39_Night",
+                    "fallbackLabel": "gRoute39",
+                }
+            ],
+        }
 
     def test_ordinary_registry_arrays_are_not_public_runtime_authority(self):
         public_header = (ROOT / "include/wild_encounter.h").read_text(encoding="utf-8")
@@ -93,7 +129,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 else rtc_constants_path
             ),
             time_policies_path=(
-                generator.DEFAULT_TIME_POLICIES
+                self.time_policies_path
                 if time_policies_path is None
                 else time_policies_path
             ),
@@ -131,7 +167,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     else rtc_constants_path
                 ),
                 time_policies_path=(
-                    generator.DEFAULT_TIME_POLICIES
+                    self.time_policies_path
                     if time_policies_path is None
                     else time_policies_path
                 ),
@@ -385,28 +421,17 @@ class WildEncounterGenerationTests(unittest.TestCase):
 
     def test_proof_profiles_preserve_tier_zero_ecology_and_weights(self):
         profiles = self.bands["profiles"]
-        self.assertEqual(len(profiles), 11)
-        self.assertEqual(
-            {profile["label"] for profile in profiles},
+        self.assertEqual(len(profiles), 553)
+        self.assertTrue(
             {
                 "gRoute101",
                 "sVermilionCity_FireRed",
                 "gRoute39",
                 "gRoute39_Night",
                 "sOneIsland_FireRed",
-            },
+            }.issubset({profile["label"] for profile in profiles})
         )
-        self.assertEqual(
-            {
-                (
-                    profile["label"],
-                    profile["header"],
-                    profile["method"],
-                    profile["condition"],
-                    profile["fishing_rod"],
-                )
-                for profile in profiles
-            },
+        self.assertTrue(
             {
                 ("gRoute101", "gRoute101", "land_mons", "TIME_FALLBACK", "NONE"),
                 (
@@ -445,7 +470,18 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     )
                     for rod in ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
                 },
-            },
+            }.issubset(
+                {
+                    (
+                        profile["label"],
+                        profile["header"],
+                        profile["method"],
+                        profile["condition"],
+                        profile["fishing_rod"],
+                    )
+                    for profile in profiles
+                }
+            )
         )
         self.assertTrue(
             all(
@@ -495,20 +531,20 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 )
 
         output = self.generate()
-        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 11", output)
-        self.assertEqual(output.count(".missingBandPolicy ="), 11)
-        self.assertEqual(output.count(".totalWeight = 100,"), 44)
+        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 553", output)
+        self.assertEqual(output.count(".missingBandPolicy ="), 553)
+        self.assertEqual(output.count(".totalWeight = 100,"), 2_212)
 
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()
         profiles = self.registry["profiles"]
-        self.assertEqual(len(profiles), 409)
+        self.assertEqual(len(profiles), 546)
         self.assertEqual(
             {
                 residency: sum(row[3] == residency for row in profiles)
                 for residency in generator.RESIDENCIES
             },
-            {"hoenn": 135, "kanto": 132, "sevii": 132, "johto": 10},
+            {"hoenn": 135, "kanto": 132, "sevii": 132, "johto": 147},
         )
         self.assertIsNone(generator.PRODUCT_GUARD.search(output))
         self.assertEqual(output.count("const struct WildPokemonHeader "), 3)
@@ -714,6 +750,174 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.assertIn(".dayTime = TIME_DAY,", output)
         self.assertIn(".nightTime = TIME_NIGHT,", output)
 
+    def test_runtime_time_policies_accept_multiple_canonical_maps(self):
+        policy = self.route39_time_policies()
+        policy["encounterProfiles"].extend(
+            [
+                {
+                    "map": "Route29",
+                    "label": "gRoute29",
+                    "habitat": "land_mons",
+                    "authority": "content",
+                    "time": "TIME_DAY",
+                },
+                {
+                    "map": "Route29",
+                    "label": "gRoute29_Night",
+                    "habitat": "land_mons",
+                    "authority": "content",
+                    "time": "TIME_NIGHT",
+                },
+            ]
+        )
+        policy["encounterTimePolicy"].append(
+            {
+                "map": "Route29",
+                "dayStart": "06:00",
+                "nightStart": "18:00",
+                "dayLabel": "gRoute29",
+                "nightLabel": "gRoute29_Night",
+                "fallbackLabel": "gRoute29",
+            }
+        )
+        policy_path = self.root / "multiple-time-policies.json"
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+
+        output = self.generate(time_policies_path=policy_path)
+
+        route_29_start = output.index(".mapGroup = MAP_GROUP(MAP_ROUTE29),")
+        route_29_end = output.index(".mapGroup = ", route_29_start + 1)
+        route_29 = output[route_29_start:route_29_end]
+        self.assertRegex(
+            route_29,
+            re.compile(
+                r"\[TIME_DAY\].*?&gRoute29_LandMonsInfo.*?"
+                r"\[TIME_NIGHT\].*?&gRoute29_Night_LandMonsInfo",
+                re.DOTALL,
+            ),
+        )
+        self.assertEqual(output.count(".dayStartMinutes = 360,"), 2)
+        self.assertEqual(output.count(".nightStartMinutes = 1080,"), 2)
+
+    def test_runtime_time_policy_map_names_resolve_through_map_json_authority(self):
+        identities = (
+            ("Route26North", "MAP_ROUTE26NORTH", "gRoute26North"),
+            (
+                "JohtoVictoryRoad_1F",
+                "MAP_JOHTO_VICTORY_ROAD_1F",
+                "gJohtoVictoryRoad_1F",
+            ),
+        )
+        policy = {
+            "schema_version": 1,
+            "encounterProfiles": [],
+            "encounterTimePolicy": [],
+        }
+        profiles = []
+        encounters = {
+            "wild_encounter_groups": [{"encounters": []}],
+        }
+        for map_name, map_id, label in identities:
+            night_label = f"{label}_Night"
+            policy["encounterProfiles"].extend(
+                [
+                    {
+                        "map": map_name,
+                        "label": label,
+                        "habitat": "land_mons",
+                        "authority": "content",
+                        "time": "TIME_DAY",
+                    },
+                    {
+                        "map": map_name,
+                        "label": night_label,
+                        "habitat": "land_mons",
+                        "authority": "content",
+                        "time": "TIME_NIGHT",
+                    },
+                ]
+            )
+            policy["encounterTimePolicy"].append(
+                {
+                    "map": map_name,
+                    "dayStart": "06:00",
+                    "nightStart": "18:00",
+                    "dayLabel": label,
+                    "nightLabel": night_label,
+                    "fallbackLabel": label,
+                }
+            )
+            profiles.extend(
+                [
+                    {
+                        "group": "gWildMonHeaders",
+                        "label": label,
+                        "header": label,
+                        "time": generator.FALLBACK_TIME_ROLE,
+                        "alternate_of": None,
+                    },
+                    {
+                        "group": "gWildMonHeaders",
+                        "label": night_label,
+                        "header": label,
+                        "time": "TIME_NIGHT",
+                        "alternate_of": None,
+                    },
+                ]
+            )
+            encounters["wild_encounter_groups"][0]["encounters"].extend(
+                [
+                    {"base_label": label, "map": map_id},
+                    {"base_label": night_label, "map": map_id},
+                ]
+            )
+
+        policy_path = self.root / "canonical-map-time-policies.json"
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        config = generator.Config(
+            generator.DEFAULT_CONFIG,
+            generator.DEFAULT_RTC_CONSTANTS,
+            self.encounters,
+        )
+        maps = generator._load_map_authority(
+            generator.DEFAULT_MAP_GROUPS,
+            generator.DEFAULT_MAPS_ROOT,
+            generator.DEFAULT_MAP_SECTIONS,
+        )
+
+        labels, headers = generator._load_time_policies(
+            policy_path, profiles, encounters, config, maps
+        )
+
+        self.assertEqual(set(headers), {identity[2] for identity in identities})
+        self.assertEqual(
+            {label: value["time"] for label, value in labels.items()},
+            {
+                **{identity[2]: "TIME_DAY" for identity in identities},
+                **{f"{identity[2]}_Night": "TIME_NIGHT" for identity in identities},
+            },
+        )
+
+        for map_name, _, label in identities:
+            wrong_map_id = (
+                "MAP_ROUTE26_NORTH"
+                if map_name == "Route26North"
+                else "MAP_JOHTO_VICTORY_ROAD_1_F"
+            )
+            with self.subTest(map_name=map_name, wrong_map_id=wrong_map_id):
+                invalid_encounters = copy.deepcopy(encounters)
+                next(
+                    encounter
+                    for encounter in invalid_encounters["wild_encounter_groups"][0][
+                        "encounters"
+                    ]
+                    if encounter["base_label"] == label
+                )["map"] = wrong_map_id
+                with self.assertRaises(generator.ValidationError):
+                    generator._load_time_policies(
+                        policy_path, profiles, invalid_encounters, config, maps
+                    )
+
     def test_compiled_route39_policy_resolves_every_minute_and_boundaries(self):
         source = self.root / "route39_policy_test.c"
         executable = self.root / "route39_policy_test"
@@ -779,9 +983,9 @@ int main(void)
         subprocess.run([str(executable)], check=True)
 
     def test_invalid_route39_runtime_policy_fails_before_output_replacement(self):
-        policy = json.loads(generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8"))
+        policy = self.route39_time_policies()
         policy["encounterTimePolicy"][0]["nightStart"] = "24:00"
-        policy_path = self.root / "invalid-adaptations.json"
+        policy_path = self.root / "invalid-time-policies.json"
         policy_path.write_text(json.dumps(policy), encoding="utf-8")
         self.assert_rejected_without_replacement(time_policies_path=policy_path)
 
@@ -789,7 +993,30 @@ int main(void)
         policy_path.write_text(json.dumps(policy), encoding="utf-8")
         self.assert_rejected_without_replacement(time_policies_path=policy_path)
 
-        policy = json.loads(generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8"))
+        for field, value in (
+            ("dayStart", "05:59"),
+            ("nightStart", "18:01"),
+            ("fallbackLabel", "gRoute39_Night"),
+        ):
+            with self.subTest(field=field, value=value):
+                policy = self.route39_time_policies()
+                policy["encounterTimePolicy"][0][field] = value
+                policy_path.write_text(json.dumps(policy), encoding="utf-8")
+                self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        for schema_version in (True, 2):
+            with self.subTest(schema_version=schema_version):
+                policy = self.route39_time_policies()
+                policy["schema_version"] = schema_version
+                policy_path.write_text(json.dumps(policy), encoding="utf-8")
+                self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        policy = self.route39_time_policies()
+        policy["unexpected"] = []
+        policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+        policy = self.route39_time_policies()
         extra = copy.deepcopy(policy["encounterProfiles"][0])
         extra["label"] = "gUnconsumedRoute39Evidence"
         policy["encounterProfiles"].append(extra)
@@ -801,9 +1028,7 @@ int main(void)
             ("gRoute39_Night", "TIME_EVENING"),
         ):
             with self.subTest(label=label, wrong_time=wrong_time):
-                policy = json.loads(
-                    generator.DEFAULT_TIME_POLICIES.read_text(encoding="utf-8")
-                )
+                policy = self.route39_time_policies()
                 next(
                     profile
                     for profile in policy["encounterProfiles"]
