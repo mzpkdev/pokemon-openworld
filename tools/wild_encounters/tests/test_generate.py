@@ -177,6 +177,39 @@ class WildEncounterGenerationTests(unittest.TestCase):
             ],
         }
 
+    def authored_profile_with_distinct_species(self, method, count):
+        profile = copy.deepcopy(
+            next(
+                profile
+                for profile in self.bands["profiles"]
+                if profile["method"] == method
+            )
+        )
+        species = list(
+            dict.fromkeys(
+                mon["species"]
+                for group in self.encounters["wild_encounter_groups"]
+                for encounter in group["encounters"]
+                for mon_type in ("land_mons", "water_mons", "fishing_mons")
+                for mon in encounter.get(mon_type, {}).get("mons", [])
+                if mon["species"] not in generator.NON_ENCOUNTER_SPECIES
+            )
+        )[:count]
+        self.assertEqual(len(species), count)
+        for tier in profile["tiers"]:
+            min_level = tier["entries"][0]["min_level"]
+            max_level = tier["entries"][0]["max_level"]
+            tier["entries"] = [
+                {
+                    "species": species_id,
+                    "weight": 1,
+                    "min_level": min_level,
+                    "max_level": max_level,
+                }
+                for species_id in species
+            ]
+        return profile
+
     def test_authored_band_schema_rejects_invalid_values_atomically(self):
         def document(profile):
             return {"schema_version": 1, "profiles": [profile]}
@@ -258,6 +291,25 @@ class WildEncounterGenerationTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assert_rejected_without_replacement(
                     bands=document(invalid_profile)
+                )
+
+    def test_authored_land_and_water_tiers_enforce_dexnav_species_capacity(self):
+        for method, accepted_count, rejected_count in (
+            ("land_mons", 12, 13),
+            ("water_mons", 5, 6),
+        ):
+            with self.subTest(method=method, distinct_species=accepted_count):
+                profile = self.authored_profile_with_distinct_species(
+                    method, accepted_count
+                )
+                self.generate(bands={"schema_version": 1, "profiles": [profile]})
+
+            with self.subTest(method=method, distinct_species=rejected_count):
+                profile = self.authored_profile_with_distinct_species(
+                    method, rejected_count
+                )
+                self.assert_rejected_without_replacement(
+                    bands={"schema_version": 1, "profiles": [profile]}
                 )
 
     def test_floor_bands_emit_ordered_tiers_for_greatest_lte_resolution(self):

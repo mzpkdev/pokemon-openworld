@@ -68,6 +68,10 @@ MAP_IDENTIFIER = re.compile(r"^MAP_[A-Z0-9_]+$")
 SPECIES_IDENTIFIER = re.compile(r"^SPECIES_[A-Z0-9_]+$")
 MAX_WORLD_TIER = 3
 MAX_BAND_TOTAL_WEIGHT = 0xFFFF
+MAX_AUTHORED_TIER_DISTINCT_SPECIES = {
+    "land_mons": 12,
+    "water_mons": 5,
+}
 METHOD_AREAS = {
     "land_mons": "WILD_AREA_LAND",
     "water_mons": "WILD_AREA_WATER",
@@ -1178,6 +1182,16 @@ def _load_authored_bands(
                         "min_level": min_level,
                         "max_level": max_level,
                     }
+                )
+            distinct_species_limit = MAX_AUTHORED_TIER_DISTINCT_SPECIES.get(method)
+            distinct_species_count = len({entry["species"] for entry in entries})
+            if (
+                distinct_species_limit is not None
+                and distinct_species_count > distinct_species_limit
+            ):
+                raise ValidationError(
+                    f"{tier_location}: {method} has {distinct_species_count} distinct "
+                    f"species; maximum is {distinct_species_limit}"
                 )
             tiers.append(
                 {"tier": tier, "entries": entries, "total_weight": total_weight}
