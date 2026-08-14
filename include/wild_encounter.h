@@ -149,6 +149,7 @@ enum TimeOfDay ResolveWildEncounterDisplayTime(u16 headerId, enum TimeOfDay disp
 bool32 TryGetWildEncounterInfo(u16 headerId, enum WildPokemonArea area, const struct WildPokemonInfo **info);
 bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, enum TimeOfDay timeOfDay, u8 fishingRod, enum WorldTier tier, struct WildEncounterProfileView *view);
 bool32 TryResolveWildEncounterAuthoredBand(const struct WildEncounterAuthoredProfile *profile, enum WorldTier tier, const struct WildEncounterAuthoredBand **band);
+bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *view);
 bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterAuthoredEntry *entry);
 bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterAuthoredEntry *entry);
 bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterAuthoredEntry *entry, u16 rangeRoll, bool32 lureActive, u8 *level);

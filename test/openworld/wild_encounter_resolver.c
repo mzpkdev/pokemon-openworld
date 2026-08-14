@@ -86,6 +86,8 @@ TEST("Authored weighted selection honors every boundary")
     {
         .source = WILD_ENCOUNTER_PROFILE_AUTHORED,
         .area = WILD_AREA_LAND,
+        .fishingRod = WILD_ENCOUNTER_FISHING_ROD_NONE,
+        .encounterRate = 1,
         .entryCount = ARRAY_COUNT(sEntries),
         .totalWeight = 100,
         .authoredEntries = sEntries,
@@ -117,6 +119,8 @@ TEST("Authored levels are inclusive and Lure caps one above maximum")
     {
         .source = WILD_ENCOUNTER_PROFILE_AUTHORED,
         .area = WILD_AREA_LAND,
+        .fishingRod = WILD_ENCOUNTER_FISHING_ROD_NONE,
+        .encounterRate = 1,
         .entryCount = ARRAY_COUNT(sEntries),
         .totalWeight = 100,
         .authoredEntries = sEntries,
@@ -125,6 +129,8 @@ TEST("Authored levels are inclusive and Lure caps one above maximum")
     {
         .source = WILD_ENCOUNTER_PROFILE_AUTHORED,
         .area = WILD_AREA_LAND,
+        .fishingRod = WILD_ENCOUNTER_FISHING_ROD_NONE,
+        .encounterRate = 1,
         .entryCount = 1,
         .totalWeight = 100,
         .authoredEntries = &capped,
@@ -225,6 +231,114 @@ TEST("Vermilion rods use the same world tier band without offsets")
         EXPECT_EQ(entry.minLevel, 15);
         EXPECT_EQ(entry.maxLevel, 19);
     }
+}
+
+TEST("Malformed profile views fail closed without canary or RNG mutation")
+{
+    struct WildEncounterProfileView authored;
+    struct WildEncounterProfileView legacy;
+    struct WildEncounterProfileView malformed;
+    struct WildEncounterAuthoredEntry entry = {SPECIES_ZUBAT, 77, 7, 8};
+    struct WildEncounterAuthoredEntry invalidEntry;
+    struct WildEncounterAuthoredEntry unrelatedEntry = {SPECIES_PIDGEY, 1, 4, 4};
+    u16 authoredHeader = FindHeader(MAP_ROUTE101);
+    u16 legacyHeader = FindHeader(MAP_ROUTE102);
+    enum TimeOfDay legacyTime = GetTimeOfDayForEncounters(legacyHeader, WILD_AREA_LAND);
+    u16 expectedRandom;
+    u16 actualRandom;
+    u8 level = 77;
+
+    EXPECT(TryResolveWildEncounterProfile(authoredHeader, WILD_AREA_LAND, TIME_MORNING, WILD_ENCOUNTER_FISHING_ROD_NONE, WORLD_TIER_0, &authored));
+    EXPECT(TryResolveWildEncounterProfile(legacyHeader, WILD_AREA_LAND, legacyTime, WILD_ENCOUNTER_FISHING_ROD_NONE, WORLD_TIER_0, &legacy));
+    EXPECT(IsWildEncounterProfileViewValid(&authored));
+    EXPECT(IsWildEncounterProfileViewValid(&legacy));
+
+    EXPECT(!IsWildEncounterProfileViewValid(NULL));
+    EXPECT(!TryGetWildEncounterProfileEntry(NULL, 0, &entry));
+    EXPECT(!TrySelectWildEncounterProfileEntry(NULL, 0, &entry));
+    EXPECT(!TrySelectWildEncounterLevel(NULL, &unrelatedEntry, 0, FALSE, &level));
+    EXPECT(!TryGenerateWildMonFromProfile(NULL, 0));
+    EXPECT_EQ(entry.species, SPECIES_ZUBAT);
+    EXPECT_EQ(level, 77);
+
+    malformed = authored;
+    malformed.entryCount = 0;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    EXPECT(!TryGetWildEncounterProfileEntry(&malformed, 0, &entry));
+    EXPECT_EQ(entry.species, SPECIES_ZUBAT);
+    malformed = authored;
+    malformed.totalWeight = 0;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = authored;
+    malformed.encounterRate = 0;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+
+    malformed = authored;
+    malformed.legacyEntries = (void *)1;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = authored;
+    malformed.authoredEntries = NULL;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = authored;
+    malformed.source = (enum WildEncounterProfileSource)2;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = authored;
+    malformed.area = WILD_AREA_HIDDEN;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = authored;
+    malformed.fishingRod = OLD_ROD;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+
+    invalidEntry = authored.authoredEntries[0];
+    malformed = authored;
+    malformed.entryCount = 1;
+    malformed.totalWeight = invalidEntry.weight;
+    malformed.authoredEntries = &invalidEntry;
+    EXPECT(IsWildEncounterProfileViewValid(&malformed));
+    invalidEntry.weight = 0;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    invalidEntry = authored.authoredEntries[0];
+    malformed.totalWeight = invalidEntry.weight + 1;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed.totalWeight = invalidEntry.weight;
+    invalidEntry.maxLevel = MAX_LEVEL + 1;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+
+    malformed = legacy;
+    malformed.legacyStartIndex++;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = legacy;
+    malformed.entryCount--;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = legacy;
+    malformed.totalWeight--;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+    malformed = legacy;
+    malformed.authoredEntries = authored.authoredEntries;
+    EXPECT(!IsWildEncounterProfileViewValid(&malformed));
+
+    entry.species = SPECIES_ZUBAT;
+    EXPECT(!TryGetWildEncounterProfileEntry(&authored, authored.entryCount, &entry));
+    EXPECT_EQ(entry.species, SPECIES_ZUBAT);
+    EXPECT(!TrySelectWildEncounterProfileEntry(&authored, authored.totalWeight, &entry));
+    EXPECT_EQ(entry.species, SPECIES_ZUBAT);
+    malformed = authored;
+    malformed.entryCount = 0xFFFF;
+    malformed.totalWeight = 1;
+    EXPECT(!TryGetWildEncounterProfileEntry(&malformed, 0, &entry));
+    EXPECT_EQ(entry.species, SPECIES_ZUBAT);
+
+    EXPECT(!TrySelectWildEncounterLevel(&authored, &unrelatedEntry, 0, FALSE, &level));
+    EXPECT_EQ(level, 77);
+
+    malformed = authored;
+    malformed.entryCount = 0;
+    SeedRng(4321);
+    expectedRandom = Random();
+    SeedRng(4321);
+    EXPECT(!TryGenerateWildMonFromProfile(&malformed, 0));
+    actualRandom = Random();
+    EXPECT_EQ(actualRandom, expectedRandom);
 }
 
 TEST("Resolver failures preserve outputs and queries consume no RNG")
