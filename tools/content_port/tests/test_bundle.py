@@ -164,6 +164,38 @@ class BundleTests(unittest.TestCase):
                 OwnershipManifest("test", ()),
             )
 
+    def test_bundle_releases_verified_file_without_deleting_its_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            repo = base / "repo"
+            repo.mkdir()
+            self.make_repo(repo)
+            original = b"target-owned after release\x00\xff"
+            (repo / "released.bin").write_bytes(original)
+            installed = OwnershipManifest(
+                "test",
+                (OwnershipUnit("file", "released.bin", content_sha256(original)),),
+            )
+            self.install_manifest(repo, installed)
+
+            artifacts = build_bundle(
+                repo,
+                base / "bundle",
+                OwnershipManifest("test", ()),
+                {},
+                validation_commands=[],
+                released_files=("released.bin",),
+            )
+            applied = self.apply_bundle_patch(repo, artifacts.patch, base / "applied")
+
+            self.assertEqual((applied / "released.bin").read_bytes(), original)
+            self.assertEqual(
+                OwnershipManifest.load(
+                    applied / "tools/content_port/ports/test/ownership.json"
+                ),
+                OwnershipManifest("test", ()),
+            )
+
     def test_bundle_adds_desired_units_absent_from_installed_tree(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)

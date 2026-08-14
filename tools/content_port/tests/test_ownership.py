@@ -98,6 +98,111 @@ class OwnershipTests(unittest.TestCase):
             self.assertEqual((root / "new").read_bytes(), b"new")
             self.assertEqual((root / "hand").read_bytes(), b"keep")
 
+    def test_explicit_file_release_retains_verified_bytes_and_drops_ownership(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            original = b"exact generated preimage\x00\xff"
+            (root / "released").write_bytes(original)
+            old = OwnershipManifest("test", (file_unit("released", original),))
+
+            desired = OwnershipManifest("test", ())
+            reconcile_owned(
+                root,
+                old,
+                desired,
+                {},
+                released_files=("released",),
+            )
+
+            self.assertEqual((root / "released").read_bytes(), original)
+            self.assertNotIn(("file", "released"), desired.by_identity)
+
+    def test_file_release_rejects_tampered_baseline_before_handoff(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "released").write_bytes(b"tampered")
+            old = OwnershipManifest("test", (file_unit("released", b"expected"),))
+
+            with self.assertRaisesRegex(ContentPortError, "unexpected edit"):
+                reconcile_owned(
+                    root,
+                    old,
+                    OwnershipManifest("test", ()),
+                    {},
+                    released_files=("released",),
+                )
+            self.assertEqual((root / "released").read_bytes(), b"tampered")
+
+    def test_file_release_does_not_retain_other_stale_or_renamed_units(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for path in ("released", "removed", "renamed"):
+                (root / path).write_bytes(path.encode())
+            old = OwnershipManifest(
+                "test",
+                tuple(
+                    file_unit(path, path.encode())
+                    for path in ("released", "removed", "renamed")
+                ),
+            )
+            replacement = file_unit("replacement", b"new")
+
+            reconcile_owned(
+                root,
+                old,
+                OwnershipManifest("test", (replacement,)),
+                {replacement.identity: b"new"},
+                released_files=("released",),
+            )
+
+            self.assertTrue((root / "released").is_file())
+            self.assertFalse((root / "removed").exists())
+            self.assertFalse((root / "renamed").exists())
+            self.assertEqual((root / "replacement").read_bytes(), b"new")
+
+    def test_file_release_must_name_unique_stale_full_file_ownership(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "owned").write_bytes(b"old")
+            old = OwnershipManifest("test", (file_unit("owned", b"old"),))
+            desired = OwnershipManifest("test", (file_unit("owned", b"new"),))
+            for releases, message in (
+                (("missing",), "not stale full-file ownership"),
+                (("owned",), "still has desired ownership"),
+                (("missing", "missing"), "duplicate released file"),
+            ):
+                with self.subTest(releases=releases):
+                    with self.assertRaisesRegex(ContentPortError, message):
+                        reconcile_owned(
+                            root,
+                            old,
+                            desired,
+                            {("file", "owned"): b"new"},
+                            released_files=releases,
+                        )
+
+            section = (
+                b"CONTENT PORT BEGIN test:part\nvalue\nCONTENT PORT END test:part\n"
+            )
+            desired_section = OwnershipUnit(
+                "section",
+                "owned",
+                content_sha256(section),
+                name="part",
+            )
+            with self.assertRaisesRegex(
+                ContentPortError, "still has desired ownership"
+            ):
+                reconcile_owned(
+                    root,
+                    old,
+                    OwnershipManifest("test", (desired_section,)),
+                    {desired_section.identity: section},
+                    released_files=("owned",),
+                )
+
     def test_sections_replace_exactly_without_touching_hand_text(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

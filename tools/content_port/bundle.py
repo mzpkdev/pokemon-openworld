@@ -12,7 +12,7 @@ from pathlib import Path
 from pathlib import PurePosixPath
 import shutil
 import tempfile
-from typing import Callable, Mapping, Sequence
+from typing import Callable, Iterable, Mapping, Sequence
 
 from .errors import ContentPortError
 from .faults import checkpoint
@@ -149,6 +149,7 @@ def build_bundle(
     revision: str = "HEAD",
     checked_manifest_path: str | None = None,
     prepare: Callable[[Path], None] | None = None,
+    released_files: Iterable[str] = (),
 ) -> BundleArtifacts:
     """Build desired artifacts against installed ownership in the base revision."""
 
@@ -188,7 +189,13 @@ def build_bundle(
         )
         if prepare is not None:
             prepare(staging)
-        reconcile_owned(staging, installed, desired, payloads)
+        reconcile_owned(
+            staging,
+            installed,
+            desired,
+            payloads,
+            released_files=released_files,
+        )
         desired.write(manifest_path)
         desired_patch = deterministic_patch(staging)
         run_validation_commands(staging, commands)

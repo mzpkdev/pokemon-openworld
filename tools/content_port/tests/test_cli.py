@@ -258,6 +258,10 @@ class CliTests(unittest.TestCase):
                 return_value=(desired, payloads),
             ) as derive,
             patch(
+                "tools.content_port.materialize.derive_released_map_files",
+                return_value=frozenset({"released.txt"}),
+            ) as derive_releases,
+            patch(
                 "tools.content_port.bundle.build_bundle",
                 return_value=SimpleNamespace(sha256="a" * 64),
             ) as build,
@@ -275,6 +279,7 @@ class CliTests(unittest.TestCase):
             source / "tools/content_port/ports/fixture",
         )
         derive.assert_called_once_with(descriptor, source)
+        derive_releases.assert_called_once_with(descriptor, source, desired)
         build.assert_called_once_with(
             self.repo,
             output,
@@ -282,6 +287,7 @@ class CliTests(unittest.TestCase):
             payloads,
             {"contract": report},
             revision=revision,
+            released_files=frozenset({"released.txt"}),
         )
 
     def test_bundle_keeps_captured_base_when_branch_advances_during_derivation(
@@ -307,6 +313,10 @@ class CliTests(unittest.TestCase):
             patch(
                 "tools.content_port.materialize.derive_desired_state",
                 side_effect=derive,
+            ),
+            patch(
+                "tools.content_port.materialize.derive_released_map_files",
+                return_value=frozenset(),
             ),
             patch(
                 "tools.content_port.bundle.build_bundle",
@@ -346,6 +356,10 @@ class CliTests(unittest.TestCase):
             patch(
                 "tools.content_port.materialize.derive_desired_state",
                 side_effect=derive,
+            ),
+            patch(
+                "tools.content_port.materialize.derive_released_map_files",
+                return_value=frozenset(),
             ),
             patch(
                 "tools.content_port.bundle.build_bundle",

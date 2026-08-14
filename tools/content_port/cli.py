@@ -184,7 +184,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
     require_no_active_transaction(repo)
     from .bundle import build_bundle
     from .descriptor import load_port
-    from .materialize import derive_desired_state
+    from .materialize import derive_desired_state, derive_released_map_files
     from .worktree import detached_worktree, git, require_clean_worktree
 
     require_clean_worktree(repo)
@@ -196,6 +196,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
         port_dir = _port_dir(source, port)
         descriptor = load_port(port_dir, donor_root.resolve())
         desired, payloads = derive_desired_state(descriptor, source)
+        released_files = derive_released_map_files(descriptor, source, desired)
     artifacts = build_bundle(
         repo,
         output,
@@ -205,6 +206,7 @@ def _bundle_current_state(repo: Path, port: str, donor_root: Path, output: Path)
             "contract": report,
         },
         revision=revision,
+        released_files=released_files,
     )
     return artifacts.sha256
 
