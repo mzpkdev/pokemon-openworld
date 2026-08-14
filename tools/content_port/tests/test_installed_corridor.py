@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 CORRIDOR = {
     "VermilionCity_Frlg",
     "VermilionCity_PortInside",
+    "SSAqua_1F",
     "OlivineCity_PortInside",
     "OlivineCity_PortOutside",
     "OlivineCity",
@@ -23,7 +24,10 @@ def _map(name: str) -> dict:
 
 
 def _script_warps(name: str) -> list[tuple[str, str, int, int]]:
-    script = (ROOT / f"data/maps/{name}/scripts.inc").read_text()
+    script_path = ROOT / f"data/maps/{name}/scripts.inc"
+    if not script_path.is_file():
+        return []
+    script = script_path.read_text()
     current_label = None
     warps = []
     for line in script.splitlines():
@@ -37,6 +41,72 @@ def _script_warps(name: str) -> list[tuple[str, str, int, int]]:
                 (current_label, warp.group(1), int(warp.group(2)), int(warp.group(3)))
             )
     return warps
+
+
+def _dynamic_warps(name: str) -> list[tuple[str, str, int, int]]:
+    script = (ROOT / f"data/maps/{name}/scripts.inc").read_text()
+    current_label = None
+    warps = []
+    for line in script.splitlines():
+        label = re.fullmatch(r"([A-Za-z0-9_]+)::", line)
+        if label:
+            current_label = label.group(1)
+            continue
+        warp = re.fullmatch(
+            r"\s*setdynamicwarp\s+(MAP_[A-Z0-9_]+),\s*([0-9]+),\s*([0-9]+)",
+            line,
+        )
+        if warp and current_label is not None:
+            warps.append(
+                (current_label, warp.group(1), int(warp.group(2)), int(warp.group(3)))
+            )
+    return warps
+
+
+def _paired_dynamic_transitions(
+    name: str,
+) -> list[tuple[str, str, int, int, str, int, int]]:
+    """Return an arm only when the next command is its ship transition."""
+
+    script_path = ROOT / f"data/maps/{name}/scripts.inc"
+    if not script_path.is_file():
+        return []
+    current_label = None
+    pending = None
+    pairs = []
+    for line in script_path.read_text().splitlines():
+        label = re.fullmatch(r"([A-Za-z0-9_]+)::", line)
+        if label:
+            current_label = label.group(1)
+            pending = None
+            continue
+        arm = re.fullmatch(
+            r"\s*setdynamicwarp\s+(MAP_[A-Z0-9_]+),\s*([0-9]+),\s*([0-9]+)",
+            line,
+        )
+        if arm and current_label is not None:
+            pending = (
+                current_label,
+                arm.group(1),
+                int(arm.group(2)),
+                int(arm.group(3)),
+            )
+            continue
+        transition = re.fullmatch(
+            r"\s*warp(?:silent)?\s+(MAP_[A-Z0-9_]+),\s*([0-9]+),\s*([0-9]+)",
+            line,
+        )
+        if transition and pending is not None:
+            pairs.append(
+                (
+                    *pending,
+                    transition.group(1),
+                    int(transition.group(2)),
+                    int(transition.group(3)),
+                )
+            )
+        pending = None
+    return pairs
 
 
 class InstalledCorridorTests(unittest.TestCase):
@@ -73,6 +143,18 @@ class InstalledCorridorTests(unittest.TestCase):
             destinations.extend(
                 destination for _, destination, _, _ in _script_warps(name)
             )
+            if any(
+                warp["dest_map"] == "MAP_DYNAMIC" for warp in document["warp_events"]
+            ):
+                dynamic_map = f"MAP_{name.upper()}"
+                destinations.extend(
+                    armed_destination
+                    for arming_map in CORRIDOR
+                    for _, armed_destination, _, _, immediate_destination, _, _ in _paired_dynamic_transitions(
+                        arming_map
+                    )
+                    if immediate_destination == dynamic_map
+                )
             adjacency[name].update(
                 name_by_id[destination]
                 for destination in destinations
@@ -158,23 +240,59 @@ class InstalledCorridorTests(unittest.TestCase):
                 }
             ],
         )
-        self.assertIn(
-            (
-                "VermilionCity_PortInside_EventScript_TravelToOlivine",
-                "MAP_OLIVINE_CITY_PORT_INSIDE",
-                8,
-                16,
-            ),
-            _script_warps("VermilionCity_PortInside"),
+        self.assertEqual(
+            _dynamic_warps("VermilionCity_PortInside"),
+            [
+                (
+                    "VermilionCity_PortInside_EventScript_TravelToOlivine",
+                    "MAP_OLIVINE_CITY_PORT_INSIDE",
+                    8,
+                    16,
+                )
+            ],
         )
-        self.assertIn(
-            (
-                "OlivineCity_PortInside_EventScript_TravelToVermilion",
-                "MAP_VERMILION_CITY_PORT_INSIDE",
-                8,
-                9,
-            ),
+        self.assertEqual(
+            _script_warps("VermilionCity_PortInside"),
+            [
+                (
+                    "VermilionCity_PortInside_EventScript_TravelToOlivine",
+                    "MAP_SSAQUA_1F",
+                    29,
+                    3,
+                )
+            ],
+        )
+        self.assertEqual(
+            _dynamic_warps("OlivineCity_PortInside"),
+            [
+                (
+                    "OlivineCity_PortInside_EventScript_TravelToVermilion",
+                    "MAP_VERMILION_CITY_PORT_INSIDE",
+                    8,
+                    9,
+                )
+            ],
+        )
+        self.assertEqual(
             _script_warps("OlivineCity_PortInside"),
+            [
+                (
+                    "OlivineCity_PortInside_EventScript_TravelToVermilion",
+                    "MAP_SSAQUA_1F",
+                    29,
+                    3,
+                )
+            ],
+        )
+        self.assertEqual(
+            _map("SSAqua_1F")["warp_events"][0],
+            {
+                "x": 29,
+                "y": 1,
+                "elevation": 0,
+                "dest_map": "MAP_DYNAMIC",
+                "dest_warp_id": "WARP_ID_DYNAMIC",
+            },
         )
         self.assertEqual(
             _map("OlivineCity_PortInside")["warp_events"],
@@ -242,6 +360,62 @@ class InstalledCorridorTests(unittest.TestCase):
                 }
             ],
         )
+
+    def test_vermilion_dock_enters_berth_without_ticket_triggers(self) -> None:
+        vermilion = _map("VermilionCity_Frlg")
+        self.assertEqual(
+            vermilion["warp_events"][:3],
+            [
+                {
+                    "x": x,
+                    "y": 34,
+                    "elevation": 3,
+                    "dest_map": "MAP_VERMILION_CITY_PORT_INSIDE",
+                    "dest_warp_id": "0",
+                }
+                for x in (22, 23, 24)
+            ],
+        )
+        self.assertEqual(vermilion["coord_events"], [])
+
+    def test_ss_anne_is_registered_but_has_no_ordinary_world_inbound_edge(self) -> None:
+        anne_maps = {
+            path.parent.name for path in ROOT.glob("data/maps/SSAnne*/map.json")
+        }
+        self.assertTrue(anne_maps)
+
+        map_groups = json.loads((ROOT / "data/maps/map_groups.json").read_text())
+        registered_maps = {
+            name
+            for group in map_groups.values()
+            if isinstance(group, list)
+            for name in group
+        }
+        self.assertLessEqual(anne_maps, registered_maps)
+
+        layouts = json.loads((ROOT / "data/layouts/layouts.json").read_text())[
+            "layouts"
+        ]
+        registered_layouts = {layout["id"] for layout in layouts}
+        scripts = (ROOT / "data/event_scripts.s").read_text()
+        for name in anne_maps:
+            document = _map(name)
+            self.assertIn(document["layout"], registered_layouts)
+            self.assertIn(f'"data/maps/{name}/scripts.inc"', scripts)
+
+        inbound = []
+        for path in ROOT.glob("data/maps/*/map.json"):
+            source = path.parent.name
+            if source in anne_maps:
+                continue
+            document = json.loads(path.read_text())
+            for index, warp in enumerate(document.get("warp_events") or []):
+                if warp["dest_map"].startswith("MAP_SSANNE_"):
+                    inbound.append((source, "warp", index, warp["dest_map"]))
+            for label, destination, x, y in _script_warps(source):
+                if destination.startswith("MAP_SSANNE_"):
+                    inbound.append((source, label, x, y, destination))
+        self.assertEqual(inbound, [])
 
     def test_route39_installs_only_exact_eugene_object_and_script(self) -> None:
         document = _map("Route39")

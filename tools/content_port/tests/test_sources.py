@@ -130,7 +130,10 @@ class SourceGraphTests(unittest.TestCase):
                     f" warp MAP_{destination}, {x}, {y}\n end\n",
                     encoding="utf-8",
                 )
-            evidence, entries = _extract_preserved_script_warps(maps, ownership, root)
+            evidence, entries, arms = _extract_preserved_script_warps(
+                maps, ownership, root
+            )
+            self.assertEqual(arms, ())
             graph = with_script_warps(world_graph_from_maps(maps), evidence)
             declarations = [
                 {
@@ -166,17 +169,56 @@ class SourceGraphTests(unittest.TestCase):
             same_region_graph = with_script_warps(
                 world_graph_from_maps(same_region_maps), evidence
             )
-            same_region_declaration = json.loads(json.dumps(declarations[:1]))
-            same_region_declaration[0]["targetRegion"] = "REGION_A"
+            same_region_declarations = json.loads(json.dumps(declarations))
+            for declaration in same_region_declarations:
+                declaration["sourceRegion"] = "REGION_A"
+                declaration["targetRegion"] = "REGION_A"
+            self.assertEqual(
+                _bind_script_warp_policy(
+                    same_region_graph,
+                    same_region_declarations,
+                    ownership,
+                    entries,
+                ),
+                frozenset(),
+            )
             with self.assertRaisesRegex(
                 ContentPortError, "policy differs from resolved topology"
             ):
                 _bind_script_warp_policy(
                     same_region_graph,
-                    same_region_declaration,
+                    same_region_declarations[:1],
                     ownership,
                     entries,
                 )
+
+            paired_script = root / "data" / "maps" / "A" / "scripts.inc"
+            paired_script.write_text(
+                "A_EventScript_Travel::\n"
+                " setdynamicwarp MAP_A, 7, 8\n"
+                " warp MAP_B, 3, 4\n end\n",
+                encoding="utf-8",
+            )
+            paired_evidence, _paired_entries, paired_arms = (
+                _extract_preserved_script_warps(maps, ownership, root)
+            )
+            a_edge = next(edge for edge in paired_evidence if edge.source == "A")
+            self.assertEqual(
+                (a_edge.target, a_edge.command, a_edge.x, a_edge.y),
+                ("B", "warp", 3, 4),
+            )
+            self.assertEqual(len(paired_arms), 1)
+            arming_source, paired_warp = paired_arms[0]
+            self.assertEqual(arming_source, "A")
+            self.assertEqual(
+                (
+                    paired_warp.dynamic_arm.destination,
+                    paired_warp.dynamic_arm.x,
+                    paired_warp.dynamic_arm.y,
+                    paired_warp.destination,
+                ),
+                ("A", 7, 8, "B"),
+            )
 
             for field, value, message in (
                 ("destination", "MISSING", "stale script warp"),
@@ -202,8 +244,8 @@ class SourceGraphTests(unittest.TestCase):
 
             missing_script = root / "data" / "maps" / "B" / "scripts.inc"
             missing_script.unlink()
-            incomplete_evidence, incomplete_entries = _extract_preserved_script_warps(
-                maps, ownership, root
+            incomplete_evidence, incomplete_entries, _incomplete_arms = (
+                _extract_preserved_script_warps(maps, ownership, root)
             )
             incomplete_graph = with_script_warps(
                 world_graph_from_maps(maps), incomplete_evidence
@@ -1284,32 +1326,66 @@ class SourceGraphTests(unittest.TestCase):
         if donor_root is None:
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
-        adaptations = self._mutable(descriptor.adaptations)
-        source = "GoldenrodCity_DepartmentStoreElevator"
-        adaptations["warpRemovals"] = [
-            item for item in adaptations["warpRemovals"] if item["source"] != source
-        ]
-        dynamic_edge = next(
-            item for item in adaptations["deferredEdges"] if item["source"] == source
-        )
-        adaptations["deferredEdges"].remove(dynamic_edge)
-        adaptations["retainedEdges"].append(dynamic_edge)
-        with self.assertRaisesRegex(ContentPortError, "dynamic warp policy"):
-            resolve_port_sources(
-                replace(descriptor, adaptations=adaptations), Path(".")
-            )
-        adaptations["worldPolicy"]["dynamicWarps"] = [
-            {"source": source, "index": 0, "token": "WARP_ID_DYNAMIC"}
-        ]
+        base = self._mutable(descriptor.adaptations)
         resolve_port_sources(
-            replace(descriptor, adaptations=adaptations, legacy_report=None), Path(".")
+            replace(descriptor, adaptations=base, legacy_report=None), Path(".")
         )
-        adaptations["worldPolicy"]["dynamicWarps"][0]["token"] = "WRONG_TOKEN"
-        with self.assertRaisesRegex(ContentPortError, "dynamic warp policy"):
-            resolve_port_sources(
-                replace(descriptor, adaptations=adaptations, legacy_report=None),
-                Path("."),
-            )
+        mutations = (
+            ("destination", "MissingMap", "stale dynamic destination"),
+            ("x", 99, "stale dynamic destination"),
+            ("armingSource", "SSAqua_1F", "stale dynamic destination"),
+            ("script", "Wrong_Entry", "stale dynamic destination"),
+            ("label", "Wrong_Label", "stale dynamic destination"),
+            ("index", 7, "stale dynamic destination"),
+            ("immediateDestination", "OlivineCity", "stale dynamic destination"),
+            ("immediateX", 99, "stale dynamic destination"),
+            ("destinationOwnership", "import", "ownership evidence drift"),
+            ("armingOwnership", "import", "ownership evidence drift"),
+            ("sourceRegion", "REGION_KANTO", "region evidence drift"),
+            ("targetRegion", "REGION_KANTO", "region evidence drift"),
+            ("armingRegion", "REGION_JOHTO", "region evidence drift"),
+        )
+        for field, value, message in mutations:
+            with self.subTest(field=field):
+                adaptations = json.loads(json.dumps(base))
+                adaptations["worldPolicy"]["dynamicWarps"][0]["destinations"][0][
+                    field
+                ] = value
+                with self.assertRaisesRegex(ContentPortError, message):
+                    resolve_port_sources(
+                        replace(
+                            descriptor, adaptations=adaptations, legacy_report=None
+                        ),
+                        Path("."),
+                    )
+
+        for label, destinations in (
+            ("missing", base["worldPolicy"]["dynamicWarps"][0]["destinations"][:1]),
+            (
+                "extra",
+                base["worldPolicy"]["dynamicWarps"][0]["destinations"]
+                + [
+                    self._mutable(
+                        base["worldPolicy"]["dynamicWarps"][0]["destinations"][0]
+                    )
+                ],
+            ),
+        ):
+            with self.subTest(options=label):
+                adaptations = json.loads(json.dumps(base))
+                adaptations["worldPolicy"]["dynamicWarps"][0]["destinations"] = (
+                    destinations
+                )
+                with self.assertRaisesRegex(
+                    ContentPortError,
+                    "destinations differ|duplicate dynamic-warp evidence identity",
+                ):
+                    resolve_port_sources(
+                        replace(
+                            descriptor, adaptations=adaptations, legacy_report=None
+                        ),
+                        Path("."),
+                    )
 
     def test_gateway_policy_binds_edges_and_regions(self) -> None:
         donor_root = self._donor_root()

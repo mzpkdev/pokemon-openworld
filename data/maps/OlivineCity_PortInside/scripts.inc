@@ -12,7 +12,8 @@ OlivineCity_PortInside_EventScript_Sailor::
 
 OlivineCity_PortInside_EventScript_TravelToVermilion::
 	closemessage
-	warp MAP_VERMILION_CITY_PORT_INSIDE, 8, 9
+	setdynamicwarp MAP_VERMILION_CITY_PORT_INSIDE, 8, 9
+	warp MAP_SSAQUA_1F, 29, 3
 	waitstate
 	release
 	end
