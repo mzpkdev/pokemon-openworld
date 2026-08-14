@@ -2170,8 +2170,17 @@ class CheckedAssetLedgerTests(unittest.TestCase):
                 target = Path(str(asset["semanticTarget"]))
                 digest = hashlib.sha256(target.read_bytes()).hexdigest()
                 self.assertEqual(asset["targetSha256"], digest)
-                self.assertEqual(asset["sourceSha256"], digest)
-                self.assertEqual(asset["conversionCommand"], ["copy-bytes"])
+                if asset["conversionCommand"] == ["copy-bytes"]:
+                    self.assertEqual(asset["sourceSha256"], digest)
+                else:
+                    self.assertEqual(
+                        asset["conversionCommand"],
+                        ["replace-le16", "182", "0x32f5", "0x32f6"],
+                    )
+                    self.assertEqual(
+                        asset["semanticTarget"],
+                        "data/layouts/OlivineCity_PokemonCenter/map.bin",
+                    )
                 self.assertEqual(
                     asset["permissionEvidence"],
                     "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",

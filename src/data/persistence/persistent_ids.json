@@ -74780,6 +74780,18 @@
     {
       "alias": null,
       "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 624,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_EUGENE_JOHTO",
+      "value": 1482
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
       "source": "contract-trainer-ids",
       "state": {
         "kind": "published-binding"

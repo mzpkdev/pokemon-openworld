@@ -863,7 +863,7 @@
 #define TRAINERS_COUNT_EMERALD     858
 #define MAX_TRAINERS_COUNT_EMERALD 864
 
-#define TRAINERS_COUNT                      1482
+#define TRAINERS_COUNT                      1483
 #define MAX_TRAINERS_COUNT                  1536
 #define TRAINER_PARTNER(partner)           (MAX_TRAINERS_COUNT + partner)
 
@@ -875,6 +875,7 @@
 
 // Reserved identity only. Phase 4 owns Samuel's presentation, party, script, and map content.
 #define TRAINER_YOUNGSTER_SAMUEL_JOHTO 1481
+#define TRAINER_SAILOR_EUGENE_JOHTO 1482
 
 #include "constants/persistent_opponents.inc.h"
 

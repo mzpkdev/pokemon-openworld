@@ -6623,6 +6623,29 @@
   ],
   "trainerProjections": [
     {
+      "source": "TRAINER_EUGENE",
+      "target": "TRAINER_SAILOR_EUGENE_JOHTO",
+      "class": {
+        "source": "TRAINER_CLASS_SAILOR",
+        "target": "Sailor"
+      },
+      "pic": {
+        "source": "TRAINER_PIC_SAILOR",
+        "target": "Sailor"
+      },
+      "gender": "Male",
+      "music": {
+        "source": "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_2",
+        "target": "Male"
+      },
+      "ai": [
+        {
+          "source": "AI_SCRIPT_CHECK_BAD_MOVE",
+          "target": "Check Bad Move"
+        }
+      ]
+    },
+    {
       "source": "TRAINER_SAMUEL",
       "target": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
       "class": {

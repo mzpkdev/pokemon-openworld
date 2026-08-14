@@ -545,8 +545,8 @@ class PersistentIdTests(unittest.TestCase):
             for item in self.published_allocations["entries"]
             if "physicalBinding" in item
         ]
-        self.assertEqual(len(live), 624)
-        self.assertEqual(len(published), 624)
+        self.assertEqual(len(live), 625)
+        self.assertEqual(len(published), 625)
         self.assertEqual(
             {
                 (item["symbol"], item["value"], item["state"]["bitIndex"])
@@ -957,9 +957,9 @@ class PersistentIdTests(unittest.TestCase):
             if item["state"]["kind"] == "trainer-defeat-bitmap"
         ]
         self.assertEqual(len(tombstones), 623)
-        self.assertEqual(len(live), 624)
-        self.assertEqual({item["value"] for item in live}, set(range(858, 1482)))
-        self.assertEqual({item["state"]["bitIndex"] for item in live}, set(range(624)))
+        self.assertEqual(len(live), 625)
+        self.assertEqual({item["value"] for item in live}, set(range(858, 1483)))
+        self.assertEqual({item["state"]["bitIndex"] for item in live}, set(range(625)))
         for item in live:
             self.assertEqual(item["state"]["bitIndex"], item["value"] - 858)
 
@@ -969,7 +969,7 @@ class PersistentIdTests(unittest.TestCase):
                 "bitIndex", item["state"]["bitIndex"] + 1
             ),
             "out-of-range bitmap bit": lambda item: item["state"].__setitem__(
-                "bitIndex", 624
+                "bitIndex", 625
             ),
             "live trainer identity projection moved/deleted": lambda item: (
                 item.__setitem__("symbol", item["symbol"] + "_MOVED")

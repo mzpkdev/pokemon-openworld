@@ -312,6 +312,27 @@ print(makeflags)
         self.assertNotIn("build/generated/allregions/current/src", database_targets)
         self.assertNotIn("build/generated/allregions/current/include", database_targets)
 
+    def test_trainer_data_object_tracks_both_generated_trainer_headers(self) -> None:
+        result = subprocess.run(
+            ["make", "-pn", "NODEP=1", "SETUP_PREREQS=0", "clean-generated"],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        rule = next(
+            line
+            for line in result.stdout.splitlines()
+            if re.match(r"^build/.*/src/data\.o: .*src/data/trainers\.h", line)
+        )
+        self.assertIn("src/data/trainers.h", rule)
+        self.assertIn("src/data/trainers_frlg.h", rule)
+
+    def test_trainer_generation_does_not_refresh_identical_headers(self) -> None:
+        trainer_rules = (ROOT / "trainer_rules.mk").read_text()
+        self.assertIn("$(TRAINERPROC) -o $@.tmp -i $< -", trainer_rules)
+        self.assertIn("cmp -s $@.tmp $@", trainer_rules)
+
     def test_map_generation_stamp_tracks_every_indirect_input_class(self) -> None:
         result = subprocess.run(
             ["make", "-pn", "NODEP=1", "SETUP_PREREQS=0", "clean-generated"],

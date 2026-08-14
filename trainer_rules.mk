@@ -18,5 +18,11 @@ $(BUNDLED_TRAINERPROC): $(TOOLS_DIR)/trainerproc/main.c \
 	@$(MAKE) -C $(TOOLS_DIR)/trainerproc -B $(notdir $@)
 endif
 
+ifeq ($(TRAINERPROC),$(BUNDLED_TRAINERPROC))
+%.h: %.party $(TRAINERPROC)
+	$(CPP) $(TRAINER_CPPFLAGS) -traditional-cpp - < $< | $(TRAINERPROC) -o $@.tmp -i $< -
+	@if cmp -s $@.tmp $@; then rm -f $@.tmp; else mv $@.tmp $@; fi
+else
 %.h: %.party $(TRAINERPROC)
 	$(CPP) $(TRAINER_CPPFLAGS) -traditional-cpp - < $< | $(TRAINERPROC) -o $@ -i $< -
+endif

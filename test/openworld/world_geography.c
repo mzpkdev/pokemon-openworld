@@ -1,10 +1,12 @@
 #include "global.h"
 #include "landmark.h"
 #include "location_codecs.h"
+#include "overworld.h"
 #include "region_map.h"
 #include "regions.h"
 #include "test/test.h"
 #include "constants/characters.h"
+#include "constants/maps.h"
 #include "constants/region_map_sections.h"
 
 #define SYNTHETIC_SECTION_COUNT 301
@@ -153,4 +155,31 @@ TEST("Invalid compact codes and special met origins have no map section owner")
     EXPECT_EQ(DecodeMetLocation(METLOC_SPECIAL_EGG), MAPSEC_INVALID);
     EXPECT_EQ(DecodeMetLocation(METLOC_IN_GAME_TRADE), MAPSEC_INVALID);
     EXPECT_EQ(DecodeMetLocation(METLOC_FATEFUL_ENCOUNTER), MAPSEC_INVALID);
+}
+
+TEST("Current region follows the loaded map header")
+{
+    struct MapHeader savedHeader = gMapHeader;
+    u8 savedMapGroup = gSaveBlock1Ptr->location.mapGroup;
+    u8 savedMapNum = gSaveBlock1Ptr->location.mapNum;
+
+    gMapHeader = *Overworld_GetMapHeaderByGroupAndId(
+        MAP_GROUP(MAP_VERMILION_CITY_PORT_INSIDE),
+        MAP_NUM(MAP_VERMILION_CITY_PORT_INSIDE));
+    EXPECT_EQ(GetCurrentRegion(), REGION_KANTO);
+
+    // Save location changes do not act as a region setter. The next loaded
+    // header is the sole authority consumed by GetCurrentRegion.
+    gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE39);
+    gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE39);
+    EXPECT_EQ(GetCurrentRegion(), REGION_KANTO);
+
+    gMapHeader = *Overworld_GetMapHeaderByGroupAndId(
+        MAP_GROUP(MAP_ROUTE39),
+        MAP_NUM(MAP_ROUTE39));
+    EXPECT_EQ(GetCurrentRegion(), REGION_JOHTO);
+
+    gSaveBlock1Ptr->location.mapGroup = savedMapGroup;
+    gSaveBlock1Ptr->location.mapNum = savedMapNum;
+    gMapHeader = savedHeader;
 }

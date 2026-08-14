@@ -1500,7 +1500,7 @@
     {
       "kind": "file",
       "path": "data/layouts/OlivineCity_PokemonCenter/map.bin",
-      "sha256": "6128681ae811f6f6fb46b81baf0444c45735130d9330858aa391979223a515b3"
+      "sha256": "e7d8a6f6c8619f04aeacb61df5291820792552db99510541d470bc9438fd5045"
     },
     {
       "kind": "file",
@@ -4125,12 +4125,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route39/map.json",
-      "sha256": "e9586b964eabd90c82e4183079c87d07975120261e77e7550fb551eada17b263"
+      "sha256": "6f7c11a7dc0ed0236696c67ce9e9a88a7049593226463210663a5525b0038390"
     },
     {
       "kind": "file",
       "path": "data/maps/Route39/scripts.inc",
-      "sha256": "06414bcbe870921f0c1a4a7e0cece674364c343b4a3dfadbbb9d0bd6ca9325c7"
+      "sha256": "3b81b4881ea0d0daa352b5ac0dc755efb0b49aabe0463f24aa3c618da37083ff"
     },
     {
       "kind": "file",
@@ -13869,7 +13869,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "4ff68d7361ab19bb887dbe94f161fde4d7dc91ba45f09d6fb19e483457c8e5dc"
+      "sha256": "9b90f8c36c5e7e137f68fbf8d6d73d7f977c60c7341175f045c35b6c3a4d3929"
     }
   ]
 }

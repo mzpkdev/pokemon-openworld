@@ -1,0 +1,74 @@
+{
+  "fixture": {
+    "file": "kanto_continuity_start.sav",
+    "sha256": "7b605c6742291ff4d74e088eac840b774196d70f52e0661b2bc7fdaade80b56d",
+    "sourceCommit": "65a5a8442c4b942f0c20f62f96162fa68e827e71",
+    "sourceRomSha256": "e5742ab3644f0b18d61b9dde41e867aebcd9b2fa00908c48169df8be47ea8bd2"
+  },
+  "generation": {
+    "constructionOnlyOperations": [
+      "DEBUG new-game Kanto profile selector",
+      "DEBUG Utilities > Cheat start (FRLG ordinary game services)",
+      "DEBUG integrity map load to the Vermilion Mart start boundary"
+    ],
+    "method": "Kanto new-game profile, shipped FRLG Cheat start action, reviewed pre-journey map placement, then two ordinary field Start-menu saves",
+    "postLoadHostWritesAllowed": false
+  },
+  "schemaVersion": 1,
+  "semanticExpectations": {
+    "identity": {
+      "gender": 1,
+      "playerNameEncodedHex": "c7bbd3ff00000000",
+      "trainerIdHex": "0000df82"
+    },
+    "inventory": {
+      "oldRodCount": 0,
+      "pokeBallCount": 0
+    },
+    "location": {
+      "mapGroup": 43,
+      "mapNumber": 5,
+      "position": [
+        3,
+        4
+      ],
+      "warpId": -1
+    },
+    "money": 3000,
+    "party": {
+      "count": 3,
+      "pokemon": [
+        {
+          "checksum": 11307,
+          "isEgg": false,
+          "metGame": 3,
+          "metLevel": 20,
+          "metLocation": 88,
+          "otId": 2195652608,
+          "personality": 2521707084,
+          "species": 252
+        },
+        {
+          "checksum": 23928,
+          "isEgg": false,
+          "metGame": 3,
+          "metLevel": 20,
+          "metLocation": 88,
+          "otId": 2195652608,
+          "personality": 1128928655,
+          "species": 255
+        },
+        {
+          "checksum": 35405,
+          "isEgg": false,
+          "metGame": 3,
+          "metLevel": 20,
+          "metLocation": 88,
+          "otId": 2195652608,
+          "personality": 1778381671,
+          "species": 258
+        }
+      ]
+    }
+  }
+}

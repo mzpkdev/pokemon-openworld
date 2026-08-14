@@ -17,7 +17,7 @@ SECTOR_SIGNATURE = 0x08012025
 ERASED_SECTOR = b"\xff" * SECTOR_SIZE
 SAVE_BLOCK1_SIZE = 0x3D20
 TRAINER_DEFEATED_OFFSET = 0x3CD0
-TRAINER_DEFEATED_SIZE = 78
+TRAINER_DEFEATED_SIZE = 79
 
 # Defined by the current serialized layout. These are the exact
 # byte counts passed to CalculateChecksum for logical sector ids 0..13.

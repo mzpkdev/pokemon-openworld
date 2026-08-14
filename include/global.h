@@ -1209,7 +1209,7 @@ struct SaveBlock1
     u8 rivalName[PLAYER_NAME_LENGTH + 1];
     struct DaycareMon route5DayCareMon;
 #endif
-    /*0x3CD0*/ u8 trainerDefeated[78];
+    /*0x3CD0*/ u8 trainerDefeated[79];
     // sizeof: 0x3D20
 };
 
