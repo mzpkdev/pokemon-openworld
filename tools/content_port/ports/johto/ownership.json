@@ -4324,16 +4324,6 @@
     },
     {
       "kind": "file",
-      "path": "data/maps/SSAqua_1F/map.json",
-      "sha256": "0f135afbd636a6e14ef04f95709f318de23b096ea5e7c5db5c2aad5f0c5b498d"
-    },
-    {
-      "kind": "file",
-      "path": "data/maps/SSAqua_1F/scripts.inc",
-      "sha256": "2475ef7dd3615fcdb86a523be64b72efb07ce86a9f0f4583340b6af1a5996370"
-    },
-    {
-      "kind": "file",
       "path": "data/maps/SSAqua_B1F/map.json",
       "sha256": "a0409f0fad00df242305d2be5b93b384dcfdc727db07209bbb711c5b52da3851"
     },
@@ -12621,7 +12611,7 @@
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",
       "registry": "layouts",
-      "sha256": "fcbd43fbaf143f9901eeaa02cb3584d0c46fa3eb89ca226363bffb075baa1d0c",
+      "sha256": "0300c4f7d86d9ca54c924b7ba8b54f60b9d83193e60d8cce71453d298790b830",
       "slot": 1003
     },
     {
