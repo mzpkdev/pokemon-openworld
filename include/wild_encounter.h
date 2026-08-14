@@ -152,6 +152,7 @@ bool32 TryResolveWildEncounterAuthoredBand(const struct WildEncounterAuthoredPro
 bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterAuthoredEntry *entry);
 bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterAuthoredEntry *entry);
 bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterAuthoredEntry *entry, u16 rangeRoll, bool32 lureActive, u8 *level);
+bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags);
 bool8 CheckFeebasAtCoords(s16 x, s16 y);
 u32 ChooseWildMonIndex_Land(void);
 u32 ChooseWildMonIndex_Water(void);

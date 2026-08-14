@@ -1210,7 +1210,7 @@ static u8 ChooseAuthoredWildMonLevel(const struct WildEncounterProfileView *prof
     return level;
 }
 
-static bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags)
+bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags)
 {
     struct WildEncounterAuthoredEntry entry;
     u8 level;
