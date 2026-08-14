@@ -50,7 +50,8 @@ VermilionCity_EventScript_FerrySailor::
 	lock
 	faceplayer
 	goto_if_unset FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED, VermilionCity_EventScript_FerrySailorLegacy
-	goto VermilionCity_EventScript_EnterFastShipTerminal
+	msgbox VermilionCity_Text_EnterFastShipTerminal
+	release
 	end
 
 VermilionCity_EventScript_FastShipAttendant::

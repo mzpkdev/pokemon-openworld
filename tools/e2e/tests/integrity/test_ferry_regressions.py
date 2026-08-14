@@ -257,6 +257,25 @@ def test_vermilion_pier_lock_preserves_legacy_sailor_and_terminal_geometry(
         VERMILION_FERRY_SAILOR_LOCAL_ID,
         "original Vermilion pier sailor interaction",
     )
+    _finish_dialogue(integrity_game, "open fast-ship terminal dialogue completion")
+    assert integrity_game.map_id() == vermilion.map_id
+    assert integrity_game.position() == VERMILION_FERRY_SAILOR_ENTRY
+    assert (
+        integrity_game.read_u16(integrity_game.address("gSpecialVar_Result"))
+        == PROMPTLESS_RESULT_SENTINEL
+    )
+
+    _load_source(
+        integrity_game,
+        vermilion,
+        VERMILION_FAST_SHIP_ATTENDANT_ENTRY,
+        0xF3300005,
+    )
+    _interact_with(
+        integrity_game,
+        VERMILION_FAST_SHIP_ATTENDANT_LOCAL_ID,
+        "operational fast-ship attendant interaction",
+    )
     integrity_game.advance_until(
         lambda: integrity_game.map_id() == terminal.map_id,
         description="promptless public Vermilion ferry terminal entry",
@@ -266,10 +285,6 @@ def test_vermilion_pier_lock_preserves_legacy_sailor_and_terminal_geometry(
     _wait_for_field_ready(integrity_game, "usable Vermilion ferry terminal entry")
 
     assert integrity_game.position() == VERMILION_PORT_ENTRY
-    assert (
-        integrity_game.read_u16(integrity_game.address("gSpecialVar_Result"))
-        == PROMPTLESS_RESULT_SENTINEL
-    )
     integrity_game.move_to(x=8, y=3)
     assert integrity_game.position() == (8, 3)
 
