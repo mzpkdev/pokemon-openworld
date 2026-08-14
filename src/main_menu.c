@@ -671,6 +671,11 @@ static void Task_MainMenuCheckSaveFile(u8 taskId)
             tMenuType = HAS_NO_SAVED_GAME;
             gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
             break;
+        case SAVE_STATUS_UNSUPPORTED:
+            CreateMainMenuErrorWindow(gText_SaveFileCorrupted);
+            tMenuType = HAS_NO_SAVED_GAME;
+            gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
+            break;
         case SAVE_STATUS_ERROR:
             CreateMainMenuErrorWindow(gText_SaveFileCorrupted);
             gTasks[taskId].func = Task_WaitForSaveFileErrorWindow;
@@ -1094,6 +1099,12 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
             gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
             break;
         case ACTION_CONTINUE:
+            if (!IsSaveStatusContinuable(gSaveFileStatus))
+            {
+                SetMainCallback2(CB2_InitTitleScreen);
+                DestroyTask(taskId);
+                break;
+            }
             gPlttBufferUnfaded[0] = RGB_BLACK;
             gPlttBufferFaded[0] = RGB_BLACK;
             SetMainCallback2(CB2_ContinueSavedGame);

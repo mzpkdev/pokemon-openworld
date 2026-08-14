@@ -78,7 +78,7 @@ OneIsland_EventScript_OldMan::
 	lock
 	faceplayer
 	goto_if_set FLAG_IS_CHAMPION, OneIsland_EventScript_OldManLinkHoenn
-	goto_if_set FLAG_SEVII_DETOUR_FINISHED, OneIsland_EventScript_OldManLinkKanto
+	goto_if_set FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED, OneIsland_EventScript_OldManLinkKanto
 	msgbox OneIsland_Text_LuckyToHaveCelioHere
 	release
 	end
@@ -166,4 +166,3 @@ OneIsland_Text_ReturnToCinnabar::
 OneIsland_Text_IsntWarmClimateHereGreat::
 	.string "Hi, sight-seeing, are you?\n"
 	.string "Isn't the warm climate here great?$"
-

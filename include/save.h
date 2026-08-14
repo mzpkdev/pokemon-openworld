@@ -34,6 +34,7 @@
 #define SAVE_STATUS_EMPTY    0
 #define SAVE_STATUS_OK       1
 #define SAVE_STATUS_CORRUPT  2
+#define SAVE_STATUS_UNSUPPORTED 3
 #define SAVE_STATUS_NO_FLASH 4
 #define SAVE_STATUS_ERROR    0xFF
 
@@ -114,6 +115,7 @@ bool8 LinkFullSave_SetLastSectorSignature(void);
 bool8 WriteSaveBlock2(void);
 bool8 WriteSaveBlock1Sector(void);
 u8 LoadGameSave(u8 saveType);
+bool32 IsSaveStatusContinuable(u8 saveStatus);
 u16 GetSaveBlocksPointersBaseOffset(void);
 u32 TryReadSpecialSaveSector(u8 sector, u8 *dst);
 u32 TryWriteSpecialSaveSector(u8 sector, u8 *src);

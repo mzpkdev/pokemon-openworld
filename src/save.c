@@ -8,6 +8,7 @@
 #include "event_data.h"
 #include "load_save.h"
 #include "overworld.h"
+#include "regional_story_migration.h"
 #include "hall_of_fame.h"
 #include "pokemon_storage_system.h"
 #include "trainer_hill.h"
@@ -935,6 +936,7 @@ u8 LoadGameSave(u8 saveType)
     default:
         status = TryLoadSaveSlot(FULL_SAVE_SLOT, gRamSaveSectorLocations);
         CopyPartyAndObjectsFromSave();
+        status = RegionalStoryMigration_AdjustLoadStatus(status);
         gSaveFileStatus = status;
         gGameContinueCallback = NULL;
         break;
@@ -954,6 +956,11 @@ u8 LoadGameSave(u8 saveType)
     }
 
     return status;
+}
+
+bool32 IsSaveStatusContinuable(u8 saveStatus)
+{
+    return saveStatus == SAVE_STATUS_OK || saveStatus == SAVE_STATUS_ERROR;
 }
 
 u16 GetSaveBlocksPointersBaseOffset(void)

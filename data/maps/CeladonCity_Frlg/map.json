@@ -275,8 +275,8 @@
       "x": 39,
       "y": 20,
       "elevation": 0,
-      "dest_map": "MAP_CELADON_CITY_GAME_CORNER_PRIZE_ROOM",
-      "dest_warp_id": "1"
+      "dest_map": "MAP_CELADON_CITY",
+      "dest_warp_id": "5"
     },
     {
       "x": 11,

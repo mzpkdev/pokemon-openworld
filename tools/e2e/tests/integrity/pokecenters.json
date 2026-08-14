@@ -3,9 +3,7 @@
   "ordinaryNurses": [
     "OldaleTown_PokemonCenter_1F"
   ],
-  "facilityNurses": [
-    "TrainerTower_Lobby_Frlg"
-  ],
+  "facilityNurses": [],
   "whiteoutCases": [
     "OldaleTown_PokemonCenter_1F"
   ],
@@ -19,12 +17,6 @@
     "OlivineCity_PokemonCenter": {
       "x": 7,
       "y": 3,
-      "direction": "Up",
-      "nurseLocalId": 1
-    },
-    "TrainerTower_Lobby_Frlg": {
-      "x": 4,
-      "y": 10,
       "direction": "Up",
       "nurseLocalId": 1
     }

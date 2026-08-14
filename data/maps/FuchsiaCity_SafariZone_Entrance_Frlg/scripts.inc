@@ -39,6 +39,8 @@ FuchsiaCity_SafariZone_Entrance_EventScript_ExitWarpIn::
 @ When player re-enters the entrance building with balls/steps remaining
 FuchsiaCity_SafariZone_Entrance_EventScript_ExitEarly::
 	lockall
+	specialvar VAR_RESULT, GetSafariZoneFacility
+	goto_if_ne VAR_RESULT, SAFARI_ZONE_FACILITY_KANTO_FUCHSIA, FuchsiaCity_SafariZone_Entrance_EventScript_InvalidSession
 	textcolor NPC_TEXT_COLOR_MALE
 	msgbox FuchsiaCity_SafariZone_Entrance_Text_GoingToLeaveSafariZoneEarly, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, NO, FuchsiaCity_SafariZone_Entrance_EventScript_ReturnToSafariZone
@@ -46,6 +48,12 @@ FuchsiaCity_SafariZone_Entrance_EventScript_ExitEarly::
 	closemessage
 	applymovement LOCALID_PLAYER, FuchsiaCity_SafariZone_Entrance_Movement_Exit
 	waitmovement 0
+	special ExitSafariMode
+	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0
+	releaseall
+	end
+
+FuchsiaCity_SafariZone_Entrance_EventScript_InvalidSession::
 	special ExitSafariMode
 	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 0
 	releaseall
@@ -127,7 +135,7 @@ FuchsiaCity_SafariZone_Entrance_EventScript_TryEnterSafariZone::
 	call_if_eq VAR_TEMP_2, 0, FuchsiaCity_SafariZone_Entrance_EventScript_EnterSafariZoneMid
 	call_if_eq VAR_TEMP_2, 1, FuchsiaCity_SafariZone_Entrance_EventScript_EnterSafariZoneRight
 	call_if_eq VAR_TEMP_2, 2, FuchsiaCity_SafariZone_Entrance_EventScript_EnterSafariZoneLeft
-	special EnterSafariMode
+	special EnterKantoSafariMode
 	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 2
 	warp MAP_SAFARI_ZONE_CENTER, 255, 26, 30
 	waitstate
@@ -277,4 +285,3 @@ FuchsiaCity_SafariZone_Entrance_Text_ExplainSafariZone::
 
 FuchsiaCity_SafariZone_Entrance_Text_SorryYoureARegularHere::
 	.string "Sorry, you're a regular here!$"
-

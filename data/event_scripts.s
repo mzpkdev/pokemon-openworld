@@ -57,6 +57,7 @@
 #include "constants/pokemon_size_record.h"
 #include "constants/random_mon_generation.h"
 #include "constants/rtc.h"
+#include "constants/safari_zone.h"
 #include "constants/roulette.h"
 #include "constants/script_menu.h"
 #include "constants/seagallop.h"
@@ -130,6 +131,7 @@ gStdScripts::
 gStdScripts_End::
 
 	.include "data/scripts/pokemon_center.inc"
+	.include "data/scripts/resident_story_boundaries.inc"
 
 	.include "data/maps/PetalburgCity/scripts.inc"
 	.include "data/maps/SlateportCity/scripts.inc"

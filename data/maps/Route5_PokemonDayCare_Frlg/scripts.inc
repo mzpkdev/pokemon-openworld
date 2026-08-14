@@ -3,6 +3,10 @@
 Route5_PokemonDayCare_Frlg_MapScripts::
 	.byte 0
 
+Route5_PokemonDayCare_Text_ServiceUnavailable::
+	.string "The DAY-CARE service isn't available\n"
+	.string "right now. Please come back later.$"
+
 Route5_PokemonDayCare_Text_WantMeToRaiseMon::
 	.string "I run the DAY-CARE service.\p"
 	.string "Would you like me to raise one of\n"

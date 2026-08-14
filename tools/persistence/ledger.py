@@ -34,6 +34,10 @@ LEDGER_PATH = Path("src/data/persistence/persistent_ids.json")
 SOURCES_PATH = Path("tools/persistence/persistent_sources.json")
 CONTRACT_PATH = Path("tools/integrity/save_contract.json")
 PUBLISHED_ALLOCATIONS_PATH = Path("tools/persistence/published_allocations.json")
+RESIDENT_STORY_SELECTOR = re.compile(
+    r"\b(?:IS_FRLG|FIRERED|LEAFGREEN|GAME_VERSION|gGameVersion|CURRENT_(?:REGION|CAMPAIGN))\b"
+    r"|\bGetCurrentRegion\s*\("
+)
 
 
 @contextmanager
@@ -851,6 +855,8 @@ def validate_ledger(
     validate_location_codecs(ledger.get("locationCodecs"), sources, repo)
     validate_consumer_references(entries, sources.get("consumerSchemas"), repo)
     validate_regional_fact_policy(entries, sources, repo)
+    validate_regional_variable_policy(entries, sources, repo)
+    validate_resident_story_admission(sources, repo)
 
 
 def validate_regional_fact_policy(
@@ -870,43 +876,146 @@ def validate_regional_fact_policy(
         "exact",
         "historicalFixtures",
         "schemaVersion",
+        "unsupported",
         "unused",
     }:
         raise ContractError("regional facts: malformed reviewed policy")
-    if policy["schemaVersion"] != 1:
+    if policy["schemaVersion"] != 2:
         raise ContractError("regional facts: unsupported policy schema")
 
     exact = policy["exact"]
     ambiguous = policy["ambiguous"]
     unused = policy["unused"]
+    unsupported = policy["unsupported"]
     fixtures = policy["historicalFixtures"]
     if not all(
         isinstance(items, list) and items
         for items in (exact, ambiguous, unused, fixtures)
     ):
         raise ContractError("regional facts: every classification needs evidence")
-    if len(exact) != 3 or len(ambiguous) != 2 or len(unused) != 3:
-        raise ContractError("regional facts: classification inventory changed")
+    if len(exact) != 22 or len(ambiguous) != 8 or len(exact) != len(unused):
+        raise ContractError("regional facts: expected representative reviewed facts")
+
+    admitted_capabilities = {
+        "CUT",
+        "DIVE",
+        "FLASH",
+        "FLY",
+        "ROCK_SMASH",
+        "STRENGTH",
+        "SURF",
+        "WATERFALL",
+    }
+    if set(unsupported) != {"DEFOG", "ROCK_CLIMB"}:
+        raise ContractError("regional facts: unsupported capability inventory changed")
+
+    expected_reserved = [
+        ("HOENN_STONE_BADGE", "CUT"),
+        ("KANTO_CASCADE_BADGE", "CUT"),
+        ("JOHTO_HIVE_BADGE", "CUT"),
+        ("HOENN_KNUCKLE_BADGE", "FLASH"),
+        ("KANTO_BOULDER_BADGE", "FLASH"),
+        ("JOHTO_ZEPHYR_BADGE", "FLASH"),
+        ("HOENN_DYNAMO_BADGE", "ROCK_SMASH"),
+        ("KANTO_MARSH_BADGE", "ROCK_SMASH"),
+        ("HOENN_HEAT_BADGE", "STRENGTH"),
+        ("KANTO_RAINBOW_BADGE", "STRENGTH"),
+        ("JOHTO_PLAIN_BADGE", "STRENGTH"),
+        ("HOENN_BALANCE_BADGE", "SURF"),
+        ("KANTO_SOUL_BADGE", "SURF"),
+        ("JOHTO_FOG_BADGE", "SURF"),
+        ("HOENN_FEATHER_BADGE", "FLY"),
+        ("KANTO_THUNDER_BADGE", "FLY"),
+        ("JOHTO_STORM_BADGE", "FLY"),
+        ("HOENN_MIND_BADGE", "DIVE"),
+        ("HOENN_RAIN_BADGE", "WATERFALL"),
+        ("KANTO_VOLCANO_BADGE", "WATERFALL"),
+        ("JOHTO_RISING_BADGE", "WATERFALL"),
+    ]
 
     by_symbol = {(item["domain"], item["symbol"]): item for item in entries}
     exact_symbols: set[str] = set()
     exact_values: set[int] = set()
     facts: set[str] = set()
     for index, item in enumerate(exact):
-        if not isinstance(item, dict) or set(item) != {
+        required = {
+            "consumerEvidence",
             "fact",
+            "grants",
+            "lifetime",
+            "region",
+            "semanticOwner",
             "symbol",
             "unusedBinding",
             "value",
-        }:
+        }
+        historical_fields = {"historicalSource", "historicalSymbol", "historicalValue"}
+        if not isinstance(item, dict) or set(item) not in (
+            required,
+            required | historical_fields,
+        ):
             raise ContractError(f"regional facts: malformed exact binding {index}")
         if not all(
             isinstance(item[key], str) and item[key]
-            for key in ("fact", "symbol", "unusedBinding")
+            for key in (
+                "fact",
+                "lifetime",
+                "region",
+                "semanticOwner",
+                "symbol",
+                "unusedBinding",
+            )
         ):
             raise ContractError(f"regional facts: invalid exact binding {index}")
+        if (
+            item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"}
+            or item["lifetime"] != "save"
+        ):
+            raise ContractError(f"regional facts: invalid regional ownership {index}")
+        evidence = item["consumerEvidence"]
+        if not isinstance(evidence, list) or not evidence:
+            raise ContractError(f"regional facts: missing consumer evidence {index}")
+        for relative in evidence:
+            path = repo / relative
+            if not path.is_file() or item["symbol"] not in path.read_text(
+                encoding="utf-8", errors="ignore"
+            ):
+                raise ContractError(
+                    f"regional facts: unresolved consumer for {item['symbol']}"
+                )
         if not isinstance(item["value"], int) or item["value"] <= 0:
             raise ContractError(f"regional facts: invalid exact value {index}")
+        grants = item["grants"]
+        if (
+            not isinstance(grants, list)
+            or any(capability not in admitted_capabilities for capability in grants)
+            or len(grants) != len(set(grants))
+            or (item["fact"] != "SEVII_DETOUR_FINISHED" and len(grants) != 1)
+            or (item["fact"] == "SEVII_DETOUR_FINISHED" and grants)
+        ):
+            raise ContractError(
+                f"regional facts: invalid capabilities for exact binding {index}"
+            )
+        if "historicalSymbol" in item:
+            historical_path = repo / item["historicalSource"]
+            historical_text = (
+                historical_path.read_text(encoding="utf-8")
+                if historical_path.is_file()
+                else ""
+            )
+            historical_match = re.search(
+                rf"(?m)^#define\s+{re.escape(item['historicalSymbol'])}\s+(0[xX][0-9A-Fa-f]+|[0-9]+)\b",
+                historical_text,
+            )
+            if (
+                not isinstance(item["historicalSymbol"], str)
+                or historical_match is None
+                or int(historical_match.group(1), 0) != item["historicalValue"]
+                or item["historicalValue"] != item["value"]
+            ):
+                raise ContractError(
+                    f"regional facts: historical meaning moved {item['symbol']}"
+                )
         binding = by_symbol.get(("flags", item["symbol"]))
         expected_alias = {"of": item["unusedBinding"], "owner": source["id"]}
         if (
@@ -921,18 +1030,51 @@ def validate_regional_fact_policy(
         exact_symbols.add(item["symbol"])
         exact_values.add(item["value"])
         facts.add(item["fact"])
-    if len(exact_symbols) != 3 or len(exact_values) != 3 or len(facts) != 3:
+    if (
+        len(exact_symbols) != len(exact)
+        or len(exact_values) != len(exact)
+        or len(facts) != len(exact)
+        or {item["region"] for item in exact} != {"HOENN", "KANTO", "SEVII", "JOHTO"}
+    ):
         raise ContractError("regional facts: exact facts must be distinct and nonzero")
+
+    reserved = sorted(
+        (
+            item["value"],
+            item["fact"],
+            item["symbol"],
+            item["unusedBinding"],
+            tuple(item["grants"]),
+        )
+        for item in exact
+        if 0x020 <= item["value"] <= 0x034
+    )
+    expected_reserved_bindings = [
+        (
+            value,
+            fact,
+            f"FLAG_REGIONAL_FACT_{fact}",
+            f"FLAG_UNUSED_0x{value:03X}",
+            (capability,),
+        )
+        for value, (fact, capability) in enumerate(expected_reserved, 0x020)
+    ]
+    if reserved != expected_reserved_bindings:
+        raise ContractError("regional facts: reviewed reserved mapping changed")
 
     ambiguous_symbols: set[str] = set()
     for index, item in enumerate(ambiguous):
         if not isinstance(item, dict) or set(item) != {
-            "shippedCutGrant",
+            "shippedCapabilities",
             "symbol",
             "value",
         }:
             raise ContractError(f"regional facts: malformed ambiguous binding {index}")
-        if not isinstance(item["shippedCutGrant"], bool):
+        if (
+            not isinstance(item["shippedCapabilities"], list)
+            or len(item["shippedCapabilities"]) != 1
+            or item["shippedCapabilities"][0] not in admitted_capabilities
+        ):
             raise ContractError(f"regional facts: invalid ambiguous binding {index}")
         binding = by_symbol.get(("flags", item["symbol"]))
         if (
@@ -944,7 +1086,27 @@ def validate_regional_fact_policy(
                 f"regional facts: ambiguous binding moved {item['symbol']}"
             )
         ambiguous_symbols.add(item["symbol"])
-    if ambiguous_symbols != {"FLAG_BADGE01_GET", "FLAG_BADGE02_GET"}:
+    expected_legacy = {
+        f"FLAG_BADGE{slot:02d}_GET": (0x866 + slot, capability)
+        for slot, capability in enumerate(
+            (
+                "CUT",
+                "FLASH",
+                "ROCK_SMASH",
+                "STRENGTH",
+                "SURF",
+                "FLY",
+                "DIVE",
+                "WATERFALL",
+            ),
+            1,
+        )
+    }
+    reviewed_legacy = {
+        item["symbol"]: (item["value"], item["shippedCapabilities"][0])
+        for item in ambiguous
+    }
+    if ambiguous_symbols != set(expected_legacy) or reviewed_legacy != expected_legacy:
         raise ContractError("regional facts: ambiguous legacy inventory changed")
 
     unused_by_symbol = {}
@@ -966,12 +1128,12 @@ def validate_regional_fact_policy(
                 f"regional facts: unused binding moved {item['symbol']}"
             )
         unused_by_symbol[item["symbol"]] = item
-    if set(unused_by_symbol) != {
-        "FLAG_UNUSED_0x020",
-        "FLAG_UNUSED_0x021",
-        "FLAG_UNUSED_0x022",
-    }:
-        raise ContractError("regional facts: reviewed-unused inventory changed")
+    expected_unused = {
+        *(f"FLAG_UNUSED_0x{value:03X}" for value in range(0x020, 0x035)),
+        "FLAG_UNUSED_0x2A1",
+    }
+    if set(unused_by_symbol) != expected_unused:
+        raise ContractError("regional facts: reviewed-unused inventory is incomplete")
     for fact in exact:
         unused_item = unused_by_symbol.get(fact["unusedBinding"])
         if (
@@ -1000,6 +1162,232 @@ def validate_regional_fact_policy(
             raise ContractError(f"regional facts: malformed historical fixture {index}")
         inspect_historical_flags(
             repo / fixture["path"], fixture["sha256"], exact_values
+        )
+
+
+def validate_regional_variable_policy(
+    entries: list[dict[str, Any]], sources: dict[str, Any], repo: Path
+) -> None:
+    policy_sources = [
+        source
+        for source in sources.get("sources", [])
+        if source.get("kind") == "regional-variable-policy"
+    ]
+    if len(policy_sources) != 1:
+        raise ContractError("regional variables: expected exactly one reviewed policy")
+    policy = load_json(repo / policy_sources[0]["path"])
+    if not isinstance(policy, dict) or set(policy) != {"entries", "schemaVersion"}:
+        raise ContractError("regional variables: malformed reviewed policy")
+    if policy["schemaVersion"] != 1 or not isinstance(policy["entries"], list):
+        raise ContractError("regional variables: unsupported policy schema")
+    ledger_by_symbol = {
+        item["symbol"]: item for item in entries if item["domain"] == "vars"
+    }
+    seen: set[str] = set()
+    admitted_values: set[int] = set()
+    admitted_regions: set[str] = set()
+    for index, item in enumerate(policy["entries"]):
+        path = f"regional variables: entry {index}"
+        common = {
+            "canonicalOwner",
+            "historicalAliases",
+            "lifetime",
+            "producerEvidence",
+            "readerEvidence",
+            "region",
+            "semanticOwner",
+            "status",
+            "symbol",
+            "value",
+        }
+        expected = common | (
+            {"deferredBoundary"} if item.get("status") == "deferred" else set()
+        )
+        if not isinstance(item, dict) or set(item) != expected:
+            raise ContractError(f"{path}: malformed")
+        if item["status"] not in {"admitted", "deferred"}:
+            raise ContractError(f"{path}: invalid status")
+        if (
+            item["region"] not in {"HOENN", "KANTO", "SEVII", "JOHTO"}
+            or item["lifetime"] != "save"
+        ):
+            raise ContractError(f"{path}: invalid regional ownership")
+        if (
+            item["symbol"] in seen
+            or not isinstance(item["value"], int)
+            or item["value"] <= 0
+        ):
+            raise ContractError(f"{path}: identity must be unique and nonzero")
+        seen.add(item["symbol"])
+        binding = ledger_by_symbol.get(item["symbol"])
+        if (
+            binding is None
+            or binding["value"] != item["value"]
+            or binding["state"] != {"kind": "published-binding"}
+        ):
+            raise ContractError(f"{path}: published binding moved")
+        canonical = (
+            item["symbol"] if binding["alias"] is None else binding["alias"]["of"]
+        )
+        if canonical != item["canonicalOwner"]:
+            raise ContractError(f"{path}: canonical owner changed")
+        group_aliases = {
+            candidate["symbol"]
+            for candidate in entries
+            if candidate["domain"] == "vars"
+            and candidate["value"] == item["value"]
+            and candidate["symbol"] not in {item["symbol"], item["canonicalOwner"]}
+        }
+        if set(item["historicalAliases"]) != group_aliases:
+            raise ContractError(f"{path}: historical alias ownership changed")
+        if item["status"] == "admitted":
+            if item["value"] in admitted_values:
+                raise ContractError(f"{path}: admitted storage identity is not unique")
+            admitted_values.add(item["value"])
+            admitted_regions.add(item["region"])
+            evidence_patterns = {
+                "producerEvidence": re.compile(
+                    rf"(?m)^\s*setvar\s+{re.escape(item['symbol'])}\b|"
+                    rf"\bVarSet\(\s*{re.escape(item['symbol'])}\b"
+                ),
+                "readerEvidence": re.compile(
+                    rf"(?m)^\s*(?:call_if|goto_if|map_script_2)[A-Za-z0-9_]*\s+{re.escape(item['symbol'])}\b|"
+                    rf"\bVarGet\(\s*{re.escape(item['symbol'])}\b|"
+                    rf'"var"\s*:\s*"{re.escape(item["symbol"])}"'
+                ),
+            }
+            for evidence_key, evidence_pattern in evidence_patterns.items():
+                evidence = item[evidence_key]
+                if not isinstance(evidence, list) or not evidence:
+                    raise ContractError(f"{path}: missing {evidence_key}")
+                for relative in evidence:
+                    evidence_path = repo / relative
+                    if not evidence_path.is_file() or not evidence_pattern.search(
+                        evidence_path.read_text(encoding="utf-8", errors="ignore")
+                    ):
+                        raise ContractError(f"{path}: unresolved {evidence_key}")
+        elif (
+            not isinstance(item["deferredBoundary"], str)
+            or not item["deferredBoundary"]
+        ):
+            raise ContractError(f"{path}: deferred state needs a fail-closed boundary")
+    if admitted_regions != {"HOENN", "KANTO", "SEVII", "JOHTO"}:
+        raise ContractError(
+            "regional variables: admitted regional inventory is incomplete"
+        )
+
+
+def validate_resident_story_admission(sources: dict[str, Any], repo: Path) -> None:
+    relative = sources.get("residentStoryAdmission")
+    if not isinstance(relative, str) or not relative:
+        raise ContractError("resident story: missing checked admission inventory")
+    inventory = load_json(repo / relative)
+    if not isinstance(inventory, dict) or set(inventory) != {
+        "entries",
+        "schemaVersion",
+        "selectorScanPaths",
+    }:
+        raise ContractError("resident story: malformed admission inventory")
+    if (
+        inventory["schemaVersion"] != 1
+        or not isinstance(inventory["entries"], list)
+        or not inventory["entries"]
+    ):
+        raise ContractError("resident story: unsupported admission inventory")
+    selector = RESIDENT_STORY_SELECTOR
+    outcomes: set[str] = set()
+    identifiers: set[str] = set()
+    classified_paths: set[str] = set()
+    for index, item in enumerate(inventory["entries"]):
+        path = f"resident story: entry {index}"
+        required = {"boundary", "id", "outcome", "paths", "rationale"}
+        if not isinstance(item, dict) or set(item) != required:
+            raise ContractError(f"{path}: malformed")
+        if item["id"] in identifiers or item["outcome"] not in {
+            "admitted",
+            "build-invariant",
+            "deferred",
+            "non-story",
+        }:
+            raise ContractError(f"{path}: invalid classification")
+        identifiers.add(item["id"])
+        outcomes.add(item["outcome"])
+        if (
+            not isinstance(item["paths"], list)
+            or not item["paths"]
+            or not item["rationale"]
+        ):
+            raise ContractError(f"{path}: missing evidence")
+        if item["outcome"] == "deferred" and not item["boundary"]:
+            raise ContractError(
+                f"{path}: deferred content needs a fail-closed boundary"
+            )
+        for relative_path in item["paths"]:
+            classified_paths.add(relative_path)
+            evidence_path = repo / relative_path
+            if not evidence_path.is_file():
+                raise ContractError(f"{path}: missing evidence {relative_path}")
+            evidence_text = evidence_path.read_text(encoding="utf-8", errors="ignore")
+            if item["outcome"] == "admitted" and selector.search(evidence_text):
+                raise ContractError(
+                    f"{path}: admitted story meaning uses product/current-region dispatch"
+                )
+            if item["outcome"] == "deferred" and not selector.search(evidence_text):
+                raise ContractError(
+                    f"{path}: deferred boundary is not guarded by a legacy selector"
+                )
+    if not {"admitted", "deferred", "non-story", "build-invariant"}.issubset(outcomes):
+        raise ContractError("resident story: classification outcomes are incomplete")
+    discovered: set[str] = set()
+    for pattern in inventory["selectorScanPaths"]:
+        for path in repo.glob(pattern):
+            if path.is_file() and selector.search(
+                path.read_text(encoding="utf-8", errors="ignore")
+            ):
+                discovered.add(path.relative_to(repo).as_posix())
+    unclassified = sorted(discovered - classified_paths)
+    if unclassified:
+        raise ContractError(
+            f"resident story: unclassified selector paths {unclassified[:5]}"
+        )
+
+    admitted_paths = {
+        relative_path
+        for item in inventory["entries"]
+        if item["outcome"] == "admitted"
+        for relative_path in item["paths"]
+    }
+    fact_policy = load_json(
+        repo
+        / next(
+            source["path"]
+            for source in sources["sources"]
+            if source.get("kind") == "regional-fact-policy"
+        )
+    )
+    variable_policy = load_json(
+        repo
+        / next(
+            source["path"]
+            for source in sources["sources"]
+            if source.get("kind") == "regional-variable-policy"
+        )
+    )
+    admitted_evidence = {
+        relative_path
+        for item in fact_policy["exact"]
+        for relative_path in item["consumerEvidence"]
+    } | {
+        relative_path
+        for item in variable_policy["entries"]
+        if item["status"] == "admitted"
+        for key in ("producerEvidence", "readerEvidence")
+        for relative_path in item[key]
+    }
+    missing_admissions = sorted(admitted_evidence - admitted_paths)
+    if missing_admissions:
+        raise ContractError(
+            f"resident story: admitted evidence is unclassified {missing_admissions[:5]}"
         )
 
 
@@ -1155,6 +1543,12 @@ def validate_frozen_bindings(
             or (
                 item["source"] == "regional-facts"
                 and item["state"]["kind"] == "allocated-binding"
+                and (item["domain"], item["symbol"])
+                in {
+                    (domain, binding["symbol"])
+                    for domain, bindings in contract["publishedBindings"].items()
+                    for binding in bindings
+                }
             )
         )
     }

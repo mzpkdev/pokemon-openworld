@@ -1,29 +1,41 @@
 SafariZone_EventScript_OutOfBallsMidBattle::
-#if IS_FRLG
-	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 3
-#else
-	setvar VAR_SAFARI_ZONE_STATE, 1
-#endif
+	specialvar VAR_RESULT, GetSafariZoneFacility
+	goto_if_eq VAR_RESULT, SAFARI_ZONE_FACILITY_HOENN_ROUTE_121, SafariZone_EventScript_OutOfBallsMidBattleHoenn
+	goto_if_eq VAR_RESULT, SAFARI_ZONE_FACILITY_KANTO_FUCHSIA, SafariZone_EventScript_OutOfBallsMidBattleKanto
 	special ExitSafariMode
-#if IS_FRLG
-	setwarp MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 4, 1
-#else
+	end
+
+SafariZone_EventScript_OutOfBallsMidBattleHoenn::
+	setvar VAR_SAFARI_ZONE_STATE, 1
+	special ExitSafariMode
 	setwarp MAP_ROUTE121_SAFARI_ZONE_ENTRANCE, 2, 5
-#endif
+	end
+
+SafariZone_EventScript_OutOfBallsMidBattleKanto::
+	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 3
+	special ExitSafariMode
+	setwarp MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 4, 1
 	end
 
 SafariZone_EventScript_Exit::
-#if IS_FRLG
-	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 1
-#else
-	setvar VAR_SAFARI_ZONE_STATE, 1
-#endif
+	specialvar VAR_RESULT, GetSafariZoneFacility
+	goto_if_eq VAR_RESULT, SAFARI_ZONE_FACILITY_HOENN_ROUTE_121, SafariZone_EventScript_ExitHoenn
+	goto_if_eq VAR_RESULT, SAFARI_ZONE_FACILITY_KANTO_FUCHSIA, SafariZone_EventScript_ExitKanto
 	special ExitSafariMode
-#if IS_FRLG
-	warp MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 4, 1
-#else
+	releaseall
+	end
+
+SafariZone_EventScript_ExitHoenn::
+	setvar VAR_SAFARI_ZONE_STATE, 1
+	special ExitSafariMode
 	warp MAP_ROUTE121_SAFARI_ZONE_ENTRANCE, 2, 5
-#endif
+	waitstate
+	end
+
+SafariZone_EventScript_ExitKanto::
+	setvar VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 1
+	special ExitSafariMode
+	warp MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE, 4, 1
 	waitstate
 	end
 

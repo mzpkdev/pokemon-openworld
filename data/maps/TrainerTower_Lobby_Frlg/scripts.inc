@@ -35,7 +35,6 @@ TrainerTower_Lobby_OpenCounterBarrier::
 	return
 
 TrainerTower_Lobby_OnTransition::
-	setworldmapflag FLAG_WORLD_MAP_TRAINER_TOWER_LOBBY
 	getplayerxy VAR_TEMP_D, VAR_RESULT
 	end
 
@@ -63,11 +62,14 @@ TrainerTower_Lobby_Movement_ExitElevator::
 
 TrainerTower_Lobby_EventScript_Enter::
 	setvar VAR_TEMP_0, 1
-	ttower_getchallengestatus
-	switch VAR_RESULT
-	case TT_CHALLENGE_STATUS_LOST, TrainerTower_Lobby_EventScript_LostChallenge
-	case TT_CHALLENGE_STATUS_UNK, TrainerTower_Lobby_EventScript_ExitChallengeSpeakToReceptionist
-	case TT_CHALLENGE_STATUS_NORMAL, TrainerTower_Lobby_EventScript_EnterEnd
+	lockall
+	applymovement LOCALID_PLAYER, TrainerTower_Lobby_Movement_FaceReceptionist
+	textcolor NPC_TEXT_COLOR_FEMALE
+	msgbox TrainerTower_Lobby_Text_ServiceUnavailable
+	closemessage
+	warp MAP_SEVEN_ISLAND_TRAINER_TOWER, 58, 8
+	waitstate
+	end
 
 TrainerTower_Lobby_EventScript_LostChallenge::
 	lock
@@ -211,6 +213,10 @@ TrainerTower_Lobby_Text_WelcomeToTrainerTower::
 	.string "Hello!\p"
 	.string "Welcome to TRAINER TOWER where\n"
 	.string "TRAINERS gather from all over!$"
+
+TrainerTower_Lobby_Text_ServiceUnavailable::
+	.string "TRAINER TOWER isn't accepting\n"
+	.string "challenges right now.$"
 
 TrainerTower_Lobby_Text_TrainersUpToFloorNum::
 	.string "TRAINERS from all over the world\n"

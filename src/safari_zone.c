@@ -10,6 +10,9 @@
 #include "string_util.h"
 #include "tv.h"
 #include "constants/game_stat.h"
+#include "constants/maps.h"
+#include "constants/safari_zone.h"
+#include "constants/vars.h"
 #include "field_screen_effect.h"
 
 struct PokeblockFeeder
@@ -30,6 +33,7 @@ extern const u8 SafariZone_EventScript_OutOfBalls[];
 
 EWRAM_DATA u8 gNumSafariBalls = 0;
 EWRAM_DATA u16 gSafariZoneStepCounter = 0;
+EWRAM_DATA static u8 sSafariZoneFacility = SAFARI_ZONE_FACILITY_NONE;
 EWRAM_DATA static u8 sSafariZoneCaughtMons = 0;
 EWRAM_DATA static u8 sSafariZonePkblkUses = 0;
 EWRAM_DATA static struct PokeblockFeeder sPokeblockFeeders[NUM_POKEBLOCK_FEEDERS] = {0};
@@ -39,7 +43,8 @@ static void DecrementFeederStepCounters(void);
 
 bool32 GetSafariZoneFlag(void)
 {
-    return FlagGet(FLAG_SYS_SAFARI_MODE);
+    return FlagGet(FLAG_SYS_SAFARI_MODE)
+        && sSafariZoneFacility != SAFARI_ZONE_FACILITY_NONE;
 }
 
 void SetSafariZoneFlag(void)
@@ -50,29 +55,106 @@ void SetSafariZoneFlag(void)
 void ResetSafariZoneFlag(void)
 {
     FlagClear(FLAG_SYS_SAFARI_MODE);
-}
-
-void EnterSafariMode(void)
-{
-    IncrementGameStat(GAME_STAT_ENTERED_SAFARI_ZONE);
-    SetSafariZoneFlag();
+    sSafariZoneFacility = SAFARI_ZONE_FACILITY_NONE;
     ClearAllPokeblockFeeders();
-    gNumSafariBalls = 30;
-    if (IS_FRLG)
-        gSafariZoneStepCounter = 600;
-    else
-        gSafariZoneStepCounter = 500;
+    gNumSafariBalls = 0;
+    gSafariZoneStepCounter = 0;
     sSafariZoneCaughtMons = 0;
     sSafariZonePkblkUses = 0;
 }
 
+u8 GetSafariZoneFacility(void)
+{
+    return sSafariZoneFacility;
+}
+
+bool32 SafariZoneUsesKantoRules(void)
+{
+    return sSafariZoneFacility == SAFARI_ZONE_FACILITY_KANTO_FUCHSIA;
+}
+
+bool32 SafariZonePublishesFanClubShow(void)
+{
+    return sSafariZoneFacility == SAFARI_ZONE_FACILITY_HOENN_ROUTE_121;
+}
+
+u16 GetSafariZoneStepLimit(void)
+{
+    switch (sSafariZoneFacility)
+    {
+    case SAFARI_ZONE_FACILITY_HOENN_ROUTE_121:
+        return SAFARI_ZONE_HOENN_STEP_LIMIT;
+    case SAFARI_ZONE_FACILITY_KANTO_FUCHSIA:
+        return SAFARI_ZONE_KANTO_STEP_LIMIT;
+    default:
+        return 0;
+    }
+}
+
+bool32 GetSafariZoneExitSpec(u8 facility, struct SafariZoneExitSpec *spec)
+{
+    static const struct SafariZoneExitSpec specs[] =
+    {
+        [SAFARI_ZONE_FACILITY_HOENN_ROUTE_121] =
+        {
+            .sceneVar = VAR_SAFARI_ZONE_STATE,
+            .normalScene = 1,
+            .midBattleScene = 1,
+            .entranceMap = MAP_ROUTE121_SAFARI_ZONE_ENTRANCE,
+            .x = 2,
+            .y = 5,
+        },
+        [SAFARI_ZONE_FACILITY_KANTO_FUCHSIA] =
+        {
+            .sceneVar = VAR_MAP_SCENE_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE,
+            .normalScene = 1,
+            .midBattleScene = 3,
+            .entranceMap = MAP_FUCHSIA_CITY_SAFARI_ZONE_ENTRANCE,
+            .x = 4,
+            .y = 1,
+        },
+    };
+
+    if (spec == NULL || facility == SAFARI_ZONE_FACILITY_NONE || facility >= ARRAY_COUNT(specs))
+        return FALSE;
+    *spec = specs[facility];
+    return TRUE;
+}
+
+bool32 EnterSafariModeForFacility(u8 facility)
+{
+    sSafariZoneFacility = facility;
+    if (GetSafariZoneStepLimit() == 0)
+    {
+        ResetSafariZoneFlag();
+        return FALSE;
+    }
+
+    IncrementGameStat(GAME_STAT_ENTERED_SAFARI_ZONE);
+    SetSafariZoneFlag();
+    ClearAllPokeblockFeeders();
+    gNumSafariBalls = 30;
+    gSafariZoneStepCounter = GetSafariZoneStepLimit();
+    sSafariZoneCaughtMons = 0;
+    sSafariZonePkblkUses = 0;
+    return TRUE;
+}
+
+void EnterHoennSafariMode(void)
+{
+    EnterSafariModeForFacility(SAFARI_ZONE_FACILITY_HOENN_ROUTE_121);
+}
+
+void EnterKantoSafariMode(void)
+{
+    EnterSafariModeForFacility(SAFARI_ZONE_FACILITY_KANTO_FUCHSIA);
+}
+
 void ExitSafariMode(void)
 {
-    TryPutSafariFanClubOnAir(sSafariZoneCaughtMons, sSafariZonePkblkUses);
+    if (SafariZonePublishesFanClubShow())
+        TryPutSafariFanClubOnAir(sSafariZoneCaughtMons, sSafariZonePkblkUses);
     ResetSafariZoneFlag();
-    ClearAllPokeblockFeeders();
-    gNumSafariBalls = 0;
-    gSafariZoneStepCounter = 0;
 }
 
 bool8 SafariZoneTakeStep(void)

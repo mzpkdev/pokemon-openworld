@@ -1,6 +1,14 @@
 Route5_PokemonDayCare_EventScript_DaycareMan::
 	lock
 	faceplayer
+	msgbox Route5_PokemonDayCare_Text_ServiceUnavailable
+	release
+	end
+
+@ Retained as dormant source until Route 5 receives product-owned storage semantics.
+Route5_PokemonDayCare_EventScript_LegacyDaycareMan::
+	lock
+	faceplayer
 	showmoneybox 0, 0
 	specialvar VAR_RESULT, IsThereMonInRoute5Daycare
 	goto_if_eq VAR_RESULT, TRUE, Route5_PokemonDayCare_EventScript_CheckOnMon

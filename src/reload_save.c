@@ -9,6 +9,14 @@
 #include "overworld.h"
 #include "malloc.h"
 #include "text.h"
+#include "title_screen.h"
+
+MainCallback GetReloadSaveCallback(u8 saveStatus)
+{
+    if (saveStatus == SAVE_STATUS_UNSUPPORTED)
+        return CB2_InitTitleScreen;
+    return CB2_ContinueSavedGame;
+}
 
 // Reloads the game, continuing from the point of the last save
 // Used to gracefully exit after a link connection error
@@ -30,5 +38,5 @@ void ReloadSave(void)
         Sav2_ClearSetDefault();
     SetPokemonCryStereo(gSaveBlock2Ptr->optionsSound);
     InitHeap(gHeap, HEAP_SIZE);
-    SetMainCallback2(CB2_ContinueSavedGame);
+    SetMainCallback2(GetReloadSaveCallback(gSaveFileStatus));
 }

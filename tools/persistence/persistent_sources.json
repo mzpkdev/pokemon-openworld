@@ -5,6 +5,7 @@
     {"id": "contract-facilities", "kind": "frozen-contract", "contractDomain": "facilities", "domains": ["facilities"], "storage": "u32-id"},
     {"id": "contract-flags", "kind": "frozen-contract", "contractDomain": "flags", "domains": ["flags"], "storage": "flag-id"},
     {"id": "regional-facts", "kind": "regional-fact-policy", "path": "tools/persistence/regional_fact_bindings.json", "domains": ["flags"], "storage": "flag-id"},
+    {"id": "regional-variables", "kind": "regional-variable-policy", "path": "tools/persistence/regional_variable_bindings.json", "domains": ["vars"], "storage": "u16-id"},
     {"id": "contract-game-stats", "kind": "frozen-contract", "contractDomain": "gameStats", "domains": ["gameStats"], "storage": "u32-id"},
     {"id": "contract-met-locations", "kind": "frozen-contract", "contractDomain": "metLocations", "domains": ["metLocations"], "storage": "u8-location"},
     {"id": "contract-reward-state", "kind": "frozen-contract", "contractDomain": "rewardState", "domains": ["rewardState"], "storage": "flag-id"},
@@ -64,6 +65,7 @@
     {"domain": "vars", "paths": ["src/**/*.c", "data/**/*.inc", "data/**/*.s"], "patterns": ["Var(?:Get|Set)\\(\\s*(?P<symbol>VAR_[A-Za-z0-9_]+)", "^\\s*(?:setvar|addvar|subvar|copyvar|copyvarifnotzero|setorcopyvar|specialvar)\\s+(?P<symbol>VAR_[A-Za-z0-9_]+)\\b"], "scriptTokens": {"paths": ["data/**/*.s", "data/**/*.inc"], "prefixes": ["VAR_"]}}
   ],
   "locationCodecs": {"path": "src/data/region_map/region_map_sections.json", "consumerFacade": "src/data/persistence/location_codecs.inc.c"},
+  "residentStoryAdmission": "tools/persistence/resident_story_admission.json",
   "trainerIdentityProjection": {
     "legacyPath": "include/constants/opponents_frlg.h",
     "legacyIdRange": [1, 623],
