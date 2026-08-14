@@ -133,6 +133,37 @@ class PersistentIdTests(unittest.TestCase):
             {"of": "FLAG_UNUSED_0x8E3", "owner": "ss-aqua-travel-state"},
         )
 
+    def test_published_owner_wins_when_explicit_alias_sorts_first(self):
+        sources = copy.deepcopy(self.sources)
+        sources["explicitAllocations"].append(
+            {
+                "domain": "flags",
+                "symbol": "FLAG_A_SYNTHETIC_ALIAS",
+                "value": 0x8E3,
+                "source": "ss-aqua-travel-state",
+            }
+        )
+
+        ledger = seed_ledger(self.contract, sources, ROOT)
+        group = {
+            item["symbol"]: item
+            for item in ledger["entries"]
+            if item["domain"] == "flags" and item["value"] == 0x8E3
+        }
+
+        self.assertIsNone(group["FLAG_UNUSED_0x8E3"]["alias"])
+        self.assertEqual(
+            group["FLAG_UNUSED_0x8E3"]["state"], {"kind": "published-binding"}
+        )
+        self.assertEqual(
+            group["FLAG_A_SYNTHETIC_ALIAS"]["alias"],
+            {"of": "FLAG_UNUSED_0x8E3", "owner": "ss-aqua-travel-state"},
+        )
+        self.assertEqual(
+            group["FLAG_A_SYNTHETIC_ALIAS"]["state"],
+            {"kind": "allocated-binding"},
+        )
+
     def test_contract_listed_explicit_allocation_rejects_value_drift(self):
         entries = copy.deepcopy(self.ledger["entries"])
         binding = next(

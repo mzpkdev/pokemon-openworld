@@ -405,12 +405,13 @@ def seed_ledger(
     for item in entries:
         groups[(item["domain"], item["storage"], item["value"])].append(item)
     for group in groups.values():
-        if any(item["source"] == "regional-facts" for item in group):
-            owner_item = next(
-                item for item in group if item["state"]["kind"] == "published-binding"
-            )
-        else:
-            owner_item = group[0]
+        published = [
+            item
+            for item in group
+            if item["state"]["kind"]
+            in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+        ]
+        owner_item = published[0] if published else group[0]
         owner_item["alias"] = None
         for item in group:
             if item is not owner_item:
