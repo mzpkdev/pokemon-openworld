@@ -5,14 +5,18 @@ import copy
 import json
 import os
 import stat
+import sys
 import tempfile
 from pathlib import Path
 
-from tools.content_port.ecology_fallbacks import validate_fallback_document
-from tools.content_port.errors import ContentPortError
-
-
 ROOT = Path(__file__).resolve().parents[2]
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(ROOT))
+
+from tools.content_port.ecology_fallbacks import validate_fallback_document  # noqa: E402
+from tools.content_port.errors import ContentPortError  # noqa: E402
+
+
 PORT_ROOT = ROOT / "tools/content_port/ports/johto"
 DEFAULT_CLASSIFICATION = PORT_ROOT / "encounter_classification.json"
 DEFAULT_ECOLOGY = PORT_ROOT / "encounter_ecology.json"
@@ -50,6 +54,13 @@ RODS = (("OLD_ROD", "old_rod"), ("GOOD_ROD", "good_rod"), ("SUPER_ROD", "super_r
 TIER_LEVELS = ((4, 8), (10, 14), (15, 19), (20, 24))
 CLASSIFICATION_COUNTS = {"ordinary": 89, "special": 18, "encounter-free": 147}
 ROUTE39_LABELS = {"gRoute39", "gRoute39_Night"}
+REVIEWED_METHOD_TIME_FALLBACKS = {
+    ("RuinsOfAlph_Outside", "rock_smash_mons", "night", "day"),
+    ("CianwoodCity", "rock_smash_mons", "night", "day"),
+    ("MtSilver_MountainSide", "fishing_mons", "night", "day"),
+    ("Route26", "rock_smash_mons", "night", "day"),
+    ("Route26North", "rock_smash_mons", "night", "day"),
+}
 
 
 class ProjectionError(ValueError):
@@ -400,6 +411,44 @@ def _profile(label, map_id, source, location):
     return encounter, bands, {method["name"] for method in methods}
 
 
+def _complete_time_pair_methods(map_name, profiles):
+    """Apply the exact reviewed same-map fallback matrix for asymmetric methods."""
+    by_condition = {profile["condition"]: profile for profile in profiles}
+    if set(by_condition) != {"day", "night"}:
+        return profiles, set()
+    eligible = {}
+    applied = set()
+    for condition, profile in by_condition.items():
+        eligible[condition] = {
+            method["method"]: method
+            for index, method in enumerate(profile["methods"])
+            if _trim_method(method, f"{map_name}/{condition}/methods/{index}")
+            is not None
+        }
+    for method_name in METHOD_ORDER:
+        day_method = eligible["day"].get(method_name)
+        night_method = eligible["night"].get(method_name)
+        if (day_method is None) == (night_method is None):
+            continue
+        source = day_method if day_method is not None else night_method
+        source_condition = "day" if day_method is not None else "night"
+        target_condition = "night" if day_method is not None else "day"
+        fallback = (map_name, method_name, target_condition, source_condition)
+        if fallback not in REVIEWED_METHOD_TIME_FALLBACKS:
+            raise ProjectionError(
+                f"{map_name}: unreviewed {source_condition}-to-{target_condition} "
+                f"fallback for {method_name}"
+            )
+        target = by_condition[target_condition]
+        target["methods"] = [
+            method for method in target["methods"] if method["method"] != method_name
+        ]
+        target["methods"].append(copy.deepcopy(source))
+        target["methods"].sort(key=lambda method: METHOD_ORDER.index(method["method"]))
+        applied.add(fallback)
+    return profiles, applied
+
+
 def project_documents(
     classification,
     ecology,
@@ -433,6 +482,7 @@ def project_documents(
     fallback_by_map = _fallback_rows(fallbacks, blocked, fallback_sources)
 
     selected = []
+    applied_method_fallbacks = set()
     for name in (
         row["map"] for row in classification["maps"] if row["kind"] == "ordinary"
     ):
@@ -459,11 +509,18 @@ def project_documents(
                     )
             else:
                 profiles = [
-                    profile
+                    copy.deepcopy(profile)
                     for profile in profiles
                     if profile["condition"] in {"day", "night"}
                 ]
+        profiles, method_fallbacks = _complete_time_pair_methods(name, profiles)
+        applied_method_fallbacks.update(method_fallbacks)
         selected.append((name, map_id, profiles))
+
+    if applied_method_fallbacks != REVIEWED_METHOD_TIME_FALLBACKS:
+        raise ProjectionError(
+            "ecology: method/time asymmetries do not match the reviewed fallback matrix"
+        )
 
     projected_encounters, projected_registry, projected_bands = [], [], []
     pair_info = []
@@ -640,6 +697,21 @@ def project_documents(
         "schema_version": 1,
         "encounterProfiles": typed,
         "encounterTimePolicy": policies,
+        "methodFallbacks": [
+            {
+                "map": map_name,
+                "method": method,
+                "missingCondition": "TIME_NIGHT"
+                if missing_condition == "night"
+                else "TIME_DAY",
+                "sourceCondition": "TIME_NIGHT"
+                if source_condition == "night"
+                else "TIME_DAY",
+            }
+            for map_name, method, missing_condition, source_condition in sorted(
+                applied_method_fallbacks
+            )
+        ],
     }
     return output_encounters, output_registry, output_bands, time_policies
 

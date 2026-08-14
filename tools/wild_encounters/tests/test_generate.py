@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[3]
 ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
 BANDS = ROOT / "src/data/wild_encounter_bands.json"
+TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 
 class WildEncounterGenerationTests(unittest.TestCase):
@@ -39,6 +40,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
     def route39_time_policies():
         return {
             "schema_version": 1,
+            "methodFallbacks": [],
             "encounterProfiles": [
                 {
                     "map": "Route39",
@@ -133,6 +135,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 if time_policies_path is None
                 else time_policies_path
             ),
+            enforce_reviewed_method_fallbacks=False,
         )
         return self.output_path.read_text(encoding="utf-8")
 
@@ -171,6 +174,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     if time_policies_path is None
                     else time_policies_path
                 ),
+                enforce_reviewed_method_fallbacks=False,
             )
         self.assertEqual(self.output_path.read_bytes(), b"reviewed output\n")
 
@@ -421,7 +425,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
 
     def test_proof_profiles_preserve_tier_zero_ecology_and_weights(self):
         profiles = self.bands["profiles"]
-        self.assertEqual(len(profiles), 553)
+        self.assertEqual(len(profiles), 560)
         self.assertTrue(
             {
                 "gRoute101",
@@ -531,9 +535,9 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 )
 
         output = self.generate()
-        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 553", output)
-        self.assertEqual(output.count(".missingBandPolicy ="), 553)
-        self.assertEqual(output.count(".totalWeight = 100,"), 2_212)
+        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 560", output)
+        self.assertEqual(output.count(".missingBandPolicy ="), 560)
+        self.assertEqual(output.count(".totalWeight = 100,"), 2_240)
 
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()
@@ -812,6 +816,7 @@ class WildEncounterGenerationTests(unittest.TestCase):
             "schema_version": 1,
             "encounterProfiles": [],
             "encounterTimePolicy": [],
+            "methodFallbacks": [],
         }
         profiles = []
         encounters = {
@@ -867,8 +872,12 @@ class WildEncounterGenerationTests(unittest.TestCase):
             )
             encounters["wild_encounter_groups"][0]["encounters"].extend(
                 [
-                    {"base_label": label, "map": map_id},
-                    {"base_label": night_label, "map": map_id},
+                    {"base_label": label, "map": map_id, "land_mons": {}},
+                    {
+                        "base_label": night_label,
+                        "map": map_id,
+                        "land_mons": {},
+                    },
                 ]
             )
 
@@ -1036,6 +1045,35 @@ int main(void)
                 )["time"] = wrong_time
                 policy_path.write_text(json.dumps(policy), encoding="utf-8")
                 self.assert_rejected_without_replacement(time_policies_path=policy_path)
+
+    def test_production_requires_exact_reviewed_method_fallback_set(self):
+        policy = json.loads(TIME_POLICIES.read_text(encoding="utf-8"))
+        mutations = []
+
+        missing = copy.deepcopy(policy)
+        missing["methodFallbacks"] = missing["methodFallbacks"][1:]
+        mutations.append(missing)
+
+        extra = copy.deepcopy(policy)
+        reversed_row = copy.deepcopy(extra["methodFallbacks"][0])
+        reversed_row["missingCondition"], reversed_row["sourceCondition"] = (
+            reversed_row["sourceCondition"],
+            reversed_row["missingCondition"],
+        )
+        extra["methodFallbacks"].append(reversed_row)
+        mutations.append(extra)
+
+        for index, mutation in enumerate(mutations):
+            with self.subTest(index=index):
+                policy_path = self.root / f"invalid-reviewed-fallbacks-{index}.json"
+                policy_path.write_text(json.dumps(mutation), encoding="utf-8")
+                self.output_path.write_bytes(b"reviewed output\n")
+                with self.assertRaises(generator.ValidationError):
+                    generator.generate(
+                        output_path=self.output_path,
+                        time_policies_path=policy_path,
+                    )
+                self.assertEqual(self.output_path.read_bytes(), b"reviewed output\n")
 
     def test_runtime_time_resolution_for_enabled_and_disabled_configs(self):
         config_source = generator.DEFAULT_CONFIG.read_text(encoding="utf-8")

@@ -17,6 +17,7 @@ from tools.content_port.ecology import (
     validate_ecology_document,
 )
 from tools.content_port.ecology_fallbacks import validate_fallback_document
+from tools.wild_encounters.johto_population import project_documents
 
 
 ROUTE39_SOURCE_DIGEST = (
@@ -299,6 +300,39 @@ class PinnedDonorTests(unittest.TestCase):
                         },
                         source_map["connections"],
                     )
+
+        production_paths = {
+            "encounters": Path("src/data/wild_encounters.json"),
+            "registry": Path("src/data/wild_encounter_registry.json"),
+            "bands": Path("src/data/wild_encounter_bands.json"),
+            "timePolicies": Path("src/data/wild_encounter_time_policies.json"),
+        }
+        production = {
+            name: json.loads(path.read_text(encoding="utf-8"))
+            for name, path in production_paths.items()
+        }
+        map_ids = {
+            row["map"]: json.loads(
+                (Path("data/maps") / row["map"] / "map.json").read_text(
+                    encoding="utf-8"
+                )
+            )["id"]
+            for row in classification["maps"]
+            if row["kind"] == "ordinary"
+        }
+        projected = project_documents(
+            classification,
+            ecology,
+            fallbacks,
+            production["encounters"],
+            production["registry"],
+            production["bands"],
+            map_ids,
+            donor_document,
+        )
+        for name, actual in zip(production_paths, projected, strict=True):
+            with self.subTest(projected_document=name):
+                self.assertEqual(actual, production[name])
 
 
 if __name__ == "__main__":

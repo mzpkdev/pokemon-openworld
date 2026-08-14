@@ -117,18 +117,59 @@ TEST("Johto authored populations dispatch day and night profiles")
     EXPECT_EQ(nightEntry.species, SPECIES_HOOTHOOT);
 }
 
+TEST("Reviewed Johto method fallbacks remain available at night")
+{
+    static const struct
+    {
+        u16 map;
+        enum WildPokemonArea area;
+        u8 fishingRod;
+    } sFallbacks[] =
+    {
+        {MAP_RUINS_OF_ALPH_OUTSIDE, WILD_AREA_ROCKS, WILD_ENCOUNTER_FISHING_ROD_NONE},
+        {MAP_CIANWOOD_CITY, WILD_AREA_ROCKS, WILD_ENCOUNTER_FISHING_ROD_NONE},
+        {MAP_MT_SILVER_MOUNTAIN_SIDE, WILD_AREA_FISHING, SUPER_ROD},
+        {MAP_ROUTE26, WILD_AREA_ROCKS, WILD_ENCOUNTER_FISHING_ROD_NONE},
+        {MAP_ROUTE26NORTH, WILD_AREA_ROCKS, WILD_ENCOUNTER_FISHING_ROD_NONE},
+    };
+    u16 i;
+
+    for (i = 0; i < ARRAY_COUNT(sFallbacks); i++)
+    {
+        struct WildEncounterProfileView day = ResolveAuthoredProfile(
+            sFallbacks[i].map,
+            sFallbacks[i].area,
+            TIME_DAY,
+            sFallbacks[i].fishingRod,
+            WORLD_TIER_0);
+        struct WildEncounterProfileView night = ResolveAuthoredProfile(
+            sFallbacks[i].map,
+            sFallbacks[i].area,
+            TIME_NIGHT,
+            sFallbacks[i].fishingRod,
+            WORLD_TIER_0);
+
+        ExpectAuthoredLevels(&day, 4, 8);
+        ExpectAuthoredLevels(&night, 4, 8);
+        EXPECT_EQ(day.totalWeight, night.totalWeight);
+        EXPECT_EQ(day.entryCount, night.entryCount);
+    }
+}
+
 TEST("Johto authored levels advance from world tier zero to tier three")
 {
+    u16 headerId = FindJohtoHeader(MAP_UNION_CAVE_1F);
+    enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
     struct WildEncounterProfileView tier0 = ResolveAuthoredProfile(
         MAP_UNION_CAVE_1F,
         WILD_AREA_LAND,
-        TIME_DAY,
+        timeOfDay,
         WILD_ENCOUNTER_FISHING_ROD_NONE,
         WORLD_TIER_0);
     struct WildEncounterProfileView tier3 = ResolveAuthoredProfile(
         MAP_UNION_CAVE_1F,
         WILD_AREA_LAND,
-        TIME_DAY,
+        timeOfDay,
         WILD_ENCOUNTER_FISHING_ROD_NONE,
         WORLD_TIER_3);
 
@@ -154,16 +195,18 @@ TEST("Explicit Johto fallback maps have ordinary authored populations")
 
     for (i = 0; i < ARRAY_COUNT(sFallbacks); i++)
     {
+        u16 headerId = FindJohtoHeader(sFallbacks[i].map);
+        enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, sFallbacks[i].area);
         struct WildEncounterProfileView tier0 = ResolveAuthoredProfile(
             sFallbacks[i].map,
             sFallbacks[i].area,
-            TIME_DAY,
+            timeOfDay,
             WILD_ENCOUNTER_FISHING_ROD_NONE,
             WORLD_TIER_0);
         struct WildEncounterProfileView tier3 = ResolveAuthoredProfile(
             sFallbacks[i].map,
             sFallbacks[i].area,
-            TIME_DAY,
+            timeOfDay,
             WILD_ENCOUNTER_FISHING_ROD_NONE,
             WORLD_TIER_3);
 

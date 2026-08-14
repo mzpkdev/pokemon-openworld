@@ -1279,5 +1279,37 @@
       "nightLabel": "gRoute39_Night",
       "fallbackLabel": "gRoute39"
     }
+  ],
+  "methodFallbacks": [
+    {
+      "map": "CianwoodCity",
+      "method": "rock_smash_mons",
+      "missingCondition": "TIME_NIGHT",
+      "sourceCondition": "TIME_DAY"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "method": "fishing_mons",
+      "missingCondition": "TIME_NIGHT",
+      "sourceCondition": "TIME_DAY"
+    },
+    {
+      "map": "Route26",
+      "method": "rock_smash_mons",
+      "missingCondition": "TIME_NIGHT",
+      "sourceCondition": "TIME_DAY"
+    },
+    {
+      "map": "Route26North",
+      "method": "rock_smash_mons",
+      "missingCondition": "TIME_NIGHT",
+      "sourceCondition": "TIME_DAY"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "method": "rock_smash_mons",
+      "missingCondition": "TIME_NIGHT",
+      "sourceCondition": "TIME_DAY"
+    }
   ]
 }

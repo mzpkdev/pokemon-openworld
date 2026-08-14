@@ -150,7 +150,7 @@ TEST("Authored levels are inclusive and Lure caps one above maximum")
     EXPECT_EQ(level, 100);
 }
 
-TEST("Unmigrated maps in every region remain unscaled legacy views")
+TEST("Unmigrated legacy regions remain unscaled legacy views")
 {
     static const struct
     {
@@ -160,7 +160,6 @@ TEST("Unmigrated maps in every region remain unscaled legacy views")
     {
         {MAP_ROUTE102, WILD_AREA_LAND},
         {MAP_ROUTE1, WILD_AREA_LAND},
-        {MAP_CHERRYGROVE_CITY, WILD_AREA_WATER},
         {MAP_THREE_ISLAND_BERRY_FOREST, WILD_AREA_LAND},
     };
     u16 i;

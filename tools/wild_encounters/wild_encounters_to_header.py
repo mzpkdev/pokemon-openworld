@@ -22,6 +22,16 @@ DEFAULT_MAP_SECTIONS = ROOT / "src/data/region_map/region_map_sections.json"
 DEFAULT_SPECIES = ROOT / "include/constants/species.h"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
+REVIEWED_METHOD_TIME_FALLBACKS = frozenset(
+    {
+        ("RuinsOfAlph_Outside", "rock_smash_mons", "TIME_NIGHT", "TIME_DAY"),
+        ("CianwoodCity", "rock_smash_mons", "TIME_NIGHT", "TIME_DAY"),
+        ("MtSilver_MountainSide", "fishing_mons", "TIME_NIGHT", "TIME_DAY"),
+        ("Route26", "rock_smash_mons", "TIME_NIGHT", "TIME_DAY"),
+        ("Route26North", "rock_smash_mons", "TIME_NIGHT", "TIME_DAY"),
+    }
+)
+
 PROFILE_FIELDS = (
     "group",
     "label",
@@ -47,7 +57,7 @@ REVIEWED_ORDERED_PROFILE_SHA256 = (
 )
 # Deliberately revised only when authenticated authored encounter content changes.
 REVIEWED_AUTHORED_CONTRACT_SHA256 = (
-    "c6efd2cd83d0e66d741aa83c3a682832da91f4ae868d865d9e9a7210c1de87f8"
+    "5fc4952b3ae5e1ce6f9ab0782b35054a486654b1a21c18c5895ca241717f4325"
 )
 NON_MAP_RESIDENCY = {
     "gBattlePyramidWildMonHeaders": "hoenn",
@@ -893,21 +903,36 @@ def _parse_policy_clock(value, location):
     return hours * 60 + minutes
 
 
-def _load_time_policies(path, profiles, encounters, config, maps):
+def _load_time_policies(
+    path,
+    profiles,
+    encounters,
+    config,
+    maps,
+    expected_method_fallbacks=None,
+):
     document = _load_json(path)
     _require_exact_keys(
         document,
-        {"schema_version", "encounterProfiles", "encounterTimePolicy"},
+        {
+            "schema_version",
+            "encounterProfiles",
+            "encounterTimePolicy",
+            "methodFallbacks",
+        },
         path,
     )
     if type(document["schema_version"]) is not int or document["schema_version"] != 1:
         raise ValidationError(f"{path}/schema_version: expected 1")
     policy_rows = document["encounterTimePolicy"]
     profile_rows = document["encounterProfiles"]
-    if not isinstance(policy_rows, list) or not isinstance(profile_rows, list):
-        raise ValidationError(
-            f"{path}: encounterTimePolicy and encounterProfiles must be lists"
-        )
+    method_fallback_rows = document["methodFallbacks"]
+    if (
+        not isinstance(policy_rows, list)
+        or not isinstance(profile_rows, list)
+        or not isinstance(method_fallback_rows, list)
+    ):
+        raise ValidationError(f"{path}: time-policy collections must be lists")
     if not policy_rows:
         raise ValidationError(f"{path}: encounterTimePolicy must not be empty")
 
@@ -1030,6 +1055,55 @@ def _load_time_policies(path, profiles, encounters, config, maps):
         labels[day_label] = {"time": policy["day_time"], "policy": policy}
         labels[night_label] = {"time": policy["night_time"], "policy": policy}
         policies.append(policy)
+
+    fallback_identities = set()
+    for index, row in enumerate(method_fallback_rows):
+        location = f"{path}/methodFallbacks/{index}"
+        _require_exact_keys(
+            row,
+            {"map", "method", "missingCondition", "sourceCondition"},
+            location,
+        )
+        map_name = _require_identifier(row["map"], f"{location}/map")
+        method = _require_identifier(row["method"], f"{location}/method")
+        if method not in config.mon_types:
+            raise ValidationError(f"{location}/method: unresolved encounter method")
+        missing_condition = row["missingCondition"]
+        source_condition = row["sourceCondition"]
+        if (
+            missing_condition not in {"TIME_DAY", "TIME_NIGHT"}
+            or source_condition not in {"TIME_DAY", "TIME_NIGHT"}
+            or missing_condition == source_condition
+        ):
+            raise ValidationError(f"{location}: invalid condition fallback")
+        identity = (map_name, method, missing_condition, source_condition)
+        if identity in fallback_identities:
+            raise ValidationError(f"{location}: duplicate method fallback")
+        fallback_identities.add(identity)
+        policy = policy_by_map.get(map_name)
+        if policy is None:
+            raise ValidationError(f"{location}/map: missing encounter time policy")
+        label_by_condition = {
+            "TIME_DAY": policy["dayLabel"],
+            "TIME_NIGHT": policy["nightLabel"],
+        }
+        missing_encounter = encounter_by_label[label_by_condition[missing_condition]]
+        source_encounter = encounter_by_label[label_by_condition[source_condition]]
+        if (
+            method not in missing_encounter
+            or method not in source_encounter
+            or missing_encounter[method] != source_encounter[method]
+        ):
+            raise ValidationError(
+                f"{location}: fallback method must exactly copy its source condition"
+            )
+    if (
+        expected_method_fallbacks is not None
+        and fallback_identities != expected_method_fallbacks
+    ):
+        raise ValidationError(
+            f"{path}/methodFallbacks: expected exact reviewed method fallback set"
+        )
     if set(authored_profile_by_label) != set(labels):
         raise ValidationError(
             f"{path}: encounterProfiles must exactly match profiles consumed by "
@@ -1632,6 +1706,7 @@ def generate(
     map_sections_path=DEFAULT_MAP_SECTIONS,
     species_path=DEFAULT_SPECIES,
     time_policies_path=DEFAULT_TIME_POLICIES,
+    enforce_reviewed_method_fallbacks=True,
 ):
     encounters = _load_json(encounters_path)
     registry = _load_json(registry_path)
@@ -1640,7 +1715,12 @@ def generate(
     species = _load_species(species_path)
     profiles = validate_inputs(encounters, registry, config, maps, species)
     time_policy_labels, time_policy_headers = _load_time_policies(
-        time_policies_path, profiles, encounters, config, maps
+        time_policies_path,
+        profiles,
+        encounters,
+        config,
+        maps,
+        (REVIEWED_METHOD_TIME_FALLBACKS if enforce_reviewed_method_fallbacks else None),
     )
     _select_runtime_profiles(profiles, config, time_policy_labels)
     authored_profiles = _load_authored_bands(

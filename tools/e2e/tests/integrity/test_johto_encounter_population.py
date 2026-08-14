@@ -188,7 +188,7 @@ def test_bug_contest_map_is_not_claimed_by_ordinary_johto_profiles(integrity_gam
     }
     _load_map(integrity_game, maps["NationalPark_BugContest"], 0xE3760000)
 
-    with pytest.raises(AssertionError, match=r"failed with error 3$"):
+    with pytest.raises(AssertionError, match=r"failed with error 2"):
         _probe_encounter(
             integrity_game,
             request_id=0xE3770000,

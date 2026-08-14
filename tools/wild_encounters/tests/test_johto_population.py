@@ -221,7 +221,27 @@ class JohtoPopulationTests(unittest.TestCase):
         time_document = self.outputs[3]
         self.assertEqual(
             set(time_document),
-            {"schema_version", "encounterProfiles", "encounterTimePolicy"},
+            {
+                "schema_version",
+                "encounterProfiles",
+                "encounterTimePolicy",
+                "methodFallbacks",
+            },
+        )
+        self.assertEqual(
+            {
+                (
+                    row["map"],
+                    row["method"],
+                    row["missingCondition"],
+                    row["sourceCondition"],
+                )
+                for row in time_document["methodFallbacks"]
+            },
+            {
+                (map_name, method, "TIME_NIGHT", "TIME_DAY")
+                for map_name, method, _, _ in projection.REVIEWED_METHOD_TIME_FALLBACKS
+            },
         )
         for row in time_document["encounterTimePolicy"]:
             self.assertEqual((row["dayStart"], row["nightStart"]), ("06:00", "18:00"))
@@ -233,6 +253,21 @@ class JohtoPopulationTests(unittest.TestCase):
         }
         typed_labels = {row["label"] for row in time_document["encounterProfiles"]}
         self.assertEqual(policy_labels, typed_labels)
+
+        for policy in time_document["encounterTimePolicy"]:
+            day = self.encounter(policy["dayLabel"])
+            night = self.encounter(policy["nightLabel"])
+            self.assertEqual(
+                set(day) & set(projection.METHOD_ORDER),
+                set(night) & set(projection.METHOD_ORDER),
+                policy["map"],
+            )
+
+        cianwood_day = self.encounter("gCianwoodCity")
+        cianwood_night = self.encounter("gCianwoodCity_Night")
+        self.assertEqual(
+            cianwood_night["rock_smash_mons"], cianwood_day["rock_smash_mons"]
+        )
 
     def test_check_and_write_mismatch_behavior(self):
         with tempfile.TemporaryDirectory() as temporary:
