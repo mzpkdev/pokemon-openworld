@@ -273,6 +273,10 @@ def seed_ledger(
         if source.get("kind") == "regional-fact-policy"
         for fact in load_json(repo / source["path"]).get("exact", [])
     }
+    explicit_allocation_symbols = {
+        (allocation["domain"], allocation["symbol"])
+        for allocation in sources.get("explicitAllocations", [])
+    }
     entries: list[dict[str, Any]] = []
     for domain, bindings in sorted(contract["publishedBindings"].items()):
         source_id = _published_source(domain, source_by_id)
@@ -281,7 +285,11 @@ def seed_ledger(
         if storage not in storage_by_id:
             raise ContractError(f"source {source_id}: unallocated storage {storage}")
         for binding in bindings:
-            if domain == "flags" and binding["symbol"] in regional_fact_symbols:
+            if (
+                (domain, binding["symbol"]) in explicit_allocation_symbols
+                or domain == "flags"
+                and binding["symbol"] in regional_fact_symbols
+            ):
                 continue
             value = binding["value"]
             state: dict[str, Any] = {"kind": "published-binding"}
@@ -397,12 +405,13 @@ def seed_ledger(
     for item in entries:
         groups[(item["domain"], item["storage"], item["value"])].append(item)
     for group in groups.values():
-        if any(item["source"] == "regional-facts" for item in group):
-            owner_item = next(
-                item for item in group if item["state"]["kind"] == "published-binding"
-            )
-        else:
-            owner_item = group[0]
+        published = [
+            item
+            for item in group
+            if item["state"]["kind"]
+            in {"published-binding", "published-tombstone", "trainer-defeat-flag"}
+        ]
+        owner_item = published[0] if published else group[0]
         owner_item["alias"] = None
         for item in group:
             if item is not owner_item:
@@ -1550,14 +1559,8 @@ def validate_frozen_bindings(
                 and (item["domain"], item["symbol"]) in frozen
             )
             or (
-                item["source"] == "regional-facts"
-                and item["state"]["kind"] == "allocated-binding"
-                and (item["domain"], item["symbol"])
-                in {
-                    (domain, binding["symbol"])
-                    for domain, bindings in contract["publishedBindings"].items()
-                    for binding in bindings
-                }
+                item["state"]["kind"] == "allocated-binding"
+                and (item["domain"], item["symbol"]) in frozen
             )
         )
     }

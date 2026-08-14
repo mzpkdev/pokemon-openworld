@@ -7,6 +7,7 @@ from tools.content_port.world_graph import (
     WorldEdge,
     WorldPolicy,
     validate_world_graph,
+    with_dynamic_warps,
     with_script_warps,
     world_graph_from_maps,
 )
@@ -70,6 +71,58 @@ class WorldGraphTests(unittest.TestCase):
             validate_world_graph(graph, WorldPolicy())
         validate_world_graph(
             graph, WorldPolicy(dynamic_warps={"A:warp:0": "saved-warp"})
+        )
+
+    def test_dynamic_options_are_distinct_directional_reachability_edges(self) -> None:
+        base = world_graph_from_maps(
+            {
+                "SHIP": map_doc(
+                    "SHIP",
+                    warps=[{"dest_map": "MAP_DYNAMIC", "dest_warp_id": "DYNAMIC"}],
+                ),
+                "A": map_doc("A"),
+                "B": map_doc("B", region="kanto"),
+            }
+        )
+
+        def option(target, arming_source):
+            return WorldEdge(
+                "SHIP",
+                target,
+                "dynamic-warp",
+                0,
+                x=8,
+                y=9,
+                arming_source=arming_source,
+                arming_entry=f"{arming_source}_Travel",
+                arming_label=f"{arming_source}_Travel",
+                arming_index=0,
+                immediate_target="SHIP",
+                immediate_command="warp",
+                immediate_index=0,
+                immediate_x=29,
+                immediate_y=3,
+            )
+
+        a_edge = option("A", "B")
+        b_edge = option("B", "A")
+        self.assertNotEqual(a_edge.key, b_edge.key)
+        graph = with_dynamic_warps(base, (a_edge, b_edge))
+        with self.assertRaisesRegex(ContentPortError, "declared gateway"):
+            validate_world_graph(
+                graph,
+                WorldPolicy(
+                    dynamic_warps={"SHIP:warp:0": "DYNAMIC"},
+                    roots=frozenset({"SHIP"}),
+                ),
+            )
+        validate_world_graph(
+            graph,
+            WorldPolicy(
+                dynamic_warps={"SHIP:warp:0": "DYNAMIC"},
+                inter_region_gateways=frozenset({b_edge.key}),
+                roots=frozenset({"SHIP"}),
+            ),
         )
 
     def test_inter_region_gateway_and_reachability(self) -> None:

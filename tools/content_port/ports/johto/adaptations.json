@@ -67,13 +67,6 @@
       "hns": "MAP_ROUTE22",
       "mechanical": "MAP_ROUTE26NORTH",
       "reason": "mechanical Johto membership keeps the east exit inside the active Tohjo shell"
-    },
-    {
-      "source": "SSAqua_1F",
-      "path": "warp_events/0/dest_warp_id",
-      "hns": "1",
-      "mechanical": "0",
-      "reason": "mechanical donor fixes the Olivine port return to the target's only warp"
     }
   ],
   "layoutHeaderDecisions": [
@@ -5347,7 +5340,7 @@
       "source": "SSAqua_1F",
       "path": "warp_events/0",
       "kind": "warp",
-      "destination": "MAP_OLIVINE_CITY_PORT_INSIDE"
+      "destination": "MAP_DYNAMIC"
     },
     {
       "source": "SSAqua_1F",
@@ -6717,44 +6710,80 @@
     "scriptWarps": [
       {
         "source": "OlivineCity_PortInside",
-        "destination": "VermilionCity_PortInside",
+        "destination": "SSAqua_1F",
         "script": "OlivineCity_PortInside_EventScript_Sailor",
         "label": "OlivineCity_PortInside_EventScript_TravelToVermilion",
         "command": "warp",
         "index": 0,
-        "x": 8,
-        "y": 9,
+        "x": 29,
+        "y": 3,
         "sourceRegion": "REGION_JOHTO",
-        "targetRegion": "REGION_KANTO"
+        "targetRegion": "REGION_JOHTO"
       },
       {
         "source": "VermilionCity_PortInside",
-        "destination": "OlivineCity_PortInside",
+        "destination": "SSAqua_1F",
         "script": "VermilionCity_PortInside_EventScript_Sailor",
         "label": "VermilionCity_PortInside_EventScript_TravelToOlivine",
         "command": "warp",
         "index": 0,
-        "x": 8,
-        "y": 16,
+        "x": 29,
+        "y": 3,
         "sourceRegion": "REGION_KANTO",
         "targetRegion": "REGION_JOHTO"
       }
     ],
-    "dynamicWarps": [],
+    "dynamicWarps": [
+      {
+        "source": "SSAqua_1F",
+        "index": 0,
+        "token": "WARP_ID_DYNAMIC",
+        "sourceOwnership": "preserve",
+        "destinations": [
+          {
+            "destination": "OlivineCity_PortInside",
+            "x": 8,
+            "y": 16,
+            "armingSource": "VermilionCity_PortInside",
+            "script": "VermilionCity_PortInside_EventScript_Sailor",
+            "label": "VermilionCity_PortInside_EventScript_TravelToOlivine",
+            "index": 0,
+            "immediateDestination": "SSAqua_1F",
+            "immediateCommand": "warp",
+            "immediateIndex": 0,
+            "immediateX": 29,
+            "immediateY": 3,
+            "sourceRegion": "REGION_JOHTO",
+            "targetRegion": "REGION_JOHTO",
+            "armingRegion": "REGION_KANTO",
+            "destinationOwnership": "preserve",
+            "armingOwnership": "preserve"
+          },
+          {
+            "destination": "VermilionCity_PortInside",
+            "x": 8,
+            "y": 9,
+            "armingSource": "OlivineCity_PortInside",
+            "script": "OlivineCity_PortInside_EventScript_Sailor",
+            "label": "OlivineCity_PortInside_EventScript_TravelToVermilion",
+            "index": 0,
+            "immediateDestination": "SSAqua_1F",
+            "immediateCommand": "warp",
+            "immediateIndex": 0,
+            "immediateX": 29,
+            "immediateY": 3,
+            "sourceRegion": "REGION_JOHTO",
+            "targetRegion": "REGION_KANTO",
+            "armingRegion": "REGION_JOHTO",
+            "destinationOwnership": "preserve",
+            "armingOwnership": "preserve"
+          }
+        ]
+      }
+    ],
     "unreachableShells": [
       "GoldenrodCity_DepartmentStore_7FNight",
       "MtSilver_SummitNight",
-      "SSAqua_1F",
-      "SSAqua_B1F",
-      "SSAqua_CaptainsRoom",
-      "SSAqua_PlayersRoom",
-      "SSAqua_RoomNE",
-      "SSAqua_RoomNNE",
-      "SSAqua_RoomNW",
-      "SSAqua_RoomSE",
-      "SSAqua_RoomSSE",
-      "SSAqua_RoomSSW",
-      "SSAqua_RoomSW",
       "SafariZone1",
       "SafariZone2",
       "SafariZone3",

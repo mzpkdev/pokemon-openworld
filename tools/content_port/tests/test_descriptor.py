@@ -366,8 +366,34 @@ class DescriptorTests(unittest.TestCase):
             ),
             (
                 "worldDynamicWarp",
-                {"source": "TestMap", "index": 0, "token": "WARP_ID_DYNAMIC"},
-                "token",
+                {
+                    "source": "TestMap",
+                    "index": 0,
+                    "token": "WARP_ID_DYNAMIC",
+                    "sourceOwnership": "preserve",
+                    "destinations": [
+                        {
+                            "destination": "OtherMap",
+                            "x": 1,
+                            "y": 2,
+                            "armingSource": "Berth",
+                            "script": "Berth_Travel",
+                            "label": "Berth_Travel",
+                            "index": 0,
+                            "immediateDestination": "TestMap",
+                            "immediateCommand": "warp",
+                            "immediateIndex": 0,
+                            "immediateX": 3,
+                            "immediateY": 4,
+                            "sourceRegion": "REGION_TEST",
+                            "targetRegion": "REGION_OTHER",
+                            "armingRegion": "REGION_OTHER",
+                            "destinationOwnership": "preserve",
+                            "armingOwnership": "preserve",
+                        }
+                    ],
+                },
+                "sourceOwnership",
                 "index",
                 True,
                 "$.worldPolicy.dynamicWarps[0]",
@@ -400,7 +426,7 @@ class DescriptorTests(unittest.TestCase):
         self.assertEqual(len(descriptor.allocation_index.maps), 254)
         self.assertEqual(len(descriptor.map_ownership), 254)
         self.assertEqual(len(descriptor.capabilities), 254 * 12)
-        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 19)
+        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 20)
         state_counts: dict[str, int] = {}
         for decision in descriptor.capabilities:
             state_counts[decision.state.value] = (
@@ -408,7 +434,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 511, "deferred": 2347, "story-owned": 190},
+            {"enabled": 511, "deferred": 2337, "story-owned": 200},
         )
         self.assertEqual(
             {

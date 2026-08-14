@@ -173,6 +173,77 @@ class SemanticsTests(unittest.TestCase):
         with self.assertRaisesRegex(ContentPortError, "unsupported persistent"):
             extract_script_warps(program, "Entry")
 
+    def test_dynamic_warp_arming_precedes_immediate_travel_edge(self) -> None:
+        program = self._program(
+            "Entry::\n setdynamicwarp MAP_RETURN_BERTH, 8, 9\n"
+            " warp MAP_SHIP, 29, 3\n end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(len(evidence), 1)
+        self.assertEqual(
+            (
+                evidence[0].command,
+                evidence[0].destination,
+                evidence[0].x,
+                evidence[0].y,
+            ),
+            ("warp", "SHIP", 29, 3),
+        )
+        arm = evidence[0].dynamic_arm
+        self.assertIsNotNone(arm)
+        self.assertEqual(
+            (arm.entry, arm.label, arm.index, arm.destination, arm.x, arm.y),
+            ("Entry", "Entry", 0, "RETURN_BERTH", 8, 9),
+        )
+
+    def test_dynamic_warp_arming_supports_immediate_silent_travel(self) -> None:
+        program = self._program(
+            "Entry::\n setdynamicwarp MAP_RETURN_BERTH, 8, 9\n"
+            " warpsilent MAP_SHIP, 29, 3\n end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(
+            (evidence[0].command, evidence[0].destination),
+            ("warpsilent", "SHIP"),
+        )
+
+    def test_dynamic_warp_arming_must_be_literal_and_immediately_paired(self) -> None:
+        cases = {
+            "unpaired": (
+                "setdynamicwarp MAP_RETURN, 1, 2\n msgbox Text, MSGBOX_DEFAULT",
+                "must be immediately followed",
+            ),
+            "malformed": (
+                "setdynamicwarp MAP_RETURN, 1\n warp MAP_SHIP, 2, 3",
+                "requires literal destination",
+            ),
+            "nonliteral map": (
+                "setdynamicwarp VAR_RETURN_MAP, 1, 2\n warp MAP_SHIP, 2, 3",
+                "literal MAP_\\* identity",
+            ),
+            "nonliteral coordinate": (
+                "setdynamicwarp MAP_RETURN, VAR_X, 2\n warp MAP_SHIP, 2, 3",
+                "coordinates must be integer literals",
+            ),
+            "negative coordinate": (
+                "setdynamicwarp MAP_RETURN, -1, 2\n warp MAP_SHIP, 2, 3",
+                "coordinates must be non-negative",
+            ),
+        }
+        for label, (body, message) in cases.items():
+            with self.subTest(label=label):
+                program = self._program(f"Entry::\n {body}\n end\n")
+                with self.assertRaisesRegex(ContentPortError, message):
+                    extract_script_warps(program, "Entry")
+
+    def test_dynamic_warp_arming_cannot_pair_across_labels(self) -> None:
+        program = self._program(
+            "Entry::\n setdynamicwarp MAP_RETURN, 1, 2\n"
+            " goto .Travel\n.Travel::\n warp MAP_SHIP, 2, 3\n end\n"
+        )
+        with self.assertRaisesRegex(ContentPortError, "same label"):
+            extract_script_warps(program, "Entry")
+
     def test_hns_single_battle_separator_and_text_are_typed(self) -> None:
         program = self._program(
             "Entry::\n trainerbattle_single TRAINER_SAMUEL Seen, Beaten\n"

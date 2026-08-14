@@ -23,6 +23,16 @@ static void SetMarker(u8 signature, u8 version)
     gSaveBlock1Ptr->unused_9C2[1] = version;
 }
 
+static void ExpectOnlyFastShipTerminalFlagChanged(const u8 *originalFlags)
+{
+    u8 expectedFlags[sizeof(gSaveBlock1Ptr->flags)];
+
+    memcpy(expectedFlags, originalFlags, sizeof(expectedFlags));
+    expectedFlags[FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED / 8]
+        |= 1 << (FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED & 7);
+    EXPECT_EQ(memcmp(expectedFlags, gSaveBlock1Ptr->flags, sizeof(expectedFlags)), 0);
+}
+
 TEST("Regional story migrations classify historical current and invalid saves")
 {
     static const struct MigrationCase cases[] =
@@ -108,9 +118,11 @@ TEST("Recovered saves apply regional story migration before Continue eligibility
 
 TEST("Every regional story migration is ordered and idempotent")
 {
+    InitEventData();
     SetMarker(0, 0);
 
     EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
+    EXPECT(FlagGet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED));
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[0], REGIONAL_STORY_MIGRATION_SIGNATURE);
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
     EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_CURRENT);
@@ -135,7 +147,7 @@ TEST("Historical migration preserves regional fact and variable isolation")
     SetMarker(0, 0);
 
     EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
-    EXPECT_EQ(memcmp(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags)), 0);
+    ExpectOnlyFastShipTerminalFlagChanged(originalFlags);
     EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
     EXPECT(RegionalFact_Get(REGIONAL_FACT_HOENN_STONE_BADGE));
     EXPECT(RegionalFact_Get(REGIONAL_FACT_SEVII_DETOUR_FINISHED));
@@ -171,10 +183,60 @@ TEST("Historical mechanics grants do not fabricate regional story facts")
 
 TEST("New saves start at the current regional story version")
 {
+    InitEventData();
     SetMarker(0xFF, 0xFF);
     RegionalStoryMigration_InitializeNewSave();
 
+    EXPECT(FlagGet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED));
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[0], REGIONAL_STORY_MIGRATION_SIGNATURE);
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
     EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_CURRENT);
+}
+
+TEST("Unversioned and version one saves default the fast ship terminal lock")
+{
+    static const u8 historicalVersions[] = {0, 1};
+
+    for (u32 i = 0; i < ARRAY_COUNT(historicalVersions); i++)
+    {
+        u8 originalFlags[sizeof(gSaveBlock1Ptr->flags)];
+        u16 originalVars[ARRAY_COUNT(gSaveBlock1Ptr->vars)];
+
+        InitEventData();
+        FlagSet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
+        FlagSet(FLAG_BADGE01_GET);
+        VarSet(VAR_SAFARI_ZONE_STATE, 0xA55A);
+        memcpy(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags));
+        memcpy(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars));
+        if (historicalVersions[i] == 0)
+            SetMarker(0, 0);
+        else
+            SetMarker(REGIONAL_STORY_MIGRATION_SIGNATURE, historicalVersions[i]);
+
+        EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
+        EXPECT(FlagGet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED));
+        ExpectOnlyFastShipTerminalFlagChanged(originalFlags);
+        EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
+        EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[0], REGIONAL_STORY_MIGRATION_SIGNATURE);
+        EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
+    }
+}
+
+TEST("Current regional story saves preserve a deliberately cleared terminal lock")
+{
+    u8 originalFlags[sizeof(gSaveBlock1Ptr->flags)];
+    u16 originalVars[ARRAY_COUNT(gSaveBlock1Ptr->vars)];
+
+    InitEventData();
+    FlagSet(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
+    VarSet(VAR_MAP_SCENE_CERULEAN_CITY_RIVAL, 0x1234);
+    FlagClear(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED);
+    SetMarker(REGIONAL_STORY_MIGRATION_SIGNATURE, REGIONAL_STORY_MIGRATION_VERSION);
+    memcpy(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags));
+    memcpy(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars));
+
+    EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_CURRENT);
+    EXPECT(!FlagGet(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED));
+    EXPECT_EQ(memcmp(originalFlags, gSaveBlock1Ptr->flags, sizeof(originalFlags)), 0);
+    EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
 }

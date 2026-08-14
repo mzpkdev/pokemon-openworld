@@ -30,6 +30,15 @@ class WorldEdge:
     command: str | None = None
     x: int | None = None
     y: int | None = None
+    arming_source: str | None = None
+    arming_entry: str | None = None
+    arming_label: str | None = None
+    arming_index: int | None = None
+    immediate_target: str | None = None
+    immediate_command: str | None = None
+    immediate_index: int | None = None
+    immediate_x: int | None = None
+    immediate_y: int | None = None
 
     @property
     def key(self) -> str:
@@ -37,6 +46,13 @@ class WorldEdge:
             return (
                 f"{self.source}:{self.kind}:{self.script_entry}:"
                 f"{self.script_label}:{self.index}"
+            )
+        if self.kind == "dynamic-warp":
+            return (
+                f"{self.source}:{self.kind}:{self.index}:{self.target}:{self.x}:{self.y}:"
+                f"{self.arming_source}:{self.arming_entry}:{self.arming_label}:"
+                f"{self.arming_index}:{self.immediate_target}:{self.immediate_command}:"
+                f"{self.immediate_index}:{self.immediate_x}:{self.immediate_y}"
             )
         return f"{self.source}:{self.kind}:{self.index}"
 
@@ -167,6 +183,41 @@ def with_script_warps(graph: WorldGraph, edges: Iterable[WorldEdge]) -> WorldGra
     if len(keys) != len(set(keys)):
         raise ContentPortError("duplicate script-warp evidence identity")
     return WorldGraph(graph.maps, tuple(sorted((*graph.edges, *script_edges))))
+
+
+def with_dynamic_warps(graph: WorldGraph, edges: Iterable[WorldEdge]) -> WorldGraph:
+    dynamic_edges = tuple(edges)
+    if any(edge.kind != "dynamic-warp" for edge in dynamic_edges):
+        raise ContentPortError("dynamic-warp evidence contains a non-dynamic edge")
+    if any(
+        not edge.source
+        or not edge.target
+        or type(edge.index) is not int
+        or edge.index < 0
+        or type(edge.x) is not int
+        or edge.x < 0
+        or type(edge.y) is not int
+        or edge.y < 0
+        or not edge.arming_source
+        or not edge.arming_entry
+        or not edge.arming_label
+        or type(edge.arming_index) is not int
+        or edge.arming_index < 0
+        or not edge.immediate_target
+        or edge.immediate_command not in {"warp", "warpsilent"}
+        or type(edge.immediate_index) is not int
+        or edge.immediate_index < 0
+        or type(edge.immediate_x) is not int
+        or edge.immediate_x < 0
+        or type(edge.immediate_y) is not int
+        or edge.immediate_y < 0
+        for edge in dynamic_edges
+    ):
+        raise ContentPortError("dynamic-warp evidence is incomplete or malformed")
+    keys = [edge.key for edge in dynamic_edges]
+    if len(keys) != len(set(keys)):
+        raise ContentPortError("duplicate dynamic-warp evidence identity")
+    return WorldGraph(graph.maps, tuple(sorted((*graph.edges, *dynamic_edges))))
 
 
 def validate_world_graph(graph: WorldGraph, policy: WorldPolicy) -> None:

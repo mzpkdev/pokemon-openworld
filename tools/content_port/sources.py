@@ -20,7 +20,7 @@ from .model import (
     TrainerText,
 )
 from .ownership import safe_repo_path
-from .world_graph import WorldEdge
+from .world_graph import WorldEdge, with_dynamic_warps
 
 
 @dataclass(frozen=True, order=True)
@@ -1632,13 +1632,16 @@ def _extract_preserved_script_warps(
     maps: Mapping[str, Mapping[str, Any]],
     ownership: Mapping[str, str],
     target_root: Path,
-) -> tuple[tuple[WorldEdge, ...], Mapping[str, frozenset[str]]]:
+) -> tuple[
+    tuple[WorldEdge, ...], Mapping[str, frozenset[str]], tuple[tuple[str, Any], ...]
+]:
     """Return parsed script-warp edges and their map-owned entry inventory."""
 
     from .semantics import extract_script_warps, parse_scripts
 
     owned_entries: dict[str, frozenset[str]] = {}
     result: list[WorldEdge] = []
+    dynamic_arms: list[tuple[str, Any]] = []
     map_aliases = {
         str(document.get("id", name)).removeprefix("MAP_"): name
         for name, document in maps.items()
@@ -1682,7 +1685,213 @@ def _extract_preserved_script_warps(
                         y=warp.y,
                     )
                 )
-    return tuple(result), MappingProxyType(owned_entries)
+                if warp.dynamic_arm is not None:
+                    dynamic_arms.append((name, warp))
+    return tuple(result), MappingProxyType(owned_entries), tuple(dynamic_arms)
+
+
+def _bind_dynamic_warp_policy(
+    graph: Any,
+    declarations: object,
+    ownership: Mapping[str, str],
+    owned_entries: Mapping[str, frozenset[str]],
+    dynamic_arms: tuple[tuple[str, Any], ...],
+    map_aliases: Mapping[str, str],
+) -> tuple[Any, Mapping[str, str], frozenset[str]]:
+    """Bind each dynamic map exit to its exact, adjacent arming transition."""
+
+    if not isinstance(declarations, list):
+        raise ContentPortError("worldPolicy.dynamicWarps must be an array")
+    required = {"source", "index", "token", "sourceOwnership", "destinations"}
+    option_fields = {
+        "destination",
+        "x",
+        "y",
+        "armingSource",
+        "script",
+        "label",
+        "index",
+        "immediateDestination",
+        "immediateCommand",
+        "immediateIndex",
+        "immediateX",
+        "immediateY",
+        "sourceRegion",
+        "targetRegion",
+        "armingRegion",
+        "destinationOwnership",
+        "armingOwnership",
+    }
+    declared_static: dict[str, str] = {}
+    resolved: list[WorldEdge] = []
+    for declaration_index, item in enumerate(declarations):
+        pointer = f"worldPolicy.dynamicWarps/{declaration_index}"
+        if not isinstance(item, dict) or set(item) != required:
+            raise ContentPortError(f"{pointer}: malformed dynamic warp")
+        source = str(item["source"])
+        static_key = f"{source}:warp:{item['index']}"
+        matches = [
+            edge
+            for edge in graph.edges
+            if edge.key == static_key
+            and edge.kind == "warp"
+            and not isinstance(edge.target_warp, int)
+        ]
+        if len(matches) != 1 or str(matches[0].target_warp) != str(item["token"]):
+            raise ContentPortError(f"{pointer}: stale dynamic warp declaration")
+        if ownership.get(source) != item["sourceOwnership"]:
+            raise ContentPortError(f"{pointer}: dynamic warp ownership evidence drift")
+        if static_key in declared_static:
+            raise ContentPortError("duplicate dynamic warp declaration")
+        declared_static[static_key] = str(item["token"])
+        options = item["destinations"]
+        if not isinstance(options, list) or not options:
+            raise ContentPortError(f"{pointer}: destinations must be a non-empty array")
+        for option_index, option in enumerate(options):
+            option_pointer = f"{pointer}/destinations/{option_index}"
+            if not isinstance(option, dict) or set(option) != option_fields:
+                raise ContentPortError(
+                    f"{option_pointer}: malformed dynamic destination"
+                )
+            candidates = []
+            for arming_source, warp in dynamic_arms:
+                arm = warp.dynamic_arm
+                arm_destination = (
+                    map_aliases.get(arm.destination, arm.destination)
+                    if arm is not None
+                    else None
+                )
+                if (
+                    arm is not None
+                    and arming_source == option["armingSource"]
+                    and arm_destination == option["destination"]
+                    and arm.x == option["x"]
+                    and arm.y == option["y"]
+                    and arm.entry == option["script"]
+                    and arm.label == option["label"]
+                    and arm.index == option["index"]
+                    and map_aliases.get(warp.destination, warp.destination)
+                    == option["immediateDestination"]
+                    and warp.command == option["immediateCommand"]
+                    and warp.index == option["immediateIndex"]
+                    and warp.x == option["immediateX"]
+                    and warp.y == option["immediateY"]
+                    and map_aliases.get(warp.destination, warp.destination) == source
+                ):
+                    candidates.append((arming_source, warp))
+            if len(candidates) != 1:
+                actual = [
+                    (
+                        arming_source,
+                        map_aliases.get(
+                            warp.dynamic_arm.destination, warp.dynamic_arm.destination
+                        ),
+                        warp.dynamic_arm.entry,
+                        warp.dynamic_arm.label,
+                        warp.destination,
+                    )
+                    for arming_source, warp in dynamic_arms
+                    if warp.dynamic_arm is not None
+                ]
+                raise ContentPortError(
+                    f"{option_pointer}: stale dynamic destination; parsed arms {actual!r}"
+                )
+            arming_source, warp = candidates[0]
+            destination = str(option["destination"])
+            if destination not in graph.maps:
+                raise ContentPortError(
+                    f"{option_pointer}: destination map is outside the closed world graph"
+                )
+            if (
+                ownership.get(destination) != option["destinationOwnership"]
+                or ownership.get(arming_source) != option["armingOwnership"]
+                or str(option["script"])
+                not in owned_entries.get(arming_source, frozenset())
+            ):
+                raise ContentPortError(
+                    f"{option_pointer}: dynamic warp ownership evidence drift"
+                )
+            if (
+                graph.maps[source].region != option["sourceRegion"]
+                or graph.maps[destination].region != option["targetRegion"]
+                or graph.maps[arming_source].region != option["armingRegion"]
+            ):
+                raise ContentPortError(
+                    f"{option_pointer}: dynamic warp region evidence drift"
+                )
+            arm = warp.dynamic_arm
+            resolved.append(
+                WorldEdge(
+                    source,
+                    destination,
+                    "dynamic-warp",
+                    int(item["index"]),
+                    x=arm.x,
+                    y=arm.y,
+                    arming_source=arming_source,
+                    arming_entry=arm.entry,
+                    arming_label=arm.label,
+                    arming_index=arm.index,
+                    immediate_target=map_aliases.get(
+                        warp.destination, warp.destination
+                    ),
+                    immediate_command=warp.command,
+                    immediate_index=warp.index,
+                    immediate_x=warp.x,
+                    immediate_y=warp.y,
+                )
+            )
+    observed_static = {
+        edge.key: str(edge.target_warp)
+        for edge in graph.edges
+        if edge.kind == "warp" and not isinstance(edge.target_warp, int)
+    }
+    if declared_static != observed_static:
+        raise ContentPortError("dynamic warp policy differs from resolved topology")
+    observed_arms = {
+        (
+            arming_source,
+            warp.dynamic_arm.entry,
+            warp.dynamic_arm.label,
+            warp.dynamic_arm.index,
+            map_aliases.get(warp.dynamic_arm.destination, warp.dynamic_arm.destination),
+            warp.dynamic_arm.x,
+            warp.dynamic_arm.y,
+            map_aliases.get(warp.destination, warp.destination),
+            warp.command,
+            warp.index,
+            warp.x,
+            warp.y,
+        )
+        for arming_source, warp in dynamic_arms
+        if warp.dynamic_arm is not None
+    }
+    resolved_arms = {
+        (
+            edge.arming_source,
+            edge.arming_entry,
+            edge.arming_label,
+            edge.arming_index,
+            edge.target,
+            edge.x,
+            edge.y,
+            edge.immediate_target,
+            edge.immediate_command,
+            edge.immediate_index,
+            edge.immediate_x,
+            edge.immediate_y,
+        )
+        for edge in resolved
+    }
+    if resolved_arms != observed_arms:
+        raise ContentPortError("dynamic warp destinations differ from parsed arms")
+    graph = with_dynamic_warps(graph, resolved)
+    gateways = frozenset(
+        edge.key
+        for edge in resolved
+        if graph.maps[edge.source].region != graph.maps[edge.target].region
+    )
+    return graph, MappingProxyType(declared_static), gateways
 
 
 def _bind_script_warp_policy(
@@ -1695,6 +1904,7 @@ def _bind_script_warp_policy(
 
     if not isinstance(declarations, list):
         raise ContentPortError("worldPolicy.scriptWarps must be an array")
+    declared_keys: set[str] = set()
     gateway_keys: set[str] = set()
     required = {
         "source",
@@ -1755,11 +1965,13 @@ def _bind_script_warp_policy(
             raise ContentPortError(
                 f"worldPolicy.scriptWarps/{index}: script warp region evidence drift"
             )
-        if edge.key in gateway_keys:
+        if edge.key in declared_keys:
             raise ContentPortError("duplicate script warp declaration")
-        gateway_keys.add(edge.key)
+        declared_keys.add(edge.key)
+        if graph.maps[edge.source].region != target.region:
+            gateway_keys.add(edge.key)
     observed_keys = {edge.key for edge in graph.edges if edge.kind == "script-warp"}
-    if gateway_keys != observed_keys:
+    if declared_keys != observed_keys:
         raise ContentPortError("script warp policy differs from resolved topology")
     return frozenset(gateway_keys)
 
@@ -2847,7 +3059,7 @@ def resolve_port_sources(
         isinstance(item, str) and item for item in world_policy["unreachableShells"]
     ):
         raise ContentPortError("worldPolicy.unreachableShells must contain map names")
-    script_edges, owned_script_entries = _extract_preserved_script_warps(
+    script_edges, owned_script_entries, dynamic_arms = _extract_preserved_script_warps(
         selected_maps, descriptor.map_ownership, target_root
     )
     rendered_graph = with_script_warps(rendered_graph, script_edges)
@@ -2876,23 +3088,27 @@ def resolve_port_sources(
         )
         in reviewed_retained
     )
-    observed_dynamic_warps = {
-        edge.key: str(edge.target_warp)
-        for edge in rendered_graph.edges
-        if edge.kind == "warp" and not isinstance(edge.target_warp, int)
+    dynamic_map_aliases = {
+        str(document.get("id", name)).removeprefix("MAP_"): name
+        for name, document in selected_maps.items()
     }
-    declared_dynamic_warps: dict[str, str] = {}
-    for index, item in enumerate(world_policy["dynamicWarps"]):
-        if not isinstance(item, dict) or set(item) != {"source", "index", "token"}:
-            raise ContentPortError(
-                f"worldPolicy.dynamicWarps/{index}: malformed dynamic warp"
-            )
-        key = f"{item['source']}:warp:{item['index']}"
-        if key in declared_dynamic_warps:
-            raise ContentPortError("duplicate dynamic warp declaration")
-        declared_dynamic_warps[key] = str(item["token"])
-    if declared_dynamic_warps != observed_dynamic_warps:
-        raise ContentPortError("dynamic warp policy differs from resolved topology")
+    for name in selected_maps:
+        installed_map = target_root / "data" / "maps" / name / "map.json"
+        if installed_map.is_file():
+            installed_document = json.loads(installed_map.read_text(encoding="utf-8"))
+            dynamic_map_aliases[
+                str(installed_document.get("id", name)).removeprefix("MAP_")
+            ] = name
+    rendered_graph, declared_dynamic_warps, dynamic_gateway_keys = (
+        _bind_dynamic_warp_policy(
+            rendered_graph,
+            world_policy["dynamicWarps"],
+            descriptor.map_ownership,
+            owned_script_entries,
+            dynamic_arms,
+            dynamic_map_aliases,
+        )
+    )
     gateway_keys: set[str] = set()
     for index, item in enumerate(world_policy["gateways"]):
         if not isinstance(item, dict) or set(item) != {
@@ -2934,6 +3150,7 @@ def resolve_port_sources(
             owned_script_entries,
         )
     )
+    gateway_keys.update(dynamic_gateway_keys)
     validate_world_graph(
         rendered_graph,
         WorldPolicy(

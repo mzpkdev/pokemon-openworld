@@ -20,6 +20,7 @@ POPULATED_FIXTURE_MANIFEST = (
     Path(__file__).parents[2] / "fixtures" / "hoenn_populated.json"
 )
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
+FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED = 0x8E3
 VAR_E2E_PERSISTENCE_SENTINEL = 0x40FF
 SPECIES_PIKACHU = 25
 SPECIES_DITTO = 132
@@ -29,7 +30,7 @@ ITEM_NUGGET = 135
 HEAL_LOCATION_LITTLEROOT_BRENDAN_2F = 1
 TRAINER_RICKY_1 = 64
 REGIONAL_STORY_MIGRATION_MARKER_OFFSET = 0x9C2
-REGIONAL_STORY_MIGRATION_MARKER = bytes((0x53, 1))
+REGIONAL_STORY_MIGRATION_MARKER = bytes((0x53, 2))
 
 
 def _migration_marker(image) -> bytes:
@@ -56,15 +57,19 @@ def test_existing_hoenn_save_continues(game_from_hoenn_save):
     assert game_from_hoenn_save.map_id() == (0, 9)
     assert not game_from_hoenn_save.controls_locked()
     assert_runtime_semantics(game_from_hoenn_save, expected)
+    assert game_from_hoenn_save.read_flag(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED)
 
     rewritten = save_from_start_menu(game_from_hoenn_save)
     assert _migration_marker(rewritten) == REGIONAL_STORY_MIGRATION_MARKER
+    assert rewritten.active_slot.saved_flag(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED)
     assert rewritten.active_slot.trainer_defeated_bitmap == bytes(79)
     assert rewritten.semantics() == expected
     cold_restart_and_continue(game_from_hoenn_save)
     assert_runtime_semantics(game_from_hoenn_save, expected)
+    assert game_from_hoenn_save.read_flag(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED)
     restarted = game_from_hoenn_save.battery_snapshot()
     assert _migration_marker(restarted) == REGIONAL_STORY_MIGRATION_MARKER
+    assert restarted.active_slot.saved_flag(FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED)
     assert restarted.semantics() == expected
 
 

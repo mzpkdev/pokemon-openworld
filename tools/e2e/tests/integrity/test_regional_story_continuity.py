@@ -19,6 +19,8 @@ SCRIPT_IDLE = 2
 SAILOR_LOCAL_ID = 1
 VERMILION_PORT_ENTRY = (8, 9)
 OLIVINE_PORT_ENTRY = (8, 16)
+SS_AQUA_ENTRY = (29, 3)
+SS_AQUA_EXIT_APPROACH = (29, 2)
 
 REGIONAL_STORY_STATE = (
     ("Hoenn", 0x20, 0x40A4, 1),
@@ -57,7 +59,7 @@ def _load_map(game, entry, coordinates: tuple[int, int], request_id: int) -> Non
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
-def _take_ferry(game, destination, arrival: tuple[int, int]) -> None:
+def _take_ferry(game, ship, destination, arrival: tuple[int, int]) -> None:
     game.face("Down")
     game.press("A")
     game.wait_until(
@@ -69,10 +71,30 @@ def _take_ferry(game, destination, arrival: tuple[int, int]) -> None:
         max_frames=120,
     )
     game.advance_until(
+        lambda: game.map_id() == ship.map_id,
+        description="regional ferry boarding into S.S. Aqua",
+        max_pulses=600,
+        button="A",
+    )
+    game.wait_until(
+        lambda: (
+            game.callback_is("CB2_Overworld")
+            and not game.controls_locked()
+            and game.script_status() == SCRIPT_IDLE
+            and game.movement_idle()
+        ),
+        description="S.S. Aqua field-ready boarding",
+        max_frames=1_800,
+        step_frames=2,
+    )
+    assert game.position() == SS_AQUA_ENTRY
+    game.move_to(x=SS_AQUA_EXIT_APPROACH[0], y=SS_AQUA_EXIT_APPROACH[1])
+    assert game.position() == SS_AQUA_EXIT_APPROACH
+    game.advance_until(
         lambda: game.map_id() == destination.map_id,
         description=f"regional ferry arrival in {destination.name}",
         max_pulses=600,
-        button="A",
+        button="Up",
     )
     game.wait_until(
         lambda: (
@@ -113,6 +135,7 @@ def test_four_region_story_state_survives_round_trip_and_cold_restart(
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
     vermilion = maps["VermilionCity_PortInside"]
+    ship = maps["SSAqua_1F"]
     olivine = maps["OlivineCity_PortInside"]
 
     _settle_overworld(integrity_game)
@@ -133,7 +156,7 @@ def test_four_region_story_state_survives_round_trip_and_cold_restart(
     assert integrity_game.read_flag(kanto_flag)
     assert integrity_game.read_var(kanto_var) == kanto_value
 
-    _take_ferry(integrity_game, olivine, OLIVINE_PORT_ENTRY)
+    _take_ferry(integrity_game, ship, olivine, OLIVINE_PORT_ENTRY)
     _, johto_flag, johto_var, johto_value = REGIONAL_STORY_STATE[3]
     integrity_game.set_flag(johto_flag)
     integrity_game.set_var(johto_var, johto_value)
@@ -146,5 +169,5 @@ def test_four_region_story_state_survives_round_trip_and_cold_restart(
     _assert_runtime_story_state(integrity_game)
     _assert_serialized_story_state(integrity_game.battery_snapshot())
 
-    _take_ferry(integrity_game, vermilion, VERMILION_PORT_ENTRY)
+    _take_ferry(integrity_game, ship, vermilion, VERMILION_PORT_ENTRY)
     _assert_runtime_story_state(integrity_game)

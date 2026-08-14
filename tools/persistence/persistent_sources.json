@@ -4,6 +4,7 @@
     {"id": "contract-destinations", "kind": "frozen-contract", "contractDomain": "destinations", "domains": ["destinations"], "storage": "u32-id"},
     {"id": "contract-facilities", "kind": "frozen-contract", "contractDomain": "facilities", "domains": ["facilities"], "storage": "u32-id"},
     {"id": "contract-flags", "kind": "frozen-contract", "contractDomain": "flags", "domains": ["flags"], "storage": "flag-id"},
+    {"id": "ss-aqua-travel-state", "kind": "explicit-source", "path": "include/constants/flags.h", "domains": ["flags"], "storage": "flag-id"},
     {"id": "regional-facts", "kind": "regional-fact-policy", "path": "tools/persistence/regional_fact_bindings.json", "domains": ["flags"], "storage": "flag-id"},
     {"id": "regional-variables", "kind": "regional-variable-policy", "path": "tools/persistence/regional_variable_bindings.json", "domains": ["vars"], "storage": "u16-id"},
     {"id": "contract-game-stats", "kind": "frozen-contract", "contractDomain": "gameStats", "domains": ["gameStats"], "storage": "u32-id"},
@@ -37,7 +38,8 @@
     {"domain": "facilities", "symbol": "FACILITY_BATTLE_PYRAMID", "value": 7, "source": "battle-frontier-facilities"},
     {"domain": "facilities", "symbol": "FACILITY_BATTLE_TRAINER_HILL", "value": 8, "source": "battle-frontier-facilities"},
     {"domain": "berryTrees", "symbol": "BERRY_TREE_ROUTE_123_RAWST", "value": 89, "source": "berry-trees"},
-    {"domain": "berryTrees", "symbol": "BERRY_TREE_ROUTE_29_ORAN_1", "value": 90, "source": "berry-trees"}
+    {"domain": "berryTrees", "symbol": "BERRY_TREE_ROUTE_29_ORAN_1", "value": 90, "source": "berry-trees"},
+    {"domain": "flags", "symbol": "FLAG_VERMILION_FAST_SHIP_TERMINAL_LOCKED", "value": 2275, "source": "ss-aqua-travel-state"}
   ],
   "storages": [
     {"id": "flag-id", "width": 16, "signed": false, "sentinel": 65535, "sentinelSymbols": []},

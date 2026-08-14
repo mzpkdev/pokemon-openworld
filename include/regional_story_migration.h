@@ -4,7 +4,7 @@
 #include "global.h"
 
 #define REGIONAL_STORY_MIGRATION_SIGNATURE 0x53
-#define REGIONAL_STORY_MIGRATION_VERSION   1
+#define REGIONAL_STORY_MIGRATION_VERSION   2
 
 enum RegionalStoryMigrationResult
 {

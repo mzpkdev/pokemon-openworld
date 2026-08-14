@@ -52,6 +52,7 @@ SCRIPT_WARP_COMMANDS = frozenset(
         "release",
         "releaseall",
         "return",
+        "setdynamicwarp",
         "switch",
         "waitbuttonpress",
         "waitmessage",
@@ -116,6 +117,18 @@ class ScriptProgram:
 
 
 @dataclass(frozen=True, order=True)
+class DynamicWarpArm:
+    entry: str
+    label: str
+    index: int
+    destination: str
+    x: int
+    y: int
+    source: str
+    line: int
+
+
+@dataclass(frozen=True, order=True)
 class ScriptWarp:
     entry: str
     label: str
@@ -126,6 +139,7 @@ class ScriptWarp:
     y: int
     source: str
     line: int
+    dynamic_arm: DynamicWarpArm | None = None
 
 
 def split_operands(text: str) -> tuple[str, ...]:
@@ -527,8 +541,10 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
     """Extract immediate, literal world transitions reachable from one entry.
 
     The opcode inventory identifies warp effects. Only immediate ``warp`` and
-    ``warpsilent`` commands are admitted as world-graph evidence; saved/dynamic
-    escape points and specialized warp commands need separate runtime contracts.
+    ``warpsilent`` commands are admitted as world-graph evidence. A literal
+    ``setdynamicwarp`` may arm the return destination directly before that
+    transition, but is not itself an edge; other saved or specialized warp
+    commands need separate runtime contracts.
     """
 
     if entry not in program.labels:
@@ -546,7 +562,10 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
         visited.add(label)
         warp_index = 0
         choice_switch = False
-        for instruction in program.labels[label]:
+        instructions = program.labels[label]
+        arm_index = 0
+        pending_arm: DynamicWarpArm | None = None
+        for instruction_index, instruction in enumerate(instructions):
             reached.append(instruction)
             if instruction.command == "switch":
                 choice_switch = instruction.operands == ("VAR_RESULT",)
@@ -568,6 +587,51 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
                 # Unknown non-control macros cannot contribute an edge. If this
                 # closure does contain a warp, the allowlist below rejects them
                 # rather than accidentally treating a state mutation as safe.
+                continue
+            if instruction.command == "setdynamicwarp":
+                if len(instruction.operands) != 3:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: setdynamicwarp "
+                        "requires literal destination, x, and y operands"
+                    )
+                destination, raw_x, raw_y = instruction.operands
+                if re.fullmatch(r"MAP_[A-Z0-9_]+", destination) is None:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: setdynamicwarp "
+                        "destination must be a literal MAP_* identity"
+                    )
+                try:
+                    x = int(raw_x, 0)
+                    y = int(raw_y, 0)
+                except ValueError as exc:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: setdynamicwarp "
+                        "coordinates must be integer literals"
+                    ) from exc
+                if x < 0 or y < 0:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: setdynamicwarp "
+                        "coordinates must be non-negative"
+                    )
+                if instruction_index + 1 >= len(instructions) or instructions[
+                    instruction_index + 1
+                ].command not in {"warp", "warpsilent"}:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: setdynamicwarp "
+                        "must be immediately followed by warp or warpsilent in "
+                        "the same label"
+                    )
+                pending_arm = DynamicWarpArm(
+                    entry,
+                    label,
+                    arm_index,
+                    destination.removeprefix("MAP_"),
+                    x,
+                    y,
+                    instruction.source,
+                    instruction.line,
+                )
+                arm_index += 1
                 continue
             if any(kind == "warp" for kind, _operand in opcode.effects):
                 if instruction.command not in {"warp", "warpsilent"}:
@@ -606,8 +670,10 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
                         y,
                         instruction.source,
                         instruction.line,
+                        pending_arm,
                     )
                 )
+                pending_arm = None
                 warp_index += 1
             for call_index in opcode.calls:
                 if call_index >= len(instruction.operands):

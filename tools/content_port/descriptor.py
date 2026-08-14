@@ -734,10 +734,74 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
     dynamic_warp_pointer = f"{world_pointer}.dynamicWarps"
     for index, raw in enumerate(_array(world["dynamicWarps"], dynamic_warp_pointer)):
         item_pointer = f"{dynamic_warp_pointer}[{index}]"
-        item = _policy_record(raw, item_pointer, {"source", "index", "token"})
+        item = _policy_record(
+            raw,
+            item_pointer,
+            {"source", "index", "token", "sourceOwnership", "destinations"},
+        )
         _string(item["source"], f"{item_pointer}.source")
         _integer(item["index"], f"{item_pointer}.index")
         _string(item["token"], f"{item_pointer}.token")
+        _string(item["sourceOwnership"], f"{item_pointer}.sourceOwnership")
+        option_fields = {
+            "destination",
+            "x",
+            "y",
+            "armingSource",
+            "script",
+            "label",
+            "index",
+            "immediateDestination",
+            "immediateCommand",
+            "immediateIndex",
+            "immediateX",
+            "immediateY",
+            "sourceRegion",
+            "targetRegion",
+            "armingRegion",
+            "destinationOwnership",
+            "armingOwnership",
+        }
+        options = _array(item["destinations"], f"{item_pointer}.destinations")
+        if not options:
+            raise ContentPortError(
+                f"{item_pointer}.destinations: must contain at least one destination"
+            )
+        seen_options: set[tuple[object, ...]] = set()
+        for option_index, raw_option in enumerate(options):
+            option_pointer = f"{item_pointer}.destinations[{option_index}]"
+            option = _policy_record(raw_option, option_pointer, option_fields)
+            for field in option_fields - {
+                "x",
+                "y",
+                "index",
+                "immediateIndex",
+                "immediateX",
+                "immediateY",
+            }:
+                _string(option[field], f"{option_pointer}.{field}")
+            if option["immediateCommand"] not in {"warp", "warpsilent"}:
+                raise ContentPortError(
+                    f"{option_pointer}.immediateCommand: must be 'warp' or 'warpsilent'"
+                )
+            for field in (
+                "x",
+                "y",
+                "index",
+                "immediateIndex",
+                "immediateX",
+                "immediateY",
+            ):
+                if _integer(option[field], f"{option_pointer}.{field}") < 0:
+                    raise ContentPortError(
+                        f"{option_pointer}.{field}: must be non-negative"
+                    )
+            identity = tuple(option[field] for field in sorted(option_fields))
+            if identity in seen_options:
+                raise ContentPortError(
+                    f"{option_pointer}.index: duplicate dynamic destination identity"
+                )
+            seen_options.add(identity)
 
     unique_families = {
         "adaptations": ("source", "path"),
