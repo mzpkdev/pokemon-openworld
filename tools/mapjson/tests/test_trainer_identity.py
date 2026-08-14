@@ -133,9 +133,11 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             party_symbols[-2:],
             ["TRAINER_SAILOR_EUGENE_JOHTO", "TRAINER_YOUNGSTER_SAMUEL_JOHTO"],
         )
-        eugene = HOENN_PARTIES.read_text().split(
-            "=== TRAINER_SAILOR_EUGENE_JOHTO ===", 1
-        )[1].split("=== TRAINER_YOUNGSTER_SAMUEL_JOHTO ===", 1)[0]
+        eugene = (
+            HOENN_PARTIES.read_text()
+            .split("=== TRAINER_SAILOR_EUGENE_JOHTO ===", 1)[1]
+            .split("=== TRAINER_YOUNGSTER_SAMUEL_JOHTO ===", 1)[0]
+        )
         for authored in (
             "Name: EUGENE",
             "Class: Sailor",

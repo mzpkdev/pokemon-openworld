@@ -125,9 +125,7 @@ def _asset_units(
         payload = _read_source(state.donor_roots[role], source, f"assets[{index}]")
         source_digest = hashlib.sha256(payload).hexdigest()
         if source_digest != item.get("sourceSha256"):
-            raise ContentPortError(
-                f"assets[{index}]: donor hash drift for {target}"
-            )
+            raise ContentPortError(f"assets[{index}]: donor hash drift for {target}")
         if command == ["copy-bytes"]:
             converted = payload
         elif (
@@ -150,9 +148,7 @@ def _asset_units(
                 or not 0 <= expected <= 0xFFFF
                 or not 0 <= replacement <= 0xFFFF
             ):
-                raise ContentPortError(
-                    f"assets[{index}]: invalid replace-le16 bounds"
-                )
+                raise ContentPortError(f"assets[{index}]: invalid replace-le16 bounds")
             actual = int.from_bytes(payload[offset : offset + 2], "little")
             if actual != expected:
                 raise ContentPortError(

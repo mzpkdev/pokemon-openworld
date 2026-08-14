@@ -71,19 +71,22 @@ class MaterializeTests(unittest.TestCase):
         )
         route39 = map_units["map:Route39"].value
         self.assertEqual(len(route39["object_events"]), 1)
-        self.assertEqual(route39["object_events"][0], {
-            "graphics_id": "OBJ_EVENT_GFX_SAILOR",
-            "x": 22,
-            "y": 42,
-            "elevation": 0,
-            "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
-            "movement_range_x": 6,
-            "movement_range_y": 0,
-            "trainer_type": "TRAINER_TYPE_NORMAL",
-            "trainer_sight_or_berry_tree_id": "6",
-            "script": "Route39_EventScript_Eugene",
-            "flag": "0",
-        })
+        self.assertEqual(
+            route39["object_events"][0],
+            {
+                "graphics_id": "OBJ_EVENT_GFX_SAILOR",
+                "x": 22,
+                "y": 42,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
+                "movement_range_x": 6,
+                "movement_range_y": 0,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "6",
+                "script": "Route39_EventScript_Eugene",
+                "flag": "0",
+            },
+        )
         route39_script = map_units["map-script:Route39"].value
         self.assertEqual(len(route39_script["events"]), 1)
         self.assertEqual(
@@ -93,8 +96,7 @@ class MaterializeTests(unittest.TestCase):
         trainer_units = _trainer_units(descriptor, state, ROOT)
         self.assertEqual(len(trainer_units), 1)
         parties = {
-            trainer["target"]: trainer["party"]
-            for trainer in trainer_units[0].value
+            trainer["target"]: trainer["party"] for trainer in trainer_units[0].value
         }
         eugene = next(
             trainer
@@ -102,9 +104,19 @@ class MaterializeTests(unittest.TestCase):
             if trainer["target"] == "TRAINER_SAILOR_EUGENE_JOHTO"
         )
         self.assertEqual(
-            {key: eugene[key] for key in (
-                "target", "name", "class", "pic", "gender", "music", "double", "ai"
-            )},
+            {
+                key: eugene[key]
+                for key in (
+                    "target",
+                    "name",
+                    "class",
+                    "pic",
+                    "gender",
+                    "music",
+                    "double",
+                    "ai",
+                )
+            },
             {
                 "target": "TRAINER_SAILOR_EUGENE_JOHTO",
                 "name": "EUGENE",

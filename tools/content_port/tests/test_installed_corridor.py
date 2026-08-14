@@ -31,9 +31,7 @@ def _script_warps(name: str) -> list[tuple[str, str, int, int]]:
         if label:
             current_label = label.group(1)
             continue
-        warp = re.fullmatch(
-            r"\s*warp\s+(MAP_[A-Z0-9_]+),\s*([0-9]+),\s*([0-9]+)", line
-        )
+        warp = re.fullmatch(r"\s*warp\s+(MAP_[A-Z0-9_]+),\s*([0-9]+),\s*([0-9]+)", line)
         if warp and current_label is not None:
             warps.append(
                 (current_label, warp.group(1), int(warp.group(2)), int(warp.group(3)))
@@ -43,9 +41,7 @@ def _script_warps(name: str) -> list[tuple[str, str, int, int]]:
 
 class InstalledCorridorTests(unittest.TestCase):
     def test_olivine_center_has_reachable_pokemon_storage_console(self) -> None:
-        layout = (
-            ROOT / "data/layouts/OlivineCity_PokemonCenter/map.bin"
-        ).read_bytes()
+        layout = (ROOT / "data/layouts/OlivineCity_PokemonCenter/map.bin").read_bytes()
         attributes = (
             ROOT
             / "data/tilesets/secondary/kanto_pokemon_center/metatile_attributes.bin"
@@ -74,7 +70,9 @@ class InstalledCorridorTests(unittest.TestCase):
             destinations = [
                 connection["map"] for connection in document["connections"]
             ] + [warp["dest_map"] for warp in document["warp_events"]]
-            destinations.extend(destination for _, destination, _, _ in _script_warps(name))
+            destinations.extend(
+                destination for _, destination, _, _ in _script_warps(name)
+            )
             adjacency[name].update(
                 name_by_id[destination]
                 for destination in destinations
@@ -275,9 +273,7 @@ class InstalledCorridorTests(unittest.TestCase):
             "Route39_Text_SailorEugeneSeen, Route39_Text_SailorEugeneBeaten",
             script,
         )
-        self.assertIn(
-            "msgbox Route39_Text_SailorEugeneAfter, MSGBOX_AUTOCLOSE", script
-        )
+        self.assertIn("msgbox Route39_Text_SailorEugeneAfter, MSGBOX_AUTOCLOSE", script)
 
 
 if __name__ == "__main__":

@@ -105,9 +105,7 @@ def validate_manifest(
 
     none_bindings = manifest["noneBindings"]
     if not isinstance(none_bindings, list) or none_bindings != list(NONE_BINDINGS):
-        raise RematchDataError(
-            "$.noneBindings: expected exact reviewed NONE bindings"
-        )
+        raise RematchDataError("$.noneBindings: expected exact reviewed NONE bindings")
     for index, (symbol, expected) in enumerate(NONE_BINDINGS.items()):
         if values.get(symbol) != expected:
             raise RematchDataError(

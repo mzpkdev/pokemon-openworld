@@ -18,10 +18,15 @@ from tools.e2e.skyemu import (
     IntegrityLoadStatus,
     IntegrityMapLoadRequest,
 )
-from tools.e2e.tests.integrity.manifest import integrity_manifest_path, load_manifest_maps
+from tools.e2e.tests.integrity.manifest import (
+    integrity_manifest_path,
+    load_manifest_maps,
+)
 
 
-FIXTURE_MANIFEST = Path(__file__).parents[2] / "fixtures" / "kanto_continuity_start.json"
+FIXTURE_MANIFEST = (
+    Path(__file__).parents[2] / "fixtures" / "kanto_continuity_start.json"
+)
 ITEM_POKE_BALL = 1
 ITEM_SUPER_POTION = 29
 ITEM_OLD_ROD = 709
@@ -92,9 +97,15 @@ def _money(game) -> int:
 
 def _assert_reviewed_start(game, document: dict) -> None:
     expected = document["semanticExpectations"]
-    assert game.read(game.save_block2(), 8).hex() == expected["identity"]["playerNameEncodedHex"]
+    assert (
+        game.read(game.save_block2(), 8).hex()
+        == expected["identity"]["playerNameEncodedHex"]
+    )
     assert game.read_u8(game.save_block2() + 8) == expected["identity"]["gender"]
-    assert game.read(game.save_block2() + 10, 4).hex() == expected["identity"]["trainerIdHex"]
+    assert (
+        game.read(game.save_block2() + 10, 4).hex()
+        == expected["identity"]["trainerIdHex"]
+    )
     assert game.read_u8(game.address("gPartiesCount")) == expected["party"]["count"]
     for index, pokemon in enumerate(expected["party"]["pokemon"]):
         record = game.read(game.address("gParties") + index * 100, 80)
@@ -267,9 +278,7 @@ def _withdraw_first_box_mon(game, expected: dict) -> None:
     )
     game.step(60)
     assert _box_pokemon(game, 0, 0) is None
-    withdrawn = decode_box_pokemon(
-        game.read(game.address("gParties") + 4 * 100, 80)
-    )
+    withdrawn = decode_box_pokemon(game.read(game.address("gParties") + 4 * 100, 80))
     assert withdrawn == expected
 
 
@@ -304,8 +313,9 @@ def _deposit_johto_catch_in_box_one(game, expected: dict) -> None:
     for next_position in range(1, target_index + 1):
         game.press("Down", release_frames=4)
         game.wait_until(
-            lambda position=next_position: game.read_u8(cursor_position) == position
-            and game.read_u8(storage) == 0,
+            lambda position=next_position: (
+                game.read_u8(cursor_position) == position and game.read_u8(storage) == 0
+            ),
             description=f"storage party cursor row {next_position}",
             max_frames=300,
             step_frames=2,
@@ -366,7 +376,9 @@ def _buy_battle_supplies(game) -> None:
             break
         game.press("A", release_frames=2)
     else:
-        raise AssertionError("ordinary Vermilion Mart purchase did not add eight Poke Balls")
+        raise AssertionError(
+            "ordinary Vermilion Mart purchase did not add eight Poke Balls"
+        )
 
     game.press("A", release_frames=8)  # Dismiss the clerk's thanks.
     game.advance_until(
@@ -391,7 +403,9 @@ def _buy_battle_supplies(game) -> None:
             break
         game.press("A", release_frames=2)
     else:
-        raise AssertionError("ordinary Vermilion Mart purchase did not add two Super Potions")
+        raise AssertionError(
+            "ordinary Vermilion Mart purchase did not add two Super Potions"
+        )
     assert _money(game) == 0
     for _ in range(600):
         if game.callback_is("CB2_Overworld") and not game.controls_locked():
@@ -482,8 +496,10 @@ def _fish_until_battle(game) -> None:
             else:
                 game.step()
         game.advance_until(
-            lambda: game.callback_is("BattleMainCB2")
-            or (not game.controls_locked() and game.script_status() == 2),
+            lambda: (
+                game.callback_is("BattleMainCB2")
+                or (not game.controls_locked() and game.script_status() == 2)
+            ),
             description="fishing attempt completion or battle transition",
             max_pulses=600,
         )
@@ -574,8 +590,10 @@ def _choose_healthy_party_mon(game) -> None:
     if game.read_u16(game.address("gBattleMons") + 42):
         game.press("B", release_frames=8)
         game.wait_until(
-            lambda: not game.task_active("Task_HandleChooseMonInput")
-            and not game.callback_is("CB2_UpdatePartyMenu"),
+            lambda: (
+                not game.task_active("Task_HandleChooseMonInput")
+                and not game.callback_is("CB2_UpdatePartyMenu")
+            ),
             description="ordinary return from voluntary battle party menu",
             max_frames=1_200,
             step_frames=4,
@@ -612,8 +630,10 @@ def _choose_healthy_party_mon(game) -> None:
     )
     game.press("A", release_frames=8)  # Send Out.
     game.wait_until(
-        lambda: not game.task_active("Task_HandleChooseMonInput")
-        and not game.callback_is("CB2_UpdatePartyMenu"),
+        lambda: (
+            not game.task_active("Task_HandleChooseMonInput")
+            and not game.callback_is("CB2_UpdatePartyMenu")
+        ),
         description="ordinary forced switch to a healthy party Pokemon",
         max_frames=1_200,
         step_frames=4,
@@ -806,8 +826,10 @@ def _use_super_potion_on_active_starter(game) -> None:
     )
     party_hp = game.address("gParties") + active_party_index * 100 + POKEMON_HP_OFFSET
     game.advance_until(
-        lambda: game.read_u16(game.address("gBattleMons") + 42) > hp_before
-        or game.read_u16(party_hp) > hp_before,
+        lambda: (
+            game.read_u16(game.address("gBattleMons") + 42) > hp_before
+            or game.read_u16(party_hp) > hp_before
+        ),
         description="Super Potion healing the active starter",
         max_pulses=1_200,
     )
@@ -863,7 +885,9 @@ def _defeat_eugene_through_normal_input(game) -> None:
         ):
             raise AssertionError("ordinary Eugene battle blacked out the healed party")
         if game.callback_is("CB2_Overworld"):
-            raise AssertionError("ordinary Eugene battle returned to the field undefeated")
+            raise AssertionError(
+                "ordinary Eugene battle returned to the field undefeated"
+            )
         controller = game.read_u32(game.address("gBattlerControllerFuncs"))
         if game.task_active("Task_HandleChooseMonInput"):
             _choose_healthy_party_mon(game)
@@ -929,7 +953,9 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     assert image.sha256 == document["fixture"]["sha256"]
     assert document["generation"]["postLoadHostWritesAllowed"] is False
 
-    maps = {entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())}
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
     game = session_factory(battery_save=save)
     _continue(game)
     _assert_reviewed_start(game, document)
@@ -938,12 +964,11 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
         "gender": game.read_u8(game.save_block2() + 8),
         "trainer_id": game.read(game.save_block2() + 10, 4),
     }
-    original_kanto_pokemon = decode_box_pokemon(
-        game.read(game.address("gParties"), 80)
+    original_kanto_pokemon = decode_box_pokemon(game.read(game.address("gParties"), 80))
+    assert (
+        original_kanto_pokemon
+        == document["semanticExpectations"]["party"]["pokemon"][0]
     )
-    assert original_kanto_pokemon == document["semanticExpectations"]["party"][
-        "pokemon"
-    ][0]
     assert game.map_id() == maps["VermilionCity_Mart_Frlg"].map_id
 
     _buy_battle_supplies(game)
@@ -1038,12 +1063,17 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     assert game.position() == (8, 16)
     assert game.read(game.save_block2(), 8) == player_identity_baseline["name"]
     assert game.read_u8(game.save_block2() + 8) == player_identity_baseline["gender"]
-    assert game.read(game.save_block2() + 10, 4) == player_identity_baseline["trainer_id"]
+    assert (
+        game.read(game.save_block2() + 10, 4) == player_identity_baseline["trainer_id"]
+    )
     arrived_catch = decode_box_pokemon(
         game.read(game.address("gParties") + 3 * 100, 80)
     )
     assert arrived_catch is not None
-    assert (arrived_catch["personality"], arrived_catch["otId"]) == caught_identity_baseline
+    assert (
+        arrived_catch["personality"],
+        arrived_catch["otId"],
+    ) == caught_identity_baseline
 
     # Leave the terminal and harbor by their ordinary doors, then continue on
     # foot through Olivine toward Route 39.
@@ -1139,9 +1169,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == (
         route39_stock_before - route39_balls_used
     )
-    johto_catch = decode_box_pokemon(
-        game.read(game.address("gParties") + 4 * 100, 80)
-    )
+    johto_catch = decode_box_pokemon(game.read(game.address("gParties") + 4 * 100, 80))
     assert johto_catch is not None
     assert johto_catch["personality"] != 0
     assert johto_catch["otId"] != 0
@@ -1291,9 +1319,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     task_anchored_johto_catch = next(
         decoded
         for index in range(game.read_u8(game.address("gPartiesCount")))
-        if (
-            decoded := decode_box_pokemon(game.read(party + index * 100, 80))
-        )
+        if (decoded := decode_box_pokemon(game.read(party + index * 100, 80)))
         is not None
         and (decoded["personality"], decoded["otId"]) == johto_identity_baseline
     )
@@ -1305,9 +1331,9 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     _deposit_johto_catch_in_box_one(game, task_anchored_johto_catch)
     assert game.read(game.save_block2(), 8) == player_identity_baseline["name"]
     assert game.read_u8(game.save_block2() + 8) == player_identity_baseline["gender"]
-    assert game.read(game.save_block2() + 10, 4) == player_identity_baseline[
-        "trainer_id"
-    ]
+    assert (
+        game.read(game.save_block2() + 10, 4) == player_identity_baseline["trainer_id"]
+    )
     retained_kanto_pokemon = decode_box_pokemon(
         game.read(game.address("gParties") + 3 * 100, 80)
     )
@@ -1315,9 +1341,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     retained_kanto_catch = next(
         decoded
         for index in range(game.read_u8(game.address("gPartiesCount")))
-        if (
-            decoded := decode_box_pokemon(game.read(party + index * 100, 80))
-        )
+        if (decoded := decode_box_pokemon(game.read(party + index * 100, 80)))
         is not None
         and (decoded["personality"], decoded["otId"]) == caught_identity_baseline
     )

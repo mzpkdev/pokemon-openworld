@@ -22,7 +22,10 @@ from tools.e2e.skyemu import (
     Symbols,
 )
 from tools.e2e.start_profile import StartProfile, quickstart_with_profile
-from tools.e2e.tests.integrity.manifest import integrity_manifest_path, load_manifest_maps
+from tools.e2e.tests.integrity.manifest import (
+    integrity_manifest_path,
+    load_manifest_maps,
+)
 
 
 ITEM_OLD_ROD = 709
@@ -109,7 +112,9 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    maps = {entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())}
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
     mart = maps["VermilionCity_Mart_Frlg"]
     with tempfile.TemporaryDirectory(prefix="continuity-fixture-") as temporary:
         game = SkyEmuSession(
