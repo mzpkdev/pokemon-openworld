@@ -686,7 +686,6 @@
     {"domain": "trainerIds", "source": "frlg-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_FRLG_CHAMPION_REMATCH_CHARMANDER", "value": 1479, "physicalBinding": {"bitIndex": 621, "kind": "trainer-defeat-bitmap"}},
     {"domain": "trainerIds", "source": "frlg-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_FRLG_CUE_BALL_PAXTON", "value": 1480, "physicalBinding": {"bitIndex": 622, "kind": "trainer-defeat-bitmap"}},
     {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_YOUNGSTER_SAMUEL_JOHTO", "value": 1481, "physicalBinding": {"bitIndex": 623, "kind": "trainer-defeat-bitmap"}},
-    {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_SAILOR_EUGENE_JOHTO", "value": 1482, "physicalBinding": {"bitIndex": 624, "kind": "trainer-defeat-bitmap"}},
     {"domain": "checkpoints", "source": "heal-locations", "storage": "heal-location-id", "symbol": "HEAL_LOCATION_OLIVINE_CITY", "value": 43},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_STONE_BADGE", "value": 32},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE", "value": 33},
@@ -709,7 +708,8 @@
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE", "value": 50},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE", "value": 51},
     {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_JOHTO_RISING_BADGE", "value": 52},
-    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED", "value": 673}
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED", "value": 673},
+    {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_SAILOR_EUGENE_JOHTO", "value": 1482, "physicalBinding": {"bitIndex": 624, "kind": "trainer-defeat-bitmap"}}
   ],
   "schemaVersion": 1
 }
