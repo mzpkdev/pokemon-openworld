@@ -4,9 +4,12 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from tools.content_port.bundle import (
+    _validate_asset_ownership,
     build_bundle,
     bundle_digest,
     validate_asset_ownership,
@@ -63,6 +66,50 @@ class BundleTests(unittest.TestCase):
             "assets": [asset],
         }
         validate_asset_ownership(manifest, policy, evidence_root=evidence_root)
+        reviewed_path = "data/tilesets/test/animation/frame.png"
+        reviewed_digest = content_sha256(b"reviewed")
+        reviewed_unit = OwnershipUnit("file", reviewed_path, reviewed_digest)
+        reviewed_manifest = OwnershipManifest("test", (unit, reviewed_unit))
+        _validate_asset_ownership(
+            reviewed_manifest,
+            policy,
+            evidence_root=evidence_root,
+            reviewed_targets={reviewed_path: reviewed_digest},
+        )
+        with self.assertRaisesRegex(ContentPortError, "missing reviewed file unit"):
+            _validate_asset_ownership(
+                manifest,
+                policy,
+                evidence_root=evidence_root,
+                reviewed_targets={reviewed_path: reviewed_digest},
+            )
+        with self.assertRaisesRegex(ContentPortError, "reviewed.*hash differs"):
+            _validate_asset_ownership(
+                OwnershipManifest(
+                    "test",
+                    (
+                        unit,
+                        OwnershipUnit(
+                            "file", reviewed_path, content_sha256(b"tampered")
+                        ),
+                    ),
+                ),
+                policy,
+                evidence_root=evidence_root,
+                reviewed_targets={reviewed_path: reviewed_digest},
+            )
+        reviewed_extra = OwnershipUnit(
+            "file",
+            "data/tilesets/test/animation/unreviewed.png",
+            content_sha256(b"extra"),
+        )
+        with self.assertRaisesRegex(ContentPortError, "unledgered"):
+            _validate_asset_ownership(
+                OwnershipManifest("test", (unit, reviewed_unit, reviewed_extra)),
+                policy,
+                evidence_root=evidence_root,
+                reviewed_targets={reviewed_path: reviewed_digest},
+            )
         with self.assertRaisesRegex(ContentPortError, "hash differs"):
             validate_asset_ownership(
                 OwnershipManifest(
@@ -80,6 +127,135 @@ class BundleTests(unittest.TestCase):
                 OwnershipManifest("test", (unit, extra)),
                 policy,
                 evidence_root=evidence_root,
+            )
+
+    def test_animation_targets_come_from_fixed_staging_revision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            repo = base / "repo"
+            repo.mkdir()
+            self.make_repo(repo)
+            port = repo / "tools/content_port/ports/test"
+            port.mkdir(parents=True)
+            permission_path = repo / "PERMISSION.txt"
+            permission_path.write_text("reviewed fixture permission\n")
+            permission_record = {
+                "decision": "reviewed",
+                "path": "PERMISSION.txt",
+                "permission": "redistributable",
+                "sha256": content_sha256(permission_path.read_bytes()),
+            }
+            permission_digest = content_sha256(canonical_bytes(permission_record))
+            asset_path = "data/tilesets/test/asset.bin"
+            asset_payload = b"asset\n"
+            asset_unit = OwnershipUnit(
+                "file", asset_path, content_sha256(asset_payload)
+            )
+            (port / "assets.json").write_bytes(
+                canonical_json(
+                    {
+                        "schemaVersion": 1,
+                        "permissionRecords": {
+                            permission_digest: permission_record,
+                        },
+                        "assets": [
+                            {
+                                "key": asset_path,
+                                "source": "donor",
+                                "donor": "fixture",
+                                "sourcePath": "asset.bin",
+                                "semanticTarget": asset_path,
+                                "sourceSha256": asset_unit.sha256,
+                                "targetSha256": asset_unit.sha256,
+                                "conversionCommand": ["copy-bytes"],
+                                "permission": "redistributable",
+                                "license": "fixture permission",
+                                "permissionEvidence": permission_digest,
+                                "capability": "environment-assets",
+                                "supportState": "enabled",
+                            }
+                        ],
+                    }
+                )
+            )
+            (port / "port.json").write_bytes(
+                canonical_json({"animationPolicy": "animation_policy.json"})
+            )
+            animation_policy = port / "animation_policy.json"
+            old_target = "data/tilesets/test/animation/old.png"
+            animation_policy.write_bytes(
+                canonical_json({"source": "frames/old.png", "target": old_target})
+            )
+            donor_root = base / "donors"
+            content_root = donor_root / "content"
+            (content_root / "frames").mkdir(parents=True)
+            animation_payload = b"old animation\n"
+            (content_root / "frames/old.png").write_bytes(animation_payload)
+            animation_unit = OwnershipUnit(
+                "file", old_target, content_sha256(animation_payload)
+            )
+            self.install_manifest(repo, OwnershipManifest("test", ()))
+            revision = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+            ).strip()
+            animation_policy.write_bytes(
+                canonical_json(
+                    {
+                        "source": "frames/new.png",
+                        "target": "data/tilesets/test/animation/new.png",
+                    }
+                )
+            )
+            run(repo, "git", "add", animation_policy.relative_to(repo).as_posix())
+            run(repo, "git", "commit", "-q", "-m", "advance animation policy")
+
+            def load_staged_descriptor(port_dir: Path, _donors: Path):
+                document = json.loads((port_dir / "animation_policy.json").read_text())
+                return SimpleNamespace(
+                    animations=((document["source"], document["target"]),),
+                    donor=lambda role: SimpleNamespace(root=content_root),
+                )
+
+            desired = OwnershipManifest("test", (asset_unit, animation_unit))
+            with self.assertRaisesRegex(
+                ContentPortError, "requires an authenticated donor root"
+            ):
+                build_bundle(
+                    repo,
+                    base / "missing-donor-bundle",
+                    desired,
+                    {
+                        asset_unit.identity: asset_payload,
+                        animation_unit.identity: animation_payload,
+                    },
+                    validation_commands=[],
+                    revision=revision,
+                )
+            with (
+                patch(
+                    "tools.content_port.descriptor.load_port",
+                    side_effect=load_staged_descriptor,
+                ),
+                patch(
+                    "tools.content_port.animations.required_frame_payloads",
+                    side_effect=lambda animations: animations,
+                ),
+            ):
+                artifacts = build_bundle(
+                    repo,
+                    base / "bundle",
+                    desired,
+                    {
+                        asset_unit.identity: asset_payload,
+                        animation_unit.identity: animation_payload,
+                    },
+                    validation_commands=[],
+                    revision=revision,
+                    donor_root=donor_root,
+                )
+
+            self.assertEqual(
+                json.loads(artifacts.report.read_text())["baseCommit"], revision
             )
 
     def make_repo(self, root: Path) -> None:

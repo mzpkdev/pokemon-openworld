@@ -288,6 +288,7 @@ class CliTests(unittest.TestCase):
             {"contract": report},
             revision=revision,
             released_files=frozenset({"released.txt"}),
+            donor_root=self.repo.parent,
         )
 
     def test_bundle_keeps_captured_base_when_branch_advances_during_derivation(
