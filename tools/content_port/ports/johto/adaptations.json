@@ -7143,6 +7143,87 @@
     "deferredCallText": "PROF. ELM will call again later.$",
     "sectionPersistenceCodecs": [
       {
+        "section": "MAPSEC_BLACKTHORN_CITY",
+        "savedLocation": "MAPSEC_BLACKTHORN_CITY",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_44"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_44"
+      },
+      {
+        "section": "MAPSEC_ROUTE_45",
+        "savedLocation": "MAPSEC_ROUTE_45",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_44"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_44"
+      },
+      {
+        "section": "MAPSEC_ROUTE_46",
+        "savedLocation": "MAPSEC_ROUTE_46",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_29"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_29"
+      },
+      {
+        "section": "MAPSEC_ICE_PATH",
+        "savedLocation": "MAPSEC_ROUTE_44",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_44"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_44"
+      },
+      {
+        "section": "MAPSEC_DRAGONS_DEN",
+        "savedLocation": "MAPSEC_ROUTE_44",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_44"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_44"
+      },
+      {
+        "section": "MAPSEC_DARK_CAVE",
+        "savedLocation": "MAPSEC_ROUTE_31",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_31"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_31"
+      },
+      {
+        "section": "MAPSEC_ROUTE_26",
+        "savedLocation": "MAPSEC_ROUTE_28",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_ROUTE_28"
+        },
+        "metLocationDisplay": "MAPSEC_ROUTE_28"
+      },
+      {
+        "section": "MAPSEC_ROUTE_27",
+        "savedLocation": "MAPSEC_NEW_BARK_TOWN",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_NEW_BARK_TOWN"
+        },
+        "metLocationDisplay": "MAPSEC_NEW_BARK_TOWN"
+      },
+      {
+        "section": "MAPSEC_TOHJO_FALLS",
+        "savedLocation": "MAPSEC_NEW_BARK_TOWN",
+        "metLocationBinding": {
+          "domain": "destinations",
+          "symbol": "MAPSEC_NEW_BARK_TOWN"
+        },
+        "metLocationDisplay": "MAPSEC_NEW_BARK_TOWN"
+      },
+      {
         "section": "MAPSEC_JOHTO_VICTORY_ROAD",
         "savedLocation": "MAPSEC_VICTORY_ROAD",
         "metLocationBinding": {

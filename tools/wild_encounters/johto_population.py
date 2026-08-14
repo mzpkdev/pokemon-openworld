@@ -2,6 +2,7 @@
 
 import argparse
 import copy
+import hashlib
 import json
 import os
 import stat
@@ -61,6 +62,17 @@ REVIEWED_METHOD_TIME_FALLBACKS = {
     ("Route26", "rock_smash_mons", "night", "day"),
     ("Route26North", "rock_smash_mons", "night", "day"),
 }
+CHECKED_IN_FALLBACK_SOURCE_LABELS = {
+    "gVictoryRoad_1F",
+    "gVictoryRoad_1F_Night",
+    "gVictoryRoad_B1F",
+    "gVictoryRoad_B1F_Night",
+    "gVictoryRoad_B2F",
+    "gVictoryRoad_B2F_Night",
+}
+CHECKED_IN_FALLBACK_SOURCE_SHA256 = (
+    "b8b5f90d15a93ceefb126cb4b1cfa3d859c910308cdf419e97f39bd3e39888fb"
+)
 
 
 class ProjectionError(ValueError):
@@ -221,6 +233,80 @@ def _source_profiles(document, wanted=None):
                 "methods": methods,
             }
     return result
+
+
+def _verified_checked_in_ecology_source(encounters, fallbacks):
+    """Recover the pinned fallback sources from their checked-in projections.
+
+    Clean CI intentionally has no donor checkout. The digest keeps this recovery
+    path tied to the authenticated donor profiles instead of accepting arbitrary
+    edits to the generated target rows as new source evidence.
+    """
+    group = next(
+        (
+            row
+            for row in encounters.get("wild_encounter_groups", [])
+            if isinstance(row, dict) and row.get("label") == "gWildMonHeaders"
+        ),
+        None,
+    )
+    if group is None:
+        raise ProjectionError("encounters: missing gWildMonHeaders")
+    target_rows = {
+        row.get("base_label"): row
+        for row in group.get("encounters", [])
+        if isinstance(row, dict)
+        and row.get("base_label")
+        in {
+            binding.get("targetLabel")
+            for record in fallbacks.get("records", [])
+            if isinstance(record, dict)
+            for binding in record.get("profiles", [])
+            if isinstance(binding, dict)
+            and binding.get("sourceLabel") in CHECKED_IN_FALLBACK_SOURCE_LABELS
+        }
+    }
+    rows = []
+    recovered_labels = set()
+    for record in fallbacks.get("records", []):
+        if not isinstance(record, dict):
+            continue
+        for binding in record.get("profiles", []):
+            if (
+                not isinstance(binding, dict)
+                or binding.get("sourceLabel") not in CHECKED_IN_FALLBACK_SOURCE_LABELS
+            ):
+                continue
+            source_label = binding["sourceLabel"]
+            target = target_rows.get(binding.get("targetLabel"))
+            if target is None or source_label in recovered_labels:
+                raise ProjectionError(
+                    "encounters: incomplete checked-in fallback source projection"
+                )
+            recovered_labels.add(source_label)
+            row = copy.deepcopy(target)
+            row["base_label"] = source_label
+            row["map"] = record.get("sourceMap")
+            rows.append(row)
+    if recovered_labels != CHECKED_IN_FALLBACK_SOURCE_LABELS:
+        raise ProjectionError(
+            "encounters: incomplete checked-in fallback source projection"
+        )
+    document = {
+        "wild_encounter_groups": [
+            {"fields": copy.deepcopy(group.get("fields", [])), "encounters": rows}
+        ]
+    }
+    profiles = _source_profiles(document, CHECKED_IN_FALLBACK_SOURCE_LABELS)
+    payload = json.dumps(
+        profiles, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    ).encode()
+    if hashlib.sha256(payload).hexdigest() != CHECKED_IN_FALLBACK_SOURCE_SHA256:
+        raise ProjectionError(
+            "encounters: checked-in fallback source projection does not match "
+            "authenticated donor evidence"
+        )
+    return document
 
 
 def _fallback_rows(document, blocked, source_profiles):
@@ -780,15 +866,23 @@ def main(argv=None):
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args(argv)
     classification = _load(args.classification)
+    ecology = _load(args.ecology)
+    fallbacks = _load(args.fallbacks)
+    encounters = _load(args.encounters)
+    ecology_source = (
+        _load(args.ecology_source)
+        if args.ecology_source.is_file()
+        else _verified_checked_in_ecology_source(encounters, fallbacks)
+    )
     projected = project_documents(
         classification,
-        _load(args.ecology),
-        _load(args.fallbacks),
-        _load(args.encounters),
+        ecology,
+        fallbacks,
+        encounters,
         _load(args.registry),
         _load(args.bands),
         _map_ids(classification, args.maps_root),
-        _load(args.ecology_source),
+        ecology_source,
     )
     paths = (args.encounters, args.registry, args.bands, args.time_policies)
     mismatches = check_or_write(dict(zip(paths, projected)), write=args.write)

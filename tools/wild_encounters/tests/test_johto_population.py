@@ -42,23 +42,9 @@ class JohtoPopulationTests(unittest.TestCase):
     def source_document(cls):
         if projection.DEFAULT_ECOLOGY_SOURCE.is_file():
             return cls.load(projection.DEFAULT_ECOLOGY_SOURCE)
-        group = cls.encounters["wild_encounter_groups"][0]
-        by_label = {row["base_label"]: row for row in group["encounters"]}
-        rows = []
-        for fallback in cls.fallbacks["records"]:
-            for binding in fallback["profiles"]:
-                label = binding["sourceLabel"]
-                if not label.startswith("gVictoryRoad"):
-                    continue
-                source = by_label.get(label) or by_label[label.removesuffix("_Night")]
-                row = copy.deepcopy(source)
-                row["base_label"] = label
-                rows.append(row)
-        return {
-            "wild_encounter_groups": [
-                {"fields": copy.deepcopy(group["fields"]), "encounters": rows}
-            ]
-        }
+        return projection._verified_checked_in_ecology_source(
+            cls.encounters, cls.fallbacks
+        )
 
     @property
     def projected_encounters(self):
@@ -314,6 +300,37 @@ class JohtoPopulationTests(unittest.TestCase):
         )
         self.assertEqual(inputs, before)
         self.assertEqual(again, self.outputs)
+
+    def test_checked_in_fallback_source_is_pinned_to_authenticated_profiles(self):
+        recovered = projection._verified_checked_in_ecology_source(
+            self.encounters, self.fallbacks
+        )
+        recovered_profiles = projection._source_profiles(
+            recovered, projection.CHECKED_IN_FALLBACK_SOURCE_LABELS
+        )
+        self.assertEqual(
+            set(recovered_profiles), projection.CHECKED_IN_FALLBACK_SOURCE_LABELS
+        )
+        if projection.DEFAULT_ECOLOGY_SOURCE.is_file():
+            self.assertEqual(
+                recovered_profiles,
+                projection._source_profiles(
+                    self.ecology_source,
+                    projection.CHECKED_IN_FALLBACK_SOURCE_LABELS,
+                ),
+            )
+
+        changed = copy.deepcopy(self.encounters)
+        target = next(
+            row
+            for row in changed["wild_encounter_groups"][0]["encounters"]
+            if row["base_label"] == "gJohtoVictoryRoad_1F"
+        )
+        target["land_mons"]["mons"][0]["species"] = "SPECIES_RATTATA"
+        with self.assertRaisesRegex(
+            projection.ProjectionError, "authenticated donor evidence"
+        ):
+            projection._verified_checked_in_ecology_source(changed, self.fallbacks)
 
 
 if __name__ == "__main__":
