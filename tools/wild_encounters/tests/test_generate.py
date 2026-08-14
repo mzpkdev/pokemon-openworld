@@ -358,6 +358,15 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     bands={"schema_version": 1, "profiles": [profile]}
                 )
 
+    def test_authored_hidden_profiles_are_unsupported_until_semantics_are_defined(self):
+        profile = self.route101_band_profile()
+        profile["method"] = "hidden_mons"
+
+        self.assertNotIn("hidden_mons", generator.METHOD_AREAS)
+        self.assert_rejected_without_replacement(
+            bands={"schema_version": 1, "profiles": [profile]}
+        )
+
     def test_floor_bands_emit_ordered_tiers_for_greatest_lte_resolution(self):
         output = self.generate(
             bands={

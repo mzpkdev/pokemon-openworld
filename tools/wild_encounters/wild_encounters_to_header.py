@@ -76,7 +76,6 @@ MAX_AUTHORED_TIER_ENTRIES = {
     "land_mons": 12,
     "water_mons": 5,
     "rock_smash_mons": 5,
-    "hidden_mons": 3,
 }
 MAX_AUTHORED_FISHING_TIER_ENTRIES = {
     "OLD_ROD": 2,
@@ -88,7 +87,6 @@ METHOD_AREAS = {
     "water_mons": "WILD_AREA_WATER",
     "rock_smash_mons": "WILD_AREA_ROCKS",
     "fishing_mons": "WILD_AREA_FISHING",
-    "hidden_mons": "WILD_AREA_HIDDEN",
 }
 FISHING_RODS = {
     "NONE": "WILD_ENCOUNTER_FISHING_ROD_NONE",
