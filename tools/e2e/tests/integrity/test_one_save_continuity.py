@@ -14,7 +14,10 @@ ITEM_POKE_BALL = 1
 ITEM_OLD_ROD = 709
 SPECIES_MAGIKARP = 129
 MET_LOCATION_VERMILION_CITY = 93
+MET_LOCATION_ROUTE_39 = 233
 GAME_VERSION_EMERALD = 3
+EUGENE_DEFEAT_BYTE = 78
+EUGENE_DEFEAT_MASK = 1
 MENU_ACTION_BAG = 2
 MENU_POCKET_KEY_ITEMS = 4
 MENU_POCKET_POKE_BALLS = 1
@@ -76,9 +79,10 @@ def _buy_one_poke_ball(game) -> None:
     game.press("A")
     game.wait_for_callback("CB2_BuyMenu", max_frames=1_200)
     game.press("A", release_frames=8)  # Poke Ball is the first stock item.
-    game.press("A", release_frames=8)  # Buy the default quantity of one.
+    game.press("Up", release_frames=4)  # Buy two for the Kanto and Johto catches.
+    game.press("A", release_frames=8)
     for _ in range(600):
-        if _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 1:
+        if _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 2:
             break
         game.press("A", release_frames=2)
     else:
@@ -112,7 +116,7 @@ def _use_old_rod_from_bag(game) -> None:
     )
     bag_position = game.address("gBagPosition")
     observed_pockets = []
-    for _ in range(20):
+    for _ in range(100):
         pocket = game.read_u8(bag_position + 5)
         observed_pockets.append(pocket)
         if pocket == MENU_POCKET_KEY_ITEMS:
@@ -232,6 +236,156 @@ def _catch_with_battle_bag(game) -> None:
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
+def _weaken_then_catch(game) -> None:
+    player_controller = game.address("SetControllerToPlayer")
+    partner_controller = game.address("SetControllerToPlayerPartner")
+    action_handlers = [
+        address
+        for address in game.symbols.addresses("HandleInputChooseAction")
+        if player_controller < address < partner_controller
+    ]
+    move_handlers = [
+        address
+        for address in game.symbols.addresses("HandleInputChooseMove")
+        if player_controller < address < partner_controller
+    ]
+    assert len(action_handlers) == len(move_handlers) == 1
+    action_handler = action_handlers[0]
+    move_handler = move_handlers[0]
+    message_handler = game.address("Controller_WaitForString")
+    opponent = game.address("gBattleMons") + 140
+    for turn in range(10):
+        for _ in range(1_500):
+            if game.battler_controller_is(action_handler):
+                break
+            if game.battler_controller_is(message_handler):
+                game.press("A", release_frames=4)
+            elif game.task_active("Task_HandleChooseMonInput"):
+                game.press("Down", release_frames=4)
+                game.press("A", release_frames=8)
+                game.press("A", release_frames=8)
+            else:
+                game.step(8)
+        else:
+            raise AssertionError("Route 39 wild battle action menu not reached")
+        hp = game.read_u16(opponent + 42)
+        max_hp = game.read_u16(opponent + 46)
+        if turn > 0 and hp * 3 <= max_hp:
+            break
+        game.press("Left", release_frames=4)
+        game.press("Up", release_frames=4)
+        game.press("A", release_frames=8)  # Fight.
+        game.wait_until(
+            lambda: game.battler_controller_is(move_handler),
+            description="Route 39 wild battle move menu",
+            max_frames=1_200,
+            step_frames=8,
+        )
+        game.press("Left", release_frames=4)
+        game.press("Up", release_frames=4)
+        game.press("A", release_frames=8)  # First live move.
+    else:
+        raise AssertionError("ordinary attacks did not weaken the Route 39 encounter")
+    _catch_with_battle_bag(game)
+
+
+def _walk_route39_grass_until_battle(game) -> None:
+    if game.callback_is("BattleMainCB2"):
+        return
+    direction = "Left"
+    positions = {game.position()}
+    for _ in range(1_200):
+        if game.callback_is("BattleMainCB2"):
+            assert len(positions) >= 2
+            return
+        x, _ = game.position()
+        if x <= 16:
+            direction = "Right"
+        elif x >= 20:
+            direction = "Left"
+        game.press(direction, hold_frames=3, release_frames=1)
+        positions.add(game.position())
+    raise AssertionError("ordinary Route 39 grass steps did not start a wild battle")
+
+
+def _defeat_eugene_through_normal_input(game) -> None:
+    action_handlers = tuple(
+        address | 1 for address in game.symbols.addresses("HandleInputChooseAction")
+    )
+    move_handlers = tuple(
+        address | 1 for address in game.symbols.addresses("HandleInputChooseMove")
+    )
+    game.move_path((None, 44), (25, None))
+    game.advance_until(
+        lambda: game.callback_is("BattleMainCB2") or game.position()[1] == 42,
+        description="Eugene trainer sight row",
+        max_pulses=300,
+        button="Up",
+    )
+    direction = "Left"
+    for _ in range(1_200):
+        if game.callback_is("BattleMainCB2"):
+            break
+        if game.controls_locked():
+            game.press("A", release_frames=4)
+            continue
+        x, _ = game.position()
+        if x <= 16:
+            direction = "Right"
+        elif x >= 28:
+            direction = "Left"
+        game.press(direction, hold_frames=3, release_frames=1)
+    else:
+        raise AssertionError("ordinary Route 39 movement did not trigger Eugene")
+
+    def eugene_defeated() -> bool:
+        defeat_address = game.save_block1() + 0x3CD0 + EUGENE_DEFEAT_BYTE
+        return bool(game.read_u8(defeat_address) & EUGENE_DEFEAT_MASK)
+
+    for _ in range(6_000):
+        if eugene_defeated():
+            break
+        controller = game.read_u32(game.address("gBattlerControllerFuncs"))
+        if game.task_active("Task_HandleChooseMonInput"):
+            game.press("Down", release_frames=4)
+            game.press("A", release_frames=8)
+            game.press("A", release_frames=8)
+        elif controller in action_handlers:
+            game.press("Left", release_frames=2)
+            game.press("Up", release_frames=2)
+            game.press("A", release_frames=8)
+        elif controller in move_handlers:
+            game.press("Left", release_frames=2)
+            game.press("Up", release_frames=2)
+            game.press("A", release_frames=8)
+        else:
+            game.press("A", release_frames=2)
+    else:
+        raise AssertionError("ordinary Fight inputs did not defeat Eugene")
+    game.advance_until(
+        lambda: game.callback_is("CB2_Overworld") and not game.controls_locked(),
+        description="Eugene post-battle field text",
+        max_pulses=1_200,
+    )
+    assert eugene_defeated()
+
+    # The trainer remains in front of the player after his authored battle.
+    # Interacting again must show his authored after-text and never rematch.
+    game.press("A")
+    game.wait_until(
+        lambda: game.controls_locked(),
+        description="Eugene authored post-battle interaction",
+        max_frames=300,
+    )
+    for _ in range(600):
+        assert not game.callback_is("BattleMainCB2")
+        if not game.controls_locked():
+            break
+        game.press("A", release_frames=2)
+    else:
+        raise AssertionError("Eugene post-battle text did not return field controls")
+
+
 @pytest.mark.long_journey
 def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     document = json.loads(FIXTURE_MANIFEST.read_text())
@@ -288,7 +442,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
 
     # Checkpoint 1 intentionally continues with the ordinary field fishing,
     # capture, and public ferry interaction below as those controls are proven.
-    assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 1
+    assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 2
     assert _item_count(game, POCKET_KEY_ITEMS, ITEM_OLD_ROD) == 1
 
     # Return to Vermilion's waterfront and use the acquired rod through the
@@ -307,7 +461,7 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     _fish_until_battle(game)
     _catch_with_battle_bag(game)
     assert game.read_u8(game.address("gPartiesCount")) == 4
-    assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 0
+    assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 1
     caught = decode_box_pokemon(game.read(game.address("gParties") + 3 * 100, 80))
     assert caught is not None
     assert caught["species"] == SPECIES_MAGIKARP
@@ -365,3 +519,46 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
         button="Up",
     )
     game.wait_for_controls_unlocked(max_frames=1_200)
+    game.move_path(
+        (None, 37),
+        (13, None),
+        (None, 36),
+        (12, None),
+        (None, 28),
+        (16, None),
+        (None, 27),
+        (17, None),
+        (None, 24),
+        (18, None),
+        (None, 22),
+        (19, None),
+        (None, 0),
+    )
+    game.advance_until(
+        lambda: game.map_id() == maps["Route39"].map_id,
+        description="ordinary Olivine-to-Route-39 walk",
+        max_pulses=300,
+        button="Up",
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
+    assert game.position() == (25, 53)
+    game.move_path((None, 44), (20, None))
+    game.advance_until(
+        lambda: game.callback_is("BattleMainCB2") or game.position()[1] == 43,
+        description="Route 39 grass edge",
+        max_pulses=60,
+        button="Up",
+    )
+    _walk_route39_grass_until_battle(game)
+    _weaken_then_catch(game)
+    assert game.read_u8(game.address("gPartiesCount")) == 5
+    assert _item_count(game, POCKET_POKE_BALLS, ITEM_POKE_BALL) == 0
+    johto_catch = decode_box_pokemon(
+        game.read(game.address("gParties") + 4 * 100, 80)
+    )
+    assert johto_catch is not None
+    assert johto_catch["personality"] != 0
+    assert johto_catch["otId"] != 0
+    assert johto_catch["metLocation"] == MET_LOCATION_ROUTE_39
+    assert johto_catch["metGame"] == GAME_VERSION_EMERALD
+    _defeat_eugene_through_normal_input(game)
