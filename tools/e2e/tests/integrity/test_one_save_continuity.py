@@ -6,7 +6,18 @@ import struct
 
 import pytest
 
-from tools.e2e.save_file import SaveImage, decode_box_pokemon
+from tools.e2e.save_file import (
+    SaveImage,
+    decode_box_pokemon,
+    is_strictly_newer_save_counter,
+)
+from tools.e2e.save_journey import cold_restart_and_continue, save_from_start_menu
+from tools.e2e.skyemu import (
+    IntegrityLoadError,
+    IntegrityLoadPhase,
+    IntegrityLoadStatus,
+    IntegrityMapLoadRequest,
+)
 from tools.e2e.tests.integrity.manifest import integrity_manifest_path, load_manifest_maps
 
 
@@ -137,6 +148,26 @@ def _assert_party_fully_healed(game, expected_count: int) -> None:
         max_hp = game.read_u16(party + index * 100 + POKEMON_MAX_HP_OFFSET)
         assert max_hp > 0
         assert game.read_u16(party + index * 100 + POKEMON_HP_OFFSET) == max_hp
+
+
+def _controlled_position(game, entry, coordinates, request_id: int) -> None:
+    """Use the debug map loader only for documented journey positioning."""
+    result = game.request_map_load(
+        IntegrityMapLoadRequest(
+            request_id=request_id,
+            map_group=entry.group,
+            map_num=entry.number,
+            x=coordinates[0],
+            y=coordinates[1],
+        ),
+        max_frames=1_800,
+    )
+    assert result.status is IntegrityLoadStatus.SUCCESS
+    assert result.phase is IntegrityLoadPhase.FIELD_READY
+    assert result.error is IntegrityLoadError.NONE
+    assert game.map_id() == entry.map_id
+    assert game.position() == coordinates
+    game.wait_for_controls_unlocked(max_frames=1_200)
 
 
 def _open_storage_from_olivine_console(game) -> None:
@@ -1294,3 +1325,85 @@ def test_one_save_kanto_to_olivine_checkpoint(session_factory):
     assert retained_kanto_catch["metLocation"] == MET_LOCATION_VERMILION_CITY
     assert retained_kanto_catch["metGame"] == GAME_VERSION_EMERALD
     assert _box_pokemon(game, 0, 0) == task_anchored_johto_catch
+
+
+@pytest.mark.long_journey
+def test_same_kanto_save_persists_johto_checkpoint_and_returns(session_factory):
+    """Prove the late continuity boundary without replaying stochastic setup.
+
+    Controlled setup is limited to two debug map loads: positioning the reviewed
+    Kanto character at the Olivine Center, then at the Olivine ferry terminal.
+    The player identity, Kanto party, Olivine heal checkpoint, flash save, cold
+    restart, and reverse ferry result are never written by the host.
+    """
+    document = json.loads(FIXTURE_MANIFEST.read_text())
+    fixture = FIXTURE_MANIFEST.parent / document["fixture"]["file"]
+    fixture_image = SaveImage.from_path(fixture)
+    assert fixture_image.sha256 == document["fixture"]["sha256"]
+
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    game = session_factory(battery_save=fixture)
+    _continue(game)
+    _assert_reviewed_start(game, document)
+
+    player_identity = game.read(game.save_block2(), 14)
+    assert game.map_id() == maps["VermilionCity_Mart_Frlg"].map_id
+
+    # Controlled travel setup. The meaningful Johto fact is established below
+    # by the production nurse script, rather than by the host map-load request.
+    olivine_center = maps["OlivineCity_PokemonCenter"]
+    olivine_city = maps["OlivineCity"]
+    _controlled_position(game, olivine_center, (7, 4), 0xF2400001)
+    _heal_at_olivine_nurse(game)
+    johto_checkpoint = (
+        olivine_city.group,
+        olivine_city.number,
+        -1,
+        15,
+        44,
+    )
+    assert _last_heal_location(game) == johto_checkpoint
+    kanto_party = [
+        game.read(game.address("gParties") + index * 100, 80)
+        for index in range(game.read_u8(game.address("gPartiesCount")))
+    ]
+
+    # This is the sole flash save made by this continuation proof.
+    counter_before = SaveImage.from_path(game.battery_path).active_slot.counter
+    saved = save_from_start_menu(game)
+    assert is_strictly_newer_save_counter(saved.active_slot.counter, counter_before)
+    cold_restart_and_continue(game)
+
+    assert game.map_id() == olivine_center.map_id
+    assert game.read(game.save_block2(), 14) == player_identity
+    assert [
+        game.read(game.address("gParties") + index * 100, 80)
+        for index in range(game.read_u8(game.address("gPartiesCount")))
+    ] == kanto_party
+    assert _last_heal_location(game) == johto_checkpoint
+
+    # Controlled positioning removes repeated corridor setup only. The reverse
+    # ferry interaction and resulting Kanto residency execute in production.
+    olivine_terminal = maps["OlivineCity_PortInside"]
+    vermilion_terminal = maps["VermilionCity_PortInside"]
+    _controlled_position(game, olivine_terminal, (8, 16), 0xF2400002)
+    game.face("Down")
+    game.press("A")
+    game.advance_until(
+        lambda: game.map_id() == vermilion_terminal.map_id,
+        description="production Olivine-to-Vermilion return ferry",
+        max_pulses=600,
+        button="A",
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
+
+    assert vermilion_terminal.region == "REGION_KANTO"
+    assert game.position() == (8, 9)
+    assert game.read(game.save_block2(), 14) == player_identity
+    assert [
+        game.read(game.address("gParties") + index * 100, 80)
+        for index in range(game.read_u8(game.address("gPartiesCount")))
+    ] == kanto_party
+    assert _last_heal_location(game) == johto_checkpoint
