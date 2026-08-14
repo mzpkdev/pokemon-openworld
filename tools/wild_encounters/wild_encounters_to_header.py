@@ -72,6 +72,17 @@ MAX_AUTHORED_TIER_DISTINCT_SPECIES = {
     "land_mons": 12,
     "water_mons": 5,
 }
+MAX_AUTHORED_TIER_ENTRIES = {
+    "land_mons": 12,
+    "water_mons": 5,
+    "rock_smash_mons": 5,
+    "hidden_mons": 3,
+}
+MAX_AUTHORED_FISHING_TIER_ENTRIES = {
+    "OLD_ROD": 2,
+    "GOOD_ROD": 3,
+    "SUPER_ROD": 5,
+}
 METHOD_AREAS = {
     "land_mons": "WILD_AREA_LAND",
     "water_mons": "WILD_AREA_WATER",
@@ -1130,6 +1141,16 @@ def _load_authored_bands(
             if not isinstance(entry_rows, list) or not entry_rows:
                 raise ValidationError(
                     f"{tier_location}/entries: expected nonempty list"
+                )
+            entry_limit = (
+                MAX_AUTHORED_FISHING_TIER_ENTRIES[fishing_rod]
+                if method == "fishing_mons"
+                else MAX_AUTHORED_TIER_ENTRIES.get(method)
+            )
+            if entry_limit is not None and len(entry_rows) > entry_limit:
+                raise ValidationError(
+                    f"{tier_location}/entries: {method} has {len(entry_rows)} entries; "
+                    f"maximum is {entry_limit}"
                 )
             entries = []
             total_weight = 0

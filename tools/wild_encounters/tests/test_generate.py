@@ -177,15 +177,26 @@ class WildEncounterGenerationTests(unittest.TestCase):
             ],
         }
 
-    def authored_profile_with_distinct_species(self, method, count):
-        profile = copy.deepcopy(
-            next(
-                profile
-                for profile in self.bands["profiles"]
-                if profile["method"] == method
+    def authored_profile_with_entries(
+        self, method, count, fishing_rod="NONE", distinct_species=False
+    ):
+        if method == "rock_smash_mons":
+            profile = self.route101_band_profile()
+            profile.update(
+                label="gRoute111",
+                header="gRoute111",
+                method=method,
             )
-        )
-        species = list(
+        else:
+            profile = copy.deepcopy(
+                next(
+                    profile
+                    for profile in self.bands["profiles"]
+                    if profile["method"] == method
+                    and profile["fishing_rod"] == fishing_rod
+                )
+            )
+        available_species = list(
             dict.fromkeys(
                 mon["species"]
                 for group in self.encounters["wild_encounter_groups"]
@@ -194,7 +205,12 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 for mon in encounter.get(mon_type, {}).get("mons", [])
                 if mon["species"] not in generator.NON_ENCOUNTER_SPECIES
             )
-        )[:count]
+        )
+        species = (
+            available_species[:count]
+            if distinct_species
+            else [available_species[0]] * count
+        )
         self.assertEqual(len(species), count)
         for tier in profile["tiers"]:
             min_level = tier["entries"][0]["min_level"]
@@ -209,6 +225,9 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 for species_id in species
             ]
         return profile
+
+    def authored_profile_with_distinct_species(self, method, count):
+        return self.authored_profile_with_entries(method, count, distinct_species=True)
 
     def test_authored_band_schema_rejects_invalid_values_atomically(self):
         def document(profile):
@@ -307,6 +326,33 @@ class WildEncounterGenerationTests(unittest.TestCase):
             with self.subTest(method=method, distinct_species=rejected_count):
                 profile = self.authored_profile_with_distinct_species(
                     method, rejected_count
+                )
+                self.assert_rejected_without_replacement(
+                    bands={"schema_version": 1, "profiles": [profile]}
+                )
+
+    def test_authored_tiers_enforce_method_entry_capacity_with_duplicates(self):
+        for method, fishing_rod, accepted_count in (
+            ("land_mons", "NONE", 12),
+            ("water_mons", "NONE", 5),
+            ("rock_smash_mons", "NONE", 5),
+            ("fishing_mons", "OLD_ROD", 2),
+            ("fishing_mons", "GOOD_ROD", 3),
+            ("fishing_mons", "SUPER_ROD", 5),
+        ):
+            with self.subTest(
+                method=method, fishing_rod=fishing_rod, entries=accepted_count
+            ):
+                profile = self.authored_profile_with_entries(
+                    method, accepted_count, fishing_rod
+                )
+                self.generate(bands={"schema_version": 1, "profiles": [profile]})
+
+            with self.subTest(
+                method=method, fishing_rod=fishing_rod, entries=accepted_count + 1
+            ):
+                profile = self.authored_profile_with_entries(
+                    method, accepted_count + 1, fishing_rod
                 )
                 self.assert_rejected_without_replacement(
                     bands={"schema_version": 1, "profiles": [profile]}
