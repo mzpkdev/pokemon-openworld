@@ -590,6 +590,7 @@ static void Task_HandleWallpapers(u8);
 static void Task_NameBox(u8);
 static void Task_PrintCantStoreMail(u8);
 static void Task_HandleMovingMonFromParty(u8);
+static void FinalizePlayerPartyStorageChange(bool8);
 
 // Input handlers
 static u8 InBoxInput_Normal(void);
@@ -2830,6 +2831,7 @@ static void Task_WithdrawMon(u8 taskId)
     case 4:
         if (!DoMonPlaceChange())
         {
+            FinalizePlayerPartyStorageChange(FALSE);
             UpdatePartySlotColors();
             sStorage->state++;
         }
@@ -2882,7 +2884,7 @@ static void Task_DepositMenu(u8 taskId)
         }
         break;
     case 2:
-        CompactPartySlots();
+        FinalizePlayerPartyStorageChange(TRUE);
         CompactPartySprites();
         sStorage->state++;
         break;
@@ -6858,6 +6860,20 @@ s16 CompactPartySlots(void)
 
     return retVal;
 }
+
+static void FinalizePlayerPartyStorageChange(bool8 compactParty)
+{
+    if (compactParty)
+        CompactPartySlots();
+    CalculatePlayerPartyCount();
+}
+
+#if TESTING
+void PokemonStorageSystem_TestFinalizePartyChange(bool8 compactParty)
+{
+    FinalizePlayerPartyStorageChange(compactParty);
+}
+#endif
 
 static void SetMonMarkings(u8 markings)
 {
