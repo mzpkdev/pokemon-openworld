@@ -42,6 +42,30 @@ def _script_warps(name: str) -> list[tuple[str, str, int, int]]:
 
 
 class InstalledCorridorTests(unittest.TestCase):
+    def test_olivine_center_has_reachable_pokemon_storage_console(self) -> None:
+        layout = (
+            ROOT / "data/layouts/OlivineCity_PokemonCenter/map.bin"
+        ).read_bytes()
+        attributes = (
+            ROOT
+            / "data/tilesets/secondary/kanto_pokemon_center/metatile_attributes.bin"
+        ).read_bytes()
+        width = 16
+        console_x, console_y = 11, 5
+        console = int.from_bytes(
+            layout[(console_y * width + console_x) * 2 :][0:2], "little"
+        )
+        stand = int.from_bytes(
+            layout[((console_y + 1) * width + console_x) * 2 :][0:2], "little"
+        )
+        self.assertEqual(console, 0x32F6)
+        self.assertEqual(console & 0x3FF, 640 + 118)
+        self.assertEqual(
+            int.from_bytes(attributes[118 * 2 : 118 * 2 + 2], "little") & 0xFF,
+            0x83,
+        )
+        self.assertEqual(stand & 0x3FF, 0x29C)
+
     def test_installed_corridor_is_reachable_in_both_directions(self) -> None:
         documents = {name: _map(name) for name in CORRIDOR}
         name_by_id = {document["id"]: name for name, document in documents.items()}

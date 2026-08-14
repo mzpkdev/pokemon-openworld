@@ -117,21 +117,57 @@ def _asset_units(
                 f"assets[{index}]: duplicate authenticated source {source_key.name}"
             )
         rendered_targets[source_key.name] = target
-        if command != ["copy-bytes"]:
-            raise ContentPortError(f"assets[{index}]: unsupported conversion command")
         if item.get("permission") != "redistributable":
             raise ContentPortError(f"assets[{index}]: asset is not redistributable")
         if target in seen:
             raise ContentPortError(f"duplicate asset target {target}")
         seen.add(target)
         payload = _read_source(state.donor_roots[role], source, f"assets[{index}]")
-        digest = hashlib.sha256(payload).hexdigest()
-        if digest != item.get("sourceSha256") or digest != item.get("targetSha256"):
+        source_digest = hashlib.sha256(payload).hexdigest()
+        if source_digest != item.get("sourceSha256"):
             raise ContentPortError(
-                f"assets[{index}]: donor or target hash drift for {target}"
+                f"assets[{index}]: donor hash drift for {target}"
             )
+        if command == ["copy-bytes"]:
+            converted = payload
+        elif (
+            isinstance(command, (list, tuple))
+            and len(command) == 4
+            and command[0] == "replace-le16"
+        ):
+            try:
+                offset = int(command[1], 0)
+                expected = int(command[2], 0)
+                replacement = int(command[3], 0)
+            except (TypeError, ValueError) as error:
+                raise ContentPortError(
+                    f"assets[{index}]: invalid replace-le16 arguments"
+                ) from error
+            if (
+                offset < 0
+                or offset % 2
+                or offset + 2 > len(payload)
+                or not 0 <= expected <= 0xFFFF
+                or not 0 <= replacement <= 0xFFFF
+            ):
+                raise ContentPortError(
+                    f"assets[{index}]: invalid replace-le16 bounds"
+                )
+            actual = int.from_bytes(payload[offset : offset + 2], "little")
+            if actual != expected:
+                raise ContentPortError(
+                    f"assets[{index}]: replace-le16 expected 0x{expected:04x} "
+                    f"at offset {offset}, found 0x{actual:04x}"
+                )
+            converted_bytes = bytearray(payload)
+            converted_bytes[offset : offset + 2] = replacement.to_bytes(2, "little")
+            converted = bytes(converted_bytes)
+        else:
+            raise ContentPortError(f"assets[{index}]: unsupported conversion command")
+        if hashlib.sha256(converted).hexdigest() != item.get("targetSha256"):
+            raise ContentPortError(f"assets[{index}]: target hash drift for {target}")
         units.append(
-            RenderUnit(f"asset:{target}", "tileset-assets", target, {target: payload})
+            RenderUnit(f"asset:{target}", "tileset-assets", target, {target: converted})
         )
     authorized_sources = set(state.inventory.get("asset-policy", ()))
     required_sources = set(state.inventory.get("asset-required", ()))
