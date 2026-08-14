@@ -2,11 +2,12 @@ name: Issue
 description: Report a problem or propose a change.
 body:
   - type: textarea
-    id: what
+    id: outcome
     attributes:
-      label: What
-      description: What happened or should change?
-      placeholder: Describe the outcome in a few sentences.
+      label: Outcome
+      description: What should become true for players or contributors?
+      value: |
+        <!-- Write 1-3 sentences. State the observable player or contributor outcome once. Do not describe implementation, completion criteria, or history here. -->
     validations:
       required: true
 
@@ -14,13 +15,34 @@ body:
     id: why
     attributes:
       label: Why
-      description: Why does this matter?
-      placeholder: Explain the impact on players or contributors.
+      description: Why does this outcome matter?
+      value: |
+        <!-- Write one short paragraph of no more than 3 sentences. Explain the impact without repeating the Outcome section. -->
     validations:
       required: true
 
   - type: textarea
-    id: evidence
+    id: done
     attributes:
-      label: Evidence
-      description: Add logs, screenshots, saves, or examples when useful.
+      label: Done when
+      description: What observable results must be true before this issue can close?
+      value: |
+        <!-- Use 3-8 concise checkboxes. Each item must be independently observable and verifiable. Describe closure conditions, not implementation steps, test commands, or progress. -->
+    validations:
+      required: true
+
+  - type: textarea
+    id: guardrails
+    attributes:
+      label: Guardrails
+      description: What must remain unchanged or outside this issue?
+      value: |
+        <!-- Use short bullets. State behavior to preserve, compatibility constraints, forbidden approaches, and explicit non-goals. Omit claims that already appear in another section. -->
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Add durable supporting information when useful.
+      value: |
+        <!-- Use short bullets for dependencies, decisions already made, evidence, and authoritative references. Do not record progress, dates, next steps, or repeat another section. -->

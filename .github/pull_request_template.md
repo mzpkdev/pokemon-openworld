@@ -1,20 +1,30 @@
 <!--
 Keep this short enough for a stakeholder to scan in under a minute.
-Write from the product perspective: lead with the player or project outcome, make the strongest honest case for the change, and leave implementation details to the diff.
+State each claim once. Lead with the player or project outcome, keep implementation details in the diff, and retain only durable review context.
 -->
 
-## What
+## Outcome
 
-<!-- In 1-2 sentences, pitch what this delivers. Describe the outcome or experience, not the files, functions, or refactors behind it. -->
+<!-- Write 1-3 sentences. State the observable player or contributor outcome. Do not tour files, functions, commits, or refactors. -->
 
 ## Why
 
-<!-- State the player need, product opportunity, or project problem this solves. Explain why it is worth doing now. -->
+<!-- Write one short paragraph of no more than 3 sentences. Explain the impact and why this change is worth shipping without repeating Outcome. -->
 
-## Impact
+## Verification
 
-<!-- Say who benefits and what gets better. Note save, multiplayer, or cross-build compatibility changes, plus any concrete tradeoff or limitation, when relevant. -->
+<!-- Use short bullets. Name the checks run and the result or link focused evidence. If something was not run, say what and why. Do not paste routine logs. -->
 
-## Screenshot
+## Guardrails
 
-<!-- For visible changes, add a focused screenshot, GIF, or short video that proves the outcome. Remove this section when it does not apply. -->
+<!-- Use short bullets. State preserved behavior, compatibility constraints, known limitations, and explicit non-goals. Remove this section when there are no material guardrails. -->
+
+## Context
+
+Closes #X
+
+<!-- Replace X with the linked issue number. If this PR has no linked issue, replace the line above with: No linked issue. Never leave the placeholder unchanged. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not remove this section, record progress or next steps, or repeat another section. -->
+
+## Visual evidence
+
+<!-- For visible changes, add one focused screenshot, GIF, or short video that proves the outcome. Remove this section when it does not apply. -->
