@@ -850,6 +850,60 @@
         "saved_location": "MAPSEC_VICTORY_ROAD",
         "met_location": 70,
         "met_location_display": "MAPSEC_VICTORY_ROAD"
+      },
+      {
+        "id": "MAPSEC_BLACKTHORN_CITY",
+        "saved_location": "MAPSEC_BLACKTHORN_CITY",
+        "met_location": 249,
+        "met_location_display": "MAPSEC_ROUTE_44"
+      },
+      {
+        "id": "MAPSEC_ROUTE_45",
+        "saved_location": "MAPSEC_ROUTE_45",
+        "met_location": 249,
+        "met_location_display": "MAPSEC_ROUTE_44"
+      },
+      {
+        "id": "MAPSEC_ROUTE_46",
+        "saved_location": "MAPSEC_ROUTE_46",
+        "met_location": 210,
+        "met_location_display": "MAPSEC_ROUTE_29"
+      },
+      {
+        "id": "MAPSEC_ICE_PATH",
+        "saved_location": "MAPSEC_ROUTE_44",
+        "met_location": 249,
+        "met_location_display": "MAPSEC_ROUTE_44"
+      },
+      {
+        "id": "MAPSEC_DRAGONS_DEN",
+        "saved_location": "MAPSEC_ROUTE_44",
+        "met_location": 249,
+        "met_location_display": "MAPSEC_ROUTE_44"
+      },
+      {
+        "id": "MAPSEC_DARK_CAVE",
+        "saved_location": "MAPSEC_ROUTE_31",
+        "met_location": 215,
+        "met_location_display": "MAPSEC_ROUTE_31"
+      },
+      {
+        "id": "MAPSEC_ROUTE_26",
+        "saved_location": "MAPSEC_ROUTE_28",
+        "met_location": 212,
+        "met_location_display": "MAPSEC_ROUTE_28"
+      },
+      {
+        "id": "MAPSEC_ROUTE_27",
+        "saved_location": "MAPSEC_NEW_BARK_TOWN",
+        "met_location": 209,
+        "met_location_display": "MAPSEC_NEW_BARK_TOWN"
+      },
+      {
+        "id": "MAPSEC_TOHJO_FALLS",
+        "saved_location": "MAPSEC_NEW_BARK_TOWN",
+        "met_location": 209,
+        "met_location_display": "MAPSEC_NEW_BARK_TOWN"
       }
     ]
   },
