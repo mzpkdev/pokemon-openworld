@@ -21,7 +21,9 @@ State each claim once. Lead with the player or project outcome, keep implementat
 
 ## Context
 
-<!-- Start with an existing Closes #123, Fixes #123, or Resolves #123 line when applicable; preserve that closing keyword exactly. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not record progress, next steps, or repeat another section. Remove this section when it adds no durable context. -->
+Closes #X
+
+<!-- Every pull request must close an issue. Replace X with its issue number and keep the exact "Closes #X" form. Then use short bullets for other linked issues, decisions already made, rollout or migration notes, and reviewer focus. Do not remove this section, record progress or next steps, or repeat another section. -->
 
 ## Visual evidence
 
