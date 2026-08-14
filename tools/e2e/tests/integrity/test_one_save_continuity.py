@@ -506,6 +506,26 @@ def _fish_until_battle(game) -> None:
         )
         if game.callback_is("BattleMainCB2"):
             return
+
+        stable_field_frames = 0
+        for _ in range(120):
+            if game.callback_is("BattleMainCB2"):
+                return
+            if (
+                game.callback_is("CB2_Overworld")
+                and not game.controls_locked()
+                and game.script_status() == SCRIPT_IDLE
+            ):
+                stable_field_frames += 1
+                if stable_field_frames == 30:
+                    break
+            else:
+                stable_field_frames = 0
+            game.step()
+        else:
+            raise AssertionError(
+                "fishing attempt reached neither battle nor stable field controls"
+            )
         _use_old_rod_from_bag(game)
     raise AssertionError("ordinary Old Rod attempts did not start a wild battle")
 
