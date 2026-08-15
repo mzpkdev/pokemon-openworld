@@ -16,7 +16,10 @@ from typing import Any
 from .artifact import ArtifactError, repository_root, verified_binary
 
 SCHEMA_VERSION = 1
-TIMEOUT_SECONDS = 5
+SEARCH_TIMEOUT_SECONDS = 30
+PROCESS_TIMEOUT_GRACE_SECONDS = 2
+PROCESS_TIMEOUT_SECONDS = SEARCH_TIMEOUT_SECONDS + PROCESS_TIMEOUT_GRACE_SECONDS
+GIT_TIMEOUT_SECONDS = 5
 RAW_OUTPUT_BYTES = 1024 * 1024
 RESPONSE_BYTES = 32 * 1024
 PROBE_CODE_BYTES = 20 * 1024
@@ -89,7 +92,7 @@ def _relative_path(root: Path, raw: str, *, file_required: bool = False) -> Path
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
-            timeout=TIMEOUT_SECONDS,
+            timeout=GIT_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.SubprocessError) as exc:
         raise RetrievalError(
@@ -142,7 +145,7 @@ def _run_probe(binary: Path, root: Path, arguments: list[str]) -> bytes:
     selector.register(process.stderr, selectors.EVENT_READ, "stderr")
     chunks: dict[str, list[bytes]] = {"stdout": [], "stderr": []}
     size = 0
-    deadline = time.monotonic() + TIMEOUT_SECONDS
+    deadline = time.monotonic() + PROCESS_TIMEOUT_SECONDS
     try:
         while selector.get_map():
             remaining = deadline - time.monotonic()
@@ -288,7 +291,7 @@ def _search(args: argparse.Namespace, root: Path, binary: Path) -> dict[str, Any
             "--max-tokens",
             str(PROBE_TOKENS),
             "--timeout",
-            str(TIMEOUT_SECONDS),
+            str(SEARCH_TIMEOUT_SECONDS),
             "--format",
             "json",
         ],

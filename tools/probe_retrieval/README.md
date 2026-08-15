@@ -46,6 +46,16 @@ traversal, symlink escapes, ignored output, unsupported formats, oversized files
 whole-file extraction. It applies fixed process, raw-output, result, code-byte, token,
 source-size, and serialized-response limits.
 
+Repository searches receive a fixed 30-second Probe budget. The wrapper allows two more
+seconds only for the child process to flush bounded output and exit. Callers cannot raise
+either limit. The complete serialized response remains capped at 32 KiB, Probe code
+content at 20 KiB, raw child output at 1 MiB, and individual source files at 512 KiB.
+
+The repository-scale integration test defines a cold run as the first fresh Probe process
+for a query and a warm run as an immediate second fresh process, with operating-system
+filesystem caches left intact. Probe session caching is not enabled in either run. Run it
+after the explicit bootstrap with `make probe-retrieval-integration-test`.
+
 Use `rg` for exact text. Use `rg` and bounded file reads for `.inc`, `.s`, `.json`,
 generated data, oversized files, and all other unsupported formats. Directory search is
 limited to one requested AST language, but it is not a claim of semantic coverage for the

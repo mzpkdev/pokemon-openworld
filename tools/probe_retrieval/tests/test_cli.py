@@ -59,11 +59,26 @@ class RetrievalCliTests(unittest.TestCase):
     def test_timeout_is_fixed(self) -> None:
         binary = self._fake("import time\ntime.sleep(10)\n")
         with (
-            mock.patch.object(cli, "TIMEOUT_SECONDS", 0.05),
+            mock.patch.object(cli, "PROCESS_TIMEOUT_SECONDS", 0.05),
             self.assertRaises(cli.RetrievalError) as raised,
         ):
             cli.execute(["symbols", "src/example.py"], cwd=self.root, binary=binary)
         self.assertEqual(raised.exception.code, "timeout")
+
+    def test_search_passes_fixed_repository_scale_timeout(self) -> None:
+        payload = json.dumps({"results": []})
+        binary = self._fake(
+            "import json,sys\n"
+            "args=sys.argv[1:]\n"
+            f"assert args[args.index('--timeout') + 1] == {str(cli.SEARCH_TIMEOUT_SECONDS)!r}\n"
+            f"print({payload!r})\n"
+        )
+        document = cli.execute(
+            ["search", "alpha", "--language", "python", "--path", "src"],
+            cwd=self.root,
+            binary=binary,
+        )
+        self.assertEqual(document["results"], [])
 
     def test_malformed_and_non_utf8_output(self) -> None:
         cases = (
