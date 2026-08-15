@@ -110,7 +110,7 @@ def inventory() -> TrainerInventory:
             "ordinary",
             None,
             True,
-            projection("TRAINER_TWINS_AMY_AND_MAY_JOHTO"),
+            projection("TRAINER_TWINS_TEST"),
         ),
         TrainerIdentity("TRAINER_STORY", "story-controlled", "story", False, None),
     ]
@@ -203,8 +203,6 @@ def inventory() -> TrainerInventory:
     for batch in document()["batches"][3:]:
         for row in batch["identities"]:
             trainer = row["identity"]
-            placement_name = row["placements"][0]
-            map_name, object_index, script_name = placement_name.split("/", 2)
             identities.append(
                 TrainerIdentity(
                     trainer,
@@ -214,21 +212,32 @@ def inventory() -> TrainerInventory:
                     projection(projections[trainer]),
                 )
             )
-            placements.append(
-                TrainerPlacement(
-                    placement_name,
-                    map_name,
-                    int(object_index),
-                    script_name,
-                    trainer,
-                    True,
-                    graphics[placement_name],
+            for placement_name in row["placements"]:
+                map_name, object_index, script_name = placement_name.split("/", 2)
+                placements.append(
+                    TrainerPlacement(
+                        placement_name,
+                        map_name,
+                        int(object_index),
+                        script_name,
+                        trainer,
+                        True,
+                        graphics[placement_name],
+                    )
                 )
-            )
+    paired_doubles = {"TRAINER_TWINS": ("Gym/1/TwinA", "Gym/2/TwinB")}
+    materialized = {
+        row["identity"]
+        for batch in document()["batches"]
+        for row in batch["identities"]
+    }
+    for group in classification["pairedDoubles"]:
+        if group["trainer"] in materialized:
+            paired_doubles[group["trainer"]] = tuple(group["events"])
     return TrainerInventory(
         tuple(identities),
         tuple(placements),
-        MappingProxyType({"TRAINER_TWINS": ("Gym/1/TwinA", "Gym/2/TwinB")}),
+        MappingProxyType(paired_doubles),
         "inventory-digest",
         "identity-digest",
         "placement-digest",
@@ -239,7 +248,7 @@ def allocations(*, include_wade: bool = True) -> BindingIndex:
     symbols = [
         ("TRAINER_YOUNGSTER_SAMUEL_JOHTO", 1481),
         ("TRAINER_SAILOR_EUGENE_JOHTO", 1482),
-        ("TRAINER_TWINS_AMY_AND_MAY_JOHTO", 1609),
+        ("TRAINER_TWINS_TEST", 2000),
     ]
     if include_wade:
         symbols.extend(
@@ -332,9 +341,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(
-            result.batches[-1].key, "bulk-route45-route46-standard-singles-11"
-        )
+        self.assertEqual(result.batches[-1].key, "paired-doubles-with-ordering-singles")
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []
@@ -447,7 +454,13 @@ class TrainerMaterializationTests(unittest.TestCase):
         ungrouped = TrainerInventory(
             base.identities,
             base.placements,
-            MappingProxyType({}),
+            MappingProxyType(
+                {
+                    trainer: events
+                    for trainer, events in base.paired_doubles.items()
+                    if trainer != "TRAINER_TWINS"
+                }
+            ),
             base.digest,
             base.identity_membership_digest,
             base.placement_membership_digest,
@@ -488,7 +501,7 @@ class TrainerMaterializationTests(unittest.TestCase):
                 ],
             }
         )
-        with self.assertRaisesRegex(ContentPortError, "outside Phase 3"):
+        with self.assertRaisesRegex(ContentPortError, "requires paired-doubles batch"):
             validate_trainer_materialization_document(
                 grouped, inventory(), allocations()
             )
@@ -541,7 +554,13 @@ class TrainerMaterializationTests(unittest.TestCase):
         ungrouped = TrainerInventory(
             base.identities,
             base.placements,
-            MappingProxyType({}),
+            MappingProxyType(
+                {
+                    trainer: events
+                    for trainer, events in base.paired_doubles.items()
+                    if trainer != "TRAINER_TWINS"
+                }
+            ),
             base.digest,
             base.identity_membership_digest,
             base.placement_membership_digest,

@@ -92,7 +92,7 @@ class OwnedOutput:
 
 Renderer = Callable[[RenderContext, RenderUnit], Iterable[OwnedOutput]]
 _TRAINER_ID_RE = re.compile(r"^TRAINER_[A-Z0-9_]+$")
-_TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 ?.'-]*$")
+_TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 &?.'-]*$")
 _TRAINER_SPECIES_RE = re.compile(r"^SPECIES_[A-Z0-9_]+$")
 _SCRIPT_TOKEN_RE = re.compile(r"^[A-Za-z0-9_]+$")
 _TEXT_FRAGMENT_RE = re.compile(r'^"(?:[^"\\\r\n]|\\.)*"$')
@@ -279,6 +279,7 @@ def render_trainer_script(
     if not isinstance(map_name, str) or not isinstance(events, (list, tuple)):
         raise ContentPortError(f"{unit.key}: invalid trainer-script payload")
     blocks = [f"{map_name}_MapScripts::\n\t.byte 0"]
+    emitted_texts: dict[str, tuple[str, ...]] = {}
     for event in events:
         if not isinstance(event, dict) or set(event) != {
             "script",
@@ -313,6 +314,14 @@ def render_trainer_script(
                 )
                 for fragment in text_record["fragments"]
             )
+            previous = emitted_texts.get(label)
+            if previous is not None:
+                if previous != fragments:
+                    raise ContentPortError(
+                        f"{unit.key}: shared trainer text {label} has conflicting fragments"
+                    )
+                continue
+            emitted_texts[label] = fragments
             text_lines = [f"{label}:"]
             text_lines.extend(f"\t.string {fragment}" for fragment in fragments)
             blocks.append("\n".join(text_lines))

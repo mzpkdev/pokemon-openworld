@@ -32,7 +32,7 @@ from .semantics import EffectKey, EventEntry
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
-TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 ?.'-]*$")
+TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 &?.'-]*$")
 MATERIALIZATION_STRIP_EVENT_KINDS = (
     "bg_events",
     "coord_events",

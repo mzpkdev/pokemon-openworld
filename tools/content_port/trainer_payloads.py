@@ -17,12 +17,42 @@ _TRAINER_RE = re.compile(r"TRAINER_[A-Z0-9_]+")
 _PARTY_RE = re.compile(r"sParty_[A-Za-z0-9_]+")
 _STANDARD_SINGLE_COMMANDS = ("trainerbattle_single", "msgbox", "end")
 _STANDARD_SINGLE_ARITIES = (3, 2, 0)
+_PAIRED_DOUBLE_SHAPES = frozenset(
+    {
+        (
+            ("trainerbattle_double", "special", "msgbox", "release", "end"),
+            (4, 1, 2, 0, 0),
+            "MSGBOX_DEFAULT",
+        ),
+        (
+            ("trainerbattle_double", "special", "msgbox", "end"),
+            (4, 1, 2, 0),
+            "MSGBOX_AUTOCLOSE",
+        ),
+        (
+            ("trainerbattle_double", "msgbox", "end"),
+            (4, 2, 0),
+            "MSGBOX_AUTOCLOSE",
+        ),
+    }
+)
+_PAIRED_NOT_ENOUGH_SOURCE_LABEL = "Route104_Text_GinaNotEnoughMons"
+PAIRED_NOT_ENOUGH_TARGET_LABEL = "Johto_Text_PairedDoubleNotEnoughMons"
 _DEFAULT_PARTY_FIELDS = frozenset({"species", "held_item", "moves", "level", "iv"})
 
 
 @dataclass(frozen=True)
 class StandardSingleEventProjection:
     """An authenticated standard-single event with its target trainer operand."""
+
+    source_trainer: str
+    target_trainer: str
+    event: TrainerEventRecord
+
+
+@dataclass(frozen=True)
+class PairedDoubleEventProjection:
+    """An authenticated paired-double arm with rewritten target operands."""
 
     source_trainer: str
     target_trainer: str
@@ -146,6 +176,90 @@ def project_standard_single_event(
         ),
     )
     return StandardSingleEventProjection(source, target, projected)
+
+
+def project_paired_double_event(
+    event: TrainerEventRecord,
+    *,
+    source_trainer: str,
+    target_trainer: str,
+) -> PairedDoubleEventProjection:
+    """Validate one of the three reviewed paired-double script shapes."""
+
+    source = _trainer(source_trainer, "source trainer")
+    target = _trainer(target_trainer, "target trainer")
+    if event.trainers != (source,):
+        raise ContentPortError(
+            f"{event.script_name}: source trainer closure must be exactly {source}"
+        )
+    commands = tuple(instruction.command for instruction in event.instructions)
+    arities = tuple(len(instruction.operands) for instruction in event.instructions)
+    msgbox = next(
+        (
+            instruction
+            for instruction in event.instructions
+            if instruction.command == "msgbox"
+        ),
+        None,
+    )
+    msgbox_mode = msgbox.operands[1] if msgbox is not None else None
+    if (commands, arities, msgbox_mode) not in _PAIRED_DOUBLE_SHAPES:
+        raise ContentPortError(
+            f"{event.script_name}: unsupported paired-double script shape"
+        )
+    battle = event.instructions[0]
+    if (
+        battle.operands[0] != source
+        or battle.operands[3] != _PAIRED_NOT_ENOUGH_SOURCE_LABEL
+    ):
+        raise ContentPortError(
+            f"{event.script_name}: paired-double battle operands drifted"
+        )
+    if "special" in commands:
+        special = event.instructions[commands.index("special")]
+        if special.operands != ("GetPlayerBigGuyGirlString",):
+            raise ContentPortError(
+                f"{event.script_name}: paired-double player-string special drifted"
+            )
+    assert msgbox is not None
+    expected_text_labels = (battle.operands[1], battle.operands[2], msgbox.operands[0])
+    if len(set(expected_text_labels)) != 3:
+        raise ContentPortError(
+            f"{event.script_name}: paired-double local text labels must be distinct"
+        )
+    if tuple(text.label for text in event.texts) != expected_text_labels:
+        raise ContentPortError(
+            f"{event.script_name}: paired-double local text closure must exactly "
+            "contain intro, defeat, and after text"
+        )
+    if any(not text.fragments for text in event.texts):
+        raise ContentPortError(
+            f"{event.script_name}: paired-double local text must not be empty"
+        )
+
+    instructions = tuple(
+        TrainerScriptInstruction(
+            instruction.command,
+            (
+                (target, *instruction.operands[1:3], PAIRED_NOT_ENOUGH_TARGET_LABEL)
+                if index == 0
+                else tuple(instruction.operands)
+            ),
+        )
+        for index, instruction in enumerate(event.instructions)
+    )
+    projected = TrainerEventRecord(
+        map_name=event.map_name,
+        object_index=event.object_index,
+        object_event=_freeze(event.object_event),
+        script_name=event.script_name,
+        trainers=(target,),
+        instructions=instructions,
+        texts=tuple(
+            TrainerText(text.label, tuple(text.fragments)) for text in event.texts
+        ),
+    )
+    return PairedDoubleEventProjection(source, target, projected)
 
 
 def project_standard_single_party(

@@ -208,6 +208,35 @@ TEST("Route 45 and Route 46 trainer samples own stable bitmap defeat bits")
     }
 }
 
+TEST("Paired battle checkpoint owns stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_TWINS_AMY_AND_MAY_JOHTO,
+        TRAINER_TWINS_ANN_AND_ANNE_JOHTO,
+        TRAINER_DRAGON_TAMER_DARIN_JOHTO,
+        TRAINER_TWINS_LEA_AND_PIA_JOHTO,
+        TRAINER_HIKER_DEVIN_JOHTO,
+        TRAINER_CAMPER_GRANT_JOHTO,
+        TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO,
+        TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO,
+        TRAINER_TWINS_MEG_AND_PEG_JOHTO,
+        TRAINER_POKEFAN_COLIN_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
 TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
 {
     struct TrainerDefeatBinding binding;

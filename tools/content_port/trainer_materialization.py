@@ -20,7 +20,7 @@ ROOT_KEYS = frozenset({"schemaVersion", "appendOnlyBaseline", "batches"})
 BASELINE_KEYS = frozenset({"batchCount", "sha256"})
 BATCH_KEYS = frozenset({"sequence", "key", "kind", "identities"})
 IDENTITY_KEYS = frozenset({"identity", "placements"})
-BATCH_KINDS = frozenset({"seeded-legacy-closure", "standard-singles"})
+BATCH_KINDS = frozenset({"seeded-legacy-closure", "standard-singles", "paired-doubles"})
 KEY_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 
@@ -34,7 +34,7 @@ class ReviewedMaterializationPrefix:
 
 
 PRODUCTION_REVIEWED_PREFIX = ReviewedMaterializationPrefix(
-    7, "cb499c77993df896c441b997605b67d421b31d2a52a493f4bbb4d4dc40ea85a6"
+    8, "6a736134d2ea8cfc36a368d376aad5ac420cecd5a36a30c2f1844cfce3bab4bc"
 )
 
 
@@ -212,6 +212,7 @@ def validate_trainer_materialization_document(
         if not raw_identities:
             raise ContentPortError(f"{pointer}.identities: batch must not be empty")
         materialized: list[MaterializedTrainer] = []
+        batch_has_paired = False
         for identity_index, raw_identity in enumerate(raw_identities):
             identity_pointer = f"{pointer}.identities[{identity_index}]"
             item = _mapping(raw_identity, identity_pointer)
@@ -232,9 +233,11 @@ def validate_trainer_materialization_document(
                 raise ContentPortError(
                     f"{identity_pointer}.identity: identity is not an admitted projected ordinary trainer"
                 )
-            if identity in inventory.paired_doubles:
+            is_paired = identity in inventory.paired_doubles
+            batch_has_paired |= is_paired
+            if kind != "paired-doubles" and is_paired:
                 raise ContentPortError(
-                    f"{identity_pointer}.identity: paired doubles are outside Phase 3"
+                    f"{identity_pointer}.identity: paired double requires paired-doubles batch"
                 )
             target = inventory_record.projection.target
             allocations.resolve(target, domain="trainerIds")
@@ -278,6 +281,10 @@ def validate_trainer_materialization_document(
                 )
             claimed_placements.update(placements)
             materialized.append(MaterializedTrainer(identity, target, placements))
+        if kind == "paired-doubles" and not batch_has_paired:
+            raise ContentPortError(
+                f"{pointer}.identities: paired-double batch has no paired identity"
+            )
         batches.append(MaterializationBatch(sequence, key, kind, tuple(materialized)))
 
     return TrainerMaterializationAuthority(

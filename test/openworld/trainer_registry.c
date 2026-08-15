@@ -335,6 +335,54 @@ TEST("Route 45 and Route 46 trainer samples resolve registered normal parties")
     }
 }
 
+TEST("Paired battle checkpoint resolves registered normal parties")
+{
+    static const u16 pairedTrainerIds[] =
+    {
+        TRAINER_TWINS_AMY_AND_MAY_JOHTO,
+        TRAINER_TWINS_ANN_AND_ANNE_JOHTO,
+        TRAINER_TWINS_LEA_AND_PIA_JOHTO,
+        TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO,
+        TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO,
+        TRAINER_TWINS_MEG_AND_PEG_JOHTO,
+    };
+    static const u16 orderingTrainerIds[] =
+    {
+        TRAINER_DRAGON_TAMER_DARIN_JOHTO,
+        TRAINER_HIKER_DEVIN_JOHTO,
+        TRAINER_CAMPER_GRANT_JOHTO,
+        TRAINER_POKEFAN_COLIN_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(pairedTrainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            pairedTrainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.battleType == TRAINER_BATTLE_TYPE_DOUBLES);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize >= 2);
+    }
+    for (i = 0; i < ARRAY_COUNT(orderingTrainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            orderingTrainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.battleType == TRAINER_BATTLE_TYPE_SINGLES);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+    }
+}
+
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
 {
     struct ResolvedOrdinaryTrainer resolved;

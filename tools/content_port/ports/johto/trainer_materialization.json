@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "appendOnlyBaseline": {
-    "batchCount": 7,
-    "sha256": "cb499c77993df896c441b997605b67d421b31d2a52a493f4bbb4d4dc40ea85a6"
+    "batchCount": 8,
+    "sha256": "6a736134d2ea8cfc36a368d376aad5ac420cecd5a36a30c2f1844cfce3bab4bc"
   },
   "batches": [
     {
@@ -866,6 +866,79 @@
           "identity": "TRAINER_BAILEY",
           "placements": [
             "Route46/6/Route46_EventScript_Bailey"
+          ]
+        }
+      ]
+    },
+    {
+      "sequence": 7,
+      "key": "paired-doubles-with-ordering-singles",
+      "kind": "paired-doubles",
+      "identities": [
+        {
+          "identity": "TRAINER_AMY_AND_MAY",
+          "placements": [
+            "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
+            "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May"
+          ]
+        },
+        {
+          "identity": "TRAINER_ANN_AND_ANNE",
+          "placements": [
+            "Route37/0/Route37_EventScript_TwinAnn",
+            "Route37/1/Route37_EventScript_TwinAnne"
+          ]
+        },
+        {
+          "identity": "TRAINER_DARIN",
+          "placements": [
+            "DragonsDen_Cavern/0/DragonsDen_Cavern_EventScript_Darin"
+          ]
+        },
+        {
+          "identity": "TRAINER_LEA_AND_PIA",
+          "placements": [
+            "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
+            "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea"
+          ]
+        },
+        {
+          "identity": "TRAINER_DEVIN",
+          "placements": [
+            "Route47/0/Route47_EventScript_Hiker"
+          ]
+        },
+        {
+          "identity": "TRAINER_GRANT",
+          "placements": [
+            "Route47/1/Route47_EventScript_Camper"
+          ]
+        },
+        {
+          "identity": "TRAINER_THOM_AND_KAE",
+          "placements": [
+            "Route47/3/Route47_EventScript_Kae",
+            "Route47/4/Route47_EventScript_Thom"
+          ]
+        },
+        {
+          "identity": "TRAINER_DUFF_AND_EDA",
+          "placements": [
+            "Route47/7/Route47_EventScript_Duff",
+            "Route47/8/Route47_EventScript_Eda"
+          ]
+        },
+        {
+          "identity": "TRAINER_MEG_AND_PEG",
+          "placements": [
+            "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
+            "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg"
+          ]
+        },
+        {
+          "identity": "TRAINER_COLIN",
+          "placements": [
+            "SSAqua_RoomSE/3/SSAqua_RoomSE_EventScript_Colin"
           ]
         }
       ]

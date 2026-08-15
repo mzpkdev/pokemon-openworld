@@ -894,12 +894,19 @@ def _generated_body(
             f'\t.include "data/maps/{name}/scripts.inc"'
             for name in descriptor.allocation_index.maps
         )
-        return (
+        body = (
             includes
             + f"\n\n{bindings.time_encounter_label}::\n\treturn\n\n"
             + f"{bindings.deferred_call_label}::\n"
             + f'\t.string "{bindings.deferred_call_text}"\n'
         )
+        shared_text = state.paired_double_not_enough_text
+        if shared_text is not None:
+            body += f"\n{shared_text.label}::\n"
+            body += "".join(
+                f"\t.string {fragment}\n" for fragment in shared_text.fragments
+            )
+        return body
     if symbol in {"flag-bindings", "var-bindings"}:
         return _binding_body(descriptor, state, repo, symbol)
     if symbol == "berry-bindings":

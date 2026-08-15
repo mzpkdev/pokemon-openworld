@@ -35,8 +35,11 @@ from .trainer_materialization import (
     require_materialization_exact_cover,
 )
 from .trainer_payloads import (
+    PAIRED_NOT_ENOUGH_TARGET_LABEL,
+    PairedDoubleEventProjection,
     StandardSingleEventProjection,
     StandardSinglePartyProjection,
+    project_paired_double_event,
     project_standard_single_event,
     project_standard_single_party,
 )
@@ -228,7 +231,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "12c92a3c631bab0dabbefe49d3729a96953fb265d6fe7e62846615d692b2d0a0"
+    "bacfef756a49b8301b1ae7e7ec7916ac2b553235d16ffd61610a80cd3c5e514a"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -266,6 +269,26 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             44,
             41,
             "40c8f93ce5e955f2e59c1e076912341baf12ad377b9e034e350066eb39c55616",
+        ),
+        "AzaleaTown_Gym": (
+            24,
+            60,
+            "9c0489dfe644f6114a2f3d1fb357535a72b252b76316b5986b6978413c6c5b88",
+        ),
+        "DragonsDen_Cavern": (
+            60,
+            54,
+            "2926036a723c8877ad22a77e7be3a00cdff60998b9b6cc0a373996b224c20d32",
+        ),
+        "Route47": (
+            120,
+            61,
+            "05869da76a0ffd73146e039671d7f81ddc3bceb52f50ad290930de4b68502079",
+        ),
+        "SSAqua_RoomSE": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
         ),
         "Route38": (
             52,
@@ -479,11 +502,13 @@ class PortSourceState:
     materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
     trainer_materialization: TrainerMaterializationAuthority | None = None
     trainer_event_projections: Mapping[
-        str, tuple[StandardSingleEventProjection, ...]
+        str,
+        tuple[StandardSingleEventProjection | PairedDoubleEventProjection, ...],
     ] = MappingProxyType({})
     trainer_party_projections: Mapping[str, StandardSinglePartyProjection] = (
         MappingProxyType({})
     )
+    paired_double_not_enough_text: TrainerText | None = None
 
 
 class RecordLoader(Protocol):
@@ -1044,6 +1069,8 @@ class ExpansionSourceContext(SourceContext):
                                 )
                             trainer_roots.append(instruction.operands[operand_index])
                     if instruction.command == "trainerbattle_single":
+                        text_labels.extend(instruction.operands[1:3])
+                    elif instruction.command == "trainerbattle_double":
                         text_labels.extend(instruction.operands[1:3])
                     elif instruction.command == "msgbox" and instruction.operands:
                         text_labels.append(instruction.operands[0])
@@ -2231,6 +2258,21 @@ def _validate_selected_trainer_event(event: TrainerEventRecord) -> None:
         )
 
 
+def _authenticated_paired_not_enough_text(root: Path) -> TrainerText:
+    """Load the shared paired-battle refusal line from the pinned donor."""
+
+    from .semantics import parse_scripts
+
+    source_label = "Route104_Text_GinaNotEnoughMons"
+    program = parse_scripts(["data/text/trainers.inc"], root=root)
+    fragments = program.texts.get(source_label)
+    if fragments is None or not fragments:
+        raise ContentPortError(
+            f"data/text/trainers.inc: shared paired-double text {source_label} is missing"
+        )
+    return TrainerText(PAIRED_NOT_ENOUGH_TARGET_LABEL, tuple(fragments))
+
+
 def _path_value(document: Mapping[str, Any], path: str) -> Any:
     current: Any = document
     for part in path.split("/"):
@@ -2865,7 +2907,9 @@ def _authenticate_reviewed_fixed_placements(
         json.dumps(fixed_records, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
     if fixed_digest != _REVIEWED_FIXED_PLACEMENT_DIGEST:
-        raise ContentPortError("reviewed fixed-placement record digest drifted")
+        raise ContentPortError(
+            "reviewed fixed-placement record digest drifted: " + fixed_digest
+        )
 
     # The reviewed materialization prefix freezes the exact bulk identity list.
     # Authenticate the shared fixed-placement shape here while the pinned donor
@@ -3553,7 +3597,17 @@ def resolve_port_sources(
         _require_trainer_geometry_adapter(trainer_materialization)
 
     selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
-    projected_trainer_events: dict[str, tuple[StandardSingleEventProjection, ...]] = {}
+    projected_trainer_events: dict[
+        str,
+        tuple[StandardSingleEventProjection | PairedDoubleEventProjection, ...],
+    ] = {}
+    paired_double_not_enough_text: TrainerText | None = None
+    if trainer_materialization is not None and any(
+        batch.kind == "paired-doubles" for batch in trainer_materialization.batches
+    ):
+        paired_double_not_enough_text = _authenticated_paired_not_enough_text(
+            content.donor_root
+        )
     enabled_trainer_decisions = tuple(
         decision for decision in enabled if decision.capability == "trainers"
     )
@@ -3591,7 +3645,12 @@ def resolve_port_sources(
                 for root in roots
             }
             selected_rows: list[
-                tuple[TrainerEventRecord, StandardSingleEventProjection, str, str]
+                tuple[
+                    TrainerEventRecord,
+                    StandardSingleEventProjection | PairedDoubleEventProjection,
+                    str,
+                    str,
+                ]
             ] = []
             for dependency in requested:
                 placements = [
@@ -3612,11 +3671,18 @@ def resolve_port_sources(
                             f"{decision.map_name}/trainers: selected placement "
                             f"{placement.identity} is absent from authenticated donor roots"
                         )
-                    projected = project_standard_single_event(
-                        event,
-                        source_trainer=dependency.name,
-                        target_trainer=targets[dependency.name],
-                    )
+                    if dependency.name in trainer_inventory.paired_doubles:
+                        projected = project_paired_double_event(
+                            event,
+                            source_trainer=dependency.name,
+                            target_trainer=targets[dependency.name],
+                        )
+                    else:
+                        projected = project_standard_single_event(
+                            event,
+                            source_trainer=dependency.name,
+                            target_trainer=targets[dependency.name],
+                        )
                     selected_rows.append(
                         (event, projected, dependency.name, placement.identity)
                     )
@@ -3823,7 +3889,11 @@ def resolve_port_sources(
             entries[event.script_name] = EventEntry(
                 event.script_name, "trainers", CapabilityState.ENABLED.value
             )
-            msgbox = event.instructions[1]
+            msgbox = next(
+                instruction
+                for instruction in event.instructions
+                if instruction.command == "msgbox"
+            )
             effect_key = ("side-effect", "msgbox", msgbox.operands[0])
             previous_owner = effect_policy.setdefault(effect_key, "trainers")
             if previous_owner != "trainers":
@@ -3831,6 +3901,16 @@ def resolve_port_sources(
                     f"{event.script_name}: derived trainer effect conflicts with "
                     f"owner {previous_owner!r}"
                 )
+            for instruction in event.instructions:
+                if instruction.command != "special":
+                    continue
+                special_key = ("special", "special", instruction.operands[0])
+                previous_owner = effect_policy.setdefault(special_key, "trainers")
+                if previous_owner != "trainers":
+                    raise ContentPortError(
+                        f"{event.script_name}: derived trainer special conflicts "
+                        f"with owner {previous_owner!r}"
+                    )
     validate_event_policy_capabilities(
         entries,
         effect_policy,
@@ -4585,6 +4665,7 @@ def resolve_port_sources(
         trainer_party_projections=MappingProxyType(
             dict(sorted(trainer_party_projections.items()))
         ),
+        paired_double_not_enough_text=paired_double_not_enough_text,
     )
     return contract, state
 

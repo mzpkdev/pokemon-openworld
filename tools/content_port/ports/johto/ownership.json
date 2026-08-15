@@ -2565,12 +2565,12 @@
     {
       "kind": "file",
       "path": "data/maps/AzaleaTown_Gym/map.json",
-      "sha256": "54c68d5442af5dd7a45e2dc327bf80321a63f66696e33712171d3d1f2a734093"
+      "sha256": "1277f0e6704630ac88aff4582c04a1875554b0b65272a38553614491ca327ba3"
     },
     {
       "kind": "file",
       "path": "data/maps/AzaleaTown_Gym/scripts.inc",
-      "sha256": "9aa1265ab5d016986d17d1335132f3713a3caa9399988b379d160732686c04b9"
+      "sha256": "581da55120994d91c8a76267fd95d41855d62959c836303e934c926854bffa5c"
     },
     {
       "kind": "file",
@@ -2825,12 +2825,12 @@
     {
       "kind": "file",
       "path": "data/maps/DragonsDen_Cavern/map.json",
-      "sha256": "79f1788d0a59777501b7bb413f31673760ae1e08afd9de64b768ea02b80b8325"
+      "sha256": "6c0a1d270427b3204cee58ccb957aafe3eb042753e12bc01291fc97adfc30fb9"
     },
     {
       "kind": "file",
       "path": "data/maps/DragonsDen_Cavern/scripts.inc",
-      "sha256": "f79cfd2ef41fea391e509efb4333458443e2262c5e1b92be9f7a28c275bbe941"
+      "sha256": "dbea8410984d02cbc08643d25a1366dcdf25cbaae839872825cfdbe1e47eb765"
     },
     {
       "kind": "file",
@@ -4105,12 +4105,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route37/map.json",
-      "sha256": "2d29168ba6d78887b4bde6063558a9993e75ccc4ec6ea5c8457137efe34e6ca2"
+      "sha256": "bfaaa1c3f366d119940bb4ac5a3121033526cd2c4f1b9000014723fc68f3886b"
     },
     {
       "kind": "file",
       "path": "data/maps/Route37/scripts.inc",
-      "sha256": "3405cf2c522e9f7784aeb86cce44fea6356196a9b5a3f56876e1901659bd68c1"
+      "sha256": "b1134e89b7719ee1b570ad84bd8467c488f511e8ca50204e583803f53bb8002f"
     },
     {
       "kind": "file",
@@ -4225,12 +4225,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route47/map.json",
-      "sha256": "55ef5c6f0d7986c30413db393d0c65dd37de766b8b595d1efc161002b2a24205"
+      "sha256": "a3b6557631b16e70d1bf6555eb4df8ef10fda971a8235118e501d36f07621c3b"
     },
     {
       "kind": "file",
       "path": "data/maps/Route47/scripts.inc",
-      "sha256": "29a2ab544fe96ccf3e241a6ed87349a2ff2c8dd5f2c87fbf0f4bed862373d811"
+      "sha256": "758dbf7fb836cb77b6864079cbddc7715b8ec507cc8a4f4c1e61f1ecb7ded970"
     },
     {
       "kind": "file",
@@ -4385,12 +4385,12 @@
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSE/map.json",
-      "sha256": "2d9bfe875c1dd5710ed0ce6d8f9b650887347138ff9903761fece9b52fb9af0c"
+      "sha256": "1798a87f8453ae80668cd59e434b43dfe8070a2c3fa50a6a0999d46bc7093d16"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSE/scripts.inc",
-      "sha256": "56cf529113f173408b2d88280eeae49b4292c9ad0f74795c2fe4e59fe77a6dcb"
+      "sha256": "6c5a3cda105c4641b97b7a0f9573f52efc5bfb71e31c48cb4e7bab7f1428f556"
     },
     {
       "kind": "file",
@@ -13819,7 +13819,7 @@
       "kind": "section",
       "name": "map scripts",
       "path": "data/event_scripts.s",
-      "sha256": "f5c58d2424a61fd41d2aeec91836a3cfc0272e009d30540de5f8a725f38bc5c7"
+      "sha256": "82c2bf05f9eb7925332aba883e86a5200cafe514b163638130c8109a2a35be80"
     },
     {
       "kind": "section",
@@ -13879,7 +13879,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "6b2c170ae92e1951141570032e623a2f88431f0ab5d16e64563e188718d1841d"
+      "sha256": "37fc107a981961cb4c0ce3ae318f51f53d153cafcb4ef97e05e0aae95ba0ef58"
     }
   ]
 }

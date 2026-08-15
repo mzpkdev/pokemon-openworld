@@ -16985,6 +16985,23 @@ SPECIES_ELECTABUZZ
 Level: 37
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_TWINS_AMY_AND_MAY_JOHTO ===
+Name: AMY&MAY
+Class: Twins
+Pic: Twins
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_LEDYBA
+Level: 12
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SPINARAK
+Level: 12
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_FISHERMAN_ANDRE_JOHTO ===
 Name: ANDRE
 Class: Fisherman
@@ -17013,6 +17030,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_MAROWAK
 Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_TWINS_ANN_AND_ANNE_JOHTO ===
+Name: ANN&ANNE
+Class: Twins
+Pic: Twins
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_CLEFAIRY
+Level: 18
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_FURRET
+Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_HIKER_ANTHONY_JOHTO ===
@@ -17414,6 +17448,19 @@ SPECIES_ELECTABUZZ
 Level: 61
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_POKEFAN_COLIN_JOHTO ===
+Name: COLIN
+Class: Pokefan
+Pic: Pokefan M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_DELIBIRD
+Level: 56
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_COOLTRAINER_CYBIL_JOHTO ===
 Name: CYBIL
 Class: Cooltrainer
@@ -17465,6 +17512,31 @@ SPECIES_ONIX
 Level: 11
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_DRAGON_TAMER_DARIN_JOHTO ===
+Name: DARIN
+Class: Dragon Tamer
+Pic: Dragon Tamer
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_DRAGONAIR
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DRAGONAIR
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DRAGONAIR
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DRAGONAIR
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_PICNICKER_DEBRA_JOHTO ===
 Name: DEBRA
 Class: Picnicker
@@ -17508,6 +17580,27 @@ SPECIES_PONYTA
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_HIKER_DEVIN_JOHTO ===
+Name: DEVIN
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_DUNSPARCE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DUNSPARCE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DUDUNSPARCE
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_BUG_CATCHER_DON_JOHTO ===
 Name: DON
 Class: Bug Catcher
@@ -17523,6 +17616,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_SPINARAK
 Level: 3
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO ===
+Name: DUFF & EDA
+Class: Young Couple
+Pic: Young Couple
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_ONIX
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_CLOYSTER
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_FISHERMAN_EDGAR_JOHTO ===
@@ -17794,6 +17904,23 @@ AI: Check Bad Move
 
 SPECIES_WOOPER
 Level: 10
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_CAMPER_GRANT_JOHTO ===
+Name: GRANT
+Class: Camper
+Pic: Camper
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SKIPLOOM
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MARILL
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PSYCHIC_M_GREG_JOHTO ===
@@ -18253,6 +18380,31 @@ SPECIES_LARVITAR
 Level: 10
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_TWINS_LEA_AND_PIA_JOHTO ===
+Name: LEA&PIA
+Class: Twins
+Pic: Twins
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_DRAGONAIR
+Level: 41
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GYARADOS
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DRAGONAIR
+Level: 41
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GYARADOS
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_HIKER_LEONARD_JOHTO ===
 Name: LEONARD
 Class: Hiker
@@ -18361,6 +18513,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_BELLOSSOM
 Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_TWINS_MEG_AND_PEG_JOHTO ===
+Name: MEG&PEG
+Class: Twins
+Pic: Twins
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_URSARING
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DONPHAN
+Level: 54
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_HIKER_MICHAEL_JOHTO ===
@@ -19052,6 +19221,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_NIDOKING
 Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO ===
+Name: THOM & KAE
+Class: Young Couple
+Pic: Young Couple
+Gender: Male
+Music: Girl
+Double Battle: Yes
+AI: Check Bad Move
+
+SPECIES_ELECTABUZZ
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MAGMAR
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PICNICKER_TIFFANY_JOHTO ===
