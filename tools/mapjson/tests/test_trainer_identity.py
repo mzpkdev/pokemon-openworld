@@ -130,11 +130,13 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         )
         self.assertNotIn("IS_FRLG", body)
         party_symbols = PARTY_SECTION.findall(HOENN_PARTIES.read_text())
-        self.assertEqual(len(party_symbols), 860)
-        self.assertEqual(
-            party_symbols[-2:],
-            ["TRAINER_SAILOR_EUGENE_JOHTO", "TRAINER_YOUNGSTER_SAMUEL_JOHTO"],
-        )
+        self.assertEqual(len(party_symbols), 1053)
+        johto_symbols = [
+            symbol for symbol in party_symbols if symbol.endswith("_JOHTO")
+        ]
+        self.assertEqual(len(johto_symbols), 195)
+        self.assertIn("TRAINER_SAILOR_EUGENE_JOHTO", johto_symbols)
+        self.assertIn("TRAINER_YOUNGSTER_SAMUEL_JOHTO", johto_symbols)
         eugene = (
             HOENN_PARTIES.read_text()
             .split("=== TRAINER_SAILOR_EUGENE_JOHTO ===", 1)[1]
