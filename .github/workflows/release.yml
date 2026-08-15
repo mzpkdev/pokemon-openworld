@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: Snapshot tag to promote (build- plus 12 lowercase hex digits)
+        description: Snapshot tag (build-YYYYMMDDTHHMMSSZ-<12hex> or build-<12hex>)
         required: true
         type: string
 
