@@ -216,11 +216,11 @@ extern const union AnimCmd sAnim_GeneralFrame0[];
 extern const union AnimCmd sAnim_GeneralFrame3[];
 extern const union AnimCmd *const gAnims_MonPic[];
 extern const union AnimCmd *const gAnims_Trainer[];
-extern const struct TrainerPicInfo gTrainerPicInfo[TRAINER_PIC_COUNT];
+extern const struct TrainerPicInfo gTrainerPicInfo[JOHTO_TRAINER_PIC_COUNT];
 
 extern const struct Trainer gBattlePartners[DIFFICULTY_COUNT][PARTNER_COUNT];
 
-extern const struct TrainerClass gTrainerClasses[TRAINER_CLASS_COUNT];
+extern const struct TrainerClass gTrainerClasses[JOHTO_TRAINER_CLASS_COUNT];
 
 extern const struct EggData gEggDatas[EGG_ID_COUNT];
 
@@ -268,7 +268,7 @@ static inline u16 GetPartnerIdFromTrainerId(u16 trainerId)
 
 static inline enum TrainerPicID SanitizeTrainerPic(enum TrainerPicID trainerPicId)
 {
-    assertf(trainerPicId < TRAINER_PIC_COUNT, "trainerPicId %d out of range", trainerPicId)
+    assertf(trainerPicId < JOHTO_TRAINER_PIC_COUNT, "trainerPicId %d out of range", trainerPicId)
     {
         return TRAINER_PIC_NONE;
     };

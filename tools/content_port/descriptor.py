@@ -32,11 +32,6 @@ from .semantics import EffectKey, EventEntry
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
-TRAINER_ID_RE = re.compile(r"^TRAINER_[A-Z0-9_]+$")
-TRAINER_CLASS_RE = re.compile(r"^TRAINER_CLASS_[A-Z0-9_]+$")
-TRAINER_PIC_RE = re.compile(r"^TRAINER_PIC_[A-Z0-9_]+$")
-TRAINER_MUSIC_RE = re.compile(r"^TRAINER_ENCOUNTER_MUSIC_[A-Z0-9_]+$")
-TRAINER_AI_RE = re.compile(r"^AI_[A-Z0-9_]+$")
 TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 ?.'-]*$")
 MATERIALIZATION_STRIP_EVENT_KINDS = (
     "bg_events",
@@ -88,7 +83,6 @@ ADAPTATION_KEYS = {
     "musicAdaptations",
     "tilesetAdaptations",
     "trainerPresentation",
-    "trainerProjections",
     "warpReindexes",
     "warpRemovals",
     "berryTreeAllocations",
@@ -211,13 +205,6 @@ def _string(value: object, pointer: str) -> str:
     if not isinstance(value, str) or not value or value.strip() != value:
         raise ContentPortError(f"{pointer}: expected a non-empty, trimmed string")
     return value
-
-
-def _matched_string(value: object, pointer: str, pattern: re.Pattern[str]) -> str:
-    result = _string(value, pointer)
-    if pattern.fullmatch(result) is None:
-        raise ContentPortError(f"{pointer}: invalid trainer projection value")
-    return result
 
 
 def _integer(value: object, pointer: str, *, positive: bool = False) -> int:
@@ -589,51 +576,6 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
             _string(item[field], f"{item_pointer}.{field}")
         _integer(item["level"], f"{item_pointer}.level", positive=True)
 
-    projection_fields = {"source", "target", "class", "pic", "gender", "music", "ai"}
-    for item, item_pointer in _policy_records(
-        document, "trainerProjections", pointer, projection_fields
-    ):
-        _matched_string(item["source"], f"{item_pointer}.source", TRAINER_ID_RE)
-        _matched_string(item["target"], f"{item_pointer}.target", TRAINER_ID_RE)
-        gender = _string(item["gender"], f"{item_pointer}.gender")
-        if gender not in {"Male", "Female"}:
-            raise ContentPortError(f"{item_pointer}.gender: invalid trainer gender")
-        source_patterns = {
-            "class": TRAINER_CLASS_RE,
-            "pic": TRAINER_PIC_RE,
-            "music": TRAINER_MUSIC_RE,
-        }
-        for field, source_pattern in source_patterns.items():
-            projection = _policy_record(
-                item[field], f"{item_pointer}.{field}", {"source", "target"}
-            )
-            _matched_string(
-                projection["source"],
-                f"{item_pointer}.{field}.source",
-                source_pattern,
-            )
-            _matched_string(
-                projection["target"],
-                f"{item_pointer}.{field}.target",
-                TRAINER_DISPLAY_RE,
-            )
-        raw_ai = _array(item["ai"], f"{item_pointer}.ai")
-        if not raw_ai:
-            raise ContentPortError(f"{item_pointer}.ai: must not be empty")
-        seen_ai: set[str] = set()
-        for index, raw in enumerate(raw_ai):
-            ai_pointer = f"{item_pointer}.ai[{index}]"
-            projection = _policy_record(raw, ai_pointer, {"source", "target"})
-            source = _matched_string(
-                projection["source"], f"{ai_pointer}.source", TRAINER_AI_RE
-            )
-            _matched_string(
-                projection["target"], f"{ai_pointer}.target", TRAINER_DISPLAY_RE
-            )
-            if source in seen_ai:
-                raise ContentPortError(f"{ai_pointer}.source: duplicate AI projection")
-            seen_ai.add(source)
-
     for item, item_pointer in _policy_records(
         document, "warpReindexes", pointer, {"source", "path", "to"}
     ):
@@ -817,22 +759,12 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "graphicsAdaptations": (content_field,),
         "musicAdaptations": (content_field,),
         "trainerPresentation": ("id",),
-        "trainerProjections": ("source",),
         "warpReindexes": ("source", "path"),
         "warpRemovals": ("source", "path"),
         "berryTreeAllocations": ("source", "path"),
     }
     for family, identity_fields in unique_families.items():
         _unique_policy_records(document, family, pointer, identity_fields)
-    projection_targets: set[str] = set()
-    for index, item in enumerate(document["trainerProjections"]):
-        target = item["target"]
-        if target in projection_targets:
-            raise ContentPortError(
-                f"{pointer}.trainerProjections[{index}].target: duplicate projection target"
-            )
-        projection_targets.add(target)
-
     classified_edges: dict[tuple[object, object], str] = {}
     for family in ("retainedEdges", "deferredEdges"):
         for index, raw in enumerate(document[family]):

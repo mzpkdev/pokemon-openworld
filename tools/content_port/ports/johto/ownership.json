@@ -10903,6 +10903,26 @@
       "sha256": "8d4c63e711c4ad8323a4bac610b4855e78c80f7183468e4068a77bea73782419"
     },
     {
+      "kind": "file",
+      "path": "graphics/trainers/front_pics/firebreather_hg.png",
+      "sha256": "1118b02d4cdcd0a7fb1b2a798455ee2795a23ee2299a963cca9e0fcf184e7900"
+    },
+    {
+      "kind": "file",
+      "path": "graphics/trainers/front_pics/psychic_m_hg.png",
+      "sha256": "bffe4a2ac3c828b290c0bbebd0aab2e2799ddd0649962547b9b9244bdc713b8c"
+    },
+    {
+      "kind": "file",
+      "path": "graphics/trainers/front_pics/sage_hg.png",
+      "sha256": "343f0b9c6967cbcf1d31c4e9cddfeb9dd157137ab5427df2ef7bdd999c3ff218"
+    },
+    {
+      "kind": "file",
+      "path": "graphics/trainers/front_pics/super_nerd_hg.png",
+      "sha256": "6828d01ffcc55361b1cea5c56483ce04799f525f7895a75df68a45c596ebb59b"
+    },
+    {
       "key": "LAYOUT_AZALEA_TOWN",
       "kind": "registry-record",
       "path": "data/layouts/layouts.json",

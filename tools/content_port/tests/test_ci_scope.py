@@ -22,6 +22,7 @@ class CiScopeTests(unittest.TestCase):
             "data/maps/OlivineCity_PortInside/scripts.inc",
             "data/layouts/OlivineCity_PortInside/map.bin",
             "data/tilesets/primary/JohtoMetatiles.bin",
+            "graphics/trainers/front_pics/firebreather_hg.png",
             "include/constants/items.h",
             "src/data/persistence/persistent_ids.json",
             "src/data/trainers.h",

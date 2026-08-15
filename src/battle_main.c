@@ -299,7 +299,7 @@ static const s8 sCenterToCornerVecXs[8] ={-32, -16, -16, -32, -32};
 #include "data/types_info.h"
 
 // [TRAINER_CLASS_XYZ] = { _("name"), <money=5>, <ball=BALL_POKE> }
-const struct TrainerClass gTrainerClasses[TRAINER_CLASS_COUNT] =
+const struct TrainerClass gTrainerClasses[JOHTO_TRAINER_CLASS_COUNT] =
 {
     [TRAINER_CLASS_PKMN_TRAINER_1] = { _("{PKMN} TRAINER") },
     [TRAINER_CLASS_PKMN_TRAINER_2] = { _("{PKMN} TRAINER") },
@@ -418,6 +418,12 @@ const struct TrainerClass gTrainerClasses[TRAINER_CLASS_COUNT] =
     [TRAINER_CLASS_RUIN_MANIAC_FRLG] =     { _("RUIN MANIAC"), 12 },
     [TRAINER_CLASS_LADY_FRLG] =            { _("LADY"), 50 },
     [TRAINER_CLASS_PAINTER_FRLG] =         { _("PAINTER"), 4 },
+    [JOHTO_TRAINER_CLASS_BURGLAR] =      { _("BURGLAR"), 5 },
+    [JOHTO_TRAINER_CLASS_FIREBREATHER] = { _("FIREBREATHER"), 5 },
+    [JOHTO_TRAINER_CLASS_JUGGLER] =      { _("JUGGLER"), 5 },
+    [JOHTO_TRAINER_CLASS_PSYCHIC_M] =    { _("PSYCHIC"), 5 },
+    [JOHTO_TRAINER_CLASS_SAGE] =         { _("SAGE"), 5 },
+    [JOHTO_TRAINER_CLASS_SUPER_NERD] =   { _("SUPER NERD"), 8 },
 };
 
 static void (*const sTurnActionsFuncsTable[])(void) =

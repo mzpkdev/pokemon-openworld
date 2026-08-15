@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "identities": [
     {
       "trainer": "TRAINER_SAYO",
@@ -10,17 +10,47 @@
     {
       "trainer": "TRAINER_SCOTT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_SCOTT_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SEAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_SEAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TROY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_TROY_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TULLY",
@@ -31,17 +61,47 @@
     {
       "trainer": "TRAINER_ROD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_ROD_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_VALERIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_VALERIE_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JOYCE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JOYCE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ZUKI",
@@ -58,12 +118,32 @@
     {
       "trainer": "TRAINER_TODD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_TODD_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TIMOTHY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_TIMOTHY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_STANLY",
@@ -74,22 +154,62 @@
     {
       "trainer": "TRAINER_DEVIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_DEVIN_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRANT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_GRANT_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CASSIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_CASSIE_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JEFFREY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_JEFFREY_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_33",
@@ -100,17 +220,47 @@
     {
       "trainer": "TRAINER_NORMAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_NORMAN_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KRISE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_KRISE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RAYMOND",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_RAYMOND_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KUNI",
@@ -121,17 +271,47 @@
     {
       "trainer": "TRAINER_LAO",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_LAO_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LEA_AND_PIA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_LEA_AND_PIA_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_REENA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_REENA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RICH",
@@ -142,72 +322,212 @@
     {
       "trainer": "TRAINER_RICKY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_RICKY_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CODY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_CODY_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GWEN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_GWEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SIMON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_SIMON_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CHARLIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_CHARLIE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RANDALL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_RANDALL_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GEORGE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_GEORGE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BERKE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_BERKE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ELAINE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_ELAINE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_EDGAR",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_EDGAR_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ALBERT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_ALBERT_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SAMUEL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WENDY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_WENDY_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_EMMA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_EMMA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GIOVANNI",
@@ -218,22 +538,62 @@
     {
       "trainer": "TRAINER_ERIK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_ERIK_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ERIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_ERIN_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ERNEST",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_ERNEST_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WAI",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_WAI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_19",
@@ -262,27 +622,77 @@
     {
       "trainer": "TRAINER_SHIRLEY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_SHIRLEY_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CONNIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_CONNIE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BRIDGET",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_BRIDGET_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_OLIVIA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_OLIVIA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TIFFANY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_TIFFANY_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ARIANA_2",
@@ -293,7 +703,17 @@
     {
       "trainer": "TRAINER_MARK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_MARK_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TERU",
@@ -304,42 +724,122 @@
     {
       "trainer": "TRAINER_DOUGLAS",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_DOUGLAS_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SPENCER",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_SPENCER_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ROLAND",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_ROLAND_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_STAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_STAN_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RICHARD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_RICHARD_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GILBERT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_GILBERT_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JACK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_JACK_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CHAD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_CHAD_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JASMINE_1_3",
@@ -356,47 +856,137 @@
     {
       "trainer": "TRAINER_KIRK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_KIRK_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JENN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JENN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JEFF",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_JEFF_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_COREY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_COREY_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DENIS",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_DENIS_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DANIEL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_DANIEL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LARRY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_LARRY_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SHANE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_SHANE_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JUSTIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_JUSTIN_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NAOKO",
@@ -407,27 +997,77 @@
     {
       "trainer": "TRAINER_NATHAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_NATHAN_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NEAL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_NEAL_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NICK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_NICK_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NICO",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_NICO_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BRENT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_BRENT_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DONALD",
@@ -438,7 +1078,17 @@
     {
       "trainer": "TRAINER_DEREK",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_DEREK_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RED_2",
@@ -449,47 +1099,137 @@
     {
       "trainer": "TRAINER_EDWARD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_EDWARD_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PRESTON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_PRESTON_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BLAKE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BLAKE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WILLIAM",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_WILLIAM_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GAVEN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_GAVEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GINA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_GINA_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GORDON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_GORDON_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SAMANTHA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_SAMANTHA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BENJAMIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_BENJAMIN_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_CHIKORITA_1",
@@ -512,17 +1252,47 @@
     {
       "trainer": "TRAINER_PING",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_PING_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TED",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_TED_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PAUL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_PAUL_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PETREL_2",
@@ -545,17 +1315,47 @@
     {
       "trainer": "TRAINER_VICTORIA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_VICTORIA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_EUGENE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_EUGENE_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JOSH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_JOSH_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JOEY",
@@ -566,7 +1366,17 @@
     {
       "trainer": "TRAINER_BEN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_BEN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_TOTODILE_3",
@@ -577,72 +1387,212 @@
     {
       "trainer": "TRAINER_KENNETH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_KENNETH_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_FRAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_FRAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_FRITZ",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_JUGGLER_FRITZ_JOHTO",
+        "class": "Juggler Johto",
+        "pic": "Juggler FRLG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_EDDIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_EDDIE_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ALLEN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_ALLEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ANDREW",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ANDREW_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_IVAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_IVAN_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CYBIL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CYBIL_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WADE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MATHEW",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_MATHEW_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MEG_AND_PEG",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_MEG_AND_PEG_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MEGAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_MEGAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MICHAEL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_MICHAEL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RONALD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_RONALD_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_CYNDAQUIL_2",
@@ -653,27 +1603,77 @@
     {
       "trainer": "TRAINER_ANTHONY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_ANTHONY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ABE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_ABE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_AL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_AL_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ALFRED",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_ALFRED_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ANDRE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_ANDRE_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LI",
@@ -684,32 +1684,92 @@
     {
       "trainer": "TRAINER_LIZ",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_LIZ_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GARRETT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_GARRETT_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KIM",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_KIM_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_AARON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_AARON_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_HUGH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_HUGH_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PHIL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_PHIL_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LOIS",
@@ -720,22 +1780,62 @@
     {
       "trainer": "TRAINER_COLIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_COLIN_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BENNY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_BENNY_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KENJI",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_KENJI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LUNG",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_LUNG_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_28",
@@ -746,22 +1846,62 @@
     {
       "trainer": "TRAINER_PAULA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_PAULA_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JAKE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JAKE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CLARISSA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_CLARISSA_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BEVERLY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PARASOL_LADY_BEVERLY_JOHTO",
+        "class": "Parasol Lady",
+        "pic": "Parasol Lady",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CHUCK_1_2",
@@ -772,42 +1912,122 @@
     {
       "trainer": "TRAINER_DENISE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_DENISE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BETH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BETH_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRACE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HEX_MANIAC_GRACE_JOHTO",
+        "class": "Hex Maniac",
+        "pic": "Hex Maniac",
+        "gender": "Female",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_SUSIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_SUSIE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KARA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_KARA_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DANA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_DANA_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DEBRA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_DEBRA_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KAYLEE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_KAYLEE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ARCHER",
@@ -818,17 +2038,47 @@
     {
       "trainer": "TRAINER_DARIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_DARIN_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CAROL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CAROL_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MARTHA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HEX_MANIAC_MARTHA_JOHTO",
+        "class": "Hex Maniac",
+        "pic": "Hex Maniac",
+        "gender": "Female",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_8",
@@ -839,7 +2089,17 @@
     {
       "trainer": "TRAINER_IRENE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_IRENE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KEITH",
@@ -850,67 +2110,197 @@
     {
       "trainer": "TRAINER_KELLY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_KELLY_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KEN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_KEN_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_AMY_AND_MAY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_AMY_AND_MAY_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ANN_AND_ANNE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_ANN_AND_ANNE_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RUTH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PARASOL_LADY_RUTH_JOHTO",
+        "class": "Parasol Lady",
+        "pic": "Parasol Lady",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RYAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_RYAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_HUEY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_HUEY_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_EDMOND",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_EDMOND_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MIKE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_MIKE_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PHILLIP",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_PHILLIP_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LEONARD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_LEONARD_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DUNCAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_DUNCAN_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MIKEY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MIKI",
@@ -921,12 +2311,32 @@
     {
       "trainer": "TRAINER_MILLER",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_MILLER_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CARRIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_CARRIE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_TOTODILE_4",
@@ -937,7 +2347,17 @@
     {
       "trainer": "TRAINER_CLYDE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GUITARIST_CLYDE_JOHTO",
+        "class": "Guitarist",
+        "pic": "Guitarist",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CHUCK_1",
@@ -954,7 +2374,17 @@
     {
       "trainer": "TRAINER_LOLA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_LOLA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JASMINE_1",
@@ -965,17 +2395,47 @@
     {
       "trainer": "TRAINER_MARKUS",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_MARKUS_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_THOM_AND_KAE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO",
+        "class": "Young Couple",
+        "pic": "Young Couple",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_DUFF_AND_EDA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO",
+        "class": "Young Couple",
+        "pic": "Young Couple",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CHUCK_1_3",
@@ -1046,17 +2506,47 @@
     {
       "trainer": "TRAINER_VANCE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_VANCE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TOBY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_TOBY_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_TERRELL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_TERRELL_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_MARC",
@@ -1067,7 +2557,17 @@
     {
       "trainer": "TRAINER_CHOW",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_CHOW_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PRYCE_1_2",
@@ -1078,32 +2578,92 @@
     {
       "trainer": "TRAINER_THEO",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_THEO_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NATE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_NATE_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WALT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_WALT_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WILTON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_WILTON_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_YOSHI",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_YOSHI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ZACH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ZACH_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BUGSY_1",
@@ -1138,32 +2698,92 @@
     {
       "trainer": "TRAINER_BRIAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BRIAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_HARRY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_HARRY_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_LYLE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_LYLE_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JOSE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_JOSE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GREG",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_GREG_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KENT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_KENT_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_CYNDAQUIL_4",
@@ -1180,12 +2800,32 @@
     {
       "trainer": "TRAINER_ELLIOT",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_ELLIOT_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ALAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_ALAN_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ERIC",
@@ -1196,7 +2836,17 @@
     {
       "trainer": "TRAINER_RUSSELL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_RUSSELL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JASMINE_1_2",
@@ -1207,27 +2857,77 @@
     {
       "trainer": "TRAINER_RAY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_RAY_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JONAH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_JONAH_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_HENRY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_HENRY_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BAILEY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_BAILEY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_WAYNE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_WAYNE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_11",
@@ -1238,7 +2938,17 @@
     {
       "trainer": "TRAINER_BRAD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_BRAD_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_10",
@@ -1255,17 +2965,47 @@
     {
       "trainer": "TRAINER_CARA",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CARA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RICHARDO",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_RICHARDO_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NARD",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_NARD_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_2",
@@ -1276,7 +3016,17 @@
     {
       "trainer": "TRAINER_MARVIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_MARVIN_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_9",
@@ -1287,12 +3037,32 @@
     {
       "trainer": "TRAINER_BRYAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_BRYAN_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ETHAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ETHAN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RIVAL_CYNDAQUIL_3",
@@ -1303,22 +3073,62 @@
     {
       "trainer": "TRAINER_BILL",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_BILL_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_KATE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_KATE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ARNIE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_ARNIE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NOB",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_NOB_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ETO",
@@ -1335,7 +3145,17 @@
     {
       "trainer": "TRAINER_DON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_DON_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ETO_3",
@@ -1346,47 +3166,137 @@
     {
       "trainer": "TRAINER_QUENTIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_QUENTIN_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RALPH",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_RALPH_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_JIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_JIN_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_NOLAND",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_NOLAND_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BRANDON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_BRANDON_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_BROOKE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_BROOKE_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_CALVIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_CALVIN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_IAN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_IAN_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_IRWIN",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_JUGGLER_IRWIN_JOHTO",
+        "class": "Juggler Johto",
+        "pic": "Juggler FRLG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ISSAC",
@@ -1397,22 +3307,62 @@
     {
       "trainer": "TRAINER_PARRY",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_PARRY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_PETER",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_PETER_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_RON",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_RON_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_ROXANNE",
       "classification": "ordinary",
-      "admitted": true
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_ROXANNE_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
     },
     {
       "trainer": "TRAINER_GRUNT_12",
@@ -1517,11 +3467,13 @@
         },
         {
           "identity": "Route30/3/Route30_EventScript_Bugcatcher_Don",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         },
         {
           "identity": "Route30/6/Route30_EventScript_Youngster_Mikey",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
         }
       ],
       "authority": "content"
@@ -1531,7 +3483,8 @@
       "events": [
         {
           "identity": "Route31/0/Route31_EventScript_Bugcatcher_Wade",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         }
       ],
       "authority": "content"
@@ -1541,35 +3494,43 @@
       "events": [
         {
           "identity": "Route32/5/Route32_EventScript_YoungsterAlbert",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
         },
         {
           "identity": "Route32/6/Route32_EventScript_PicnickerLiz",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "Route32/8/Route32_EventScript_CamperRoland",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route32/9/Route32_EventScript_FisherRalph",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route32/10/Route32_EventScript_FisherHenry",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route32/11/Route32_EventScript_FisherJustin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route32/12/Route32_EventScript_YoungsterGordon",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
         },
         {
           "identity": "Route32/15/Route32_EventScript_BirdkeeperPeter",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         }
       ],
       "authority": "content"
@@ -1584,11 +3545,13 @@
       "events": [
         {
           "identity": "RuinsOfAlph_Outside/0/RuinsOfAlph_Outside_EventScript_Nathan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "RuinsOfAlph_Outside/1/RuinsOfAlph_Outside_EventScript_Stan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
         }
       ],
       "authority": "content"
@@ -1598,11 +3561,13 @@
       "events": [
         {
           "identity": "VioletCity_Gym/1/VioletCity_Gym_EventScript_Abe",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "VioletCity_Gym/2/VioletCity_Gym_EventScript_Rod",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         }
       ],
       "authority": "content"
@@ -1637,7 +3602,8 @@
       "events": [
         {
           "identity": "SproutTower_1F/3/SproutTower_1F_EventScript_SageChow",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         }
       ],
       "authority": "content"
@@ -1647,11 +3613,13 @@
       "events": [
         {
           "identity": "SproutTower_2F/0/SproutTower_2F_EventScript_SageEdmond",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "SproutTower_2F/1/SproutTower_2F_EventScript_SageNico",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         }
       ],
       "authority": "content"
@@ -1661,15 +3629,18 @@
       "events": [
         {
           "identity": "SproutTower_3F/0/SproutTower_3F_EventScript_SageNeal",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "SproutTower_3F/1/SproutTower_3F_EventScript_SageJin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "SproutTower_3F/2/SproutTower_3F_EventScript_SageTroy",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         }
       ],
       "authority": "content"
@@ -1739,7 +3710,8 @@
       "events": [
         {
           "identity": "Route33/0/Route33_EventScript_HikerAnthony",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         }
       ],
       "authority": "content"
@@ -1749,31 +3721,38 @@
       "events": [
         {
           "identity": "Route34/0/Route34_EventScript_YoungsterSamuel",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
         },
         {
           "identity": "Route34/1/Route34_EventScript_PokefanMBrandon",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
         },
         {
           "identity": "Route34/2/Route34_EventScript_CamperTodd",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route34/3/Route34_EventScript_YoungsterIan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
         },
         {
           "identity": "Route34/4/Route34_EventScript_Jenn",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route34/5/Route34_EventScript_Irene",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route34/6/Route34_EventScript_Kate",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route34/9/Route34_EventScript_OfficerKeith",
@@ -1781,7 +3760,8 @@
         },
         {
           "identity": "Route34/10/Route34_EventScript_PicnickerGina",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         }
       ],
       "authority": "content"
@@ -1791,7 +3771,8 @@
       "events": [
         {
           "identity": "IlexForest/7/IlexForest_EventScript_BugcatcherWayne",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         }
       ],
       "authority": "content"
@@ -1801,23 +3782,28 @@
       "events": [
         {
           "identity": "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "AzaleaTown_Gym/4/AzaleaTown_Gym_EventScript_Benny",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         },
         {
           "identity": "AzaleaTown_Gym/5/AzaleaTown_Gym_EventScript_Josh",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         },
         {
           "identity": "AzaleaTown_Gym/6/AzaleaTown_Gym_EventScript_Al",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         }
       ],
       "authority": "content"
@@ -1862,23 +3848,28 @@
       "events": [
         {
           "identity": "UnionCave_1F/1/UnionCave_1F_EventScript_HikerDaniel",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "UnionCave_1F/2/UnionCave_1F_EventScript_HikerRussell",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "UnionCave_1F/4/UnionCave_1F_EventScript_FirebreatherBill",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "UnionCave_1F/6/UnionCave_1F_EventScript_PokemaniacLarry",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "UnionCave_1F/7/UnionCave_1F_EventScript_FirebreatherRay",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         }
       ],
       "authority": "content"
@@ -1888,19 +3879,23 @@
       "events": [
         {
           "identity": "UnionCave_B1F/0/UnionCave_B1F_EventScript_HikerPhillip",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "UnionCave_B1F/1/UnionCave_B1F_EventScript_HikerLeonard",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "UnionCave_B1F/5/UnionCave_B1F_EventScript_PokemaniacCalvin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "UnionCave_B1F/6/UnionCave_B1F_EventScript_PokemaniacAndrew",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         }
       ],
       "authority": "content"
@@ -1910,15 +3905,18 @@
       "events": [
         {
           "identity": "UnionCave_B2F/1/UnionCave_B2F_EventScript_CooltrainerNick",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "UnionCave_B2F/3/UnionCave_B2F_EventScript_CooltrainerfGwen",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "UnionCave_B2F/4/UnionCave_B2F_EventScript_CooltrainerfEmma",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         }
       ],
       "authority": "content"
@@ -1956,31 +3954,38 @@
       "events": [
         {
           "identity": "Route35/0/Route35_EventScript_PicnickerKim",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "Route35/1/Route35_EventScript_BirdKeeperBryan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "Route35/2/Route35_EventScript_PicnickerBrooke",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "Route35/3/Route35_EventScript_CamperElliot",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route35/4/Route35_EventScript_CamperIvan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route35/5/Route35_EventScript_FirebreatherWalt",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "Route35/6/Route35_EventScript_JugglerIrwin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMERAMAN"
         },
         {
           "identity": "Route35/7/Route35_EventScript_PolicemanDirk",
@@ -1988,7 +3993,8 @@
         },
         {
           "identity": "Route35/8/Route35_EventScript_BugCatcherArnie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         }
       ],
       "authority": "content"
@@ -1998,11 +4004,13 @@
       "events": [
         {
           "identity": "Route36/3/Route36_EventScript_Mark",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "Route36/4/Route36_EventScript_Schoolboy",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
         }
       ],
       "authority": "content"
@@ -2012,15 +4020,18 @@
       "events": [
         {
           "identity": "Route37/0/Route37_EventScript_TwinAnn",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "Route37/1/Route37_EventScript_TwinAnne",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "Route37/2/Route37_EventScript_Greg",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         }
       ],
       "authority": "content"
@@ -2030,19 +4041,23 @@
       "events": [
         {
           "identity": "NationalPark_Normal/5/NationalPark_Normal_EventScript_Beverly",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
         },
         {
           "identity": "NationalPark_Normal/6/NationalPark_Normal_EventScript_Jack",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
         },
         {
           "identity": "NationalPark_Normal/7/NationalPark_Normal_EventScript_Krise",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LASS"
         },
         {
           "identity": "NationalPark_Normal/8/NationalPark_Normal_EventScript_William",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
         }
       ],
       "authority": "content"
@@ -2137,19 +4152,23 @@
       "events": [
         {
           "identity": "GoldenrodCity_Gym/1/GoldenrodCity_Gym_EventScript_Carrie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_1"
         },
         {
           "identity": "GoldenrodCity_Gym/2/GoldenrodCity_Gym_EventScript_Victoria",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
         },
         {
           "identity": "GoldenrodCity_Gym/4/GoldenrodCity_Gym_EventScript_Samantha",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
         },
         {
           "identity": "GoldenrodCity_Gym/5/GoldenrodCity_Gym_EventScript_Bridget",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GIRL_1"
         }
       ],
       "authority": "content"
@@ -2300,11 +4319,13 @@
         },
         {
           "identity": "GoldenrodCity_UndergroundSwitches/3/GoldenrodCity_UndergroundSwitches_EventScript_Duncan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "GoldenrodCity_UndergroundSwitches/4/GoldenrodCity_UndergroundSwitches_EventScript_Eddie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "GoldenrodCity_UndergroundSwitches/5/GoldenrodCity_UndergroundSwitches_EventScript_Grunt27",
@@ -2345,27 +4366,33 @@
       "events": [
         {
           "identity": "Route38/0/Route38_EventScript_Harry",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "Route38/1/Route38_EventScript_Dana",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LASS"
         },
         {
           "identity": "Route38/2/Route38_EventScript_Olivia",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
         },
         {
           "identity": "Route38/3/Route38_EventScript_Toby",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "Route38/4/Route38_EventScript_Chad",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
         },
         {
           "identity": "Route38/5/Route38_EventScript_Valerie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
         }
       ],
       "authority": "content"
@@ -2375,19 +4402,23 @@
       "events": [
         {
           "identity": "Route39/0/Route39_EventScript_Norman",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "Route39/2/Route39_EventScript_Ruth",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_1"
         },
         {
           "identity": "Route39/3/Route39_EventScript_Derek",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
         },
         {
           "identity": "Route39/4/Route39_EventScript_Eugene",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "Route39/17/Route39_EventScript_Jamie",
@@ -2411,19 +4442,23 @@
       "events": [
         {
           "identity": "EcruteakCity_Gym/3/EcruteakCity_Gym_EventScript_Jeffrey",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "EcruteakCity_Gym/4/EcruteakCity_Gym_EventScript_Martha",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CHANNELER"
         },
         {
           "identity": "EcruteakCity_Gym/5/EcruteakCity_Gym_EventScript_Ping",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "EcruteakCity_Gym/6/EcruteakCity_Gym_EventScript_Grace",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CHANNELER"
         }
       ],
       "authority": "content"
@@ -2478,11 +4513,13 @@
       "events": [
         {
           "identity": "BurnedTower_1F/3/BurnedTower_1F_EventScript_Nard",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "BurnedTower_1F/4/BurnedTower_1F_EventScript_Richardo",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         }
       ],
       "authority": "content"
@@ -2552,19 +4589,23 @@
       "events": [
         {
           "identity": "Route40/4/Route40_EventScript_Elaine",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route40/7/Route40_EventScript_Simon",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route40/8/Route40_EventScript_Paula",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route40/9/Route40_EventScript_Randall",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         }
       ],
       "authority": "content"
@@ -2574,43 +4615,53 @@
       "events": [
         {
           "identity": "Route41/0/Route41_EventScript_Berke",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route41/1/Route41_EventScript_Charlie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route41/2/Route41_EventScript_Denise",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route41/3/Route41_EventScript_Kara",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route41/4/Route41_EventScript_Kaylee",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route41/5/Route41_EventScript_George",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route41/6/Route41_EventScript_Kirk",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route41/7/Route41_EventScript_Susie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         },
         {
           "identity": "Route41/8/Route41_EventScript_Mathew",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
         },
         {
           "identity": "Route41/9/Route41_EventScript_Wendy",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
         }
       ],
       "authority": "content"
@@ -2650,39 +4701,48 @@
       "events": [
         {
           "identity": "OlivineCity_Lighthouse/2/OlivineLighthouse_EventScript_Huey",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "OlivineCity_Lighthouse/3/OlivineLighthouse_EventScript_GentlemanAlfred",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
         },
         {
           "identity": "OlivineCity_Lighthouse/4/OlivineLighthouse_EventScript_SailorTerrell",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "OlivineCity_Lighthouse/5/OlivineLighthouse_EventScript_BirdKeeperTheo",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "OlivineCity_Lighthouse/6/OlivineLighthouse_EventScript_GentlemanPreston",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
         },
         {
           "identity": "OlivineCity_Lighthouse/7/OlivineLighthouse_EventScript_SailorKent",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "OlivineCity_Lighthouse/8/OlivineLighthouse_EventScript_LassConnie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "OlivineCity_Lighthouse/9/OlivineLighthouse_EventScript_BirdKeeperDenis",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "OlivineCity_Lighthouse/10/OlivineLighthouse_EventScript_SailorErnest",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         }
       ],
       "authority": "content"
@@ -2752,27 +4812,33 @@
       "events": [
         {
           "identity": "Route47/0/Route47_EventScript_Hiker",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "Route47/1/Route47_EventScript_Camper",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route47/3/Route47_EventScript_Kae",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route47/4/Route47_EventScript_Thom",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route47/7/Route47_EventScript_Duff",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WORKER_M"
         },
         {
           "identity": "Route47/8/Route47_EventScript_Eda",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WORKER_F"
         }
       ],
       "authority": "content"
@@ -2787,19 +4853,23 @@
       "events": [
         {
           "identity": "CianwoodGym/1/CianwoodGym_EventScript_Nob",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         },
         {
           "identity": "CianwoodGym/2/CianwoodGym_EventScript_Yoshi",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         },
         {
           "identity": "CianwoodGym/3/CianwoodGym_EventScript_Lao",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         },
         {
           "identity": "CianwoodGym/4/CianwoodGym_EventScript_Lung",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         }
       ],
       "authority": "content"
@@ -2854,11 +4924,13 @@
       "events": [
         {
           "identity": "Route42/4/Route42_EventScript_Shane",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "Route42/5/Route42_EventScript_Ben",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         }
       ],
       "authority": "content"
@@ -2868,27 +4940,33 @@
       "events": [
         {
           "identity": "Route43/0/Route43_EventScript_Spencer",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route43/1/Route43_EventScript_Tiffany",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "Route43/2/Route43_EventScript_Ben",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FAT_MAN"
         },
         {
           "identity": "Route43/3/Route43_EventScript_Marvin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route43/16/Route43_EventScript_Ron",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "Route43/17/Route43_EventScript_Brent",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         }
       ],
       "authority": "content"
@@ -2898,31 +4976,38 @@
       "events": [
         {
           "identity": "Route44/0/Route44_EventScript_Phil",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "Route44/1/Route44_EventScript_Edgar",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route44/2/Route44_EventScript_Wilton",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "Route44/3/Route44_EventScript_Zach",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         },
         {
           "identity": "Route44/4/Route44_EventScript_Allen",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route44/5/Route44_EventScript_Cybil",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route44/26/Route44_EventScript_Vance",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         }
       ],
       "authority": "content"
@@ -2932,11 +5017,13 @@
       "events": [
         {
           "identity": "LakeOfRage/1/LakeOfRage_EventScript_Andre",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "LakeOfRage/4/LakeOfRage_EventScript_Raymond",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "LakeOfRage/6/LakeOfRage_EventScript_Lois",
@@ -2944,7 +5031,8 @@
         },
         {
           "identity": "LakeOfRage/8/LakeOfRage_EventScript_Aaron",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         }
       ],
       "authority": "content"
@@ -2959,23 +5047,28 @@
       "events": [
         {
           "identity": "MahoganyTown_Gym/0/MahoganyTown_Gym_EventScript_Clarissa",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_WOMAN"
         },
         {
           "identity": "MahoganyTown_Gym/1/MahoganyTown_Gym_EventScript_Brad",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_2"
         },
         {
           "identity": "MahoganyTown_Gym/2/MahoganyTown_Gym_EventScript_Ronald",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
         },
         {
           "identity": "MahoganyTown_Gym/3/MahoganyTown_Gym_EventScript_Douglas",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
         },
         {
           "identity": "MahoganyTown_Gym/4/MahoganyTown_Gym_EventScript_Roxanne",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_WOMAN"
         }
       ],
       "authority": "content"
@@ -3025,11 +5118,13 @@
       "events": [
         {
           "identity": "MtMortar_1F_North/7/MtMortar_1F_North_EventScript_Markus",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
         },
         {
           "identity": "MtMortar_1F_North/8/MtMortar_1F_North_EventScript_Miller",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FAT_MAN"
         }
       ],
       "authority": "content"
@@ -3044,7 +5139,8 @@
       "events": [
         {
           "identity": "MtMortar_2F/6/MtMortar_2F_EventScript_Nerd",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
         }
       ],
       "authority": "content"
@@ -3064,35 +5160,43 @@
       "events": [
         {
           "identity": "Route45/0/Route45_EventScript_Erik",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "Route45/1/Route45_EventScript_Ryan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "Route45/3/Route45_EventScript_Michael",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "Route45/5/Route45_EventScript_Kelly",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route45/6/Route45_EventScript_Kenji",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         },
         {
           "identity": "Route45/8/Route45_EventScript_Timothy",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "Route45/10/Route45_EventScript_Parry",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "Route45/11/Route45_EventScript_Quentin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         }
       ],
       "authority": "content"
@@ -3102,15 +5206,18 @@
       "events": [
         {
           "identity": "Route46/4/Route46_EventScript_Ted",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
         },
         {
           "identity": "Route46/5/Route46_EventScript_Erin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "Route46/6/Route46_EventScript_Bailey",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         }
       ],
       "authority": "content"
@@ -3120,23 +5227,28 @@
       "events": [
         {
           "identity": "BlackthornCity_Gym/0/BlackthornGym_EventScript_Mike",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "BlackthornCity_Gym/1/BlackthornGym_EventScript_Paul",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "BlackthornCity_Gym/2/BlackthornGym_EventScript_Lola",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "BlackthornCity_Gym/7/BlackthornGym_EventScript_Fran",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "BlackthornCity_Gym/8/BlackthornGym_EventScript_Cody",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         }
       ],
       "authority": "content"
@@ -3196,19 +5308,23 @@
       "events": [
         {
           "identity": "DragonsDen_Cavern/0/DragonsDen_Cavern_EventScript_Darin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "DragonsDen_Cavern/3/DragonsDen_Cavern_EventScript_Cara",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         }
       ],
       "authority": "content"
@@ -3358,7 +5474,8 @@
       "events": [
         {
           "identity": "SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         }
       ],
       "authority": "content"
@@ -3368,39 +5485,48 @@
       "events": [
         {
           "identity": "SSAqua_B1F/0/SSAqua_B1F_EventScript_Wai",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
         },
         {
           "identity": "SSAqua_B1F/1/SSAqua_B1F_EventScript_Nate",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
         },
         {
           "identity": "SSAqua_B1F/2/SSAqua_B1F_EventScript_Shirley",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_3"
         },
         {
           "identity": "SSAqua_B1F/3/SSAqua_B1F_EventScript_Ricky",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
         },
         {
           "identity": "SSAqua_B1F/4/SSAqua_B1F_EventScript_Debra",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
         },
         {
           "identity": "SSAqua_B1F/5/SSAqua_B1F_EventScript_Kenneth",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         },
         {
           "identity": "SSAqua_B1F/7/SSAqua_B1F_EventScript_Jonah",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         },
         {
           "identity": "SSAqua_B1F/8/SSAqua_B1F_EventScript_Fritz",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMERAMAN"
         },
         {
           "identity": "SSAqua_B1F/10/SSAqua_B1F_EventScript_Garrett",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
         }
       ],
       "authority": "content"
@@ -3424,11 +5550,13 @@
         },
         {
           "identity": "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
         },
         {
           "identity": "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         }
       ],
       "authority": "content"
@@ -3438,11 +5566,13 @@
       "events": [
         {
           "identity": "SSAqua_RoomNE/0/SSAqua_RoomNE_EventScript_Noland",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
         },
         {
           "identity": "SSAqua_RoomNE/1/SSAqua_RoomNE_EventScript_Ethan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
         }
       ],
       "authority": "content"
@@ -3452,11 +5582,13 @@
       "events": [
         {
           "identity": "SSAqua_RoomNNE/0/SSAqua_RoomNNE_EventScript_Carol",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "SSAqua_RoomNNE/1/SSAqua_RoomNNE_EventScript_Sean",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         }
       ],
       "authority": "content"
@@ -3466,11 +5598,13 @@
       "events": [
         {
           "identity": "SSAqua_RoomSSW/0/SSAqua_RoomSSW_EventScript_Lyle",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "SSAqua_RoomSSW/1/SSAqua_RoomSSW_EventScript_Ken",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
         }
       ],
       "authority": "content"
@@ -3485,15 +5619,18 @@
       "events": [
         {
           "identity": "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
         },
         {
           "identity": "SSAqua_RoomSE/3/SSAqua_RoomSE_EventScript_Colin",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
         }
       ],
       "authority": "content"
@@ -3503,11 +5640,13 @@
       "events": [
         {
           "identity": "SSAqua_RoomSW/0/SSAqua_RoomSW_EventScript_Cassie",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
         },
         {
           "identity": "SSAqua_RoomSW/1/SSAqua_RoomSW_EventScript_Clyde",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         }
       ],
       "authority": "content"
@@ -3522,19 +5661,23 @@
       "events": [
         {
           "identity": "Route26/0/Route26_EventScript_Richard",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "Route26/1/Route26_EventScript_Jake",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route26/2/Route26_EventScript_Joyce",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route26/14/Route26_EventScript_Gaven",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         }
       ],
       "authority": "content"
@@ -3544,15 +5687,18 @@
       "events": [
         {
           "identity": "Route26North/0/Route26_EventScript_Beth",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route26North/1/Route26_EventScript_Jake",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route26North/5/Route26_EventScript_Joyce",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         }
       ],
       "authority": "content"
@@ -3572,31 +5718,38 @@
       "events": [
         {
           "identity": "Route27/1/Route27_EventScript_Megan",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route27/2/Route27_EventScript_Brian",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route27/3/Route27_EventScript_Jose",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
         },
         {
           "identity": "Route27/4/Route27_EventScript_Blake",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
         },
         {
           "identity": "Route27/7/Route27_EventScript_Gilbert",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
         },
         {
           "identity": "Route27/8/Route27_EventScript_Reena",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
         },
         {
           "identity": "Route27/9/Route27_EventScript_Scott",
-          "admitted": true
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
         }
       ],
       "authority": "content"

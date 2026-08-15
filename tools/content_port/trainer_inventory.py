@@ -20,6 +20,9 @@ IDENTITY_KEYS = frozenset({"trainer", "classification", "admitted"})
 MAP_KEYS = frozenset({"map", "authority", "events"})
 EVENT_KEYS = frozenset({"identity", "admitted"})
 PAIR_KEYS = frozenset({"trainer", "events"})
+PROJECTION_KEYS = frozenset(
+    {"target", "class", "pic", "gender", "music", "ai", "reward", "party"}
+)
 CLASSIFICATIONS = frozenset({"ordinary", "story-controlled", "unsupported"})
 MAP_AUTHORITIES = frozenset({"content", "absent"})
 
@@ -41,6 +44,19 @@ class TrainerIdentity:
     classification: str
     reason: str | None
     admitted: bool
+    projection: TrainerProjection | None
+
+
+@dataclass(frozen=True)
+class TrainerProjection:
+    target: str
+    trainer_class: str
+    pic: str
+    gender: str
+    music: str
+    ai: str
+    reward: str
+    party: str
 
 
 @dataclass(frozen=True)
@@ -51,6 +67,7 @@ class TrainerPlacement:
     script: str
     trainer: str
     admitted: bool
+    overworld_graphic: str | None
 
 
 @dataclass(frozen=True)
@@ -143,9 +160,8 @@ def inventory_membership_digest(values: Iterable[str]) -> str:
 def _identity_row(raw: object, pointer: str) -> TrainerIdentity:
     row = _mapping(raw, pointer)
     classification = row.get("classification")
-    expected = (
-        IDENTITY_KEYS if classification == "ordinary" else IDENTITY_KEYS | {"reason"}
-    )
+    admitted_raw = row.get("admitted")
+    expected = IDENTITY_KEYS | ({"projection"} if admitted_raw is True else {"reason"})
     _exact_keys(row, expected, pointer)
     trainer = _string(row["trainer"], f"{pointer}.trainer")
     classification = _string(classification, f"{pointer}.classification")
@@ -159,13 +175,42 @@ def _identity_row(raw: object, pointer: str) -> TrainerIdentity:
             raise ContentPortError(
                 f"{pointer}.admitted: ordinary trainers are admitted"
             )
-        return TrainerIdentity(trainer, classification, None, admitted)
+        projection = _projection(row["projection"], f"{pointer}.projection")
+        return TrainerIdentity(trainer, classification, None, admitted, projection)
     reason = _string(row["reason"], f"{pointer}.reason")
     if admitted:
         raise ContentPortError(
             f"{pointer}.admitted: excluded trainers are not admitted"
         )
-    return TrainerIdentity(trainer, classification, reason, admitted)
+    return TrainerIdentity(trainer, classification, reason, admitted, None)
+
+
+def _projection(raw: object, pointer: str) -> TrainerProjection:
+    value = _mapping(raw, pointer)
+    _exact_keys(value, PROJECTION_KEYS, pointer)
+    target = _string(value["target"], f"{pointer}.target")
+    if re.fullmatch(r"TRAINER_[A-Z0-9_]+_JOHTO", target) is None:
+        raise ContentPortError(
+            f"{pointer}.target: expected a region-qualified trainer identity"
+        )
+    trainer_class = _string(value["class"], f"{pointer}.class")
+    pic = _string(value["pic"], f"{pointer}.pic")
+    gender = _string(value["gender"], f"{pointer}.gender")
+    if gender not in {"Male", "Female"}:
+        raise ContentPortError(f"{pointer}.gender: expected Male or Female")
+    music = _string(value["music"], f"{pointer}.music")
+    ai = _string(value["ai"], f"{pointer}.ai")
+    if ai != "Check Bad Move":
+        raise ContentPortError(f"{pointer}.ai: expected 'Check Bad Move'")
+    reward = _string(value["reward"], f"{pointer}.reward")
+    if reward != "preserve":
+        raise ContentPortError(f"{pointer}.reward: expected 'preserve'")
+    party = _string(value["party"], f"{pointer}.party")
+    if party != "preserve":
+        raise ContentPortError(f"{pointer}.party: expected 'preserve'")
+    return TrainerProjection(
+        target, trainer_class, pic, gender, music, ai, reward, party
+    )
 
 
 def _event_parts(identity: str, pointer: str) -> tuple[str, int, str]:
@@ -198,8 +243,8 @@ def validate_trainer_inventory_document(
 
     root = _mapping(document, "$")
     _exact_keys(root, ROOT_KEYS, "$")
-    if type(root["schemaVersion"]) is not int or root["schemaVersion"] != 1:
-        raise ContentPortError("$.schemaVersion: expected 1")
+    if type(root["schemaVersion"]) is not int or root["schemaVersion"] != 2:
+        raise ContentPortError("$.schemaVersion: expected 2")
     expected_identities = _canonical(canonical_identities, "canonicalIdentities")
     expected_maps = _canonical(canonical_maps, "canonicalMaps")
     if len(expected_identities) != expectations.identities:
@@ -225,6 +270,18 @@ def validate_trainer_inventory_document(
     _require_order(
         [record.trainer for record in identities], expected_identities, "$.identities"
     )
+    targets = [
+        record.projection.target
+        for record in identities
+        if record.projection is not None
+    ]
+    duplicate_targets = sorted(
+        target for target in set(targets) if targets.count(target) > 1
+    )
+    if duplicate_targets:
+        raise ContentPortError(
+            f"$.identities: duplicate projection target {duplicate_targets[0]!r}"
+        )
     identity_index = {record.trainer: record for record in identities}
 
     map_rows = _sequence(root["maps"], "$.maps")
@@ -257,9 +314,25 @@ def validate_trainer_inventory_document(
         ):
             event_pointer = f"{pointer}.events[{event_index}]"
             event = _mapping(raw_event, event_pointer)
-            _exact_keys(event, EVENT_KEYS, event_pointer)
+            event_admitted_raw = event.get("admitted")
+            expected_event_keys = EVENT_KEYS | (
+                {"overworldGraphic"} if event_admitted_raw is True else set()
+            )
+            _exact_keys(event, expected_event_keys, event_pointer)
             identity = _string(event["identity"], f"{event_pointer}.identity")
             admitted = _boolean(event["admitted"], f"{event_pointer}.admitted")
+            overworld_graphic = (
+                _string(event["overworldGraphic"], f"{event_pointer}.overworldGraphic")
+                if admitted
+                else None
+            )
+            if (
+                overworld_graphic is not None
+                and re.fullmatch(r"OBJ_EVENT_GFX_[A-Z0-9_]+", overworld_graphic) is None
+            ):
+                raise ContentPortError(
+                    f"{event_pointer}.overworldGraphic: expected an object graphic symbol"
+                )
             event_map, object_index, script = _event_parts(
                 identity, f"{event_pointer}.identity"
             )
@@ -283,7 +356,13 @@ def validate_trainer_inventory_document(
                 )
             placements.append(
                 TrainerPlacement(
-                    identity, map_name, object_index, script, trainer, admitted
+                    identity,
+                    map_name,
+                    object_index,
+                    script,
+                    trainer,
+                    admitted,
+                    overworld_graphic,
                 )
             )
             actual_events.append(identity)
@@ -551,3 +630,50 @@ def require_placement_exact_cover(
         raise ContentPortError(f"{owner}: missing classified placement {missing[0]!r}")
     if extra:
         raise ContentPortError(f"{owner}: unexpected classified placement {extra[0]!r}")
+
+
+def require_projection_exact_cover(
+    inventory: TrainerInventory,
+    downstream_identities: Iterable[str],
+    *,
+    owner: str = "downstream trainer projection surface",
+) -> None:
+    """Require exact downstream coverage of every authored trainer projection."""
+
+    expected = {
+        record.trainer
+        for record in inventory.identities
+        if record.projection is not None
+    }
+    _require_exact_cover(expected, downstream_identities, owner, "projection")
+
+
+def require_overworld_graphic_exact_cover(
+    inventory: TrainerInventory,
+    downstream_placements: Iterable[str],
+    *,
+    owner: str = "downstream overworld graphic surface",
+) -> None:
+    """Require exact downstream coverage of every authored overworld graphic."""
+
+    expected = {
+        record.identity
+        for record in inventory.placements
+        if record.overworld_graphic is not None
+    }
+    _require_exact_cover(expected, downstream_placements, owner, "overworld graphic")
+
+
+def _require_exact_cover(
+    expected: set[str], actual_values: Iterable[str], owner: str, kind: str
+) -> None:
+    actual_sequence = tuple(actual_values)
+    if len(set(actual_sequence)) != len(actual_sequence):
+        raise ContentPortError(f"{owner}: duplicate {kind}")
+    actual = set(actual_sequence)
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if missing:
+        raise ContentPortError(f"{owner}: missing {kind} {missing[0]!r}")
+    if extra:
+        raise ContentPortError(f"{owner}: unexpected {kind} {extra[0]!r}")

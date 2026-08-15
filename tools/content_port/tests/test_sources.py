@@ -25,10 +25,15 @@ from tools.content_port.sources import (
     _automatic_unreachable_shells,
     _authenticated_trainer_inventory,
     _semantic_record_digest,
+    _trainer_class_money,
+    _trainerproc_constant,
+    _validate_overworld_graphic_rule,
+    _validate_trainer_projection_rule,
     _bind_script_warp_policy,
     _extract_preserved_script_warps,
     _validate_selected_trainer_event,
 )
+from tools.content_port.trainer_inventory import TrainerProjection
 from tools.content_port.world_graph import (
     WorldEdge,
     WorldPolicy,
@@ -721,6 +726,95 @@ class SourceGraphTests(unittest.TestCase):
             ),
         )
 
+    def test_super_nerd_projection_preserves_class_sensitive_reward(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            self.skipTest("donor checkouts are not present")
+        symbol = _trainerproc_constant("TRAINER_CLASS", "Super Nerd Johto")
+        self.assertEqual(symbol, "JOHTO_TRAINER_CLASS_SUPER_NERD")
+        self.assertEqual(
+            _trainerproc_constant("TRAINER_PIC", "Super Nerd HG"),
+            "JOHTO_TRAINER_PIC_SUPER_NERD",
+        )
+        donor_money = _trainer_class_money(
+            donor_root / "pokemonHnS/src/battle_main.c", target=False
+        )
+        target_money = _trainer_class_money(Path("src/battle_main.c"), target=True)
+        self.assertEqual(donor_money["TRAINER_CLASS_SUPER_NERD"], 8)
+        self.assertEqual(target_money[symbol], 8)
+
+    def test_projection_rules_reject_unreviewed_semantic_drift(self) -> None:
+        projection = TrainerProjection(
+            target="TRAINER_SUPER_NERD_HUGH_JOHTO",
+            trainer_class="Super Nerd Johto",
+            pic="Super Nerd HG",
+            gender="Male",
+            music="Suspicious",
+            ai="Check Bad Move",
+            reward="preserve",
+            party="preserve",
+        )
+        donor = {
+            "trainer_class": "TRAINER_CLASS_SUPER_NERD",
+            "trainer_pic": "TRAINER_PIC_SUPER_NERD",
+            "encounter_music": "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_1",
+        }
+        _validate_trainer_projection_rule("TRAINER_HUGH", projection, donor)
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_trainer_projection_rule(
+                "TRAINER_HUGH",
+                replace(projection, trainer_class="Pokemaniac"),
+                donor,
+            )
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_trainer_projection_rule(
+                "TRAINER_HUGH", replace(projection, gender="Female"), donor
+            )
+        _validate_overworld_graphic_rule(
+            "Route32/0/Hugh",
+            "OBJ_EVENT_GFX_SUPER_NERD",
+            "TRAINER_CLASS_SUPER_NERD",
+            "OBJ_EVENT_GFX_SCIENTIST_1",
+        )
+        _validate_overworld_graphic_rule(
+            "Route32/1/Pokemaniac",
+            "OBJ_EVENT_GFX_SUPER_NERD",
+            "TRAINER_CLASS_POKEMANIAC",
+            "OBJ_EVENT_GFX_MANIAC",
+        )
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_overworld_graphic_rule(
+                "Route32/0/Hugh",
+                "OBJ_EVENT_GFX_SUPER_NERD",
+                "TRAINER_CLASS_SUPER_NERD",
+                "OBJ_EVENT_GFX_MANIAC",
+            )
+
+    def test_unreviewed_projection_gender_correction_is_rejected(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        with tempfile.TemporaryDirectory(dir="tools/content_port/tests") as directory:
+            port = Path(directory) / "johto"
+            shutil.copytree("tools/content_port/ports/johto", port)
+            policy_path = port / "trainer_classification.json"
+            policy = json.loads(policy_path.read_text(encoding="utf-8"))
+            scott = next(
+                identity
+                for identity in policy["identities"]
+                if identity["trainer"] == "TRAINER_SCOTT"
+            )
+            self.assertEqual(scott["projection"]["gender"], "Male")
+            scott["projection"]["gender"] = "Female"
+            policy_path.write_text(json.dumps(policy), encoding="utf-8")
+            descriptor = load_port(port, donor_root)
+            with self.assertRaisesRegex(
+                ContentPortError, "trainer inventory digest mismatch"
+            ):
+                resolve_port_sources(descriptor, Path("."))
+
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,
     ) -> None:
@@ -740,6 +834,23 @@ class SourceGraphTests(unittest.TestCase):
             )
         )
         self.assertEqual(state.inventory["asset-policy"], expected_asset_policy)
+        self.assertEqual(
+            {
+                key: state.asset_targets[key]
+                for key in (
+                    "content:graphics/trainers/front_pics/firebreather.png",
+                    "content:graphics/trainers/front_pics/psychic_m.png",
+                    "content:graphics/trainers/front_pics/sage.png",
+                    "content:graphics/trainers/front_pics/super_nerd.png",
+                )
+            },
+            {
+                "content:graphics/trainers/front_pics/firebreather.png": "graphics/trainers/front_pics/firebreather_hg.png",
+                "content:graphics/trainers/front_pics/psychic_m.png": "graphics/trainers/front_pics/psychic_m_hg.png",
+                "content:graphics/trainers/front_pics/sage.png": "graphics/trainers/front_pics/sage_hg.png",
+                "content:graphics/trainers/front_pics/super_nerd.png": "graphics/trainers/front_pics/super_nerd_hg.png",
+            },
+        )
         self.assertTrue(
             all(
                 ResourceKey("asset", identity) in state.resources
@@ -1228,8 +1339,18 @@ class SourceGraphTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary:
             target = Path(temporary)
+            for authority in (
+                "include/constants/trainers.h",
+                "include/constants/battle_ai.h",
+                "include/constants/event_objects.h",
+                "src/battle_main.c",
+            ):
+                source_authority = Path(authority)
+                target_authority = target / source_authority
+                target_authority.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_authority, target_authority)
             ledger_target = target / "src/data/persistence/persistent_ids.json"
-            ledger_target.parent.mkdir(parents=True)
+            ledger_target.parent.mkdir(parents=True, exist_ok=True)
             ledger = json.loads(
                 Path("src/data/persistence/persistent_ids.json").read_text()
             )

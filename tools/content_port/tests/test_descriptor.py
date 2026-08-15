@@ -236,26 +236,6 @@ class DescriptorTests(unittest.TestCase):
                 "level",
             ),
             (
-                "trainerProjections",
-                {
-                    "source": "TRAINER_TEST",
-                    "target": "TRAINER_TARGET",
-                    "class": {"source": "TRAINER_CLASS_TEST", "target": "Ace"},
-                    "pic": {"source": "TRAINER_PIC_TEST", "target": "Ace"},
-                    "gender": "Male",
-                    "music": {
-                        "source": "TRAINER_ENCOUNTER_MUSIC_TEST",
-                        "target": "Male",
-                    },
-                    "ai": [{"source": "AI_TEST", "target": "Basic Trainer"}],
-                },
-                "gender",
-                "ai",
-                [],
-                "$.trainerProjections[0]",
-                "ai",
-            ),
-            (
                 "warpReindexes",
                 {
                     "source": "TestMap",
@@ -463,7 +443,7 @@ class DescriptorTests(unittest.TestCase):
         )
         self.assertEqual(
             descriptor.expected_trainer_inventory["documentDigest"],
-            "9c972f12a86c5a60ddb456456ec7ee87425670948664bf8fe1478428075c66fc",
+            "fcb1ecebcae4fd1b3c85bac13a1bca5ad297c754b23d302b9b371dd71555d792",
         )
         self.assertEqual(
             descriptor.expected_trainer_inventory["identityClassifications"],
@@ -591,6 +571,19 @@ class DescriptorTests(unittest.TestCase):
                 dump(root / "port.json", port)
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
+
+    def test_legacy_adaptation_trainer_projections_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_port(root)
+            path = root / "adaptations.json"
+            document = read_json(path)
+            document["trainerProjections"] = []
+            dump(path, document)
+            with self.assertRaisesRegex(
+                ContentPortError, "unknown field 'trainerProjections'"
+            ):
+                load_port(root, root / "donors")
 
     def make_port(self, root: Path) -> dict[str, object]:
         dump(root / "allocation_lock.json", allocation_document())
@@ -1067,44 +1060,6 @@ class DescriptorTests(unittest.TestCase):
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
 
-    def test_trainer_projection_render_tokens_reject_header_injection(self):
-        sample = next(
-            item
-            for family, item, *_ in self.adaptation_policy_cases()
-            if family == "trainerProjections"
-        )
-        cases = (
-            (
-                "identity",
-                lambda item: item.update(
-                    target="TRAINER_TARGET\n=== TRAINER_UNSELECTED ==="
-                ),
-            ),
-            (
-                "class",
-                lambda item: item["class"].update(target="Youngster\nName: Injected"),
-            ),
-            (
-                "ai",
-                lambda item: item["ai"][0].update(
-                    target="Check Bad Move\n=== TRAINER_UNSELECTED ==="
-                ),
-            ),
-        )
-        for label, mutate in cases:
-            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                self.make_port(root)
-                path = root / "adaptations.json"
-                document = read_json(path)
-                document["trainerProjections"] = [copy.deepcopy(sample)]
-                mutate(document["trainerProjections"][0])
-                dump(path, document)
-                with self.assertRaisesRegex(
-                    ContentPortError, "invalid trainer projection value"
-                ):
-                    load_port(root, root / "donors")
-
     def test_every_adaptation_family_rejects_unknown_fields(self):
         typo = "reviewedButTypoedField"
         for (
@@ -1238,7 +1193,6 @@ class DescriptorTests(unittest.TestCase):
             ("musicAdaptations", "content"),
             ("tilesetAdaptations", "symbol"),
             ("trainerPresentation", "id"),
-            ("trainerProjections", "source"),
             ("warpReindexes", "path"),
             ("warpRemovals", "path"),
             ("berryTreeAllocations", "path"),

@@ -23,9 +23,92 @@ from .ownership import safe_repo_path
 from .trainer_inventory import (
     InventoryExpectations,
     TrainerInventory,
+    TrainerProjection,
     load_trainer_inventory,
+    require_projection_exact_cover,
 )
 from .world_graph import WorldEdge, with_dynamic_warps
+
+
+TRAINER_PIC_ASSET_PROJECTIONS = MappingProxyType(
+    {
+        "Firebreather HG": (
+            "graphics/trainers/front_pics/firebreather.png",
+            "graphics/trainers/front_pics/firebreather_hg.png",
+        ),
+        "Psychic M HG": (
+            "graphics/trainers/front_pics/psychic_m.png",
+            "graphics/trainers/front_pics/psychic_m_hg.png",
+        ),
+        "Sage HG": (
+            "graphics/trainers/front_pics/sage.png",
+            "graphics/trainers/front_pics/sage_hg.png",
+        ),
+        "Super Nerd HG": (
+            "graphics/trainers/front_pics/super_nerd.png",
+            "graphics/trainers/front_pics/super_nerd_hg.png",
+        ),
+    }
+)
+
+JOHTO_CLASS_PROJECTIONS = MappingProxyType(
+    {
+        f"TRAINER_CLASS_{name}": f"JOHTO_TRAINER_CLASS_{name}"
+        for name in (
+            "BURGLAR",
+            "FIREBREATHER",
+            "JUGGLER",
+            "PSYCHIC_M",
+            "SAGE",
+            "SUPER_NERD",
+        )
+    }
+)
+TRAINER_PIC_PROJECTIONS = MappingProxyType(
+    {
+        "TRAINER_PIC_BURGLAR": "TRAINER_PIC_BURGLAR_FRLG",
+        "TRAINER_PIC_JUGGLER": "TRAINER_PIC_JUGGLER_FRLG",
+        "TRAINER_PIC_TWINS": "TRAINER_PIC_TWINS_FRLG",
+        "TRAINER_PIC_YOUNGSTER": "TRAINER_PIC_YOUNGSTER_FRLG",
+        "TRAINER_PIC_FIREBREATHER": "JOHTO_TRAINER_PIC_FIREBREATHER",
+        "TRAINER_PIC_PSYCHIC_M": "JOHTO_TRAINER_PIC_PSYCHIC_M",
+        "TRAINER_PIC_SAGE": "JOHTO_TRAINER_PIC_SAGE",
+        "TRAINER_PIC_SUPER_NERD": "JOHTO_TRAINER_PIC_SUPER_NERD",
+    }
+)
+TRAINER_MUSIC_PROJECTIONS = MappingProxyType(
+    {
+        "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1": "TRAINER_ENCOUNTER_MUSIC_MALE",
+        "TRAINER_ENCOUNTER_MUSIC_HG_BOY_2": "TRAINER_ENCOUNTER_MUSIC_SWIMMER",
+        "TRAINER_ENCOUNTER_MUSIC_HG_GIRL_1": "TRAINER_ENCOUNTER_MUSIC_GIRL",
+        "TRAINER_ENCOUNTER_MUSIC_HG_GIRL_2": "TRAINER_ENCOUNTER_MUSIC_FEMALE",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SAGE": "TRAINER_ENCOUNTER_MUSIC_SUSPICIOUS",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_1": "TRAINER_ENCOUNTER_MUSIC_SUSPICIOUS",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_2": "TRAINER_ENCOUNTER_MUSIC_MALE",
+    }
+)
+FEMALE_TRAINER_PICS = frozenset(
+    f"TRAINER_PIC_{name}"
+    for name in (
+        "BEAUTY",
+        "COOLTRAINER_F",
+        "EXPERT_F",
+        "HEX_MANIAC",
+        "LASS",
+        "PARASOL_LADY",
+        "PICNICKER",
+        "SWIMMER_F",
+    )
+)
+TRAINER_GRAPHIC_PROJECTIONS = MappingProxyType(
+    {
+        "OBJ_EVENT_GFX_BATTLE_GIRL": "OBJ_EVENT_GFX_COOLTRAINER_F",
+        "OBJ_EVENT_GFX_JUGGLER": "OBJ_EVENT_GFX_CAMERAMAN",
+        "OBJ_EVENT_GFX_SAGE": "OBJ_EVENT_GFX_OLD_MAN_1",
+        "OBJ_EVENT_GFX_FIREBREATHER": "OBJ_EVENT_GFX_ROCKER",
+        "OBJ_EVENT_GFX_BURGLAR": "OBJ_EVENT_GFX_MANIAC",
+    }
+)
 
 
 @dataclass(frozen=True, order=True)
@@ -315,6 +398,7 @@ class ExpansionSourceContext(SourceContext):
         active_capabilities: Iterable[str] = ("spatial",),
     ) -> None:
         root = Path(donor_root)
+        self.donor_root = root
         records: dict[ResourceKey, SourceRecord] = {}
         aliases: dict[ResourceKey, ResourceKey] = {}
         _index_native_declarations(records, root)
@@ -964,6 +1048,237 @@ def _authenticated_trainer_inventory(
             f"{expected['affectedAdmittedMaps']}"
         )
     return inventory
+
+
+def _trainerproc_constant(prefix: str, display: str) -> str:
+    if prefix == "TRAINER_CLASS" and display.endswith(" Johto"):
+        prefix = "JOHTO_TRAINER_CLASS"
+        display = display.removesuffix(" Johto")
+    elif prefix == "TRAINER_PIC" and display.endswith(" HG"):
+        prefix = "JOHTO_TRAINER_PIC"
+        display = display.removesuffix(" HG")
+    suffix = "".join(
+        char.upper() if char.isascii() and char.isalnum() else "_"
+        for char in display
+        if char != "'"
+    )
+    return f"{prefix}_{suffix or 'NONE'}"
+
+
+def _validate_trainer_projection_rule(
+    identity: str, projection: TrainerProjection, trainer: Mapping[str, Any]
+) -> None:
+    donor_class = trainer.get("trainer_class")
+    donor_pic = trainer.get("trainer_pic")
+    donor_music = trainer.get("encounter_music")
+    expected = {
+        "class": JOHTO_CLASS_PROJECTIONS.get(donor_class, donor_class),
+        "pic": TRAINER_PIC_PROJECTIONS.get(donor_pic, donor_pic),
+        "music": TRAINER_MUSIC_PROJECTIONS.get(donor_music),
+        "gender": "Female" if donor_pic in FEMALE_TRAINER_PICS else "Male",
+        "ai": "AI_FLAG_CHECK_BAD_MOVE",
+    }
+    actual = {
+        "class": _trainerproc_constant("TRAINER_CLASS", projection.trainer_class),
+        "pic": _trainerproc_constant("TRAINER_PIC", projection.pic),
+        "music": _trainerproc_constant("TRAINER_ENCOUNTER_MUSIC", projection.music),
+        "gender": projection.gender,
+        "ai": _trainerproc_constant("AI_FLAG", projection.ai),
+    }
+    for field_name in expected:
+        if actual[field_name] != expected[field_name]:
+            raise ContentPortError(
+                f"trainer:{identity}/{field_name}: projection differs from reviewed donor mapping"
+            )
+    if projection.reward != "preserve" or projection.party != "preserve":
+        raise ContentPortError(
+            f"trainer:{identity}: reward and party projections must preserve donor facts"
+        )
+
+
+def _validate_overworld_graphic_rule(
+    identity: str, donor_graphic: str, donor_class: str, target_graphic: str
+) -> None:
+    if donor_graphic == "OBJ_EVENT_GFX_SUPER_NERD":
+        expected = (
+            "OBJ_EVENT_GFX_MANIAC"
+            if donor_class == "TRAINER_CLASS_POKEMANIAC"
+            else "OBJ_EVENT_GFX_SCIENTIST_1"
+            if donor_class == "TRAINER_CLASS_SUPER_NERD"
+            else None
+        )
+    else:
+        expected = TRAINER_GRAPHIC_PROJECTIONS.get(donor_graphic, donor_graphic)
+    if target_graphic != expected:
+        raise ContentPortError(
+            f"trainer-event:{identity}/overworldGraphic: "
+            "projection differs from reviewed donor mapping"
+        )
+
+
+def _declared_constants(path: Path, prefix: str) -> frozenset[str]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read target declarations {path}: {error}"
+        ) from error
+    return frozenset(re.findall(rf"\b{re.escape(prefix)}_[A-Z0-9_]+\b", text))
+
+
+def _trainer_class_money(path: Path, *, target: bool) -> Mapping[str, int]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read trainer reward authority {path}: {error}"
+        ) from error
+    if target:
+        records = re.findall(
+            r"\[((?:JOHTO_)?TRAINER_CLASS_[A-Z0-9_]+)\]\s*=\s*"
+            r"\{\s*_\(\"[^\"]*\"\)(?:,\s*(\d+))?",
+            text,
+        )
+        return MappingProxyType({symbol: int(raw or 0) or 5 for symbol, raw in records})
+    records = re.findall(r"\{(TRAINER_CLASS_[A-Z0-9_]+),\s*(\d+)\}", text)
+    return MappingProxyType({symbol: int(raw) for symbol, raw in records})
+
+
+def _authenticate_trainer_projection_authority(
+    inventory: TrainerInventory,
+    content: ExpansionSourceContext,
+    target_root: Path,
+    ledger: Any,
+    enabled_trainers: frozenset[str],
+) -> None:
+    """Bind authored projections to donor facts and target declarations."""
+
+    trainer_constants = target_root / "include/constants/trainers.h"
+    target_classes = _declared_constants(
+        trainer_constants, "TRAINER_CLASS"
+    ) | _declared_constants(trainer_constants, "JOHTO_TRAINER_CLASS")
+    target_pics = _declared_constants(
+        trainer_constants, "TRAINER_PIC"
+    ) | _declared_constants(trainer_constants, "JOHTO_TRAINER_PIC")
+    target_music = _declared_constants(
+        target_root / "include/constants/trainers.h", "TRAINER_ENCOUNTER_MUSIC"
+    )
+    target_ai = _declared_constants(
+        target_root / "include/constants/battle_ai.h", "AI_FLAG"
+    )
+    target_graphics = _declared_constants(
+        target_root / "include/constants/event_objects.h", "OBJ_EVENT_GFX"
+    )
+    donor_trainer_constants = content.donor_root / "include/constants/trainers.h"
+    donor_classes = _declared_constants(donor_trainer_constants, "TRAINER_CLASS")
+    donor_pics = _declared_constants(donor_trainer_constants, "TRAINER_PIC")
+    donor_music = _declared_constants(
+        donor_trainer_constants, "TRAINER_ENCOUNTER_MUSIC"
+    )
+    donor_graphics = _declared_constants(
+        content.donor_root / "include/constants/event_objects.h", "OBJ_EVENT_GFX"
+    )
+    donor_money = _trainer_class_money(
+        content.donor_root / "src/battle_main.c", target=False
+    )
+    target_money = _trainer_class_money(target_root / "src/battle_main.c", target=True)
+    authenticated: list[str] = []
+    donor_class_by_trainer: dict[str, str] = {}
+    for identity in inventory.identities:
+        projection = identity.projection
+        if projection is None:
+            continue
+        authenticated.append(identity.trainer)
+        if identity.trainer in enabled_trainers:
+            ledger.resolve(projection.target, domain="trainerIds")
+        trainer = content.load(ResourceKey("trainer", identity.trainer)).value
+        for field_name, declarations in (
+            ("trainer_class", donor_classes),
+            ("trainer_pic", donor_pics),
+            ("encounter_music", donor_music),
+        ):
+            donor_symbol = trainer.get(field_name)
+            if donor_symbol not in declarations:
+                raise ContentPortError(
+                    f"trainer:{identity.trainer}/{field_name}: donor authority is invalid"
+                )
+        donor_class_by_trainer[identity.trainer] = trainer["trainer_class"]
+        if trainer.get("gender") not in {"Male", "Female"}:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/gender: donor gender authority is invalid"
+            )
+        if tuple(trainer.get("ai_flags", ())) != ("AI_SCRIPT_CHECK_BAD_MOVE",):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/ai_flags: projection differs from donor"
+            )
+        if (
+            trainer.get("items")
+            or trainer.get("party_format") != "NO_ITEM_DEFAULT_MOVES"
+        ):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}: preserve projection requires a default donor party"
+            )
+        parties = tuple(trainer.get("parties", ()))
+        if len(parties) != 1:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}: preserve projection requires exactly one donor party"
+            )
+        content.load(ResourceKey("party", parties[0]))
+        _validate_trainer_projection_rule(identity.trainer, projection, trainer)
+        target_class = _trainerproc_constant("TRAINER_CLASS", projection.trainer_class)
+        target_pic = _trainerproc_constant("TRAINER_PIC", projection.pic)
+        target_music_symbol = _trainerproc_constant(
+            "TRAINER_ENCOUNTER_MUSIC", projection.music
+        )
+        target_ai_symbol = _trainerproc_constant("AI_FLAG", projection.ai)
+        for symbol, declarations, field_name in (
+            (target_class, target_classes, "class"),
+            (target_pic, target_pics, "pic"),
+            (target_music_symbol, target_music, "music"),
+            (target_ai_symbol, target_ai, "ai"),
+        ):
+            if symbol not in declarations:
+                raise ContentPortError(
+                    f"trainer:{identity.trainer}/{field_name}: target symbol {symbol} is absent"
+                )
+        donor_class = trainer.get("trainer_class")
+        if not isinstance(donor_class, str):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/class: donor reward authority is absent"
+            )
+        if target_class not in target_money:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/class: target reward authority is absent"
+            )
+        donor_reward = donor_money.get(donor_class, 5)
+        if donor_reward != target_money[target_class]:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/reward: class money differs "
+                f"({donor_reward} != {target_money[target_class]})"
+            )
+    require_projection_exact_cover(
+        inventory, authenticated, owner="authenticated trainer projection surface"
+    )
+    for placement in inventory.placements:
+        if not placement.admitted:
+            continue
+        event = content.trainer_event(ResourceKey("trainer-event", placement.identity))
+        donor_graphic = event.object_event.get("graphics_id")
+        if donor_graphic not in donor_graphics:
+            raise ContentPortError(
+                f"trainer-event:{placement.identity}: donor overworld graphic authority is invalid"
+            )
+        _validate_overworld_graphic_rule(
+            placement.identity,
+            donor_graphic,
+            donor_class_by_trainer[placement.trainer],
+            placement.overworld_graphic,
+        )
+        if placement.overworld_graphic not in target_graphics:
+            raise ContentPortError(
+                f"trainer-event:{placement.identity}: target overworld graphic "
+                f"{placement.overworld_graphic} is absent"
+            )
 
 
 def json_record(path: Path, pointer: str = "") -> SourceRecord:
@@ -2753,17 +3068,31 @@ def resolve_port_sources(
             contexts[role].trainer_event(ResourceKey("trainer-event", root))
             for root in roots
         ]
+        available_by_identity = {
+            f"{event.map_name}/{event.object_index}/{event.script_name}": event
+            for event in available
+        }
         chosen: list[TrainerEventRecord] = []
         for dependency in requested:
-            matches = [
-                event for event in available if event.trainers == (dependency.name,)
+            placements = [
+                placement
+                for placement in trainer_inventory.placements
+                if placement.map_name == decision.map_name
+                and placement.trainer == dependency.name
+                and placement.admitted
             ]
-            if len(matches) != 1:
+            if len(placements) != 1:
                 raise ContentPortError(
                     f"{decision.map_name}/trainers: {dependency} must select exactly "
-                    "one paired trainer event"
+                    "one admitted inventory placement"
                 )
-            chosen.append(matches[0])
+            event = available_by_identity.get(placements[0].identity)
+            if event is None or event.trainers != (dependency.name,):
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: admitted placement "
+                    f"{placements[0].identity} is absent from donor event roots"
+                )
+            chosen.append(event)
         if len(chosen) != len({event.object_index for event in chosen}):
             raise ContentPortError(
                 f"{decision.map_name}/trainers: duplicate paired trainer event"
@@ -2781,21 +3110,21 @@ def resolve_port_sources(
         )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
+    _authenticate_trainer_projection_authority(
+        trainer_inventory,
+        content,
+        target_root,
+        ledger,
+        frozenset(
+            trainer
+            for events in selected_trainer_events.values()
+            for event in events
+            for trainer in event.trainers
+        ),
+    )
     explicit_dependencies = {
         dependency for decision in enabled for dependency in decision.dependencies
     }
-    selected_trainer_names = {
-        dependency.name
-        for decision in enabled
-        if decision.capability == "trainers"
-        for dependency in decision.dependencies
-        if dependency.domain == "trainer"
-    }
-    projection_sources = {item["source"] for item in adaptations["trainerProjections"]}
-    if projection_sources != selected_trainer_names:
-        raise ContentPortError(
-            "trainer projections must exactly cover enabled trainer dependencies"
-        )
     event_capabilities = {
         decision.capability for decision in descriptor.capabilities
     } - {
@@ -3031,6 +3360,18 @@ def resolve_port_sources(
                 / path.relative_to(directory)
             ).as_posix()
             required_asset_targets[qualified] = target
+    admitted_pic_tokens = {
+        identity.projection.pic
+        for identity in trainer_inventory.identities
+        if identity.projection is not None
+    }
+    for pic, (source, target) in TRAINER_PIC_ASSET_PROJECTIONS.items():
+        if pic not in admitted_pic_tokens:
+            continue
+        safe_repo_path(content_pin.root, source, allow_missing=False)
+        qualified = f"content:{source}"
+        required_assets.add(ResourceKey("asset", qualified))
+        required_asset_targets[qualified] = target
     asset_policy_references: dict[str, list[str]] = {}
     policy_asset_targets: dict[str, str] = {}
     asset_records = descriptor.assets.get("assets")

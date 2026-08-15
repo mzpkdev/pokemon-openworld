@@ -251,7 +251,14 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         for item in descriptor.adaptations["graphicsAdaptations"]
     }
     projections = {
-        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+        identity.trainer: identity.projection
+        for identity in state.trainer_inventory.identities
+        if identity.projection is not None
+    }
+    placements = {
+        placement.identity: placement
+        for placement in state.trainer_inventory.placements
+        if placement.admitted
     }
     units: list[RenderUnit] = []
     materialization_maps = state.materialization_maps or state.maps
@@ -295,6 +302,12 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                     f"{name}: selected trainer event has no exact projection"
                 )
             projection = projections[event.trainers[0]]
+            event_identity = f"{name}/{event.object_index}/{event.script_name}"
+            placement = placements.get(event_identity)
+            if placement is None or placement.trainer != event.trainers[0]:
+                raise ContentPortError(
+                    f"{name}: selected trainer event has no exact admitted inventory placement"
+                )
             if tuple(item.command for item in event.instructions) != (
                 "trainerbattle_single",
                 "msgbox",
@@ -307,7 +320,7 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
             for index, instruction in enumerate(event.instructions):
                 operands = list(instruction.operands)
                 if index == 0:
-                    operands[0] = projection["target"]
+                    operands[0] = projection.target
                 instructions.append(
                     {"command": instruction.command, "operands": operands}
                 )
@@ -322,9 +335,7 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                 }
             )
             object_event = _thaw(event.object_event)
-            graphics = object_event.get("graphics_id")
-            if isinstance(graphics, str):
-                object_event["graphics_id"] = graphics_remaps.get(graphics, graphics)
+            object_event["graphics_id"] = placement.overworld_graphic
             selected_objects.append(object_event)
         value["object_events"] = selected_objects
         units.append(
@@ -365,7 +376,9 @@ def _trainer_units(
         for trainer in event.trainers
     }
     projections = {
-        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+        identity.trainer: identity.projection
+        for identity in state.trainer_inventory.identities
+        if identity.projection is not None
     }
     if selected - set(projections):
         raise ContentPortError(
@@ -377,25 +390,13 @@ def _trainer_units(
     rendered: list[dict[str, Any]] = []
     for source in sorted(selected):
         projection = projections[source]
-        ledger.resolve(projection["target"], domain="trainerIds")
+        ledger.resolve(projection.target, domain="trainerIds")
         trainer = state.semantic_values.get(ResourceKey("trainer", source))
         if trainer is None:
             raise ContentPortError(
                 f"trainer:{source}: authenticated payload is missing"
             )
-        expected = {
-            "trainer_class": projection["class"]["source"],
-            "trainer_pic": projection["pic"]["source"],
-            "encounter_music": projection["music"]["source"],
-            "gender": projection["gender"],
-        }
-        for field, value in expected.items():
-            if trainer.get(field) != value:
-                raise ContentPortError(
-                    f"trainer:{source}/{field}: projection preimage drift"
-                )
-        ai_sources = tuple(item["source"] for item in projection["ai"])
-        if tuple(trainer.get("ai_flags", ())) != ai_sources:
+        if tuple(trainer.get("ai_flags", ())) != ("AI_SCRIPT_CHECK_BAD_MOVE",):
             raise ContentPortError(
                 f"trainer:{source}/ai_flags: projection preimage drift"
             )
@@ -443,14 +444,14 @@ def _trainer_units(
             )
         rendered.append(
             {
-                "target": projection["target"],
+                "target": projection.target,
                 "name": trainer_name,
-                "class": projection["class"]["target"],
-                "pic": projection["pic"]["target"],
-                "gender": projection["gender"],
-                "music": projection["music"]["target"],
+                "class": projection.trainer_class,
+                "pic": projection.pic,
+                "gender": projection.gender,
+                "music": projection.music,
                 "double": double_token == "TRUE",
-                "ai": [item["target"] for item in projection["ai"]],
+                "ai": [projection.ai],
                 "party": members,
             }
         )

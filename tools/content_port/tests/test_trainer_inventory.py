@@ -12,7 +12,9 @@ from tools.content_port.trainer_inventory import (
     inventory_membership_digest,
     load_trainer_inventory,
     require_identity_exact_cover,
+    require_overworld_graphic_exact_cover,
     require_placement_exact_cover,
+    require_projection_exact_cover,
     stable_inventory_digest,
     validate_trainer_inventory_document,
 )
@@ -63,17 +65,19 @@ PAIRS = {
 
 def inventory() -> dict:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "identities": [
             {
                 "trainer": "TRAINER_JOEY",
                 "classification": "ordinary",
                 "admitted": True,
+                "projection": projection("TRAINER_YOUNGSTER_JOEY_JOHTO"),
             },
             {
                 "trainer": "TRAINER_TWINS",
                 "classification": "ordinary",
                 "admitted": True,
+                "projection": projection("TRAINER_TWINS_AMY_AND_MAY_JOHTO"),
             },
             {
                 "trainer": "TRAINER_ELM",
@@ -96,10 +100,12 @@ def inventory() -> dict:
                     {
                         "identity": "Route30/3/YoungsterJoeyScript",
                         "admitted": True,
+                        "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER",
                     },
                     {
                         "identity": "Route30/4/YoungsterJoeyPartnerScript",
                         "admitted": True,
+                        "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER",
                     },
                 ],
             },
@@ -110,10 +116,12 @@ def inventory() -> dict:
                     {
                         "identity": "OlivineGym/1/TwinsAmyScript",
                         "admitted": True,
+                        "overworldGraphic": "OBJ_EVENT_GFX_TWIN",
                     },
                     {
                         "identity": "OlivineGym/2/TwinsMayScript",
                         "admitted": True,
+                        "overworldGraphic": "OBJ_EVENT_GFX_TWIN",
                     },
                 ],
             },
@@ -123,6 +131,19 @@ def inventory() -> dict:
             {"trainer": "TRAINER_TWINS", "events": list(PAIRS["TRAINER_TWINS"])},
             {"trainer": "TRAINER_JOEY", "events": list(PAIRS["TRAINER_JOEY"])},
         ],
+    }
+
+
+def projection(target: str) -> dict:
+    return {
+        "target": target,
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve",
     }
 
 
@@ -183,11 +204,14 @@ class TrainerInventoryTests(unittest.TestCase):
     def test_admission_is_explicit_and_matches_linked_identity(self) -> None:
         document = inventory()
         document["identities"][0]["admitted"] = False
+        document["identities"][0]["reason"] = "test exclusion"
+        del document["identities"][0]["projection"]
         with self.assertRaisesRegex(ContentPortError, "ordinary trainers are admitted"):
             validate(document)
 
         document = inventory()
         document["maps"][0]["events"][0]["admitted"] = False
+        del document["maps"][0]["events"][0]["overworldGraphic"]
         with self.assertRaisesRegex(ContentPortError, "linked trainer admission"):
             validate(document)
 
@@ -195,6 +219,56 @@ class TrainerInventoryTests(unittest.TestCase):
         document = inventory()
         document["maps"][-1]["authority"] = "content"
         with self.assertRaisesRegex(ContentPortError, "expected 'absent'"):
+            validate(document)
+
+    def test_projection_and_graphic_policy_are_strict_and_admitted_only(self) -> None:
+        document = inventory()
+        del document["identities"][0]["projection"]
+        with self.assertRaisesRegex(ContentPortError, "missing field 'projection'"):
+            validate(document)
+
+        document = inventory()
+        del document["maps"][0]["events"][0]["overworldGraphic"]
+        with self.assertRaisesRegex(
+            ContentPortError, "missing field 'overworldGraphic'"
+        ):
+            validate(document)
+
+        document = inventory()
+        document["identities"][0]["projection"]["ai"] = "Basic"
+        with self.assertRaisesRegex(ContentPortError, "Check Bad Move"):
+            validate(document)
+
+        document = inventory()
+        document["identities"][2]["projection"] = projection(
+            "TRAINER_PROFESSOR_ELM_JOHTO"
+        )
+        with self.assertRaisesRegex(ContentPortError, "unknown field 'projection'"):
+            validate(document)
+
+        document = inventory()
+        document["maps"][0]["events"][0]["admitted"] = False
+        with self.assertRaisesRegex(
+            ContentPortError, "unknown field 'overworldGraphic'"
+        ):
+            validate(document)
+
+        document = inventory()
+        document["maps"][0]["events"][0]["overworldGraphic"] = "Youngster"
+        with self.assertRaisesRegex(ContentPortError, "object graphic symbol"):
+            validate(document)
+
+    def test_projection_targets_are_unique_and_region_qualified(self) -> None:
+        document = inventory()
+        document["identities"][1]["projection"]["target"] = document["identities"][0][
+            "projection"
+        ]["target"]
+        with self.assertRaisesRegex(ContentPortError, "duplicate projection target"):
+            validate(document)
+
+        document = inventory()
+        document["identities"][0]["projection"]["target"] = "TRAINER_JOEY"
+        with self.assertRaisesRegex(ContentPortError, "region-qualified"):
             validate(document)
 
     def test_event_identity_is_authenticated_and_links_one_classified_trainer(
@@ -270,6 +344,14 @@ class TrainerInventoryTests(unittest.TestCase):
             require_placement_exact_cover(
                 result, (result.placements[0].identity,), admitted=True
             )
+        require_projection_exact_cover(
+            result, (record.trainer for record in result.identities if record.admitted)
+        )
+        require_overworld_graphic_exact_cover(
+            result, (record.identity for record in result.placements if record.admitted)
+        )
+        with self.assertRaisesRegex(ContentPortError, "missing projection"):
+            require_projection_exact_cover(result, ("TRAINER_JOEY",))
 
     def test_loader_reports_invalid_json_and_validates_loaded_document(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

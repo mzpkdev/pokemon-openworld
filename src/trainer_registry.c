@@ -207,7 +207,7 @@ const u8 *GetTrainerClassNameFromId(u16 trainerId)
 {
     const struct Trainer *trainer = GetTrainerStructFromId(trainerId);
 
-    if (trainer == NULL || trainer->trainerClass >= TRAINER_CLASS_COUNT)
+    if (trainer == NULL || trainer->trainerClass >= JOHTO_TRAINER_CLASS_COUNT)
         return gText_EmptyString2;
     return gTrainerClasses[trainer->trainerClass].name;
 }

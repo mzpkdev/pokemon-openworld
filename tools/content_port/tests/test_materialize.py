@@ -218,6 +218,7 @@ class MaterializeTests(unittest.TestCase):
         self,
     ) -> None:
         descriptor = self.descriptor()
+        self.assertNotIn("trainerProjections", descriptor.adaptations)
         _, state = resolve_port_sources(descriptor, ROOT)
         map_units = {unit.key: unit for unit in _map_units(descriptor, state)}
         route_map = map_units["map:Route34"].value
@@ -264,6 +265,15 @@ class MaterializeTests(unittest.TestCase):
             trainer
             for trainer in trainer_units[0].value
             if trainer["target"] == "TRAINER_SAILOR_EUGENE_JOHTO"
+        )
+        samuel = next(
+            trainer
+            for trainer in trainer_units[0].value
+            if trainer["target"] == "TRAINER_YOUNGSTER_SAMUEL_JOHTO"
+        )
+        self.assertEqual(
+            (samuel["class"], samuel["pic"], samuel["music"]),
+            ("Youngster", "Youngster FRLG", "Male"),
         )
         self.assertEqual(
             {

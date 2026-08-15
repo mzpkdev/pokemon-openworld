@@ -150,6 +150,53 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         ):
             self.assertIn(authored, eugene)
 
+    def test_trainerproc_emits_johto_runtime_namespaces_without_policy_suffixes(
+        self,
+    ) -> None:
+        classes = (
+            "Burglar",
+            "Firebreather",
+            "Juggler",
+            "Psychic M",
+            "Sage",
+            "Super Nerd",
+        )
+        pics = ("Firebreather", "Psychic M", "Sage", "Super Nerd")
+        sections = []
+        for index, trainer_class in enumerate(classes):
+            pic = pics[index % len(pics)]
+            sections.append(
+                f"=== TRAINER_TEST_JOHTO_{index} ===\n"
+                f"Name: TEST\n"
+                f"Class: {trainer_class} Johto\n"
+                f"Pic: {pic} HG\n"
+                "\n"
+                "Pikachu\n"
+                "Level: 5\n"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="johto-trainerproc-") as directory:
+            source = Path(directory) / "johto.party"
+            output = Path(directory) / "johto.h"
+            source.write_text("\n".join(sections))
+            subprocess.run(
+                [str(TRAINERPROC), "-o", str(output), str(source)],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            generated = output.read_text()
+
+        for trainer_class in classes:
+            token = trainer_class.upper().replace(" ", "_")
+            self.assertIn(f".trainerClass = JOHTO_TRAINER_CLASS_{token},", generated)
+            self.assertNotIn(f"JOHTO_TRAINER_CLASS_{token}_JOHTO", generated)
+        for pic in pics:
+            token = pic.upper().replace(" ", "_")
+            self.assertIn(f".trainerPic = JOHTO_TRAINER_PIC_{token},", generated)
+            self.assertNotIn(f"JOHTO_TRAINER_PIC_{token}_HG", generated)
+
     def test_executable_sources_never_use_legacy_frlg_tombstones(self) -> None:
         tracked = subprocess.run(
             ["git", "ls-files", "-z"],

@@ -266,6 +266,30 @@ class PersistentIdTests(unittest.TestCase):
                     (left / relative).read_bytes(), (right / relative).read_bytes()
                 )
 
+    def test_johto_runtime_enums_preserve_the_frozen_trainer_contract(self):
+        validate_frozen_bindings(self.ledger["entries"], self.contract)
+        contract = {
+            item["symbol"]: item["value"]
+            for item in self.contract["publishedBindings"]["trainerIds"]
+        }
+        ledger = {
+            item["symbol"]: item["value"]
+            for item in self.ledger["entries"]
+            if item["domain"] == "trainerIds"
+        }
+        expected = {
+            "TRAINER_CLASS_PAINTER_FRLG": 115,
+            "TRAINER_CLASS_COUNT": 116,
+            "TRAINER_PIC_PAINTER_FRLG": 157,
+            "TRAINER_PIC_COUNT": 158,
+        }
+        self.assertEqual({symbol: contract[symbol] for symbol in expected}, expected)
+        self.assertEqual({symbol: ledger[symbol] for symbol in expected}, expected)
+        self.assertFalse(
+            any(symbol.startswith("JOHTO_TRAINER_") for symbol in contract)
+        )
+        self.assertFalse(any(symbol.startswith("JOHTO_TRAINER_") for symbol in ledger))
+
     def test_public_constant_facades_resolve_through_ledger_values(self):
         cases = {
             "persistent_flags.inc.h": ("flags", "FLAG_RECEIVED_FIRST_POTION"),

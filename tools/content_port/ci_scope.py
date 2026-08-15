@@ -15,6 +15,7 @@ DONOR_CONTRACT_FILES = frozenset(
 )
 DONOR_CONTRACT_PREFIXES = (
     "data/",
+    "graphics/trainers/front_pics/",
     "include/constants/",
     "src/data/",
     "tools/content_port/",
