@@ -102,6 +102,32 @@ class SemanticsTests(unittest.TestCase):
             ),
         )
 
+    def test_script_warp_closure_accepts_transient_departure_presentation(
+        self,
+    ) -> None:
+        program = self._program(
+            "Entry::\n applymovement LOCALID_SAILOR, SailorMovement\n"
+            " waitmovement 0\n playse SE_EXIT\n special SpawnCameraObject\n"
+            " removeobject OBJ_EVENT_ID_PLAYER\n delay 60\n"
+            " warp MAP_OTHER, 1, 2\n end\n"
+            "SailorMovement:\n walk_down\n step_end\n"
+        )
+        evidence = extract_script_warps(program, "Entry")
+        self.assertEqual(
+            (evidence[0].destination, evidence[0].x, evidence[0].y),
+            ("OTHER", 1, 2),
+        )
+
+    def test_script_warp_closure_rejects_unapproved_special(self) -> None:
+        program = self._program(
+            "Entry::\n special DoStoryMutation\n warp MAP_OTHER, 1, 2\n end\n"
+        )
+        with self.assertRaisesRegex(
+            ContentPortError,
+            "unsupported special DoStoryMutation",
+        ):
+            extract_script_warps(program, "Entry")
+
     def test_script_warp_control_reaches_case_and_supports_warpsilent(self) -> None:
         program = self._program(
             "Entry::\n switch VAR_RESULT\n case 1, .Travel\n end\n"

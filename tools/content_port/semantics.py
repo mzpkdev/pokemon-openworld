@@ -35,9 +35,11 @@ EFFECT_KINDS = frozenset(
 ENTRY_CLASSIFICATIONS = frozenset({"enabled", "story-owned", "deferred", "unsupported"})
 SCRIPT_WARP_COMMANDS = frozenset(
     {
-        # Ferry reachability may follow only unconditional control transfer or
-        # the expansion's explicit switch/case choice idiom. Conditional
-        # goto/call helpers read comparison, flag, or general-variable state.
+        # Ferry reachability may follow unconditional control transfer, the
+        # expansion's explicit switch/case choice idiom, and transient
+        # presentation. Conditional goto/call helpers read comparison, flag,
+        # or general-variable state.
+        "applymovement",
         "call",
         "case",
         "closemessage",
@@ -49,18 +51,23 @@ SCRIPT_WARP_COMMANDS = frozenset(
         "lockall",
         "message",
         "msgbox",
+        "playse",
         "release",
         "releaseall",
+        "removeobject",
         "return",
         "setdynamicwarp",
+        "special",
         "switch",
         "waitbuttonpress",
         "waitmessage",
+        "waitmovement",
         "waitstate",
         "warp",
         "warpsilent",
     }
 )
+SCRIPT_WARP_SPECIALS = frozenset({"SpawnCameraObject"})
 
 
 @dataclass(frozen=True, order=True)
@@ -709,6 +716,14 @@ def extract_script_warps(program: ScriptProgram, entry: str) -> tuple[ScriptWarp
                 raise ContentPortError(
                     f"{instruction.source}:{instruction.line}: unsupported command "
                     f"{instruction.command} in script-warp closure"
+                )
+            if instruction.command == "special" and (
+                len(instruction.operands) != 1
+                or instruction.operands[0] not in SCRIPT_WARP_SPECIALS
+            ):
+                raise ContentPortError(
+                    f"{instruction.source}:{instruction.line}: unsupported special "
+                    f"{', '.join(instruction.operands)} in script-warp closure"
                 )
     return tuple(sorted(result))
 
