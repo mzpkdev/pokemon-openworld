@@ -200,30 +200,31 @@ def inventory() -> TrainerInventory:
         for event in map_row["events"]
         if event.get("admitted")
     }
-    for row in document()["batches"][3]["identities"]:
-        trainer = row["identity"]
-        placement_name = row["placements"][0]
-        map_name, object_index, script_name = placement_name.split("/", 2)
-        identities.append(
-            TrainerIdentity(
-                trainer,
-                "ordinary",
-                None,
-                True,
-                projection(projections[trainer]),
+    for batch in document()["batches"][3:]:
+        for row in batch["identities"]:
+            trainer = row["identity"]
+            placement_name = row["placements"][0]
+            map_name, object_index, script_name = placement_name.split("/", 2)
+            identities.append(
+                TrainerIdentity(
+                    trainer,
+                    "ordinary",
+                    None,
+                    True,
+                    projection(projections[trainer]),
+                )
             )
-        )
-        placements.append(
-            TrainerPlacement(
-                placement_name,
-                map_name,
-                int(object_index),
-                script_name,
-                trainer,
-                True,
-                graphics[placement_name],
+            placements.append(
+                TrainerPlacement(
+                    placement_name,
+                    map_name,
+                    int(object_index),
+                    script_name,
+                    trainer,
+                    True,
+                    graphics[placement_name],
+                )
             )
-        )
     return TrainerInventory(
         tuple(identities),
         tuple(placements),
@@ -258,10 +259,11 @@ def allocations(*, include_wade: bool = True) -> BindingIndex:
         production = load_binding_index(
             ROOT / "src/data/persistence/persistent_ids.json"
         )
-        for row in document()["batches"][3]["identities"]:
-            target = targets[row["identity"]]
-            binding = production.resolve(target, domain="trainerIds")
-            symbols.append((target, binding.value))
+        for batch in document()["batches"][3:]:
+            for row in batch["identities"]:
+                target = targets[row["identity"]]
+                binding = production.resolve(target, domain="trainerIds")
+                symbols.append((target, binding.value))
     return BindingIndex(
         PersistentBinding(
             "trainerIds", symbol, value, "u32-id", "trainer-defeat-bitmap"
@@ -330,7 +332,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(result.batches[-1].key, "bulk-fixed-standard-singles-60")
+        self.assertEqual(result.batches[-1].key, "bulk-surf-field-standard-singles-33")
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []

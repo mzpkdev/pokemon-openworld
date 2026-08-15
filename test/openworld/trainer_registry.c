@@ -89,7 +89,7 @@ TEST("Ordinary trainer registry rejects invalid IDs holes and missing parties")
     };
     EXPECT(!TrainerRegistry_TestResolve(&sRegistryTrainers[0][0], REGISTRY_TEST_TRAINER_COUNT, 3, DIFFICULTY_HARD, &resolved));
     EXPECT(!TryResolveOrdinaryTrainer(TRAINERS_COUNT, &resolved));
-    EXPECT(!TryResolveOrdinaryTrainer(TRAINER_FISHERMAN_SCOTT_JOHTO, &resolved));
+    EXPECT(!TryResolveOrdinaryTrainer(TRAINER_EXPERT_ROXANNE_JOHTO, &resolved));
 }
 
 TEST("Samuel resolves his authored normal party without legacy defeat flag or rematch state")
@@ -224,6 +224,37 @@ TEST("Bulk fixed Johto trainers resolve registered normal parties")
         TRAINER_FIREBREATHER_BILL_JOHTO,
         TRAINER_BEAUTY_VALERIE_JOHTO,
         TRAINER_BIRD_KEEPER_VANCE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Surf and field-move Johto trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_PHILLIP_JOHTO,
+        TRAINER_COOLTRAINER_NICK_JOHTO,
+        TRAINER_SWIMMER_F_ELAINE_JOHTO,
+        TRAINER_SWIMMER_M_BERKE_JOHTO,
+        TRAINER_HIKER_BENJAMIN_JOHTO,
+        TRAINER_FISHERMAN_ANDRE_JOHTO,
+        TRAINER_FISHERMAN_SCOTT_JOHTO,
     };
     u32 i;
 

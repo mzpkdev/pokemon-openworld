@@ -132,6 +132,32 @@ TEST("Bulk fixed Johto trainer samples own stable bitmap defeat bits")
     }
 }
 
+TEST("Surf and field-move Johto trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_PHILLIP_JOHTO,
+        TRAINER_COOLTRAINER_NICK_JOHTO,
+        TRAINER_SWIMMER_F_ELAINE_JOHTO,
+        TRAINER_SWIMMER_M_BERKE_JOHTO,
+        TRAINER_HIKER_BENJAMIN_JOHTO,
+        TRAINER_FISHERMAN_ANDRE_JOHTO,
+        TRAINER_FISHERMAN_SCOTT_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
 TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
 {
     struct TrainerDefeatBinding binding;

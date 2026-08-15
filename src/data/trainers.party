@@ -16917,6 +16917,27 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 #endif /* // JOHTO IMPORT END: rival trainers */
 #if 1 /* CONTENT PORT BEGIN johto:selected trainer parties */
+=== TRAINER_COOLTRAINER_AARON_JOHTO ===
+Name: AARON
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_IVYSAUR
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_CHARMELEON
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_WARTORTLE
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_BIRD_KEEPER_ABE_JOHTO ===
 Name: ABE
 Class: Bird Keeper
@@ -16962,6 +16983,36 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_ELECTABUZZ
 Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_FISHERMAN_ANDRE_JOHTO ===
+Name: ANDRE
+Class: Fisherman
+Pic: Fisherman
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GYARADOS
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_POKEMANIAC_ANDREW_JOHTO ===
+Name: ANDREW
+Class: Pokemaniac
+Pic: Pokemaniac
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MAROWAK
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MAROWAK
+Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_HIKER_ANTHONY_JOHTO ===
@@ -17015,6 +17066,36 @@ SPECIES_WARTORTLE
 Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_HIKER_BENJAMIN_JOHTO ===
+Name: BENJAMIN
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GRAVELER
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DUGTRIO
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_M_BERKE_JOHTO ===
+Name: BERKE
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_QWILFISH
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_FIREBREATHER_BILL_JOHTO ===
 Name: BILL
 Class: Firebreather Johto
@@ -17026,6 +17107,31 @@ AI: Check Bad Move
 
 SPECIES_GROWLITHE
 Level: 11
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_BLAKE_JOHTO ===
+Name: BLAKE
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MAGNETON
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_QUAGSIRE
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_EXEGGUTOR
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_PILOSWINE
+Level: 44
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_POKEFAN_BRANDON_JOHTO ===
@@ -17056,6 +17162,31 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_IVYSAUR
 Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_BRIAN_JOHTO ===
+Name: BRIAN
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SANDSLASH
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SCIZOR
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SNEASEL
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_URSARING
+Level: 43
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_LASS_BRIDGET_JOHTO ===
@@ -17109,6 +17240,19 @@ SPECIES_SPEAROW
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_POKEMANIAC_CALVIN_JOHTO ===
+Name: CALVIN
+Class: Pokemaniac
+Pic: Pokemaniac
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_KANGASKHAN
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_LASS_CARRIE_JOHTO ===
 Name: CARRIE
 Class: Lass
@@ -17137,6 +17281,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_MAGNEMITE
 Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_M_CHARLIE_JOHTO ===
+Name: CHARLIE
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_CLOYSTER
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TENTACRUEL
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_SAGE_CHOW_JOHTO ===
@@ -17209,6 +17370,19 @@ AI: Check Bad Move
 
 SPECIES_ONIX
 Level: 11
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_F_DENISE_JOHTO ===
+Name: DENISE
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_LAPRAS
+Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_POKEFAN_DEREK_JOHTO ===
@@ -17287,6 +17461,19 @@ SPECIES_BELLSPROUT
 Level: 3
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_SWIMMER_F_ELAINE_JOHTO ===
+Name: ELAINE
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_STARMIE
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_CAMPER_ELLIOT_JOHTO ===
 Name: ELLIOT
 Class: Camper
@@ -17304,6 +17491,19 @@ SPECIES_MARILL
 Level: 16
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_COOLTRAINER_EMMA_JOHTO ===
+Name: EMMA
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_POLIWHIRL
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_SAILOR_EUGENE_JOHTO ===
 Name: EUGENE
 Class: Sailor
@@ -17319,6 +17519,48 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_TAUROS
 Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_M_GEORGE_JOHTO ===
+Name: GEORGE
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_TENTACOOL
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_REMORAID
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STARYU
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PSYCHIC_M_GILBERT_JOHTO ===
+Name: GILBERT
+Class: Psychic M Johto
+Pic: Psychic M HG
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_XATU
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_EXEGGUTOR
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GIRAFARIG
+Level: 44
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PICNICKER_GINA_JOHTO ===
@@ -17362,6 +17604,31 @@ AI: Check Bad Move
 
 SPECIES_STANTLER
 Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_GWEN_JOHTO ===
+Name: GWEN
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_EEVEE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_FLAREON
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_VAPOREON
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_JOLTEON
+Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_SAILOR_HARRY_JOHTO ===
@@ -17462,6 +17729,31 @@ SPECIES_BELLSPROUT
 Level: 6
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_BIRD_KEEPER_JOSE_JOHTO ===
+Name: JOSE
+Class: Bird Keeper
+Pic: Bird Keeper
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_FEAROW
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_FARFETCHD
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_PIDGEOT
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DODRIO
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_FISHERMAN_JUSTIN_JOHTO ===
 Name: JUSTIN
 Class: Fisherman
@@ -17473,6 +17765,44 @@ AI: Check Bad Move
 
 SPECIES_TENTACOOL
 Level: 7
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_F_KARA_JOHTO ===
+Name: KARA
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_HORSEA
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STARMIE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_F_KAYLEE_JOHTO ===
+Name: KAYLEE
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SEAKING
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_LANTURN
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_QUAGSIRE
+Level: 24
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PICNICKER_KIM_JOHTO ===
@@ -17488,6 +17818,23 @@ SPECIES_VULPIX
 Level: 18
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_SWIMMER_M_KIRK_JOHTO ===
+Name: KIRK
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GYARADOS
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GYARADOS
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_POKEMANIAC_LARRY_JOHTO ===
 Name: LARRY
 Class: Pokemaniac
@@ -17499,6 +17846,23 @@ AI: Check Bad Move
 
 SPECIES_LARVITAR
 Level: 10
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_LEONARD_JOHTO ===
+Name: LEONARD
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GEODUDE
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHOP
+Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PICNICKER_LIZ_JOHTO ===
@@ -17531,6 +17895,48 @@ SPECIES_GYARADOS
 Level: 25
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_SWIMMER_M_MATHEW_JOHTO ===
+Name: MATHEW
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_KRABBY
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_QWILFISH
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_MEGAN_JOHTO ===
+Name: MEGAN
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_TANGELA
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_VENUSAUR
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_VICTREEBEL
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_BELLOSSOM
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_YOUNGSTER_MIKEY_JOHTO ===
 Name: MIKEY
 Class: Youngster
@@ -17559,6 +17965,27 @@ AI: Check Bad Move
 
 SPECIES_BELLSPROUT
 Level: 6
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_NICK_JOHTO ===
+Name: NICK
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_CHARMANDER
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SQUIRTLE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_BULBASAUR
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_SAGE_NICO_JOHTO ===
@@ -17612,6 +18039,23 @@ SPECIES_CORSOLA
 Level: 21
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_SWIMMER_F_PAULA_JOHTO ===
+Name: PAULA
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_STARYU
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SHELLDER
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_BIRD_KEEPER_PETER_JOHTO ===
 Name: PETER
 Class: Bird Keeper
@@ -17650,6 +18094,27 @@ SPECIES_GIRAFARIG
 Level: 36
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_HIKER_PHILLIP_JOHTO ===
+Name: PHILLIP
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GEODUDE
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GEODUDE
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GRAVELER
+Level: 23
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_FISHERMAN_RALPH_JOHTO ===
 Name: RALPH
 Class: Fisherman
@@ -17663,6 +18128,23 @@ SPECIES_GOLDEEN
 Level: 8
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_SWIMMER_M_RANDALL_JOHTO ===
+Name: RANDALL
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SHELLDER
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_WARTORTLE
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_FIREBREATHER_RAY_JOHTO ===
 Name: RAY
 Class: Firebreather Johto
@@ -17674,6 +18156,48 @@ AI: Check Bad Move
 
 SPECIES_VULPIX
 Level: 9
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_FISHERMAN_RAYMOND_JOHTO ===
+Name: RAYMOND
+Class: Fisherman
+Pic: Fisherman
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_VAPOREON
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_REENA_JOHTO ===
+Name: REENA
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_STARMIE
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NIDOQUEEN
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_VILEPLUME
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_ELECTRODE
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STARMIE
+Level: 45
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_BIRD_KEEPER_ROD_JOHTO ===
@@ -17787,6 +18311,65 @@ SPECIES_SPEAROW
 Level: 12
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+=== TRAINER_FISHERMAN_SCOTT_JOHTO ===
+Name: SCOTT
+Class: Fisherman
+Pic: Fisherman
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_QWILFISH
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SEAKING
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GYARADOS
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_QUAGSIRE
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_POKEMANIAC_SHANE_JOHTO ===
+Name: SHANE
+Class: Pokemaniac
+Pic: Pokemaniac
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_NIDORINO
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NIDOKING
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_M_SIMON_JOHTO ===
+Name: SIMON
+Class: Swimmer M
+Pic: Swimmer M
+Gender: Male
+Music: Swimmer
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_TENTACOOL
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TENTACOOL
+Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
 === TRAINER_CAMPER_SPENCER_JOHTO ===
 Name: SPENCER
 Class: Camper
@@ -17802,6 +18385,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_GOLBAT
 Level: 25
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_F_SUSIE_JOHTO ===
+Name: SUSIE
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_PSYDUCK
+Level: 27
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SEAKING
+Level: 26
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_PICNICKER_TIFFANY_JOHTO ===
@@ -17959,6 +18559,23 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 SPECIES_MAGMAR
 Level: 15
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SWIMMER_F_WENDY_JOHTO ===
+Name: WENDY
+Class: Swimmer F
+Pic: Swimmer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_HORSEA
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SEADRA
+Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
 === TRAINER_FISHERMAN_WILTON_JOHTO ===

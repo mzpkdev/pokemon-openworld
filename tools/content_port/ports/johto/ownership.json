@@ -3545,12 +3545,12 @@
     {
       "kind": "file",
       "path": "data/maps/LakeOfRage/map.json",
-      "sha256": "2ec8ffd39777dd2906b8bed9977ff3638b72725ab472ed55082765ea45698b64"
+      "sha256": "905603f9056a74fadddb5b1f6c20e7ee7d7aac6e47c363df4aa47feafcf02cd9"
     },
     {
       "kind": "file",
       "path": "data/maps/LakeOfRage/scripts.inc",
-      "sha256": "ab514fecb2ffa66d01e30a0056aa662c892762fc8c15fde1ed7470244a2fe05a"
+      "sha256": "d335ebb17e828386bfc42084478fd7c527408909fe2f46e32c34939bf8c20da4"
     },
     {
       "kind": "file",
@@ -3975,12 +3975,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route27/map.json",
-      "sha256": "5a958a5457e98e921e4303f8d236791f2cfb709c905ae0a6d6c999c63440d377"
+      "sha256": "f77aeee1330afb3652368245dda978e274affb9320b622158556d79a75a41a52"
     },
     {
       "kind": "file",
       "path": "data/maps/Route27/scripts.inc",
-      "sha256": "cc31a4a51ad0c36eef45403dc63e54b8cf38de8a3d81cb6beaca1c3c2f73f9ec"
+      "sha256": "94a309277c541c2731a28b3c1a290d2a2c06e1dd00adbf209a8489845a374e74"
     },
     {
       "kind": "file",
@@ -4155,32 +4155,32 @@
     {
       "kind": "file",
       "path": "data/maps/Route40/map.json",
-      "sha256": "ac9389dcaad636c2474a687b89b2be828da3821011e9d751ae354c12f26d7e5f"
+      "sha256": "312f8cb20dd46d8811ed9d57e811b79efce1a55d47d9747c47ff49058d5ab41d"
     },
     {
       "kind": "file",
       "path": "data/maps/Route40/scripts.inc",
-      "sha256": "99ef4d827944122d3bff90ac604821c28442fdfdd3ea3aa699085d129c63a42d"
+      "sha256": "fede0a660133dab8ce9a3e2f80ef2a177d5f5f529932133f612096f85b2cc64e"
     },
     {
       "kind": "file",
       "path": "data/maps/Route41/map.json",
-      "sha256": "fb8aa857fc8e185d25f0596e517007bf4410424c90f5ed942b18da58f8e84137"
+      "sha256": "fb6b02296fce6e042b50e21440680752210ce9292236fe065a58f78a93c7679f"
     },
     {
       "kind": "file",
       "path": "data/maps/Route41/scripts.inc",
-      "sha256": "184e6135778d2784b86e835d426573068a887809393a5927979ee5d03605dc28"
+      "sha256": "8b75b497f7a4f463fdf73118008210cd00a675379927a7a86b0fe7fc98b46c7c"
     },
     {
       "kind": "file",
       "path": "data/maps/Route42/map.json",
-      "sha256": "d1778496f1d1591cd9af730a9732d725969d46e1148aa79439134f9777f60a2f"
+      "sha256": "b907fa8b74e73d1cd0e29ec1862cc509f647dbabbd4459472ddd69d5e57daf4f"
     },
     {
       "kind": "file",
       "path": "data/maps/Route42/scripts.inc",
-      "sha256": "4aca563df97d8f0c797bedcb9e3e02146a26f5e61e8b468eefc73f65531f0d2a"
+      "sha256": "0306b9a6a0ada09021cd6065840edb322febd16f12f4cab910f3ea2d39b927da"
     },
     {
       "kind": "file",
@@ -4735,22 +4735,22 @@
     {
       "kind": "file",
       "path": "data/maps/UnionCave_B1F/map.json",
-      "sha256": "ce81ef899ee29bb808da78a61d2c135742d666322b0c69e9af55dea2f78f99e5"
+      "sha256": "b6a9aa60262bcaf5470552f93ad5cc868d1c7815353445be9531903bb64d98d8"
     },
     {
       "kind": "file",
       "path": "data/maps/UnionCave_B1F/scripts.inc",
-      "sha256": "8613bbeb9a2fab879ba94c676cbdae8d48c656dc28d516eae355eb074ff8061f"
+      "sha256": "d897c4d3ee21af26ecf67256b50d2aea47507b74fdf2fd5492a358dae2a91148"
     },
     {
       "kind": "file",
       "path": "data/maps/UnionCave_B2F/map.json",
-      "sha256": "ef547794344773b6ac6f6246bc9f78dbaf0698cb67c8d30d0b3449b98e7035af"
+      "sha256": "b0d8afdfef4449c33e10ea20468c757c630407e3e6df725fd983a008b1be9329"
     },
     {
       "kind": "file",
       "path": "data/maps/UnionCave_B2F/scripts.inc",
-      "sha256": "366278e9fffb206ca3ef3b73d4a724e5aafa355b57268611111d6296760f3a88"
+      "sha256": "d79f27a2279ce4f69b9fbcecf8f02e001d42432168ad6ee6fbf2bd9785b82a99"
     },
     {
       "kind": "file",
@@ -13879,7 +13879,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "38c83563e756d2a4e548f5eff1ec3969b1234d63b1934284ec33a406b8df6886"
+      "sha256": "5ab45ef2bab036a243725f0d28150056bd7309d6f30c666657efc6a5801a14be"
     }
   ]
 }

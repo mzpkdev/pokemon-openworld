@@ -155,6 +155,7 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
         ),
     ),
     ("bulk-fixed-standard-singles-60", 60),
+    ("bulk-surf-field-standard-singles-33", 33),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -225,7 +226,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "8469e1931861e69684eb912be4369274870e134733fc31e4672552a1613408bd"
+    "045b9304995172d36b761274d42f9c0015b01c46299a8357f2b96df2c4f20df0"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -313,6 +314,41 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             34,
             27,
             "1e7f4334f2191eeffd2f6b28cabce2172a42c415b243253f3203878544d6de76",
+        ),
+        "UnionCave_B1F": (
+            48,
+            48,
+            "b6e806920ff8c555ce5bc37eab5103208d486e98bdf64606fa98a63a9ac39148",
+        ),
+        "UnionCave_B2F": (
+            40,
+            50,
+            "32ce9abfd7bec64de1690af883fc4ecea08c481d9d30db5efb790406a85271cc",
+        ),
+        "Route40": (
+            34,
+            71,
+            "2dcccf3bae4e83be81434a4a21692a38958ac82ee88857cc48f72edaa8d4adda",
+        ),
+        "Route41": (
+            74,
+            89,
+            "8e74bfff6195091496f4e5731b56c6f5b9affcbdfcfd9d80fc7435868e2a0222",
+        ),
+        "Route42": (
+            76,
+            26,
+            "cd91e417330f587be5dc0c60a4d0e523ad79ee32b2378e6eaec1caf8612544a3",
+        ),
+        "LakeOfRage": (
+            64,
+            47,
+            "00ef2ca239a97ba8d8191624c341241aa6e3858fa297a87b564b9088cf6bbf38",
+        ),
+        "Route27": (
+            160,
+            40,
+            "847dea5e27dd19089df94641639d55fcf4d47e1101d105826dfd97a6f398b847",
         ),
     }
 )
@@ -2708,21 +2744,35 @@ def _require_trainer_geometry_adapter(
         )
         for batch in pending
     )
-    expected_prefix = _REVIEWED_STANDARD_SINGLE_BATCHES[:-1]
-    bulk_key, bulk_count = _REVIEWED_STANDARD_SINGLE_BATCHES[-1]
-    matches_bulk = (
-        len(observed) == len(_REVIEWED_STANDARD_SINGLE_BATCHES)
-        and observed[:-1] == expected_prefix
-        and observed[-1][0] == bulk_key
-        and len(observed[-1][1]) == bulk_count
+
+    def matches_reviewed(
+        actual: tuple[str, tuple[tuple[str, str, tuple[str, ...]], ...]],
+        reviewed: tuple[str, object],
+    ) -> bool:
+        key, expected = reviewed
+        if actual[0] != key:
+            return False
+        if type(expected) is int:
+            return len(actual[1]) == expected
+        return actual[1] == expected
+
+    matches_reviewed_batches = len(observed) == len(
+        _REVIEWED_STANDARD_SINGLE_BATCHES
+    ) and all(
+        matches_reviewed(actual, reviewed)
+        for actual, reviewed in zip(
+            observed, _REVIEWED_STANDARD_SINGLE_BATCHES, strict=True
+        )
     )
-    if not matches_bulk:
+    if not matches_reviewed_batches:
         next_batch = next(
             (
                 batch.key
                 for index, batch in enumerate(pending)
                 if index >= len(_REVIEWED_STANDARD_SINGLE_BATCHES)
-                or observed[index] != _REVIEWED_STANDARD_SINGLE_BATCHES[index]
+                or not matches_reviewed(
+                    observed[index], _REVIEWED_STANDARD_SINGLE_BATCHES[index]
+                )
             ),
             "missing-reviewed-batch",
         )
