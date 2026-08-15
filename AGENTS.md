@@ -59,6 +59,22 @@ The E2E targets build fresh debug artifacts locally. `E2E_PREBUILT_DEBUG=1` is r
 - `make content-port-bundle` builds the configured donor-backed content bundle.
 - `make wild-encounter-test` runs wild-encounter generator tests.
 
+### Experimental Probe retrieval
+
+Probe retrieval is experimental until the benchmark in
+`tools/probe_retrieval/benchmark/report.md` passes its token and correctness gate. Do
+not install or invoke it during normal builds, tests, CI, or agent startup.
+
+On Linux x86_64, install the reviewed standalone CLI explicitly with
+`python3 -m tools.probe_retrieval.bootstrap`. Invoke the confined wrapper with
+`python3 -m tools.probe_retrieval.cli`. The wrapper only provides bounded search,
+symbol listing, and extraction for C, C++, and Python.
+
+Use `rg` and bounded file reads for exact text, `.inc`, `.s`, `.json`, generated data,
+oversized files, and every unsupported format. Probe does not provide whole-repository
+semantic coverage. Never invoke Probe Agent, upstream MCP, LSP, editing, delegation,
+shell, or provider-backed features in this repository.
+
 ## Product-owned C tests
 
 Place Pokemon OpenWorld-owned C tests under `test/openworld/`. Do not add them to inherited RHH test directories or root test files unless an upstream test must change for compatibility.

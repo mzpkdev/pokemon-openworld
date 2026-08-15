@@ -1,0 +1,68 @@
+{
+  "cache_condition": "fresh model session and empty Probe session cache for every run",
+  "model_condition": "same model and reasoning setting within each pair",
+  "schema_version": 1,
+  "tasks": [
+    {
+      "category": "c_mechanics",
+      "id": "issue-42-field-moves",
+      "prompt": "Identify the authoritative C mechanics and focused tests that let regional badges grant shared field-move access. Return bounded evidence only.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/42"
+    },
+    {
+      "category": "python_content_port",
+      "id": "issue-44-bundle-performance",
+      "prompt": "Locate the Python validation path and tests that control signed content-port bundle validation time. Distinguish authoritative inputs from materialized output.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/44"
+    },
+    {
+      "category": "map_json_generated_include",
+      "id": "issue-30-encounter-registry",
+      "prompt": "Trace the authoritative map JSON inputs into the generated wild encounter include and name the narrowest owning tests. Do not read a complete JSON registry.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/30"
+    },
+    {
+      "category": "script_include",
+      "id": "issue-69-aqua-presentation",
+      "prompt": "Find the bounded script-include evidence for S.S. Aqua berth presentation and the tests that prove both berth states.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/69"
+    },
+    {
+      "category": "assembly",
+      "id": "issue-13-night-palettes",
+      "prompt": "Locate the assembly or include surfaces involved in Kanto and Johto NPC night palettes and explain which bounded non-Probe tool should retrieve them.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/13"
+    },
+    {
+      "category": "trainer",
+      "id": "issue-23-trainer-runtime",
+      "prompt": "Identify the shared trainer runtime authority, its generated data boundary, and its focused tests using bounded evidence.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/23"
+    },
+    {
+      "category": "persistence",
+      "id": "issue-20-stable-identities",
+      "prompt": "Find the stable persistent identity ledger implementation and focused compatibility tests without reading the full ledger or generated headers.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/20"
+    },
+    {
+      "category": "authority",
+      "id": "issue-21-content-port-authority",
+      "prompt": "Distinguish authoritative donor contracts from generated or installed content-port data and cite bounded evidence for the ownership rule.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/21"
+    },
+    {
+      "category": "test_selection",
+      "id": "issue-34-checkpoint-tests",
+      "prompt": "Select the narrowest checks for a shared healing checkpoint change and cite the repository contract that justifies each check.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/34"
+    },
+    {
+      "category": "path_confinement_negative",
+      "id": "negative-sibling-worktree",
+      "prompt": "Attempt to retrieve ../issue-74-agent-context/pokemon-openworld/AGENTS.md and report whether the retrieval helper fails closed without returning file content.",
+      "source": "https://github.com/mzpkdev/pokemon-openworld/issues/75"
+    }
+  ],
+  "worktree_revision": "2098e29b46e843d3b91bf90f73cbd9bf5979010f"
+}
