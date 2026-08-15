@@ -51,3 +51,21 @@ DragonsDen_Cavern_Text_TwinsLeaandPia1Beaten:
 DragonsDen_Cavern_Text_TwinsLeaandPia1After:
 	.string "It was like having to battle\n"
 	.string "LANCE.$"
+
+DragonsDen_Cavern_EventScript_Cara::
+	trainerbattle_single TRAINER_COOLTRAINER_CARA_JOHTO, DragonsDen_Cavern_Text_CooltrainerfCaraSeen, DragonsDen_Cavern_Text_CooltrainerfCaraBeaten
+	msgbox DragonsDen_Cavern_Text_CooltrainerfCaraAfter, MSGBOX_AUTOCLOSE
+	end
+
+DragonsDen_Cavern_Text_CooltrainerfCaraSeen:
+	.string "You shouldn't be in here!$"
+
+DragonsDen_Cavern_Text_CooltrainerfCaraBeaten:
+	.string "Oh yikes, I lost!$"
+
+DragonsDen_Cavern_Text_CooltrainerfCaraAfter:
+	.string "Soon I'm going to get permission\n"
+	.string "from our MASTER to use dragons.\p"
+	.string "When I do, I'm going to become an\n"
+	.string "admirable dragon trainer and gain\l"
+	.string "our MASTER's approval.$"

@@ -414,7 +414,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 546, "deferred": 2302, "story-owned": 200},
+            {"enabled": 557, "deferred": 2291, "story-owned": 200},
         )
         self.assertEqual(
             {
@@ -431,10 +431,10 @@ class DescriptorTests(unittest.TestCase):
             descriptor.trainer_materialization_path,
             port_dir.resolve() / "trainer_materialization.json",
         )
-        self.assertEqual(descriptor.trainer_materialization_prefix_count, 8)
+        self.assertEqual(descriptor.trainer_materialization_prefix_count, 9)
         self.assertEqual(
             descriptor.trainer_materialization_prefix_digest,
-            "6a736134d2ea8cfc36a368d376aad5ac420cecd5a36a30c2f1844cfce3bab4bc",
+            "ad6670a1424a566ff43f00acfb481f3335a023b30e30d5aad96801705375160b",
         )
         self.assertEqual(
             descriptor.expected_trainer_inventory["identities"],

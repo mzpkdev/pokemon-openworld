@@ -89,7 +89,6 @@ TEST("Ordinary trainer registry rejects invalid IDs holes and missing parties")
     };
     EXPECT(!TrainerRegistry_TestResolve(&sRegistryTrainers[0][0], REGISTRY_TEST_TRAINER_COUNT, 3, DIFFICULTY_HARD, &resolved));
     EXPECT(!TryResolveOrdinaryTrainer(TRAINERS_COUNT, &resolved));
-    EXPECT(!TryResolveOrdinaryTrainer(TRAINER_EXPERT_ROXANNE_JOHTO, &resolved));
 }
 
 TEST("Samuel resolves his authored normal party without legacy defeat flag or rematch state")
@@ -380,6 +379,36 @@ TEST("Paired battle checkpoint resolves registered normal parties")
         EXPECT(resolved.trainer.battleType == TRAINER_BATTLE_TYPE_SINGLES);
         EXPECT(resolved.trainer.party != NULL);
         EXPECT(resolved.trainer.partySize > 0);
+    }
+}
+
+TEST("Direct Johto tail trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_BUG_CATCHER_WAYNE_JOHTO,
+        TRAINER_SAGE_JEFFREY_JOHTO,
+        TRAINER_SAILOR_HUEY_JOHTO,
+        TRAINER_EXPERT_CLARISSA_JOHTO,
+        TRAINER_SUPER_NERD_HUGH_JOHTO,
+        TRAINER_COOLTRAINER_CARA_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
     }
 }
 

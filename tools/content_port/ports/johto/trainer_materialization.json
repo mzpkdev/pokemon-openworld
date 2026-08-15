@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "appendOnlyBaseline": {
-    "batchCount": 8,
-    "sha256": "6a736134d2ea8cfc36a368d376aad5ac420cecd5a36a30c2f1844cfce3bab4bc"
+    "batchCount": 9,
+    "sha256": "ad6670a1424a566ff43f00acfb481f3335a023b30e30d5aad96801705375160b"
   },
   "batches": [
     {
@@ -939,6 +939,259 @@
           "identity": "TRAINER_COLIN",
           "placements": [
             "SSAqua_RoomSE/3/SSAqua_RoomSE_EventScript_Colin"
+          ]
+        }
+      ]
+    },
+    {
+      "sequence": 8,
+      "key": "bulk-complex-tail-standard-singles-41",
+      "kind": "standard-singles",
+      "identities": [
+        {
+          "identity": "TRAINER_WAYNE",
+          "placements": [
+            "IlexForest/7/IlexForest_EventScript_BugcatcherWayne"
+          ]
+        },
+        {
+          "identity": "TRAINER_BENNY",
+          "placements": [
+            "AzaleaTown_Gym/4/AzaleaTown_Gym_EventScript_Benny"
+          ]
+        },
+        {
+          "identity": "TRAINER_JOSH",
+          "placements": [
+            "AzaleaTown_Gym/5/AzaleaTown_Gym_EventScript_Josh"
+          ]
+        },
+        {
+          "identity": "TRAINER_AL",
+          "placements": [
+            "AzaleaTown_Gym/6/AzaleaTown_Gym_EventScript_Al"
+          ]
+        },
+        {
+          "identity": "TRAINER_MARK",
+          "placements": [
+            "Route36/3/Route36_EventScript_Mark"
+          ]
+        },
+        {
+          "identity": "TRAINER_ALAN",
+          "placements": [
+            "Route36/4/Route36_EventScript_Schoolboy"
+          ]
+        },
+        {
+          "identity": "TRAINER_DUNCAN",
+          "placements": [
+            "GoldenrodCity_UndergroundSwitches/3/GoldenrodCity_UndergroundSwitches_EventScript_Duncan"
+          ]
+        },
+        {
+          "identity": "TRAINER_EDDIE",
+          "placements": [
+            "GoldenrodCity_UndergroundSwitches/4/GoldenrodCity_UndergroundSwitches_EventScript_Eddie"
+          ]
+        },
+        {
+          "identity": "TRAINER_JEFFREY",
+          "placements": [
+            "EcruteakCity_Gym/3/EcruteakCity_Gym_EventScript_Jeffrey"
+          ]
+        },
+        {
+          "identity": "TRAINER_MARTHA",
+          "placements": [
+            "EcruteakCity_Gym/4/EcruteakCity_Gym_EventScript_Martha"
+          ]
+        },
+        {
+          "identity": "TRAINER_PING",
+          "placements": [
+            "EcruteakCity_Gym/5/EcruteakCity_Gym_EventScript_Ping"
+          ]
+        },
+        {
+          "identity": "TRAINER_GRACE",
+          "placements": [
+            "EcruteakCity_Gym/6/EcruteakCity_Gym_EventScript_Grace"
+          ]
+        },
+        {
+          "identity": "TRAINER_NARD",
+          "placements": [
+            "BurnedTower_1F/3/BurnedTower_1F_EventScript_Nard"
+          ]
+        },
+        {
+          "identity": "TRAINER_RICHARDO",
+          "placements": [
+            "BurnedTower_1F/4/BurnedTower_1F_EventScript_Richardo"
+          ]
+        },
+        {
+          "identity": "TRAINER_HUEY",
+          "placements": [
+            "OlivineCity_Lighthouse/2/OlivineLighthouse_EventScript_Huey"
+          ]
+        },
+        {
+          "identity": "TRAINER_ALFRED",
+          "placements": [
+            "OlivineCity_Lighthouse/3/OlivineLighthouse_EventScript_GentlemanAlfred"
+          ]
+        },
+        {
+          "identity": "TRAINER_TERRELL",
+          "placements": [
+            "OlivineCity_Lighthouse/4/OlivineLighthouse_EventScript_SailorTerrell"
+          ]
+        },
+        {
+          "identity": "TRAINER_THEO",
+          "placements": [
+            "OlivineCity_Lighthouse/5/OlivineLighthouse_EventScript_BirdKeeperTheo"
+          ]
+        },
+        {
+          "identity": "TRAINER_PRESTON",
+          "placements": [
+            "OlivineCity_Lighthouse/6/OlivineLighthouse_EventScript_GentlemanPreston"
+          ]
+        },
+        {
+          "identity": "TRAINER_KENT",
+          "placements": [
+            "OlivineCity_Lighthouse/7/OlivineLighthouse_EventScript_SailorKent"
+          ]
+        },
+        {
+          "identity": "TRAINER_CONNIE",
+          "placements": [
+            "OlivineCity_Lighthouse/8/OlivineLighthouse_EventScript_LassConnie"
+          ]
+        },
+        {
+          "identity": "TRAINER_DENIS",
+          "placements": [
+            "OlivineCity_Lighthouse/9/OlivineLighthouse_EventScript_BirdKeeperDenis"
+          ]
+        },
+        {
+          "identity": "TRAINER_ERNEST",
+          "placements": [
+            "OlivineCity_Lighthouse/10/OlivineLighthouse_EventScript_SailorErnest"
+          ]
+        },
+        {
+          "identity": "TRAINER_NOB",
+          "placements": [
+            "CianwoodGym/1/CianwoodGym_EventScript_Nob"
+          ]
+        },
+        {
+          "identity": "TRAINER_YOSHI",
+          "placements": [
+            "CianwoodGym/2/CianwoodGym_EventScript_Yoshi"
+          ]
+        },
+        {
+          "identity": "TRAINER_LAO",
+          "placements": [
+            "CianwoodGym/3/CianwoodGym_EventScript_Lao"
+          ]
+        },
+        {
+          "identity": "TRAINER_LUNG",
+          "placements": [
+            "CianwoodGym/4/CianwoodGym_EventScript_Lung"
+          ]
+        },
+        {
+          "identity": "TRAINER_CLARISSA",
+          "placements": [
+            "MahoganyTown_Gym/0/MahoganyTown_Gym_EventScript_Clarissa"
+          ]
+        },
+        {
+          "identity": "TRAINER_BRAD",
+          "placements": [
+            "MahoganyTown_Gym/1/MahoganyTown_Gym_EventScript_Brad"
+          ]
+        },
+        {
+          "identity": "TRAINER_RONALD",
+          "placements": [
+            "MahoganyTown_Gym/2/MahoganyTown_Gym_EventScript_Ronald"
+          ]
+        },
+        {
+          "identity": "TRAINER_DOUGLAS",
+          "placements": [
+            "MahoganyTown_Gym/3/MahoganyTown_Gym_EventScript_Douglas"
+          ]
+        },
+        {
+          "identity": "TRAINER_ROXANNE",
+          "placements": [
+            "MahoganyTown_Gym/4/MahoganyTown_Gym_EventScript_Roxanne"
+          ]
+        },
+        {
+          "identity": "TRAINER_MARKUS",
+          "placements": [
+            "MtMortar_1F_North/7/MtMortar_1F_North_EventScript_Markus"
+          ]
+        },
+        {
+          "identity": "TRAINER_MILLER",
+          "placements": [
+            "MtMortar_1F_North/8/MtMortar_1F_North_EventScript_Miller"
+          ]
+        },
+        {
+          "identity": "TRAINER_HUGH",
+          "placements": [
+            "MtMortar_2F/6/MtMortar_2F_EventScript_Nerd"
+          ]
+        },
+        {
+          "identity": "TRAINER_MIKE",
+          "placements": [
+            "BlackthornCity_Gym/0/BlackthornGym_EventScript_Mike"
+          ]
+        },
+        {
+          "identity": "TRAINER_PAUL",
+          "placements": [
+            "BlackthornCity_Gym/1/BlackthornGym_EventScript_Paul"
+          ]
+        },
+        {
+          "identity": "TRAINER_LOLA",
+          "placements": [
+            "BlackthornCity_Gym/2/BlackthornGym_EventScript_Lola"
+          ]
+        },
+        {
+          "identity": "TRAINER_FRAN",
+          "placements": [
+            "BlackthornCity_Gym/7/BlackthornGym_EventScript_Fran"
+          ]
+        },
+        {
+          "identity": "TRAINER_CODY",
+          "placements": [
+            "BlackthornCity_Gym/8/BlackthornGym_EventScript_Cody"
+          ]
+        },
+        {
+          "identity": "TRAINER_CARA",
+          "placements": [
+            "DragonsDen_Cavern/3/DragonsDen_Cavern_EventScript_Cara"
           ]
         }
       ]

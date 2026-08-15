@@ -341,7 +341,9 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(result.batches[-1].key, "paired-doubles-with-ordering-singles")
+        self.assertEqual(
+            result.batches[-1].key, "bulk-complex-tail-standard-singles-41"
+        )
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []

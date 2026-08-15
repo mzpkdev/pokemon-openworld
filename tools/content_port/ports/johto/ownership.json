@@ -2565,12 +2565,12 @@
     {
       "kind": "file",
       "path": "data/maps/AzaleaTown_Gym/map.json",
-      "sha256": "1277f0e6704630ac88aff4582c04a1875554b0b65272a38553614491ca327ba3"
+      "sha256": "e62155cecc9a0214f04f7f1d65fb07a6ec0fbea2a3a0d9f24f03b5b3d25e642e"
     },
     {
       "kind": "file",
       "path": "data/maps/AzaleaTown_Gym/scripts.inc",
-      "sha256": "581da55120994d91c8a76267fd95d41855d62959c836303e934c926854bffa5c"
+      "sha256": "5405ad0d908566f68e0a32e40ee8efa1c4b28a352a16a2543a8056f382c8a9a5"
     },
     {
       "kind": "file",
@@ -2635,12 +2635,12 @@
     {
       "kind": "file",
       "path": "data/maps/BlackthornCity_Gym/map.json",
-      "sha256": "db443fa40b4a0d96617f8544f9e26b302dc2c54c77b866e75eb224fd83b9f23d"
+      "sha256": "a5909be1cdcb07fe3ee5b1d370e021ad8f45af3c7edf433f2aadf1eb600ebac1"
     },
     {
       "kind": "file",
       "path": "data/maps/BlackthornCity_Gym/scripts.inc",
-      "sha256": "cd8edcb7aed6ab9cff2849e4f1351ce89f0eaf3c278d1fbbe79d7951ffc85054"
+      "sha256": "1c4e87a9027543bf5c7f50d10e69f1db2a94b60dfd3e11e4f22c2ec2d421d0a3"
     },
     {
       "kind": "file",
@@ -2695,12 +2695,12 @@
     {
       "kind": "file",
       "path": "data/maps/BurnedTower_1F/map.json",
-      "sha256": "5caac98135ad06b647b7f5be61d3172824c56c390b387026779fdda7e8419bc0"
+      "sha256": "c3f204e436bc40836539c8757d312f09abe1f0fb7d406ac2b20cf6cda440dd29"
     },
     {
       "kind": "file",
       "path": "data/maps/BurnedTower_1F/scripts.inc",
-      "sha256": "98e2bd2a1dc6dd3eac8e083f1c0f8b4135aaacbc9bf52af24230a0aeb4a2699c"
+      "sha256": "688978408b8b70120aba4cfc9f87e4da4389cabd65c62e040b5e18ae8b8416d8"
     },
     {
       "kind": "file",
@@ -2725,12 +2725,12 @@
     {
       "kind": "file",
       "path": "data/maps/CianwoodGym/map.json",
-      "sha256": "292d45f8583e6742f660b1716302e1fbb017893f3d6e205a8f7841e74798ba76"
+      "sha256": "c414e553ea770896200bfd181b6a7557148f979a01c6cd5e486fc3c6c660cde0"
     },
     {
       "kind": "file",
       "path": "data/maps/CianwoodGym/scripts.inc",
-      "sha256": "31e92f4a89d8a012ccb5c210e2a33b47709998a2496c120df83599e4030bbd5a"
+      "sha256": "394d961f0f892bb5f38f8d76c8fa71e068ebd3720ab72f9839f6ee03ef820f81"
     },
     {
       "kind": "file",
@@ -2825,12 +2825,12 @@
     {
       "kind": "file",
       "path": "data/maps/DragonsDen_Cavern/map.json",
-      "sha256": "6c0a1d270427b3204cee58ccb957aafe3eb042753e12bc01291fc97adfc30fb9"
+      "sha256": "94404c95ee72a63a59a67d4e97d4cdae7e839fb381feca38db10906a16423e15"
     },
     {
       "kind": "file",
       "path": "data/maps/DragonsDen_Cavern/scripts.inc",
-      "sha256": "dbea8410984d02cbc08643d25a1366dcdf25cbaae839872825cfdbe1e47eb765"
+      "sha256": "3815c0f6f9d414d0d70e1f92efad2fa41e6147ea49e8976afe5a8c5c5e73024c"
     },
     {
       "kind": "file",
@@ -2865,12 +2865,12 @@
     {
       "kind": "file",
       "path": "data/maps/EcruteakCity_Gym/map.json",
-      "sha256": "782a7ad9ac798e8ce85badf05157b0834b3c7ea51f5b5b9a481391aace796178"
+      "sha256": "2ed826f3a8a4eab803b61bbb0f0240b9e627e22431b27f7e552e28948b256c49"
     },
     {
       "kind": "file",
       "path": "data/maps/EcruteakCity_Gym/scripts.inc",
-      "sha256": "49afc41a14d6545af5974e7df5c01ea770f5ffc9fffbb930227572aaba57824c"
+      "sha256": "81009bd7b6a88853d70f7a7d7dc8794e818171074ea100de72cb5adbb0aff204"
     },
     {
       "kind": "file",
@@ -3355,12 +3355,12 @@
     {
       "kind": "file",
       "path": "data/maps/GoldenrodCity_UndergroundSwitches/map.json",
-      "sha256": "1a4268b8fd170f28503c869deea35da998c28cf8110c9aafac22eb0137444e5c"
+      "sha256": "c589abe4185a04970429a00d07ab117809cdf65fb7e57b6d6f05b85a02b287db"
     },
     {
       "kind": "file",
       "path": "data/maps/GoldenrodCity_UndergroundSwitches/scripts.inc",
-      "sha256": "7a44ed3c3560adeb381139f229e14ce986d0e22dd6605cdf59a5e8e807ac3c8b"
+      "sha256": "eb6596c93224f1f51b351796cba3e6c420d06785d0a2396a560302eb1542a39d"
     },
     {
       "kind": "file",
@@ -3425,12 +3425,12 @@
     {
       "kind": "file",
       "path": "data/maps/IlexForest/map.json",
-      "sha256": "a5086df5a666b77ae01ce75310404e9560f8738d172602912fa0e09a5a0cbdf9"
+      "sha256": "7c33fe932598ffe1895fec15e335e75d971cd5a42f10b2f0ffbe0be1e77199c0"
     },
     {
       "kind": "file",
       "path": "data/maps/IlexForest/scripts.inc",
-      "sha256": "c87958945350d81a38e3e01131cfb9becbde0389034d5ef294c2ead496498d70"
+      "sha256": "d970fb61d7befff20e7ac15c5be52d65016262c9177c3fac4256d087bffcf455"
     },
     {
       "kind": "file",
@@ -3615,12 +3615,12 @@
     {
       "kind": "file",
       "path": "data/maps/MahoganyTown_Gym/map.json",
-      "sha256": "ad0a3ff99d71d2e8c058123e8bf99cf0ba2fc8891b13e75969b62c128c0b374b"
+      "sha256": "2d32230ce366769b24c55af9a045db4f7eb27bc1e659d50d339a6750045103c9"
     },
     {
       "kind": "file",
       "path": "data/maps/MahoganyTown_Gym/scripts.inc",
-      "sha256": "4abaabcd127cf87d74b3e5e9dae2aeb2539e9e1cd1bbb660b46384c56f3e7815"
+      "sha256": "c157ae4d0654a71870d1be6e7926947bb6b3f3e4dd6d7c8b0b30bc8ae8d5cdef"
     },
     {
       "kind": "file",
@@ -3665,12 +3665,12 @@
     {
       "kind": "file",
       "path": "data/maps/MtMortar_1F_North/map.json",
-      "sha256": "664818587dc52828e2db30319fd7850813f9560d10c9d5f380b3b9dfc1b4e2e7"
+      "sha256": "d8ae4ee98a0d5bc7e86813060e583a72c9834c9ae1e5687534ee3cd17ec8ceca"
     },
     {
       "kind": "file",
       "path": "data/maps/MtMortar_1F_North/scripts.inc",
-      "sha256": "fc252b066261fcff695e8b9ead7b4490c28b6b56b86ff1d9c3b06882d4951013"
+      "sha256": "46d863819db19f41ee3a9b513c81adb82cc856b1f4a9df1c0917b75c9bbb8769"
     },
     {
       "kind": "file",
@@ -3685,12 +3685,12 @@
     {
       "kind": "file",
       "path": "data/maps/MtMortar_2F/map.json",
-      "sha256": "1d07a447209a17f7c7ac320855bd3fc6a00540e24790897409d5af99b87c003c"
+      "sha256": "55c03a83c6002ad6098dfc880a05c68ef47bf2c885ad0aa066c7f644badf34d9"
     },
     {
       "kind": "file",
       "path": "data/maps/MtMortar_2F/scripts.inc",
-      "sha256": "8e4c1c9cf0cf97c54f98dab121dd552aaa77eb6a9d1e88663626def70546899f"
+      "sha256": "3617bced9cfe57147dc37f568a333b3752244fe6c23f1a2d45a083c91c9371e2"
     },
     {
       "kind": "file",
@@ -3895,12 +3895,12 @@
     {
       "kind": "file",
       "path": "data/maps/OlivineCity_Lighthouse/map.json",
-      "sha256": "7893ddf2979648c15954429d92848393f84aeb1aca1fa201d992a99bb5d9f60c"
+      "sha256": "96aed31d55a1feecc3ba5881f28565c0724084c51f6c643a6992e57ea9b2ab30"
     },
     {
       "kind": "file",
       "path": "data/maps/OlivineCity_Lighthouse/scripts.inc",
-      "sha256": "d6a47fdaff3393cd1f59aedb61a33c926d7634d9702e6bb46c85974ea6ef22d5"
+      "sha256": "5415265090d96c3d7b1462252972e3ec76aca792d7751f8961b5c82e5608b352"
     },
     {
       "kind": "file",
@@ -4095,12 +4095,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route36/map.json",
-      "sha256": "2f559fbaa433ba9bb2014d390cf0c27c90b229c3266ab4f072051627d93941b9"
+      "sha256": "1aa5196106fdffe66f108279d843257efb00d09a95627ab8b9f8e6a6c0b53961"
     },
     {
       "kind": "file",
       "path": "data/maps/Route36/scripts.inc",
-      "sha256": "1ed6df0b42a959a21c2fe0ceb5ce314cc30287fffaaa55abee35129cc7b3bea8"
+      "sha256": "20947539ee6e942e751c1fba5485a521922138d9938ce65d7a5a8a421dfd253f"
     },
     {
       "kind": "file",
@@ -13879,7 +13879,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "37fc107a981961cb4c0ce3ae318f51f53d153cafcb4ef97e05e0aae95ba0ef58"
+      "sha256": "1f6e44b95b2b8d9ecfbef72c0f9c034b0790324a92002df94376ed3d44567f55"
     }
   ]
 }

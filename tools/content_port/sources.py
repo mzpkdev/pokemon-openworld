@@ -161,6 +161,7 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
     ("bulk-surf-field-standard-singles-33", 33),
     ("bulk-ordinary-standard-singles-26", 26),
     ("bulk-route45-route46-standard-singles-11", 11),
+    ("bulk-complex-tail-standard-singles-41", 41),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -231,7 +232,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "bacfef756a49b8301b1ae7e7ec7916ac2b553235d16ffd61610a80cd3c5e514a"
+    "2a086eaf5ef6df078e01bb052ea8413790d954109b05260998cd38a8daa41577"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -419,6 +420,61 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             27,
             46,
             "58c9c6bf3f61605675043509cdc99dedc7403a57288677d5f87a52676f642289",
+        ),
+        "IlexForest": (
+            82,
+            73,
+            "cb77cbcb31b5ce7616f27c90da394104e731da0142d225304e2586adfcc4912d",
+        ),
+        "Route36": (
+            66,
+            30,
+            "43b536ee2bcb779c5e0a0fdab03ae3f66780cca74f0704a83fde47490563b9bb",
+        ),
+        "GoldenrodCity_UndergroundSwitches": (
+            60,
+            18,
+            "efc8c5469ac57206dcf9df7fbaab5c3d6a7551b3373634f134eadfcdf7e1e100",
+        ),
+        "EcruteakCity_Gym": (
+            17,
+            48,
+            "1e279df1d4c7d1d883423a900905c22f6a15fefd392ecfa9ea263eac72ddfb96",
+        ),
+        "BurnedTower_1F": (
+            27,
+            25,
+            "50f492bf34dc5c6b7e1b82fc7e24cdc6eb259c1dcb6dbf40c5e87f8e75c0249d",
+        ),
+        "OlivineCity_Lighthouse": (
+            170,
+            20,
+            "86225e86fdf3d58c135b3028b9510eea51979ad5572b12e628c0ff3354a5df00",
+        ),
+        "CianwoodGym": (
+            21,
+            17,
+            "29e55b2e3078449c61d79403ef5f6f2587dff42e49c1b4e11bbaff9c2f78f859",
+        ),
+        "MahoganyTown_Gym": (
+            25,
+            30,
+            "fb6f2f939b339b583eb5b446420270f897b95e0292801c9218b77f22c3525b50",
+        ),
+        "MtMortar_1F_North": (
+            40,
+            50,
+            "fef6d4385b8754c124fea8bdb9b31f63b9d6010156aadfda3c50e546a4328b2c",
+        ),
+        "MtMortar_2F": (
+            40,
+            40,
+            "e20ace720ab83e092aca2dab46fb4063d4c2c778624156b76d60bb2c35efb010",
+        ),
+        "BlackthornCity_Gym": (
+            41,
+            60,
+            "f729511e3dbd28ad70a8cb5d4700973c391aa95302c76e749e3fcac5006c0aa1",
         ),
     }
 )
