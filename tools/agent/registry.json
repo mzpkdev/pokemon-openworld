@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "checks": {
+    "python-unittest": {"argv": ["python3", "-m", "unittest", "{selector}", "-v"], "selector": "unittest", "tier": "iteration"},
+    "python-pytest": {"argv": ["python3", "-m", "pytest", "{selector}", "-q"], "selector": "pytest", "tier": "iteration"},
+    "actionlint": {"argv": ["actionlint", "{workflows}"], "selector": "workflows", "tier": "required"},
+    "release-self-test": {"argv": [".github/release/release.py", "self-test"], "tier": "required"},
+    "make-isolation-test": {"argv": ["python3", "-m", "unittest", "tools.mapjson.tests.test_make_isolation", "-v"], "tier": "iteration"},
+    "agent-test": {"argv": ["make", "agent-test"], "tier": "required"},
+    "format-check": {"argv": ["make", "format-check"], "tier": "required"},
+    "lint-check": {"argv": ["make", "lint-check"], "tier": "required"},
+    "product-check": {"argv": ["make", "-j{jobs}", "-O", "product-check"], "tier": "required"},
+    "check": {"argv": ["make", "-j{jobs}", "-O", "check"], "tier": "conditional"},
+    "debug-check": {"argv": ["make", "-j{jobs}", "-O", "debug-check"], "tier": "required"},
+    "integrity-check": {"argv": ["make", "-j{jobs}", "-O", "integrity-check"], "tier": "conditional"},
+    "release-check": {"argv": ["make", "-j{jobs}", "-O", "release-check"], "tier": "conditional"},
+    "integrity-check-rom-purposes": {"argv": ["make", "-j{jobs}", "-O", "integrity-check-rom-purposes"], "tier": "conditional"},
+    "e2e-core": {"argv": ["make", "e2e-core"], "tier": "conditional"},
+    "e2e-integrity": {"argv": ["make", "e2e-integrity"], "tier": "conditional"},
+    "e2e-integrity-full": {"argv": ["make", "e2e-integrity-full"], "tier": "conditional"},
+    "e2e-extended": {"argv": ["make", "e2e-extended"], "tier": "conditional"},
+    "content-port-transaction-check": {"argv": ["make", "content-port-transaction-check"], "tier": "required"},
+    "content-port-ownership-check": {"argv": ["make", "content-port-ownership-check"], "tier": "required"},
+    "content-port-test": {"argv": ["make", "content-port-test"], "tier": "required"},
+    "content-port-check": {"argv": ["make", "content-port-check"], "tier": "conditional"},
+    "content-port-bundle": {"argv": ["make", "content-port-bundle"], "tier": "conditional"},
+    "wild-encounter-test": {"argv": ["make", "wild-encounter-test"], "tier": "required"}
+  }
+}

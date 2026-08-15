@@ -58,9 +58,18 @@ The E2E targets build fresh debug artifacts locally. `E2E_PREBUILT_DEBUG=1` is r
 - `make content-port-check` validates policy and authenticates the configured donors.
 - `make content-port-bundle` builds the configured donor-backed content bundle.
 - `make wild-encounter-test` runs wild-encounter generator tests.
+- `make agent-test` runs the bounded agent-interface contract tests.
 
 ## Product-owned C tests
 
 Place Pokemon OpenWorld-owned C tests under `test/openworld/`. Do not add them to inherited RHH test directories or root test files unless an upstream test must change for compatibility.
 
 Use `make product-check` for the required product test tier. Keep Pokemon OpenWorld-owned C tests under `test/openworld/`; `make check` remains the explicit complete local suite.
+
+## Bounded agent interface
+
+Use `python3 -m tools.agent context` for compact changed-path classification and check recommendations. The default compares the staged, unstaged, untracked, and renamed working tree to `HEAD`; use `--base <revision>` or repeated `--path <path>` arguments to select another input set. Semantic `--impact` flags only add coverage.
+
+Use `python3 -m tools.agent query <map|trainer|persistence|content-port> <key>` to retrieve matching records with their authoritative source paths and locations. Use `python3 -m tools.agent check <check-id>` to run a reviewed check. `python-unittest` and `python-pytest` require `--selector`; `actionlint` requires one or more exact `--workflow` paths. Add `--text` to any command for concise text instead of JSON.
+
+The machine-readable check registry at `tools/agent/registry.json` is the routing authority. It preserves the iteration, required handoff, and conditional escalation boundaries above. Check logs and metadata are retained under ignored `build/agent-logs/`.

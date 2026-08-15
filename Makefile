@@ -460,7 +460,7 @@ RULES_NO_SCAN += libagbsyscall clean clean-assets tidy tidymodern tidycheck tidy
 RULES_NO_SCAN += normal-artifacts debug-artifacts snapshot-artifacts product-check debug-check release-check
 RULES_NO_SCAN += _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
-RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test
+RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test agent-test
 RULES_NO_SCAN += wild-encounter-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
@@ -468,7 +468,7 @@ RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-f
 .PHONY: normal-artifacts debug-artifacts snapshot-artifacts product-check debug-check release-check
 .PHONY: _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
-.PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test
+.PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test agent-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -619,6 +619,10 @@ content-port-test: content-port-transaction-check
 	CONTENT_PORT_DONOR_ROOT=$(CONTENT_PORT_DONOR_ROOT) \
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 		-s tools/content_port/tests -p 'test_*.py' -q
+
+agent-test: content-port-transaction-check
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+		-s tools/agent/tests -p 'test_*.py' -q
 
 content-port-check: content-port-transaction-check
 	python3 -m tools.content_port check --port $(CONTENT_PORT) \
