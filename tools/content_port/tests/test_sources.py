@@ -986,7 +986,6 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("service", "Route33_EventScript_HikerAnthony"),
         }
         self.assertTrue(expected <= set(state.resources))
-        self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
         self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
         wade = next(
             identity
@@ -1020,9 +1019,10 @@ class SourceGraphTests(unittest.TestCase):
                 descriptor,
                 Path("."),
                 ExpansionSourceContext(donor_root / "pokemonHnS"),
+                state.maps,
                 {
-                    layout: SourceRecord(state.layouts[layout], Provenance("fixture"))
-                    for layout in ("LAYOUT_ROUTE30", "LAYOUT_ROUTE31", "LAYOUT_ROUTE33")
+                    layout: SourceRecord(value, Provenance("fixture"))
+                    for layout, value in state.layouts.items()
                 },
                 {
                     **state.trainer_events,
@@ -1068,7 +1068,11 @@ class SourceGraphTests(unittest.TestCase):
             state.semantic_evidence["content:trainer:TRAINER_EUGENE"],
             "3c1b7eeb66f68e3ad9e9a0b45447d499ecf9ccb15f5d934d61f7c8334f442bfd",
         )
-        eugene_event = state.trainer_events["Route39"][0]
+        eugene_event = next(
+            event
+            for event in state.trainer_events["Route39"]
+            if event.trainers == ("TRAINER_EUGENE",)
+        )
         self.assertEqual(eugene_event.trainers, ("TRAINER_EUGENE",))
         self.assertEqual(eugene_event.script_name, "Route39_EventScript_Eugene")
         trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAMUEL"]

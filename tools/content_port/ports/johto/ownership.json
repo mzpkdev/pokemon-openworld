@@ -3225,12 +3225,12 @@
     {
       "kind": "file",
       "path": "data/maps/GoldenrodCity_Gym/map.json",
-      "sha256": "8928d287f4089ef69b9bbbd674e579402ab3fe15e05644f97e405b56e7e4c21d"
+      "sha256": "476be941ac44ea78aaf6fbf788a603ecdd0eaca5ff9c5a47a3de2c50a56f2da5"
     },
     {
       "kind": "file",
       "path": "data/maps/GoldenrodCity_Gym/scripts.inc",
-      "sha256": "dc1627dd8beb3f4928ddaa181bcca4326d2414a26d505aaf9230b68b824014c7"
+      "sha256": "f256370a7477c5dda9a399919dc09b54a6afa57c0dce2bfa68c452040c430204"
     },
     {
       "kind": "file",
@@ -4035,12 +4035,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route32/map.json",
-      "sha256": "84f32e12912f742b4760c125acf84cd46b38e064ddb9755f5f40866411a681da"
+      "sha256": "c3cd365228851bca440da73a6db11a6b9453b39ed0edac5ae61374137bd52717"
     },
     {
       "kind": "file",
       "path": "data/maps/Route32/scripts.inc",
-      "sha256": "25b901de5579bb1b1f501c1fa913c99dbc3b7d2c268e3278fd1d6cee8c1883b8"
+      "sha256": "19cb453cbb1095088a6e7082caf14d629ef3635a19e1701b699904efac6e2084"
     },
     {
       "kind": "file",
@@ -4065,12 +4065,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route34/map.json",
-      "sha256": "6af682f7190cd158f0b718b7179083c18f3bc0b2f80722c36e8440ce05a33e5c"
+      "sha256": "df21f2ec4dbc1ae3c1c4db70e71dd2f142d439ae41735bcda6cdf4653b418988"
     },
     {
       "kind": "file",
       "path": "data/maps/Route34/scripts.inc",
-      "sha256": "36c138540b1408319704652c51909d85429a5185c7490478dda9dacdffca4574"
+      "sha256": "fe2b76132596fc04b8b6ea271f34232ad63e08bb05a32bcb353dd15c00c1f60d"
     },
     {
       "kind": "file",
@@ -4085,12 +4085,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route35/map.json",
-      "sha256": "ed3347d0f5a0ac0814a4129507b655599a4da0cb5b2a6796150d7988fa9bd55b"
+      "sha256": "3778eddf56c91f4c2e7a96b17468df7dd0bc4e0a0c34c58918a2c72145557682"
     },
     {
       "kind": "file",
       "path": "data/maps/Route35/scripts.inc",
-      "sha256": "84ddb855eb0209d0c519a999fabf29cbebd18d4e4e87bb1f62509b324772d468"
+      "sha256": "9453b3279daeea612de157109c740d8cf7460db519d939fafa31e4f9606c65c6"
     },
     {
       "kind": "file",
@@ -4105,32 +4105,32 @@
     {
       "kind": "file",
       "path": "data/maps/Route37/map.json",
-      "sha256": "16ccfe1fc1814c1888e1a5f220d5ba35113238fa9cb8ac03863447ef265d12f1"
+      "sha256": "2d29168ba6d78887b4bde6063558a9993e75ccc4ec6ea5c8457137efe34e6ca2"
     },
     {
       "kind": "file",
       "path": "data/maps/Route37/scripts.inc",
-      "sha256": "d38e20c1ad3a96d5512ddba852b16f6464be3f28eaa4d782e8bea6a684cde5b8"
+      "sha256": "3405cf2c522e9f7784aeb86cce44fea6356196a9b5a3f56876e1901659bd68c1"
     },
     {
       "kind": "file",
       "path": "data/maps/Route38/map.json",
-      "sha256": "f8d5c82454873bf3a2257e6dda126c7e88d11fafef60841ccf60f956d8e0f236"
+      "sha256": "817ae84fc3bf9b8e5e69af153d4b59954da8b2d4eb17f1cdd4dd968c2c208db5"
     },
     {
       "kind": "file",
       "path": "data/maps/Route38/scripts.inc",
-      "sha256": "7f164e7bab1c857c7f8b91c87ab6cecde365471a047552f983245a2d71e42059"
+      "sha256": "61a5d7617efcd1d94554b9e4b4004b028c79cbfd66f752cb8d9d0531276447f2"
     },
     {
       "kind": "file",
       "path": "data/maps/Route39/map.json",
-      "sha256": "6f7c11a7dc0ed0236696c67ce9e9a88a7049593226463210663a5525b0038390"
+      "sha256": "6305f4f60686101535abbdf27cb4e10c97d2f5c24a7ac37eaf0c82eebcdb408e"
     },
     {
       "kind": "file",
       "path": "data/maps/Route39/scripts.inc",
-      "sha256": "3b81b4881ea0d0daa352b5ac0dc755efb0b49aabe0463f24aa3c618da37083ff"
+      "sha256": "ba66964e305c9c7dd640d2403c9b692cce9477305d180e91b287ac22fb045975"
     },
     {
       "kind": "file",
@@ -4185,22 +4185,22 @@
     {
       "kind": "file",
       "path": "data/maps/Route43/map.json",
-      "sha256": "09b6add7262d4efa96d19b5a0701024bd5681b2a66e7d242880cb985a7b54c05"
+      "sha256": "0c12adaff39d41562a2827c8153ad2fc55c6692ee9744188183689079246ae6e"
     },
     {
       "kind": "file",
       "path": "data/maps/Route43/scripts.inc",
-      "sha256": "d328b738f95412a3eaeee1fd01a7516f45ab4ecc0598a82270c4173c3bdcea5c"
+      "sha256": "9669b8061c036d96bae984add607cfc4db401470748100c2af2d770e3d2ae3e8"
     },
     {
       "kind": "file",
       "path": "data/maps/Route44/map.json",
-      "sha256": "0b2eb042d52063d14ac1ffdb7037c4fd2186b59d53e944074f44680503822c12"
+      "sha256": "5f79b1f48c9024f857249adf1f6868afd6907a61b273aeb958e36ad5a4b3a6e5"
     },
     {
       "kind": "file",
       "path": "data/maps/Route44/scripts.inc",
-      "sha256": "7334247a9270e64278762ca8df28a3be69caf0848d06264ce204036e64c245a3"
+      "sha256": "b0246e45094de7588e98693590d794b756362eb336a13e8b0f2c5f949cb5435d"
     },
     {
       "kind": "file",
@@ -4575,32 +4575,32 @@
     {
       "kind": "file",
       "path": "data/maps/SproutTower_1F/map.json",
-      "sha256": "53d445677119d25e0c122db4eaab5071f59b427d66dcb12898ec136b9158e86e"
+      "sha256": "014930a224ab2584ad1dcbc06246b424cf283edc7e2fc1ce290c6a428a474630"
     },
     {
       "kind": "file",
       "path": "data/maps/SproutTower_1F/scripts.inc",
-      "sha256": "594fc85a1ef9088a4c8b3f742400db3a97f868338470ded17cfa038f919a1123"
+      "sha256": "c8f7167468280f5b0936bbdcac6ecb2963e37ec84a80df06099435d73f6cb154"
     },
     {
       "kind": "file",
       "path": "data/maps/SproutTower_2F/map.json",
-      "sha256": "79af2b616d98270285c5286233dfcb55f78923246a2e45b17e0b59b870a75cb7"
+      "sha256": "c91bc19731468850128fd8284fce348b7f231e87292dd302c23a2e78b159871d"
     },
     {
       "kind": "file",
       "path": "data/maps/SproutTower_2F/scripts.inc",
-      "sha256": "9ef8c1715f180d97b9729944293d717af6912cadf8d2efd67467bf3b6c2f6c9e"
+      "sha256": "1c252b103fc2cf9fe51707ac136056a703a405ec45a839839a539ce1b8f33499"
     },
     {
       "kind": "file",
       "path": "data/maps/SproutTower_3F/map.json",
-      "sha256": "fb980a76f193a56c0788363cd0a0d9b77be4811056b92ba3058f72ae9f13b2c5"
+      "sha256": "74d53662d13abe41c2de5c3b346092ef742aea3426911f26e8f08c7ef5c8a67d"
     },
     {
       "kind": "file",
       "path": "data/maps/SproutTower_3F/scripts.inc",
-      "sha256": "fd002549c8b024200ac1e3c2e2ef0e6df5dddf697ad9f0516e89528a0aa7874b"
+      "sha256": "4fe6dcd48595939af1f0e622a1d1820e8713c6390517e0fd02f3b42a3cc9e59f"
     },
     {
       "kind": "file",
@@ -4725,12 +4725,12 @@
     {
       "kind": "file",
       "path": "data/maps/UnionCave_1F/map.json",
-      "sha256": "b6a31b2de3445f40af908a1547d3b332634962299eff467b883007ee2d6b6e9b"
+      "sha256": "4c52f92a4082fe95b0b67ea97d87fab4280b28400ad63be730e4b983f5fb8383"
     },
     {
       "kind": "file",
       "path": "data/maps/UnionCave_1F/scripts.inc",
-      "sha256": "568f48ca9df6bccfa9422c8d8ee5d981b5855fd310fb8ddba34a6170c05cccfc"
+      "sha256": "fef0fde4f787f2c4fb3ef5a5d53b85e8e5a73805c691fbdb51b89844080b5fa4"
     },
     {
       "kind": "file",
@@ -4765,12 +4765,12 @@
     {
       "kind": "file",
       "path": "data/maps/VioletCity_Gym/map.json",
-      "sha256": "5cdc79bafba70aa23a725ffabfe8e198aa0216f8a35ad8e14885ad0b689bfcb3"
+      "sha256": "87d42a9f3b6dcf5e4d647042989fbefece814be9d24047360761bb4a82dd1685"
     },
     {
       "kind": "file",
       "path": "data/maps/VioletCity_Gym/scripts.inc",
-      "sha256": "15b185036dd88da18330217ab1bf1b0659d609502d9dadeb5ec65fd0cd59e8db"
+      "sha256": "2cdfb573883c60ef8adbbf4044565222fb5baa466cccb8d5ad8b547429174cbd"
     },
     {
       "kind": "file",
@@ -13879,7 +13879,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "cf3af52a14d4c08f679d7ccb1a35bf02fba3631cffb60a83d7aaedf7dbf0952f"
+      "sha256": "38c83563e756d2a4e548f5eff1ec3969b1234d63b1934284ec33a406b8df6886"
     }
   ]
 }

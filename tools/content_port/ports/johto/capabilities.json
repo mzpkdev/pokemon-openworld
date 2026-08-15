@@ -366,7 +366,43 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ALBERT"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_LIZ"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ROLAND"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_RALPH"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_HENRY"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_JUSTIN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_GORDON"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_PETER"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -420,7 +456,19 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ABE"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ROD"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -528,7 +576,15 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_CHOW"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -546,7 +602,19 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_EDMOND"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_NICO"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -564,7 +632,23 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_NEAL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_JIN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_TROY"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -830,6 +914,22 @@
             {
               "domain": "trainer",
               "name": "TRAINER_SAMUEL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BRANDON"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_TODD"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_IAN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_GINA"
             }
           ]
         },
@@ -1012,7 +1112,31 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_DANIEL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_RUSSELL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BILL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_LARRY"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_RAY"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -1120,7 +1244,43 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_KIM"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BRYAN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BROOKE"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ELLIOT"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_IVAN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_WALT"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_IRWIN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ARNIE"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -1156,7 +1316,15 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_GREG"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -1498,7 +1666,27 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_CARRIE"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_VICTORIA"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_SAMANTHA"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BRIDGET"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -1786,7 +1974,35 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_HARRY"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_DANA"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_OLIVIA"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_TOBY"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_CHAD"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_VALERIE"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -1810,6 +2026,18 @@
             {
               "domain": "trainer",
               "name": "TRAINER_EUGENE"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_NORMAN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_RUTH"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_DEREK"
             }
           ]
         },
@@ -2904,7 +3132,35 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_SPENCER"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_TIFFANY"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BEN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_MARVIN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_RON"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_BRENT"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",
@@ -2922,7 +3178,39 @@
         "spatial": "enabled",
         "ambient-actors": "deferred",
         "interactions": "deferred",
-        "trainers": "deferred",
+        "trainers": {
+          "state": "enabled",
+          "dependencies": [
+            {
+              "domain": "trainer",
+              "name": "TRAINER_PHIL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_EDGAR"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_WILTON"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ZACH"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_ALLEN"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_CYBIL"
+            },
+            {
+              "domain": "trainer",
+              "name": "TRAINER_VANCE"
+            }
+          ]
+        },
         "encounters": "deferred",
         "pickups-rewards": "deferred",
         "shops-services": "deferred",

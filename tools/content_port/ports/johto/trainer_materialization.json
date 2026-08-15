@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "appendOnlyBaseline": {
-    "batchCount": 3,
-    "sha256": "f00110859a06ecbf7238cec6baa959492f4008ddf91ab78e43123d052748b721"
+    "batchCount": 4,
+    "sha256": "1607fdbd4280bdeaab050f5c4788915dccccc00c913ba546d8e5009c0059763f"
   },
   "batches": [
     {
@@ -58,6 +58,373 @@
           "identity": "TRAINER_ANTHONY",
           "placements": [
             "Route33/0/Route33_EventScript_HikerAnthony"
+          ]
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "key": "bulk-fixed-standard-singles-60",
+      "kind": "standard-singles",
+      "identities": [
+        {
+          "identity": "TRAINER_ALBERT",
+          "placements": [
+            "Route32/5/Route32_EventScript_YoungsterAlbert"
+          ]
+        },
+        {
+          "identity": "TRAINER_LIZ",
+          "placements": [
+            "Route32/6/Route32_EventScript_PicnickerLiz"
+          ]
+        },
+        {
+          "identity": "TRAINER_ROLAND",
+          "placements": [
+            "Route32/8/Route32_EventScript_CamperRoland"
+          ]
+        },
+        {
+          "identity": "TRAINER_RALPH",
+          "placements": [
+            "Route32/9/Route32_EventScript_FisherRalph"
+          ]
+        },
+        {
+          "identity": "TRAINER_HENRY",
+          "placements": [
+            "Route32/10/Route32_EventScript_FisherHenry"
+          ]
+        },
+        {
+          "identity": "TRAINER_JUSTIN",
+          "placements": [
+            "Route32/11/Route32_EventScript_FisherJustin"
+          ]
+        },
+        {
+          "identity": "TRAINER_GORDON",
+          "placements": [
+            "Route32/12/Route32_EventScript_YoungsterGordon"
+          ]
+        },
+        {
+          "identity": "TRAINER_PETER",
+          "placements": [
+            "Route32/15/Route32_EventScript_BirdkeeperPeter"
+          ]
+        },
+        {
+          "identity": "TRAINER_ABE",
+          "placements": [
+            "VioletCity_Gym/1/VioletCity_Gym_EventScript_Abe"
+          ]
+        },
+        {
+          "identity": "TRAINER_ROD",
+          "placements": [
+            "VioletCity_Gym/2/VioletCity_Gym_EventScript_Rod"
+          ]
+        },
+        {
+          "identity": "TRAINER_CHOW",
+          "placements": [
+            "SproutTower_1F/3/SproutTower_1F_EventScript_SageChow"
+          ]
+        },
+        {
+          "identity": "TRAINER_EDMOND",
+          "placements": [
+            "SproutTower_2F/0/SproutTower_2F_EventScript_SageEdmond"
+          ]
+        },
+        {
+          "identity": "TRAINER_NICO",
+          "placements": [
+            "SproutTower_2F/1/SproutTower_2F_EventScript_SageNico"
+          ]
+        },
+        {
+          "identity": "TRAINER_NEAL",
+          "placements": [
+            "SproutTower_3F/0/SproutTower_3F_EventScript_SageNeal"
+          ]
+        },
+        {
+          "identity": "TRAINER_JIN",
+          "placements": [
+            "SproutTower_3F/1/SproutTower_3F_EventScript_SageJin"
+          ]
+        },
+        {
+          "identity": "TRAINER_TROY",
+          "placements": [
+            "SproutTower_3F/2/SproutTower_3F_EventScript_SageTroy"
+          ]
+        },
+        {
+          "identity": "TRAINER_BRANDON",
+          "placements": [
+            "Route34/1/Route34_EventScript_PokefanMBrandon"
+          ]
+        },
+        {
+          "identity": "TRAINER_TODD",
+          "placements": [
+            "Route34/2/Route34_EventScript_CamperTodd"
+          ]
+        },
+        {
+          "identity": "TRAINER_IAN",
+          "placements": [
+            "Route34/3/Route34_EventScript_YoungsterIan"
+          ]
+        },
+        {
+          "identity": "TRAINER_GINA",
+          "placements": [
+            "Route34/10/Route34_EventScript_PicnickerGina"
+          ]
+        },
+        {
+          "identity": "TRAINER_DANIEL",
+          "placements": [
+            "UnionCave_1F/1/UnionCave_1F_EventScript_HikerDaniel"
+          ]
+        },
+        {
+          "identity": "TRAINER_RUSSELL",
+          "placements": [
+            "UnionCave_1F/2/UnionCave_1F_EventScript_HikerRussell"
+          ]
+        },
+        {
+          "identity": "TRAINER_BILL",
+          "placements": [
+            "UnionCave_1F/4/UnionCave_1F_EventScript_FirebreatherBill"
+          ]
+        },
+        {
+          "identity": "TRAINER_LARRY",
+          "placements": [
+            "UnionCave_1F/6/UnionCave_1F_EventScript_PokemaniacLarry"
+          ]
+        },
+        {
+          "identity": "TRAINER_RAY",
+          "placements": [
+            "UnionCave_1F/7/UnionCave_1F_EventScript_FirebreatherRay"
+          ]
+        },
+        {
+          "identity": "TRAINER_KIM",
+          "placements": [
+            "Route35/0/Route35_EventScript_PicnickerKim"
+          ]
+        },
+        {
+          "identity": "TRAINER_BRYAN",
+          "placements": [
+            "Route35/1/Route35_EventScript_BirdKeeperBryan"
+          ]
+        },
+        {
+          "identity": "TRAINER_BROOKE",
+          "placements": [
+            "Route35/2/Route35_EventScript_PicnickerBrooke"
+          ]
+        },
+        {
+          "identity": "TRAINER_ELLIOT",
+          "placements": [
+            "Route35/3/Route35_EventScript_CamperElliot"
+          ]
+        },
+        {
+          "identity": "TRAINER_IVAN",
+          "placements": [
+            "Route35/4/Route35_EventScript_CamperIvan"
+          ]
+        },
+        {
+          "identity": "TRAINER_WALT",
+          "placements": [
+            "Route35/5/Route35_EventScript_FirebreatherWalt"
+          ]
+        },
+        {
+          "identity": "TRAINER_IRWIN",
+          "placements": [
+            "Route35/6/Route35_EventScript_JugglerIrwin"
+          ]
+        },
+        {
+          "identity": "TRAINER_ARNIE",
+          "placements": [
+            "Route35/8/Route35_EventScript_BugCatcherArnie"
+          ]
+        },
+        {
+          "identity": "TRAINER_GREG",
+          "placements": [
+            "Route37/2/Route37_EventScript_Greg"
+          ]
+        },
+        {
+          "identity": "TRAINER_CARRIE",
+          "placements": [
+            "GoldenrodCity_Gym/1/GoldenrodCity_Gym_EventScript_Carrie"
+          ]
+        },
+        {
+          "identity": "TRAINER_VICTORIA",
+          "placements": [
+            "GoldenrodCity_Gym/2/GoldenrodCity_Gym_EventScript_Victoria"
+          ]
+        },
+        {
+          "identity": "TRAINER_SAMANTHA",
+          "placements": [
+            "GoldenrodCity_Gym/4/GoldenrodCity_Gym_EventScript_Samantha"
+          ]
+        },
+        {
+          "identity": "TRAINER_BRIDGET",
+          "placements": [
+            "GoldenrodCity_Gym/5/GoldenrodCity_Gym_EventScript_Bridget"
+          ]
+        },
+        {
+          "identity": "TRAINER_HARRY",
+          "placements": [
+            "Route38/0/Route38_EventScript_Harry"
+          ]
+        },
+        {
+          "identity": "TRAINER_DANA",
+          "placements": [
+            "Route38/1/Route38_EventScript_Dana"
+          ]
+        },
+        {
+          "identity": "TRAINER_OLIVIA",
+          "placements": [
+            "Route38/2/Route38_EventScript_Olivia"
+          ]
+        },
+        {
+          "identity": "TRAINER_TOBY",
+          "placements": [
+            "Route38/3/Route38_EventScript_Toby"
+          ]
+        },
+        {
+          "identity": "TRAINER_CHAD",
+          "placements": [
+            "Route38/4/Route38_EventScript_Chad"
+          ]
+        },
+        {
+          "identity": "TRAINER_VALERIE",
+          "placements": [
+            "Route38/5/Route38_EventScript_Valerie"
+          ]
+        },
+        {
+          "identity": "TRAINER_NORMAN",
+          "placements": [
+            "Route39/0/Route39_EventScript_Norman"
+          ]
+        },
+        {
+          "identity": "TRAINER_RUTH",
+          "placements": [
+            "Route39/2/Route39_EventScript_Ruth"
+          ]
+        },
+        {
+          "identity": "TRAINER_DEREK",
+          "placements": [
+            "Route39/3/Route39_EventScript_Derek"
+          ]
+        },
+        {
+          "identity": "TRAINER_SPENCER",
+          "placements": [
+            "Route43/0/Route43_EventScript_Spencer"
+          ]
+        },
+        {
+          "identity": "TRAINER_TIFFANY",
+          "placements": [
+            "Route43/1/Route43_EventScript_Tiffany"
+          ]
+        },
+        {
+          "identity": "TRAINER_BEN",
+          "placements": [
+            "Route43/2/Route43_EventScript_Ben"
+          ]
+        },
+        {
+          "identity": "TRAINER_MARVIN",
+          "placements": [
+            "Route43/3/Route43_EventScript_Marvin"
+          ]
+        },
+        {
+          "identity": "TRAINER_RON",
+          "placements": [
+            "Route43/16/Route43_EventScript_Ron"
+          ]
+        },
+        {
+          "identity": "TRAINER_BRENT",
+          "placements": [
+            "Route43/17/Route43_EventScript_Brent"
+          ]
+        },
+        {
+          "identity": "TRAINER_PHIL",
+          "placements": [
+            "Route44/0/Route44_EventScript_Phil"
+          ]
+        },
+        {
+          "identity": "TRAINER_EDGAR",
+          "placements": [
+            "Route44/1/Route44_EventScript_Edgar"
+          ]
+        },
+        {
+          "identity": "TRAINER_WILTON",
+          "placements": [
+            "Route44/2/Route44_EventScript_Wilton"
+          ]
+        },
+        {
+          "identity": "TRAINER_ZACH",
+          "placements": [
+            "Route44/3/Route44_EventScript_Zach"
+          ]
+        },
+        {
+          "identity": "TRAINER_ALLEN",
+          "placements": [
+            "Route44/4/Route44_EventScript_Allen"
+          ]
+        },
+        {
+          "identity": "TRAINER_CYBIL",
+          "placements": [
+            "Route44/5/Route44_EventScript_Cybil"
+          ]
+        },
+        {
+          "identity": "TRAINER_VANCE",
+          "placements": [
+            "Route44/26/Route44_EventScript_Vance"
           ]
         }
       ]

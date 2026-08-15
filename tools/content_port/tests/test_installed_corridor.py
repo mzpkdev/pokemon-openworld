@@ -495,30 +495,21 @@ class InstalledCorridorTests(unittest.TestCase):
                     inbound.append((source, label, x, y, destination))
         self.assertEqual(inbound, [])
 
-    def test_route39_installs_only_exact_eugene_object_and_script(self) -> None:
+    def test_route39_installs_reviewed_walking_trainers_in_donor_order(self) -> None:
         document = _map("Route39")
         self.assertEqual(
-            document["object_events"],
+            [event["script"] for event in document["object_events"]],
             [
-                {
-                    "graphics_id": "OBJ_EVENT_GFX_SAILOR",
-                    "x": 22,
-                    "y": 42,
-                    "elevation": 0,
-                    "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
-                    "movement_range_x": 6,
-                    "movement_range_y": 0,
-                    "trainer_type": "TRAINER_TYPE_NORMAL",
-                    "trainer_sight_or_berry_tree_id": "6",
-                    "script": "Route39_EventScript_Eugene",
-                    "flag": "0",
-                }
+                "Route39_EventScript_Norman",
+                "Route39_EventScript_Ruth",
+                "Route39_EventScript_Derek",
+                "Route39_EventScript_Eugene",
             ],
         )
         script = (ROOT / "data/maps/Route39/scripts.inc").read_text()
         self.assertEqual(
             re.findall(r"^Route39_EventScript_([A-Za-z0-9_]+)::", script, re.MULTILINE),
-            ["Eugene"],
+            ["Norman", "Ruth", "Derek", "Eugene"],
         )
         self.assertIn(
             "trainerbattle_single TRAINER_SAILOR_EUGENE_JOHTO, "

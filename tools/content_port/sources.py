@@ -154,6 +154,7 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
             ),
         ),
     ),
+    ("bulk-fixed-standard-singles-60", 60),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -223,6 +224,9 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
         ),
     }
 )
+_REVIEWED_FIXED_PLACEMENT_DIGEST = (
+    "8469e1931861e69684eb912be4369274870e134733fc31e4672552a1613408bd"
+)
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
         "Route30": (
@@ -239,6 +243,76 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             44,
             40,
             "696dc8b682705dabcf215bfde1637e519297e46496723a2d89b9a862d1b5ad84",
+        ),
+        "Route32": (
+            42,
+            103,
+            "9db458ff725d09ec791293e7cf96ed0eccb1323d66f5bb5c63783254f60bfe85",
+        ),
+        "Route34": (
+            60,
+            90,
+            "894e5de50dbab022bcbea8eeb8b41bb67473266b8490dbde830754445f8d2c1b",
+        ),
+        "Route35": (
+            40,
+            49,
+            "a3ad64d54e29e94b21375057b59ae0fee5cd924354180a4b2c5ae24e4230a4dd",
+        ),
+        "Route37": (
+            44,
+            41,
+            "40c8f93ce5e955f2e59c1e076912341baf12ad377b9e034e350066eb39c55616",
+        ),
+        "Route38": (
+            52,
+            50,
+            "ca5afac501a5d5a3edfb97bc5dc043d8d56f5bb872aeeae0d67b80bf85accac6",
+        ),
+        "Route39": (
+            40,
+            54,
+            "5e33637d4d091c16cb7d39ba1778507bbc62107fc512f7be2c70e86b627754de",
+        ),
+        "Route43": (
+            34,
+            53,
+            "6aed9658b9efc7ca11e4e16076db7602860e1ce92b667dd5f2096c350e8f394c",
+        ),
+        "Route44": (
+            78,
+            36,
+            "909aa5354308634575cd1798643332dfff28ccd389b34b9efaf28c1f4655534e",
+        ),
+        "VioletCity_Gym": (
+            19,
+            21,
+            "39559520dee717e334a4f1b427a876aa476f5fa10f46b6ec953dcb03175d1644",
+        ),
+        "SproutTower_1F": (
+            25,
+            25,
+            "e3d73b935b92e22881c36e9e1689734fe698f97aaa135d8fba6db4b49e1299bd",
+        ),
+        "SproutTower_2F": (
+            25,
+            25,
+            "032fcf6209823864a69f3cb8b1ae43377cc9e6290ede000804853b64beb55662",
+        ),
+        "SproutTower_3F": (
+            25,
+            25,
+            "aa869d17e64a6d2503ecd3116259af0cf3c216d7d94f3e342116546566c3461e",
+        ),
+        "UnionCave_1F": (
+            48,
+            60,
+            "89d04294d04a53c51eb472b9960f3eb7809cad302426df757d36bbc57f3d24a7",
+        ),
+        "GoldenrodCity_Gym": (
+            34,
+            27,
+            "1e7f4334f2191eeffd2f6b28cabce2172a42c415b243253f3203878544d6de76",
         ),
     }
 )
@@ -2634,7 +2708,15 @@ def _require_trainer_geometry_adapter(
         )
         for batch in pending
     )
-    if observed != _REVIEWED_STANDARD_SINGLE_BATCHES:
+    expected_prefix = _REVIEWED_STANDARD_SINGLE_BATCHES[:-1]
+    bulk_key, bulk_count = _REVIEWED_STANDARD_SINGLE_BATCHES[-1]
+    matches_bulk = (
+        len(observed) == len(_REVIEWED_STANDARD_SINGLE_BATCHES)
+        and observed[:-1] == expected_prefix
+        and observed[-1][0] == bulk_key
+        and len(observed[-1][1]) == bulk_count
+    )
+    if not matches_bulk:
         next_batch = next(
             (
                 batch.key
@@ -2654,6 +2736,7 @@ def _authenticate_reviewed_fixed_placements(
     descriptor: PortDescriptor,
     target_root: Path,
     content: ExpansionSourceContext,
+    selected_maps: Mapping[str, Mapping[str, Any]],
     selected_layouts: Mapping[str, SourceRecord],
     selected_events: Mapping[str, tuple[TrainerEventRecord, ...]],
 ) -> None:
@@ -2673,8 +2756,44 @@ def _authenticate_reviewed_fixed_placements(
                 f"{identity}: authenticated fixed-placement donor object drifted"
             )
 
+    fixed_records = [
+        {
+            "identity": identity,
+            "trainers": list(event.trainers),
+            "object": dict(event.object_event),
+        }
+        for identity, event in sorted(all_events.items())
+    ]
+    fixed_digest = hashlib.sha256(
+        json.dumps(fixed_records, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if fixed_digest != _REVIEWED_FIXED_PLACEMENT_DIGEST:
+        raise ContentPortError("reviewed fixed-placement record digest drifted")
+
+    # The reviewed materialization prefix freezes the exact bulk identity list.
+    # Authenticate the shared fixed-placement shape here while the pinned donor
+    # and per-map byte authorities supply the exact object and map records.
+    for identity, event in all_events.items():
+        object_event = event.object_event
+        map_name, object_index, script_name = identity.split("/", 2)
+        if (
+            event.map_name != map_name
+            or event.object_index != int(object_index)
+            or event.script_name != script_name
+            or object_event.get("script") != script_name
+            or object_event.get("elevation") != 0
+            or object_event.get("trainer_type") != "TRAINER_TYPE_NORMAL"
+            or object_event.get("flag") != "0"
+        ):
+            raise ContentPortError(
+                f"{identity}: reviewed fixed-placement shape drifted"
+            )
+
     for map_name, (width, height, map_sha256) in _REVIEWED_FIXED_MAPS.items():
-        layout_name = f"LAYOUT_{map_name.upper()}"
+        selected_map = selected_maps.get(map_name)
+        layout_name = selected_map.get("layout") if selected_map is not None else None
+        if not isinstance(layout_name, str):
+            raise ContentPortError(f"{map_name}: authenticated map layout is absent")
         block_path_value = f"data/layouts/{map_name}/map.bin"
         layout_record = selected_layouts.get(layout_name)
         if layout_record is None:
@@ -2730,11 +2849,11 @@ def _authenticate_reviewed_fixed_placements(
     if capacities != {"OBJECT_EVENTS_COUNT": 16, "OBJECT_EVENT_TEMPLATES_COUNT": 64}:
         raise ContentPortError("fixed-placement object capacity authority drifted")
     # The renderer strips deferred objects and emits selected trainers in donor
-    # object order. Route30 is the largest reviewed batch: two static objects,
+    # object order. Route32 is the largest reviewed batch: eight static objects,
     # plus player and follower at peak.
     if (
-        2 > capacities["OBJECT_EVENT_TEMPLATES_COUNT"]
-        or 4 > capacities["OBJECT_EVENTS_COUNT"]
+        8 > capacities["OBJECT_EVENT_TEMPLATES_COUNT"]
+        or 10 > capacities["OBJECT_EVENTS_COUNT"]
     ):
         raise ContentPortError(
             "reviewed fixed-placement object capacity is insufficient"
@@ -3434,6 +3553,7 @@ def resolve_port_sources(
                 descriptor,
                 target_root,
                 content,
+                selected_maps,
                 selected_layouts,
                 selected_trainer_events,
             )

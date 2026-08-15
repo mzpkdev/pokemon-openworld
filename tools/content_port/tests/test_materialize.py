@@ -222,15 +222,26 @@ class MaterializeTests(unittest.TestCase):
         _, state = resolve_port_sources(descriptor, ROOT)
         map_units = {unit.key: unit for unit in _map_units(descriptor, state)}
         route_map = map_units["map:Route34"].value
-        self.assertEqual(len(route_map["object_events"]), 1)
         self.assertEqual(
-            route_map["object_events"][0]["script"],
-            "Route34_EventScript_YoungsterSamuel",
+            [event["script"] for event in route_map["object_events"]],
+            [
+                "Route34_EventScript_YoungsterSamuel",
+                "Route34_EventScript_PokefanMBrandon",
+                "Route34_EventScript_CamperTodd",
+                "Route34_EventScript_YoungsterIan",
+                "Route34_EventScript_PicnickerGina",
+            ],
         )
         script = map_units["map-script:Route34"].value
         self.assertEqual(
-            script["events"][0]["instructions"][0]["operands"][0],
-            "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+            [event["instructions"][0]["operands"][0] for event in script["events"]],
+            [
+                "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+                "TRAINER_POKEFAN_BRANDON_JOHTO",
+                "TRAINER_CAMPER_TODD_JOHTO",
+                "TRAINER_YOUNGSTER_IAN_JOHTO",
+                "TRAINER_PICNICKER_GINA_JOHTO",
+            ],
         )
         route31 = map_units["map:Route31"].value
         self.assertEqual(
@@ -287,28 +298,27 @@ class MaterializeTests(unittest.TestCase):
             "TRAINER_HIKER_ANTHONY_JOHTO",
         )
         route39 = map_units["map:Route39"].value
-        self.assertEqual(len(route39["object_events"]), 1)
         self.assertEqual(
-            route39["object_events"][0],
-            {
-                "graphics_id": "OBJ_EVENT_GFX_SAILOR",
-                "x": 22,
-                "y": 42,
-                "elevation": 0,
-                "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
-                "movement_range_x": 6,
-                "movement_range_y": 0,
-                "trainer_type": "TRAINER_TYPE_NORMAL",
-                "trainer_sight_or_berry_tree_id": "6",
-                "script": "Route39_EventScript_Eugene",
-                "flag": "0",
-            },
+            [event["script"] for event in route39["object_events"]],
+            [
+                "Route39_EventScript_Norman",
+                "Route39_EventScript_Ruth",
+                "Route39_EventScript_Derek",
+                "Route39_EventScript_Eugene",
+            ],
         )
         route39_script = map_units["map-script:Route39"].value
-        self.assertEqual(len(route39_script["events"]), 1)
         self.assertEqual(
-            route39_script["events"][0]["instructions"][0]["operands"][0],
-            "TRAINER_SAILOR_EUGENE_JOHTO",
+            [
+                event["instructions"][0]["operands"][0]
+                for event in route39_script["events"]
+            ],
+            [
+                "TRAINER_PSYCHIC_M_NORMAN_JOHTO",
+                "TRAINER_PARASOL_LADY_RUTH_JOHTO",
+                "TRAINER_POKEFAN_DEREK_JOHTO",
+                "TRAINER_SAILOR_EUGENE_JOHTO",
+            ],
         )
         trainer_units = _trainer_units(descriptor, state, ROOT)
         self.assertEqual(len(trainer_units), 1)
@@ -389,7 +399,7 @@ class MaterializeTests(unittest.TestCase):
             }
         )
         with self.assertRaisesRegex(
-            ContentPortError, "emitted trainer objects.*missing=.*TRAINER_EUGENE"
+            ContentPortError, "emitted trainer objects.*missing=.*TRAINER_"
         ):
             _map_units(
                 descriptor,

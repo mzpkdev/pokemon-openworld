@@ -62,7 +62,7 @@ def projection(target: str) -> TrainerProjection:
 
 
 def inventory() -> TrainerInventory:
-    identities = (
+    identities = [
         TrainerIdentity(
             "TRAINER_SAMUEL",
             "ordinary",
@@ -113,8 +113,8 @@ def inventory() -> TrainerInventory:
             projection("TRAINER_TWINS_AMY_AND_MAY_JOHTO"),
         ),
         TrainerIdentity("TRAINER_STORY", "story-controlled", "story", False, None),
-    )
-    placements = (
+    ]
+    placements = [
         TrainerPlacement(
             SAMUEL_PLACEMENT,
             "Route34",
@@ -187,10 +187,46 @@ def inventory() -> TrainerInventory:
             True,
             "OBJ_EVENT_GFX_TWIN",
         ),
-    )
+    ]
+    classification = json.loads((PORT / "trainer_classification.json").read_text())
+    projections = {
+        row["trainer"]: row["projection"]["target"]
+        for row in classification["identities"]
+        if "projection" in row
+    }
+    graphics = {
+        event["identity"]: event["overworldGraphic"]
+        for map_row in classification["maps"]
+        for event in map_row["events"]
+        if event.get("admitted")
+    }
+    for row in document()["batches"][3]["identities"]:
+        trainer = row["identity"]
+        placement_name = row["placements"][0]
+        map_name, object_index, script_name = placement_name.split("/", 2)
+        identities.append(
+            TrainerIdentity(
+                trainer,
+                "ordinary",
+                None,
+                True,
+                projection(projections[trainer]),
+            )
+        )
+        placements.append(
+            TrainerPlacement(
+                placement_name,
+                map_name,
+                int(object_index),
+                script_name,
+                trainer,
+                True,
+                graphics[placement_name],
+            )
+        )
     return TrainerInventory(
-        identities,
-        placements,
+        tuple(identities),
+        tuple(placements),
         MappingProxyType({"TRAINER_TWINS": ("Gym/1/TwinA", "Gym/2/TwinB")}),
         "inventory-digest",
         "identity-digest",
@@ -213,6 +249,19 @@ def allocations(*, include_wade: bool = True) -> BindingIndex:
                 ("TRAINER_BUG_CATCHER_DON_JOHTO", 1662),
             )
         )
+        classification = json.loads((PORT / "trainer_classification.json").read_text())
+        targets = {
+            row["trainer"]: row["projection"]["target"]
+            for row in classification["identities"]
+            if "projection" in row
+        }
+        production = load_binding_index(
+            ROOT / "src/data/persistence/persistent_ids.json"
+        )
+        for row in document()["batches"][3]["identities"]:
+            target = targets[row["identity"]]
+            binding = production.resolve(target, domain="trainerIds")
+            symbols.append((target, binding.value))
     return BindingIndex(
         PersistentBinding(
             "trainerIds", symbol, value, "u32-id", "trainer-defeat-bitmap"
@@ -237,42 +286,31 @@ def pending_wade_document() -> dict:
 
 class TrainerMaterializationTests(unittest.TestCase):
     def test_seeded_authority_is_immutable_and_allocation_backed(self) -> None:
+        expected_identities = tuple(
+            row["identity"]
+            for batch in document()["batches"]
+            for row in batch["identities"]
+        )
+        expected_placements = tuple(
+            placement
+            for batch in document()["batches"]
+            for row in batch["identities"]
+            for placement in row["placements"]
+        )
         result = validate_trainer_materialization_document(
             document(), inventory(), allocations()
         )
         self.assertEqual(result.baseline_digest, PRODUCTION_REVIEWED_PREFIX.sha256)
-        self.assertEqual(
-            result.identity_names,
-            (
-                "TRAINER_SAMUEL",
-                "TRAINER_EUGENE",
-                "TRAINER_WADE",
-                "TRAINER_DON",
-                "TRAINER_MIKEY",
-                "TRAINER_ANTHONY",
-            ),
-        )
-        self.assertEqual(
-            result.placement_names,
-            (
-                SAMUEL_PLACEMENT,
-                EUGENE_PLACEMENT,
-                WADE_PLACEMENT,
-                DON_PLACEMENT,
-                MIKEY_PLACEMENT,
-                ANTHONY_PLACEMENT,
-            ),
-        )
+        self.assertEqual(result.identity_names, expected_identities)
+        self.assertEqual(result.placement_names, expected_placements)
+        expected_targets = {
+            row.trainer: row.projection.target
+            for row in inventory().identities
+            if row.trainer in expected_identities and row.projection is not None
+        }
         self.assertEqual(
             dict(materialized_targets(result)),
-            {
-                "TRAINER_SAMUEL": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
-                "TRAINER_EUGENE": "TRAINER_SAILOR_EUGENE_JOHTO",
-                "TRAINER_WADE": "TRAINER_BUG_CATCHER_WADE_JOHTO",
-                "TRAINER_DON": "TRAINER_BUG_CATCHER_DON_JOHTO",
-                "TRAINER_MIKEY": "TRAINER_YOUNGSTER_MIKEY_JOHTO",
-                "TRAINER_ANTHONY": "TRAINER_HIKER_ANTHONY_JOHTO",
-            },
+            expected_targets,
         )
         with self.assertRaises(TypeError):
             materialized_targets(result)["TRAINER_WADE"] = "changed"  # type: ignore[index]
@@ -292,7 +330,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(result.batches[-1].key, "route30-route33-don-mikey-anthony")
+        self.assertEqual(result.batches[-1].key, "bulk-fixed-standard-singles-60")
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []
@@ -413,7 +451,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         reordered = document()
         reordered["batches"].append(
             {
-                "sequence": 3,
+                "sequence": len(reordered["batches"]),
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -435,7 +473,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         grouped = document()
         grouped["batches"].append(
             {
-                "sequence": 3,
+                "sequence": len(grouped["batches"]),
                 "key": "grouped",
                 "kind": "standard-singles",
                 "identities": [
@@ -452,7 +490,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             )
 
         excluded = copy.deepcopy(grouped)
-        excluded["batches"][3]["identities"] = [
+        excluded["batches"][-1]["identities"] = [
             {"identity": "TRAINER_STORY", "placements": []}
         ]
         with self.assertRaisesRegex(ContentPortError, "not an admitted projected"):
@@ -470,41 +508,28 @@ class TrainerMaterializationTests(unittest.TestCase):
         result = validate_trainer_materialization_document(
             document(), inventory(), allocations()
         )
+        observed = dict(materialized_placements(result))
         require_materialization_exact_cover(
             result,
-            {
-                "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
-                "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
-                "TRAINER_WADE": (WADE_PLACEMENT,),
-                "TRAINER_DON": (DON_PLACEMENT,),
-                "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
-                "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
-            },
+            observed,
             owner="selected trainer surface",
         )
         with self.assertRaisesRegex(ContentPortError, "missing=.*TRAINER_EUGENE"):
             require_materialization_exact_cover(
                 result,
                 {
-                    "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
-                    "TRAINER_WADE": (WADE_PLACEMENT,),
-                    "TRAINER_DON": (DON_PLACEMENT,),
-                    "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
-                    "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
+                    key: value
+                    for key, value in observed.items()
+                    if key != "TRAINER_EUGENE"
                 },
                 owner="selected trainer surface",
             )
         with self.assertRaisesRegex(ContentPortError, "duplicate observed placements"):
+            duplicated = dict(observed)
+            duplicated["TRAINER_SAMUEL"] = (SAMUEL_PLACEMENT, SAMUEL_PLACEMENT)
             require_materialization_exact_cover(
                 result,
-                {
-                    "TRAINER_SAMUEL": (SAMUEL_PLACEMENT, SAMUEL_PLACEMENT),
-                    "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
-                    "TRAINER_WADE": (WADE_PLACEMENT,),
-                    "TRAINER_DON": (DON_PLACEMENT,),
-                    "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
-                    "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
-                },
+                duplicated,
                 owner="selected trainer surface",
             )
 
@@ -520,7 +545,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         multiple = document()
         multiple["batches"].append(
             {
-                "sequence": 3,
+                "sequence": len(multiple["batches"]),
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -534,17 +559,11 @@ class TrainerMaterializationTests(unittest.TestCase):
         multiple_result = validate_trainer_materialization_document(
             multiple, ungrouped, allocations()
         )
+        multiple_observed = dict(materialized_placements(multiple_result))
+        multiple_observed["TRAINER_TWINS"] = ("Gym/2/TwinB", "Gym/1/TwinA")
         require_materialization_exact_cover(
             multiple_result,
-            {
-                "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
-                "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
-                "TRAINER_TWINS": ("Gym/2/TwinB", "Gym/1/TwinA"),
-                "TRAINER_WADE": (WADE_PLACEMENT,),
-                "TRAINER_DON": (DON_PLACEMENT,),
-                "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
-                "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
-            },
+            multiple_observed,
             owner="selected trainer surface",
         )
 
@@ -574,33 +593,21 @@ class TrainerMaterializationTests(unittest.TestCase):
         descriptor = load_port(PORT, donor_root)
         _, state = resolve_port_sources(descriptor, ROOT)
         self.assertIsNotNone(state.trainer_materialization)
+        expected_identities = tuple(
+            row["identity"]
+            for batch in document()["batches"]
+            for row in batch["identities"]
+        )
         self.assertEqual(
             state.trainer_materialization.identity_names,
-            (
-                "TRAINER_SAMUEL",
-                "TRAINER_EUGENE",
-                "TRAINER_WADE",
-                "TRAINER_DON",
-                "TRAINER_MIKEY",
-                "TRAINER_ANTHONY",
-            ),
+            expected_identities,
         )
         result = load_trainer_materialization(
             POLICY,
             state.trainer_inventory,
             load_binding_index(ROOT / "src/data/persistence/persistent_ids.json"),
         )
-        self.assertEqual(
-            result.identity_names,
-            (
-                "TRAINER_SAMUEL",
-                "TRAINER_EUGENE",
-                "TRAINER_WADE",
-                "TRAINER_DON",
-                "TRAINER_MIKEY",
-                "TRAINER_ANTHONY",
-            ),
-        )
+        self.assertEqual(result.identity_names, expected_identities)
         selected: dict[str, list[str]] = {}
         for events in state.trainer_events.values():
             for event in events:

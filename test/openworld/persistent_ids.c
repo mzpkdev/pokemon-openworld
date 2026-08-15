@@ -108,6 +108,30 @@ TEST("Route 30 and Route 33 trainers own their stable identities and bitmap defe
     }
 }
 
+TEST("Bulk fixed Johto trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_YOUNGSTER_ALBERT_JOHTO,
+        TRAINER_BIRD_KEEPER_ABE_JOHTO,
+        TRAINER_FIREBREATHER_BILL_JOHTO,
+        TRAINER_BEAUTY_VALERIE_JOHTO,
+        TRAINER_BIRD_KEEPER_VANCE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
 TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
 {
     struct TrainerDefeatBinding binding;

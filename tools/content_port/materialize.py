@@ -33,8 +33,6 @@ _DEFINE_RE = re.compile(
 )
 _BYTE_IDENTICAL_TRAINER_PICS = MappingProxyType(
     {
-        "Burglar FRLG": "Burglar",
-        "Juggler FRLG": "Juggler",
         "Twins FRLG": "Twins",
         "Youngster FRLG": "Youngster",
     }
