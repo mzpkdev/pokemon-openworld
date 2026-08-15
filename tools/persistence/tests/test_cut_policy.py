@@ -119,6 +119,26 @@ class FieldCapabilityPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "resolver is not canonical"):
             validate(self.root)
 
+    def test_debug_bypass_requires_the_complete_hm_kit(self):
+        mutations = (
+            (
+                "#ifdef DEBUG\n    if (capability < PLAYER_CAPABILITY_COUNT",
+                "if (capability < PLAYER_CAPABILITY_COUNT",
+                "resolver is not canonical",
+            ),
+            (
+                "CheckBagHasItem(CAT(ITEM_HM_, move), 1)",
+                "CheckBagHasItem(ITEM_HM_CUT, 1)",
+                "debug field kit is not canonical",
+            ),
+        )
+        for old, new, error in mutations:
+            with self.subTest(mutation=old):
+                self.replace("src/player_capability.c", old, new)
+                with self.assertRaisesRegex(ContractError, error):
+                    validate(self.root)
+                self.reset_policy()
+
     def test_capability_enum_is_frozen_to_binding_authority(self):
         self.replace(
             "include/player_capability.h",

@@ -494,6 +494,21 @@ def _validate_resolver(root: Path, bindings: dict) -> None:
     resolver = _function_body(source_path, "PlayerHasCapability", root)
     _reject_selector(resolver)
 
+    debug_field_kit = _function_body(source_path, "DebugFieldKitIsAvailable", root)
+    _reject_selector(debug_field_kit)
+    expected_debug_field_kit = (
+        "#define REQUIRE_DEBUG_HM(move) \\\n"
+        "if (!CheckBagHasItem(CAT(ITEM_HM_, move), 1)) \\\n"
+        "return FALSE;\n"
+        "FOREACH_HM(REQUIRE_DEBUG_HM)\n"
+        "#undef REQUIRE_DEBUG_HM\n"
+        "return TRUE;"
+    )
+    if _compact(debug_field_kit) != _compact(expected_debug_field_kit):
+        raise ContractError(
+            "field capability policy: debug field kit is not canonical and read-only"
+        )
+
     facts_by_capability: dict[str, list[str]] = {}
     for entry in bindings["exact"]:
         for capability in entry["grants"]:
@@ -524,7 +539,13 @@ def _validate_resolver(root: Path, bindings: dict) -> None:
             "field capability policy: PlayerCapability enum differs from bindings"
         )
 
-    expected = "switch(capability){"
+    expected = (
+        "#ifdef DEBUG\n"
+        "if (capability < PLAYER_CAPABILITY_COUNT && DebugFieldKitIsAvailable())\n"
+        "return TRUE;\n"
+        "#endif\n"
+        "switch(capability){"
+    )
     for capability in capabilities:
         grants = [
             *(
