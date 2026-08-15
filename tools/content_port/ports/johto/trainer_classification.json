@@ -1,0 +1,3749 @@
+{
+  "schemaVersion": 1,
+  "identities": [
+    {
+      "trainer": "TRAINER_SAYO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_SCOTT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SEAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TROY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TULLY",
+      "classification": "unsupported",
+      "reason": "objectless",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ROD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_VALERIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JOYCE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ZUKI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_FALKNER_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_TODD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TIMOTHY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_STANLY",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DEVIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRANT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CASSIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JEFFREY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_33",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_NORMAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KRISE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RAYMOND",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KUNI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LAO",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LEA_AND_PIA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_REENA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RICH",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RICKY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CODY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GWEN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SIMON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CHARLIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RANDALL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GEORGE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BERKE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ELAINE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_EDGAR",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ALBERT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SAMUEL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WENDY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_EMMA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GIOVANNI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ERIK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ERIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ERNEST",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WAI",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_19",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_20",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_21",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_22",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_SHIRLEY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CONNIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BRIDGET",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_OLIVIA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TIFFANY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ARIANA_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TERU",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DOUGLAS",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SPENCER",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ROLAND",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_STAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RICHARD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GILBERT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JACK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CHAD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KIYO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KIRK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JENN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JEFF",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_COREY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DENIS",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DANIEL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LARRY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SHANE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JUSTIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NAOKO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_NATHAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NEAL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NICK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NICO",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BRENT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DONALD",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DEREK",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RED_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_EDWARD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PRESTON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BLAKE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WILLIAM",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GAVEN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GINA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GORDON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SAMANTHA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BENJAMIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PING",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TED",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PAUL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PETREL_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PROTON_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_26",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_VICTORIA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_EUGENE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JOSH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JOEY",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BEN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KENNETH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_FRAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_FRITZ",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_EDDIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ALLEN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ANDREW",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_IVAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CYBIL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WADE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MATHEW",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MEG_AND_PEG",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MEGAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MICHAEL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RONALD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ANTHONY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ABE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_AL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ALFRED",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ANDRE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LIZ",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GARRETT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KIM",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_AARON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_HUGH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PHIL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LOIS",
+      "classification": "unsupported",
+      "reason": "temporary-state",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_COLIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BENNY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KENJI",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LUNG",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_28",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PAULA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JAKE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CLARISSA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BEVERLY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DENISE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BETH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRACE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_SUSIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KARA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DANA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DEBRA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KAYLEE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ARCHER",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DARIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CAROL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MARTHA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_8",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_IRENE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KEITH",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KELLY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KEN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_AMY_AND_MAY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ANN_AND_ANNE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RUTH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RYAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_HUEY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_EDMOND",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MIKE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PHILLIP",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LEONARD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DUNCAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MIKEY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MIKI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MILLER",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CARRIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CLYDE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_27",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LOLA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARKUS",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_THOM_AND_KAE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_DUFF_AND_EDA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CLAIR_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_EUSINE",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_5",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_6",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_7",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_VANCE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TOBY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_TERRELL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_MARC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CHOW",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_THEO",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NATE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WALT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WILTON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_YOSHI",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ZACH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BUGSY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_WHITNEY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MORTY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_JAMIE",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRIAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_HARRY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_LYLE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JOSE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GREG",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KENT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ELLIOT",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ALAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ERIC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RUSSELL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RAY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JONAH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_HENRY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BAILEY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_WAYNE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_11",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRAD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_10",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CARA",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RICHARDO",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NARD",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARVIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_9",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRYAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ETHAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BILL",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_KATE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ARNIE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NOB",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ETO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DIRK",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ETO_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_QUENTIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RALPH",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_JIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_NOLAND",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BRANDON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_BROOKE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_CALVIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_IAN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_IRWIN",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ISSAC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PARRY",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_PETER",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_RON",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_ROXANNE",
+      "classification": "ordinary",
+      "admitted": true
+    },
+    {
+      "trainer": "TRAINER_GRUNT_12",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PROTON_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    }
+  ],
+  "maps": [
+    {
+      "map": "NewBarkTown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_Lab",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route29",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route29_Route46",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route28",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route28_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30",
+      "events": [
+        {
+          "identity": "Route30/1/Route30_EventScript_Youngster_Joey",
+          "admitted": false
+        },
+        {
+          "identity": "Route30/3/Route30_EventScript_Bugcatcher_Don",
+          "admitted": true
+        },
+        {
+          "identity": "Route30/6/Route30_EventScript_Youngster_Mikey",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route31",
+      "events": [
+        {
+          "identity": "Route31/0/Route31_EventScript_Bugcatcher_Wade",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route32",
+      "events": [
+        {
+          "identity": "Route32/5/Route32_EventScript_YoungsterAlbert",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/6/Route32_EventScript_PicnickerLiz",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/8/Route32_EventScript_CamperRoland",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/9/Route32_EventScript_FisherRalph",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/10/Route32_EventScript_FisherHenry",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/11/Route32_EventScript_FisherJustin",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/12/Route32_EventScript_YoungsterGordon",
+          "admitted": true
+        },
+        {
+          "identity": "Route32/15/Route32_EventScript_BirdkeeperPeter",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "events": [
+        {
+          "identity": "RuinsOfAlph_Outside/0/RuinsOfAlph_Outside_EventScript_Nathan",
+          "admitted": true
+        },
+        {
+          "identity": "RuinsOfAlph_Outside/1/RuinsOfAlph_Outside_EventScript_Stan",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_Gym",
+      "events": [
+        {
+          "identity": "VioletCity_Gym/1/VioletCity_Gym_EventScript_Abe",
+          "admitted": true
+        },
+        {
+          "identity": "VioletCity_Gym/2/VioletCity_Gym_EventScript_Rod",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_TrainerSchool",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_1F",
+      "events": [
+        {
+          "identity": "SproutTower_1F/3/SproutTower_1F_EventScript_SageChow",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_2F",
+      "events": [
+        {
+          "identity": "SproutTower_2F/0/SproutTower_2F_EventScript_SageEdmond",
+          "admitted": true
+        },
+        {
+          "identity": "SproutTower_2F/1/SproutTower_2F_EventScript_SageNico",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_3F",
+      "events": [
+        {
+          "identity": "SproutTower_3F/0/SproutTower_3F_EventScript_SageNeal",
+          "admitted": true
+        },
+        {
+          "identity": "SproutTower_3F/1/SproutTower_3F_EventScript_SageJin",
+          "admitted": true
+        },
+        {
+          "identity": "SproutTower_3F/2/SproutTower_3F_EventScript_SageTroy",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route32_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route31_VioletCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route32",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route36",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_Lab",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom4",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route33",
+      "events": [
+        {
+          "identity": "Route33/0/Route33_EventScript_HikerAnthony",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route34",
+      "events": [
+        {
+          "identity": "Route34/0/Route34_EventScript_YoungsterSamuel",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/1/Route34_EventScript_PokefanMBrandon",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/2/Route34_EventScript_CamperTodd",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/3/Route34_EventScript_YoungsterIan",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/4/Route34_EventScript_Jenn",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/5/Route34_EventScript_Irene",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/6/Route34_EventScript_Kate",
+          "admitted": true
+        },
+        {
+          "identity": "Route34/9/Route34_EventScript_OfficerKeith",
+          "admitted": false
+        },
+        {
+          "identity": "Route34/10/Route34_EventScript_PicnickerGina",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "IlexForest",
+      "events": [
+        {
+          "identity": "IlexForest/7/IlexForest_EventScript_BugcatcherWayne",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_Gym",
+      "events": [
+        {
+          "identity": "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
+          "admitted": true
+        },
+        {
+          "identity": "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May",
+          "admitted": true
+        },
+        {
+          "identity": "AzaleaTown_Gym/4/AzaleaTown_Gym_EventScript_Benny",
+          "admitted": true
+        },
+        {
+          "identity": "AzaleaTown_Gym/5/AzaleaTown_Gym_EventScript_Josh",
+          "admitted": true
+        },
+        {
+          "identity": "AzaleaTown_Gym/6/AzaleaTown_Gym_EventScript_Al",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_KurtsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route34_DayCare",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_AzaleaTown_IlexForest",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_IlexForest_Route34",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_1F",
+      "events": [
+        {
+          "identity": "UnionCave_1F/1/UnionCave_1F_EventScript_HikerDaniel",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_1F/2/UnionCave_1F_EventScript_HikerRussell",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_1F/4/UnionCave_1F_EventScript_FirebreatherBill",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_1F/6/UnionCave_1F_EventScript_PokemaniacLarry",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_1F/7/UnionCave_1F_EventScript_FirebreatherRay",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_B1F",
+      "events": [
+        {
+          "identity": "UnionCave_B1F/0/UnionCave_B1F_EventScript_HikerPhillip",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_B1F/1/UnionCave_B1F_EventScript_HikerLeonard",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_B1F/5/UnionCave_B1F_EventScript_PokemaniacCalvin",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_B1F/6/UnionCave_B1F_EventScript_PokemaniacAndrew",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_B2F",
+      "events": [
+        {
+          "identity": "UnionCave_B2F/1/UnionCave_B2F_EventScript_CooltrainerNick",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_B2F/3/UnionCave_B2F_EventScript_CooltrainerfGwen",
+          "admitted": true
+        },
+        {
+          "identity": "UnionCave_B2F/4/UnionCave_B2F_EventScript_CooltrainerfEmma",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SlowpokeWell_B1F",
+      "events": [
+        {
+          "identity": "SlowpokeWell_B1F/9/SlowpokeWell_B1F_EventScript_Grunt21",
+          "admitted": false
+        },
+        {
+          "identity": "SlowpokeWell_B1F/10/SlowpokeWell_B1F_EventScript_Grunt22F",
+          "admitted": false
+        },
+        {
+          "identity": "SlowpokeWell_B1F/12/SlowpokeWell_B1F_EventScript_Eto",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SlowpokeWell_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route35",
+      "events": [
+        {
+          "identity": "Route35/0/Route35_EventScript_PicnickerKim",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/1/Route35_EventScript_BirdKeeperBryan",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/2/Route35_EventScript_PicnickerBrooke",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/3/Route35_EventScript_CamperElliot",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/4/Route35_EventScript_CamperIvan",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/5/Route35_EventScript_FirebreatherWalt",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/6/Route35_EventScript_JugglerIrwin",
+          "admitted": true
+        },
+        {
+          "identity": "Route35/7/Route35_EventScript_PolicemanDirk",
+          "admitted": false
+        },
+        {
+          "identity": "Route35/8/Route35_EventScript_BugCatcherArnie",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route36",
+      "events": [
+        {
+          "identity": "Route36/3/Route36_EventScript_Mark",
+          "admitted": true
+        },
+        {
+          "identity": "Route36/4/Route36_EventScript_Schoolboy",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route37",
+      "events": [
+        {
+          "identity": "Route37/0/Route37_EventScript_TwinAnn",
+          "admitted": true
+        },
+        {
+          "identity": "Route37/1/Route37_EventScript_TwinAnne",
+          "admitted": true
+        },
+        {
+          "identity": "Route37/2/Route37_EventScript_Greg",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "events": [
+        {
+          "identity": "NationalPark_Normal/5/NationalPark_Normal_EventScript_Beverly",
+          "admitted": true
+        },
+        {
+          "identity": "NationalPark_Normal/6/NationalPark_Normal_EventScript_Jack",
+          "admitted": true
+        },
+        {
+          "identity": "NationalPark_Normal/7/NationalPark_Normal_EventScript_Krise",
+          "admitted": true
+        },
+        {
+          "identity": "NationalPark_Normal/8/NationalPark_Normal_EventScript_William",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "NationalPark_BugContest",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_GoldenrodCity_Route35",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_NationalPark",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_BikeShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_BillsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreBasement",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreElevator",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_5F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_6F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7FNight",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_FlowerShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_GameCorner",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_Gym",
+      "events": [
+        {
+          "identity": "GoldenrodCity_Gym/1/GoldenrodCity_Gym_EventScript_Carrie",
+          "admitted": true
+        },
+        {
+          "identity": "GoldenrodCity_Gym/2/GoldenrodCity_Gym_EventScript_Victoria",
+          "admitted": true
+        },
+        {
+          "identity": "GoldenrodCity_Gym/4/GoldenrodCity_Gym_EventScript_Samantha",
+          "admitted": true
+        },
+        {
+          "identity": "GoldenrodCity_Gym/5/GoldenrodCity_Gym_EventScript_Bridget",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_2F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/3/GoldenrodRaidoTower2_EventScript_Grunt3",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/4/GoldenrodRaidoTower2_EventScript_Grunt5",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/5/GoldenrodRaidoTower2_EventScript_GruntF2",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/6/GoldenrodRaidoTower2_EventScript_Grunt4",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_3F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/0/GoldenrodRaidoTower3_EventScript_Scientist",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/3/GoldenrodRaidoTower3_EventScript_Grunt6",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/4/GoldenrodRaidoTower3_EventScript_Grunt7",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/5/GoldenrodRaidoTower3_EventScript_Grunt8",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_4F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/0/GoldenrodCity_RadioTower_4F4_EventScript_Scientist",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/1/GoldenrodRaidoTower4_EventScript_Grunt9",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/4/GoldenrodRaidoTower4_EventScript_Grunt28",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/5/GoldenrodRaidoTower4_EventScript_Proton",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_5F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_5F/2/GoldenrodRaidoTower4_EventScript_ARIANA",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_TrainStation",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundEntrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundStorage",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/3/GoldenrodCity_UndergroundStorage_EventScript_Grunt12",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/4/GoldenrodCity_UndergroundStorage_EventScript_Grunt19",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/5/GoldenrodCity_UndergroundStorage_EventScript_Eto",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundSwitches",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/0/GoldenrodCity_UndergroundSwitches_EventScript_Grunt11",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/1/GoldenrodCity_UndergroundSwitches_EventScript_Grunt20",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/2/GoldenrodCity_UndergroundSwitches_EventScript_Grunt10",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/3/GoldenrodCity_UndergroundSwitches_EventScript_Duncan",
+          "admitted": true
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/4/GoldenrodCity_UndergroundSwitches_EventScript_Eddie",
+          "admitted": true
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/5/GoldenrodCity_UndergroundSwitches_EventScript_Grunt27",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundTunnel",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/0/GoldenrodUnderground_EventScript_Issac",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/4/GoldenrodUnderground_EventScript_Teru",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/5/GoldenrodUnderground_EventScript_Eric",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/6/GoldenrodUnderground_EventScript_Donald",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route38",
+      "events": [
+        {
+          "identity": "Route38/0/Route38_EventScript_Harry",
+          "admitted": true
+        },
+        {
+          "identity": "Route38/1/Route38_EventScript_Dana",
+          "admitted": true
+        },
+        {
+          "identity": "Route38/2/Route38_EventScript_Olivia",
+          "admitted": true
+        },
+        {
+          "identity": "Route38/3/Route38_EventScript_Toby",
+          "admitted": true
+        },
+        {
+          "identity": "Route38/4/Route38_EventScript_Chad",
+          "admitted": true
+        },
+        {
+          "identity": "Route38/5/Route38_EventScript_Valerie",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route39",
+      "events": [
+        {
+          "identity": "Route39/0/Route39_EventScript_Norman",
+          "admitted": true
+        },
+        {
+          "identity": "Route39/2/Route39_EventScript_Ruth",
+          "admitted": true
+        },
+        {
+          "identity": "Route39/3/Route39_EventScript_Derek",
+          "admitted": true
+        },
+        {
+          "identity": "Route39/4/Route39_EventScript_Eugene",
+          "admitted": true
+        },
+        {
+          "identity": "Route39/17/Route39_EventScript_Jamie",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BellchimeTrail",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route38",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Gym",
+      "events": [
+        {
+          "identity": "EcruteakCity_Gym/3/EcruteakCity_Gym_EventScript_Jeffrey",
+          "admitted": true
+        },
+        {
+          "identity": "EcruteakCity_Gym/4/EcruteakCity_Gym_EventScript_Martha",
+          "admitted": true
+        },
+        {
+          "identity": "EcruteakCity_Gym/5/EcruteakCity_Gym_EventScript_Ping",
+          "admitted": true
+        },
+        {
+          "identity": "EcruteakCity_Gym/6/EcruteakCity_Gym_EventScript_Grace",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_SageOffice1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_SageOffice2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Theater",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route39_Barn",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route39_FarmHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "events": [
+        {
+          "identity": "BurnedTower_1F/3/BurnedTower_1F_EventScript_Nard",
+          "admitted": true
+        },
+        {
+          "identity": "BurnedTower_1F/4/BurnedTower_1F_EventScript_Richardo",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_5F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_6F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_7F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_8F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_9F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_RoofDay",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route40",
+      "events": [
+        {
+          "identity": "Route40/4/Route40_EventScript_Elaine",
+          "admitted": true
+        },
+        {
+          "identity": "Route40/7/Route40_EventScript_Simon",
+          "admitted": true
+        },
+        {
+          "identity": "Route40/8/Route40_EventScript_Paula",
+          "admitted": true
+        },
+        {
+          "identity": "Route40/9/Route40_EventScript_Randall",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route41",
+      "events": [
+        {
+          "identity": "Route41/0/Route41_EventScript_Berke",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/1/Route41_EventScript_Charlie",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/2/Route41_EventScript_Denise",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/3/Route41_EventScript_Kara",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/4/Route41_EventScript_Kaylee",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/5/Route41_EventScript_George",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/6/Route41_EventScript_Kirk",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/7/Route41_EventScript_Susie",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/8/Route41_EventScript_Mathew",
+          "admitted": true
+        },
+        {
+          "identity": "Route41/9/Route41_EventScript_Wendy",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route40_TrainerHill_Courtyard",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Cafe",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Gym",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Lighthouse",
+      "events": [
+        {
+          "identity": "OlivineCity_Lighthouse/2/OlivineLighthouse_EventScript_Huey",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/3/OlivineLighthouse_EventScript_GentlemanAlfred",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/4/OlivineLighthouse_EventScript_SailorTerrell",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/5/OlivineLighthouse_EventScript_BirdKeeperTheo",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/6/OlivineLighthouse_EventScript_GentlemanPreston",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/7/OlivineLighthouse_EventScript_SailorKent",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/8/OlivineLighthouse_EventScript_LassConnie",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/9/OlivineLighthouse_EventScript_BirdKeeperDenis",
+          "admitted": true
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/10/OlivineLighthouse_EventScript_SailorErnest",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PortInside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B1F_Inner",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_Descent",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_LugiaChamber",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route47",
+      "events": [
+        {
+          "identity": "Route47/0/Route47_EventScript_Hiker",
+          "admitted": true
+        },
+        {
+          "identity": "Route47/1/Route47_EventScript_Camper",
+          "admitted": true
+        },
+        {
+          "identity": "Route47/3/Route47_EventScript_Kae",
+          "admitted": true
+        },
+        {
+          "identity": "Route47/4/Route47_EventScript_Thom",
+          "admitted": true
+        },
+        {
+          "identity": "Route47/7/Route47_EventScript_Duff",
+          "admitted": true
+        },
+        {
+          "identity": "Route47/8/Route47_EventScript_Eda",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route48",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodGym",
+      "events": [
+        {
+          "identity": "CianwoodGym/1/CianwoodGym_EventScript_Nob",
+          "admitted": true
+        },
+        {
+          "identity": "CianwoodGym/2/CianwoodGym_EventScript_Yoshi",
+          "admitted": true
+        },
+        {
+          "identity": "CianwoodGym/3/CianwoodGym_EventScript_Lao",
+          "admitted": true
+        },
+        {
+          "identity": "CianwoodGym/4/CianwoodGym_EventScript_Lung",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodPokecenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CliffEdgeCave",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CliffEdgeGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EmbeddedTower",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Mahoganytown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route42",
+      "events": [
+        {
+          "identity": "Route42/4/Route42_EventScript_Shane",
+          "admitted": true
+        },
+        {
+          "identity": "Route42/5/Route42_EventScript_Ben",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route43",
+      "events": [
+        {
+          "identity": "Route43/0/Route43_EventScript_Spencer",
+          "admitted": true
+        },
+        {
+          "identity": "Route43/1/Route43_EventScript_Tiffany",
+          "admitted": true
+        },
+        {
+          "identity": "Route43/2/Route43_EventScript_Ben",
+          "admitted": true
+        },
+        {
+          "identity": "Route43/3/Route43_EventScript_Marvin",
+          "admitted": true
+        },
+        {
+          "identity": "Route43/16/Route43_EventScript_Ron",
+          "admitted": true
+        },
+        {
+          "identity": "Route43/17/Route43_EventScript_Brent",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route44",
+      "events": [
+        {
+          "identity": "Route44/0/Route44_EventScript_Phil",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/1/Route44_EventScript_Edgar",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/2/Route44_EventScript_Wilton",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/3/Route44_EventScript_Zach",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/4/Route44_EventScript_Allen",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/5/Route44_EventScript_Cybil",
+          "admitted": true
+        },
+        {
+          "identity": "Route44/26/Route44_EventScript_Vance",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage",
+      "events": [
+        {
+          "identity": "LakeOfRage/1/LakeOfRage_EventScript_Andre",
+          "admitted": true
+        },
+        {
+          "identity": "LakeOfRage/4/LakeOfRage_EventScript_Raymond",
+          "admitted": true
+        },
+        {
+          "identity": "LakeOfRage/6/LakeOfRage_EventScript_Lois",
+          "admitted": false
+        },
+        {
+          "identity": "LakeOfRage/8/LakeOfRage_EventScript_Aaron",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRageLowTide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_Gym",
+      "events": [
+        {
+          "identity": "MahoganyTown_Gym/0/MahoganyTown_Gym_EventScript_Clarissa",
+          "admitted": true
+        },
+        {
+          "identity": "MahoganyTown_Gym/1/MahoganyTown_Gym_EventScript_Brad",
+          "admitted": true
+        },
+        {
+          "identity": "MahoganyTown_Gym/2/MahoganyTown_Gym_EventScript_Ronald",
+          "admitted": true
+        },
+        {
+          "identity": "MahoganyTown_Gym/3/MahoganyTown_Gym_EventScript_Douglas",
+          "admitted": true
+        },
+        {
+          "identity": "MahoganyTown_Gym/4/MahoganyTown_Gym_EventScript_Roxanne",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_Shop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route42",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_MahoganyTown_Route43",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route43",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "events": [
+        {
+          "identity": "MtMortar_1F_North/7/MtMortar_1F_North_EventScript_Markus",
+          "admitted": true
+        },
+        {
+          "identity": "MtMortar_1F_North/8/MtMortar_1F_North_EventScript_Miller",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_2F",
+      "events": [
+        {
+          "identity": "MtMortar_2F/6/MtMortar_2F_EventScript_Nerd",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route45",
+      "events": [
+        {
+          "identity": "Route45/0/Route45_EventScript_Erik",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/1/Route45_EventScript_Ryan",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/3/Route45_EventScript_Michael",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/5/Route45_EventScript_Kelly",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/6/Route45_EventScript_Kenji",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/8/Route45_EventScript_Timothy",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/10/Route45_EventScript_Parry",
+          "admitted": true
+        },
+        {
+          "identity": "Route45/11/Route45_EventScript_Quentin",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route46",
+      "events": [
+        {
+          "identity": "Route46/4/Route46_EventScript_Ted",
+          "admitted": true
+        },
+        {
+          "identity": "Route46/5/Route46_EventScript_Erin",
+          "admitted": true
+        },
+        {
+          "identity": "Route46/6/Route46_EventScript_Bailey",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_Gym",
+      "events": [
+        {
+          "identity": "BlackthornCity_Gym/0/BlackthornGym_EventScript_Mike",
+          "admitted": true
+        },
+        {
+          "identity": "BlackthornCity_Gym/1/BlackthornGym_EventScript_Paul",
+          "admitted": true
+        },
+        {
+          "identity": "BlackthornCity_Gym/2/BlackthornGym_EventScript_Lola",
+          "admitted": true
+        },
+        {
+          "identity": "BlackthornCity_Gym/7/BlackthornGym_EventScript_Fran",
+          "admitted": true
+        },
+        {
+          "identity": "BlackthornCity_Gym/8/BlackthornGym_EventScript_Cody",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "events": [
+        {
+          "identity": "DragonsDen_Cavern/0/DragonsDen_Cavern_EventScript_Darin",
+          "admitted": true
+        },
+        {
+          "identity": "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
+          "admitted": true
+        },
+        {
+          "identity": "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea",
+          "admitted": true
+        },
+        {
+          "identity": "DragonsDen_Cavern/3/DragonsDen_Cavern_EventScript_Cara",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Entrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Shrine",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DarkCave_SouthSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate_SafariZoneEntrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneIndoor",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Enterance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Left",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Mid",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Right",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Top_Mid",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Top_Right",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_SummitDay",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_SummitNight",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_1F",
+      "events": [
+        {
+          "identity": "SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_B1F",
+      "events": [
+        {
+          "identity": "SSAqua_B1F/0/SSAqua_B1F_EventScript_Wai",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/1/SSAqua_B1F_EventScript_Nate",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/2/SSAqua_B1F_EventScript_Shirley",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/3/SSAqua_B1F_EventScript_Ricky",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/4/SSAqua_B1F_EventScript_Debra",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/5/SSAqua_B1F_EventScript_Kenneth",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/7/SSAqua_B1F_EventScript_Jonah",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/8/SSAqua_B1F_EventScript_Fritz",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_B1F/10/SSAqua_B1F_EventScript_Garrett",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_CaptainsRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_PlayersRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNW/0/SSAqua_RoomNW_EventScript_Stanly",
+          "admitted": false
+        },
+        {
+          "identity": "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNE/0/SSAqua_RoomNE_EventScript_Noland",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomNE/1/SSAqua_RoomNE_EventScript_Ethan",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNNE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNNE/0/SSAqua_RoomNNE_EventScript_Carol",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomNNE/1/SSAqua_RoomNNE_EventScript_Sean",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSSW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSSW/0/SSAqua_RoomSSW_EventScript_Lyle",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomSSW/1/SSAqua_RoomSSW_EventScript_Ken",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSSE",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomSE/3/SSAqua_RoomSE_EventScript_Colin",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSW/0/SSAqua_RoomSW_EventScript_Cassie",
+          "admitted": true
+        },
+        {
+          "identity": "SSAqua_RoomSW/1/SSAqua_RoomSW_EventScript_Clyde",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VermilionCity_PortInside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route26",
+      "events": [
+        {
+          "identity": "Route26/0/Route26_EventScript_Richard",
+          "admitted": true
+        },
+        {
+          "identity": "Route26/1/Route26_EventScript_Jake",
+          "admitted": true
+        },
+        {
+          "identity": "Route26/2/Route26_EventScript_Joyce",
+          "admitted": true
+        },
+        {
+          "identity": "Route26/14/Route26_EventScript_Gaven",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route26North",
+      "events": [
+        {
+          "identity": "Route26North/0/Route26_EventScript_Beth",
+          "admitted": true
+        },
+        {
+          "identity": "Route26North/1/Route26_EventScript_Jake",
+          "admitted": true
+        },
+        {
+          "identity": "Route26North/5/Route26_EventScript_Joyce",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route26_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route26_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route27",
+      "events": [
+        {
+          "identity": "Route27/1/Route27_EventScript_Megan",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/2/Route27_EventScript_Brian",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/3/Route27_EventScript_Jose",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/4/Route27_EventScript_Blake",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/7/Route27_EventScript_Gilbert",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/8/Route27_EventScript_Reena",
+          "admitted": true
+        },
+        {
+          "identity": "Route27/9/Route27_EventScript_Scott",
+          "admitted": true
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route27_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30_MrPokemonsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TohjoFalls_GiovanniRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "ReceptionGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "JohtoIndigoPlateau",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoIndigoPlateau_PokemonCenter",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_BrunosRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_ChampionsRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_HallOfFame",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_KarensRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_KogasRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_WillsRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B2F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B3F",
+      "events": [],
+      "authority": "absent"
+    }
+  ],
+  "pairedDoubles": [
+    {
+      "trainer": "TRAINER_AMY_AND_MAY",
+      "events": [
+        "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
+        "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May"
+      ]
+    },
+    {
+      "trainer": "TRAINER_ANN_AND_ANNE",
+      "events": [
+        "Route37/0/Route37_EventScript_TwinAnn",
+        "Route37/1/Route37_EventScript_TwinAnne"
+      ]
+    },
+    {
+      "trainer": "TRAINER_LEA_AND_PIA",
+      "events": [
+        "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
+        "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea"
+      ]
+    },
+    {
+      "trainer": "TRAINER_THOM_AND_KAE",
+      "events": [
+        "Route47/3/Route47_EventScript_Kae",
+        "Route47/4/Route47_EventScript_Thom"
+      ]
+    },
+    {
+      "trainer": "TRAINER_DUFF_AND_EDA",
+      "events": [
+        "Route47/7/Route47_EventScript_Duff",
+        "Route47/8/Route47_EventScript_Eda"
+      ]
+    },
+    {
+      "trainer": "TRAINER_MEG_AND_PEG",
+      "events": [
+        "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
+        "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg"
+      ]
+    }
+  ]
+}

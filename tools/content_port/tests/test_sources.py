@@ -23,6 +23,7 @@ from tools.content_port.sources import (
     resolve_port_sources,
     validate_port_sources,
     _automatic_unreachable_shells,
+    _authenticated_trainer_inventory,
     _semantic_record_digest,
     _bind_script_warp_policy,
     _extract_preserved_script_warps,
@@ -635,6 +636,90 @@ class SourceGraphTests(unittest.TestCase):
                 ContentPortError, "species:SPECIES_NOT_DECLARED"
             ):
                 build_source_graph(broken, [ResourceKey("capability", "native")])
+
+    def test_real_trainer_inventory_authenticates_cross_map_events_and_pairs(
+        self,
+    ) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        trainer_inventory = _authenticated_trainer_inventory(
+            descriptor,
+            ExpansionSourceContext(
+                descriptor.donor("content").root,
+                active_capabilities=("spatial",),
+            ),
+            tuple(descriptor.map_ownership),
+            set(descriptor.adaptations["contentFallback"]["maps"]),
+        )
+        self.assertEqual(len(trainer_inventory.identities), 270)
+        self.assertEqual(len(trainer_inventory.placements), 236)
+        self.assertEqual(
+            trainer_inventory.digest,
+            descriptor.expected_trainer_inventory["documentDigest"],
+        )
+        placements = {
+            placement.identity: placement.trainer
+            for placement in trainer_inventory.placements
+        }
+        self.assertEqual(
+            placements["SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff"],
+            "TRAINER_JEFF",
+        )
+        self.assertEqual(
+            {
+                placements[identity]
+                for identity in (
+                    "Route26North/0/Route26_EventScript_Beth",
+                    "Route26North/1/Route26_EventScript_Jake",
+                    "Route26North/5/Route26_EventScript_Joyce",
+                )
+            },
+            {"TRAINER_BETH", "TRAINER_JAKE", "TRAINER_JOYCE"},
+        )
+        self.assertEqual(len(trainer_inventory.paired_doubles), 6)
+        self.assertEqual(
+            {
+                classification: sum(
+                    identity.classification == classification
+                    for identity in trainer_inventory.identities
+                )
+                for classification in (
+                    "ordinary",
+                    "story-controlled",
+                    "unsupported",
+                )
+            },
+            descriptor.expected_trainer_inventory["identityClassifications"],
+        )
+        self.assertEqual(
+            sum(identity.admitted for identity in trainer_inventory.identities),
+            descriptor.expected_trainer_inventory["admittedIdentities"],
+        )
+        self.assertEqual(
+            sum(placement.admitted for placement in trainer_inventory.placements),
+            descriptor.expected_trainer_inventory["admittedEvents"],
+        )
+        self.assertEqual(
+            len(
+                {
+                    placement.map_name
+                    for placement in trainer_inventory.placements
+                    if placement.admitted
+                }
+            ),
+            descriptor.expected_trainer_inventory["affectedAdmittedMaps"],
+        )
+        self.assertEqual(
+            trainer_inventory.paired_doubles["TRAINER_ANN_AND_ANNE"],
+            (
+                "Route37/0/Route37_EventScript_TwinAnn",
+                "Route37/1/Route37_EventScript_TwinAnne",
+            ),
+        )
 
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,

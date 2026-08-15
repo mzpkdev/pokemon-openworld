@@ -20,6 +20,11 @@ from .model import (
     TrainerText,
 )
 from .ownership import safe_repo_path
+from .trainer_inventory import (
+    InventoryExpectations,
+    TrainerInventory,
+    load_trainer_inventory,
+)
 from .world_graph import WorldEdge, with_dynamic_warps
 
 
@@ -97,6 +102,7 @@ class PortSourceState:
     semantic_evidence: Mapping[str, str]
     semantic_values: Mapping[ResourceKey, Mapping[str, Any]]
     trainer_events: Mapping[str, tuple[TrainerEventRecord, ...]]
+    trainer_inventory: TrainerInventory
     materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
 
 
@@ -790,6 +796,174 @@ class ExpansionSourceContext(SourceContext):
             return self._trainer_events[key]
         except KeyError as error:
             raise ContentPortError(f"{key}: typed trainer event is missing") from error
+
+
+def _canonical_trainer_identities(
+    root: Path,
+    map_names: Iterable[str],
+    additional_identities: Iterable[str] = (),
+) -> tuple[str, ...]:
+    """Return resident trainerbattle dependencies in donor numeric order."""
+
+    from .semantics import parse_scripts
+
+    referenced = set(additional_identities)
+    for map_name in map_names:
+        script_path = Path("data/maps") / map_name / "scripts.inc"
+        if not (root / script_path).is_file():
+            continue
+        program = parse_scripts((script_path,), root=root)
+        for instructions in program.labels.values():
+            for instruction in instructions:
+                if not instruction.command.startswith("trainerbattle_"):
+                    continue
+                if not instruction.operands:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: trainerbattle "
+                        "dependency operand is missing"
+                    )
+                referenced.add(instruction.operands[0])
+
+    opponents_path = root / "include/constants/opponents.h"
+    try:
+        lines = opponents_path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read trainer identity declarations {opponents_path}: {error}"
+        ) from error
+    numeric_values: dict[str, int] = {}
+    for line_number, line in enumerate(lines, 1):
+        match = re.match(r"^\s*#\s*define\s+(TRAINER_[A-Z0-9_]+)\s+(\d+)\b", line)
+        if match is None or match.group(1) not in referenced:
+            continue
+        identity = match.group(1)
+        if identity in numeric_values:
+            raise ContentPortError(
+                f"{opponents_path}:{line_number}: duplicate trainer identity {identity}"
+            )
+        numeric_values[identity] = int(match.group(2))
+    missing = sorted(referenced - set(numeric_values))
+    if missing:
+        raise ContentPortError(
+            f"{opponents_path}: resident trainer identity {missing[0]} has no numeric declaration"
+        )
+    by_number: dict[int, str] = {}
+    for identity, number in numeric_values.items():
+        previous = by_number.setdefault(number, identity)
+        if previous != identity:
+            raise ContentPortError(
+                f"{opponents_path}: resident trainers {previous} and {identity} "
+                f"share numeric identity {number}"
+            )
+    return tuple(
+        identity
+        for identity, _ in sorted(numeric_values.items(), key=lambda item: item[1])
+    )
+
+
+def _authenticated_trainer_inventory(
+    descriptor: PortDescriptor,
+    content: ExpansionSourceContext,
+    canonical_maps: tuple[str, ...],
+    fallback_maps: set[str],
+) -> TrainerInventory:
+    """Authenticate and load the authored inventory without enabling trainers."""
+
+    content_maps: list[str] = []
+    authenticated_events: dict[str, Mapping[str, tuple[str, ...]]] = {}
+    authenticated_pairs: dict[str, list[str]] = {}
+    resident_event_trainers: set[str] = set()
+    for map_name in canonical_maps:
+        if map_name in fallback_maps:
+            authenticated_events[map_name] = MappingProxyType({})
+            continue
+        content_maps.append(map_name)
+        map_record = content.load(ResourceKey("map", map_name))
+        events: dict[str, tuple[str, ...]] = {}
+        for identity in map_record.value.get("_trainer_event_roots", ()):
+            event = content.trainer_event(ResourceKey("trainer-event", str(identity)))
+            events[str(identity)] = event.trainers
+            resident_event_trainers.update(event.trainers)
+            if any(
+                instruction.command == "trainerbattle_double"
+                for instruction in event.instructions
+            ):
+                if len(event.trainers) != 1:
+                    raise ContentPortError(
+                        f"{identity}: paired double must reference one shared trainer identity"
+                    )
+                authenticated_pairs.setdefault(event.trainers[0], []).append(
+                    str(identity)
+                )
+        authenticated_events[map_name] = MappingProxyType(events)
+
+    canonical_identities = _canonical_trainer_identities(
+        descriptor.donor("content").root,
+        content_maps,
+        resident_event_trainers,
+    )
+    expected = descriptor.expected_trainer_inventory
+    expected_identities = expected["identities"]
+    expected_events = expected["events"]
+    assert isinstance(expected_identities, Mapping)
+    assert isinstance(expected_events, Mapping)
+    inventory = load_trainer_inventory(
+        descriptor.trainer_policy_path,
+        canonical_identities,
+        canonical_maps,
+        MappingProxyType(authenticated_events),
+        content_maps,
+        MappingProxyType(
+            {
+                identity: tuple(events)
+                for identity, events in authenticated_pairs.items()
+            }
+        ),
+        expectations=InventoryExpectations(
+            identities=int(expected_identities["count"]),
+            placements=int(expected_events["count"]),
+            identity_classifications=expected["identityClassifications"],
+            admitted_identities=int(expected["admittedIdentities"]),
+            admitted_placements=int(expected["admittedEvents"]),
+        ),
+        expected_digest=str(descriptor.expected_trainer_inventory["documentDigest"]),
+    )
+    sentinels = {
+        "identities": (
+            len(inventory.identities),
+            inventory.identity_membership_digest,
+        ),
+        "events": (
+            len(inventory.placements),
+            inventory.placement_membership_digest,
+        ),
+    }
+    for domain, (count, digest) in sentinels.items():
+        expected_domain = expected[domain]
+        assert isinstance(expected_domain, Mapping)
+        if count != expected_domain["count"]:
+            raise ContentPortError(
+                f"trainer {domain} count {count} != reviewed {expected_domain['count']}"
+            )
+        if digest != expected_domain["digest"]:
+            raise ContentPortError(
+                f"trainer {domain} digest {digest} != reviewed {expected_domain['digest']}"
+            )
+    if inventory.digest != expected["documentDigest"]:
+        raise ContentPortError(
+            f"trainer inventory document digest {inventory.digest} != reviewed "
+            f"{expected['documentDigest']}"
+        )
+    affected_admitted_maps = {
+        placement.map_name for placement in inventory.placements if placement.admitted
+    }
+    if len(affected_admitted_maps) != expected["affectedAdmittedMaps"]:
+        raise ContentPortError(
+            "trainer affected admitted map count "
+            f"{len(affected_admitted_maps)} != reviewed "
+            f"{expected['affectedAdmittedMaps']}"
+        )
+    return inventory
 
 
 def json_record(path: Path, pointer: str = "") -> SourceRecord:
@@ -2043,6 +2217,18 @@ def resolve_port_sources(
         raise ContentPortError(
             f"content fallback names unknown map {sorted(fallback - set(map_names))[0]}"
         )
+    for name in sorted(fallback):
+        try:
+            content.load(ResourceKey("map", name))
+        except ContentPortError:
+            pass
+        else:
+            raise ContentPortError(
+                f"fallback map {name} exists in the content donor; mechanical authority is forbidden"
+            )
+    trainer_inventory = _authenticated_trainer_inventory(
+        descriptor, content, map_names, fallback
+    )
 
     selected_maps: dict[str, dict[str, Any]] = {}
     map_authorities: dict[str, str] = {}
@@ -2052,15 +2238,6 @@ def resolve_port_sources(
     for name in map_names:
         authority = mechanical if name in fallback else content
         authority_root = mechanical_pin.root if name in fallback else content_pin.root
-        if name in fallback:
-            try:
-                content.load(ResourceKey("map", name))
-            except ContentPortError:
-                pass
-            else:
-                raise ContentPortError(
-                    f"fallback map {name} exists in the content donor; mechanical authority is forbidden"
-                )
         try:
             record = authority.load(ResourceKey("map", name))
         except ContentPortError as exc:
@@ -3393,6 +3570,7 @@ def resolve_port_sources(
         trainer_events=MappingProxyType(
             {name: events for name, events in sorted(selected_trainer_events.items())}
         ),
+        trainer_inventory=trainer_inventory,
         materialization_maps=_freeze_state(materialization_maps),
     )
     return contract, state

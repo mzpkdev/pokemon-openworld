@@ -3,6 +3,7 @@
   "allocationLock": "allocation_lock.json",
   "capabilityPolicy": "capabilities.json",
   "eventPolicy": "events.json",
+  "trainerPolicy": "trainer_classification.json",
   "adaptations": "adaptations.json",
   "assetPolicy": "assets.json",
   "animationPolicy": "animation_policy.json",
@@ -65,5 +66,24 @@
       "count": 71,
       "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"
     }
+  },
+  "expectedTrainerInventory": {
+    "identities": {
+      "count": 270,
+      "digest": "7903b469ecfa0c1cdb1bf9e2d8f8abd3963918b046d87ffd0a7292c3ed6934f6"
+    },
+    "events": {
+      "count": 236,
+      "digest": "6448f7f5a67bb09715f87516a81dd1769607198037d8b228447cad6046e176fb"
+    },
+    "documentDigest": "9c972f12a86c5a60ddb456456ec7ee87425670948664bf8fe1478428075c66fc",
+    "identityClassifications": {
+      "ordinary": 195,
+      "story-controlled": 70,
+      "unsupported": 5
+    },
+    "admittedIdentities": 195,
+    "admittedEvents": 203,
+    "affectedAdmittedMaps": 52
   }
 }

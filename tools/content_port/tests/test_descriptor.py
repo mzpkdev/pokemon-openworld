@@ -443,6 +443,47 @@ class DescriptorTests(unittest.TestCase):
             },
             {"maps": 254, "layouts": 255, "groups": 25, "sections": 58, "tilesets": 71},
         )
+        self.assertEqual(
+            descriptor.trainer_policy_path,
+            port_dir.resolve() / "trainer_classification.json",
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["identities"],
+            {
+                "count": 270,
+                "digest": "7903b469ecfa0c1cdb1bf9e2d8f8abd3963918b046d87ffd0a7292c3ed6934f6",
+            },
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["events"],
+            {
+                "count": 236,
+                "digest": "6448f7f5a67bb09715f87516a81dd1769607198037d8b228447cad6046e176fb",
+            },
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["documentDigest"],
+            "9c972f12a86c5a60ddb456456ec7ee87425670948664bf8fe1478428075c66fc",
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["identityClassifications"],
+            {"ordinary": 195, "story-controlled": 70, "unsupported": 5},
+        )
+        self.assertEqual(
+            {
+                field: descriptor.expected_trainer_inventory[field]
+                for field in (
+                    "admittedIdentities",
+                    "admittedEvents",
+                    "affectedAdmittedMaps",
+                )
+            },
+            {
+                "admittedIdentities": 195,
+                "admittedEvents": 203,
+                "affectedAdmittedMaps": 52,
+            },
+        )
 
     def test_encounter_materialization_and_time_policy_fail_closed(self):
         profile = {
@@ -523,6 +564,31 @@ class DescriptorTests(unittest.TestCase):
                 document["encounterProfiles"] = profiles
                 document["encounterTimePolicy"] = [policy]
                 dump(path, document)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_trainer_inventory_semantic_sentinels_fail_closed(self) -> None:
+        cases = (
+            (
+                lambda expected: expected.pop("affectedAdmittedMaps"),
+                "missing field 'affectedAdmittedMaps'",
+            ),
+            (
+                lambda expected: expected["identityClassifications"].update(other=1),
+                "unknown field 'other'",
+            ),
+        )
+        for mutation, message in cases:
+            with (
+                self.subTest(message=message),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                port = self.make_port(root)
+                expected = port["expectedTrainerInventory"]
+                assert isinstance(expected, dict)
+                mutation(expected)
+                dump(root / "port.json", port)
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
 
@@ -667,6 +733,15 @@ class DescriptorTests(unittest.TestCase):
             {"schemaVersion": 1, "entries": [], "effects": []},
         )
         dump(
+            root / "trainer_classification.json",
+            {
+                "schemaVersion": 1,
+                "identities": [],
+                "maps": [],
+                "pairedDoubles": [],
+            },
+        )
+        dump(
             root / "assets.json",
             {"schemaVersion": 1, "permissionRecords": {}, "assets": []},
         )
@@ -676,6 +751,7 @@ class DescriptorTests(unittest.TestCase):
             "allocationLock": "allocation_lock.json",
             "capabilityPolicy": "capabilities.json",
             "eventPolicy": "events.json",
+            "trainerPolicy": "trainer_classification.json",
             "adaptations": "adaptations.json",
             "assetPolicy": "assets.json",
             "legacyReport": "legacy_report.json",
@@ -714,6 +790,19 @@ class DescriptorTests(unittest.TestCase):
             "expectedInventory": {
                 domain: {"count": 1, "digest": "5" * 64}
                 for domain in ("maps", "layouts", "groups", "sections", "tilesets")
+            },
+            "expectedTrainerInventory": {
+                "identities": {"count": 1, "digest": "6" * 64},
+                "events": {"count": 1, "digest": "7" * 64},
+                "documentDigest": "8" * 64,
+                "identityClassifications": {
+                    "ordinary": 1,
+                    "story-controlled": 1,
+                    "unsupported": 1,
+                },
+                "admittedIdentities": 1,
+                "admittedEvents": 1,
+                "affectedAdmittedMaps": 1,
             },
         }
         dump(root / "port.json", port)

@@ -56,6 +56,8 @@ PORT_KEYS = {
     "legacyReport",
     "donors",
     "expectedInventory",
+    "trainerPolicy",
+    "expectedTrainerInventory",
 }
 DONOR_KEYS = {
     "name",
@@ -968,6 +970,8 @@ class PortDescriptor:
     donors: tuple[DonorPin, ...]
     donors_by_role: Mapping[str, DonorPin]
     expected_inventory: Mapping[str, Mapping[str, object]]
+    trainer_policy_path: Path
+    expected_trainer_inventory: Mapping[str, object]
     allocation_index: AllocationIndex
     capabilities: tuple[CapabilityDecision, ...]
     map_ownership: Mapping[str, str]
@@ -1653,6 +1657,71 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
 
     allocation_path = _safe_child(port_dir, root["allocationLock"], "$.allocationLock")
     allocation_index = load_allocation_index(read_json(allocation_path))
+    trainer_policy_path = _safe_child(
+        port_dir, root["trainerPolicy"], "$.trainerPolicy"
+    )
+    trainer_inventory = _object(
+        root["expectedTrainerInventory"], "$.expectedTrainerInventory"
+    )
+    _exact_keys(
+        trainer_inventory,
+        {
+            "identities",
+            "events",
+            "documentDigest",
+            "identityClassifications",
+            "admittedIdentities",
+            "admittedEvents",
+            "affectedAdmittedMaps",
+        },
+        "$.expectedTrainerInventory",
+    )
+    expected_trainer_inventory: dict[str, object] = {}
+    for domain in ("identities", "events"):
+        pointer = f"$.expectedTrainerInventory.{domain}"
+        sentinel = _object(trainer_inventory[domain], pointer)
+        _exact_keys(sentinel, {"count", "digest"}, pointer)
+        count = _integer(sentinel["count"], f"{pointer}.count", positive=True)
+        digest = _string(sentinel["digest"], f"{pointer}.digest")
+        if not DIGEST_RE.fullmatch(digest):
+            raise ContentPortError(f"{pointer}.digest: expected 64 lowercase hex")
+        expected_trainer_inventory[domain] = MappingProxyType(
+            {"count": count, "digest": digest}
+        )
+    document_digest = _string(
+        trainer_inventory["documentDigest"],
+        "$.expectedTrainerInventory.documentDigest",
+    )
+    if not DIGEST_RE.fullmatch(document_digest):
+        raise ContentPortError(
+            "$.expectedTrainerInventory.documentDigest: expected 64 lowercase hex"
+        )
+    expected_trainer_inventory["documentDigest"] = document_digest
+    classification_pointer = "$.expectedTrainerInventory.identityClassifications"
+    classifications = _object(
+        trainer_inventory["identityClassifications"], classification_pointer
+    )
+    _exact_keys(
+        classifications,
+        {"ordinary", "story-controlled", "unsupported"},
+        classification_pointer,
+    )
+    expected_trainer_inventory["identityClassifications"] = MappingProxyType(
+        {
+            classification: _integer(
+                classifications[classification],
+                f"{classification_pointer}.{classification}",
+                positive=True,
+            )
+            for classification in ("ordinary", "story-controlled", "unsupported")
+        }
+    )
+    for field in ("admittedIdentities", "admittedEvents", "affectedAdmittedMaps"):
+        expected_trainer_inventory[field] = _integer(
+            trainer_inventory[field],
+            f"$.expectedTrainerInventory.{field}",
+            positive=True,
+        )
     capability_path = _safe_child(
         port_dir, root["capabilityPolicy"], "$.capabilityPolicy"
     )
@@ -1786,6 +1855,8 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         expected_inventory=_load_inventory(
             root["expectedInventory"], "$.expectedInventory"
         ),
+        trainer_policy_path=trainer_policy_path,
+        expected_trainer_inventory=MappingProxyType(expected_trainer_inventory),
         allocation_index=allocation_index,
         capabilities=capabilities,
         map_ownership=ownership,
