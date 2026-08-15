@@ -90,8 +90,10 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         self.assertEqual(set(hoenn.values()), set(range(858)))
         self.assertEqual(definitions["TRAINER_YOUNGSTER_SAMUEL_JOHTO"], 1481)
         self.assertEqual(definitions["TRAINER_SAILOR_EUGENE_JOHTO"], 1482)
-        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1483$")
-        self.assertRegex(opponents, r"(?m)^#define MAX_TRAINERS_COUNT\s+1536$")
+        self.assertEqual(definitions["TRAINER_FISHERMAN_SCOTT_JOHTO"], 1483)
+        self.assertEqual(definitions["TRAINER_EXPERT_ROXANNE_JOHTO"], 1675)
+        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1676$")
+        self.assertRegex(opponents, r"(?m)^#define MAX_TRAINERS_COUNT\s+1792$")
 
     def test_every_live_frlg_party_is_generated_and_nonempty(self) -> None:
         party_symbols = PARTY_SECTION.findall(FRLG_PARTIES.read_text())
@@ -128,11 +130,13 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         )
         self.assertNotIn("IS_FRLG", body)
         party_symbols = PARTY_SECTION.findall(HOENN_PARTIES.read_text())
-        self.assertEqual(len(party_symbols), 860)
-        self.assertEqual(
-            party_symbols[-2:],
-            ["TRAINER_SAILOR_EUGENE_JOHTO", "TRAINER_YOUNGSTER_SAMUEL_JOHTO"],
-        )
+        self.assertEqual(len(party_symbols), 1053)
+        johto_symbols = [
+            symbol for symbol in party_symbols if symbol.endswith("_JOHTO")
+        ]
+        self.assertEqual(len(johto_symbols), 195)
+        self.assertIn("TRAINER_SAILOR_EUGENE_JOHTO", johto_symbols)
+        self.assertIn("TRAINER_YOUNGSTER_SAMUEL_JOHTO", johto_symbols)
         eugene = (
             HOENN_PARTIES.read_text()
             .split("=== TRAINER_SAILOR_EUGENE_JOHTO ===", 1)[1]
@@ -149,6 +153,53 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
             "SPECIES_TAUROS\nLevel: 22",
         ):
             self.assertIn(authored, eugene)
+
+    def test_trainerproc_emits_johto_runtime_namespaces_without_policy_suffixes(
+        self,
+    ) -> None:
+        classes = (
+            "Burglar",
+            "Firebreather",
+            "Juggler",
+            "Psychic M",
+            "Sage",
+            "Super Nerd",
+        )
+        pics = ("Firebreather", "Psychic M", "Sage", "Super Nerd")
+        sections = []
+        for index, trainer_class in enumerate(classes):
+            pic = pics[index % len(pics)]
+            sections.append(
+                f"=== TRAINER_TEST_JOHTO_{index} ===\n"
+                f"Name: TEST\n"
+                f"Class: {trainer_class} Johto\n"
+                f"Pic: {pic} HG\n"
+                "\n"
+                "Pikachu\n"
+                "Level: 5\n"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="johto-trainerproc-") as directory:
+            source = Path(directory) / "johto.party"
+            output = Path(directory) / "johto.h"
+            source.write_text("\n".join(sections))
+            subprocess.run(
+                [str(TRAINERPROC), "-o", str(output), str(source)],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            generated = output.read_text()
+
+        for trainer_class in classes:
+            token = trainer_class.upper().replace(" ", "_")
+            self.assertIn(f".trainerClass = JOHTO_TRAINER_CLASS_{token},", generated)
+            self.assertNotIn(f"JOHTO_TRAINER_CLASS_{token}_JOHTO", generated)
+        for pic in pics:
+            token = pic.upper().replace(" ", "_")
+            self.assertIn(f".trainerPic = JOHTO_TRAINER_PIC_{token},", generated)
+            self.assertNotIn(f"JOHTO_TRAINER_PIC_{token}_HG", generated)
 
     def test_executable_sources_never_use_legacy_frlg_tombstones(self) -> None:
         tracked = subprocess.run(

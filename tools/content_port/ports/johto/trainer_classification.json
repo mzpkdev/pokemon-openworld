@@ -1,0 +1,5902 @@
+{
+  "schemaVersion": 2,
+  "identities": [
+    {
+      "trainer": "TRAINER_SAYO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_SCOTT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_SCOTT_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SEAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_SEAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TROY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_TROY_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TULLY",
+      "classification": "unsupported",
+      "reason": "objectless",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ROD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_ROD_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_VALERIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_VALERIE_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JOYCE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JOYCE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ZUKI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_FALKNER_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_TODD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_TODD_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TIMOTHY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_TIMOTHY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_STANLY",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DEVIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_DEVIN_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRANT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_GRANT_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CASSIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_CASSIE_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JEFFREY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_JEFFREY_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_33",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_NORMAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_NORMAN_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KRISE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_KRISE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RAYMOND",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_RAYMOND_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KUNI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LAO",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_LAO_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LEA_AND_PIA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_LEA_AND_PIA_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_REENA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_REENA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RICH",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RICKY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_RICKY_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CODY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_CODY_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GWEN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_GWEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SIMON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_SIMON_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CHARLIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_CHARLIE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RANDALL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_RANDALL_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GEORGE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_GEORGE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BERKE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_BERKE_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ELAINE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_ELAINE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_EDGAR",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_EDGAR_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ALBERT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_ALBERT_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SAMUEL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WENDY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_WENDY_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_EMMA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_EMMA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GIOVANNI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ERIK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_ERIK_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ERIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_ERIN_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ERNEST",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_ERNEST_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WAI",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_WAI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_19",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_20",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_21",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_22",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_SHIRLEY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_SHIRLEY_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CONNIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_CONNIE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BRIDGET",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_BRIDGET_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_OLIVIA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_OLIVIA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TIFFANY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_TIFFANY_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ARIANA_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_MARK_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TERU",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DOUGLAS",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_DOUGLAS_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SPENCER",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_SPENCER_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ROLAND",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_ROLAND_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_STAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_STAN_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RICHARD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_RICHARD_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GILBERT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_GILBERT_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JACK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_JACK_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CHAD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_CHAD_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KIYO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KIRK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_KIRK_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JENN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JENN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JEFF",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_JEFF_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_COREY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_COREY_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DENIS",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_DENIS_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DANIEL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_DANIEL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LARRY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_LARRY_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SHANE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_SHANE_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JUSTIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_JUSTIN_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NAOKO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_NATHAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_NATHAN_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NEAL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_NEAL_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NICK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_NICK_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NICO",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_NICO_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BRENT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_BRENT_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DONALD",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DEREK",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_DEREK_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RED_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_EDWARD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_EDWARD_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PRESTON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_PRESTON_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BLAKE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BLAKE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WILLIAM",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_WILLIAM_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GAVEN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_GAVEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GINA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_GINA_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GORDON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_GORDON_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SAMANTHA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_SAMANTHA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BENJAMIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_BENJAMIN_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PING",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_PING_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TED",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_TED_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PAUL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_PAUL_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PETREL_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PROTON_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_26",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_VICTORIA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BEAUTY_VICTORIA_JOHTO",
+        "class": "Beauty",
+        "pic": "Beauty",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_EUGENE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_EUGENE_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JOSH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_JOSH_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JOEY",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BEN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_BEN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KENNETH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_KENNETH_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_FRAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_FRAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_FRITZ",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_JUGGLER_FRITZ_JOHTO",
+        "class": "Juggler Johto",
+        "pic": "Juggler FRLG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_EDDIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_EDDIE_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ALLEN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_ALLEN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ANDREW",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ANDREW_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_IVAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_IVAN_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CYBIL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CYBIL_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WADE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MATHEW",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_M_MATHEW_JOHTO",
+        "class": "Swimmer M",
+        "pic": "Swimmer M",
+        "gender": "Male",
+        "music": "Swimmer",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MEG_AND_PEG",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_MEG_AND_PEG_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MEGAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_MEGAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MICHAEL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_MICHAEL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RONALD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_RONALD_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ANTHONY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_ANTHONY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ABE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_ABE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_AL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_AL_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ALFRED",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GENTLEMAN_ALFRED_JOHTO",
+        "class": "Gentleman",
+        "pic": "Gentleman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ANDRE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_ANDRE_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LIZ",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_LIZ_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GARRETT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_GARRETT_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KIM",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_KIM_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_AARON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_AARON_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_HUGH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_HUGH_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PHIL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_PHIL_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LOIS",
+      "classification": "unsupported",
+      "reason": "temporary-state",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_COLIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_COLIN_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BENNY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_BENNY_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KENJI",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_KENJI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LUNG",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_LUNG_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_28",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PAULA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_PAULA_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JAKE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_JAKE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CLARISSA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_CLARISSA_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BEVERLY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PARASOL_LADY_BEVERLY_JOHTO",
+        "class": "Parasol Lady",
+        "pic": "Parasol Lady",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DENISE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_DENISE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BETH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BETH_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRACE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HEX_MANIAC_GRACE_JOHTO",
+        "class": "Hex Maniac",
+        "pic": "Hex Maniac",
+        "gender": "Female",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_SUSIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_SUSIE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KARA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_KARA_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DANA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_DANA_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DEBRA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_DEBRA_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KAYLEE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SWIMMER_F_KAYLEE_JOHTO",
+        "class": "Swimmer F",
+        "pic": "Swimmer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ARCHER",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DARIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_DARIN_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CAROL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CAROL_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MARTHA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HEX_MANIAC_MARTHA_JOHTO",
+        "class": "Hex Maniac",
+        "pic": "Hex Maniac",
+        "gender": "Female",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_8",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_IRENE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_IRENE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KEITH",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_KELLY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_KELLY_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KEN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_KEN_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_AMY_AND_MAY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_AMY_AND_MAY_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ANN_AND_ANNE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_TWINS_ANN_AND_ANNE_JOHTO",
+        "class": "Twins",
+        "pic": "Twins FRLG",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RUTH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PARASOL_LADY_RUTH_JOHTO",
+        "class": "Parasol Lady",
+        "pic": "Parasol Lady",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RYAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_RYAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_HUEY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_HUEY_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_EDMOND",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_EDMOND_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MIKE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_DRAGON_TAMER_MIKE_JOHTO",
+        "class": "Dragon Tamer",
+        "pic": "Dragon Tamer",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PHILLIP",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_PHILLIP_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LEONARD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_LEONARD_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DUNCAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_DUNCAN_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MIKEY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MIKI",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MILLER",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_MILLER_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CARRIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_LASS_CARRIE_JOHTO",
+        "class": "Lass",
+        "pic": "Lass",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CLYDE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_GUITARIST_CLYDE_JOHTO",
+        "class": "Guitarist",
+        "pic": "Guitarist",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_27",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_LOLA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_LOLA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARKUS",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SUPER_NERD_MARKUS_JOHTO",
+        "class": "Super Nerd Johto",
+        "pic": "Super Nerd HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_THOM_AND_KAE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO",
+        "class": "Young Couple",
+        "pic": "Young Couple",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_DUFF_AND_EDA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO",
+        "class": "Young Couple",
+        "pic": "Young Couple",
+        "gender": "Male",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CHUCK_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CLAIR_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CHIKORITA_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_EUSINE",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_5",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_6",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_GRUNT_7",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_VANCE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_VANCE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TOBY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_TOBY_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_TERRELL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_TERRELL_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_MARC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CHOW",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_CHOW_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_THEO",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_THEO_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NATE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_NATE_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WALT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_WALT_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WILTON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_WILTON_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_YOSHI",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_YOSHI_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ZACH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ZACH_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BUGSY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_WHITNEY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MORTY_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_JAMIE",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRIAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_BRIAN_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_HARRY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_HARRY_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_LYLE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_LYLE_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JOSE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_JOSE_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GREG",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PSYCHIC_M_GREG_JOHTO",
+        "class": "Psychic M Johto",
+        "pic": "Psychic M HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KENT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAILOR_KENT_JOHTO",
+        "class": "Sailor",
+        "pic": "Sailor",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_4",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RIVAL_TOTODILE_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_ELLIOT",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_ELLIOT_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ALAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SCHOOL_KID_ALAN_JOHTO",
+        "class": "School Kid",
+        "pic": "School Kid M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ERIC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RUSSELL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_RUSSELL_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JASMINE_1_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_RAY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_RAY_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JONAH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_JONAH_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_HENRY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_HENRY_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BAILEY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_BAILEY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_WAYNE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_WAYNE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_11",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRAD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_BRAD_JOHTO",
+        "class": "Expert",
+        "pic": "Expert M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_10",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PRYCE_1_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_CARA",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_CARA_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RICHARDO",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BURGLAR_RICHARDO_JOHTO",
+        "class": "Burglar Johto",
+        "pic": "Burglar FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NARD",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_NARD_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_2",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_MARVIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_MARVIN_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_9",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BRYAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_BRYAN_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ETHAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_ETHAN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RIVAL_CYNDAQUIL_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_BILL",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FIREBREATHER_BILL_JOHTO",
+        "class": "Firebreather Johto",
+        "pic": "Firebreather HG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_KATE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_COOLTRAINER_KATE_JOHTO",
+        "class": "Cooltrainer",
+        "pic": "Cooltrainer F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ARNIE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_ARNIE_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NOB",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BLACK_BELT_NOB_JOHTO",
+        "class": "Black Belt",
+        "pic": "Black Belt",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ETO",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DIRK",
+      "classification": "unsupported",
+      "reason": "night-only",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_DON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BUG_CATCHER_DON_JOHTO",
+        "class": "Bug Catcher",
+        "pic": "Bug Catcher",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ETO_3",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_QUENTIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_CAMPER_QUENTIN_JOHTO",
+        "class": "Camper",
+        "pic": "Camper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RALPH",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_FISHERMAN_RALPH_JOHTO",
+        "class": "Fisherman",
+        "pic": "Fisherman",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_JIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_SAGE_JIN_JOHTO",
+        "class": "Sage Johto",
+        "pic": "Sage HG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_NOLAND",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_NOLAND_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BRANDON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEFAN_BRANDON_JOHTO",
+        "class": "Pokefan",
+        "pic": "Pokefan M",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_BROOKE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_PICNICKER_BROOKE_JOHTO",
+        "class": "Picnicker",
+        "pic": "Picnicker",
+        "gender": "Female",
+        "music": "Girl",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_CALVIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_CALVIN_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_IAN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_YOUNGSTER_IAN_JOHTO",
+        "class": "Youngster",
+        "pic": "Youngster FRLG",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_IRWIN",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_JUGGLER_IRWIN_JOHTO",
+        "class": "Juggler Johto",
+        "pic": "Juggler FRLG",
+        "gender": "Male",
+        "music": "Suspicious",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ISSAC",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PARRY",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_HIKER_PARRY_JOHTO",
+        "class": "Hiker",
+        "pic": "Hiker",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_PETER",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_BIRD_KEEPER_PETER_JOHTO",
+        "class": "Bird Keeper",
+        "pic": "Bird Keeper",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_RON",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_POKEMANIAC_RON_JOHTO",
+        "class": "Pokemaniac",
+        "pic": "Pokemaniac",
+        "gender": "Male",
+        "music": "Male",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_ROXANNE",
+      "classification": "ordinary",
+      "admitted": true,
+      "projection": {
+        "target": "TRAINER_EXPERT_ROXANNE_JOHTO",
+        "class": "Expert",
+        "pic": "Expert F",
+        "gender": "Female",
+        "music": "Female",
+        "ai": "Check Bad Move",
+        "reward": "preserve",
+        "party": "preserve"
+      }
+    },
+    {
+      "trainer": "TRAINER_GRUNT_12",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    },
+    {
+      "trainer": "TRAINER_PROTON_1",
+      "classification": "story-controlled",
+      "reason": "story-controlled",
+      "admitted": false
+    }
+  ],
+  "maps": [
+    {
+      "map": "NewBarkTown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_Lab",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "NewBarkTown_PlayersHouse_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route29",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route29_Route46",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CherrygroveCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route28",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route28_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30",
+      "events": [
+        {
+          "identity": "Route30/1/Route30_EventScript_Youngster_Joey",
+          "admitted": false
+        },
+        {
+          "identity": "Route30/3/Route30_EventScript_Bugcatcher_Don",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        },
+        {
+          "identity": "Route30/6/Route30_EventScript_Youngster_Mikey",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route31",
+      "events": [
+        {
+          "identity": "Route31/0/Route31_EventScript_Bugcatcher_Wade",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route32",
+      "events": [
+        {
+          "identity": "Route32/5/Route32_EventScript_YoungsterAlbert",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
+        },
+        {
+          "identity": "Route32/6/Route32_EventScript_PicnickerLiz",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "Route32/8/Route32_EventScript_CamperRoland",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route32/9/Route32_EventScript_FisherRalph",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route32/10/Route32_EventScript_FisherHenry",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route32/11/Route32_EventScript_FisherJustin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route32/12/Route32_EventScript_YoungsterGordon",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
+        },
+        {
+          "identity": "Route32/15/Route32_EventScript_BirdkeeperPeter",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_Outside",
+      "events": [
+        {
+          "identity": "RuinsOfAlph_Outside/0/RuinsOfAlph_Outside_EventScript_Nathan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "RuinsOfAlph_Outside/1/RuinsOfAlph_Outside_EventScript_Stan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_Gym",
+      "events": [
+        {
+          "identity": "VioletCity_Gym/1/VioletCity_Gym_EventScript_Abe",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "VioletCity_Gym/2/VioletCity_Gym_EventScript_Rod",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "VioletCity_TrainerSchool",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_1F",
+      "events": [
+        {
+          "identity": "SproutTower_1F/3/SproutTower_1F_EventScript_SageChow",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_2F",
+      "events": [
+        {
+          "identity": "SproutTower_2F/0/SproutTower_2F_EventScript_SageEdmond",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "SproutTower_2F/1/SproutTower_2F_EventScript_SageNico",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SproutTower_3F",
+      "events": [
+        {
+          "identity": "SproutTower_3F/0/SproutTower_3F_EventScript_SageNeal",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "SproutTower_3F/1/SproutTower_3F_EventScript_SageJin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "SproutTower_3F/2/SproutTower_3F_EventScript_SageTroy",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route32_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route31_VioletCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route32",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_RuinsOfAlph_Route36",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_Lab",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_PuzzleAndRewardChambers",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "RuinsOfAlph_WordsRoom4",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route33",
+      "events": [
+        {
+          "identity": "Route33/0/Route33_EventScript_HikerAnthony",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route34",
+      "events": [
+        {
+          "identity": "Route34/0/Route34_EventScript_YoungsterSamuel",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
+        },
+        {
+          "identity": "Route34/1/Route34_EventScript_PokefanMBrandon",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
+        },
+        {
+          "identity": "Route34/2/Route34_EventScript_CamperTodd",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route34/3/Route34_EventScript_YoungsterIan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_YOUNGSTER"
+        },
+        {
+          "identity": "Route34/4/Route34_EventScript_Jenn",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route34/5/Route34_EventScript_Irene",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route34/6/Route34_EventScript_Kate",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route34/9/Route34_EventScript_OfficerKeith",
+          "admitted": false
+        },
+        {
+          "identity": "Route34/10/Route34_EventScript_PicnickerGina",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "IlexForest",
+      "events": [
+        {
+          "identity": "IlexForest/7/IlexForest_EventScript_BugcatcherWayne",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_Gym",
+      "events": [
+        {
+          "identity": "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "AzaleaTown_Gym/4/AzaleaTown_Gym_EventScript_Benny",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        },
+        {
+          "identity": "AzaleaTown_Gym/5/AzaleaTown_Gym_EventScript_Josh",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        },
+        {
+          "identity": "AzaleaTown_Gym/6/AzaleaTown_Gym_EventScript_Al",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_KurtsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "AzaleaTown_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route34_DayCare",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_AzaleaTown_IlexForest",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_IlexForest_Route34",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_1F",
+      "events": [
+        {
+          "identity": "UnionCave_1F/1/UnionCave_1F_EventScript_HikerDaniel",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "UnionCave_1F/2/UnionCave_1F_EventScript_HikerRussell",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "UnionCave_1F/4/UnionCave_1F_EventScript_FirebreatherBill",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "UnionCave_1F/6/UnionCave_1F_EventScript_PokemaniacLarry",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "UnionCave_1F/7/UnionCave_1F_EventScript_FirebreatherRay",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_B1F",
+      "events": [
+        {
+          "identity": "UnionCave_B1F/0/UnionCave_B1F_EventScript_HikerPhillip",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "UnionCave_B1F/1/UnionCave_B1F_EventScript_HikerLeonard",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "UnionCave_B1F/5/UnionCave_B1F_EventScript_PokemaniacCalvin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "UnionCave_B1F/6/UnionCave_B1F_EventScript_PokemaniacAndrew",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "UnionCave_B2F",
+      "events": [
+        {
+          "identity": "UnionCave_B2F/1/UnionCave_B2F_EventScript_CooltrainerNick",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "UnionCave_B2F/3/UnionCave_B2F_EventScript_CooltrainerfGwen",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "UnionCave_B2F/4/UnionCave_B2F_EventScript_CooltrainerfEmma",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SlowpokeWell_B1F",
+      "events": [
+        {
+          "identity": "SlowpokeWell_B1F/9/SlowpokeWell_B1F_EventScript_Grunt21",
+          "admitted": false
+        },
+        {
+          "identity": "SlowpokeWell_B1F/10/SlowpokeWell_B1F_EventScript_Grunt22F",
+          "admitted": false
+        },
+        {
+          "identity": "SlowpokeWell_B1F/12/SlowpokeWell_B1F_EventScript_Eto",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SlowpokeWell_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route35",
+      "events": [
+        {
+          "identity": "Route35/0/Route35_EventScript_PicnickerKim",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "Route35/1/Route35_EventScript_BirdKeeperBryan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "Route35/2/Route35_EventScript_PicnickerBrooke",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "Route35/3/Route35_EventScript_CamperElliot",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route35/4/Route35_EventScript_CamperIvan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route35/5/Route35_EventScript_FirebreatherWalt",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "Route35/6/Route35_EventScript_JugglerIrwin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMERAMAN"
+        },
+        {
+          "identity": "Route35/7/Route35_EventScript_PolicemanDirk",
+          "admitted": false
+        },
+        {
+          "identity": "Route35/8/Route35_EventScript_BugCatcherArnie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route36",
+      "events": [
+        {
+          "identity": "Route36/3/Route36_EventScript_Mark",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "Route36/4/Route36_EventScript_Schoolboy",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route37",
+      "events": [
+        {
+          "identity": "Route37/0/Route37_EventScript_TwinAnn",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "Route37/1/Route37_EventScript_TwinAnne",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "Route37/2/Route37_EventScript_Greg",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "NationalPark_Normal",
+      "events": [
+        {
+          "identity": "NationalPark_Normal/5/NationalPark_Normal_EventScript_Beverly",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
+        },
+        {
+          "identity": "NationalPark_Normal/6/NationalPark_Normal_EventScript_Jack",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
+        },
+        {
+          "identity": "NationalPark_Normal/7/NationalPark_Normal_EventScript_Krise",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LASS"
+        },
+        {
+          "identity": "NationalPark_Normal/8/NationalPark_Normal_EventScript_William",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "NationalPark_BugContest",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_GoldenrodCity_Route35",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_NationalPark",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_BikeShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_BillsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreBasement",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStoreElevator",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_5F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_6F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_DepartmentStore_7FNight",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_FlowerShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_GameCorner",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_Gym",
+      "events": [
+        {
+          "identity": "GoldenrodCity_Gym/1/GoldenrodCity_Gym_EventScript_Carrie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_1"
+        },
+        {
+          "identity": "GoldenrodCity_Gym/2/GoldenrodCity_Gym_EventScript_Victoria",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
+        },
+        {
+          "identity": "GoldenrodCity_Gym/4/GoldenrodCity_Gym_EventScript_Samantha",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
+        },
+        {
+          "identity": "GoldenrodCity_Gym/5/GoldenrodCity_Gym_EventScript_Bridget",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GIRL_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_2F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/3/GoldenrodRaidoTower2_EventScript_Grunt3",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/4/GoldenrodRaidoTower2_EventScript_Grunt5",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/5/GoldenrodRaidoTower2_EventScript_GruntF2",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_2F/6/GoldenrodRaidoTower2_EventScript_Grunt4",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_3F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/0/GoldenrodRaidoTower3_EventScript_Scientist",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/3/GoldenrodRaidoTower3_EventScript_Grunt6",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/4/GoldenrodRaidoTower3_EventScript_Grunt7",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_3F/5/GoldenrodRaidoTower3_EventScript_Grunt8",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_4F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/0/GoldenrodCity_RadioTower_4F4_EventScript_Scientist",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/1/GoldenrodRaidoTower4_EventScript_Grunt9",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/4/GoldenrodRaidoTower4_EventScript_Grunt28",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_RadioTower_4F/5/GoldenrodRaidoTower4_EventScript_Proton",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_RadioTower_5F",
+      "events": [
+        {
+          "identity": "GoldenrodCity_RadioTower_5F/2/GoldenrodRaidoTower4_EventScript_ARIANA",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_TrainStation",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundEntrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundStorage",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/3/GoldenrodCity_UndergroundStorage_EventScript_Grunt12",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/4/GoldenrodCity_UndergroundStorage_EventScript_Grunt19",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundStorage/5/GoldenrodCity_UndergroundStorage_EventScript_Eto",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundSwitches",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/0/GoldenrodCity_UndergroundSwitches_EventScript_Grunt11",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/1/GoldenrodCity_UndergroundSwitches_EventScript_Grunt20",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/2/GoldenrodCity_UndergroundSwitches_EventScript_Grunt10",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/3/GoldenrodCity_UndergroundSwitches_EventScript_Duncan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/4/GoldenrodCity_UndergroundSwitches_EventScript_Eddie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundSwitches/5/GoldenrodCity_UndergroundSwitches_EventScript_Grunt27",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "GoldenrodCity_UndergroundTunnel",
+      "events": [
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/0/GoldenrodUnderground_EventScript_Issac",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/4/GoldenrodUnderground_EventScript_Teru",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/5/GoldenrodUnderground_EventScript_Eric",
+          "admitted": false
+        },
+        {
+          "identity": "GoldenrodCity_UndergroundTunnel/6/GoldenrodUnderground_EventScript_Donald",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route38",
+      "events": [
+        {
+          "identity": "Route38/0/Route38_EventScript_Harry",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "Route38/1/Route38_EventScript_Dana",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LASS"
+        },
+        {
+          "identity": "Route38/2/Route38_EventScript_Olivia",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
+        },
+        {
+          "identity": "Route38/3/Route38_EventScript_Toby",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "Route38/4/Route38_EventScript_Chad",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
+        },
+        {
+          "identity": "Route38/5/Route38_EventScript_Valerie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BEAUTY"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route39",
+      "events": [
+        {
+          "identity": "Route39/0/Route39_EventScript_Norman",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "Route39/2/Route39_EventScript_Ruth",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_1"
+        },
+        {
+          "identity": "Route39/3/Route39_EventScript_Derek",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
+        },
+        {
+          "identity": "Route39/4/Route39_EventScript_Eugene",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "Route39/17/Route39_EventScript_Jamie",
+          "admitted": false
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BellchimeTrail",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route38",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Gym",
+      "events": [
+        {
+          "identity": "EcruteakCity_Gym/3/EcruteakCity_Gym_EventScript_Jeffrey",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "EcruteakCity_Gym/4/EcruteakCity_Gym_EventScript_Martha",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CHANNELER"
+        },
+        {
+          "identity": "EcruteakCity_Gym/5/EcruteakCity_Gym_EventScript_Ping",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "EcruteakCity_Gym/6/EcruteakCity_Gym_EventScript_Grace",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CHANNELER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_SageOffice1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_SageOffice2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EcruteakCity_Theater",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route39_Barn",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route39_FarmHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BurnedTower_1F",
+      "events": [
+        {
+          "identity": "BurnedTower_1F/3/BurnedTower_1F_EventScript_Nard",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "BurnedTower_1F/4/BurnedTower_1F_EventScript_Richardo",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BurnedTower_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_5F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_6F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_7F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_8F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_9F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TinTower_RoofDay",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route40",
+      "events": [
+        {
+          "identity": "Route40/4/Route40_EventScript_Elaine",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route40/7/Route40_EventScript_Simon",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route40/8/Route40_EventScript_Paula",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route40/9/Route40_EventScript_Randall",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route41",
+      "events": [
+        {
+          "identity": "Route41/0/Route41_EventScript_Berke",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route41/1/Route41_EventScript_Charlie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route41/2/Route41_EventScript_Denise",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route41/3/Route41_EventScript_Kara",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route41/4/Route41_EventScript_Kaylee",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route41/5/Route41_EventScript_George",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route41/6/Route41_EventScript_Kirk",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route41/7/Route41_EventScript_Susie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        },
+        {
+          "identity": "Route41/8/Route41_EventScript_Mathew",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_M_WATER"
+        },
+        {
+          "identity": "Route41/9/Route41_EventScript_Wendy",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SWIMMER_F_WATER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route40_TrainerHill_Courtyard",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Cafe",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Gym",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Lighthouse",
+      "events": [
+        {
+          "identity": "OlivineCity_Lighthouse/2/OlivineLighthouse_EventScript_Huey",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/3/OlivineLighthouse_EventScript_GentlemanAlfred",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/4/OlivineLighthouse_EventScript_SailorTerrell",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/5/OlivineLighthouse_EventScript_BirdKeeperTheo",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/6/OlivineLighthouse_EventScript_GentlemanPreston",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/7/OlivineLighthouse_EventScript_SailorKent",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/8/OlivineLighthouse_EventScript_LassConnie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/9/OlivineLighthouse_EventScript_BirdKeeperDenis",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "OlivineCity_Lighthouse/10/OlivineLighthouse_EventScript_SailorErnest",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PortInside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "OlivineCity_PortOutside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B1F_Inner",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_B3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_Descent",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "WhirlIslands_LugiaChamber",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route47",
+      "events": [
+        {
+          "identity": "Route47/0/Route47_EventScript_Hiker",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "Route47/1/Route47_EventScript_Camper",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route47/3/Route47_EventScript_Kae",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route47/4/Route47_EventScript_Thom",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route47/7/Route47_EventScript_Duff",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WORKER_M"
+        },
+        {
+          "identity": "Route47/8/Route47_EventScript_Eda",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WORKER_F"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route48",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodGym",
+      "events": [
+        {
+          "identity": "CianwoodGym/1/CianwoodGym_EventScript_Nob",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        },
+        {
+          "identity": "CianwoodGym/2/CianwoodGym_EventScript_Yoshi",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        },
+        {
+          "identity": "CianwoodGym/3/CianwoodGym_EventScript_Lao",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        },
+        {
+          "identity": "CianwoodGym/4/CianwoodGym_EventScript_Lung",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodHouse3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodPokecenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CianwoodShop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CliffEdgeCave",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "CliffEdgeGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "EmbeddedTower",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Mahoganytown",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route42",
+      "events": [
+        {
+          "identity": "Route42/4/Route42_EventScript_Shane",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "Route42/5/Route42_EventScript_Ben",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route43",
+      "events": [
+        {
+          "identity": "Route43/0/Route43_EventScript_Spencer",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route43/1/Route43_EventScript_Tiffany",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "Route43/2/Route43_EventScript_Ben",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FAT_MAN"
+        },
+        {
+          "identity": "Route43/3/Route43_EventScript_Marvin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route43/16/Route43_EventScript_Ron",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "Route43/17/Route43_EventScript_Brent",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route44",
+      "events": [
+        {
+          "identity": "Route44/0/Route44_EventScript_Phil",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "Route44/1/Route44_EventScript_Edgar",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route44/2/Route44_EventScript_Wilton",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "Route44/3/Route44_EventScript_Zach",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        },
+        {
+          "identity": "Route44/4/Route44_EventScript_Allen",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route44/5/Route44_EventScript_Cybil",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route44/26/Route44_EventScript_Vance",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage",
+      "events": [
+        {
+          "identity": "LakeOfRage/1/LakeOfRage_EventScript_Andre",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "LakeOfRage/4/LakeOfRage_EventScript_Raymond",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "LakeOfRage/6/LakeOfRage_EventScript_Lois",
+          "admitted": false
+        },
+        {
+          "identity": "LakeOfRage/8/LakeOfRage_EventScript_Aaron",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRageLowTide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_Gym",
+      "events": [
+        {
+          "identity": "MahoganyTown_Gym/0/MahoganyTown_Gym_EventScript_Clarissa",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_WOMAN"
+        },
+        {
+          "identity": "MahoganyTown_Gym/1/MahoganyTown_Gym_EventScript_Brad",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_2"
+        },
+        {
+          "identity": "MahoganyTown_Gym/2/MahoganyTown_Gym_EventScript_Ronald",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
+        },
+        {
+          "identity": "MahoganyTown_Gym/3/MahoganyTown_Gym_EventScript_Douglas",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_MAN_1"
+        },
+        {
+          "identity": "MahoganyTown_Gym/4/MahoganyTown_Gym_EventScript_Roxanne",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_OLD_WOMAN"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MahoganyTown_Shop",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_EcruteakCity_Route42",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_MahoganyTown_Route43",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Gate_Route43",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "LakeOfRage_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_1F_North",
+      "events": [
+        {
+          "identity": "MtMortar_1F_North/7/MtMortar_1F_North_EventScript_Markus",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
+        },
+        {
+          "identity": "MtMortar_1F_North/8/MtMortar_1F_North_EventScript_Miller",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FAT_MAN"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_1F_South",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_2F",
+      "events": [
+        {
+          "identity": "MtMortar_2F/6/MtMortar_2F_EventScript_Nerd",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SCIENTIST_1"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "MtMortar_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route45",
+      "events": [
+        {
+          "identity": "Route45/0/Route45_EventScript_Erik",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "Route45/1/Route45_EventScript_Ryan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "Route45/3/Route45_EventScript_Michael",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "Route45/5/Route45_EventScript_Kelly",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route45/6/Route45_EventScript_Kenji",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        },
+        {
+          "identity": "Route45/8/Route45_EventScript_Timothy",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "Route45/10/Route45_EventScript_Parry",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "Route45/11/Route45_EventScript_Quentin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route46",
+      "events": [
+        {
+          "identity": "Route46/4/Route46_EventScript_Ted",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMPER"
+        },
+        {
+          "identity": "Route46/5/Route46_EventScript_Erin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "Route46/6/Route46_EventScript_Bailey",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_Gym",
+      "events": [
+        {
+          "identity": "BlackthornCity_Gym/0/BlackthornGym_EventScript_Mike",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "BlackthornCity_Gym/1/BlackthornGym_EventScript_Paul",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "BlackthornCity_Gym/2/BlackthornGym_EventScript_Lola",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "BlackthornCity_Gym/7/BlackthornGym_EventScript_Fran",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "BlackthornCity_Gym/8/BlackthornGym_EventScript_Cody",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_House3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_Mart",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "BlackthornCity_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B1F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "IcePath_B4F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Cavern",
+      "events": [
+        {
+          "identity": "DragonsDen_Cavern/0/DragonsDen_Cavern_EventScript_Darin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "DragonsDen_Cavern/3/DragonsDen_Cavern_EventScript_Cara",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Entrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DragonsDen_Shrine",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DarkCave_NorthSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "DarkCave_SouthSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneGate_SafariZoneEntrance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZoneIndoor",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Enterance",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Left",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Mid",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Low_Right",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Top_Mid",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone_Top_Right",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SafariZone3",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_Outside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_WaterfallRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_MoltresRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_1F_ItemRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_2F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_3F",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_MountainSide",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_Snow",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_SummitDay",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_SummitNight",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "MtSilver_PokemonCenter",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_1F",
+      "events": [
+        {
+          "identity": "SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_B1F",
+      "events": [
+        {
+          "identity": "SSAqua_B1F/0/SSAqua_B1F_EventScript_Wai",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BLACK_BELT"
+        },
+        {
+          "identity": "SSAqua_B1F/1/SSAqua_B1F_EventScript_Nate",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
+        },
+        {
+          "identity": "SSAqua_B1F/2/SSAqua_B1F_EventScript_Shirley",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_3"
+        },
+        {
+          "identity": "SSAqua_B1F/3/SSAqua_B1F_EventScript_Ricky",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_LITTLE_BOY"
+        },
+        {
+          "identity": "SSAqua_B1F/4/SSAqua_B1F_EventScript_Debra",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PICNICKER"
+        },
+        {
+          "identity": "SSAqua_B1F/5/SSAqua_B1F_EventScript_Kenneth",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        },
+        {
+          "identity": "SSAqua_B1F/7/SSAqua_B1F_EventScript_Jonah",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        },
+        {
+          "identity": "SSAqua_B1F/8/SSAqua_B1F_EventScript_Fritz",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_CAMERAMAN"
+        },
+        {
+          "identity": "SSAqua_B1F/10/SSAqua_B1F_EventScript_Garrett",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_SAILOR"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_CaptainsRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_PlayersRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNW/0/SSAqua_RoomNW_EventScript_Stanly",
+          "admitted": false
+        },
+        {
+          "identity": "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_GENTLEMAN"
+        },
+        {
+          "identity": "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNE/0/SSAqua_RoomNE_EventScript_Noland",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_HIKER"
+        },
+        {
+          "identity": "SSAqua_RoomNE/1/SSAqua_RoomNE_EventScript_Ethan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_MANIAC"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomNNE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomNNE/0/SSAqua_RoomNNE_EventScript_Carol",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "SSAqua_RoomNNE/1/SSAqua_RoomNNE_EventScript_Sean",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSSW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSSW/0/SSAqua_RoomSSW_EventScript_Lyle",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "SSAqua_RoomSSW/1/SSAqua_RoomSSW_EventScript_Ken",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BUG_CATCHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSSE",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSE",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_TWIN"
+        },
+        {
+          "identity": "SSAqua_RoomSE/3/SSAqua_RoomSE_EventScript_Colin",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_BALDING_MAN"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "SSAqua_RoomSW",
+      "events": [
+        {
+          "identity": "SSAqua_RoomSW/0/SSAqua_RoomSW_EventScript_Cassie",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_WOMAN_2"
+        },
+        {
+          "identity": "SSAqua_RoomSW/1/SSAqua_RoomSW_EventScript_Clyde",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "VermilionCity_PortInside",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route26",
+      "events": [
+        {
+          "identity": "Route26/0/Route26_EventScript_Richard",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "Route26/1/Route26_EventScript_Jake",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route26/2/Route26_EventScript_Joyce",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route26/14/Route26_EventScript_Gaven",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route26North",
+      "events": [
+        {
+          "identity": "Route26North/0/Route26_EventScript_Beth",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route26North/1/Route26_EventScript_Jake",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route26North/5/Route26_EventScript_Joyce",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route26_House1",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route26_House2",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route27",
+      "events": [
+        {
+          "identity": "Route27/1/Route27_EventScript_Megan",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route27/2/Route27_EventScript_Brian",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route27/3/Route27_EventScript_Jose",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_ROCKER"
+        },
+        {
+          "identity": "Route27/4/Route27_EventScript_Blake",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_M"
+        },
+        {
+          "identity": "Route27/7/Route27_EventScript_Gilbert",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_PSYCHIC_M"
+        },
+        {
+          "identity": "Route27/8/Route27_EventScript_Reena",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_COOLTRAINER_F"
+        },
+        {
+          "identity": "Route27/9/Route27_EventScript_Scott",
+          "admitted": true,
+          "overworldGraphic": "OBJ_EVENT_GFX_FISHER"
+        }
+      ],
+      "authority": "content"
+    },
+    {
+      "map": "Route27_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30_House",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "Route30_MrPokemonsHouse",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TohjoFalls_Cavern",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "TohjoFalls_GiovanniRoom",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "ReceptionGate",
+      "events": [],
+      "authority": "content"
+    },
+    {
+      "map": "JohtoIndigoPlateau",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoIndigoPlateau_PokemonCenter",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_BrunosRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_ChampionsRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_HallOfFame",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_KarensRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_KogasRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoPokemonLeague_WillsRoom",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_B1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "JohtoVictoryRoad_B2F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B1F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B2F",
+      "events": [],
+      "authority": "absent"
+    },
+    {
+      "map": "MahoganyHideout_B3F",
+      "events": [],
+      "authority": "absent"
+    }
+  ],
+  "pairedDoubles": [
+    {
+      "trainer": "TRAINER_AMY_AND_MAY",
+      "events": [
+        "AzaleaTown_Gym/2/AzaleaTown_Gym_EventScript_Amy",
+        "AzaleaTown_Gym/3/AzaleaTown_Gym_EventScript_May"
+      ]
+    },
+    {
+      "trainer": "TRAINER_ANN_AND_ANNE",
+      "events": [
+        "Route37/0/Route37_EventScript_TwinAnn",
+        "Route37/1/Route37_EventScript_TwinAnne"
+      ]
+    },
+    {
+      "trainer": "TRAINER_LEA_AND_PIA",
+      "events": [
+        "DragonsDen_Cavern/1/DragonsDen_Cavern_EventScript_TwinPia",
+        "DragonsDen_Cavern/2/DragonsDen_Cavern_EventScript_TwinLea"
+      ]
+    },
+    {
+      "trainer": "TRAINER_THOM_AND_KAE",
+      "events": [
+        "Route47/3/Route47_EventScript_Kae",
+        "Route47/4/Route47_EventScript_Thom"
+      ]
+    },
+    {
+      "trainer": "TRAINER_DUFF_AND_EDA",
+      "events": [
+        "Route47/7/Route47_EventScript_Duff",
+        "Route47/8/Route47_EventScript_Eda"
+      ]
+    },
+    {
+      "trainer": "TRAINER_MEG_AND_PEG",
+      "events": [
+        "SSAqua_RoomSE/1/SSAqua_RoomSE_EventScript_Peg",
+        "SSAqua_RoomSE/2/SSAqua_RoomSE_EventScript_Meg"
+      ]
+    }
+  ]
+}

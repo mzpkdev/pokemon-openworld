@@ -236,26 +236,6 @@ class DescriptorTests(unittest.TestCase):
                 "level",
             ),
             (
-                "trainerProjections",
-                {
-                    "source": "TRAINER_TEST",
-                    "target": "TRAINER_TARGET",
-                    "class": {"source": "TRAINER_CLASS_TEST", "target": "Ace"},
-                    "pic": {"source": "TRAINER_PIC_TEST", "target": "Ace"},
-                    "gender": "Male",
-                    "music": {
-                        "source": "TRAINER_ENCOUNTER_MUSIC_TEST",
-                        "target": "Male",
-                    },
-                    "ai": [{"source": "AI_TEST", "target": "Basic Trainer"}],
-                },
-                "gender",
-                "ai",
-                [],
-                "$.trainerProjections[0]",
-                "ai",
-            ),
-            (
                 "warpReindexes",
                 {
                     "source": "TestMap",
@@ -434,7 +414,7 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 511, "deferred": 2337, "story-owned": 200},
+            {"enabled": 561, "deferred": 2288, "story-owned": 199},
         )
         self.assertEqual(
             {
@@ -442,6 +422,56 @@ class DescriptorTests(unittest.TestCase):
                 for domain, item in descriptor.expected_inventory.items()
             },
             {"maps": 254, "layouts": 255, "groups": 25, "sections": 58, "tilesets": 71},
+        )
+        self.assertEqual(
+            descriptor.trainer_policy_path,
+            port_dir.resolve() / "trainer_classification.json",
+        )
+        self.assertEqual(
+            descriptor.trainer_materialization_path,
+            port_dir.resolve() / "trainer_materialization.json",
+        )
+        self.assertEqual(descriptor.trainer_materialization_prefix_count, 10)
+        self.assertEqual(
+            descriptor.trainer_materialization_prefix_digest,
+            "e0ffa5d26d181229bf2bf287cb49b16c2c5cf3b7c5a2e5acbd1735ce1e045b46",
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["identities"],
+            {
+                "count": 270,
+                "digest": "7903b469ecfa0c1cdb1bf9e2d8f8abd3963918b046d87ffd0a7292c3ed6934f6",
+            },
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["events"],
+            {
+                "count": 236,
+                "digest": "6448f7f5a67bb09715f87516a81dd1769607198037d8b228447cad6046e176fb",
+            },
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["documentDigest"],
+            "fcb1ecebcae4fd1b3c85bac13a1bca5ad297c754b23d302b9b371dd71555d792",
+        )
+        self.assertEqual(
+            descriptor.expected_trainer_inventory["identityClassifications"],
+            {"ordinary": 195, "story-controlled": 70, "unsupported": 5},
+        )
+        self.assertEqual(
+            {
+                field: descriptor.expected_trainer_inventory[field]
+                for field in (
+                    "admittedIdentities",
+                    "admittedEvents",
+                    "affectedAdmittedMaps",
+                )
+            },
+            {
+                "admittedIdentities": 195,
+                "admittedEvents": 203,
+                "affectedAdmittedMaps": 52,
+            },
         )
 
     def test_encounter_materialization_and_time_policy_fail_closed(self):
@@ -525,6 +555,44 @@ class DescriptorTests(unittest.TestCase):
                 dump(path, document)
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
+
+    def test_trainer_inventory_semantic_sentinels_fail_closed(self) -> None:
+        cases = (
+            (
+                lambda expected: expected.pop("affectedAdmittedMaps"),
+                "missing field 'affectedAdmittedMaps'",
+            ),
+            (
+                lambda expected: expected["identityClassifications"].update(other=1),
+                "unknown field 'other'",
+            ),
+        )
+        for mutation, message in cases:
+            with (
+                self.subTest(message=message),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                port = self.make_port(root)
+                expected = port["expectedTrainerInventory"]
+                assert isinstance(expected, dict)
+                mutation(expected)
+                dump(root / "port.json", port)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_legacy_adaptation_trainer_projections_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_port(root)
+            path = root / "adaptations.json"
+            document = read_json(path)
+            document["trainerProjections"] = []
+            dump(path, document)
+            with self.assertRaisesRegex(
+                ContentPortError, "unknown field 'trainerProjections'"
+            ):
+                load_port(root, root / "donors")
 
     def make_port(self, root: Path) -> dict[str, object]:
         dump(root / "allocation_lock.json", allocation_document())
@@ -667,6 +735,15 @@ class DescriptorTests(unittest.TestCase):
             {"schemaVersion": 1, "entries": [], "effects": []},
         )
         dump(
+            root / "trainer_classification.json",
+            {
+                "schemaVersion": 1,
+                "identities": [],
+                "maps": [],
+                "pairedDoubles": [],
+            },
+        )
+        dump(
             root / "assets.json",
             {"schemaVersion": 1, "permissionRecords": {}, "assets": []},
         )
@@ -676,6 +753,7 @@ class DescriptorTests(unittest.TestCase):
             "allocationLock": "allocation_lock.json",
             "capabilityPolicy": "capabilities.json",
             "eventPolicy": "events.json",
+            "trainerPolicy": "trainer_classification.json",
             "adaptations": "adaptations.json",
             "assetPolicy": "assets.json",
             "legacyReport": "legacy_report.json",
@@ -714,6 +792,19 @@ class DescriptorTests(unittest.TestCase):
             "expectedInventory": {
                 domain: {"count": 1, "digest": "5" * 64}
                 for domain in ("maps", "layouts", "groups", "sections", "tilesets")
+            },
+            "expectedTrainerInventory": {
+                "identities": {"count": 1, "digest": "6" * 64},
+                "events": {"count": 1, "digest": "7" * 64},
+                "documentDigest": "8" * 64,
+                "identityClassifications": {
+                    "ordinary": 1,
+                    "story-controlled": 1,
+                    "unsupported": 1,
+                },
+                "admittedIdentities": 1,
+                "admittedEvents": 1,
+                "affectedAdmittedMaps": 1,
             },
         }
         dump(root / "port.json", port)
@@ -978,44 +1069,6 @@ class DescriptorTests(unittest.TestCase):
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
 
-    def test_trainer_projection_render_tokens_reject_header_injection(self):
-        sample = next(
-            item
-            for family, item, *_ in self.adaptation_policy_cases()
-            if family == "trainerProjections"
-        )
-        cases = (
-            (
-                "identity",
-                lambda item: item.update(
-                    target="TRAINER_TARGET\n=== TRAINER_UNSELECTED ==="
-                ),
-            ),
-            (
-                "class",
-                lambda item: item["class"].update(target="Youngster\nName: Injected"),
-            ),
-            (
-                "ai",
-                lambda item: item["ai"][0].update(
-                    target="Check Bad Move\n=== TRAINER_UNSELECTED ==="
-                ),
-            ),
-        )
-        for label, mutate in cases:
-            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                self.make_port(root)
-                path = root / "adaptations.json"
-                document = read_json(path)
-                document["trainerProjections"] = [copy.deepcopy(sample)]
-                mutate(document["trainerProjections"][0])
-                dump(path, document)
-                with self.assertRaisesRegex(
-                    ContentPortError, "invalid trainer projection value"
-                ):
-                    load_port(root, root / "donors")
-
     def test_every_adaptation_family_rejects_unknown_fields(self):
         typo = "reviewedButTypoedField"
         for (
@@ -1149,7 +1202,6 @@ class DescriptorTests(unittest.TestCase):
             ("musicAdaptations", "content"),
             ("tilesetAdaptations", "symbol"),
             ("trainerPresentation", "id"),
-            ("trainerProjections", "source"),
             ("warpReindexes", "path"),
             ("warpRemovals", "path"),
             ("berryTreeAllocations", "path"),

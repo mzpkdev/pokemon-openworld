@@ -42,7 +42,10 @@ TRAINER_CALVIN_1 = 318
 TRAINER_FRLG_YOUNGSTER_BEN = 858
 TRAINER_FRLG_RUIN_MANIAC_LAWSON = 1345
 TRAINER_YOUNGSTER_SAMUEL_JOHTO = 1481
+TRAINER_BUG_CATCHER_WADE_JOHTO = 1570
+TRAINER_HIKER_ANTHONY_JOHTO = 1576
 FLAG_DEFEATED_CALVIN_1 = 0x63E
+FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 
 SPECIES_RATTATA = 19
 SPECIES_SPEAROW = 21
@@ -56,6 +59,7 @@ SPECIES_POOCHYENA = 261
 
 STATE_VECTORS = ("FFFF", "TFFF", "TTFF", "TTTF", "TTTT")
 SAMUEL_LOCAL_ID = 1
+WADE_LOCAL_ID = 1
 MAP_OFFSET = 7
 SAMUEL_AFTER_TEXT = bytes.fromhex(
     "c3 b4 e1 00 db e3 dd e2 db 00 e8 e3 00 e8 e6 d5 dd e2 00 "
@@ -281,6 +285,143 @@ def _samuel_object(game, map_group: int, map_num: int) -> tuple[int, int, int]:
             )
     assert len(matches) == 1, f"expected one live Samuel object, found {matches}"
     return matches[0]
+
+
+def _wade_object(game, map_group: int, map_num: int) -> tuple[int, int, int]:
+    objects = game.address("gObjectEvents")
+    matches = []
+    for object_id in range(16):
+        obj = objects + object_id * 0x24
+        if not game.read_u8(obj) & 1:
+            continue
+        if (
+            game.read_u8(obj + 8) == WADE_LOCAL_ID
+            and game.read_u8(obj + 9) == map_num
+            and game.read_u8(obj + 10) == map_group
+        ):
+            matches.append(
+                (
+                    object_id,
+                    game.read_u16(obj + 0x10) - MAP_OFFSET,
+                    game.read_u16(obj + 0x12) - MAP_OFFSET,
+                )
+            )
+    assert len(matches) == 1, f"expected one live Wade object, found {matches}"
+    return matches[0]
+
+
+@pytest.mark.long_journey
+def test_route31_wade_is_reachable_and_starts_his_authored_battle(integrity_game):
+    _quickstart(integrity_game)
+    disable_battle_animations_through_options(integrity_game)
+    set_battle_party_through_debug_menu(integrity_game)
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    route31 = maps["Route31"]
+    load_result = integrity_game.request_map_load(
+        IntegrityMapLoadRequest(
+            request_id=0xD6000031,
+            map_group=route31.group,
+            map_num=route31.number,
+            x=4,
+            y=10,
+        ),
+        max_frames=1_800,
+    )
+    assert load_result.status is IntegrityLoadStatus.SUCCESS
+    assert load_result.phase is IntegrityLoadPhase.FIELD_READY
+    assert load_result.error is IntegrityLoadError.NONE
+    integrity_game.wait_for_controls_unlocked(max_frames=1_200)
+    assert integrity_game.position() == (4, 10)
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
+
+    integrity_game.move_path(
+        (9, 10),
+        (9, 14),
+        (12, 14),
+        (12, 18),
+        (20, 18),
+        (20, 17),
+        (25, 17),
+    )
+    _, wade_x, wade_y = _wade_object(integrity_game, route31.group, route31.number)
+    assert (wade_x, wade_y) == (27, 10)
+    integrity_game.move_path(
+        (25, 16),
+        (26, 16),
+        (26, 13),
+    )
+    integrity_game.advance_until(
+        lambda: (
+            integrity_game.callback_is("BattleMainCB2")
+            or integrity_game.position() == (27, 13)
+        ),
+        description="Wade trainer sight row",
+        max_pulses=60,
+        button="Right",
+    )
+    for _ in range(1_200):
+        if integrity_game.callback_is("BattleMainCB2"):
+            break
+        integrity_game.press("A", release_frames=4)
+    else:
+        raise AssertionError("ordinary Route31 movement did not trigger Wade")
+    assert (
+        integrity_game.read_u32(integrity_game.address("gBattleTypeFlags"))
+        & BATTLE_TYPE_TRAINER
+    )
+    trainer_battle = integrity_game.address("gTrainerBattleParameter")
+    assert integrity_game.read_u16(trainer_battle + 2) == TRAINER_BUG_CATCHER_WADE_JOHTO
+
+
+@pytest.mark.long_journey
+def test_route30_route33_batch_starts_an_authored_battle(integrity_game):
+    _quickstart(integrity_game)
+    disable_battle_animations_through_options(integrity_game)
+    set_battle_party_through_debug_menu(integrity_game)
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    route33 = maps["Route33"]
+    load_result = integrity_game.request_map_load(
+        IntegrityMapLoadRequest(
+            request_id=0xD6000033,
+            map_group=route33.group,
+            map_num=route33.number,
+            x=27,
+            y=17,
+        ),
+        max_frames=1_800,
+    )
+    assert load_result.status is IntegrityLoadStatus.SUCCESS
+    assert load_result.phase is IntegrityLoadPhase.FIELD_READY
+    assert load_result.error is IntegrityLoadError.NONE
+    integrity_game.wait_for_controls_unlocked(max_frames=1_200)
+    assert integrity_game.position() == (27, 18)
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
+    integrity_game.move_path((25, 18), (25, 23), (18, 23))
+    integrity_game.advance_until(
+        lambda: (
+            integrity_game.callback_is("BattleMainCB2")
+            or integrity_game.position() == (17, 23)
+        ),
+        description="Anthony trainer sight column",
+        max_pulses=20,
+        button="Left",
+    )
+    for _ in range(1_200):
+        if integrity_game.callback_is("BattleMainCB2"):
+            break
+        integrity_game.press("A", release_frames=4)
+    else:
+        raise AssertionError("ordinary Route33 movement did not trigger Anthony")
+    assert (
+        integrity_game.read_u32(integrity_game.address("gBattleTypeFlags"))
+        & BATTLE_TYPE_TRAINER
+    )
+    trainer_battle = integrity_game.address("gTrainerBattleParameter")
+    assert integrity_game.read_u16(trainer_battle + 2) == TRAINER_HIKER_ANTHONY_JOHTO
 
 
 @pytest.mark.long_journey

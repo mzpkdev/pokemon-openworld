@@ -218,42 +218,113 @@ class MaterializeTests(unittest.TestCase):
         self,
     ) -> None:
         descriptor = self.descriptor()
+        self.assertNotIn("trainerProjections", descriptor.adaptations)
         _, state = resolve_port_sources(descriptor, ROOT)
         map_units = {unit.key: unit for unit in _map_units(descriptor, state)}
         route_map = map_units["map:Route34"].value
-        self.assertEqual(len(route_map["object_events"]), 1)
         self.assertEqual(
-            route_map["object_events"][0]["script"],
-            "Route34_EventScript_YoungsterSamuel",
+            [event["script"] for event in route_map["object_events"]],
+            [
+                "Route34_EventScript_YoungsterSamuel",
+                "Route34_EventScript_PokefanMBrandon",
+                "Route34_EventScript_CamperTodd",
+                "Route34_EventScript_YoungsterIan",
+                "Route34_EventScript_Jenn",
+                "Route34_EventScript_Irene",
+                "Route34_EventScript_Kate",
+                "Route34_EventScript_PicnickerGina",
+            ],
         )
         script = map_units["map-script:Route34"].value
         self.assertEqual(
-            script["events"][0]["instructions"][0]["operands"][0],
-            "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+            [event["instructions"][0]["operands"][0] for event in script["events"]],
+            [
+                "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+                "TRAINER_POKEFAN_BRANDON_JOHTO",
+                "TRAINER_CAMPER_TODD_JOHTO",
+                "TRAINER_YOUNGSTER_IAN_JOHTO",
+                "TRAINER_COOLTRAINER_JENN_JOHTO",
+                "TRAINER_COOLTRAINER_IRENE_JOHTO",
+                "TRAINER_COOLTRAINER_KATE_JOHTO",
+                "TRAINER_PICNICKER_GINA_JOHTO",
+            ],
+        )
+        route31 = map_units["map:Route31"].value
+        self.assertEqual(
+            route31["object_events"],
+            [
+                {
+                    "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                    "x": 27,
+                    "y": 10,
+                    "elevation": 0,
+                    "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                    "movement_range_x": 0,
+                    "movement_range_y": 3,
+                    "trainer_type": "TRAINER_TYPE_NORMAL",
+                    "trainer_sight_or_berry_tree_id": "3",
+                    "script": "Route31_EventScript_Bugcatcher_Wade",
+                    "flag": "0",
+                }
+            ],
+        )
+        route31_script = map_units["map-script:Route31"].value
+        self.assertEqual(len(route31_script["events"]), 1)
+        self.assertEqual(
+            route31_script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        )
+        route30 = map_units["map:Route30"].value
+        self.assertEqual(
+            [event["script"] for event in route30["object_events"]],
+            [
+                "Route30_EventScript_Bugcatcher_Don",
+                "Route30_EventScript_Youngster_Mikey",
+            ],
+        )
+        route30_script = map_units["map-script:Route30"].value
+        self.assertEqual(
+            [
+                event["instructions"][0]["operands"][0]
+                for event in route30_script["events"]
+            ],
+            [
+                "TRAINER_BUG_CATCHER_DON_JOHTO",
+                "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+            ],
+        )
+        route33 = map_units["map:Route33"].value
+        self.assertEqual(
+            route33["object_events"][0]["script"],
+            "Route33_EventScript_HikerAnthony",
+        )
+        route33_script = map_units["map-script:Route33"].value
+        self.assertEqual(
+            route33_script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_HIKER_ANTHONY_JOHTO",
         )
         route39 = map_units["map:Route39"].value
-        self.assertEqual(len(route39["object_events"]), 1)
         self.assertEqual(
-            route39["object_events"][0],
-            {
-                "graphics_id": "OBJ_EVENT_GFX_SAILOR",
-                "x": 22,
-                "y": 42,
-                "elevation": 0,
-                "movement_type": "MOVEMENT_TYPE_WALK_RIGHT_AND_LEFT",
-                "movement_range_x": 6,
-                "movement_range_y": 0,
-                "trainer_type": "TRAINER_TYPE_NORMAL",
-                "trainer_sight_or_berry_tree_id": "6",
-                "script": "Route39_EventScript_Eugene",
-                "flag": "0",
-            },
+            [event["script"] for event in route39["object_events"]],
+            [
+                "Route39_EventScript_Norman",
+                "Route39_EventScript_Ruth",
+                "Route39_EventScript_Derek",
+                "Route39_EventScript_Eugene",
+            ],
         )
         route39_script = map_units["map-script:Route39"].value
-        self.assertEqual(len(route39_script["events"]), 1)
         self.assertEqual(
-            route39_script["events"][0]["instructions"][0]["operands"][0],
-            "TRAINER_SAILOR_EUGENE_JOHTO",
+            [
+                event["instructions"][0]["operands"][0]
+                for event in route39_script["events"]
+            ],
+            [
+                "TRAINER_PSYCHIC_M_NORMAN_JOHTO",
+                "TRAINER_PARASOL_LADY_RUTH_JOHTO",
+                "TRAINER_POKEFAN_DEREK_JOHTO",
+                "TRAINER_SAILOR_EUGENE_JOHTO",
+            ],
         )
         trainer_units = _trainer_units(descriptor, state, ROOT)
         self.assertEqual(len(trainer_units), 1)
@@ -264,6 +335,20 @@ class MaterializeTests(unittest.TestCase):
             trainer
             for trainer in trainer_units[0].value
             if trainer["target"] == "TRAINER_SAILOR_EUGENE_JOHTO"
+        )
+        samuel = next(
+            trainer
+            for trainer in trainer_units[0].value
+            if trainer["target"] == "TRAINER_YOUNGSTER_SAMUEL_JOHTO"
+        )
+        wade = next(
+            trainer
+            for trainer in trainer_units[0].value
+            if trainer["target"] == "TRAINER_BUG_CATCHER_WADE_JOHTO"
+        )
+        self.assertEqual(
+            (samuel["class"], samuel["pic"], samuel["music"]),
+            ("Youngster", "Youngster", "Male"),
         )
         self.assertEqual(
             {
@@ -298,6 +383,49 @@ class MaterializeTests(unittest.TestCase):
             [member["species"] for member in parties["TRAINER_YOUNGSTER_SAMUEL_JOHTO"]],
             ["SPECIES_TEDDIURSA", "SPECIES_SANDSHREW", "SPECIES_SPEAROW"],
         )
+        self.assertEqual(
+            {key: wade[key] for key in ("name", "class", "pic", "gender", "music")},
+            {
+                "name": "WADE",
+                "class": "Bug Catcher",
+                "pic": "Bug Catcher",
+                "gender": "Male",
+                "music": "Male",
+            },
+        )
+        self.assertEqual(
+            [member["species"] for member in parties["TRAINER_BUG_CATCHER_WADE_JOHTO"]],
+            ["SPECIES_WEEDLE", "SPECIES_PINECO"],
+        )
+        missing_route39 = MappingProxyType(
+            {
+                name: rows
+                for name, rows in state.trainer_event_projections.items()
+                if name != "Route39"
+            }
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "emitted trainer objects.*missing=.*TRAINER_"
+        ):
+            _map_units(
+                descriptor,
+                replace(state, trainer_event_projections=missing_route39),
+            )
+        missing_eugene_party = MappingProxyType(
+            {
+                name: row
+                for name, row in state.trainer_party_projections.items()
+                if name != "TRAINER_EUGENE"
+            }
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "typed materialized party projection is missing"
+        ):
+            _trainer_units(
+                descriptor,
+                replace(state, trainer_party_projections=missing_eugene_party),
+                ROOT,
+            )
         self.assertEqual(
             hashlib.sha256(
                 _generated_body("trainer-bindings", descriptor, state, ROOT).encode()
@@ -790,9 +918,26 @@ class MaterializeTests(unittest.TestCase):
             self.assertEqual(route30["id"], route30_allocation.map_id)
             self.assertEqual(route30["layout"], route30_allocation.layout)
             self.assertEqual(route30["region_map_section"], route30_allocation.section)
+            authenticated_route30 = next(
+                unit.value
+                for unit in _map_units(descriptor, state)
+                if unit.key == "map:Route30"
+            )
+            self.assertEqual(
+                route30["object_events"], authenticated_route30["object_events"]
+            )
+            self.assertEqual(
+                [event["script"] for event in route30["object_events"]],
+                [
+                    "Route30_EventScript_Bugcatcher_Don",
+                    "Route30_EventScript_Youngster_Mikey",
+                ],
+            )
             for field in descriptor.adaptations["materializationProfile"][
                 "stripEventKinds"
             ]:
+                if field == "object_events":
+                    continue
                 self.assertEqual(route30[field], [])
             self.assertTrue(route30["warp_events"])
             incomplete_adaptations = dict(descriptor.adaptations)
@@ -1049,6 +1194,10 @@ class MaterializeTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             donor = Path(directory) / "donor"
+            ledger = ROOT / "src/data/persistence/persistent_ids.json"
+            installed_ledger = Path(directory) / ledger.relative_to(ROOT)
+            installed_ledger.parent.mkdir(parents=True)
+            shutil.copyfile(ledger, installed_ledger)
             route30 = donor / "data/maps/Route30/map.json"
             route30.parent.mkdir(parents=True)
             route30.write_bytes(source.read_bytes())

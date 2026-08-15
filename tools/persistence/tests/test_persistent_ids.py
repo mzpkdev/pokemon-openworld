@@ -266,6 +266,30 @@ class PersistentIdTests(unittest.TestCase):
                     (left / relative).read_bytes(), (right / relative).read_bytes()
                 )
 
+    def test_johto_runtime_enums_preserve_the_frozen_trainer_contract(self):
+        validate_frozen_bindings(self.ledger["entries"], self.contract)
+        contract = {
+            item["symbol"]: item["value"]
+            for item in self.contract["publishedBindings"]["trainerIds"]
+        }
+        ledger = {
+            item["symbol"]: item["value"]
+            for item in self.ledger["entries"]
+            if item["domain"] == "trainerIds"
+        }
+        expected = {
+            "TRAINER_CLASS_PAINTER_FRLG": 115,
+            "TRAINER_CLASS_COUNT": 116,
+            "TRAINER_PIC_PAINTER_FRLG": 157,
+            "TRAINER_PIC_COUNT": 158,
+        }
+        self.assertEqual({symbol: contract[symbol] for symbol in expected}, expected)
+        self.assertEqual({symbol: ledger[symbol] for symbol in expected}, expected)
+        self.assertFalse(
+            any(symbol.startswith("JOHTO_TRAINER_") for symbol in contract)
+        )
+        self.assertFalse(any(symbol.startswith("JOHTO_TRAINER_") for symbol in ledger))
+
     def test_public_constant_facades_resolve_through_ledger_values(self):
         cases = {
             "persistent_flags.inc.h": ("flags", "FLAG_RECEIVED_FIRST_POTION"),
@@ -633,8 +657,8 @@ class PersistentIdTests(unittest.TestCase):
             for item in self.published_allocations["entries"]
             if "physicalBinding" in item
         ]
-        self.assertEqual(len(live), 625)
-        self.assertEqual(len(published), 625)
+        self.assertEqual(len(live), 818)
+        self.assertEqual(len(published), 818)
         self.assertEqual(
             {
                 (item["symbol"], item["value"], item["state"]["bitIndex"])
@@ -1045,9 +1069,9 @@ class PersistentIdTests(unittest.TestCase):
             if item["state"]["kind"] == "trainer-defeat-bitmap"
         ]
         self.assertEqual(len(tombstones), 623)
-        self.assertEqual(len(live), 625)
-        self.assertEqual({item["value"] for item in live}, set(range(858, 1483)))
-        self.assertEqual({item["state"]["bitIndex"] for item in live}, set(range(625)))
+        self.assertEqual(len(live), 818)
+        self.assertEqual({item["value"] for item in live}, set(range(858, 1676)))
+        self.assertEqual({item["state"]["bitIndex"] for item in live}, set(range(818)))
         for item in live:
             self.assertEqual(item["state"]["bitIndex"], item["value"] - 858)
 
@@ -1057,7 +1081,7 @@ class PersistentIdTests(unittest.TestCase):
                 "bitIndex", item["state"]["bitIndex"] + 1
             ),
             "out-of-range bitmap bit": lambda item: item["state"].__setitem__(
-                "bitIndex", 625
+                "bitIndex", 818
             ),
             "live trainer identity projection moved/deleted": lambda item: (
                 item.__setitem__("symbol", item["symbol"] + "_MOVED")

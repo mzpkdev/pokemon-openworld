@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import copy
 import hashlib
 import json
 import operator
@@ -20,7 +21,12 @@ from typing import Any, Iterable
 BASELINE_SHA = "b47a41e9e4635cc40a8003249f9425578e257e1e"
 SCHEMA_VERSION = 1
 CONTRACT_METADATA_KEYS = frozenset(
-    ("baselineCommit", "purposeBudgets", "purposeAbiEvidence")
+    (
+        "baselineCommit",
+        "compatibleTailExtension",
+        "purposeBudgets",
+        "purposeAbiEvidence",
+    )
 )
 MEASURED_ABI_KEYS = frozenset(
     ("schemaVersion", "target", "structs", "physical", "checksums", "publishedBindings")
@@ -49,12 +55,7 @@ NON_PERSISTENT_CONFIG_BINDINGS = frozenset(
 # Live post-baseline trainer identities are owned by persistent_ids.json. The
 # save contract retains the colliding pre-ledger TRAINER_* spellings as frozen
 # tombstone evidence instead of silently rewriting that historical projection.
-LEDGER_ONLY_TRAINER_BINDINGS = frozenset(
-    (
-        "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
-        "TRAINER_SAILOR_EUGENE_JOHTO",
-    )
-)
+LEDGER_ONLY_TRAINER_SUFFIX = "_JOHTO"
 ABI_PURPOSES = ("normal", "debug", "release", "test-runner", "headless-test")
 ROOT_TYPES = (
     "SaveBlock1",
@@ -848,7 +849,7 @@ def _bindings(values: dict[str, int]) -> dict[str, list[dict[str, Any]]]:
                 domain == "trainerIds"
                 and (
                     name.startswith("TRAINER_FRLG_")
-                    or name in LEDGER_ONLY_TRAINER_BINDINGS
+                    or name.endswith(LEDGER_ONLY_TRAINER_SUFFIX)
                 )
             )
         ]
@@ -1581,6 +1582,7 @@ def validate_contract(contract: dict[str, Any]) -> None:
     purpose_budgets = contract.get("purposeBudgets")
     if purpose_budgets is not None:
         _validate_purpose_budgets(purpose_budgets)
+    _project_compatible_tail_extension(contract)
     for name in ROOT_TYPES:
         if name not in contract["structs"]:
             raise ContractError(f"$.structs.{name}: missing")
@@ -1628,7 +1630,7 @@ def validate_abi(
     _validate_measured_abi_shape(actual, binding_symbols=binding_symbols)
     projected = {
         key: value
-        for key, value in contract.items()
+        for key, value in _project_compatible_tail_extension(contract).items()
         if key not in CONTRACT_METADATA_KEYS
     }
     actual_projected = dict(actual)
@@ -1637,10 +1639,108 @@ def validate_abi(
         actual_projected.pop("structs")
     compare(projected, actual_projected)
     compare(
-        abi_evidence_values_for_purpose(contract, purpose),
+        projected_abi_evidence_values_for_purpose(contract, purpose),
         abi_evidence_values(actual),
         f"$.purposeAbiEvidence.{purpose}",
     )
+
+
+def _tail_extension_metadata(contract: dict[str, Any]) -> dict[str, int] | None:
+    metadata = contract.get("compatibleTailExtension")
+    if metadata is None:
+        return None
+    expected = {
+        "baseBitmapBytes": 79,
+        "baseSaveBlock1Size": 15648,
+        "baseSector4PayloadSize": 3744,
+        "currentBitmapBytes": 103,
+        "currentSaveBlock1Size": 15672,
+        "currentSector4PayloadSize": 3768,
+        "memberIndex": 84,
+        "memberOffset": 15568,
+    }
+    if metadata != expected:
+        raise ContractError("$.compatibleTailExtension: unsupported evolution")
+    return metadata
+
+
+def _project_compatible_tail_extension(contract: dict[str, Any]) -> dict[str, Any]:
+    """Project the one reviewed SaveBlock1 append while retaining frozen evidence."""
+
+    metadata = _tail_extension_metadata(contract)
+    if metadata is None:
+        return contract
+    projected = copy.deepcopy(contract)
+    layout = projected["structs"]["SaveBlock1"]
+    index = metadata["memberIndex"]
+    if layout.get("size") != metadata["baseSaveBlock1Size"]:
+        raise ContractError("$.compatibleTailExtension: base SaveBlock1 size drifted")
+    members = layout.get("members")
+    if not isinstance(members, list) or index != len(members) - 1:
+        raise ContractError("$.compatibleTailExtension: trainer bitmap is not the tail")
+    member = members[index]
+    expected_member = {
+        "name": "trainerDefeated",
+        "offset": metadata["memberOffset"],
+        "type": {
+            "dimensions": [metadata["baseBitmapBytes"]],
+            "element": {"encoding": 8, "kind": "base", "size": 1},
+            "kind": "array",
+        },
+    }
+    if member != expected_member:
+        raise ContractError("$.compatibleTailExtension: frozen tail member drifted")
+    slots = projected["physical"]["slotLayout"]
+    sector = next((item for item in slots if item.get("sectorId") == 4), None)
+    expected_payload = {
+        "offset": 11904,
+        "size": metadata["baseSector4PayloadSize"],
+        "structure": "SaveBlock1",
+    }
+    if sector is None or sector.get("payload") != expected_payload:
+        raise ContractError("$.compatibleTailExtension: sector 4 base payload drifted")
+    layout["size"] = metadata["currentSaveBlock1Size"]
+    member["type"]["dimensions"] = [metadata["currentBitmapBytes"]]
+    sector["payload"]["size"] = metadata["currentSector4PayloadSize"]
+    return projected
+
+
+def projected_abi_evidence_values_for_purpose(
+    contract: dict[str, Any], purpose: str
+) -> list[tuple[str, int]]:
+    evidence = abi_evidence_values_for_purpose(contract, purpose)
+    metadata = _tail_extension_metadata(contract)
+    if metadata is None:
+        return evidence
+    replacements = {
+        "$.structs.SaveBlock1.sizeAlignment": (
+            metadata["baseSaveBlock1Size"] << 8 | 4,
+            metadata["currentSaveBlock1Size"] << 8 | 4,
+        ),
+        "$.structs.SaveBlock1.members[84].type.array.dimensions[0]": (
+            metadata["baseBitmapBytes"],
+            metadata["currentBitmapBytes"],
+        ),
+        "$.structs.SaveBlock1.members[84].type.array.cardinality": (
+            metadata["baseBitmapBytes"],
+            metadata["currentBitmapBytes"],
+        ),
+    }
+    projected = []
+    seen = set()
+    for path, value in evidence:
+        replacement = replacements.get(path)
+        if replacement is not None:
+            if value != replacement[0]:
+                raise ContractError(
+                    f"$.compatibleTailExtension: frozen evidence drifted at {path}"
+                )
+            value = replacement[1]
+            seen.add(path)
+        projected.append((path, value))
+    if seen != set(replacements):
+        raise ContractError("$.compatibleTailExtension: frozen evidence is incomplete")
+    return projected
 
 
 def _validate_purpose_budgets(value: Any) -> None:

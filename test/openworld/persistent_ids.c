@@ -46,7 +46,7 @@ TEST("Persistent regional trainer IDs use every dedicated bitmap bit exactly onc
     }
     for (u32 i = 0; i + 1 < sizeof(gSaveBlock1Ptr->trainerDefeated); i++)
         EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[i], 0xFF);
-    EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[PERSISTENT_TRAINER_BITMAP_BYTES - 1], 1);
+    EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[PERSISTENT_TRAINER_BITMAP_BYTES - 1], 3);
 
     for (u16 trainerId = PERSISTENT_TRAINER_BITMAP_FIRST; trainerId < PERSISTENT_TRAINER_COUNT; trainerId++)
         EXPECT(PersistentId_ClearTrainerDefeated(trainerId));
@@ -65,6 +65,224 @@ TEST("Eugene owns the next stable trainer identity and bitmap defeat bit")
     EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
     EXPECT_EQ(binding.id, 78);
     EXPECT_EQ(binding.bit, 0);
+}
+
+TEST("Wade owns his stable trainer identity and bitmap defeat bit")
+{
+    struct TrainerDefeatBinding binding;
+
+    EXPECT_EQ(TRAINER_BUG_CATCHER_WADE_JOHTO, 1570);
+    EXPECT(PersistentId_GetTrainerDefeatBinding(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        &binding));
+    EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+    EXPECT_EQ(binding.id, 89);
+    EXPECT_EQ(binding.bit, 0);
+}
+
+TEST("Route 30 and Route 33 trainers own their stable identities and bitmap defeat bits")
+{
+    static const struct
+    {
+        u16 trainerId;
+        u16 value;
+        u8 id;
+        u8 bit;
+    } cases[] =
+    {
+        { TRAINER_HIKER_ANTHONY_JOHTO, 1576, 89, 6 },
+        { TRAINER_YOUNGSTER_MIKEY_JOHTO, 1619, 95, 1 },
+        { TRAINER_BUG_CATCHER_DON_JOHTO, 1662, 100, 4 },
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        struct TrainerDefeatBinding binding;
+
+        EXPECT_EQ(cases[i].trainerId, cases[i].value);
+        EXPECT(PersistentId_GetTrainerDefeatBinding(cases[i].trainerId, &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, cases[i].id);
+        EXPECT_EQ(binding.bit, cases[i].bit);
+    }
+}
+
+TEST("Bulk fixed Johto trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_YOUNGSTER_ALBERT_JOHTO,
+        TRAINER_BIRD_KEEPER_ABE_JOHTO,
+        TRAINER_FIREBREATHER_BILL_JOHTO,
+        TRAINER_BEAUTY_VALERIE_JOHTO,
+        TRAINER_BIRD_KEEPER_VANCE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Surf and field-move Johto trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_PHILLIP_JOHTO,
+        TRAINER_COOLTRAINER_NICK_JOHTO,
+        TRAINER_SWIMMER_F_ELAINE_JOHTO,
+        TRAINER_SWIMMER_M_BERKE_JOHTO,
+        TRAINER_HIKER_BENJAMIN_JOHTO,
+        TRAINER_FISHERMAN_ANDRE_JOHTO,
+        TRAINER_FISHERMAN_SCOTT_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Ordinary Johto bulk trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_PSYCHIC_M_NATHAN_JOHTO,
+        TRAINER_COOLTRAINER_JENN_JOHTO,
+        TRAINER_PARASOL_LADY_BEVERLY_JOHTO,
+        TRAINER_BLACK_BELT_WAI_JOHTO,
+        TRAINER_HIKER_NOLAND_JOHTO,
+        TRAINER_COOLTRAINER_CAROL_JOHTO,
+        TRAINER_FIREBREATHER_LYLE_JOHTO,
+        TRAINER_BEAUTY_CASSIE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Route 45 and Route 46 trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_ERIK_JOHTO,
+        TRAINER_COOLTRAINER_KELLY_JOHTO,
+        TRAINER_CAMPER_TED_JOHTO,
+        TRAINER_HIKER_BAILEY_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Paired battle checkpoint owns stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_TWINS_AMY_AND_MAY_JOHTO,
+        TRAINER_TWINS_ANN_AND_ANNE_JOHTO,
+        TRAINER_DRAGON_TAMER_DARIN_JOHTO,
+        TRAINER_TWINS_LEA_AND_PIA_JOHTO,
+        TRAINER_HIKER_DEVIN_JOHTO,
+        TRAINER_CAMPER_GRANT_JOHTO,
+        TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO,
+        TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO,
+        TRAINER_TWINS_MEG_AND_PEG_JOHTO,
+        TRAINER_POKEFAN_COLIN_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Direct Johto tail trainer samples own stable bitmap defeat bits")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_BUG_CATCHER_WAYNE_JOHTO,
+        TRAINER_SAGE_JEFFREY_JOHTO,
+        TRAINER_SAILOR_HUEY_JOHTO,
+        TRAINER_EXPERT_CLARISSA_JOHTO,
+        TRAINER_SUPER_NERD_HUGH_JOHTO,
+        TRAINER_COOLTRAINER_CARA_JOHTO,
+        TRAINER_PSYCHIC_M_RICHARD_JOHTO,
+        TRAINER_COOLTRAINER_JAKE_JOHTO,
+        TRAINER_COOLTRAINER_JOYCE_JOHTO,
+        TRAINER_COOLTRAINER_GAVEN_JOHTO,
+        TRAINER_COOLTRAINER_BETH_JOHTO,
+        TRAINER_GENTLEMAN_EDWARD_JOHTO,
+        TRAINER_FIREBREATHER_COREY_JOHTO,
+        TRAINER_SAILOR_JEFF_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct TrainerDefeatBinding binding;
+        u16 bitIndex = trainerIds[i] - PERSISTENT_TRAINER_BITMAP_FIRST;
+
+        EXPECT(PersistentId_GetTrainerDefeatBinding(trainerIds[i], &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, bitIndex / 8);
+        EXPECT_EQ(binding.bit, bitIndex % 8);
+    }
+}
+
+TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
+{
+    struct TrainerDefeatBinding binding;
+
+    EXPECT_EQ(TRAINER_EXPERT_ROXANNE_JOHTO, 1675);
+    EXPECT_EQ(PERSISTENT_TRAINER_COUNT, 1676);
+    EXPECT(PersistentId_GetTrainerDefeatBinding(
+        TRAINER_EXPERT_ROXANNE_JOHTO,
+        &binding));
+    EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+    EXPECT_EQ(binding.id, 102);
+    EXPECT_EQ(binding.bit, 1);
+    EXPECT(!PersistentId_GetTrainerDefeatBinding(1676, &binding));
 }
 
 TEST("Persistent trainer IDs fail closed when invalid")

@@ -43,6 +43,9 @@ struct TrainerRematchBinding TrainerRematch_GetBinding(u16 trainerId)
     if (trainerId < TRAINERS_COUNT_EMERALD)
         return GetMatchCallBinding(trainerId);
 
+    if (trainerId >= FRLG_TRAINER_REMATCH_BINDING_COUNT)
+        return (struct TrainerRematchBinding) { .kind = TRAINER_REMATCH_BINDING_NONE };
+
     binding = sTrainerRematchBindings_FRLG[trainerId];
     if (binding.kind == TRAINER_REMATCH_BINDING_CHAIN)
     {

@@ -32,12 +32,7 @@ from .semantics import EffectKey, EventEntry
 
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
-TRAINER_ID_RE = re.compile(r"^TRAINER_[A-Z0-9_]+$")
-TRAINER_CLASS_RE = re.compile(r"^TRAINER_CLASS_[A-Z0-9_]+$")
-TRAINER_PIC_RE = re.compile(r"^TRAINER_PIC_[A-Z0-9_]+$")
-TRAINER_MUSIC_RE = re.compile(r"^TRAINER_ENCOUNTER_MUSIC_[A-Z0-9_]+$")
-TRAINER_AI_RE = re.compile(r"^AI_[A-Z0-9_]+$")
-TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 ?.'-]*$")
+TRAINER_DISPLAY_RE = re.compile(r"^[A-Za-z0-9?][A-Za-z0-9 &?.'-]*$")
 MATERIALIZATION_STRIP_EVENT_KINDS = (
     "bg_events",
     "coord_events",
@@ -56,7 +51,11 @@ PORT_KEYS = {
     "legacyReport",
     "donors",
     "expectedInventory",
+    "trainerPolicy",
+    "expectedTrainerInventory",
 }
+TRAINER_MATERIALIZATION_KEYS = {"path", "reviewedPrefix"}
+TRAINER_MATERIALIZATION_PREFIX_KEYS = {"batchCount", "sha256"}
 DONOR_KEYS = {
     "name",
     "repository",
@@ -86,7 +85,6 @@ ADAPTATION_KEYS = {
     "musicAdaptations",
     "tilesetAdaptations",
     "trainerPresentation",
-    "trainerProjections",
     "warpReindexes",
     "warpRemovals",
     "berryTreeAllocations",
@@ -209,13 +207,6 @@ def _string(value: object, pointer: str) -> str:
     if not isinstance(value, str) or not value or value.strip() != value:
         raise ContentPortError(f"{pointer}: expected a non-empty, trimmed string")
     return value
-
-
-def _matched_string(value: object, pointer: str, pattern: re.Pattern[str]) -> str:
-    result = _string(value, pointer)
-    if pattern.fullmatch(result) is None:
-        raise ContentPortError(f"{pointer}: invalid trainer projection value")
-    return result
 
 
 def _integer(value: object, pointer: str, *, positive: bool = False) -> int:
@@ -587,51 +578,6 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
             _string(item[field], f"{item_pointer}.{field}")
         _integer(item["level"], f"{item_pointer}.level", positive=True)
 
-    projection_fields = {"source", "target", "class", "pic", "gender", "music", "ai"}
-    for item, item_pointer in _policy_records(
-        document, "trainerProjections", pointer, projection_fields
-    ):
-        _matched_string(item["source"], f"{item_pointer}.source", TRAINER_ID_RE)
-        _matched_string(item["target"], f"{item_pointer}.target", TRAINER_ID_RE)
-        gender = _string(item["gender"], f"{item_pointer}.gender")
-        if gender not in {"Male", "Female"}:
-            raise ContentPortError(f"{item_pointer}.gender: invalid trainer gender")
-        source_patterns = {
-            "class": TRAINER_CLASS_RE,
-            "pic": TRAINER_PIC_RE,
-            "music": TRAINER_MUSIC_RE,
-        }
-        for field, source_pattern in source_patterns.items():
-            projection = _policy_record(
-                item[field], f"{item_pointer}.{field}", {"source", "target"}
-            )
-            _matched_string(
-                projection["source"],
-                f"{item_pointer}.{field}.source",
-                source_pattern,
-            )
-            _matched_string(
-                projection["target"],
-                f"{item_pointer}.{field}.target",
-                TRAINER_DISPLAY_RE,
-            )
-        raw_ai = _array(item["ai"], f"{item_pointer}.ai")
-        if not raw_ai:
-            raise ContentPortError(f"{item_pointer}.ai: must not be empty")
-        seen_ai: set[str] = set()
-        for index, raw in enumerate(raw_ai):
-            ai_pointer = f"{item_pointer}.ai[{index}]"
-            projection = _policy_record(raw, ai_pointer, {"source", "target"})
-            source = _matched_string(
-                projection["source"], f"{ai_pointer}.source", TRAINER_AI_RE
-            )
-            _matched_string(
-                projection["target"], f"{ai_pointer}.target", TRAINER_DISPLAY_RE
-            )
-            if source in seen_ai:
-                raise ContentPortError(f"{ai_pointer}.source: duplicate AI projection")
-            seen_ai.add(source)
-
     for item, item_pointer in _policy_records(
         document, "warpReindexes", pointer, {"source", "path", "to"}
     ):
@@ -815,22 +761,12 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "graphicsAdaptations": (content_field,),
         "musicAdaptations": (content_field,),
         "trainerPresentation": ("id",),
-        "trainerProjections": ("source",),
         "warpReindexes": ("source", "path"),
         "warpRemovals": ("source", "path"),
         "berryTreeAllocations": ("source", "path"),
     }
     for family, identity_fields in unique_families.items():
         _unique_policy_records(document, family, pointer, identity_fields)
-    projection_targets: set[str] = set()
-    for index, item in enumerate(document["trainerProjections"]):
-        target = item["target"]
-        if target in projection_targets:
-            raise ContentPortError(
-                f"{pointer}.trainerProjections[{index}].target: duplicate projection target"
-            )
-        projection_targets.add(target)
-
     classified_edges: dict[tuple[object, object], str] = {}
     for family in ("retainedEdges", "deferredEdges"):
         for index, raw in enumerate(document[family]):
@@ -968,6 +904,8 @@ class PortDescriptor:
     donors: tuple[DonorPin, ...]
     donors_by_role: Mapping[str, DonorPin]
     expected_inventory: Mapping[str, Mapping[str, object]]
+    trainer_policy_path: Path
+    expected_trainer_inventory: Mapping[str, object]
     allocation_index: AllocationIndex
     capabilities: tuple[CapabilityDecision, ...]
     map_ownership: Mapping[str, str]
@@ -984,6 +922,9 @@ class PortDescriptor:
     generated_sections: tuple[GeneratedSectionPolicy, ...]
     section_metadata_authorities: tuple[SectionMetadataAuthority, ...]
     target_bindings: TargetBindings
+    trainer_materialization_path: Path | None = None
+    trainer_materialization_prefix_count: int | None = None
+    trainer_materialization_prefix_digest: str | None = None
 
     def donor(self, role: str) -> DonorPin:
         try:
@@ -1638,11 +1579,15 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     root = _object(read_json(port_path), "$")
     if port_dir.name == "johto" and "animationPolicy" not in root:
         raise ContentPortError("$.animationPolicy: required for the Johto port")
+    if port_dir.name == "johto" and "trainerMaterialization" not in root:
+        raise ContentPortError("$.trainerMaterialization: required for the Johto port")
     present_port_keys = (
         PORT_KEYS if "legacyReport" in root else PORT_KEYS - {"legacyReport"}
     )
     if "animationPolicy" in root:
         present_port_keys = present_port_keys | {"animationPolicy"}
+    if "trainerMaterialization" in root:
+        present_port_keys = present_port_keys | {"trainerMaterialization"}
     _exact_keys(root, present_port_keys, "$")
     if root["schemaVersion"] != 1:
         raise ContentPortError("$.schemaVersion: unsupported port schema")
@@ -1653,6 +1598,111 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
 
     allocation_path = _safe_child(port_dir, root["allocationLock"], "$.allocationLock")
     allocation_index = load_allocation_index(read_json(allocation_path))
+    trainer_policy_path = _safe_child(
+        port_dir, root["trainerPolicy"], "$.trainerPolicy"
+    )
+    trainer_materialization_path: Path | None = None
+    trainer_materialization_prefix_count: int | None = None
+    trainer_materialization_prefix_digest: str | None = None
+    if "trainerMaterialization" in root:
+        materialization = _object(
+            root["trainerMaterialization"], "$.trainerMaterialization"
+        )
+        _exact_keys(
+            materialization,
+            TRAINER_MATERIALIZATION_KEYS,
+            "$.trainerMaterialization",
+        )
+        trainer_materialization_path = _safe_child(
+            port_dir,
+            materialization["path"],
+            "$.trainerMaterialization.path",
+        )
+        reviewed_prefix = _object(
+            materialization["reviewedPrefix"],
+            "$.trainerMaterialization.reviewedPrefix",
+        )
+        _exact_keys(
+            reviewed_prefix,
+            TRAINER_MATERIALIZATION_PREFIX_KEYS,
+            "$.trainerMaterialization.reviewedPrefix",
+        )
+        trainer_materialization_prefix_count = _integer(
+            reviewed_prefix["batchCount"],
+            "$.trainerMaterialization.reviewedPrefix.batchCount",
+            positive=True,
+        )
+        trainer_materialization_prefix_digest = _string(
+            reviewed_prefix["sha256"],
+            "$.trainerMaterialization.reviewedPrefix.sha256",
+        )
+        if not DIGEST_RE.fullmatch(trainer_materialization_prefix_digest):
+            raise ContentPortError(
+                "$.trainerMaterialization.reviewedPrefix.sha256: expected 64 "
+                "lowercase hex"
+            )
+    trainer_inventory = _object(
+        root["expectedTrainerInventory"], "$.expectedTrainerInventory"
+    )
+    _exact_keys(
+        trainer_inventory,
+        {
+            "identities",
+            "events",
+            "documentDigest",
+            "identityClassifications",
+            "admittedIdentities",
+            "admittedEvents",
+            "affectedAdmittedMaps",
+        },
+        "$.expectedTrainerInventory",
+    )
+    expected_trainer_inventory: dict[str, object] = {}
+    for domain in ("identities", "events"):
+        pointer = f"$.expectedTrainerInventory.{domain}"
+        sentinel = _object(trainer_inventory[domain], pointer)
+        _exact_keys(sentinel, {"count", "digest"}, pointer)
+        count = _integer(sentinel["count"], f"{pointer}.count", positive=True)
+        digest = _string(sentinel["digest"], f"{pointer}.digest")
+        if not DIGEST_RE.fullmatch(digest):
+            raise ContentPortError(f"{pointer}.digest: expected 64 lowercase hex")
+        expected_trainer_inventory[domain] = MappingProxyType(
+            {"count": count, "digest": digest}
+        )
+    document_digest = _string(
+        trainer_inventory["documentDigest"],
+        "$.expectedTrainerInventory.documentDigest",
+    )
+    if not DIGEST_RE.fullmatch(document_digest):
+        raise ContentPortError(
+            "$.expectedTrainerInventory.documentDigest: expected 64 lowercase hex"
+        )
+    expected_trainer_inventory["documentDigest"] = document_digest
+    classification_pointer = "$.expectedTrainerInventory.identityClassifications"
+    classifications = _object(
+        trainer_inventory["identityClassifications"], classification_pointer
+    )
+    _exact_keys(
+        classifications,
+        {"ordinary", "story-controlled", "unsupported"},
+        classification_pointer,
+    )
+    expected_trainer_inventory["identityClassifications"] = MappingProxyType(
+        {
+            classification: _integer(
+                classifications[classification],
+                f"{classification_pointer}.{classification}",
+                positive=True,
+            )
+            for classification in ("ordinary", "story-controlled", "unsupported")
+        }
+    )
+    for field in ("admittedIdentities", "admittedEvents", "affectedAdmittedMaps"):
+        expected_trainer_inventory[field] = _integer(
+            trainer_inventory[field],
+            f"$.expectedTrainerInventory.{field}",
+            positive=True,
+        )
     capability_path = _safe_child(
         port_dir, root["capabilityPolicy"], "$.capabilityPolicy"
     )
@@ -1786,6 +1836,8 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         expected_inventory=_load_inventory(
             root["expectedInventory"], "$.expectedInventory"
         ),
+        trainer_policy_path=trainer_policy_path,
+        expected_trainer_inventory=MappingProxyType(expected_trainer_inventory),
         allocation_index=allocation_index,
         capabilities=capabilities,
         map_ownership=ownership,
@@ -1802,4 +1854,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         generated_sections=generated_sections,
         section_metadata_authorities=section_metadata_authorities,
         target_bindings=target_bindings,
+        trainer_materialization_path=trainer_materialization_path,
+        trainer_materialization_prefix_count=trainer_materialization_prefix_count,
+        trainer_materialization_prefix_digest=trainer_materialization_prefix_digest,
     )

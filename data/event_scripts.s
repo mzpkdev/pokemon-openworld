@@ -1959,4 +1959,10 @@ Johto_EventScript_SetTimeEncounters::
 
 Johto_Text_DeferredElmCall::
 	.string "PROF. ELM will call again later.$"
+
+Johto_Text_PairedDoubleNotEnoughMons::
+	.string "Oh? Only one POKéMON?\n"
+	.string "Then, we don't battle with you.\p"
+	.string "If there's only one POKéMON, it will\n"
+	.string "be lonesome. That's not nice.$"
 // JOHTO IMPORT END: map scripts

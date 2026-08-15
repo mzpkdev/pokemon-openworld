@@ -7,13 +7,16 @@ import pytest
 
 from tools.e2e.save_file import (
     SAVE_BLOCK1_SIZE,
+    HISTORICAL_TRAINER_DEFEATED_SIZE,
     SECTOR_FOOTER_OFFSET,
     SECTOR_SIZE,
     TRAINER_DEFEATED_OFFSET,
     TRAINER_DEFEATED_SIZE,
     SaveImage,
+    calculate_checksum,
     load_fixture_manifest,
     with_saved_flags,
+    with_trainer_defeated,
 )
 from tools.e2e.skyemu import SkyEmuSession
 from tools.e2e.save_journey import (
@@ -153,6 +156,57 @@ def test_sector_4_checksum_covers_the_new_trainer_bitmap():
 
     with pytest.raises(ValueError, match="logical sector 4 checksum mismatch"):
         SaveImage.from_bytes(bytes(data))
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    ("hoenn_continue.sav", "hoenn_populated.sav", "kanto_continuity_start.sav"),
+)
+def test_project_lineage_historical_save_zero_tail_forward_loads_and_resaves(fixture):
+    historical = SaveImage.from_path(FIXTURES / fixture)
+    raw_bitmap = historical.active_slot.trainer_defeated_bitmap
+
+    assert raw_bitmap[HISTORICAL_TRAINER_DEFEATED_SIZE:] == bytes(24)
+    historical_with_defeat = with_trainer_defeated(historical, {1482: True})
+    original_bitmap = historical_with_defeat.active_slot.trainer_defeated_bitmap
+    assert original_bitmap[78] & 0x01
+
+    resaved = with_trainer_defeated(historical_with_defeat, {1675: True})
+    cold_loaded = SaveImage.from_bytes(resaved.data)
+    bitmap = cold_loaded.active_slot.trainer_defeated_bitmap
+    assert bitmap[:HISTORICAL_TRAINER_DEFEATED_SIZE] == original_bitmap[:79]
+    assert bitmap[78] & 0x01
+    assert bitmap[102] == 0x02
+
+    restored = with_trainer_defeated(cold_loaded, {1675: False})
+    assert SaveImage.from_bytes(restored.data).active_slot.trainer_defeated_bitmap == (
+        original_bitmap
+    )
+
+
+def test_nonzero_foreign_historical_tail_is_outside_forward_load_contract():
+    historical = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+    data = bytearray(historical.data)
+    sector = historical.active_slot.logical_sector(4)
+    physical_offset = data.find(sector)
+    old_tail_offset = (
+        TRAINER_DEFEATED_OFFSET - 3 * 3968 + HISTORICAL_TRAINER_DEFEATED_SIZE + 1
+    )
+    data[physical_offset + old_tail_offset] = 0x80
+    stored_checksum = struct.unpack_from("<H", sector, SECTOR_FOOTER_OFFSET + 2)[0]
+    mutated_sector = data[physical_offset : physical_offset + SECTOR_SIZE]
+    assert calculate_checksum(mutated_sector, 3744) == stored_checksum
+
+    with pytest.raises(ValueError, match="logical sector 4 checksum mismatch"):
+        SaveImage.from_bytes(bytes(data))
+
+
+def test_trainer_defeat_variant_rejects_bitmap_padding_ids():
+    historical = SaveImage.from_path(FIXTURES / "hoenn_continue.sav")
+
+    assert with_trainer_defeated(historical, {1675: True})
+    with pytest.raises(ValueError, match="outside the defeat bitmap"):
+        with_trainer_defeated(historical, {1676: True})
 
 
 def test_save_validation_requires_exact_128k_flash():

@@ -56,8 +56,11 @@ static bool32 ShouldRunTrainerSlideLastLowHp(u32 lastId, enum BattlerId battler)
 static void SetTrainerSlideParameters(enum BattlerId battler, u32* lastId, u32* trainerId, u32* retValue);
 static bool32 IsSlideInitalizedOrPlayed(enum BattlerId battler, enum TrainerSlideType slideId);
 
-// Partner trainers must be added as TRAINER_PARTNER(PARTNER_XXXX)
-static const u8* const sTrainerSlides[DIFFICULTY_COUNT][TRAINER_PARTNER(PARTNER_COUNT)][TRAINER_SLIDE_COUNT] =
+#define TRAINER_SLIDE_TRAINER_COUNT (TRAINERS_COUNT + PARTNER_COUNT)
+#define TRAINER_SLIDE_PARTNER_INDEX(partner) (TRAINERS_COUNT + (partner))
+
+// Partner trainers must be added as TRAINER_SLIDE_PARTNER_INDEX(PARTNER_XXXX).
+static const u8* const sTrainerSlides[DIFFICULTY_COUNT][TRAINER_SLIDE_TRAINER_COUNT][TRAINER_SLIDE_COUNT] =
 {
     [DIFFICULTY_NORMAL] =
     {
@@ -75,10 +78,34 @@ static const u8* const sFrontierTrainerSlides[DIFFICULTY_COUNT][FRONTIER_TRAINER
 #define TRAINER_LEAF_TEST   2
 #define PARTNER_STEVEN_TEST 1
 
-static const u8* const sTestTrainerSlides[DIFFICULTY_COUNT][TRAINER_PARTNER(PARTNER_COUNT)][TRAINER_SLIDE_COUNT] =
+static const u8* const sTestTrainerSlides[DIFFICULTY_COUNT][TRAINER_SLIDE_TRAINER_COUNT][TRAINER_SLIDE_COUNT] =
 {
 #include "../test/battle/trainer_slides.h"
 };
+
+static bool32 TryGetTrainerSlideTableIndex(u32 trainerId, u32 *tableIndex)
+{
+    if (tableIndex == NULL)
+        return FALSE;
+    if (trainerId < TRAINERS_COUNT)
+    {
+        *tableIndex = trainerId;
+        return TRUE;
+    }
+    if (trainerId <= TRAINER_PARTNER(PARTNER_NONE)
+     || trainerId >= TRAINER_PARTNER(PARTNER_COUNT))
+        return FALSE;
+
+    *tableIndex = TRAINER_SLIDE_PARTNER_INDEX(trainerId - TRAINER_PARTNER(PARTNER_NONE));
+    return TRUE;
+}
+
+#if TESTING
+bool32 TrainerSlide_TestTryGetTableIndex(u32 trainerId, u32 *tableIndex)
+{
+    return TryGetTrainerSlideTableIndex(trainerId, tableIndex);
+}
+#endif
 
 static u32 BattlerHPPercentage(enum BattlerId battler, enum ComparisonOperators operation, u32 threshold)
 {
@@ -123,11 +150,12 @@ static u32 GetPartyMonCount(u32 lastId, struct Pokemon *party, bool32 onlyAlive)
 static const u8* const *GetTrainerSlideArray(enum DifficultyLevel difficulty, u32 trainerId, u32 slideId)
 {
     struct ResolvedOrdinaryTrainer resolved;
+    u32 tableIndex;
 
     if (difficulty >= DIFFICULTY_COUNT || slideId >= TRAINER_SLIDE_COUNT)
         return NULL;
 #if TESTING
-    if (!FlagGet(TESTING_FLAG_TRAINER_SLIDES) || trainerId >= TRAINER_PARTNER(PARTNER_COUNT))
+    if (!FlagGet(TESTING_FLAG_TRAINER_SLIDES))
         return NULL;
     if (IsPartnerTrainerId(trainerId))
     {
@@ -140,7 +168,9 @@ static const u8* const *GetTrainerSlideArray(enum DifficultyLevel difficulty, u3
             return NULL;
         difficulty = resolved.difficulty;
     }
-    return sTestTrainerSlides[difficulty][trainerId];
+    if (!TryGetTrainerSlideTableIndex(trainerId, &tableIndex))
+        return NULL;
+    return sTestTrainerSlides[difficulty][tableIndex];
 #else
     if (gBattleTypeFlags & BATTLE_TYPE_FRONTIER)
     {
@@ -152,11 +182,15 @@ static const u8* const *GetTrainerSlideArray(enum DifficultyLevel difficulty, u3
     {
         if (GetPartnerTrainerStructFromId(trainerId) == NULL)
             return NULL;
-        return sTrainerSlides[difficulty][trainerId];
+        if (!TryGetTrainerSlideTableIndex(trainerId, &tableIndex))
+            return NULL;
+        return sTrainerSlides[difficulty][tableIndex];
     }
     if (!TryResolveOrdinaryTrainerAtDifficulty(trainerId, difficulty, &resolved))
         return NULL;
-    return sTrainerSlides[resolved.difficulty][trainerId];
+    if (!TryGetTrainerSlideTableIndex(trainerId, &tableIndex))
+        return NULL;
+    return sTrainerSlides[resolved.difficulty][tableIndex];
 #endif // TESTING
 }
 

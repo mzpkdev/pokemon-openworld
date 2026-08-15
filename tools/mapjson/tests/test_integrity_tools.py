@@ -276,6 +276,14 @@ class IntegrityToolTests(unittest.TestCase):
     def test_linked_save_abi_is_checked_value_by_value(self) -> None:
         contract = json.loads(SAVE_CONTRACT.read_text())
         expected = expected_save_abi_values(contract, "normal")
+        by_path = dict(expected)
+        self.assertEqual(
+            by_path["$.structs.SaveBlock1.sizeAlignment"], (15672 << 8) | 4
+        )
+        self.assertEqual(
+            by_path["$.structs.SaveBlock1.members[84].type.array.dimensions[0]"],
+            103,
+        )
         rom = bytearray(8 + len(expected) * 4)
         struct.pack_into("<II", rom, 0, 0x53414249, 1)
         struct.pack_into(
@@ -302,6 +310,13 @@ class IntegrityToolTests(unittest.TestCase):
                 nested_drift,
                 "normal",
             )
+
+    def test_linked_save_abi_rejects_unreviewed_tail_extension(self) -> None:
+        contract = json.loads(SAVE_CONTRACT.read_text())
+        contract["compatibleTailExtension"]["currentBitmapBytes"] = 104
+
+        with self.assertRaisesRegex(ValidationError, "unsupported evolution"):
+            expected_save_abi_values(contract, "normal")
 
     def test_purpose_conditional_save_abi_drift_is_rejected(self) -> None:
         contract = json.loads(SAVE_CONTRACT.read_text())

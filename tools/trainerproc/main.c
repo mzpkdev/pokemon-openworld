@@ -1687,6 +1687,19 @@ static void fprint_constant(FILE *f, const char *prefix, struct String s)
     }
 }
 
+static void fprint_trainer_constant(FILE *f, const char *prefix, const char *johto_prefix, const char *johto_suffix, struct String s)
+{
+    if (ends_with(s, johto_suffix))
+    {
+        s.string_n -= strlen(johto_suffix);
+        fprint_constant(f, johto_prefix, s);
+    }
+    else
+    {
+        fprint_constant(f, prefix, s);
+    }
+}
+
 static void fprint_symbol(FILE *f, struct String s)
 {
     if (s.string_n > 0)
@@ -1837,7 +1850,7 @@ static void fprint_trainers(const char *output_path, FILE *f, struct Parsed *par
         {
             fprintf(f, "#line %d\n", trainer->class_line);
             fprintf(f, "        .trainerClass = ");
-            fprint_constant(f, "TRAINER_CLASS", trainer->class);
+            fprint_trainer_constant(f, "TRAINER_CLASS", "JOHTO_TRAINER_CLASS", " Johto", trainer->class);
             fprintf(f, ",\n");
         }
 
@@ -1845,7 +1858,7 @@ static void fprint_trainers(const char *output_path, FILE *f, struct Parsed *par
         {
             fprintf(f, "#line %d\n", trainer->pic_line);
             fprintf(f, "        .trainerPic = ");
-            fprint_constant(f, "TRAINER_PIC", trainer->pic);
+            fprint_trainer_constant(f, "TRAINER_PIC", "JOHTO_TRAINER_PIC", " HG", trainer->pic);
             fprintf(f, ",\n");
         }
 

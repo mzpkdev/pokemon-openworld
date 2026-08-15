@@ -25,10 +25,23 @@ from .model import DonorPin, ResourceKey
 from .ownership import OwnershipManifest, safe_repo_path, verify_desired_claims
 from .renderers import RenderContext, RenderUnit, render_units
 from .sources import PortSourceState, resolve_port_sources
+from .trainer_materialization import require_materialization_exact_cover
 
 
 _DEFINE_RE = re.compile(
     r"^#define\s+([A-Z][A-Z0-9_]+)\s+(0x[0-9A-Fa-f]+|\d+)", re.MULTILINE
+)
+_BYTE_IDENTICAL_TRAINER_PICS = MappingProxyType(
+    {
+        "Twins FRLG": "Twins",
+        "Youngster FRLG": "Youngster",
+    }
+)
+_REVIEWED_TRAINER_OBJECT_OVERLAYS = MappingProxyType(
+    {
+        "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward": {"x": 2, "y": 6},
+        "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey": {"x": 4, "y": 3},
+    }
 )
 
 
@@ -38,6 +51,74 @@ def _thaw(value: Any) -> Any:
     if isinstance(value, tuple):
         return [_thaw(child) for child in value]
     return copy.deepcopy(value)
+
+
+def _rendered_materialization_scope(
+    descriptor: PortDescriptor, state: PortSourceState
+) -> Mapping[str, tuple[str, ...]]:
+    authority = state.trainer_materialization
+    if authority is None:
+        return MappingProxyType({})
+    placement_maps = {
+        placement.identity: placement.map_name
+        for placement in state.trainer_inventory.placements
+    }
+    rendered_maps = {
+        name
+        for name, ownership in descriptor.map_ownership.items()
+        if ownership == "rendered"
+    }
+    return MappingProxyType(
+        {
+            record.identity: tuple(
+                placement
+                for placement in record.placements
+                if placement_maps.get(placement) in rendered_maps
+            )
+            for record in authority.identities
+            if any(
+                placement_maps.get(placement) in rendered_maps
+                for placement in record.placements
+            )
+        }
+    )
+
+
+def _require_rendered_materialization_exact_cover(
+    descriptor: PortDescriptor,
+    state: PortSourceState,
+    observed: Mapping[str, Iterable[str]],
+    *,
+    owner: str,
+) -> None:
+    authority = state.trainer_materialization
+    if authority is None:
+        return
+    expected = _rendered_materialization_scope(descriptor, state)
+    full = {record.identity: record.placements for record in authority.identities}
+    if dict(expected) == full:
+        require_materialization_exact_cover(authority, observed, owner=owner)
+        return
+    if set(observed) != set(expected):
+        missing = sorted(set(expected) - set(observed))
+        extra = sorted(set(observed) - set(expected))
+        raise ContentPortError(
+            f"{owner}: identities differ from rendered materialization scope; "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+    for identity, expected_placements in expected.items():
+        actual = tuple(observed[identity])
+        if len(actual) != len(set(actual)):
+            raise ContentPortError(
+                f"{owner}: {identity} has duplicate observed placements"
+            )
+        if set(actual) != set(expected_placements):
+            missing = sorted(set(expected_placements) - set(actual))
+            extra = sorted(set(actual) - set(expected_placements))
+            raise ContentPortError(
+                f"{owner}: {identity} differs from rendered materialization scope; "
+                f"missing={missing[:1]}, extra={extra[:1]}"
+            )
 
 
 def _port_name(descriptor: PortDescriptor) -> str:
@@ -251,9 +332,18 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         for item in descriptor.adaptations["graphicsAdaptations"]
     }
     projections = {
-        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+        identity.trainer: identity.projection
+        for identity in state.trainer_inventory.identities
+        if identity.projection is not None
+    }
+    placements = {
+        placement.identity: placement
+        for placement in state.trainer_inventory.placements
+        if placement.admitted
     }
     units: list[RenderUnit] = []
+    observed_objects: dict[str, list[str]] = {}
+    observed_scripts: dict[str, list[str]] = {}
     materialization_maps = state.materialization_maps or state.maps
     for name, ownership in descriptor.map_ownership.items():
         if ownership != "rendered":
@@ -289,43 +379,63 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
             value[field] = []
         rendered_events: list[dict[str, Any]] = []
         selected_objects: list[dict[str, Any]] = []
-        for event in state.trainer_events.get(name, ()):
-            if len(event.trainers) != 1 or event.trainers[0] not in projections:
+        event_rows: tuple[tuple[str, Any], ...]
+        if state.trainer_materialization is not None:
+            event_rows = tuple(
+                (row.source_trainer, row.event)
+                for row in state.trainer_event_projections.get(name, ())
+            )
+        else:
+            event_rows = tuple(
+                (event.trainers[0], event)
+                for event in state.trainer_events.get(name, ())
+                if len(event.trainers) == 1
+            )
+        for source_trainer, event in event_rows:
+            if source_trainer not in projections:
                 raise ContentPortError(
                     f"{name}: selected trainer event has no exact projection"
                 )
-            projection = projections[event.trainers[0]]
-            if tuple(item.command for item in event.instructions) != (
-                "trainerbattle_single",
-                "msgbox",
-                "end",
-            ) or tuple(len(item.operands) for item in event.instructions) != (3, 2, 0):
+            projection = projections[source_trainer]
+            event_identity = f"{name}/{event.object_index}/{event.script_name}"
+            placement = placements.get(event_identity)
+            if placement is None or placement.trainer != source_trainer:
                 raise ContentPortError(
-                    f"{event.script_name}: unsupported selected trainer script shape"
+                    f"{name}: selected trainer event has no exact admitted inventory placement"
                 )
             instructions = []
             for index, instruction in enumerate(event.instructions):
                 operands = list(instruction.operands)
-                if index == 0:
-                    operands[0] = projection["target"]
+                if index == 0 and state.trainer_materialization is None:
+                    operands[0] = projection.target
                 instructions.append(
                     {"command": instruction.command, "operands": operands}
                 )
-            rendered_events.append(
-                {
-                    "script": event.script_name,
-                    "instructions": instructions,
-                    "texts": [
-                        {"label": text.label, "fragments": list(text.fragments)}
-                        for text in event.texts
-                    ],
-                }
-            )
+            # Route 26 North's connection clones intentionally reference the
+            # canonical Route 26-owned script and text closure.
+            if not (
+                name == "Route26North"
+                and event.script_name
+                in {"Route26_EventScript_Jake", "Route26_EventScript_Joyce"}
+            ):
+                rendered_events.append(
+                    {
+                        "script": event.script_name,
+                        "instructions": instructions,
+                        "texts": [
+                            {"label": text.label, "fragments": list(text.fragments)}
+                            for text in event.texts
+                        ],
+                    }
+                )
             object_event = _thaw(event.object_event)
-            graphics = object_event.get("graphics_id")
-            if isinstance(graphics, str):
-                object_event["graphics_id"] = graphics_remaps.get(graphics, graphics)
+            object_event["graphics_id"] = placement.overworld_graphic
+            object_event.update(
+                _REVIEWED_TRAINER_OBJECT_OVERLAYS.get(event_identity, {})
+            )
             selected_objects.append(object_event)
+            observed_objects.setdefault(source_trainer, []).append(event_identity)
+            observed_scripts.setdefault(source_trainer, []).append(event_identity)
         value["object_events"] = selected_objects
         units.append(
             RenderUnit(
@@ -351,21 +461,49 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                 {"map": name, "events": rendered_events},
             )
         )
+    if state.trainer_materialization is not None:
+        _require_rendered_materialization_exact_cover(
+            descriptor,
+            state,
+            observed_objects,
+            owner="emitted trainer objects",
+        )
+        _require_rendered_materialization_exact_cover(
+            descriptor,
+            state,
+            observed_scripts,
+            owner="emitted trainer scripts",
+        )
     return units
 
 
 def _trainer_units(
     descriptor: PortDescriptor, state: PortSourceState, repo: Path
 ) -> list[RenderUnit]:
-    selected = {
-        trainer
-        for map_name, events in state.trainer_events.items()
-        if descriptor.map_ownership.get(map_name) == "rendered"
-        for event in events
-        for trainer in event.trainers
-    }
+    independently_selected: dict[str, list[str]] = {}
+    if state.trainer_materialization is not None:
+        for map_name, rows in state.trainer_event_projections.items():
+            for row in rows:
+                identity = (
+                    f"{row.event.map_name}/{row.event.object_index}/"
+                    f"{row.event.script_name}"
+                )
+                independently_selected.setdefault(row.source_trainer, []).append(
+                    identity
+                )
+        selected = set(independently_selected)
+    else:
+        selected = {
+            trainer
+            for map_name, events in state.trainer_events.items()
+            if descriptor.map_ownership.get(map_name) == "rendered"
+            for event in events
+            for trainer in event.trainers
+        }
     projections = {
-        item["source"]: item for item in descriptor.adaptations["trainerProjections"]
+        identity.trainer: identity.projection
+        for identity in state.trainer_inventory.identities
+        if identity.projection is not None
     }
     if selected - set(projections):
         raise ContentPortError(
@@ -375,27 +513,17 @@ def _trainer_units(
         return []
     ledger = load_binding_index(repo / "src/data/persistence/persistent_ids.json")
     rendered: list[dict[str, Any]] = []
+    observed_parties: dict[str, tuple[str, ...]] = {}
+    observed_runtime_rows: dict[str, tuple[str, ...]] = {}
     for source in sorted(selected):
         projection = projections[source]
-        ledger.resolve(projection["target"], domain="trainerIds")
+        ledger.resolve(projection.target, domain="trainerIds")
         trainer = state.semantic_values.get(ResourceKey("trainer", source))
         if trainer is None:
             raise ContentPortError(
                 f"trainer:{source}: authenticated payload is missing"
             )
-        expected = {
-            "trainer_class": projection["class"]["source"],
-            "trainer_pic": projection["pic"]["source"],
-            "encounter_music": projection["music"]["source"],
-            "gender": projection["gender"],
-        }
-        for field, value in expected.items():
-            if trainer.get(field) != value:
-                raise ContentPortError(
-                    f"trainer:{source}/{field}: projection preimage drift"
-                )
-        ai_sources = tuple(item["source"] for item in projection["ai"])
-        if tuple(trainer.get("ai_flags", ())) != ai_sources:
+        if tuple(trainer.get("ai_flags", ())) != ("AI_SCRIPT_CHECK_BAD_MOVE",):
             raise ContentPortError(
                 f"trainer:{source}/ai_flags: projection preimage drift"
             )
@@ -416,43 +544,72 @@ def _trainer_units(
         parties = tuple(trainer.get("parties", ()))
         if len(parties) != 1:
             raise ContentPortError(f"trainer:{source}: exactly one party is required")
-        party = state.semantic_values.get(ResourceKey("party", parties[0]))
-        if party is None:
-            raise ContentPortError(
-                f"party:{parties[0]}: authenticated payload is missing"
-            )
-        members: list[dict[str, Any]] = []
-        for index, member in enumerate(party.get("members", ())):
-            if member.get("held_item") is not None or member.get("moves"):
+        if state.trainer_materialization is not None:
+            party_projection = state.trainer_party_projections.get(source)
+            if party_projection is None or party_projection.party_name != parties[0]:
                 raise ContentPortError(
-                    f"party:{parties[0]}/members/{index}: default party format drift"
+                    f"trainer:{source}: typed materialized party projection is missing"
                 )
-            if (
-                type(member.get("level")) is not int
-                or type(member.get("iv")) is not int
-            ):
-                raise ContentPortError(
-                    f"party:{parties[0]}/members/{index}: level and IV are required"
-                )
-            members.append(
+            members = [
                 {
-                    "species": member["species"],
-                    "level": member["level"],
-                    "iv": member["iv"],
+                    "species": member.species,
+                    "level": member.level,
+                    "iv": member.iv,
                 }
-            )
+                for member in party_projection.members
+            ]
+            placements = tuple(independently_selected[source])
+            observed_parties[source] = placements
+            observed_runtime_rows[source] = placements
+        else:
+            party = state.semantic_values.get(ResourceKey("party", parties[0]))
+            if party is None:
+                raise ContentPortError(
+                    f"party:{parties[0]}: authenticated payload is missing"
+                )
+            members = []
+            for index, member in enumerate(party.get("members", ())):
+                if member.get("held_item") is not None or member.get("moves"):
+                    raise ContentPortError(
+                        f"party:{parties[0]}/members/{index}: default party format drift"
+                    )
+                if (
+                    type(member.get("level")) is not int
+                    or type(member.get("iv")) is not int
+                ):
+                    raise ContentPortError(
+                        f"party:{parties[0]}/members/{index}: level and IV are required"
+                    )
+                members.append(
+                    {
+                        "species": member["species"],
+                        "level": member["level"],
+                        "iv": member["iv"],
+                    }
+                )
         rendered.append(
             {
-                "target": projection["target"],
+                "target": projection.target,
                 "name": trainer_name,
-                "class": projection["class"]["target"],
-                "pic": projection["pic"]["target"],
-                "gender": projection["gender"],
-                "music": projection["music"]["target"],
+                "class": projection.trainer_class,
+                "pic": _BYTE_IDENTICAL_TRAINER_PICS.get(projection.pic, projection.pic),
+                "gender": projection.gender,
+                "music": projection.music,
                 "double": double_token == "TRUE",
-                "ai": [item["target"] for item in projection["ai"]],
+                "ai": [projection.ai],
                 "party": members,
             }
+        )
+    if state.trainer_materialization is not None:
+        require_materialization_exact_cover(
+            state.trainer_materialization,
+            observed_parties,
+            owner="emitted trainer parties",
+        )
+        require_materialization_exact_cover(
+            state.trainer_materialization,
+            observed_runtime_rows,
+            owner="emitted trainer runtime rows",
         )
     return [
         RenderUnit(
@@ -749,12 +906,19 @@ def _generated_body(
             f'\t.include "data/maps/{name}/scripts.inc"'
             for name in descriptor.allocation_index.maps
         )
-        return (
+        body = (
             includes
             + f"\n\n{bindings.time_encounter_label}::\n\treturn\n\n"
             + f"{bindings.deferred_call_label}::\n"
             + f'\t.string "{bindings.deferred_call_text}"\n'
         )
+        shared_text = state.paired_double_not_enough_text
+        if shared_text is not None:
+            body += f"\n{shared_text.label}::\n"
+            body += "".join(
+                f"\t.string {fragment}\n" for fragment in shared_text.fragments
+            )
+        return body
     if symbol in {"flag-bindings", "var-bindings"}:
         return _binding_body(descriptor, state, repo, symbol)
     if symbol == "berry-bindings":

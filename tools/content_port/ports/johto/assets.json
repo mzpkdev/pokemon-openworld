@@ -16882,6 +16882,66 @@
       "sourceSha256": "8d4c63e711c4ad8323a4bac610b4855e78c80f7183468e4068a77bea73782419",
       "supportState": "enabled",
       "targetSha256": "8d4c63e711c4ad8323a4bac610b4855e78c80f7183468e4068a77bea73782419"
+    },
+    {
+      "capability": "trainers",
+      "conversionCommand": [
+        "copy-bytes"
+      ],
+      "donor": "content",
+      "key": "graphics/trainers/front_pics/firebreather.png",
+      "permission": "redistributable",
+      "permissionEvidence": "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",
+      "semanticTarget": "graphics/trainers/front_pics/firebreather_hg.png",
+      "sourcePath": "graphics/trainers/front_pics/firebreather.png",
+      "sourceSha256": "1118b02d4cdcd0a7fb1b2a798455ee2795a23ee2299a963cca9e0fcf184e7900",
+      "supportState": "enabled",
+      "targetSha256": "1118b02d4cdcd0a7fb1b2a798455ee2795a23ee2299a963cca9e0fcf184e7900"
+    },
+    {
+      "capability": "trainers",
+      "conversionCommand": [
+        "copy-bytes"
+      ],
+      "donor": "content",
+      "key": "graphics/trainers/front_pics/psychic_m.png",
+      "permission": "redistributable",
+      "permissionEvidence": "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",
+      "semanticTarget": "graphics/trainers/front_pics/psychic_m_hg.png",
+      "sourcePath": "graphics/trainers/front_pics/psychic_m.png",
+      "sourceSha256": "bffe4a2ac3c828b290c0bbebd0aab2e2799ddd0649962547b9b9244bdc713b8c",
+      "supportState": "enabled",
+      "targetSha256": "bffe4a2ac3c828b290c0bbebd0aab2e2799ddd0649962547b9b9244bdc713b8c"
+    },
+    {
+      "capability": "trainers",
+      "conversionCommand": [
+        "copy-bytes"
+      ],
+      "donor": "content",
+      "key": "graphics/trainers/front_pics/sage.png",
+      "permission": "redistributable",
+      "permissionEvidence": "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",
+      "semanticTarget": "graphics/trainers/front_pics/sage_hg.png",
+      "sourcePath": "graphics/trainers/front_pics/sage.png",
+      "sourceSha256": "343f0b9c6967cbcf1d31c4e9cddfeb9dd157137ab5427df2ef7bdd999c3ff218",
+      "supportState": "enabled",
+      "targetSha256": "343f0b9c6967cbcf1d31c4e9cddfeb9dd157137ab5427df2ef7bdd999c3ff218"
+    },
+    {
+      "capability": "trainers",
+      "conversionCommand": [
+        "copy-bytes"
+      ],
+      "donor": "content",
+      "key": "graphics/trainers/front_pics/super_nerd.png",
+      "permission": "redistributable",
+      "permissionEvidence": "3ab8e509de1f1d9e616af20f9af29f3404aaa938a893c4fce3d74a3d42e122d0",
+      "semanticTarget": "graphics/trainers/front_pics/super_nerd_hg.png",
+      "sourcePath": "graphics/trainers/front_pics/super_nerd.png",
+      "sourceSha256": "6828d01ffcc55361b1cea5c56483ce04799f525f7895a75df68a45c596ebb59b",
+      "supportState": "enabled",
+      "targetSha256": "6828d01ffcc55361b1cea5c56483ce04799f525f7895a75df68a45c596ebb59b"
     }
   ],
   "schemaVersion": 1

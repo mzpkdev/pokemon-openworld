@@ -29,32 +29,52 @@ static void FinalizeRecordedBattleSave(struct RecordedBattleSave *save)
     save->checksum = CalcByteArraySum((const u8 *)save, sizeof(*save) - sizeof(save->checksum));
 }
 
-TEST("Recorded battles normalize the legacy Steven partner ID after validation")
+TEST("Recorded battles normalize every supported Steven partner ID after validation")
 {
-    u32 checksum;
-    struct RecordedBattleSave *save = InitRecordedBattleSave(
-        BATTLE_TYPE_INGAME_PARTNER,
-        RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_STEVEN);
+    static const u16 supportedPartnerBases[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2,
+    };
 
-    FinalizeRecordedBattleSave(save);
-    checksum = save->checksum;
+    for (u32 i = 0; i < ARRAY_COUNT(supportedPartnerBases); i++)
+    {
+        u32 checksum;
+        struct RecordedBattleSave *save = InitRecordedBattleSave(
+            BATTLE_TYPE_INGAME_PARTNER,
+            supportedPartnerBases[i] + PARTNER_STEVEN);
 
-    EXPECT(RecordedBattle_TestValidateAndNormalizeSave(save));
-    EXPECT_EQ(save->partnerId, TRAINER_PARTNER(PARTNER_STEVEN));
-    EXPECT_EQ(save->checksum, checksum);
+        FinalizeRecordedBattleSave(save);
+        checksum = save->checksum;
+
+        EXPECT(RecordedBattle_TestValidateAndNormalizeSave(save));
+        EXPECT_EQ(save->partnerId, TRAINER_PARTNER(PARTNER_STEVEN));
+        EXPECT_EQ(save->checksum, checksum);
+    }
 }
 
-TEST("Recorded battles reject the legacy partner sentinel without mutation")
+TEST("Recorded battles reject supported partner sentinels without mutation")
 {
-    struct RecordedBattleSave *save = InitRecordedBattleSave(
-        BATTLE_TYPE_INGAME_PARTNER,
-        RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_NONE);
-    u16 partnerId = save->partnerId;
+    static const u16 supportedPartnerBases[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2,
+    };
 
-    FinalizeRecordedBattleSave(save);
+    for (u32 i = 0; i < ARRAY_COUNT(supportedPartnerBases); i++)
+    {
+        struct RecordedBattleSave *save = InitRecordedBattleSave(
+            BATTLE_TYPE_INGAME_PARTNER,
+            supportedPartnerBases[i] + PARTNER_NONE);
+        u16 partnerId = save->partnerId;
 
-    EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
-    EXPECT_EQ(save->partnerId, partnerId);
+        FinalizeRecordedBattleSave(save);
+
+        EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
+        EXPECT_EQ(save->partnerId, partnerId);
+    }
 }
 
 TEST("Recorded battles leave current partner IDs unchanged")
@@ -69,21 +89,42 @@ TEST("Recorded battles leave current partner IDs unchanged")
     EXPECT_EQ(save->partnerId, TRAINER_PARTNER(PARTNER_STEVEN));
 }
 
-TEST("Recorded partner wild battles reject nonzero opponents without normalizing them")
+TEST("Recorded battles do not normalize ordinary trainer IDs as partners")
 {
     struct RecordedBattleSave *save = InitRecordedBattleSave(
         BATTLE_TYPE_INGAME_PARTNER,
-        RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_STEVEN);
-    u16 partnerId = save->partnerId;
+        TRAINER_RED_TEST);
 
-    save->opponentA = RECORDED_BATTLE_LEGACY_PARTNER_BASE;
-    save->opponentB = RECORDED_BATTLE_LEGACY_PARTNER_BASE + 1;
     FinalizeRecordedBattleSave(save);
+    sRecordedBattleBefore = *save;
 
     EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
-    EXPECT_EQ(save->opponentA, RECORDED_BATTLE_LEGACY_PARTNER_BASE);
-    EXPECT_EQ(save->opponentB, RECORDED_BATTLE_LEGACY_PARTNER_BASE + 1);
-    EXPECT_EQ(save->partnerId, partnerId);
+    EXPECT_EQ(memcmp(save, &sRecordedBattleBefore, sizeof(sRecordedBattleBefore)), 0);
+}
+
+TEST("Recorded battles never normalize supported partner bases in opponent fields")
+{
+    static const u16 ordinaryOpponentIds[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1 + PARTNER_STEVEN,
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(ordinaryOpponentIds); i++)
+    {
+        struct RecordedBattleSave *save = InitRecordedBattleSave(
+            BATTLE_TYPE_INGAME_PARTNER,
+            RECORDED_BATTLE_PARTNER_BASE_EMERALD + PARTNER_STEVEN);
+
+        save->opponentA = ordinaryOpponentIds[i];
+        save->opponentB = ordinaryOpponentIds[i];
+        FinalizeRecordedBattleSave(save);
+        sRecordedBattleBefore = *save;
+
+        EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
+        EXPECT_EQ(memcmp(save, &sRecordedBattleBefore, sizeof(sRecordedBattleBefore)), 0);
+    }
 }
 
 TEST("Recorded partner wild battles reject absent and invalid current partners")
@@ -102,16 +143,50 @@ TEST("Recorded partner wild battles reject absent and invalid current partners")
     EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
 }
 
-TEST("Recorded battles without an in-game partner leave legacy-range values unchanged")
+TEST("Recorded partner IDs outside every supported namespace fail without mutation")
 {
-    struct RecordedBattleSave *save = InitRecordedBattleSave(
-        BATTLE_TYPE_FRONTIER,
-        RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_STEVEN);
+    static const u16 invalidPartnerIds[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD + PARTNER_COUNT,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1 + PARTNER_COUNT,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2 + PARTNER_COUNT,
+        0xFFFF,
+    };
 
-    FinalizeRecordedBattleSave(save);
+    for (u32 i = 0; i < ARRAY_COUNT(invalidPartnerIds); i++)
+    {
+        struct RecordedBattleSave *save = InitRecordedBattleSave(
+            BATTLE_TYPE_INGAME_PARTNER,
+            invalidPartnerIds[i]);
 
-    EXPECT(RecordedBattle_TestValidateAndNormalizeSave(save));
-    EXPECT_EQ(save->partnerId, RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_STEVEN);
+        FinalizeRecordedBattleSave(save);
+        sRecordedBattleBefore = *save;
+
+        EXPECT(!RecordedBattle_TestValidateAndNormalizeSave(save));
+        EXPECT_EQ(memcmp(save, &sRecordedBattleBefore, sizeof(sRecordedBattleBefore)), 0);
+    }
+}
+
+TEST("Recorded battles without an in-game partner leave supported partner ranges unchanged")
+{
+    static const u16 supportedPartnerBases[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2,
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(supportedPartnerBases); i++)
+    {
+        struct RecordedBattleSave *save = InitRecordedBattleSave(
+            BATTLE_TYPE_FRONTIER,
+            supportedPartnerBases[i] + PARTNER_STEVEN);
+
+        FinalizeRecordedBattleSave(save);
+
+        EXPECT(RecordedBattle_TestValidateAndNormalizeSave(save));
+        EXPECT_EQ(save->partnerId, supportedPartnerBases[i] + PARTNER_STEVEN);
+    }
 }
 
 TEST("Recorded battles reject bad checksums before normalizing partner IDs")

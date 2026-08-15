@@ -20,7 +20,515 @@ from .model import (
     TrainerText,
 )
 from .ownership import safe_repo_path
+from .trainer_inventory import (
+    InventoryExpectations,
+    TrainerInventory,
+    TrainerProjection,
+    load_trainer_inventory,
+    require_projection_exact_cover,
+)
+from .trainer_materialization import (
+    ReviewedMaterializationPrefix,
+    TrainerMaterializationAuthority,
+    load_trainer_materialization,
+    materialized_placements,
+    require_materialization_exact_cover,
+)
+from .trainer_payloads import (
+    PAIRED_NOT_ENOUGH_TARGET_LABEL,
+    PairedDoubleEventProjection,
+    StandardSingleEventProjection,
+    StandardSinglePartyProjection,
+    project_paired_double_event,
+    project_standard_single_event,
+    project_standard_single_party,
+)
 from .world_graph import WorldEdge, with_dynamic_warps
+
+
+TRAINER_PIC_ASSET_PROJECTIONS = MappingProxyType(
+    {
+        "Firebreather HG": (
+            "graphics/trainers/front_pics/firebreather.png",
+            "graphics/trainers/front_pics/firebreather_hg.png",
+        ),
+        "Psychic M HG": (
+            "graphics/trainers/front_pics/psychic_m.png",
+            "graphics/trainers/front_pics/psychic_m_hg.png",
+        ),
+        "Sage HG": (
+            "graphics/trainers/front_pics/sage.png",
+            "graphics/trainers/front_pics/sage_hg.png",
+        ),
+        "Super Nerd HG": (
+            "graphics/trainers/front_pics/super_nerd.png",
+            "graphics/trainers/front_pics/super_nerd_hg.png",
+        ),
+    }
+)
+
+JOHTO_CLASS_PROJECTIONS = MappingProxyType(
+    {
+        f"TRAINER_CLASS_{name}": f"JOHTO_TRAINER_CLASS_{name}"
+        for name in (
+            "BURGLAR",
+            "FIREBREATHER",
+            "JUGGLER",
+            "PSYCHIC_M",
+            "SAGE",
+            "SUPER_NERD",
+        )
+    }
+)
+TRAINER_PIC_PROJECTIONS = MappingProxyType(
+    {
+        "TRAINER_PIC_BURGLAR": "TRAINER_PIC_BURGLAR_FRLG",
+        "TRAINER_PIC_JUGGLER": "TRAINER_PIC_JUGGLER_FRLG",
+        "TRAINER_PIC_TWINS": "TRAINER_PIC_TWINS_FRLG",
+        "TRAINER_PIC_YOUNGSTER": "TRAINER_PIC_YOUNGSTER_FRLG",
+        "TRAINER_PIC_FIREBREATHER": "JOHTO_TRAINER_PIC_FIREBREATHER",
+        "TRAINER_PIC_PSYCHIC_M": "JOHTO_TRAINER_PIC_PSYCHIC_M",
+        "TRAINER_PIC_SAGE": "JOHTO_TRAINER_PIC_SAGE",
+        "TRAINER_PIC_SUPER_NERD": "JOHTO_TRAINER_PIC_SUPER_NERD",
+    }
+)
+TRAINER_MUSIC_PROJECTIONS = MappingProxyType(
+    {
+        "TRAINER_ENCOUNTER_MUSIC_HG_BOY_1": "TRAINER_ENCOUNTER_MUSIC_MALE",
+        "TRAINER_ENCOUNTER_MUSIC_HG_BOY_2": "TRAINER_ENCOUNTER_MUSIC_SWIMMER",
+        "TRAINER_ENCOUNTER_MUSIC_HG_GIRL_1": "TRAINER_ENCOUNTER_MUSIC_GIRL",
+        "TRAINER_ENCOUNTER_MUSIC_HG_GIRL_2": "TRAINER_ENCOUNTER_MUSIC_FEMALE",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SAGE": "TRAINER_ENCOUNTER_MUSIC_SUSPICIOUS",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_1": "TRAINER_ENCOUNTER_MUSIC_SUSPICIOUS",
+        "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_2": "TRAINER_ENCOUNTER_MUSIC_MALE",
+    }
+)
+FEMALE_TRAINER_PICS = frozenset(
+    f"TRAINER_PIC_{name}"
+    for name in (
+        "BEAUTY",
+        "COOLTRAINER_F",
+        "EXPERT_F",
+        "HEX_MANIAC",
+        "LASS",
+        "PARASOL_LADY",
+        "PICNICKER",
+        "SWIMMER_F",
+    )
+)
+TRAINER_GRAPHIC_PROJECTIONS = MappingProxyType(
+    {
+        "OBJ_EVENT_GFX_BATTLE_GIRL": "OBJ_EVENT_GFX_COOLTRAINER_F",
+        "OBJ_EVENT_GFX_JUGGLER": "OBJ_EVENT_GFX_CAMERAMAN",
+        "OBJ_EVENT_GFX_SAGE": "OBJ_EVENT_GFX_OLD_MAN_1",
+        "OBJ_EVENT_GFX_FIREBREATHER": "OBJ_EVENT_GFX_ROCKER",
+        "OBJ_EVENT_GFX_BURGLAR": "OBJ_EVENT_GFX_MANIAC",
+    }
+)
+
+_REVIEWED_STANDARD_SINGLE_BATCHES = (
+    (
+        "route31-wade",
+        (
+            (
+                "TRAINER_WADE",
+                "TRAINER_BUG_CATCHER_WADE_JOHTO",
+                ("Route31/0/Route31_EventScript_Bugcatcher_Wade",),
+            ),
+        ),
+    ),
+    (
+        "route30-route33-don-mikey-anthony",
+        (
+            (
+                "TRAINER_DON",
+                "TRAINER_BUG_CATCHER_DON_JOHTO",
+                ("Route30/3/Route30_EventScript_Bugcatcher_Don",),
+            ),
+            (
+                "TRAINER_MIKEY",
+                "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+                ("Route30/6/Route30_EventScript_Youngster_Mikey",),
+            ),
+            (
+                "TRAINER_ANTHONY",
+                "TRAINER_HIKER_ANTHONY_JOHTO",
+                ("Route33/0/Route33_EventScript_HikerAnthony",),
+            ),
+        ),
+    ),
+    ("bulk-fixed-standard-singles-60", 60),
+    ("bulk-surf-field-standard-singles-33", 33),
+    ("bulk-ordinary-standard-singles-26", 26),
+    ("bulk-route45-route46-standard-singles-11", 11),
+    ("bulk-complex-tail-standard-singles-41", 41),
+    (
+        "final-connection-state-overlay-standard-singles-8",
+        (
+            (
+                "TRAINER_RICHARD",
+                "TRAINER_PSYCHIC_M_RICHARD_JOHTO",
+                ("Route26/0/Route26_EventScript_Richard",),
+            ),
+            (
+                "TRAINER_JAKE",
+                "TRAINER_COOLTRAINER_JAKE_JOHTO",
+                (
+                    "Route26/1/Route26_EventScript_Jake",
+                    "Route26North/1/Route26_EventScript_Jake",
+                ),
+            ),
+            (
+                "TRAINER_JOYCE",
+                "TRAINER_COOLTRAINER_JOYCE_JOHTO",
+                (
+                    "Route26/2/Route26_EventScript_Joyce",
+                    "Route26North/5/Route26_EventScript_Joyce",
+                ),
+            ),
+            (
+                "TRAINER_GAVEN",
+                "TRAINER_COOLTRAINER_GAVEN_JOHTO",
+                ("Route26/14/Route26_EventScript_Gaven",),
+            ),
+            (
+                "TRAINER_BETH",
+                "TRAINER_COOLTRAINER_BETH_JOHTO",
+                ("Route26North/0/Route26_EventScript_Beth",),
+            ),
+            (
+                "TRAINER_EDWARD",
+                "TRAINER_GENTLEMAN_EDWARD_JOHTO",
+                ("SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward",),
+            ),
+            (
+                "TRAINER_COREY",
+                "TRAINER_FIREBREATHER_COREY_JOHTO",
+                ("SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey",),
+            ),
+            (
+                "TRAINER_JEFF",
+                "TRAINER_SAILOR_JEFF_JOHTO",
+                ("SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff",),
+            ),
+        ),
+    ),
+)
+_REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
+    {
+        "Route31/0/Route31_EventScript_Bugcatcher_Wade": (
+            "TRAINER_WADE",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                "x": 27,
+                "y": 10,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                "movement_range_x": 0,
+                "movement_range_y": 3,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "3",
+                "script": "Route31_EventScript_Bugcatcher_Wade",
+                "flag": "0",
+            },
+        ),
+        "Route30/3/Route30_EventScript_Bugcatcher_Don": (
+            "TRAINER_DON",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                "x": 20,
+                "y": 8,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                "movement_range_x": 3,
+                "movement_range_y": 3,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "2",
+                "script": "Route30_EventScript_Bugcatcher_Don",
+                "flag": "0",
+            },
+        ),
+        "Route30/6/Route30_EventScript_Youngster_Mikey": (
+            "TRAINER_MIKEY",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_YOUNGSTER",
+                "x": 23,
+                "y": 22,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+                "movement_range_x": 1,
+                "movement_range_y": 1,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "2",
+                "script": "Route30_EventScript_Youngster_Mikey",
+                "flag": "0",
+            },
+        ),
+        "Route33/0/Route33_EventScript_HikerAnthony": (
+            "TRAINER_ANTHONY",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_HIKER",
+                "x": 17,
+                "y": 20,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+                "movement_range_x": 5,
+                "movement_range_y": 5,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "5",
+                "script": "Route33_EventScript_HikerAnthony",
+                "flag": "0",
+            },
+        ),
+    }
+)
+_REVIEWED_FIXED_PLACEMENT_DIGEST = (
+    "002a48401b14080c180fd09be96c8e51a40f85462e02cadf8ccecca22b296737"
+)
+_REVIEWED_FIXED_MAPS = MappingProxyType(
+    {
+        "Route30": (
+            58,
+            58,
+            "168873e5a6b63132826b9ff521a1dc273e3b39251a7e42fe88485d7db457dccf",
+        ),
+        "Route31": (
+            60,
+            23,
+            "3b14155315df3d86cc12a875b2cd33314a5201914fe495d619bd9594b038b743",
+        ),
+        "Route33": (
+            44,
+            40,
+            "696dc8b682705dabcf215bfde1637e519297e46496723a2d89b9a862d1b5ad84",
+        ),
+        "Route32": (
+            42,
+            103,
+            "9db458ff725d09ec791293e7cf96ed0eccb1323d66f5bb5c63783254f60bfe85",
+        ),
+        "Route34": (
+            60,
+            90,
+            "894e5de50dbab022bcbea8eeb8b41bb67473266b8490dbde830754445f8d2c1b",
+        ),
+        "Route35": (
+            40,
+            49,
+            "a3ad64d54e29e94b21375057b59ae0fee5cd924354180a4b2c5ae24e4230a4dd",
+        ),
+        "Route37": (
+            44,
+            41,
+            "40c8f93ce5e955f2e59c1e076912341baf12ad377b9e034e350066eb39c55616",
+        ),
+        "AzaleaTown_Gym": (
+            24,
+            60,
+            "9c0489dfe644f6114a2f3d1fb357535a72b252b76316b5986b6978413c6c5b88",
+        ),
+        "DragonsDen_Cavern": (
+            60,
+            54,
+            "2926036a723c8877ad22a77e7be3a00cdff60998b9b6cc0a373996b224c20d32",
+        ),
+        "Route47": (
+            120,
+            61,
+            "05869da76a0ffd73146e039671d7f81ddc3bceb52f50ad290930de4b68502079",
+        ),
+        "SSAqua_RoomSE": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
+        ),
+        "Route38": (
+            52,
+            50,
+            "ca5afac501a5d5a3edfb97bc5dc043d8d56f5bb872aeeae0d67b80bf85accac6",
+        ),
+        "Route39": (
+            40,
+            54,
+            "5e33637d4d091c16cb7d39ba1778507bbc62107fc512f7be2c70e86b627754de",
+        ),
+        "Route43": (
+            34,
+            53,
+            "6aed9658b9efc7ca11e4e16076db7602860e1ce92b667dd5f2096c350e8f394c",
+        ),
+        "Route44": (
+            78,
+            36,
+            "909aa5354308634575cd1798643332dfff28ccd389b34b9efaf28c1f4655534e",
+        ),
+        "VioletCity_Gym": (
+            19,
+            21,
+            "39559520dee717e334a4f1b427a876aa476f5fa10f46b6ec953dcb03175d1644",
+        ),
+        "SproutTower_1F": (
+            25,
+            25,
+            "e3d73b935b92e22881c36e9e1689734fe698f97aaa135d8fba6db4b49e1299bd",
+        ),
+        "SproutTower_2F": (
+            25,
+            25,
+            "032fcf6209823864a69f3cb8b1ae43377cc9e6290ede000804853b64beb55662",
+        ),
+        "SproutTower_3F": (
+            25,
+            25,
+            "aa869d17e64a6d2503ecd3116259af0cf3c216d7d94f3e342116546566c3461e",
+        ),
+        "UnionCave_1F": (
+            48,
+            60,
+            "89d04294d04a53c51eb472b9960f3eb7809cad302426df757d36bbc57f3d24a7",
+        ),
+        "GoldenrodCity_Gym": (
+            34,
+            27,
+            "1e7f4334f2191eeffd2f6b28cabce2172a42c415b243253f3203878544d6de76",
+        ),
+        "UnionCave_B1F": (
+            48,
+            48,
+            "b6e806920ff8c555ce5bc37eab5103208d486e98bdf64606fa98a63a9ac39148",
+        ),
+        "UnionCave_B2F": (
+            40,
+            50,
+            "32ce9abfd7bec64de1690af883fc4ecea08c481d9d30db5efb790406a85271cc",
+        ),
+        "Route40": (
+            34,
+            71,
+            "2dcccf3bae4e83be81434a4a21692a38958ac82ee88857cc48f72edaa8d4adda",
+        ),
+        "Route41": (
+            74,
+            89,
+            "8e74bfff6195091496f4e5731b56c6f5b9affcbdfcfd9d80fc7435868e2a0222",
+        ),
+        "Route42": (
+            76,
+            26,
+            "cd91e417330f587be5dc0c60a4d0e523ad79ee32b2378e6eaec1caf8612544a3",
+        ),
+        "LakeOfRage": (
+            64,
+            47,
+            "00ef2ca239a97ba8d8191624c341241aa6e3858fa297a87b564b9088cf6bbf38",
+        ),
+        "Route27": (
+            160,
+            40,
+            "847dea5e27dd19089df94641639d55fcf4d47e1101d105826dfd97a6f398b847",
+        ),
+        "RuinsOfAlph_Outside": (
+            46,
+            48,
+            "f944c3b1fcd47ea59aa315d475f92eabaec1ab62b1ca6694454cbb50b7b517bf",
+        ),
+        "NationalPark_Normal": (
+            48,
+            56,
+            "e906ac04b74c5e1b4d213b726653454253a74a92c02548ab86a03f6730e09b57",
+        ),
+        "SSAqua_B1F": (
+            34,
+            16,
+            "15823f1d388f8d1cde2ad2d25a294c6e15768de73cecd7ab42e346572c83d4a8",
+        ),
+        "SSAqua_RoomNE": (
+            8,
+            10,
+            "5e0b0cb17504360236046a362014fb38a45045d3beaf46327ffef87c1784b8fd",
+        ),
+        "SSAqua_RoomNNE": (
+            8,
+            10,
+            "5e0b0cb17504360236046a362014fb38a45045d3beaf46327ffef87c1784b8fd",
+        ),
+        "SSAqua_RoomSSW": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
+        ),
+        "SSAqua_RoomSW": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
+        ),
+        "Route45": (
+            46,
+            100,
+            "e77b6437c413aa4eedc72312652c5dddbf53442e867e665bc0a2cd0d6e8a8193",
+        ),
+        "Route46": (
+            27,
+            46,
+            "58c9c6bf3f61605675043509cdc99dedc7403a57288677d5f87a52676f642289",
+        ),
+        "IlexForest": (
+            82,
+            73,
+            "cb77cbcb31b5ce7616f27c90da394104e731da0142d225304e2586adfcc4912d",
+        ),
+        "Route36": (
+            66,
+            30,
+            "43b536ee2bcb779c5e0a0fdab03ae3f66780cca74f0704a83fde47490563b9bb",
+        ),
+        "GoldenrodCity_UndergroundSwitches": (
+            60,
+            18,
+            "efc8c5469ac57206dcf9df7fbaab5c3d6a7551b3373634f134eadfcdf7e1e100",
+        ),
+        "EcruteakCity_Gym": (
+            17,
+            48,
+            "1e279df1d4c7d1d883423a900905c22f6a15fefd392ecfa9ea263eac72ddfb96",
+        ),
+        "BurnedTower_1F": (
+            27,
+            25,
+            "50f492bf34dc5c6b7e1b82fc7e24cdc6eb259c1dcb6dbf40c5e87f8e75c0249d",
+        ),
+        "OlivineCity_Lighthouse": (
+            170,
+            20,
+            "86225e86fdf3d58c135b3028b9510eea51979ad5572b12e628c0ff3354a5df00",
+        ),
+        "CianwoodGym": (
+            21,
+            17,
+            "29e55b2e3078449c61d79403ef5f6f2587dff42e49c1b4e11bbaff9c2f78f859",
+        ),
+        "MahoganyTown_Gym": (
+            25,
+            30,
+            "fb6f2f939b339b583eb5b446420270f897b95e0292801c9218b77f22c3525b50",
+        ),
+        "MtMortar_1F_North": (
+            40,
+            50,
+            "fef6d4385b8754c124fea8bdb9b31f63b9d6010156aadfda3c50e546a4328b2c",
+        ),
+        "MtMortar_2F": (
+            40,
+            40,
+            "e20ace720ab83e092aca2dab46fb4063d4c2c778624156b76d60bb2c35efb010",
+        ),
+        "BlackthornCity_Gym": (
+            41,
+            60,
+            "f729511e3dbd28ad70a8cb5d4700973c391aa95302c76e749e3fcac5006c0aa1",
+        ),
+    }
+)
 
 
 @dataclass(frozen=True, order=True)
@@ -97,7 +605,17 @@ class PortSourceState:
     semantic_evidence: Mapping[str, str]
     semantic_values: Mapping[ResourceKey, Mapping[str, Any]]
     trainer_events: Mapping[str, tuple[TrainerEventRecord, ...]]
+    trainer_inventory: TrainerInventory
     materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
+    trainer_materialization: TrainerMaterializationAuthority | None = None
+    trainer_event_projections: Mapping[
+        str,
+        tuple[StandardSingleEventProjection | PairedDoubleEventProjection, ...],
+    ] = MappingProxyType({})
+    trainer_party_projections: Mapping[str, StandardSinglePartyProjection] = (
+        MappingProxyType({})
+    )
+    paired_double_not_enough_text: TrainerText | None = None
 
 
 class RecordLoader(Protocol):
@@ -309,6 +827,7 @@ class ExpansionSourceContext(SourceContext):
         active_capabilities: Iterable[str] = ("spatial",),
     ) -> None:
         root = Path(donor_root)
+        self.donor_root = root
         records: dict[ResourceKey, SourceRecord] = {}
         aliases: dict[ResourceKey, ResourceKey] = {}
         _index_native_declarations(records, root)
@@ -658,6 +1177,8 @@ class ExpansionSourceContext(SourceContext):
                             trainer_roots.append(instruction.operands[operand_index])
                     if instruction.command == "trainerbattle_single":
                         text_labels.extend(instruction.operands[1:3])
+                    elif instruction.command == "trainerbattle_double":
+                        text_labels.extend(instruction.operands[1:3])
                     elif instruction.command == "msgbox" and instruction.operands:
                         text_labels.append(instruction.operands[0])
                 if not trainer_roots:
@@ -790,6 +1311,405 @@ class ExpansionSourceContext(SourceContext):
             return self._trainer_events[key]
         except KeyError as error:
             raise ContentPortError(f"{key}: typed trainer event is missing") from error
+
+
+def _canonical_trainer_identities(
+    root: Path,
+    map_names: Iterable[str],
+    additional_identities: Iterable[str] = (),
+) -> tuple[str, ...]:
+    """Return resident trainerbattle dependencies in donor numeric order."""
+
+    from .semantics import parse_scripts
+
+    referenced = set(additional_identities)
+    for map_name in map_names:
+        script_path = Path("data/maps") / map_name / "scripts.inc"
+        if not (root / script_path).is_file():
+            continue
+        program = parse_scripts((script_path,), root=root)
+        for instructions in program.labels.values():
+            for instruction in instructions:
+                if not instruction.command.startswith("trainerbattle_"):
+                    continue
+                if not instruction.operands:
+                    raise ContentPortError(
+                        f"{instruction.source}:{instruction.line}: trainerbattle "
+                        "dependency operand is missing"
+                    )
+                referenced.add(instruction.operands[0])
+
+    opponents_path = root / "include/constants/opponents.h"
+    try:
+        lines = opponents_path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read trainer identity declarations {opponents_path}: {error}"
+        ) from error
+    numeric_values: dict[str, int] = {}
+    for line_number, line in enumerate(lines, 1):
+        match = re.match(r"^\s*#\s*define\s+(TRAINER_[A-Z0-9_]+)\s+(\d+)\b", line)
+        if match is None or match.group(1) not in referenced:
+            continue
+        identity = match.group(1)
+        if identity in numeric_values:
+            raise ContentPortError(
+                f"{opponents_path}:{line_number}: duplicate trainer identity {identity}"
+            )
+        numeric_values[identity] = int(match.group(2))
+    missing = sorted(referenced - set(numeric_values))
+    if missing:
+        raise ContentPortError(
+            f"{opponents_path}: resident trainer identity {missing[0]} has no numeric declaration"
+        )
+    by_number: dict[int, str] = {}
+    for identity, number in numeric_values.items():
+        previous = by_number.setdefault(number, identity)
+        if previous != identity:
+            raise ContentPortError(
+                f"{opponents_path}: resident trainers {previous} and {identity} "
+                f"share numeric identity {number}"
+            )
+    return tuple(
+        identity
+        for identity, _ in sorted(numeric_values.items(), key=lambda item: item[1])
+    )
+
+
+def _authenticated_trainer_inventory(
+    descriptor: PortDescriptor,
+    content: ExpansionSourceContext,
+    canonical_maps: tuple[str, ...],
+    fallback_maps: set[str],
+) -> TrainerInventory:
+    """Authenticate and load the authored inventory without enabling trainers."""
+
+    content_maps: list[str] = []
+    authenticated_events: dict[str, Mapping[str, tuple[str, ...]]] = {}
+    authenticated_pairs: dict[str, list[str]] = {}
+    resident_event_trainers: set[str] = set()
+    for map_name in canonical_maps:
+        if map_name in fallback_maps:
+            authenticated_events[map_name] = MappingProxyType({})
+            continue
+        content_maps.append(map_name)
+        map_record = content.load(ResourceKey("map", map_name))
+        events: dict[str, tuple[str, ...]] = {}
+        for identity in map_record.value.get("_trainer_event_roots", ()):
+            event = content.trainer_event(ResourceKey("trainer-event", str(identity)))
+            events[str(identity)] = event.trainers
+            resident_event_trainers.update(event.trainers)
+            if any(
+                instruction.command == "trainerbattle_double"
+                for instruction in event.instructions
+            ):
+                if len(event.trainers) != 1:
+                    raise ContentPortError(
+                        f"{identity}: paired double must reference one shared trainer identity"
+                    )
+                authenticated_pairs.setdefault(event.trainers[0], []).append(
+                    str(identity)
+                )
+        authenticated_events[map_name] = MappingProxyType(events)
+
+    canonical_identities = _canonical_trainer_identities(
+        descriptor.donor("content").root,
+        content_maps,
+        resident_event_trainers,
+    )
+    expected = descriptor.expected_trainer_inventory
+    expected_identities = expected["identities"]
+    expected_events = expected["events"]
+    assert isinstance(expected_identities, Mapping)
+    assert isinstance(expected_events, Mapping)
+    inventory = load_trainer_inventory(
+        descriptor.trainer_policy_path,
+        canonical_identities,
+        canonical_maps,
+        MappingProxyType(authenticated_events),
+        content_maps,
+        MappingProxyType(
+            {
+                identity: tuple(events)
+                for identity, events in authenticated_pairs.items()
+            }
+        ),
+        expectations=InventoryExpectations(
+            identities=int(expected_identities["count"]),
+            placements=int(expected_events["count"]),
+            identity_classifications=expected["identityClassifications"],
+            admitted_identities=int(expected["admittedIdentities"]),
+            admitted_placements=int(expected["admittedEvents"]),
+        ),
+        expected_digest=str(descriptor.expected_trainer_inventory["documentDigest"]),
+    )
+    sentinels = {
+        "identities": (
+            len(inventory.identities),
+            inventory.identity_membership_digest,
+        ),
+        "events": (
+            len(inventory.placements),
+            inventory.placement_membership_digest,
+        ),
+    }
+    for domain, (count, digest) in sentinels.items():
+        expected_domain = expected[domain]
+        assert isinstance(expected_domain, Mapping)
+        if count != expected_domain["count"]:
+            raise ContentPortError(
+                f"trainer {domain} count {count} != reviewed {expected_domain['count']}"
+            )
+        if digest != expected_domain["digest"]:
+            raise ContentPortError(
+                f"trainer {domain} digest {digest} != reviewed {expected_domain['digest']}"
+            )
+    if inventory.digest != expected["documentDigest"]:
+        raise ContentPortError(
+            f"trainer inventory document digest {inventory.digest} != reviewed "
+            f"{expected['documentDigest']}"
+        )
+    affected_admitted_maps = {
+        placement.map_name for placement in inventory.placements if placement.admitted
+    }
+    if len(affected_admitted_maps) != expected["affectedAdmittedMaps"]:
+        raise ContentPortError(
+            "trainer affected admitted map count "
+            f"{len(affected_admitted_maps)} != reviewed "
+            f"{expected['affectedAdmittedMaps']}"
+        )
+    return inventory
+
+
+def _trainerproc_constant(prefix: str, display: str) -> str:
+    if prefix == "TRAINER_CLASS" and display.endswith(" Johto"):
+        prefix = "JOHTO_TRAINER_CLASS"
+        display = display.removesuffix(" Johto")
+    elif prefix == "TRAINER_PIC" and display.endswith(" HG"):
+        prefix = "JOHTO_TRAINER_PIC"
+        display = display.removesuffix(" HG")
+    suffix = "".join(
+        char.upper() if char.isascii() and char.isalnum() else "_"
+        for char in display
+        if char != "'"
+    )
+    return f"{prefix}_{suffix or 'NONE'}"
+
+
+def _validate_trainer_projection_rule(
+    identity: str, projection: TrainerProjection, trainer: Mapping[str, Any]
+) -> None:
+    donor_class = trainer.get("trainer_class")
+    donor_pic = trainer.get("trainer_pic")
+    donor_music = trainer.get("encounter_music")
+    expected = {
+        "class": JOHTO_CLASS_PROJECTIONS.get(donor_class, donor_class),
+        "pic": TRAINER_PIC_PROJECTIONS.get(donor_pic, donor_pic),
+        "music": TRAINER_MUSIC_PROJECTIONS.get(donor_music),
+        "gender": "Female" if donor_pic in FEMALE_TRAINER_PICS else "Male",
+        "ai": "AI_FLAG_CHECK_BAD_MOVE",
+    }
+    actual = {
+        "class": _trainerproc_constant("TRAINER_CLASS", projection.trainer_class),
+        "pic": _trainerproc_constant("TRAINER_PIC", projection.pic),
+        "music": _trainerproc_constant("TRAINER_ENCOUNTER_MUSIC", projection.music),
+        "gender": projection.gender,
+        "ai": _trainerproc_constant("AI_FLAG", projection.ai),
+    }
+    for field_name in expected:
+        if actual[field_name] != expected[field_name]:
+            raise ContentPortError(
+                f"trainer:{identity}/{field_name}: projection differs from reviewed donor mapping"
+            )
+    if projection.reward != "preserve" or projection.party != "preserve":
+        raise ContentPortError(
+            f"trainer:{identity}: reward and party projections must preserve donor facts"
+        )
+
+
+def _validate_overworld_graphic_rule(
+    identity: str, donor_graphic: str, donor_class: str, target_graphic: str
+) -> None:
+    if donor_graphic == "OBJ_EVENT_GFX_SUPER_NERD":
+        expected = (
+            "OBJ_EVENT_GFX_MANIAC"
+            if donor_class == "TRAINER_CLASS_POKEMANIAC"
+            else "OBJ_EVENT_GFX_SCIENTIST_1"
+            if donor_class == "TRAINER_CLASS_SUPER_NERD"
+            else None
+        )
+    else:
+        expected = TRAINER_GRAPHIC_PROJECTIONS.get(donor_graphic, donor_graphic)
+    if target_graphic != expected:
+        raise ContentPortError(
+            f"trainer-event:{identity}/overworldGraphic: "
+            "projection differs from reviewed donor mapping"
+        )
+
+
+def _declared_constants(path: Path, prefix: str) -> frozenset[str]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read target declarations {path}: {error}"
+        ) from error
+    return frozenset(re.findall(rf"\b{re.escape(prefix)}_[A-Z0-9_]+\b", text))
+
+
+def _trainer_class_money(path: Path, *, target: bool) -> Mapping[str, int]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read trainer reward authority {path}: {error}"
+        ) from error
+    if target:
+        records = re.findall(
+            r"\[((?:JOHTO_)?TRAINER_CLASS_[A-Z0-9_]+)\]\s*=\s*"
+            r"\{\s*_\(\"[^\"]*\"\)(?:,\s*(\d+))?",
+            text,
+        )
+        return MappingProxyType({symbol: int(raw or 0) or 5 for symbol, raw in records})
+    records = re.findall(r"\{(TRAINER_CLASS_[A-Z0-9_]+),\s*(\d+)\}", text)
+    return MappingProxyType({symbol: int(raw) for symbol, raw in records})
+
+
+def _authenticate_trainer_projection_authority(
+    inventory: TrainerInventory,
+    content: ExpansionSourceContext,
+    target_root: Path,
+    ledger: Any,
+    enabled_trainers: frozenset[str],
+) -> None:
+    """Bind authored projections to donor facts and target declarations."""
+
+    trainer_constants = target_root / "include/constants/trainers.h"
+    target_classes = _declared_constants(
+        trainer_constants, "TRAINER_CLASS"
+    ) | _declared_constants(trainer_constants, "JOHTO_TRAINER_CLASS")
+    target_pics = _declared_constants(
+        trainer_constants, "TRAINER_PIC"
+    ) | _declared_constants(trainer_constants, "JOHTO_TRAINER_PIC")
+    target_music = _declared_constants(
+        target_root / "include/constants/trainers.h", "TRAINER_ENCOUNTER_MUSIC"
+    )
+    target_ai = _declared_constants(
+        target_root / "include/constants/battle_ai.h", "AI_FLAG"
+    )
+    target_graphics = _declared_constants(
+        target_root / "include/constants/event_objects.h", "OBJ_EVENT_GFX"
+    )
+    donor_trainer_constants = content.donor_root / "include/constants/trainers.h"
+    donor_classes = _declared_constants(donor_trainer_constants, "TRAINER_CLASS")
+    donor_pics = _declared_constants(donor_trainer_constants, "TRAINER_PIC")
+    donor_music = _declared_constants(
+        donor_trainer_constants, "TRAINER_ENCOUNTER_MUSIC"
+    )
+    donor_graphics = _declared_constants(
+        content.donor_root / "include/constants/event_objects.h", "OBJ_EVENT_GFX"
+    )
+    donor_money = _trainer_class_money(
+        content.donor_root / "src/battle_main.c", target=False
+    )
+    target_money = _trainer_class_money(target_root / "src/battle_main.c", target=True)
+    authenticated: list[str] = []
+    donor_class_by_trainer: dict[str, str] = {}
+    for identity in inventory.identities:
+        projection = identity.projection
+        if projection is None:
+            continue
+        authenticated.append(identity.trainer)
+        if identity.trainer in enabled_trainers:
+            ledger.resolve(projection.target, domain="trainerIds")
+        trainer = content.load(ResourceKey("trainer", identity.trainer)).value
+        for field_name, declarations in (
+            ("trainer_class", donor_classes),
+            ("trainer_pic", donor_pics),
+            ("encounter_music", donor_music),
+        ):
+            donor_symbol = trainer.get(field_name)
+            if donor_symbol not in declarations:
+                raise ContentPortError(
+                    f"trainer:{identity.trainer}/{field_name}: donor authority is invalid"
+                )
+        donor_class_by_trainer[identity.trainer] = trainer["trainer_class"]
+        if trainer.get("gender") not in {"Male", "Female"}:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/gender: donor gender authority is invalid"
+            )
+        if tuple(trainer.get("ai_flags", ())) != ("AI_SCRIPT_CHECK_BAD_MOVE",):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/ai_flags: projection differs from donor"
+            )
+        if (
+            trainer.get("items")
+            or trainer.get("party_format") != "NO_ITEM_DEFAULT_MOVES"
+        ):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}: preserve projection requires a default donor party"
+            )
+        parties = tuple(trainer.get("parties", ()))
+        if len(parties) != 1:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}: preserve projection requires exactly one donor party"
+            )
+        content.load(ResourceKey("party", parties[0]))
+        _validate_trainer_projection_rule(identity.trainer, projection, trainer)
+        target_class = _trainerproc_constant("TRAINER_CLASS", projection.trainer_class)
+        target_pic = _trainerproc_constant("TRAINER_PIC", projection.pic)
+        target_music_symbol = _trainerproc_constant(
+            "TRAINER_ENCOUNTER_MUSIC", projection.music
+        )
+        target_ai_symbol = _trainerproc_constant("AI_FLAG", projection.ai)
+        for symbol, declarations, field_name in (
+            (target_class, target_classes, "class"),
+            (target_pic, target_pics, "pic"),
+            (target_music_symbol, target_music, "music"),
+            (target_ai_symbol, target_ai, "ai"),
+        ):
+            if symbol not in declarations:
+                raise ContentPortError(
+                    f"trainer:{identity.trainer}/{field_name}: target symbol {symbol} is absent"
+                )
+        donor_class = trainer.get("trainer_class")
+        if not isinstance(donor_class, str):
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/class: donor reward authority is absent"
+            )
+        if target_class not in target_money:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/class: target reward authority is absent"
+            )
+        donor_reward = donor_money.get(donor_class, 5)
+        if donor_reward != target_money[target_class]:
+            raise ContentPortError(
+                f"trainer:{identity.trainer}/reward: class money differs "
+                f"({donor_reward} != {target_money[target_class]})"
+            )
+    require_projection_exact_cover(
+        inventory, authenticated, owner="authenticated trainer projection surface"
+    )
+    for placement in inventory.placements:
+        if not placement.admitted:
+            continue
+        event = content.trainer_event(ResourceKey("trainer-event", placement.identity))
+        donor_graphic = event.object_event.get("graphics_id")
+        if donor_graphic not in donor_graphics:
+            raise ContentPortError(
+                f"trainer-event:{placement.identity}: donor overworld graphic authority is invalid"
+            )
+        _validate_overworld_graphic_rule(
+            placement.identity,
+            donor_graphic,
+            donor_class_by_trainer[placement.trainer],
+            placement.overworld_graphic,
+        )
+        if placement.overworld_graphic not in target_graphics:
+            raise ContentPortError(
+                f"trainer-event:{placement.identity}: target overworld graphic "
+                f"{placement.overworld_graphic} is absent"
+            )
 
 
 def json_record(path: Path, pointer: str = "") -> SourceRecord:
@@ -1445,6 +2365,21 @@ def _validate_selected_trainer_event(event: TrainerEventRecord) -> None:
         )
 
 
+def _authenticated_paired_not_enough_text(root: Path) -> TrainerText:
+    """Load the shared paired-battle refusal line from the pinned donor."""
+
+    from .semantics import parse_scripts
+
+    source_label = "Route104_Text_GinaNotEnoughMons"
+    program = parse_scripts(["data/text/trainers.inc"], root=root)
+    fragments = program.texts.get(source_label)
+    if fragments is None or not fragments:
+        raise ContentPortError(
+            f"data/text/trainers.inc: shared paired-double text {source_label} is missing"
+        )
+    return TrainerText(PAIRED_NOT_ENOUGH_TARGET_LABEL, tuple(fragments))
+
+
 def _path_value(document: Mapping[str, Any], path: str) -> Any:
     current: Any = document
     for part in path.split("/"):
@@ -1987,6 +2922,264 @@ def _automatic_unreachable_shells(
     )
 
 
+def _require_trainer_geometry_adapter(
+    authority: TrainerMaterializationAuthority,
+) -> None:
+    """Allow only standard-single batches covered by the fixed-placement table."""
+
+    pending = tuple(
+        batch for batch in authority.batches if batch.kind == "standard-singles"
+    )
+    observed = tuple(
+        (
+            batch.key,
+            tuple(
+                (record.identity, record.target, record.placements)
+                for record in batch.identities
+            ),
+        )
+        for batch in pending
+    )
+
+    def matches_reviewed(
+        actual: tuple[str, tuple[tuple[str, str, tuple[str, ...]], ...]],
+        reviewed: tuple[str, object],
+    ) -> bool:
+        key, expected = reviewed
+        if actual[0] != key:
+            return False
+        if type(expected) is int:
+            return len(actual[1]) == expected
+        return actual[1] == expected
+
+    matches_reviewed_batches = len(observed) == len(
+        _REVIEWED_STANDARD_SINGLE_BATCHES
+    ) and all(
+        matches_reviewed(actual, reviewed)
+        for actual, reviewed in zip(
+            observed, _REVIEWED_STANDARD_SINGLE_BATCHES, strict=True
+        )
+    )
+    if not matches_reviewed_batches:
+        next_batch = next(
+            (
+                batch.key
+                for index, batch in enumerate(pending)
+                if index >= len(_REVIEWED_STANDARD_SINGLE_BATCHES)
+                or not matches_reviewed(
+                    observed[index], _REVIEWED_STANDARD_SINGLE_BATCHES[index]
+                )
+            ),
+            "missing-reviewed-batch",
+        )
+        raise ContentPortError(
+            "trainer materialization requires an explicit reviewed fixed-placement "
+            f"entry before standard-single batch activation: {next_batch}"
+        )
+
+
+def _authenticate_reviewed_fixed_placements(
+    descriptor: PortDescriptor,
+    target_root: Path,
+    content: ExpansionSourceContext,
+    selected_maps: Mapping[str, Mapping[str, Any]],
+    selected_layouts: Mapping[str, SourceRecord],
+    selected_events: Mapping[str, tuple[TrainerEventRecord, ...]],
+) -> None:
+    """Authenticate only the explicit fixed objects and their frozen map bytes."""
+
+    all_events = {
+        f"{event.map_name}/{event.object_index}/{event.script_name}": event
+        for events in selected_events.values()
+        for event in events
+    }
+    if not set(_REVIEWED_FIXED_PLACEMENTS) <= set(all_events):
+        raise ContentPortError("reviewed fixed-placement event coverage drifted")
+    for identity, (trainer, expected_object) in _REVIEWED_FIXED_PLACEMENTS.items():
+        event = all_events[identity]
+        if event.trainers != (trainer,) or dict(event.object_event) != expected_object:
+            raise ContentPortError(
+                f"{identity}: authenticated fixed-placement donor object drifted"
+            )
+
+    fixed_records = [
+        {
+            "identity": identity,
+            "trainers": list(event.trainers),
+            "object": dict(event.object_event),
+        }
+        for identity, event in sorted(all_events.items())
+    ]
+    fixed_digest = hashlib.sha256(
+        json.dumps(fixed_records, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if fixed_digest != _REVIEWED_FIXED_PLACEMENT_DIGEST:
+        raise ContentPortError(
+            "reviewed fixed-placement record digest drifted: " + fixed_digest
+        )
+
+    # The reviewed materialization prefix freezes the exact bulk identity list.
+    # Authenticate the shared fixed-placement shape here while the pinned donor
+    # and per-map byte authorities supply the exact object and map records.
+    for identity, event in all_events.items():
+        object_event = event.object_event
+        map_name, object_index, script_name = identity.split("/", 2)
+        if (
+            event.map_name != map_name
+            or event.object_index != int(object_index)
+            or event.script_name != script_name
+            or object_event.get("script") != script_name
+            or object_event.get("elevation") != 0
+            or object_event.get("trainer_type") != "TRAINER_TYPE_NORMAL"
+            or object_event.get("flag") != "0"
+        ):
+            raise ContentPortError(
+                f"{identity}: reviewed fixed-placement shape drifted"
+            )
+
+    for map_name, (width, height, map_sha256) in _REVIEWED_FIXED_MAPS.items():
+        selected_map = selected_maps.get(map_name)
+        layout_name = selected_map.get("layout") if selected_map is not None else None
+        if not isinstance(layout_name, str):
+            raise ContentPortError(f"{map_name}: authenticated map layout is absent")
+        block_path_value = f"data/layouts/{map_name}/map.bin"
+        layout_record = selected_layouts.get(layout_name)
+        if layout_record is None:
+            raise ContentPortError(f"{map_name}: authenticated layout is absent")
+        layout = layout_record.value
+        if (
+            layout.get("width") != width
+            or layout.get("height") != height
+            or layout.get("blockdata_filepath") != block_path_value
+        ):
+            raise ContentPortError(
+                f"{map_name}: authenticated fixed-placement layout drifted"
+            )
+        block_path = content.donor_root / block_path_value
+        try:
+            block_data = block_path.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"{map_name}: cannot read authenticated map bytes: {error}"
+            ) from error
+        if (
+            hashlib.sha256(block_data).hexdigest() != map_sha256
+            or len(block_data) != width * height * 2
+        ):
+            raise ContentPortError(
+                f"{map_name}: authenticated fixed-placement map bytes drifted"
+            )
+        asset_rows = tuple(
+            row
+            for row in descriptor.assets["assets"]
+            if row["donor"] == "content" and row["sourcePath"] == block_path_value
+        )
+        if len(asset_rows) != 1 or asset_rows[0]["sourceSha256"] != map_sha256:
+            raise ContentPortError(
+                f"{map_name}: reviewed fixed-placement map asset authority drifted"
+            )
+
+    constants_path = target_root / "include/constants/global.h"
+    try:
+        constants = constants_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise ContentPortError(
+            f"cannot read fixed-placement object capacity authority: {error}"
+        ) from error
+    capacities = {
+        name: int(value)
+        for name, value in re.findall(
+            r"^#define\s+(OBJECT_EVENTS_COUNT|OBJECT_EVENT_TEMPLATES_COUNT)\s+(\d+)",
+            constants,
+            re.MULTILINE,
+        )
+    }
+    if capacities != {"OBJECT_EVENTS_COUNT": 16, "OBJECT_EVENT_TEMPLATES_COUNT": 64}:
+        raise ContentPortError("fixed-placement object capacity authority drifted")
+    # The renderer strips deferred objects and emits selected trainers in donor
+    # object order. Route32 is the largest reviewed batch: eight static objects,
+    # plus player and follower at peak.
+    if (
+        8 > capacities["OBJECT_EVENT_TEMPLATES_COUNT"]
+        or 10 > capacities["OBJECT_EVENTS_COUNT"]
+    ):
+        raise ContentPortError(
+            "reviewed fixed-placement object capacity is insufficient"
+        )
+
+
+def _authenticate_reviewed_special_placements(
+    target_root: Path,
+    selected_events: Mapping[str, tuple[TrainerEventRecord, ...]],
+) -> None:
+    """Authenticate the final connection clones and preserve-map overlay."""
+
+    by_identity = {
+        f"{event.map_name}/{event.object_index}/{event.script_name}": event
+        for events in selected_events.values()
+        for event in events
+    }
+    for source, target in (
+        (
+            "Route26/1/Route26_EventScript_Jake",
+            "Route26North/1/Route26_EventScript_Jake",
+        ),
+        (
+            "Route26/2/Route26_EventScript_Joyce",
+            "Route26North/5/Route26_EventScript_Joyce",
+        ),
+    ):
+        source_event = by_identity[source]
+        target_event = by_identity[target]
+        source_object = dict(source_event.object_event)
+        target_object = dict(target_event.object_event)
+        source_xy = (source_object.pop("x"), source_object.pop("y"))
+        target_xy = (target_object.pop("x"), target_object.pop("y"))
+        if (
+            source_xy != (target_xy[0], target_xy[1] - 30)
+            or source_object != target_object
+            or source_event.trainers != target_event.trainers
+        ):
+            raise ContentPortError(
+                f"{source}: reviewed Route 26 connection clone drifted"
+            )
+
+    expected_object = {
+        "graphics_id": "OBJ_EVENT_GFX_SAILOR",
+        "x": 10,
+        "y": 18,
+        "elevation": 0,
+        "movement_type": "MOVEMENT_TYPE_WALK_UP_AND_DOWN",
+        "movement_range_x": 4,
+        "movement_range_y": 4,
+        "trainer_type": "TRAINER_TYPE_NORMAL",
+        "trainer_sight_or_berry_tree_id": "4",
+        "script": "SSAqua_B1F_EventScript_Jeff",
+        "flag": "0",
+    }
+    map_path = target_root / "data/maps/SSAqua_1F/map.json"
+    try:
+        target_map = json.loads(map_path.read_text(encoding="utf-8"))
+        target_script = (target_root / "data/maps/SSAqua_1F/scripts.inc").read_text(
+            encoding="utf-8"
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ContentPortError(
+            f"cannot authenticate S.S. Aqua 1F trainer overlay: {error}"
+        ) from error
+    if target_map.get("object_events") != [expected_object]:
+        raise ContentPortError("S.S. Aqua 1F reviewed trainer overlay drifted")
+    required_script_tokens = (
+        "SSAqua_B1F_EventScript_Jeff::",
+        "trainerbattle_single TRAINER_SAILOR_JEFF_JOHTO,",
+        "SSAqua_B1F_Text_SailorJeffSeen:",
+        "SSAqua_B1F_Text_SailorJeffBeaten:",
+        "SSAqua_B1F_Text_SailorJeffAfter:",
+    )
+    if any(target_script.count(token) != 1 for token in required_script_tokens):
+        raise ContentPortError("S.S. Aqua 1F reviewed trainer script overlay drifted")
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -2000,6 +3193,7 @@ def resolve_port_sources(
     from .closure import close_source_graph
     from .model import CapabilityState
     from .semantics import (
+        EventEntry,
         analyze_entry,
         parse_scripts,
         validate_effects,
@@ -2043,6 +3237,18 @@ def resolve_port_sources(
         raise ContentPortError(
             f"content fallback names unknown map {sorted(fallback - set(map_names))[0]}"
         )
+    for name in sorted(fallback):
+        try:
+            content.load(ResourceKey("map", name))
+        except ContentPortError:
+            pass
+        else:
+            raise ContentPortError(
+                f"fallback map {name} exists in the content donor; mechanical authority is forbidden"
+            )
+    trainer_inventory = _authenticated_trainer_inventory(
+        descriptor, content, map_names, fallback
+    )
 
     selected_maps: dict[str, dict[str, Any]] = {}
     map_authorities: dict[str, str] = {}
@@ -2052,15 +3258,6 @@ def resolve_port_sources(
     for name in map_names:
         authority = mechanical if name in fallback else content
         authority_root = mechanical_pin.root if name in fallback else content_pin.root
-        if name in fallback:
-            try:
-                content.load(ResourceKey("map", name))
-            except ContentPortError:
-                pass
-            else:
-                raise ContentPortError(
-                    f"fallback map {name} exists in the content donor; mechanical authority is forbidden"
-                )
         try:
             record = authority.load(ResourceKey("map", name))
         except ContentPortError as exc:
@@ -2556,69 +3753,226 @@ def resolve_port_sources(
     enabled_by_map: dict[str, set[str]] = {}
     for decision in enabled:
         enabled_by_map.setdefault(decision.map_name, set()).add(decision.capability)
-    selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
-    for decision in enabled:
-        if decision.capability != "trainers":
-            continue
-        requested = tuple(
-            dependency
-            for dependency in decision.dependencies
-            if dependency.domain == "trainer"
-        )
-        if len(requested) != len(decision.dependencies) or not requested:
-            raise ContentPortError(
-                f"{decision.map_name}/trainers: enabled trainer capability requires "
-                "only explicit trainer dependencies"
-            )
-        role = "mechanical" if decision.map_name in fallback else "content"
-        roots = tuple(selected_maps[decision.map_name].get("_trainer_event_roots", ()))
-        available = [
-            contexts[role].trainer_event(ResourceKey("trainer-event", root))
-            for root in roots
-        ]
-        chosen: list[TrainerEventRecord] = []
-        for dependency in requested:
-            matches = [
-                event for event in available if event.trainers == (dependency.name,)
-            ]
-            if len(matches) != 1:
-                raise ContentPortError(
-                    f"{decision.map_name}/trainers: {dependency} must select exactly "
-                    "one paired trainer event"
-                )
-            chosen.append(matches[0])
-        if len(chosen) != len({event.object_index for event in chosen}):
-            raise ContentPortError(
-                f"{decision.map_name}/trainers: duplicate paired trainer event"
-            )
-        for event in chosen:
-            _validate_selected_trainer_event(event)
-        selected_trainer_events[decision.map_name] = tuple(chosen)
-        selected_maps[decision.map_name]["_trainer_event_roots"] = [
-            f"{event.map_name}/{event.object_index}/{event.script_name}"
-            for event in chosen
-        ]
-        map_key = ResourceKey("map", decision.map_name)
-        source_records[map_key] = SourceRecord(
-            selected_maps[decision.map_name], source_records[map_key].provenance
-        )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
+    trainer_materialization: TrainerMaterializationAuthority | None = None
+    if descriptor.trainer_materialization_path is not None:
+        if (
+            descriptor.trainer_materialization_prefix_count is None
+            or descriptor.trainer_materialization_prefix_digest is None
+        ):
+            raise ContentPortError(
+                "trainer materialization descriptor lacks reviewed prefix pins"
+            )
+        trainer_materialization = load_trainer_materialization(
+            descriptor.trainer_materialization_path,
+            trainer_inventory,
+            ledger,
+            reviewed_prefix=ReviewedMaterializationPrefix(
+                descriptor.trainer_materialization_prefix_count,
+                descriptor.trainer_materialization_prefix_digest,
+            ),
+        )
+        _require_trainer_geometry_adapter(trainer_materialization)
+
+    selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
+    projected_trainer_events: dict[
+        str,
+        tuple[StandardSingleEventProjection | PairedDoubleEventProjection, ...],
+    ] = {}
+    paired_double_not_enough_text: TrainerText | None = None
+    if trainer_materialization is not None and any(
+        batch.kind == "paired-doubles" for batch in trainer_materialization.batches
+    ):
+        paired_double_not_enough_text = _authenticated_paired_not_enough_text(
+            content.donor_root
+        )
+    enabled_trainer_decisions = tuple(
+        decision for decision in enabled if decision.capability == "trainers"
+    )
+    if trainer_materialization is not None:
+        inventory_placements = {
+            placement.identity: placement
+            for placement in trainer_inventory.placements
+            if placement.admitted
+        }
+        targets = {
+            identity.trainer: identity.projection.target
+            for identity in trainer_inventory.identities
+            if identity.projection is not None
+        }
+        observed: dict[str, list[str]] = {}
+        for decision in enabled_trainer_decisions:
+            requested = tuple(
+                dependency
+                for dependency in decision.dependencies
+                if dependency.domain == "trainer"
+            )
+            if len(requested) != len(decision.dependencies) or not requested:
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: enabled trainer capability "
+                    "requires only explicit trainer dependencies"
+                )
+            role = "mechanical" if decision.map_name in fallback else "content"
+            roots = tuple(
+                selected_maps[decision.map_name].get("_trainer_event_roots", ())
+            )
+            available = {
+                root: contexts[role].trainer_event(
+                    ResourceKey("trainer-event", str(root))
+                )
+                for root in roots
+            }
+            selected_rows: list[
+                tuple[
+                    TrainerEventRecord,
+                    StandardSingleEventProjection | PairedDoubleEventProjection,
+                    str,
+                    str,
+                ]
+            ] = []
+            for dependency in requested:
+                placements = [
+                    placement
+                    for placement in inventory_placements.values()
+                    if placement.map_name == decision.map_name
+                    and placement.trainer == dependency.name
+                ]
+                if not placements:
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: {dependency} has no admitted "
+                        "inventory placement"
+                    )
+                for placement in placements:
+                    event = available.get(placement.identity)
+                    if event is None:
+                        raise ContentPortError(
+                            f"{decision.map_name}/trainers: selected placement "
+                            f"{placement.identity} is absent from authenticated donor roots"
+                        )
+                    if dependency.name in trainer_inventory.paired_doubles:
+                        projected = project_paired_double_event(
+                            event,
+                            source_trainer=dependency.name,
+                            target_trainer=targets[dependency.name],
+                        )
+                    else:
+                        projected = project_standard_single_event(
+                            event,
+                            source_trainer=dependency.name,
+                            target_trainer=targets[dependency.name],
+                        )
+                    selected_rows.append(
+                        (event, projected, dependency.name, placement.identity)
+                    )
+            selected_rows.sort(key=lambda row: row[0].object_index)
+            chosen = [row[0] for row in selected_rows]
+            projections = [row[1] for row in selected_rows]
+            placement_names = [row[3] for row in selected_rows]
+            if len(chosen) != len({event.object_index for event in chosen}):
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: duplicate donor object index"
+                )
+            for _event, _projection, source, placement_name in selected_rows:
+                observed.setdefault(source, []).append(placement_name)
+            selected_trainer_events[decision.map_name] = tuple(chosen)
+            projected_trainer_events[decision.map_name] = tuple(projections)
+            selected_maps[decision.map_name]["_trainer_event_roots"] = placement_names
+            map_key = ResourceKey("map", decision.map_name)
+            source_records[map_key] = SourceRecord(
+                selected_maps[decision.map_name], source_records[map_key].provenance
+            )
+        require_materialization_exact_cover(
+            trainer_materialization,
+            observed,
+            owner="authenticated selected trainer closure",
+        )
+        if any(
+            batch.kind == "standard-singles"
+            for batch in trainer_materialization.batches
+        ):
+            _authenticate_reviewed_fixed_placements(
+                descriptor,
+                target_root,
+                content,
+                selected_maps,
+                selected_layouts,
+                selected_trainer_events,
+            )
+            _authenticate_reviewed_special_placements(
+                target_root, selected_trainer_events
+            )
+    else:
+        for decision in enabled_trainer_decisions:
+            requested = tuple(
+                dependency
+                for dependency in decision.dependencies
+                if dependency.domain == "trainer"
+            )
+            if len(requested) != len(decision.dependencies) or not requested:
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: enabled trainer capability "
+                    "requires only explicit trainer dependencies"
+                )
+            role = "mechanical" if decision.map_name in fallback else "content"
+            roots = tuple(
+                selected_maps[decision.map_name].get("_trainer_event_roots", ())
+            )
+            available = [
+                contexts[role].trainer_event(ResourceKey("trainer-event", root))
+                for root in roots
+            ]
+            available_by_identity = {
+                f"{event.map_name}/{event.object_index}/{event.script_name}": event
+                for event in available
+            }
+            chosen: list[TrainerEventRecord] = []
+            for dependency in requested:
+                placements = [
+                    placement
+                    for placement in trainer_inventory.placements
+                    if placement.map_name == decision.map_name
+                    and placement.trainer == dependency.name
+                    and placement.admitted
+                ]
+                if len(placements) != 1:
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: {dependency} must select "
+                        "exactly one admitted inventory placement"
+                    )
+                event = available_by_identity.get(placements[0].identity)
+                if event is None or event.trainers != (dependency.name,):
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: admitted placement "
+                        f"{placements[0].identity} is absent from donor event roots"
+                    )
+                chosen.append(event)
+            for event in chosen:
+                _validate_selected_trainer_event(event)
+            selected_trainer_events[decision.map_name] = tuple(chosen)
+            selected_maps[decision.map_name]["_trainer_event_roots"] = [
+                f"{event.map_name}/{event.object_index}/{event.script_name}"
+                for event in chosen
+            ]
+            map_key = ResourceKey("map", decision.map_name)
+            source_records[map_key] = SourceRecord(
+                selected_maps[decision.map_name], source_records[map_key].provenance
+            )
+    _authenticate_trainer_projection_authority(
+        trainer_inventory,
+        content,
+        target_root,
+        ledger,
+        frozenset(
+            trainer
+            for events in selected_trainer_events.values()
+            for event in events
+            for trainer in event.trainers
+        ),
+    )
     explicit_dependencies = {
         dependency for decision in enabled for dependency in decision.dependencies
     }
-    selected_trainer_names = {
-        dependency.name
-        for decision in enabled
-        if decision.capability == "trainers"
-        for dependency in decision.dependencies
-        if dependency.domain == "trainer"
-    }
-    projection_sources = {item["source"] for item in adaptations["trainerProjections"]}
-    if projection_sources != selected_trainer_names:
-        raise ContentPortError(
-            "trainer projections must exactly cover enabled trainer dependencies"
-        )
     event_capabilities = {
         decision.capability for decision in descriptor.capabilities
     } - {
@@ -2703,8 +4057,47 @@ def resolve_port_sources(
             "enabled encounter maps must exactly match authored encounter profiles"
         )
     event_policy_path = descriptor.event_policy_path
-    entries = descriptor.event_entries
-    effect_policy = descriptor.effect_policy
+    entries = dict(descriptor.event_entries)
+    effect_policy = dict(descriptor.effect_policy)
+    derived_trainer_entries: set[str] = set()
+    for events in (
+        selected_trainer_events.values() if trainer_materialization is not None else ()
+    ):
+        for event in events:
+            if (
+                event.script_name in entries
+                and event.script_name not in derived_trainer_entries
+            ):
+                raise ContentPortError(
+                    f"{event.script_name}: cumulative trainer materialization must "
+                    "not be restated in events policy"
+                )
+            entries[event.script_name] = EventEntry(
+                event.script_name, "trainers", CapabilityState.ENABLED.value
+            )
+            derived_trainer_entries.add(event.script_name)
+            msgbox = next(
+                instruction
+                for instruction in event.instructions
+                if instruction.command == "msgbox"
+            )
+            effect_key = ("side-effect", "msgbox", msgbox.operands[0])
+            previous_owner = effect_policy.setdefault(effect_key, "trainers")
+            if previous_owner != "trainers":
+                raise ContentPortError(
+                    f"{event.script_name}: derived trainer effect conflicts with "
+                    f"owner {previous_owner!r}"
+                )
+            for instruction in event.instructions:
+                if instruction.command != "special":
+                    continue
+                special_key = ("special", "special", instruction.operands[0])
+                previous_owner = effect_policy.setdefault(special_key, "trainers")
+                if previous_owner != "trainers":
+                    raise ContentPortError(
+                        f"{event.script_name}: derived trainer special conflicts "
+                        f"with owner {previous_owner!r}"
+                    )
     validate_event_policy_capabilities(
         entries,
         effect_policy,
@@ -2792,6 +4185,51 @@ def resolve_port_sources(
             elif edge.target.domain == "binding":
                 binding_dependencies.add(edge.target)
 
+    trainer_party_projections: dict[str, StandardSinglePartyProjection] = {}
+    if trainer_materialization is not None:
+        declared_species = {
+            key.name for key in source_records if key.domain == "species"
+        }
+        claimed_parties: set[str] = set()
+        observed_party_rows: dict[str, tuple[str, ...]] = {}
+        expected_placements = materialized_placements(trainer_materialization)
+        for source in trainer_materialization.identity_names:
+            trainer_key = ResourceKey("trainer", source)
+            trainer = source_records.get(trainer_key)
+            if trainer is None:
+                raise ContentPortError(
+                    f"trainer:{source}: authenticated materialized payload is missing"
+                )
+            parties = tuple(trainer.value.get("parties", ()))
+            if len(parties) != 1 or not isinstance(parties[0], str):
+                raise ContentPortError(
+                    f"trainer:{source}: exactly one authenticated party edge is required"
+                )
+            party_name = parties[0]
+            if party_name in claimed_parties:
+                raise ContentPortError(
+                    f"party:{party_name}: materialized trainer party edge is not unique"
+                )
+            claimed_parties.add(party_name)
+            party_key = ResourceKey("party", party_name)
+            party = source_records.get(party_key)
+            if party is None:
+                raise ContentPortError(
+                    f"party:{party_name}: authenticated materialized payload is missing"
+                )
+            trainer_party_projections[source] = project_standard_single_party(
+                party.value,
+                source_trainer=source,
+                party_name=party_name,
+                known_species=declared_species,
+            )
+            observed_party_rows[source] = expected_placements[source]
+        require_materialization_exact_cover(
+            trainer_materialization,
+            observed_party_rows,
+            owner="authenticated trainer party closure",
+        )
+
     for dependency in sorted(binding_dependencies):
         binding_domain = (
             "flags"
@@ -2854,6 +4292,18 @@ def resolve_port_sources(
                 / path.relative_to(directory)
             ).as_posix()
             required_asset_targets[qualified] = target
+    admitted_pic_tokens = {
+        identity.projection.pic
+        for identity in trainer_inventory.identities
+        if identity.projection is not None
+    }
+    for pic, (source, target) in TRAINER_PIC_ASSET_PROJECTIONS.items():
+        if pic not in admitted_pic_tokens:
+            continue
+        safe_repo_path(content_pin.root, source, allow_missing=False)
+        qualified = f"content:{source}"
+        required_assets.add(ResourceKey("asset", qualified))
+        required_asset_targets[qualified] = target
     asset_policy_references: dict[str, list[str]] = {}
     policy_asset_targets: dict[str, str] = {}
     asset_records = descriptor.assets.get("assets")
@@ -3393,7 +4843,16 @@ def resolve_port_sources(
         trainer_events=MappingProxyType(
             {name: events for name, events in sorted(selected_trainer_events.items())}
         ),
+        trainer_inventory=trainer_inventory,
         materialization_maps=_freeze_state(materialization_maps),
+        trainer_materialization=trainer_materialization,
+        trainer_event_projections=MappingProxyType(
+            {name: events for name, events in sorted(projected_trainer_events.items())}
+        ),
+        trainer_party_projections=MappingProxyType(
+            dict(sorted(trainer_party_projections.items()))
+        ),
+        paired_double_not_enough_text=paired_double_not_enough_text,
     )
     return contract, state
 

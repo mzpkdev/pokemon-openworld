@@ -344,6 +344,9 @@ class SemanticsTests(unittest.TestCase):
             policy[("state-read", "goto_if_eq", "VAR_NEWBARK_TOWN_STATE")],
             "story-owned",
         )
+        self.assertNotIn("Route34_EventScript_YoungsterSamuel", entries)
+        self.assertNotIn("Route39_EventScript_Eugene", entries)
+        self.assertFalse(any(owner == "trainers" for owner in policy.values()))
 
     def test_opcode_schema_is_exact_required_versioned_and_typed(self) -> None:
         valid = {

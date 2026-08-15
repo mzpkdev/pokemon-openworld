@@ -146,6 +146,280 @@ TEST("Eugene resolves his authored normal party without legacy defeat flag or re
         TRAINER_REMATCH_BINDING_NONE);
 }
 
+TEST("Wade resolves his authored normal party without legacy defeat flag or rematch state")
+{
+    struct ResolvedOrdinaryTrainer resolved;
+    u16 defeatFlag = TRAINER_NONE;
+
+    EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        DIFFICULTY_HARD,
+        &resolved));
+    EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+    EXPECT_EQ((u32)resolved.trainer.partySize, 2);
+    EXPECT_EQ(resolved.trainer.party[0].species, SPECIES_WEEDLE);
+    EXPECT_EQ((u32)resolved.trainer.party[0].lvl, 4);
+    EXPECT_EQ((u32)resolved.trainer.party[0].iv, 0);
+    EXPECT_EQ(resolved.trainer.party[1].species, SPECIES_PINECO);
+    EXPECT_EQ((u32)resolved.trainer.party[1].lvl, 5);
+    EXPECT_EQ((u32)resolved.trainer.party[1].iv, 0);
+    EXPECT(!PersistentId_GetTrainerDefeatFlag(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        &defeatFlag));
+    EXPECT_EQ(defeatFlag, TRAINER_NONE);
+    EXPECT_EQ(
+        TrainerRematch_GetBinding(TRAINER_BUG_CATCHER_WADE_JOHTO).kind,
+        TRAINER_REMATCH_BINDING_NONE);
+}
+
+TEST("Route 30 and Route 33 trainers resolve their authored normal parties")
+{
+    static const struct
+    {
+        u16 trainerId;
+        u16 species1;
+        u8 level1;
+        u16 species2;
+        u8 level2;
+    } cases[] =
+    {
+        { TRAINER_BUG_CATCHER_DON_JOHTO, SPECIES_LEDYBA, 3, SPECIES_SPINARAK, 3 },
+        { TRAINER_YOUNGSTER_MIKEY_JOHTO, SPECIES_HOOTHOOT, 2, SPECIES_SENTRET, 4 },
+        { TRAINER_HIKER_ANTHONY_JOHTO, SPECIES_GEODUDE, 11, SPECIES_MACHOP, 11 },
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+        u16 defeatFlag = TRAINER_NONE;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            cases[i].trainerId,
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT_EQ((u32)resolved.trainer.partySize, 2);
+        EXPECT_EQ(resolved.trainer.party[0].species, cases[i].species1);
+        EXPECT_EQ((u32)resolved.trainer.party[0].lvl, cases[i].level1);
+        EXPECT_EQ((u32)resolved.trainer.party[0].iv, 0);
+        EXPECT_EQ(resolved.trainer.party[1].species, cases[i].species2);
+        EXPECT_EQ((u32)resolved.trainer.party[1].lvl, cases[i].level2);
+        EXPECT_EQ((u32)resolved.trainer.party[1].iv, 0);
+        EXPECT(!PersistentId_GetTrainerDefeatFlag(cases[i].trainerId, &defeatFlag));
+        EXPECT_EQ(defeatFlag, TRAINER_NONE);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(cases[i].trainerId).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Bulk fixed Johto trainers resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_YOUNGSTER_ALBERT_JOHTO,
+        TRAINER_BIRD_KEEPER_ABE_JOHTO,
+        TRAINER_FIREBREATHER_BILL_JOHTO,
+        TRAINER_BEAUTY_VALERIE_JOHTO,
+        TRAINER_BIRD_KEEPER_VANCE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Surf and field-move Johto trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_PHILLIP_JOHTO,
+        TRAINER_COOLTRAINER_NICK_JOHTO,
+        TRAINER_SWIMMER_F_ELAINE_JOHTO,
+        TRAINER_SWIMMER_M_BERKE_JOHTO,
+        TRAINER_HIKER_BENJAMIN_JOHTO,
+        TRAINER_FISHERMAN_ANDRE_JOHTO,
+        TRAINER_FISHERMAN_SCOTT_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Ordinary Johto bulk trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_PSYCHIC_M_NATHAN_JOHTO,
+        TRAINER_COOLTRAINER_JENN_JOHTO,
+        TRAINER_PARASOL_LADY_BEVERLY_JOHTO,
+        TRAINER_BLACK_BELT_WAI_JOHTO,
+        TRAINER_HIKER_NOLAND_JOHTO,
+        TRAINER_COOLTRAINER_CAROL_JOHTO,
+        TRAINER_FIREBREATHER_LYLE_JOHTO,
+        TRAINER_BEAUTY_CASSIE_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Route 45 and Route 46 trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_ERIK_JOHTO,
+        TRAINER_COOLTRAINER_KELLY_JOHTO,
+        TRAINER_CAMPER_TED_JOHTO,
+        TRAINER_HIKER_BAILEY_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
+TEST("Paired battle checkpoint resolves registered normal parties")
+{
+    static const u16 pairedTrainerIds[] =
+    {
+        TRAINER_TWINS_AMY_AND_MAY_JOHTO,
+        TRAINER_TWINS_ANN_AND_ANNE_JOHTO,
+        TRAINER_TWINS_LEA_AND_PIA_JOHTO,
+        TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO,
+        TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO,
+        TRAINER_TWINS_MEG_AND_PEG_JOHTO,
+    };
+    static const u16 orderingTrainerIds[] =
+    {
+        TRAINER_DRAGON_TAMER_DARIN_JOHTO,
+        TRAINER_HIKER_DEVIN_JOHTO,
+        TRAINER_CAMPER_GRANT_JOHTO,
+        TRAINER_POKEFAN_COLIN_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(pairedTrainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            pairedTrainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.battleType == TRAINER_BATTLE_TYPE_DOUBLES);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize >= 2);
+    }
+    for (i = 0; i < ARRAY_COUNT(orderingTrainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            orderingTrainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.battleType == TRAINER_BATTLE_TYPE_SINGLES);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+    }
+}
+
+TEST("Direct Johto tail trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_BUG_CATCHER_WAYNE_JOHTO,
+        TRAINER_SAGE_JEFFREY_JOHTO,
+        TRAINER_SAILOR_HUEY_JOHTO,
+        TRAINER_EXPERT_CLARISSA_JOHTO,
+        TRAINER_SUPER_NERD_HUGH_JOHTO,
+        TRAINER_COOLTRAINER_CARA_JOHTO,
+        TRAINER_PSYCHIC_M_RICHARD_JOHTO,
+        TRAINER_COOLTRAINER_JAKE_JOHTO,
+        TRAINER_COOLTRAINER_JOYCE_JOHTO,
+        TRAINER_COOLTRAINER_GAVEN_JOHTO,
+        TRAINER_COOLTRAINER_BETH_JOHTO,
+        TRAINER_GENTLEMAN_EDWARD_JOHTO,
+        TRAINER_FIREBREATHER_COREY_JOHTO,
+        TRAINER_SAILOR_JEFF_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
 {
     struct ResolvedOrdinaryTrainer resolved;

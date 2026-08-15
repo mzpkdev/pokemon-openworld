@@ -1209,8 +1209,12 @@ struct SaveBlock1
     u8 rivalName[PLAYER_NAME_LENGTH + 1];
     struct DaycareMon route5DayCareMon;
 #endif
-    /*0x3CD0*/ u8 trainerDefeated[79];
-    // sizeof: 0x3D20
+    // This append-only bitmap preserves every pre-expansion byte. Saves written by
+    // this project lineage zeroed the old sector tail, so they forward-load with
+    // new trainer bits clear. Downgrade-after-use and arbitrary foreign writers
+    // with a nonzero historical tail are outside the compatibility contract.
+    /*0x3CD0*/ u8 trainerDefeated[103];
+    // sizeof: 0x3D38
 };
 
 extern struct SaveBlock1 *gSaveBlock1Ptr;

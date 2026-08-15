@@ -62,3 +62,17 @@ TEST("Trainer rematch registry distinguishes none invalid and Match Call")
     EXPECT(!TrainerRematch_TryResolveStage(TRAINER_FRLG_YOUNGSTER_BEN, 0, NULL));
     EXPECT_EQ(trainerId, 0xA5A5);
 }
+
+TEST("Trainer rematch registry bounds frozen FRLG and Johto identities")
+{
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_FRLG_CUE_BALL_PAXTON).kind, TRAINER_REMATCH_BINDING_INVALID);
+
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_YOUNGSTER_SAMUEL_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_SAILOR_EUGENE_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_FISHERMAN_SCOTT_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINER_EXPERT_ROXANNE_JOHTO).kind, TRAINER_REMATCH_BINDING_NONE);
+
+    EXPECT_EQ(TrainerRematch_GetBinding(TRAINERS_COUNT).kind, TRAINER_REMATCH_BINDING_INVALID);
+    EXPECT_EQ(TrainerRematch_GetBinding(MAX_TRAINERS_COUNT - 1).kind, TRAINER_REMATCH_BINDING_INVALID);
+    EXPECT_EQ(TrainerRematch_GetBinding(MAX_TRAINERS_COUNT).kind, TRAINER_REMATCH_BINDING_INVALID);
+}

@@ -23,11 +23,19 @@ from tools.content_port.sources import (
     resolve_port_sources,
     validate_port_sources,
     _automatic_unreachable_shells,
+    _authenticate_reviewed_fixed_placements,
+    _authenticated_trainer_inventory,
     _semantic_record_digest,
+    _require_trainer_geometry_adapter,
+    _trainer_class_money,
+    _trainerproc_constant,
+    _validate_overworld_graphic_rule,
+    _validate_trainer_projection_rule,
     _bind_script_warp_policy,
     _extract_preserved_script_warps,
     _validate_selected_trainer_event,
 )
+from tools.content_port.trainer_inventory import TrainerProjection
 from tools.content_port.world_graph import (
     WorldEdge,
     WorldPolicy,
@@ -636,6 +644,179 @@ class SourceGraphTests(unittest.TestCase):
             ):
                 build_source_graph(broken, [ResourceKey("capability", "native")])
 
+    def test_real_trainer_inventory_authenticates_cross_map_events_and_pairs(
+        self,
+    ) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
+        trainer_inventory = _authenticated_trainer_inventory(
+            descriptor,
+            ExpansionSourceContext(
+                descriptor.donor("content").root,
+                active_capabilities=("spatial",),
+            ),
+            tuple(descriptor.map_ownership),
+            set(descriptor.adaptations["contentFallback"]["maps"]),
+        )
+        self.assertEqual(len(trainer_inventory.identities), 270)
+        self.assertEqual(len(trainer_inventory.placements), 236)
+        self.assertEqual(
+            trainer_inventory.digest,
+            descriptor.expected_trainer_inventory["documentDigest"],
+        )
+        placements = {
+            placement.identity: placement.trainer
+            for placement in trainer_inventory.placements
+        }
+        self.assertEqual(
+            placements["SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff"],
+            "TRAINER_JEFF",
+        )
+        self.assertEqual(
+            {
+                placements[identity]
+                for identity in (
+                    "Route26North/0/Route26_EventScript_Beth",
+                    "Route26North/1/Route26_EventScript_Jake",
+                    "Route26North/5/Route26_EventScript_Joyce",
+                )
+            },
+            {"TRAINER_BETH", "TRAINER_JAKE", "TRAINER_JOYCE"},
+        )
+        self.assertEqual(len(trainer_inventory.paired_doubles), 6)
+        self.assertEqual(
+            {
+                classification: sum(
+                    identity.classification == classification
+                    for identity in trainer_inventory.identities
+                )
+                for classification in (
+                    "ordinary",
+                    "story-controlled",
+                    "unsupported",
+                )
+            },
+            descriptor.expected_trainer_inventory["identityClassifications"],
+        )
+        self.assertEqual(
+            sum(identity.admitted for identity in trainer_inventory.identities),
+            descriptor.expected_trainer_inventory["admittedIdentities"],
+        )
+        self.assertEqual(
+            sum(placement.admitted for placement in trainer_inventory.placements),
+            descriptor.expected_trainer_inventory["admittedEvents"],
+        )
+        self.assertEqual(
+            len(
+                {
+                    placement.map_name
+                    for placement in trainer_inventory.placements
+                    if placement.admitted
+                }
+            ),
+            descriptor.expected_trainer_inventory["affectedAdmittedMaps"],
+        )
+        self.assertEqual(
+            trainer_inventory.paired_doubles["TRAINER_ANN_AND_ANNE"],
+            (
+                "Route37/0/Route37_EventScript_TwinAnn",
+                "Route37/1/Route37_EventScript_TwinAnne",
+            ),
+        )
+
+    def test_super_nerd_projection_preserves_class_sensitive_reward(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            self.skipTest("donor checkouts are not present")
+        symbol = _trainerproc_constant("TRAINER_CLASS", "Super Nerd Johto")
+        self.assertEqual(symbol, "JOHTO_TRAINER_CLASS_SUPER_NERD")
+        self.assertEqual(
+            _trainerproc_constant("TRAINER_PIC", "Super Nerd HG"),
+            "JOHTO_TRAINER_PIC_SUPER_NERD",
+        )
+        donor_money = _trainer_class_money(
+            donor_root / "pokemonHnS/src/battle_main.c", target=False
+        )
+        target_money = _trainer_class_money(Path("src/battle_main.c"), target=True)
+        self.assertEqual(donor_money["TRAINER_CLASS_SUPER_NERD"], 8)
+        self.assertEqual(target_money[symbol], 8)
+
+    def test_projection_rules_reject_unreviewed_semantic_drift(self) -> None:
+        projection = TrainerProjection(
+            target="TRAINER_SUPER_NERD_HUGH_JOHTO",
+            trainer_class="Super Nerd Johto",
+            pic="Super Nerd HG",
+            gender="Male",
+            music="Suspicious",
+            ai="Check Bad Move",
+            reward="preserve",
+            party="preserve",
+        )
+        donor = {
+            "trainer_class": "TRAINER_CLASS_SUPER_NERD",
+            "trainer_pic": "TRAINER_PIC_SUPER_NERD",
+            "encounter_music": "TRAINER_ENCOUNTER_MUSIC_HG_SUSPICIOUS_1",
+        }
+        _validate_trainer_projection_rule("TRAINER_HUGH", projection, donor)
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_trainer_projection_rule(
+                "TRAINER_HUGH",
+                replace(projection, trainer_class="Pokemaniac"),
+                donor,
+            )
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_trainer_projection_rule(
+                "TRAINER_HUGH", replace(projection, gender="Female"), donor
+            )
+        _validate_overworld_graphic_rule(
+            "Route32/0/Hugh",
+            "OBJ_EVENT_GFX_SUPER_NERD",
+            "TRAINER_CLASS_SUPER_NERD",
+            "OBJ_EVENT_GFX_SCIENTIST_1",
+        )
+        _validate_overworld_graphic_rule(
+            "Route32/1/Pokemaniac",
+            "OBJ_EVENT_GFX_SUPER_NERD",
+            "TRAINER_CLASS_POKEMANIAC",
+            "OBJ_EVENT_GFX_MANIAC",
+        )
+        with self.assertRaisesRegex(ContentPortError, "reviewed donor mapping"):
+            _validate_overworld_graphic_rule(
+                "Route32/0/Hugh",
+                "OBJ_EVENT_GFX_SUPER_NERD",
+                "TRAINER_CLASS_SUPER_NERD",
+                "OBJ_EVENT_GFX_MANIAC",
+            )
+
+    def test_unreviewed_projection_gender_correction_is_rejected(self) -> None:
+        donor_root = self._donor_root()
+        if donor_root is None:
+            if os.environ.get("CONTENT_PORT_REQUIRE_DONORS") == "1":
+                self.fail("required donor checkouts are missing")
+            self.skipTest("donor checkouts are not present")
+        with tempfile.TemporaryDirectory(dir="tools/content_port/tests") as directory:
+            port = Path(directory) / "johto"
+            shutil.copytree("tools/content_port/ports/johto", port)
+            policy_path = port / "trainer_classification.json"
+            policy = json.loads(policy_path.read_text(encoding="utf-8"))
+            scott = next(
+                identity
+                for identity in policy["identities"]
+                if identity["trainer"] == "TRAINER_SCOTT"
+            )
+            self.assertEqual(scott["projection"]["gender"], "Male")
+            scott["projection"]["gender"] = "Female"
+            policy_path.write_text(json.dumps(policy), encoding="utf-8")
+            descriptor = load_port(port, donor_root)
+            with self.assertRaisesRegex(
+                ContentPortError, "trainer inventory digest mismatch"
+            ):
+                resolve_port_sources(descriptor, Path("."))
+
     def test_full_real_port_contract_closes_and_rejects_stale_world_policy(
         self,
     ) -> None:
@@ -655,6 +836,23 @@ class SourceGraphTests(unittest.TestCase):
             )
         )
         self.assertEqual(state.inventory["asset-policy"], expected_asset_policy)
+        self.assertEqual(
+            {
+                key: state.asset_targets[key]
+                for key in (
+                    "content:graphics/trainers/front_pics/firebreather.png",
+                    "content:graphics/trainers/front_pics/psychic_m.png",
+                    "content:graphics/trainers/front_pics/sage.png",
+                    "content:graphics/trainers/front_pics/super_nerd.png",
+                )
+            },
+            {
+                "content:graphics/trainers/front_pics/firebreather.png": "graphics/trainers/front_pics/firebreather_hg.png",
+                "content:graphics/trainers/front_pics/psychic_m.png": "graphics/trainers/front_pics/psychic_m_hg.png",
+                "content:graphics/trainers/front_pics/sage.png": "graphics/trainers/front_pics/sage_hg.png",
+                "content:graphics/trainers/front_pics/super_nerd.png": "graphics/trainers/front_pics/super_nerd_hg.png",
+            },
+        )
         self.assertTrue(
             all(
                 ResourceKey("asset", identity) in state.resources
@@ -739,10 +937,15 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
-        _, state = resolve_port_sources(
-            replace(descriptor, legacy_report=None),
-            Path("."),
-        )
+        with patch(
+            "tools.content_port.sources._authenticate_reviewed_fixed_placements",
+            wraps=_authenticate_reviewed_fixed_placements,
+        ) as geometry_gate:
+            _, state = resolve_port_sources(
+                replace(descriptor, legacy_report=None),
+                Path("."),
+            )
+        geometry_gate.assert_called_once()
         expected = {
             ResourceKey("trainer", "TRAINER_EUGENE"),
             ResourceKey("party", "sParty_Eugene"),
@@ -757,10 +960,85 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("trainer-class", "TRAINER_CLASS_YOUNGSTER"),
             ResourceKey("asset", "TRAINER_PIC_YOUNGSTER"),
             ResourceKey("service", "Route34_EventScript_YoungsterSamuel"),
+            ResourceKey("trainer", "TRAINER_WADE"),
+            ResourceKey("party", "sParty_Wade"),
+            ResourceKey("species", "SPECIES_WEEDLE"),
+            ResourceKey("species", "SPECIES_PINECO"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_BUG_CATCHER"),
+            ResourceKey("asset", "TRAINER_PIC_BUG_CATCHER"),
+            ResourceKey("service", "Route31_EventScript_Bugcatcher_Wade"),
+            ResourceKey("trainer", "TRAINER_DON"),
+            ResourceKey("party", "sParty_Don"),
+            ResourceKey("species", "SPECIES_LEDYBA"),
+            ResourceKey("species", "SPECIES_SPINARAK"),
+            ResourceKey("service", "Route30_EventScript_Bugcatcher_Don"),
+            ResourceKey("trainer", "TRAINER_MIKEY"),
+            ResourceKey("party", "sParty_Mikey"),
+            ResourceKey("species", "SPECIES_HOOTHOOT"),
+            ResourceKey("species", "SPECIES_SENTRET"),
+            ResourceKey("service", "Route30_EventScript_Youngster_Mikey"),
+            ResourceKey("trainer", "TRAINER_ANTHONY"),
+            ResourceKey("party", "sParty_Anthony"),
+            ResourceKey("species", "SPECIES_GEODUDE"),
+            ResourceKey("species", "SPECIES_MACHOP"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_HIKER"),
+            ResourceKey("asset", "TRAINER_PIC_HIKER"),
+            ResourceKey("service", "Route33_EventScript_HikerAnthony"),
         }
         self.assertTrue(expected <= set(state.resources))
-        self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
         self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
+        wade = next(
+            identity
+            for identity in state.trainer_inventory.identities
+            if identity.trainer == "TRAINER_WADE"
+        )
+        self.assertIsNotNone(wade.projection)
+        self.assertEqual(state.trainer_events["Route31"][0].trainers, ("TRAINER_WADE",))
+        self.assertEqual(
+            state.trainer_event_projections["Route31"][0]
+            .event.instructions[0]
+            .operands[0],
+            "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        )
+        self.assertEqual(
+            state.trainer_party_projections["TRAINER_WADE"].party_name,
+            "sParty_Wade",
+        )
+        self.assertEqual(
+            tuple(
+                (member.species, member.level, member.iv)
+                for member in state.trainer_party_projections["TRAINER_WADE"].members
+            ),
+            (("SPECIES_WEEDLE", 4, 0), ("SPECIES_PINECO", 5, 0)),
+        )
+        route31_event = state.trainer_events["Route31"][0]
+        drifted_object = dict(route31_event.object_event)
+        drifted_object["x"] = 28
+        with self.assertRaisesRegex(ContentPortError, "donor object drifted"):
+            _authenticate_reviewed_fixed_placements(
+                descriptor,
+                Path("."),
+                ExpansionSourceContext(donor_root / "pokemonHnS"),
+                state.maps,
+                {
+                    layout: SourceRecord(value, Provenance("fixture"))
+                    for layout, value in state.layouts.items()
+                },
+                {
+                    **state.trainer_events,
+                    "Route31": (replace(route31_event, object_event=drifted_object),),
+                },
+            )
+        self.assertIsNotNone(state.trainer_materialization)
+        future = replace(
+            state.trainer_materialization,
+            batches=(
+                *state.trainer_materialization.batches[:-1],
+                replace(state.trainer_materialization.batches[-1], key="future"),
+            ),
+        )
+        with self.assertRaisesRegex(ContentPortError, "fixed-placement"):
+            _require_trainer_geometry_adapter(future)
         eugene = state.semantic_values[ResourceKey("trainer", "TRAINER_EUGENE")]
         self.assertEqual(
             eugene,
@@ -790,7 +1068,11 @@ class SourceGraphTests(unittest.TestCase):
             state.semantic_evidence["content:trainer:TRAINER_EUGENE"],
             "3c1b7eeb66f68e3ad9e9a0b45447d499ecf9ccb15f5d934d61f7c8334f442bfd",
         )
-        eugene_event = state.trainer_events["Route39"][0]
+        eugene_event = next(
+            event
+            for event in state.trainer_events["Route39"]
+            if event.trainers == ("TRAINER_EUGENE",)
+        )
         self.assertEqual(eugene_event.trainers, ("TRAINER_EUGENE",))
         self.assertEqual(eugene_event.script_name, "Route39_EventScript_Eugene")
         trainer_evidence = state.semantic_evidence["content:trainer:TRAINER_SAMUEL"]
@@ -820,6 +1102,16 @@ class SourceGraphTests(unittest.TestCase):
                 "Route34_Text_YoungsterSamuel_Seen",
                 "Route34_Text_YoungsterSamuel_Beaten",
             ),
+        )
+        projected = state.trainer_event_projections["Route34"][0]
+        self.assertEqual(projected.source_trainer, "TRAINER_SAMUEL")
+        self.assertEqual(
+            projected.event.instructions[0].operands[0],
+            "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        )
+        self.assertEqual(
+            state.trainer_party_projections["TRAINER_SAMUEL"].party_name,
+            "sParty_Samuel",
         )
         event_key = ResourceKey(
             "trainer-event", "Route34/0/Route34_EventScript_YoungsterSamuel"
@@ -873,12 +1165,19 @@ class SourceGraphTests(unittest.TestCase):
                 )
             )
         implicit_trainer_capabilities = tuple(
-            replace(decision, state=CapabilityState.ENABLED)
+            replace(
+                decision,
+                state=CapabilityState.ENABLED,
+                dependencies=(ResourceKey("trainer", "TRAINER_DON"),),
+            )
             if decision.map_name == "Route30" and decision.capability == "trainers"
             else decision
             for decision in descriptor.capabilities
         )
-        with self.assertRaisesRegex(ContentPortError, "explicit trainer dependencies"):
+        with self.assertRaisesRegex(
+            ContentPortError,
+            "authenticated selected trainer closure.*missing=.*TRAINER_MIKEY",
+        ):
             resolve_port_sources(
                 replace(
                     descriptor,
@@ -1143,8 +1442,19 @@ class SourceGraphTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary:
             target = Path(temporary)
+            for authority in (
+                "include/constants/trainers.h",
+                "include/constants/battle_ai.h",
+                "include/constants/event_objects.h",
+                "include/constants/global.h",
+                "src/battle_main.c",
+            ):
+                source_authority = Path(authority)
+                target_authority = target / source_authority
+                target_authority.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_authority, target_authority)
             ledger_target = target / "src/data/persistence/persistent_ids.json"
-            ledger_target.parent.mkdir(parents=True)
+            ledger_target.parent.mkdir(parents=True, exist_ok=True)
             ledger = json.loads(
                 Path("src/data/persistence/persistent_ids.json").read_text()
             )
@@ -1168,6 +1478,10 @@ class SourceGraphTests(unittest.TestCase):
             ):
                 source_script = Path("data/maps") / name / "scripts.inc"
                 shutil.copyfile(source_script, target / source_script)
+            overlay_script = Path("data/maps/SSAqua_1F/scripts.inc")
+            overlay_target = target / overlay_script
+            overlay_target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(overlay_script, overlay_target)
             self.assertEqual(
                 validate_port_sources(descriptor, target).inventory["tilesets"], 71
             )

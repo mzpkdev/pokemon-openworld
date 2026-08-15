@@ -2144,17 +2144,22 @@ class DonorUpdateTests(unittest.TestCase):
 
 
 class CheckedAssetLedgerTests(unittest.TestCase):
-    def test_ledger_is_exact_for_every_owned_asset_tree(self) -> None:
+    def test_ledger_is_exact_for_exclusive_trees_and_every_owned_file(self) -> None:
         policy = json.loads(
             Path("tools/content_port/ports/johto/assets.json").read_text()
         )
         assets = validate_assets(policy, evidence_root=Path.cwd())
         declared = {str(asset["semanticTarget"]) for asset in assets}
+        exclusive_declared = {
+            target
+            for target in declared
+            if target.startswith(("data/layouts/", "data/tilesets/"))
+        }
         roots = {
             Path(target).parent.parent
             if Path(target).parent.name == "palettes"
             else Path(target).parent
-            for target in declared
+            for target in exclusive_declared
         }
         actual = {
             path.as_posix()
@@ -2164,7 +2169,7 @@ class CheckedAssetLedgerTests(unittest.TestCase):
             and path.suffix != ".inc"
             and "anim" not in path.relative_to(root).parts
         }
-        self.assertEqual(declared, actual)
+        self.assertEqual(exclusive_declared, actual)
         for asset in assets:
             with self.subTest(asset=asset["key"]):
                 target = Path(str(asset["semanticTarget"]))

@@ -3,6 +3,14 @@
   "allocationLock": "allocation_lock.json",
   "capabilityPolicy": "capabilities.json",
   "eventPolicy": "events.json",
+  "trainerPolicy": "trainer_classification.json",
+  "trainerMaterialization": {
+    "path": "trainer_materialization.json",
+    "reviewedPrefix": {
+      "batchCount": 10,
+      "sha256": "e0ffa5d26d181229bf2bf287cb49b16c2c5cf3b7c5a2e5acbd1735ce1e045b46"
+    }
+  },
   "adaptations": "adaptations.json",
   "assetPolicy": "assets.json",
   "animationPolicy": "animation_policy.json",
@@ -65,5 +73,24 @@
       "count": 71,
       "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"
     }
+  },
+  "expectedTrainerInventory": {
+    "identities": {
+      "count": 270,
+      "digest": "7903b469ecfa0c1cdb1bf9e2d8f8abd3963918b046d87ffd0a7292c3ed6934f6"
+    },
+    "events": {
+      "count": 236,
+      "digest": "6448f7f5a67bb09715f87516a81dd1769607198037d8b228447cad6046e176fb"
+    },
+    "documentDigest": "fcb1ecebcae4fd1b3c85bac13a1bca5ad297c754b23d302b9b371dd71555d792",
+    "identityClassifications": {
+      "ordinary": 195,
+      "story-controlled": 70,
+      "unsupported": 5
+    },
+    "admittedIdentities": 195,
+    "admittedEvents": 203,
+    "affectedAdmittedMaps": 52
   }
 }
