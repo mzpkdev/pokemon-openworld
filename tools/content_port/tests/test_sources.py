@@ -957,6 +957,13 @@ class SourceGraphTests(unittest.TestCase):
         self.assertTrue(expected <= set(state.resources))
         self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
         self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
+        self.assertNotIn(ResourceKey("trainer", "TRAINER_WADE"), state.resources)
+        wade = next(
+            identity
+            for identity in state.trainer_inventory.identities
+            if identity.trainer == "TRAINER_WADE"
+        )
+        self.assertIsNotNone(wade.projection)
         eugene = state.semantic_values[ResourceKey("trainer", "TRAINER_EUGENE")]
         self.assertEqual(
             eugene,
@@ -1017,6 +1024,16 @@ class SourceGraphTests(unittest.TestCase):
                 "Route34_Text_YoungsterSamuel_Beaten",
             ),
         )
+        projected = state.trainer_event_projections["Route34"][0]
+        self.assertEqual(projected.source_trainer, "TRAINER_SAMUEL")
+        self.assertEqual(
+            projected.event.instructions[0].operands[0],
+            "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
+        )
+        self.assertEqual(
+            state.trainer_party_projections["TRAINER_SAMUEL"].party_name,
+            "sParty_Samuel",
+        )
         event_key = ResourceKey(
             "trainer-event", "Route34/0/Route34_EventScript_YoungsterSamuel"
         )
@@ -1069,12 +1086,19 @@ class SourceGraphTests(unittest.TestCase):
                 )
             )
         implicit_trainer_capabilities = tuple(
-            replace(decision, state=CapabilityState.ENABLED)
+            replace(
+                decision,
+                state=CapabilityState.ENABLED,
+                dependencies=(ResourceKey("trainer", "TRAINER_DON"),),
+            )
             if decision.map_name == "Route30" and decision.capability == "trainers"
             else decision
             for decision in descriptor.capabilities
         )
-        with self.assertRaisesRegex(ContentPortError, "explicit trainer dependencies"):
+        with self.assertRaisesRegex(
+            ContentPortError,
+            "authenticated selected trainer closure.*extra=.*TRAINER_DON",
+        ):
             resolve_port_sources(
                 replace(
                     descriptor,

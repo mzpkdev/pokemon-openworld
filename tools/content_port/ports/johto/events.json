@@ -23,18 +23,6 @@
       "kind": "special",
       "operand": "SetTimeBasedEncounters",
       "owner": "story-owned"
-    },
-    {
-      "command": "msgbox",
-      "kind": "side-effect",
-      "operand": "Route39_Text_SailorEugeneAfter",
-      "owner": "trainers"
-    },
-    {
-      "command": "msgbox",
-      "kind": "side-effect",
-      "operand": "Route34_Text_YoungsterSamuel_After",
-      "owner": "trainers"
     }
   ],
   "entries": [
@@ -47,16 +35,6 @@
       "capability": "interactions",
       "classification": "story-owned",
       "name": "NewBarkTown_EventScript_LeaveTrigger"
-    },
-    {
-      "capability": "trainers",
-      "classification": "enabled",
-      "name": "Route39_EventScript_Eugene"
-    },
-    {
-      "capability": "trainers",
-      "classification": "enabled",
-      "name": "Route34_EventScript_YoungsterSamuel"
     }
   ],
   "schemaVersion": 1

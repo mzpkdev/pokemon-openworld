@@ -273,7 +273,7 @@ class MaterializeTests(unittest.TestCase):
         )
         self.assertEqual(
             (samuel["class"], samuel["pic"], samuel["music"]),
-            ("Youngster", "Youngster FRLG", "Male"),
+            ("Youngster", "Youngster", "Male"),
         )
         self.assertEqual(
             {
@@ -308,6 +308,35 @@ class MaterializeTests(unittest.TestCase):
             [member["species"] for member in parties["TRAINER_YOUNGSTER_SAMUEL_JOHTO"]],
             ["SPECIES_TEDDIURSA", "SPECIES_SANDSHREW", "SPECIES_SPEAROW"],
         )
+        missing_route39 = MappingProxyType(
+            {
+                name: rows
+                for name, rows in state.trainer_event_projections.items()
+                if name != "Route39"
+            }
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "emitted trainer objects.*missing=.*TRAINER_EUGENE"
+        ):
+            _map_units(
+                descriptor,
+                replace(state, trainer_event_projections=missing_route39),
+            )
+        missing_eugene_party = MappingProxyType(
+            {
+                name: row
+                for name, row in state.trainer_party_projections.items()
+                if name != "TRAINER_EUGENE"
+            }
+        )
+        with self.assertRaisesRegex(
+            ContentPortError, "typed materialized party projection is missing"
+        ):
+            _trainer_units(
+                descriptor,
+                replace(state, trainer_party_projections=missing_eugene_party),
+                ROOT,
+            )
         self.assertEqual(
             hashlib.sha256(
                 _generated_body("trainer-bindings", descriptor, state, ROOT).encode()

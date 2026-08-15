@@ -428,6 +428,15 @@ class DescriptorTests(unittest.TestCase):
             port_dir.resolve() / "trainer_classification.json",
         )
         self.assertEqual(
+            descriptor.trainer_materialization_path,
+            port_dir.resolve() / "trainer_materialization.json",
+        )
+        self.assertEqual(descriptor.trainer_materialization_prefix_count, 1)
+        self.assertEqual(
+            descriptor.trainer_materialization_prefix_digest,
+            "7dc0cdbee3a86a518a7910679a0d108610cfb822c41b7077082097fcbd2104c1",
+        )
+        self.assertEqual(
             descriptor.expected_trainer_inventory["identities"],
             {
                 "count": 270,

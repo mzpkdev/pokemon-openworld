@@ -27,6 +27,19 @@ from .trainer_inventory import (
     load_trainer_inventory,
     require_projection_exact_cover,
 )
+from .trainer_materialization import (
+    ReviewedMaterializationPrefix,
+    TrainerMaterializationAuthority,
+    load_trainer_materialization,
+    materialized_placements,
+    require_materialization_exact_cover,
+)
+from .trainer_payloads import (
+    StandardSingleEventProjection,
+    StandardSinglePartyProjection,
+    project_standard_single_event,
+    project_standard_single_party,
+)
 from .world_graph import WorldEdge, with_dynamic_warps
 
 
@@ -187,6 +200,13 @@ class PortSourceState:
     trainer_events: Mapping[str, tuple[TrainerEventRecord, ...]]
     trainer_inventory: TrainerInventory
     materialization_maps: Mapping[str, Mapping[str, Any]] | None = None
+    trainer_materialization: TrainerMaterializationAuthority | None = None
+    trainer_event_projections: Mapping[
+        str, tuple[StandardSingleEventProjection, ...]
+    ] = MappingProxyType({})
+    trainer_party_projections: Mapping[str, StandardSinglePartyProjection] = (
+        MappingProxyType({})
+    )
 
 
 class RecordLoader(Protocol):
@@ -2476,6 +2496,26 @@ def _automatic_unreachable_shells(
     )
 
 
+def _require_trainer_geometry_adapter(
+    authority: TrainerMaterializationAuthority,
+) -> None:
+    """Keep future standard-single batches behind authenticated geometry evidence.
+
+    The seeded closure predates the cumulative batch pipeline. Any appended
+    Phase 3 batch must call the geometry adapter here and supply its complete
+    map census before this guard can be relaxed.
+    """
+
+    pending = tuple(
+        batch.key for batch in authority.batches if batch.kind == "standard-singles"
+    )
+    if pending:
+        raise ContentPortError(
+            "trainer materialization requires the authenticated geometry adapter "
+            f"before standard-single batch activation: {pending[0]}"
+        )
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -2489,6 +2529,7 @@ def resolve_port_sources(
     from .closure import close_source_graph
     from .model import CapabilityState
     from .semantics import (
+        EventEntry,
         analyze_entry,
         parse_scripts,
         validate_effects,
@@ -3048,68 +3089,174 @@ def resolve_port_sources(
     enabled_by_map: dict[str, set[str]] = {}
     for decision in enabled:
         enabled_by_map.setdefault(decision.map_name, set()).add(decision.capability)
-    selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
-    for decision in enabled:
-        if decision.capability != "trainers":
-            continue
-        requested = tuple(
-            dependency
-            for dependency in decision.dependencies
-            if dependency.domain == "trainer"
-        )
-        if len(requested) != len(decision.dependencies) or not requested:
-            raise ContentPortError(
-                f"{decision.map_name}/trainers: enabled trainer capability requires "
-                "only explicit trainer dependencies"
-            )
-        role = "mechanical" if decision.map_name in fallback else "content"
-        roots = tuple(selected_maps[decision.map_name].get("_trainer_event_roots", ()))
-        available = [
-            contexts[role].trainer_event(ResourceKey("trainer-event", root))
-            for root in roots
-        ]
-        available_by_identity = {
-            f"{event.map_name}/{event.object_index}/{event.script_name}": event
-            for event in available
-        }
-        chosen: list[TrainerEventRecord] = []
-        for dependency in requested:
-            placements = [
-                placement
-                for placement in trainer_inventory.placements
-                if placement.map_name == decision.map_name
-                and placement.trainer == dependency.name
-                and placement.admitted
-            ]
-            if len(placements) != 1:
-                raise ContentPortError(
-                    f"{decision.map_name}/trainers: {dependency} must select exactly "
-                    "one admitted inventory placement"
-                )
-            event = available_by_identity.get(placements[0].identity)
-            if event is None or event.trainers != (dependency.name,):
-                raise ContentPortError(
-                    f"{decision.map_name}/trainers: admitted placement "
-                    f"{placements[0].identity} is absent from donor event roots"
-                )
-            chosen.append(event)
-        if len(chosen) != len({event.object_index for event in chosen}):
-            raise ContentPortError(
-                f"{decision.map_name}/trainers: duplicate paired trainer event"
-            )
-        for event in chosen:
-            _validate_selected_trainer_event(event)
-        selected_trainer_events[decision.map_name] = tuple(chosen)
-        selected_maps[decision.map_name]["_trainer_event_roots"] = [
-            f"{event.map_name}/{event.object_index}/{event.script_name}"
-            for event in chosen
-        ]
-        map_key = ResourceKey("map", decision.map_name)
-        source_records[map_key] = SourceRecord(
-            selected_maps[decision.map_name], source_records[map_key].provenance
-        )
     ledger_path = target_root / "src/data/persistence/persistent_ids.json"
     ledger = load_binding_index(ledger_path)
+    trainer_materialization: TrainerMaterializationAuthority | None = None
+    if descriptor.trainer_materialization_path is not None:
+        if (
+            descriptor.trainer_materialization_prefix_count is None
+            or descriptor.trainer_materialization_prefix_digest is None
+        ):
+            raise ContentPortError(
+                "trainer materialization descriptor lacks reviewed prefix pins"
+            )
+        trainer_materialization = load_trainer_materialization(
+            descriptor.trainer_materialization_path,
+            trainer_inventory,
+            ledger,
+            reviewed_prefix=ReviewedMaterializationPrefix(
+                descriptor.trainer_materialization_prefix_count,
+                descriptor.trainer_materialization_prefix_digest,
+            ),
+        )
+        _require_trainer_geometry_adapter(trainer_materialization)
+
+    selected_trainer_events: dict[str, tuple[TrainerEventRecord, ...]] = {}
+    projected_trainer_events: dict[str, tuple[StandardSingleEventProjection, ...]] = {}
+    enabled_trainer_decisions = tuple(
+        decision for decision in enabled if decision.capability == "trainers"
+    )
+    if trainer_materialization is not None:
+        inventory_placements = {
+            placement.identity: placement
+            for placement in trainer_inventory.placements
+            if placement.admitted
+        }
+        targets = {
+            identity.trainer: identity.projection.target
+            for identity in trainer_inventory.identities
+            if identity.projection is not None
+        }
+        observed: dict[str, list[str]] = {}
+        for decision in enabled_trainer_decisions:
+            requested = tuple(
+                dependency
+                for dependency in decision.dependencies
+                if dependency.domain == "trainer"
+            )
+            if len(requested) != len(decision.dependencies) or not requested:
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: enabled trainer capability "
+                    "requires only explicit trainer dependencies"
+                )
+            role = "mechanical" if decision.map_name in fallback else "content"
+            roots = tuple(
+                selected_maps[decision.map_name].get("_trainer_event_roots", ())
+            )
+            available = {
+                root: contexts[role].trainer_event(
+                    ResourceKey("trainer-event", str(root))
+                )
+                for root in roots
+            }
+            selected_rows: list[
+                tuple[TrainerEventRecord, StandardSingleEventProjection, str, str]
+            ] = []
+            for dependency in requested:
+                placements = [
+                    placement
+                    for placement in inventory_placements.values()
+                    if placement.map_name == decision.map_name
+                    and placement.trainer == dependency.name
+                ]
+                if not placements:
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: {dependency} has no admitted "
+                        "inventory placement"
+                    )
+                for placement in placements:
+                    event = available.get(placement.identity)
+                    if event is None:
+                        raise ContentPortError(
+                            f"{decision.map_name}/trainers: selected placement "
+                            f"{placement.identity} is absent from authenticated donor roots"
+                        )
+                    projected = project_standard_single_event(
+                        event,
+                        source_trainer=dependency.name,
+                        target_trainer=targets[dependency.name],
+                    )
+                    selected_rows.append(
+                        (event, projected, dependency.name, placement.identity)
+                    )
+            selected_rows.sort(key=lambda row: row[0].object_index)
+            chosen = [row[0] for row in selected_rows]
+            projections = [row[1] for row in selected_rows]
+            placement_names = [row[3] for row in selected_rows]
+            if len(chosen) != len({event.object_index for event in chosen}):
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: duplicate donor object index"
+                )
+            for _event, _projection, source, placement_name in selected_rows:
+                observed.setdefault(source, []).append(placement_name)
+            selected_trainer_events[decision.map_name] = tuple(chosen)
+            projected_trainer_events[decision.map_name] = tuple(projections)
+            selected_maps[decision.map_name]["_trainer_event_roots"] = placement_names
+            map_key = ResourceKey("map", decision.map_name)
+            source_records[map_key] = SourceRecord(
+                selected_maps[decision.map_name], source_records[map_key].provenance
+            )
+        require_materialization_exact_cover(
+            trainer_materialization,
+            observed,
+            owner="authenticated selected trainer closure",
+        )
+    else:
+        for decision in enabled_trainer_decisions:
+            requested = tuple(
+                dependency
+                for dependency in decision.dependencies
+                if dependency.domain == "trainer"
+            )
+            if len(requested) != len(decision.dependencies) or not requested:
+                raise ContentPortError(
+                    f"{decision.map_name}/trainers: enabled trainer capability "
+                    "requires only explicit trainer dependencies"
+                )
+            role = "mechanical" if decision.map_name in fallback else "content"
+            roots = tuple(
+                selected_maps[decision.map_name].get("_trainer_event_roots", ())
+            )
+            available = [
+                contexts[role].trainer_event(ResourceKey("trainer-event", root))
+                for root in roots
+            ]
+            available_by_identity = {
+                f"{event.map_name}/{event.object_index}/{event.script_name}": event
+                for event in available
+            }
+            chosen: list[TrainerEventRecord] = []
+            for dependency in requested:
+                placements = [
+                    placement
+                    for placement in trainer_inventory.placements
+                    if placement.map_name == decision.map_name
+                    and placement.trainer == dependency.name
+                    and placement.admitted
+                ]
+                if len(placements) != 1:
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: {dependency} must select "
+                        "exactly one admitted inventory placement"
+                    )
+                event = available_by_identity.get(placements[0].identity)
+                if event is None or event.trainers != (dependency.name,):
+                    raise ContentPortError(
+                        f"{decision.map_name}/trainers: admitted placement "
+                        f"{placements[0].identity} is absent from donor event roots"
+                    )
+                chosen.append(event)
+            for event in chosen:
+                _validate_selected_trainer_event(event)
+            selected_trainer_events[decision.map_name] = tuple(chosen)
+            selected_maps[decision.map_name]["_trainer_event_roots"] = [
+                f"{event.map_name}/{event.object_index}/{event.script_name}"
+                for event in chosen
+            ]
+            map_key = ResourceKey("map", decision.map_name)
+            source_records[map_key] = SourceRecord(
+                selected_maps[decision.map_name], source_records[map_key].provenance
+            )
     _authenticate_trainer_projection_authority(
         trainer_inventory,
         content,
@@ -3209,8 +3356,28 @@ def resolve_port_sources(
             "enabled encounter maps must exactly match authored encounter profiles"
         )
     event_policy_path = descriptor.event_policy_path
-    entries = descriptor.event_entries
-    effect_policy = descriptor.effect_policy
+    entries = dict(descriptor.event_entries)
+    effect_policy = dict(descriptor.effect_policy)
+    for events in (
+        selected_trainer_events.values() if trainer_materialization is not None else ()
+    ):
+        for event in events:
+            if event.script_name in entries:
+                raise ContentPortError(
+                    f"{event.script_name}: cumulative trainer materialization must "
+                    "not be restated in events policy"
+                )
+            entries[event.script_name] = EventEntry(
+                event.script_name, "trainers", CapabilityState.ENABLED.value
+            )
+            msgbox = event.instructions[1]
+            effect_key = ("side-effect", "msgbox", msgbox.operands[0])
+            previous_owner = effect_policy.setdefault(effect_key, "trainers")
+            if previous_owner != "trainers":
+                raise ContentPortError(
+                    f"{event.script_name}: derived trainer effect conflicts with "
+                    f"owner {previous_owner!r}"
+                )
     validate_event_policy_capabilities(
         entries,
         effect_policy,
@@ -3297,6 +3464,51 @@ def resolve_port_sources(
                 pending_semantics.append((role, edge.target))
             elif edge.target.domain == "binding":
                 binding_dependencies.add(edge.target)
+
+    trainer_party_projections: dict[str, StandardSinglePartyProjection] = {}
+    if trainer_materialization is not None:
+        declared_species = {
+            key.name for key in source_records if key.domain == "species"
+        }
+        claimed_parties: set[str] = set()
+        observed_party_rows: dict[str, tuple[str, ...]] = {}
+        expected_placements = materialized_placements(trainer_materialization)
+        for source in trainer_materialization.identity_names:
+            trainer_key = ResourceKey("trainer", source)
+            trainer = source_records.get(trainer_key)
+            if trainer is None:
+                raise ContentPortError(
+                    f"trainer:{source}: authenticated materialized payload is missing"
+                )
+            parties = tuple(trainer.value.get("parties", ()))
+            if len(parties) != 1 or not isinstance(parties[0], str):
+                raise ContentPortError(
+                    f"trainer:{source}: exactly one authenticated party edge is required"
+                )
+            party_name = parties[0]
+            if party_name in claimed_parties:
+                raise ContentPortError(
+                    f"party:{party_name}: materialized trainer party edge is not unique"
+                )
+            claimed_parties.add(party_name)
+            party_key = ResourceKey("party", party_name)
+            party = source_records.get(party_key)
+            if party is None:
+                raise ContentPortError(
+                    f"party:{party_name}: authenticated materialized payload is missing"
+                )
+            trainer_party_projections[source] = project_standard_single_party(
+                party.value,
+                source_trainer=source,
+                party_name=party_name,
+                known_species=declared_species,
+            )
+            observed_party_rows[source] = expected_placements[source]
+        require_materialization_exact_cover(
+            trainer_materialization,
+            observed_party_rows,
+            owner="authenticated trainer party closure",
+        )
 
     for dependency in sorted(binding_dependencies):
         binding_domain = (
@@ -3913,6 +4125,13 @@ def resolve_port_sources(
         ),
         trainer_inventory=trainer_inventory,
         materialization_maps=_freeze_state(materialization_maps),
+        trainer_materialization=trainer_materialization,
+        trainer_event_projections=MappingProxyType(
+            {name: events for name, events in sorted(projected_trainer_events.items())}
+        ),
+        trainer_party_projections=MappingProxyType(
+            dict(sorted(trainer_party_projections.items()))
+        ),
     )
     return contract, state
 

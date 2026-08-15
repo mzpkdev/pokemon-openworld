@@ -54,6 +54,8 @@ PORT_KEYS = {
     "trainerPolicy",
     "expectedTrainerInventory",
 }
+TRAINER_MATERIALIZATION_KEYS = {"path", "reviewedPrefix"}
+TRAINER_MATERIALIZATION_PREFIX_KEYS = {"batchCount", "sha256"}
 DONOR_KEYS = {
     "name",
     "repository",
@@ -920,6 +922,9 @@ class PortDescriptor:
     generated_sections: tuple[GeneratedSectionPolicy, ...]
     section_metadata_authorities: tuple[SectionMetadataAuthority, ...]
     target_bindings: TargetBindings
+    trainer_materialization_path: Path | None = None
+    trainer_materialization_prefix_count: int | None = None
+    trainer_materialization_prefix_digest: str | None = None
 
     def donor(self, role: str) -> DonorPin:
         try:
@@ -1574,11 +1579,15 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     root = _object(read_json(port_path), "$")
     if port_dir.name == "johto" and "animationPolicy" not in root:
         raise ContentPortError("$.animationPolicy: required for the Johto port")
+    if port_dir.name == "johto" and "trainerMaterialization" not in root:
+        raise ContentPortError("$.trainerMaterialization: required for the Johto port")
     present_port_keys = (
         PORT_KEYS if "legacyReport" in root else PORT_KEYS - {"legacyReport"}
     )
     if "animationPolicy" in root:
         present_port_keys = present_port_keys | {"animationPolicy"}
+    if "trainerMaterialization" in root:
+        present_port_keys = present_port_keys | {"trainerMaterialization"}
     _exact_keys(root, present_port_keys, "$")
     if root["schemaVersion"] != 1:
         raise ContentPortError("$.schemaVersion: unsupported port schema")
@@ -1592,6 +1601,46 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     trainer_policy_path = _safe_child(
         port_dir, root["trainerPolicy"], "$.trainerPolicy"
     )
+    trainer_materialization_path: Path | None = None
+    trainer_materialization_prefix_count: int | None = None
+    trainer_materialization_prefix_digest: str | None = None
+    if "trainerMaterialization" in root:
+        materialization = _object(
+            root["trainerMaterialization"], "$.trainerMaterialization"
+        )
+        _exact_keys(
+            materialization,
+            TRAINER_MATERIALIZATION_KEYS,
+            "$.trainerMaterialization",
+        )
+        trainer_materialization_path = _safe_child(
+            port_dir,
+            materialization["path"],
+            "$.trainerMaterialization.path",
+        )
+        reviewed_prefix = _object(
+            materialization["reviewedPrefix"],
+            "$.trainerMaterialization.reviewedPrefix",
+        )
+        _exact_keys(
+            reviewed_prefix,
+            TRAINER_MATERIALIZATION_PREFIX_KEYS,
+            "$.trainerMaterialization.reviewedPrefix",
+        )
+        trainer_materialization_prefix_count = _integer(
+            reviewed_prefix["batchCount"],
+            "$.trainerMaterialization.reviewedPrefix.batchCount",
+            positive=True,
+        )
+        trainer_materialization_prefix_digest = _string(
+            reviewed_prefix["sha256"],
+            "$.trainerMaterialization.reviewedPrefix.sha256",
+        )
+        if not DIGEST_RE.fullmatch(trainer_materialization_prefix_digest):
+            raise ContentPortError(
+                "$.trainerMaterialization.reviewedPrefix.sha256: expected 64 "
+                "lowercase hex"
+            )
     trainer_inventory = _object(
         root["expectedTrainerInventory"], "$.expectedTrainerInventory"
     )
@@ -1805,4 +1854,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         generated_sections=generated_sections,
         section_metadata_authorities=section_metadata_authorities,
         target_bindings=target_bindings,
+        trainer_materialization_path=trainer_materialization_path,
+        trainer_materialization_prefix_count=trainer_materialization_prefix_count,
+        trainer_materialization_prefix_digest=trainer_materialization_prefix_digest,
     )
