@@ -156,6 +156,7 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
     ),
     ("bulk-fixed-standard-singles-60", 60),
     ("bulk-surf-field-standard-singles-33", 33),
+    ("bulk-ordinary-standard-singles-26", 26),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -226,7 +227,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "045b9304995172d36b761274d42f9c0015b01c46299a8357f2b96df2c4f20df0"
+    "94bfb0720c9ddaf586ea67b23f8a94a6ece3e370bd03cbcf29de54c6c3e93863"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -349,6 +350,41 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             160,
             40,
             "847dea5e27dd19089df94641639d55fcf4d47e1101d105826dfd97a6f398b847",
+        ),
+        "RuinsOfAlph_Outside": (
+            46,
+            48,
+            "f944c3b1fcd47ea59aa315d475f92eabaec1ab62b1ca6694454cbb50b7b517bf",
+        ),
+        "NationalPark_Normal": (
+            48,
+            56,
+            "e906ac04b74c5e1b4d213b726653454253a74a92c02548ab86a03f6730e09b57",
+        ),
+        "SSAqua_B1F": (
+            34,
+            16,
+            "15823f1d388f8d1cde2ad2d25a294c6e15768de73cecd7ab42e346572c83d4a8",
+        ),
+        "SSAqua_RoomNE": (
+            8,
+            10,
+            "5e0b0cb17504360236046a362014fb38a45045d3beaf46327ffef87c1784b8fd",
+        ),
+        "SSAqua_RoomNNE": (
+            8,
+            10,
+            "5e0b0cb17504360236046a362014fb38a45045d3beaf46327ffef87c1784b8fd",
+        ),
+        "SSAqua_RoomSSW": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
+        ),
+        "SSAqua_RoomSW": (
+            8,
+            11,
+            "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
         ),
     }
 )

@@ -3825,12 +3825,12 @@
     {
       "kind": "file",
       "path": "data/maps/NationalPark_Normal/map.json",
-      "sha256": "47e0fe0aee7636bce5ffe8b4a9feafd3370d9ebab6553b2b414d29413d4b9cfb"
+      "sha256": "9dffc1c575566f523060e08e9c3e25800ea977d29bd5a60370523373a70fc32a"
     },
     {
       "kind": "file",
       "path": "data/maps/NationalPark_Normal/scripts.inc",
-      "sha256": "3d7c0219e47b8dec986a6d1a10b21f23ac04baf532c946f387db9594cb18b9e3"
+      "sha256": "8e7e942b0656d48bfe57e85e04e4b715e3b6ee8dcfa5ebcedd78eb76e8192dfc"
     },
     {
       "kind": "file",
@@ -4065,12 +4065,12 @@
     {
       "kind": "file",
       "path": "data/maps/Route34/map.json",
-      "sha256": "df21f2ec4dbc1ae3c1c4db70e71dd2f142d439ae41735bcda6cdf4653b418988"
+      "sha256": "b0577fae83f26e17edb7cc25d001897aff0de1873790a3ab053a9395e2460898"
     },
     {
       "kind": "file",
       "path": "data/maps/Route34/scripts.inc",
-      "sha256": "fe2b76132596fc04b8b6ea271f34232ad63e08bb05a32bcb353dd15c00c1f60d"
+      "sha256": "1265a6d24a1a4062068f591207941a22c2a606c213cb16a0b50338eebcbe1674"
     },
     {
       "kind": "file",
@@ -4265,12 +4265,12 @@
     {
       "kind": "file",
       "path": "data/maps/RuinsOfAlph_Outside/map.json",
-      "sha256": "647e0f76fefda6ab41f37f81290082eb7de99506e59e1669492d7bb2c22a31a1"
+      "sha256": "2eefe3a6df332f080befa86b6e54b6b74732cc7f61b0b0c54b3ea8a95dd1f9de"
     },
     {
       "kind": "file",
       "path": "data/maps/RuinsOfAlph_Outside/scripts.inc",
-      "sha256": "5349c0c160fef4b1cf422777ea8b561d4615f689e6a5b134b85ecfbd347b2262"
+      "sha256": "afd65b259982ed0ea35e0ec95292edb18539baabfeeed583c5daf051ea8c567b"
     },
     {
       "kind": "file",
@@ -4325,12 +4325,12 @@
     {
       "kind": "file",
       "path": "data/maps/SSAqua_B1F/map.json",
-      "sha256": "a0409f0fad00df242305d2be5b93b384dcfdc727db07209bbb711c5b52da3851"
+      "sha256": "5d1c62d1e525d3216673559d6da89d56963b6c4953c3867c37723a50062b323c"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_B1F/scripts.inc",
-      "sha256": "e351b82502a2449c39fd49fbbbb8c87b642a3e8feabdc256768bb1dbee780af2"
+      "sha256": "49a21275f2b9e81cbb1a1d92e922b0c37e0ba8fb1a4b3f7ca5aa23e891662790"
     },
     {
       "kind": "file",
@@ -4355,22 +4355,22 @@
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomNE/map.json",
-      "sha256": "e6cd0c9649d10e1a1ea5ba4e1d71d33907310be26eb2039c224717e068c6ef1c"
+      "sha256": "23ceea3d3d13509a8e1d59cab2ba5b557198b54b1c7c9faf9624b6767058017c"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomNE/scripts.inc",
-      "sha256": "4455367d2475d6a9f5a1ff4e5e880edf60fbfe6553d0a712e39c5ebede4b2744"
+      "sha256": "b1550cff123d56bd40d150d3a97a4f8e7152ed4fc37fa0346c05615edd3ab543"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomNNE/map.json",
-      "sha256": "1dd660f1bd09a96f1f32438ad2df26c2d1ea75fa84aa5a4bccd29cf756caf57e"
+      "sha256": "74f5b9735f631535e58b254897e97047b9f0c773ef4a6e4a455f8cc596fcbc1a"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomNNE/scripts.inc",
-      "sha256": "b105488cd6aababbaecaa3979b2017f8f4b01b219dedd7bf384a9989bd839ce8"
+      "sha256": "d900ea6307280961b7cb5c5f4a099cc767358283ee342fcdbe5f522a7345a12f"
     },
     {
       "kind": "file",
@@ -4405,22 +4405,22 @@
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSSW/map.json",
-      "sha256": "73a273d5cb94a9f6a35abf5fd440a64b369b8f6c95d35a4a0cee0bd99d72a45d"
+      "sha256": "b208e2e907f98d548b9c043cb442c89b8b244053a8c6d3ef506c6cdc1acacc7d"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSSW/scripts.inc",
-      "sha256": "9179f68dfbd2544fdd1002e1e0b43b97845f7c9caf264e7c131989d7fd0faec5"
+      "sha256": "44803f04cc120dce90a74d26b2393123922f3c531d89305e5554ee4d9ddfe45a"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSW/map.json",
-      "sha256": "07bdcb5aa9b058d3395a71be08104e15b0485c12347da3ed03fecaf50cb5502d"
+      "sha256": "10269e150b753fb404c30b6a84465e4648e836cee73603e8697eb263cdea48ce"
     },
     {
       "kind": "file",
       "path": "data/maps/SSAqua_RoomSW/scripts.inc",
-      "sha256": "35d56bda7918585558576795672db3a4b4f3a466b1407a2bf853a474a9938a48"
+      "sha256": "21a21c43625f579b19a35240fe766c09ffbc913d4292d4d54d25fb5227529495"
     },
     {
       "kind": "file",
@@ -13879,7 +13879,7 @@
       "kind": "section",
       "name": "selected trainer parties",
       "path": "src/data/trainers.party",
-      "sha256": "5ab45ef2bab036a243725f0d28150056bd7309d6f30c666657efc6a5801a14be"
+      "sha256": "e0a1098bb60965f41436e49ea8832c241d3387b8dddbd5b2e410e3757da07209"
     }
   ]
 }

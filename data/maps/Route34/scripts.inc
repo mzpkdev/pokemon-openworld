@@ -67,6 +67,54 @@ Route34_Text_YoungsterIan_After:
 	.string "I'm trying hard so I can be the\n"
 	.string "star in my class.$"
 
+Route34_EventScript_Jenn::
+	trainerbattle_single TRAINER_COOLTRAINER_JENN_JOHTO, Route34_Text_CooltrainerJenn_Seen, Route34_Text_CooltrainerJenn_Beaten
+	msgbox Route34_Text_CooltrainerJenn_After2, MSGBOX_AUTOCLOSE
+	end
+
+Route34_Text_CooltrainerJenn_Seen:
+	.string "JENN: What the...?\n"
+	.string "What are you doing?$"
+
+Route34_Text_CooltrainerJenn_Beaten:
+	.string "JENN: So sorry, IRENE! Dear Sis!$"
+
+Route34_Text_CooltrainerJenn_After2:
+	.string "JENN: Sunlight makes your body\n"
+	.string "stronger.$"
+
+Route34_EventScript_Irene::
+	trainerbattle_single TRAINER_COOLTRAINER_IRENE_JOHTO, Route34_Text_CooltrainerIrene_Seen, Route34_Text_CooltrainerIrene_Beaten
+	msgbox Route34_Text_CooltrainerIrene_After2, MSGBOX_AUTOCLOSE
+	end
+
+Route34_Text_CooltrainerIrene_Seen:
+	.string "IRENE: Who are you?!$"
+
+Route34_Text_CooltrainerIrene_Beaten:
+	.string "IRENE: Ohhh! You're too strong!$"
+
+Route34_Text_CooltrainerIrene_After2:
+	.string "IRENE: Isn't this beach great?\p"
+	.string "It's our secret little getaway!$"
+
+Route34_EventScript_Kate::
+	trainerbattle_single TRAINER_COOLTRAINER_KATE_JOHTO, Route34_Text_CooltrainerKate_Seen, Route34_Text_CooltrainerKate_Beaten
+	msgbox Route34_Text_CooltrainerKate_After, MSGBOX_AUTOCLOSE
+	end
+
+Route34_Text_CooltrainerKate_Seen:
+	.string "KATE: I must pay you back for\n"
+	.string "taking care of my sisters!$"
+
+Route34_Text_CooltrainerKate_Beaten:
+	.string "KATE: No! I can't believe I lost.$"
+
+Route34_Text_CooltrainerKate_After:
+	.string "KATE: I'm sorry we jumped you.\p"
+	.string "We never expected anyone to find\n"
+	.string "us here. You sure startled us.$"
+
 Route34_EventScript_PicnickerGina::
 	trainerbattle_single TRAINER_PICNICKER_GINA_JOHTO, Route34_Text_PicnickerGina_Seen, Route34_Text_PicnickerGina_Beaten
 	msgbox Route34_Text_PicnickerGina_After, MSGBOX_AUTOCLOSE

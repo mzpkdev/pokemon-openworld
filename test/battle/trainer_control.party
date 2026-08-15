@@ -1996,3 +1996,453 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 SPECIES_SEADRA
 Level: 27
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_BEAUTY_CASSIE_JOHTO ===
+Name: CASSIE
+Class: Beauty
+Pic: Beauty
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_VILEPLUME
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_JYNX
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_BLACK_BELT_WAI_JOHTO ===
+Name: WAI
+Class: Black Belt
+Pic: Black Belt
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MACHAMP
+Level: 56
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHOKE
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHAMP
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_BUG_CATCHER_KEN_JOHTO ===
+Name: KEN
+Class: Bug Catcher
+Pic: Bug Catcher
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_ARIADOS
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_PINSIR
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_CAROL_JOHTO ===
+Name: CAROL
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_ELECTRODE
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STARMIE
+Level: 61
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NINETALES
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_IRENE_JOHTO ===
+Name: IRENE
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GOLDEEN
+Level: 22
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_SEAKING
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_JENN_JOHTO ===
+Name: JENN
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_STARYU
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STARMIE
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_KATE_JOHTO ===
+Name: KATE
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SHELLDER
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_CLOYSTER
+Level: 28
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_SEAN_JOHTO ===
+Name: SEAN
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_FLAREON
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TANGELA
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TAUROS
+Level: 60
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_EXPERT_SHIRLEY_JOHTO ===
+Name: SHIRLEY
+Class: Expert
+Pic: Expert F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_JIGGLYPUFF
+Level: 61
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_WIGGLYTUFF
+Level: 63
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_FIREBREATHER_LYLE_JOHTO ===
+Name: LYLE
+Class: Firebreather Johto
+Pic: Firebreather HG
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_WEEZING
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_FLAREON
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NINETALES
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_FISHERMAN_JONAH_JOHTO ===
+Name: JONAH
+Class: Fisherman
+Pic: Fisherman
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SHELLDER
+Level: 55
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_OCTILLERY
+Level: 59
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_REMORAID
+Level: 55
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_CLOYSTER
+Level: 59
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_GUITARIST_CLYDE_JOHTO ===
+Name: CLYDE
+Class: Guitarist
+Pic: Guitarist
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_ELECTABUZZ
+Level: 61
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_NOLAND_JOHTO ===
+Name: NOLAND
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SANDSLASH
+Level: 55
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 55
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_JUGGLER_FRITZ_JOHTO ===
+Name: FRITZ
+Class: Juggler Johto
+Pic: Juggler FRLG
+Gender: Male
+Music: Suspicious
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MR_MIME
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MAGMAR
+Level: 54
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHOKE
+Level: 56
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_LASS_KRISE_JOHTO ===
+Name: KRISE
+Class: Lass
+Pic: Lass
+Gender: Female
+Music: Girl
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SKIPLOOM
+Level: 17
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_CUBONE
+Level: 16
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PARASOL_LADY_BEVERLY_JOHTO ===
+Name: BEVERLY
+Class: Parasol Lady
+Pic: Parasol Lady
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SNUBBULL
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PICNICKER_DEBRA_JOHTO ===
+Name: DEBRA
+Class: Picnicker
+Pic: Picnicker
+Gender: Female
+Music: Girl
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SEAKING
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_POKEFAN_WILLIAM_JOHTO ===
+Name: WILLIAM
+Class: Pokefan
+Pic: Pokefan M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_RAICHU
+Level: 15
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_POKEMANIAC_ETHAN_JOHTO ===
+Name: ETHAN
+Class: Pokemaniac
+Pic: Pokemaniac
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_HAUNTER
+Level: 61
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_RHYDON
+Level: 61
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PSYCHIC_M_NATHAN_JOHTO ===
+Name: NATHAN
+Class: Psychic M Johto
+Pic: Psychic M HG
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GIRAFARIG
+Level: 26
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SAILOR_GARRETT_JOHTO ===
+Name: GARRETT
+Class: Sailor
+Pic: Sailor
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_KINGLER
+Level: 64
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SAILOR_KENNETH_JOHTO ===
+Name: KENNETH
+Class: Sailor
+Pic: Sailor
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MACHOP
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHOKE
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_POLIWRATH
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHAMP
+Level: 58
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SCHOOL_KID_JACK_JOHTO ===
+Name: JACK
+Class: School Kid
+Pic: School Kid M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_SUNFLORA
+Level: 16
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_VOLTORB
+Level: 17
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SCHOOL_KID_NATE_JOHTO ===
+Name: NATE
+Class: School Kid
+Pic: School Kid M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_LEDIAN
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_EXEGGUTOR
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SCHOOL_KID_RICKY_JOHTO ===
+Name: RICKY
+Class: School Kid
+Pic: School Kid M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_AIPOM
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DITTO
+Level: 62
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_SUPER_NERD_STAN_JOHTO ===
+Name: STAN
+Class: Super Nerd Johto
+Pic: Super Nerd HG
+Gender: Male
+Music: Suspicious
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GRIMER
+Level: 20
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe

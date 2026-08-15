@@ -332,7 +332,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(result.batches[-1].key, "bulk-surf-field-standard-singles-33")
+        self.assertEqual(result.batches[-1].key, "bulk-ordinary-standard-singles-26")
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []

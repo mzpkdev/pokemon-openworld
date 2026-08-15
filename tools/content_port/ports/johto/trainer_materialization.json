@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "appendOnlyBaseline": {
-    "batchCount": 5,
-    "sha256": "93fc130df7627e19e69b0fe9a5b12119133e4db5f16db04d5b162d619a74dae6"
+    "batchCount": 6,
+    "sha256": "fe29281cfe4dd45a934dcf0d8788d8407d53f5e8796332bc5cc1c004a8bbd55e"
   },
   "batches": [
     {
@@ -630,6 +630,169 @@
           "identity": "TRAINER_SCOTT",
           "placements": [
             "Route27/9/Route27_EventScript_Scott"
+          ]
+        }
+      ]
+    },
+    {
+      "sequence": 5,
+      "key": "bulk-ordinary-standard-singles-26",
+      "kind": "standard-singles",
+      "identities": [
+        {
+          "identity": "TRAINER_NATHAN",
+          "placements": [
+            "RuinsOfAlph_Outside/0/RuinsOfAlph_Outside_EventScript_Nathan"
+          ]
+        },
+        {
+          "identity": "TRAINER_STAN",
+          "placements": [
+            "RuinsOfAlph_Outside/1/RuinsOfAlph_Outside_EventScript_Stan"
+          ]
+        },
+        {
+          "identity": "TRAINER_JENN",
+          "placements": [
+            "Route34/4/Route34_EventScript_Jenn"
+          ]
+        },
+        {
+          "identity": "TRAINER_IRENE",
+          "placements": [
+            "Route34/5/Route34_EventScript_Irene"
+          ]
+        },
+        {
+          "identity": "TRAINER_KATE",
+          "placements": [
+            "Route34/6/Route34_EventScript_Kate"
+          ]
+        },
+        {
+          "identity": "TRAINER_BEVERLY",
+          "placements": [
+            "NationalPark_Normal/5/NationalPark_Normal_EventScript_Beverly"
+          ]
+        },
+        {
+          "identity": "TRAINER_JACK",
+          "placements": [
+            "NationalPark_Normal/6/NationalPark_Normal_EventScript_Jack"
+          ]
+        },
+        {
+          "identity": "TRAINER_KRISE",
+          "placements": [
+            "NationalPark_Normal/7/NationalPark_Normal_EventScript_Krise"
+          ]
+        },
+        {
+          "identity": "TRAINER_WILLIAM",
+          "placements": [
+            "NationalPark_Normal/8/NationalPark_Normal_EventScript_William"
+          ]
+        },
+        {
+          "identity": "TRAINER_WAI",
+          "placements": [
+            "SSAqua_B1F/0/SSAqua_B1F_EventScript_Wai"
+          ]
+        },
+        {
+          "identity": "TRAINER_NATE",
+          "placements": [
+            "SSAqua_B1F/1/SSAqua_B1F_EventScript_Nate"
+          ]
+        },
+        {
+          "identity": "TRAINER_SHIRLEY",
+          "placements": [
+            "SSAqua_B1F/2/SSAqua_B1F_EventScript_Shirley"
+          ]
+        },
+        {
+          "identity": "TRAINER_RICKY",
+          "placements": [
+            "SSAqua_B1F/3/SSAqua_B1F_EventScript_Ricky"
+          ]
+        },
+        {
+          "identity": "TRAINER_DEBRA",
+          "placements": [
+            "SSAqua_B1F/4/SSAqua_B1F_EventScript_Debra"
+          ]
+        },
+        {
+          "identity": "TRAINER_KENNETH",
+          "placements": [
+            "SSAqua_B1F/5/SSAqua_B1F_EventScript_Kenneth"
+          ]
+        },
+        {
+          "identity": "TRAINER_JONAH",
+          "placements": [
+            "SSAqua_B1F/7/SSAqua_B1F_EventScript_Jonah"
+          ]
+        },
+        {
+          "identity": "TRAINER_FRITZ",
+          "placements": [
+            "SSAqua_B1F/8/SSAqua_B1F_EventScript_Fritz"
+          ]
+        },
+        {
+          "identity": "TRAINER_GARRETT",
+          "placements": [
+            "SSAqua_B1F/10/SSAqua_B1F_EventScript_Garrett"
+          ]
+        },
+        {
+          "identity": "TRAINER_NOLAND",
+          "placements": [
+            "SSAqua_RoomNE/0/SSAqua_RoomNE_EventScript_Noland"
+          ]
+        },
+        {
+          "identity": "TRAINER_ETHAN",
+          "placements": [
+            "SSAqua_RoomNE/1/SSAqua_RoomNE_EventScript_Ethan"
+          ]
+        },
+        {
+          "identity": "TRAINER_CAROL",
+          "placements": [
+            "SSAqua_RoomNNE/0/SSAqua_RoomNNE_EventScript_Carol"
+          ]
+        },
+        {
+          "identity": "TRAINER_SEAN",
+          "placements": [
+            "SSAqua_RoomNNE/1/SSAqua_RoomNNE_EventScript_Sean"
+          ]
+        },
+        {
+          "identity": "TRAINER_LYLE",
+          "placements": [
+            "SSAqua_RoomSSW/0/SSAqua_RoomSSW_EventScript_Lyle"
+          ]
+        },
+        {
+          "identity": "TRAINER_KEN",
+          "placements": [
+            "SSAqua_RoomSSW/1/SSAqua_RoomSSW_EventScript_Ken"
+          ]
+        },
+        {
+          "identity": "TRAINER_CASSIE",
+          "placements": [
+            "SSAqua_RoomSW/0/SSAqua_RoomSW_EventScript_Cassie"
+          ]
+        },
+        {
+          "identity": "TRAINER_CLYDE",
+          "placements": [
+            "SSAqua_RoomSW/1/SSAqua_RoomSW_EventScript_Clyde"
           ]
         }
       ]
