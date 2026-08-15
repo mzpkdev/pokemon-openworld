@@ -307,6 +307,34 @@ TEST("Ordinary Johto bulk trainer samples resolve registered normal parties")
     }
 }
 
+TEST("Route 45 and Route 46 trainer samples resolve registered normal parties")
+{
+    static const u16 trainerIds[] =
+    {
+        TRAINER_HIKER_ERIK_JOHTO,
+        TRAINER_COOLTRAINER_KELLY_JOHTO,
+        TRAINER_CAMPER_TED_JOHTO,
+        TRAINER_HIKER_BAILEY_JOHTO,
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(trainerIds); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            trainerIds[i],
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT(resolved.trainer.party != NULL);
+        EXPECT(resolved.trainer.partySize > 0);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(trainerIds[i]).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
 {
     struct ResolvedOrdinaryTrainer resolved;

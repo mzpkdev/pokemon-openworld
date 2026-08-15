@@ -157,6 +157,7 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
     ("bulk-fixed-standard-singles-60", 60),
     ("bulk-surf-field-standard-singles-33", 33),
     ("bulk-ordinary-standard-singles-26", 26),
+    ("bulk-route45-route46-standard-singles-11", 11),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -227,7 +228,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "94bfb0720c9ddaf586ea67b23f8a94a6ece3e370bd03cbcf29de54c6c3e93863"
+    "12c92a3c631bab0dabbefe49d3729a96953fb265d6fe7e62846615d692b2d0a0"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -385,6 +386,16 @@ _REVIEWED_FIXED_MAPS = MappingProxyType(
             8,
             11,
             "c684b5b57d33200ecb47e00c062aff1aa8fa45825253056b97f4cfe0ae20d99b",
+        ),
+        "Route45": (
+            46,
+            100,
+            "e77b6437c413aa4eedc72312652c5dddbf53442e867e665bc0a2cd0d6e8a8193",
+        ),
+        "Route46": (
+            27,
+            46,
+            "58c9c6bf3f61605675043509cdc99dedc7403a57288677d5f87a52676f642289",
         ),
     }
 )

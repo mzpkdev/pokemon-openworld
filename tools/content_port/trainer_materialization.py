@@ -34,7 +34,7 @@ class ReviewedMaterializationPrefix:
 
 
 PRODUCTION_REVIEWED_PREFIX = ReviewedMaterializationPrefix(
-    6, "fe29281cfe4dd45a934dcf0d8788d8407d53f5e8796332bc5cc1c004a8bbd55e"
+    7, "cb499c77993df896c441b997605b67d421b31d2a52a493f4bbb4d4dc40ea85a6"
 )
 
 

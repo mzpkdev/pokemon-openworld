@@ -2446,3 +2446,262 @@ AI: Check Bad Move
 SPECIES_GRIMER
 Level: 20
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_BLACK_BELT_KENJI_JOHTO ===
+Name: KENJI
+Class: Black Belt
+Pic: Black Belt
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_ONIX
+Level: 33
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MACHAMP
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STEELIX
+Level: 33
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_HITMONLEE
+Level: 36
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_CAMPER_QUENTIN_JOHTO ===
+Name: QUENTIN
+Class: Camper
+Pic: Camper
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_FEAROW
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_PRIMEAPE
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TAUROS
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_RAICHU
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_CAMPER_TED_JOHTO ===
+Name: TED
+Class: Camper
+Pic: Camper
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_URSARING
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_PRIMEAPE
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NIDOKING
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_KELLY_JOHTO ===
+Name: KELLY
+Class: Cooltrainer
+Pic: Cooltrainer F
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_TOGETIC
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_AMPHAROS
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_TANGELA
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_BLASTOISE
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_COOLTRAINER_RYAN_JOHTO ===
+Name: RYAN
+Class: Cooltrainer
+Pic: Cooltrainer M
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_PIDGEOT
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_ELECTABUZZ
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_MAGMAR
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_BAILEY_JOHTO ===
+Name: BAILEY
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_GOLEM
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_ERIK_JOHTO ===
+Name: ERIK
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_MACHOKE
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_KANGASKHAN
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_MICHAEL_JOHTO ===
+Name: MICHAEL
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_RHYHORN
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DONPHAN
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GOLEM
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_PARRY_JOHTO ===
+Name: PARRY
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_PILOSWINE
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DUGTRIO
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_STEELIX
+Level: 48
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_HIKER_TIMOTHY_JOHTO ===
+Name: TIMOTHY
+Class: Hiker
+Pic: Hiker
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_DUGTRIO
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GLIGAR
+Level: 39
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_GRAVELER
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_DUGTRIO
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_PICNICKER_ERIN_JOHTO ===
+Name: ERIN
+Class: Picnicker
+Pic: Picnicker
+Gender: Female
+Music: Girl
+Double Battle: No
+AI: Check Bad Move
+
+SPECIES_RAPIDASH
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_NIDOQUEEN
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_RAICHU
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+SPECIES_RAPIDASH
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
