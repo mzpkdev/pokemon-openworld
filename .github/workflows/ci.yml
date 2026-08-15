@@ -84,8 +84,8 @@ jobs:
         run: |
           if [[ "$EVENT_NAME" != pull_request ]]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "$BASE_SHA"...HEAD -- \
-            | grep -Eq '^(\.github/workflows/ci\.yml$|Makefile$|tools/content_port/)'; then
+          elif git diff --name-only --no-renames -z "$BASE_SHA"...HEAD -- \
+            | python3 -m tools.content_port.ci_scope; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           else
             echo 'run=false' >> "$GITHUB_OUTPUT"
@@ -93,7 +93,7 @@ jobs:
 
       - name: Skip donor-backed contracts for unrelated changes
         if: steps.donor-scope.outputs.run != 'true'
-        run: echo 'No importer contracts changed; donor-backed checks are not required.'
+        run: echo 'No donor-contract inputs changed; donor-backed checks are not required.'
 
       - name: Checkout HnS content authority
         if: steps.donor-scope.outputs.run == 'true'
