@@ -147,6 +147,32 @@ TEST("Eugene resolves his authored normal party without legacy defeat flag or re
         TRAINER_REMATCH_BINDING_NONE);
 }
 
+TEST("Wade resolves his authored normal party without legacy defeat flag or rematch state")
+{
+    struct ResolvedOrdinaryTrainer resolved;
+    u16 defeatFlag = TRAINER_NONE;
+
+    EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        DIFFICULTY_HARD,
+        &resolved));
+    EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+    EXPECT_EQ((u32)resolved.trainer.partySize, 2);
+    EXPECT_EQ(resolved.trainer.party[0].species, SPECIES_WEEDLE);
+    EXPECT_EQ((u32)resolved.trainer.party[0].lvl, 4);
+    EXPECT_EQ((u32)resolved.trainer.party[0].iv, 0);
+    EXPECT_EQ(resolved.trainer.party[1].species, SPECIES_PINECO);
+    EXPECT_EQ((u32)resolved.trainer.party[1].lvl, 5);
+    EXPECT_EQ((u32)resolved.trainer.party[1].iv, 0);
+    EXPECT(!PersistentId_GetTrainerDefeatFlag(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        &defeatFlag));
+    EXPECT_EQ(defeatFlag, TRAINER_NONE);
+    EXPECT_EQ(
+        TrainerRematch_GetBinding(TRAINER_BUG_CATCHER_WADE_JOHTO).kind,
+        TRAINER_REMATCH_BINDING_NONE);
+}
+
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
 {
     struct ResolvedOrdinaryTrainer resolved;

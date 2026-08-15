@@ -23,8 +23,10 @@ from tools.content_port.sources import (
     resolve_port_sources,
     validate_port_sources,
     _automatic_unreachable_shells,
+    _authenticate_route31_wade_geometry,
     _authenticated_trainer_inventory,
     _semantic_record_digest,
+    _require_trainer_geometry_adapter,
     _trainer_class_money,
     _trainerproc_constant,
     _validate_overworld_graphic_rule,
@@ -935,10 +937,15 @@ class SourceGraphTests(unittest.TestCase):
                 self.fail("required donor checkouts are missing")
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
-        _, state = resolve_port_sources(
-            replace(descriptor, legacy_report=None),
-            Path("."),
-        )
+        with patch(
+            "tools.content_port.sources._authenticate_route31_wade_geometry",
+            wraps=_authenticate_route31_wade_geometry,
+        ) as geometry_gate:
+            _, state = resolve_port_sources(
+                replace(descriptor, legacy_report=None),
+                Path("."),
+            )
+        geometry_gate.assert_called_once()
         expected = {
             ResourceKey("trainer", "TRAINER_EUGENE"),
             ResourceKey("party", "sParty_Eugene"),
@@ -953,17 +960,67 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("trainer-class", "TRAINER_CLASS_YOUNGSTER"),
             ResourceKey("asset", "TRAINER_PIC_YOUNGSTER"),
             ResourceKey("service", "Route34_EventScript_YoungsterSamuel"),
+            ResourceKey("trainer", "TRAINER_WADE"),
+            ResourceKey("party", "sParty_Wade"),
+            ResourceKey("species", "SPECIES_WEEDLE"),
+            ResourceKey("species", "SPECIES_PINECO"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_BUG_CATCHER"),
+            ResourceKey("asset", "TRAINER_PIC_BUG_CATCHER"),
+            ResourceKey("service", "Route31_EventScript_Bugcatcher_Wade"),
         }
         self.assertTrue(expected <= set(state.resources))
         self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
         self.assertNotIn(ResourceKey("trainer", "TRAINER_KEITH"), state.resources)
-        self.assertNotIn(ResourceKey("trainer", "TRAINER_WADE"), state.resources)
         wade = next(
             identity
             for identity in state.trainer_inventory.identities
             if identity.trainer == "TRAINER_WADE"
         )
         self.assertIsNotNone(wade.projection)
+        self.assertEqual(state.trainer_events["Route31"][0].trainers, ("TRAINER_WADE",))
+        self.assertEqual(
+            state.trainer_event_projections["Route31"][0]
+            .event.instructions[0]
+            .operands[0],
+            "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        )
+        self.assertEqual(
+            state.trainer_party_projections["TRAINER_WADE"].party_name,
+            "sParty_Wade",
+        )
+        self.assertEqual(
+            tuple(
+                (member.species, member.level, member.iv)
+                for member in state.trainer_party_projections["TRAINER_WADE"].members
+            ),
+            (("SPECIES_WEEDLE", 4, 0), ("SPECIES_PINECO", 5, 0)),
+        )
+        route31_event = state.trainer_events["Route31"][0]
+        drifted_object = dict(route31_event.object_event)
+        drifted_object["x"] = 28
+        with self.assertRaisesRegex(ContentPortError, "donor object drifted"):
+            _authenticate_route31_wade_geometry(
+                descriptor,
+                Path("."),
+                ExpansionSourceContext(donor_root / "pokemonHnS"),
+                state.maps,
+                {
+                    "LAYOUT_ROUTE31": SourceRecord(
+                        state.layouts["LAYOUT_ROUTE31"], Provenance("fixture")
+                    )
+                },
+                {"Route31": (replace(route31_event, object_event=drifted_object),)},
+            )
+        self.assertIsNotNone(state.trainer_materialization)
+        future = replace(
+            state.trainer_materialization,
+            batches=(
+                *state.trainer_materialization.batches[:-1],
+                replace(state.trainer_materialization.batches[-1], key="future"),
+            ),
+        )
+        with self.assertRaisesRegex(ContentPortError, "geometry adapter"):
+            _require_trainer_geometry_adapter(future)
         eugene = state.semantic_values[ResourceKey("trainer", "TRAINER_EUGENE")]
         self.assertEqual(
             eugene,
@@ -1367,6 +1424,7 @@ class SourceGraphTests(unittest.TestCase):
                 "include/constants/trainers.h",
                 "include/constants/battle_ai.h",
                 "include/constants/event_objects.h",
+                "include/constants/global.h",
                 "src/battle_main.c",
             ):
                 source_authority = Path(authority)

@@ -7,8 +7,8 @@
   "trainerMaterialization": {
     "path": "trainer_materialization.json",
     "reviewedPrefix": {
-      "batchCount": 1,
-      "sha256": "7dc0cdbee3a86a518a7910679a0d108610cfb822c41b7077082097fcbd2104c1"
+      "batchCount": 2,
+      "sha256": "02caa17a1a03ca59cbfbab9c4d3a1d5c9761d11cbf3c11ea4e4146117f670e28"
     }
   },
   "adaptations": "adaptations.json",

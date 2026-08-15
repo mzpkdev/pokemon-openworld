@@ -527,6 +527,41 @@ class InstalledCorridorTests(unittest.TestCase):
         )
         self.assertIn("msgbox Route39_Text_SailorEugeneAfter, MSGBOX_AUTOCLOSE", script)
 
+    def test_route31_installs_wade_as_compact_local_id_one(self) -> None:
+        document = _map("Route31")
+        self.assertEqual(
+            document["object_events"],
+            [
+                {
+                    "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                    "x": 27,
+                    "y": 10,
+                    "elevation": 0,
+                    "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                    "movement_range_x": 0,
+                    "movement_range_y": 3,
+                    "trainer_type": "TRAINER_TYPE_NORMAL",
+                    "trainer_sight_or_berry_tree_id": "3",
+                    "script": "Route31_EventScript_Bugcatcher_Wade",
+                    "flag": "0",
+                }
+            ],
+        )
+        script = (ROOT / "data/maps/Route31/scripts.inc").read_text()
+        self.assertEqual(
+            re.findall(r"^Route31_EventScript_([A-Za-z0-9_]+)::", script, re.MULTILINE),
+            ["Bugcatcher_Wade"],
+        )
+        self.assertIn(
+            "trainerbattle_single TRAINER_BUG_CATCHER_WADE_JOHTO, "
+            "Route31_Text_BugCatcherWade1_Seen, "
+            "Route31_Text_BugCatcherWade1_Beaten",
+            script,
+        )
+        self.assertIn(
+            "msgbox Route31_Text_BugCatcherWade1_After, MSGBOX_AUTOCLOSE", script
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

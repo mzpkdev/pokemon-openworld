@@ -67,6 +67,19 @@ TEST("Eugene owns the next stable trainer identity and bitmap defeat bit")
     EXPECT_EQ(binding.bit, 0);
 }
 
+TEST("Wade owns his stable trainer identity and bitmap defeat bit")
+{
+    struct TrainerDefeatBinding binding;
+
+    EXPECT_EQ(TRAINER_BUG_CATCHER_WADE_JOHTO, 1570);
+    EXPECT(PersistentId_GetTrainerDefeatBinding(
+        TRAINER_BUG_CATCHER_WADE_JOHTO,
+        &binding));
+    EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+    EXPECT_EQ(binding.id, 89);
+    EXPECT_EQ(binding.bit, 0);
+}
+
 TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
 {
     struct TrainerDefeatBinding binding;

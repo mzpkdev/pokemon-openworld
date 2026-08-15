@@ -232,6 +232,31 @@ class MaterializeTests(unittest.TestCase):
             script["events"][0]["instructions"][0]["operands"][0],
             "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
         )
+        route31 = map_units["map:Route31"].value
+        self.assertEqual(
+            route31["object_events"],
+            [
+                {
+                    "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                    "x": 27,
+                    "y": 10,
+                    "elevation": 0,
+                    "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                    "movement_range_x": 0,
+                    "movement_range_y": 3,
+                    "trainer_type": "TRAINER_TYPE_NORMAL",
+                    "trainer_sight_or_berry_tree_id": "3",
+                    "script": "Route31_EventScript_Bugcatcher_Wade",
+                    "flag": "0",
+                }
+            ],
+        )
+        route31_script = map_units["map-script:Route31"].value
+        self.assertEqual(len(route31_script["events"]), 1)
+        self.assertEqual(
+            route31_script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_BUG_CATCHER_WADE_JOHTO",
+        )
         route39 = map_units["map:Route39"].value
         self.assertEqual(len(route39["object_events"]), 1)
         self.assertEqual(
@@ -271,6 +296,11 @@ class MaterializeTests(unittest.TestCase):
             for trainer in trainer_units[0].value
             if trainer["target"] == "TRAINER_YOUNGSTER_SAMUEL_JOHTO"
         )
+        wade = next(
+            trainer
+            for trainer in trainer_units[0].value
+            if trainer["target"] == "TRAINER_BUG_CATCHER_WADE_JOHTO"
+        )
         self.assertEqual(
             (samuel["class"], samuel["pic"], samuel["music"]),
             ("Youngster", "Youngster", "Male"),
@@ -307,6 +337,20 @@ class MaterializeTests(unittest.TestCase):
         self.assertEqual(
             [member["species"] for member in parties["TRAINER_YOUNGSTER_SAMUEL_JOHTO"]],
             ["SPECIES_TEDDIURSA", "SPECIES_SANDSHREW", "SPECIES_SPEAROW"],
+        )
+        self.assertEqual(
+            {key: wade[key] for key in ("name", "class", "pic", "gender", "music")},
+            {
+                "name": "WADE",
+                "class": "Bug Catcher",
+                "pic": "Bug Catcher",
+                "gender": "Male",
+                "music": "Male",
+            },
+        )
+        self.assertEqual(
+            [member["species"] for member in parties["TRAINER_BUG_CATCHER_WADE_JOHTO"]],
+            ["SPECIES_WEEDLE", "SPECIES_PINECO"],
         )
         missing_route39 = MappingProxyType(
             {

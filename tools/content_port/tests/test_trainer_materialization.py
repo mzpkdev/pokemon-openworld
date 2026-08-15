@@ -24,6 +24,7 @@ from tools.content_port.trainer_inventory import (
 )
 from tools.content_port.trainer_materialization import (
     PRODUCTION_REVIEWED_PREFIX,
+    ReviewedMaterializationPrefix,
     candidate_reviewed_prefix,
     load_trainer_materialization,
     materialized_placements,
@@ -39,6 +40,9 @@ POLICY = PORT / "trainer_materialization.json"
 SAMUEL_PLACEMENT = "Route34/0/Route34_EventScript_YoungsterSamuel"
 EUGENE_PLACEMENT = "Route39/4/Route39_EventScript_Eugene"
 WADE_PLACEMENT = "Route31/0/Route31_EventScript_Bugcatcher_Wade"
+SEEDED_REVIEWED_PREFIX = ReviewedMaterializationPrefix(
+    1, "7dc0cdbee3a86a518a7910679a0d108610cfb822c41b7077082097fcbd2104c1"
+)
 
 
 def projection(target: str) -> TrainerProjection:
@@ -163,17 +167,13 @@ def document() -> dict:
     return json.loads(POLICY.read_text(encoding="utf-8"))
 
 
-def append_wade(value: dict) -> None:
-    value["batches"].append(
-        {
-            "sequence": 1,
-            "key": "route31-wade",
-            "kind": "standard-singles",
-            "identities": [
-                {"identity": "TRAINER_WADE", "placements": [WADE_PLACEMENT]}
-            ],
-        }
-    )
+def pending_wade_document() -> dict:
+    value = document()
+    value["appendOnlyBaseline"] = {
+        "batchCount": SEEDED_REVIEWED_PREFIX.batch_count,
+        "sha256": SEEDED_REVIEWED_PREFIX.sha256,
+    }
+    return value
 
 
 class TrainerMaterializationTests(unittest.TestCase):
@@ -182,13 +182,19 @@ class TrainerMaterializationTests(unittest.TestCase):
             document(), inventory(), allocations()
         )
         self.assertEqual(result.baseline_digest, PRODUCTION_REVIEWED_PREFIX.sha256)
-        self.assertEqual(result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE"))
-        self.assertEqual(result.placement_names, (SAMUEL_PLACEMENT, EUGENE_PLACEMENT))
+        self.assertEqual(
+            result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE")
+        )
+        self.assertEqual(
+            result.placement_names,
+            (SAMUEL_PLACEMENT, EUGENE_PLACEMENT, WADE_PLACEMENT),
+        )
         self.assertEqual(
             dict(materialized_targets(result)),
             {
                 "TRAINER_SAMUEL": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
                 "TRAINER_EUGENE": "TRAINER_SAILOR_EUGENE_JOHTO",
+                "TRAINER_WADE": "TRAINER_BUG_CATCHER_WADE_JOHTO",
             },
         )
         with self.assertRaises(TypeError):
@@ -198,7 +204,6 @@ class TrainerMaterializationTests(unittest.TestCase):
 
     def test_external_review_can_freeze_every_landed_batch(self) -> None:
         value = document()
-        append_wade(value)
         reviewed = candidate_reviewed_prefix(value["batches"])
         value["appendOnlyBaseline"] = {
             "batchCount": reviewed.batch_count,
@@ -222,7 +227,12 @@ class TrainerMaterializationTests(unittest.TestCase):
                 reviewed_prefix=reviewed,
             )
         with self.assertRaisesRegex(ContentPortError, "prefix count drifted"):
-            validate_trainer_materialization_document(value, inventory(), allocations())
+            validate_trainer_materialization_document(
+                value,
+                inventory(),
+                allocations(),
+                reviewed_prefix=SEEDED_REVIEWED_PREFIX,
+            )
 
     def test_reviewed_prefix_cannot_be_removed_reordered_or_changed(self) -> None:
         for mutation in (
@@ -243,10 +253,12 @@ class TrainerMaterializationTests(unittest.TestCase):
                     )
 
     def test_appended_batches_are_unique_contiguous_and_nonempty(self) -> None:
-        valid = document()
-        append_wade(valid)
+        valid = pending_wade_document()
         result = validate_trainer_materialization_document(
-            valid, inventory(), allocations()
+            valid,
+            inventory(),
+            allocations(),
+            reviewed_prefix=SEEDED_REVIEWED_PREFIX,
         )
         self.assertEqual(result.batches[-1].key, "route31-wade")
 
@@ -281,25 +293,36 @@ class TrainerMaterializationTests(unittest.TestCase):
                 mutation(value)
                 with self.assertRaisesRegex(ContentPortError, message):
                     validate_trainer_materialization_document(
-                        value, inventory(), allocations()
+                        value,
+                        inventory(),
+                        allocations(),
+                        reviewed_prefix=SEEDED_REVIEWED_PREFIX,
                     )
 
     def test_identity_requires_exact_placements_and_unique_ownership(self) -> None:
-        value = document()
-        append_wade(value)
+        value = pending_wade_document()
         value["batches"][1]["identities"][0]["placements"] = []
         with self.assertRaisesRegex(ContentPortError, "exactly cover every admitted"):
-            validate_trainer_materialization_document(value, inventory(), allocations())
+            validate_trainer_materialization_document(
+                value,
+                inventory(),
+                allocations(),
+                reviewed_prefix=SEEDED_REVIEWED_PREFIX,
+            )
 
-        value = document()
-        append_wade(value)
+        value = pending_wade_document()
         value["batches"][1]["identities"].append(
             {"identity": "TRAINER_SAMUEL", "placements": [SAMUEL_PLACEMENT]}
         )
         with self.assertRaisesRegex(
             ContentPortError, "duplicate materialized identity"
         ):
-            validate_trainer_materialization_document(value, inventory(), allocations())
+            validate_trainer_materialization_document(
+                value,
+                inventory(),
+                allocations(),
+                reviewed_prefix=SEEDED_REVIEWED_PREFIX,
+            )
 
         base = inventory()
         ungrouped = TrainerInventory(
@@ -313,7 +336,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         reordered = document()
         reordered["batches"].append(
             {
-                "sequence": 1,
+                "sequence": 2,
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -335,7 +358,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         grouped = document()
         grouped["batches"].append(
             {
-                "sequence": 1,
+                "sequence": 2,
                 "key": "grouped",
                 "kind": "standard-singles",
                 "identities": [
@@ -352,7 +375,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             )
 
         excluded = copy.deepcopy(grouped)
-        excluded["batches"][1]["identities"] = [
+        excluded["batches"][2]["identities"] = [
             {"identity": "TRAINER_STORY", "placements": []}
         ]
         with self.assertRaisesRegex(ContentPortError, "not an admitted projected"):
@@ -361,7 +384,6 @@ class TrainerMaterializationTests(unittest.TestCase):
             )
 
         unallocated = document()
-        append_wade(unallocated)
         with self.assertRaisesRegex(ContentPortError, "no ledger binding"):
             validate_trainer_materialization_document(
                 unallocated, inventory(), allocations(include_wade=False)
@@ -376,13 +398,17 @@ class TrainerMaterializationTests(unittest.TestCase):
             {
                 "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
                 "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
+                "TRAINER_WADE": (WADE_PLACEMENT,),
             },
             owner="selected trainer surface",
         )
         with self.assertRaisesRegex(ContentPortError, "missing=.*TRAINER_EUGENE"):
             require_materialization_exact_cover(
                 result,
-                {"TRAINER_SAMUEL": (SAMUEL_PLACEMENT,)},
+                {
+                    "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
+                    "TRAINER_WADE": (WADE_PLACEMENT,),
+                },
                 owner="selected trainer surface",
             )
         with self.assertRaisesRegex(ContentPortError, "duplicate observed placements"):
@@ -391,6 +417,7 @@ class TrainerMaterializationTests(unittest.TestCase):
                 {
                     "TRAINER_SAMUEL": (SAMUEL_PLACEMENT, SAMUEL_PLACEMENT),
                     "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
+                    "TRAINER_WADE": (WADE_PLACEMENT,),
                 },
                 owner="selected trainer surface",
             )
@@ -407,7 +434,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         multiple = document()
         multiple["batches"].append(
             {
-                "sequence": 1,
+                "sequence": 2,
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -427,6 +454,7 @@ class TrainerMaterializationTests(unittest.TestCase):
                 "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
                 "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
                 "TRAINER_TWINS": ("Gym/2/TwinB", "Gym/1/TwinA"),
+                "TRAINER_WADE": (WADE_PLACEMENT,),
             },
             owner="selected trainer surface",
         )
@@ -459,14 +487,16 @@ class TrainerMaterializationTests(unittest.TestCase):
         self.assertIsNotNone(state.trainer_materialization)
         self.assertEqual(
             state.trainer_materialization.identity_names,
-            ("TRAINER_SAMUEL", "TRAINER_EUGENE"),
+            ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE"),
         )
         result = load_trainer_materialization(
             POLICY,
             state.trainer_inventory,
             load_binding_index(ROOT / "src/data/persistence/persistent_ids.json"),
         )
-        self.assertEqual(result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE"))
+        self.assertEqual(
+            result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE")
+        )
         selected: dict[str, list[str]] = {}
         for events in state.trainer_events.values():
             for event in events:

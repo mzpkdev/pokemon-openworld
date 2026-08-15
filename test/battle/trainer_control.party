@@ -331,3 +331,20 @@ IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 Tauros
 Level: 22
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_BUG_CATCHER_WADE_JOHTO ===
+Name: WADE
+Class: Bug Catcher
+Pic: Bug Catcher
+Gender: Male
+Music: Male
+Battle Type: Singles
+AI: Check Bad Move
+
+Weedle
+Level: 4
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+Pineco
+Level: 5
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
