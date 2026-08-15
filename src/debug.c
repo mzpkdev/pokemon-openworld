@@ -1245,6 +1245,24 @@ static const u16 sLocationFlags[] =
     FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F,
 };
 
+#ifdef DEBUG
+
+void Debug_GrantStartConveniences(void)
+{
+    FlagSet(FLAG_SYS_POKEDEX_GET);
+    FlagSet(FLAG_SYS_POKENAV_GET);
+    FlagSet(FLAG_RECEIVED_RUNNING_SHOES);
+    FlagSet(FLAG_SYS_B_DASH);
+
+    for (u32 i = 0; i < ARRAY_COUNT(sLocationFlags); i++)
+    {
+        if (sLocationFlags[i] != 0)
+            FlagSet(sLocationFlags[i]);
+    }
+}
+
+#endif // DEBUG
+
 static u32 Debug_CheckToggleFlags(u8 id)
 {
     u32 result = FALSE;

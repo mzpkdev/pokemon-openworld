@@ -2,6 +2,9 @@
 #define GUARD_DEBUG_H
 
 void Debug_ShowMainMenu(void);
+#ifdef DEBUG
+void Debug_GrantStartConveniences(void);
+#endif
 extern const u8 Debug_FlagsAndVarNotSetBattleConfigMessage[];
 const u8 *GetWeatherName(u32 weatherId);
 const struct Trainer* GetDebugAiTrainer(void);

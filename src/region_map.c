@@ -2336,6 +2336,7 @@ static void CreateFlyDestIcons(void)
     u16 height;
     u16 shape;
     u8 spriteId;
+    bool32 canFly;
 
     for (i = 0; i < ARRAY_COUNT(sFlyLocations); i++)
     {
@@ -2358,7 +2359,14 @@ static void CreateFlyDestIcons(void)
         {
             gSprites[spriteId].oam.shape = shape;
 
-            if (FlagGet(sFlyLocations[i].flag))
+#ifdef DEBUG
+            // Some Kanto and Sevii compatibility flags are zero in the Emerald
+            // save layout, so debug builds unlock the canonical Fly table directly.
+            canFly = TRUE;
+#else
+            canFly = FlagGet(sFlyLocations[i].flag);
+#endif
+            if (canFly)
                 gSprites[spriteId].callback = SpriteCB_FlyDestIcon;
             else
                 shape += 3;
