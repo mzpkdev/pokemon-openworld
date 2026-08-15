@@ -76,6 +76,83 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(mode, "working-tree")
         self.assertEqual(paths, ["new.txt", "old.txt", "untracked.txt"])
 
+    def test_comparison_base_is_verified_before_diff_and_cannot_write_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            sentinel = root / "sentinel.json"
+            sentinel.write_text("preserve me\n")
+            injected = f"--output={sentinel}"
+            with self.assertRaisesRegex(ValueError, "invalid comparison base"):
+                changed_paths(root, base=injected)
+            self.assertEqual(sentinel.read_text(), "preserve me\n")
+
+    def test_cli_output_option_injection_fails_without_truncating_target(self):
+        root = Path(__file__).resolve().parents[3]
+        with tempfile.TemporaryDirectory() as directory:
+            sentinel = Path(directory) / "sentinel.json"
+            sentinel.write_text("preserve me\n")
+            result = subprocess.run(
+                [
+                    "python3",
+                    "-m",
+                    "tools.agent",
+                    "context",
+                    f"--base=--output={sentinel}",
+                ],
+                cwd=root,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertEqual(sentinel.read_text(), "preserve me\n")
+            document = json.loads(result.stdout)
+            self.assertEqual(document["status"], "error")
+            self.assertIn("invalid comparison base", document["summary"])
+
+    def test_all_leading_dash_comparison_bases_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            for base in ("-p", "--", "--output=/tmp/agent-output", "-1", "---"):
+                with self.subTest(base=base):
+                    with self.assertRaisesRegex(ValueError, "invalid comparison base"):
+                        changed_paths(root, base=base)
+
+    def test_invalid_comparison_revision_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            with self.assertRaisesRegex(ValueError, "not a commit"):
+                changed_paths(root, base="missing-branch")
+
+    def test_committed_branch_base_includes_commits_and_worktree_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "config", "user.email", "agent@example.invalid"],
+                cwd=root,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Agent Test"], cwd=root, check=True
+            )
+            (root / "base.txt").write_text("base\n")
+            subprocess.run(["git", "add", "base.txt"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-qm", "base"], cwd=root, check=True)
+            subprocess.run(["git", "branch", "comparison-base"], cwd=root, check=True)
+            (root / "committed.txt").write_text("committed\n")
+            subprocess.run(["git", "add", "committed.txt"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "commit", "-qm", "branch work"], cwd=root, check=True
+            )
+            (root / "base.txt").write_text("working\n")
+            (root / "untracked.txt").write_text("new\n")
+            paths, mode = changed_paths(root, base="comparison-base")
+        self.assertEqual(mode, "base")
+        self.assertEqual(paths, ["base.txt", "committed.txt", "untracked.txt"])
+
     def test_explicit_context_is_deterministic_and_bounded(self):
         root = Path(__file__).resolve().parents[3]
         paths = [f"unknown/path-{index}" for index in range(1000)]

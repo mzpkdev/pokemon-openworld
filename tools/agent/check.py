@@ -1,6 +1,7 @@
 """Shell-free allowlisted check execution with retained evidence."""
 
 import json
+import math
 import os
 import re
 import signal
@@ -46,10 +47,16 @@ def _excerpt(data):
 
 
 def execute(root, check_id, *, selector=None, workflows=(), timeout=900):
+    if not math.isfinite(timeout) or not 0 < timeout <= 86_400:
+        raise ValueError("timeout must be finite and between 0 and 86400 seconds")
     argv, definition = resolve(check_id, selector=selector, workflows=workflows)
+    selector_type = definition.get("selector")
+    if selector_type == "pytest":
+        _require_repo_file(root, selector.split("::", 1)[0], "pytest selector")
+    elif selector_type == "unittest":
+        _require_unittest_module(root, selector)
     for workflow in workflows:
-        if not (root / workflow).is_file():
-            raise ValueError(f"workflow does not exist: {workflow}")
+        _require_repo_file(root, workflow, "workflow")
     log_path = _unique_log(root, check_id)
     started_wall = datetime.now(timezone.utc).isoformat()
     started = time.monotonic()
@@ -141,3 +148,23 @@ def execute(root, check_id, *, selector=None, workflows=(), timeout=900):
         }
     )
     return bound(bounded, CHECK_LIMIT)
+
+
+def _require_repo_file(root, relative, label):
+    candidate = root / relative
+    try:
+        candidate.resolve(strict=True).relative_to(root.resolve(strict=True))
+    except (FileNotFoundError, ValueError) as error:
+        raise ValueError(f"{label} is not a repository file: {relative}") from error
+    if candidate.is_symlink() or not candidate.is_file():
+        raise ValueError(f"{label} is not a regular repository file: {relative}")
+
+
+def _require_unittest_module(root, selector):
+    parts = selector.split(".")
+    for length in range(len(parts), 0, -1):
+        relative = Path(*parts[:length]).with_suffix(".py")
+        if (root / relative).exists():
+            _require_repo_file(root, relative.as_posix(), "unittest selector")
+            return
+    raise ValueError(f"unittest selector is not a repository module: {selector}")

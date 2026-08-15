@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 from pathlib import Path
 
 from tools.agent.output import CONTEXT_LIMIT, render_json
@@ -68,6 +69,15 @@ class QueryTests(unittest.TestCase):
                 "truncated",
             },
         )
+
+    def test_map_key_cannot_escape_the_map_authority(self):
+        with tempfile.TemporaryDirectory() as directory:
+            outside = Path(directory) / "outside"
+            outside.mkdir()
+            (outside / "map.json").write_text('{"id":"MAP_OUTSIDE","name":"Outside"}\n')
+            result = run_query(ROOT, "map", outside.as_posix())
+        self.assertEqual(result["status"], "not-found")
+        self.assertEqual(result["items"], [])
 
 
 if __name__ == "__main__":

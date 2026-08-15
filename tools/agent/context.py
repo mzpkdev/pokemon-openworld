@@ -32,12 +32,21 @@ BUILD_SOURCES = {
 def changed_paths(root, *, base=None, explicit=()):
     if explicit:
         return sorted({_safe_path(path) for path in explicit}), "explicit"
-    reference = base or "HEAD"
+    reference = _resolve_base(root, base or "HEAD")
     result = subprocess.run(
-        ["git", "diff", "--name-status", "-z", "--find-renames", reference],
+        [
+            "git",
+            "diff",
+            "--name-status",
+            "-z",
+            "--find-renames",
+            reference,
+            "--",
+        ],
         cwd=root,
         check=True,
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
     paths = _parse_name_status(result.stdout)
     untracked = subprocess.run(
@@ -52,6 +61,34 @@ def changed_paths(root, *, base=None, explicit=()):
         if part
     )
     return sorted(paths), ("base" if base else "working-tree")
+
+
+def _resolve_base(root, base):
+    if not base or base.startswith("-") or "\0" in base or "\n" in base or "\r" in base:
+        raise ValueError(f"invalid comparison base: {base!r}")
+    result = subprocess.run(
+        [
+            "git",
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            "--end-of-options",
+            f"{base}^{{commit}}",
+        ],
+        cwd=root,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    object_id = result.stdout.strip()
+    if (
+        result.returncode != 0
+        or not object_id
+        or any(character not in "0123456789abcdefABCDEF" for character in object_id)
+    ):
+        raise ValueError(f"comparison base is not a commit: {base!r}")
+    return object_id
 
 
 def _parse_name_status(data):

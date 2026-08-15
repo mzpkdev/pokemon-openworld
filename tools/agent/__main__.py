@@ -58,8 +58,6 @@ def main(argv=None):
             document = run_query(repository, arguments.kind, arguments.key)
             limit = CONTEXT_LIMIT
         else:
-            if arguments.timeout <= 0:
-                raise ValueError("--timeout must be positive")
             document = execute(
                 repository,
                 arguments.check_id,

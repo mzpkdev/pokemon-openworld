@@ -111,9 +111,6 @@ def _json_records(path, source, key, roots):
 
 def query_map(root, key):
     candidates = []
-    direct = root / "data/maps" / key / "map.json"
-    if direct.is_file():
-        candidates.append(direct)
     normalized = re.sub(r"[^a-z0-9]", "", key.casefold()).removeprefix("map")
     for path in sorted((root / "data/maps").glob("*/map.json")):
         directory = re.sub(r"[^a-z0-9]", "", path.parent.name.casefold())

@@ -1,4 +1,5 @@
 import json
+import math
 import sys
 import tempfile
 import unittest
@@ -124,6 +125,31 @@ class ExecutionTests(unittest.TestCase):
             self.assertIn("FileNotFoundError", result["items"][0]["executionError"])
             self.assertTrue((root / result["logs"][0]["path"]).is_file())
             self.assertTrue((root / result["logs"][1]["path"]).is_file())
+
+    def test_non_finite_and_out_of_range_timeouts_fail_before_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for timeout in (math.nan, math.inf, -math.inf, 0, -1, 86_401):
+                with self.subTest(timeout=timeout):
+                    with self.assertRaisesRegex(ValueError, "finite"):
+                        execute(root, "fixture", timeout=timeout)
+
+    def test_pytest_selector_must_resolve_to_regular_repository_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            outside = root.parent / f"{root.name}-outside.py"
+            outside.write_text("raise SystemExit(99)\n")
+            (root / "linked.py").symlink_to(outside)
+            try:
+                with self.assertRaisesRegex(ValueError, "repository file"):
+                    execute(root, "python-pytest", selector="linked.py")
+            finally:
+                outside.unlink()
+
+    def test_unittest_selector_must_name_repository_module(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "repository module"):
+                execute(Path(directory), "python-unittest", selector="os")
 
 
 if __name__ == "__main__":
