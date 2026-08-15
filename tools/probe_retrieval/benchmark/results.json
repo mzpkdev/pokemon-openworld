@@ -1,0 +1,35 @@
+{
+  "aggregate": {
+    "control": {"cached_input_tokens": 1953792, "correct_tasks": 9, "execution_failures": 0, "input_tokens": 2366121, "latency_seconds": 562.892, "output_tokens": 23572, "reasoning_output_tokens": 2936, "tool_rounds": 142, "uncached_input_tokens": 412329},
+    "probe": {"cached_input_tokens": 3569152, "correct_tasks": 10, "execution_failures": 0, "input_tokens": 3918948, "latency_seconds": 825.14, "output_tokens": 33042, "reasoning_output_tokens": 6119, "tool_rounds": 208, "uncached_input_tokens": 349796}
+  },
+  "billing_telemetry": {"available": false, "limitation": "codex exec turn.completed events reported token categories but no billed-token, account-cost, or cached-token billing conversion"},
+  "cache_condition": "ephemeral Codex session per run; no Probe session cache; alternating pair order; operating-system and server prompt caches enabled for both conditions",
+  "model": "gpt-5.4",
+  "raw_results": {"archive": "raw-results.tar.gz", "bytes": 1095438, "file_count": 43, "sha256": "4b88ece933c7c066baaa7e7cc1d337b45ce8714fb9c6e4855deab60a60861fc4"},
+  "reasoning": "low",
+  "runs": [
+    {"cached_input_tokens": 88064, "correct": true, "failure": null, "input_tokens": 132579, "latency_seconds": 40.74, "output_tokens": 1703, "reasoning_output_tokens": 212, "required_evidence": true, "run_id": "issue-42-field-moves.control", "tool_rounds": 8},
+    {"cached_input_tokens": 424192, "correct": true, "failure": null, "input_tokens": 477118, "latency_seconds": 84.741, "output_tokens": 2892, "reasoning_output_tokens": 414, "required_evidence": true, "run_id": "issue-42-field-moves.probe", "tool_rounds": 20},
+    {"cached_input_tokens": 436352, "correct": true, "failure": null, "input_tokens": 485112, "latency_seconds": 110.206, "output_tokens": 4244, "reasoning_output_tokens": 910, "required_evidence": true, "run_id": "issue-44-bundle-performance.probe", "tool_rounds": 30},
+    {"cached_input_tokens": 276992, "correct": true, "failure": null, "input_tokens": 338411, "latency_seconds": 69.356, "output_tokens": 2959, "reasoning_output_tokens": 162, "required_evidence": true, "run_id": "issue-44-bundle-performance.control", "tool_rounds": 19},
+    {"cached_input_tokens": 231168, "correct": true, "failure": null, "input_tokens": 278544, "latency_seconds": 59.879, "output_tokens": 2674, "reasoning_output_tokens": 538, "required_evidence": true, "run_id": "issue-30-encounter-registry.control", "tool_rounds": 14},
+    {"cached_input_tokens": 605568, "correct": true, "failure": null, "input_tokens": 649248, "latency_seconds": 137.858, "output_tokens": 5678, "reasoning_output_tokens": 1146, "required_evidence": true, "run_id": "issue-30-encounter-registry.probe", "tool_rounds": 41},
+    {"cached_input_tokens": 570240, "correct": true, "failure": null, "input_tokens": 619221, "latency_seconds": 108.278, "output_tokens": 4791, "reasoning_output_tokens": 895, "required_evidence": true, "run_id": "issue-69-aqua-presentation.probe", "tool_rounds": 31},
+    {"cached_input_tokens": 239232, "correct": false, "failure": "answer covered Vermilion terminal lock states but not both S.S. Aqua berth states", "input_tokens": 282948, "latency_seconds": 71.09, "output_tokens": 2780, "reasoning_output_tokens": 221, "required_evidence": false, "run_id": "issue-69-aqua-presentation.control", "tool_rounds": 20},
+    {"cached_input_tokens": 454656, "correct": true, "failure": null, "input_tokens": 551474, "latency_seconds": 88.066, "output_tokens": 3847, "reasoning_output_tokens": 349, "required_evidence": true, "run_id": "issue-13-night-palettes.control", "tool_rounds": 23},
+    {"cached_input_tokens": 630528, "correct": true, "failure": null, "input_tokens": 689847, "latency_seconds": 94.387, "output_tokens": 3811, "reasoning_output_tokens": 811, "required_evidence": true, "run_id": "issue-13-night-palettes.probe", "tool_rounds": 13},
+    {"cached_input_tokens": 390912, "correct": true, "failure": null, "input_tokens": 434614, "latency_seconds": 99.679, "output_tokens": 3963, "reasoning_output_tokens": 553, "required_evidence": true, "run_id": "issue-23-trainer-runtime.probe", "tool_rounds": 27},
+    {"cached_input_tokens": 271872, "correct": true, "failure": null, "input_tokens": 318529, "latency_seconds": 71.203, "output_tokens": 3057, "reasoning_output_tokens": 314, "required_evidence": true, "run_id": "issue-23-trainer-runtime.control", "tool_rounds": 22},
+    {"cached_input_tokens": 139008, "correct": true, "failure": null, "input_tokens": 168025, "latency_seconds": 59.891, "output_tokens": 2627, "reasoning_output_tokens": 247, "required_evidence": true, "run_id": "issue-20-stable-identities.control", "tool_rounds": 18},
+    {"cached_input_tokens": 191872, "correct": true, "failure": null, "input_tokens": 211046, "latency_seconds": 64.454, "output_tokens": 2798, "reasoning_output_tokens": 392, "required_evidence": true, "run_id": "issue-20-stable-identities.probe", "tool_rounds": 19},
+    {"cached_input_tokens": 203776, "correct": true, "failure": null, "input_tokens": 230742, "latency_seconds": 67.248, "output_tokens": 2826, "reasoning_output_tokens": 464, "required_evidence": true, "run_id": "issue-21-content-port-authority.probe", "tool_rounds": 22},
+    {"cached_input_tokens": 133504, "correct": true, "failure": null, "input_tokens": 170848, "latency_seconds": 43.824, "output_tokens": 1866, "reasoning_output_tokens": 172, "required_evidence": true, "run_id": "issue-21-content-port-authority.control", "tool_rounds": 13},
+    {"cached_input_tokens": 90880, "correct": true, "failure": null, "input_tokens": 94934, "latency_seconds": 38.94, "output_tokens": 1313, "reasoning_output_tokens": 299, "required_evidence": true, "run_id": "issue-34-checkpoint-tests.control", "tool_rounds": 4},
+    {"cached_input_tokens": 28416, "correct": true, "failure": null, "input_tokens": 31203, "latency_seconds": 24.79, "output_tokens": 1092, "reasoning_output_tokens": 309, "required_evidence": true, "run_id": "issue-34-checkpoint-tests.probe", "tool_rounds": 1},
+    {"cached_input_tokens": 87296, "correct": true, "failure": null, "input_tokens": 90797, "latency_seconds": 33.499, "output_tokens": 947, "reasoning_output_tokens": 225, "required_evidence": true, "run_id": "negative-sibling-worktree.probe", "tool_rounds": 4},
+    {"cached_input_tokens": 28416, "correct": true, "failure": null, "input_tokens": 29829, "latency_seconds": 19.903, "output_tokens": 746, "reasoning_output_tokens": 422, "required_evidence": true, "run_id": "negative-sibling-worktree.control", "tool_rounds": 1}
+  ],
+  "schema_version": 1,
+  "worktree_revision": "095566f823409fb8806ac8e18bb999a45d4ef450"
+}

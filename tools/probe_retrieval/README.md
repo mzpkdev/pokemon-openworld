@@ -4,6 +4,11 @@ This package is an experimental, read-only wrapper around the standalone Probe C
 It does not install or expose Probe MCP, Agent, LSP, editing, delegation, shell, or model
 provider features.
 
+The frozen benchmark is a no-go for adoption. Exact billed-token telemetry was unavailable,
+and the most favorable uncached-input proxy improved by only 15.2% while total input,
+output, tool rounds, and latency increased. See `benchmark/report.md`. Keep the helper
+disabled by default.
+
 ## Install
 
 Linux x86_64 is the only reviewed target. From the active worktree root, run:
