@@ -273,15 +273,28 @@ static bool32 IsRecordedBattleSaveValid(struct RecordedBattleSave *save)
     return TRUE;
 }
 
-static u16 GetNormalizedRecordedBattlePartnerId(const struct RecordedBattleSave *save)
+static u16 GetCanonicalRecordedBattlePartnerId(u32 battleFlags, u16 partnerId)
 {
-    if (!(save->battleFlags & BATTLE_TYPE_INGAME_PARTNER))
-        return save->partnerId;
-    if (save->partnerId < RECORDED_BATTLE_LEGACY_PARTNER_BASE
-     || save->partnerId >= RECORDED_BATTLE_LEGACY_PARTNER_BASE + PARTNER_COUNT)
-        return save->partnerId;
+    static const u16 sCompatiblePartnerBases[] =
+    {
+        RECORDED_BATTLE_PARTNER_BASE_EMERALD,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1,
+        RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2,
+    };
+    u32 i;
 
-    return TRAINER_PARTNER(save->partnerId - RECORDED_BATTLE_LEGACY_PARTNER_BASE);
+    if (!(battleFlags & BATTLE_TYPE_INGAME_PARTNER))
+        return partnerId;
+
+    for (i = 0; i < ARRAY_COUNT(sCompatiblePartnerBases); i++)
+    {
+        u16 base = sCompatiblePartnerBases[i];
+
+        if (partnerId >= base && partnerId < base + PARTNER_COUNT)
+            return TRAINER_PARTNER(partnerId - base);
+    }
+
+    return partnerId;
 }
 
 static bool32 IsRecordedBattleParticipantMetadataValid(const struct RecordedBattleSave *save, u16 trainerId)
@@ -365,7 +378,7 @@ static bool32 ValidateAndNormalizeRecordedBattleSave(struct RecordedBattleSave *
      && save->lvlMode > FRONTIER_LVL_TENT)
         return FALSE;
 
-    partnerId = GetNormalizedRecordedBattlePartnerId(save);
+    partnerId = GetCanonicalRecordedBattlePartnerId(save->battleFlags, save->partnerId);
 
     if (!BattleSetup_TryPreflightOrdinaryBattle(
             save->opponentA,
@@ -488,7 +501,7 @@ bool32 MoveRecordedBattleToSaveData(void)
 
     battleSave->opponentA = TRAINER_BATTLE_PARAM.opponentA;
     battleSave->opponentB = TRAINER_BATTLE_PARAM.opponentB;
-    battleSave->partnerId = gPartnerTrainerId;
+    battleSave->partnerId = GetCanonicalRecordedBattlePartnerId(battleSave->battleFlags, gPartnerTrainerId);
     battleSave->multiplayerId = gRecordedBattleMultiplayerId;
     battleSave->lvlMode = gSaveBlock2Ptr->frontier.lvlMode;
     battleSave->frontierFacility = sFrontierFacility;

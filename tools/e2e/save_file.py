@@ -15,9 +15,11 @@ SECTOR_DATA_SIZE = 3968
 SECTOR_FOOTER_OFFSET = 4084
 SECTOR_SIGNATURE = 0x08012025
 ERASED_SECTOR = b"\xff" * SECTOR_SIZE
-SAVE_BLOCK1_SIZE = 0x3D20
+SAVE_BLOCK1_SIZE = 0x3D38
 TRAINER_DEFEATED_OFFSET = 0x3CD0
-TRAINER_DEFEATED_SIZE = 79
+TRAINER_DEFEATED_SIZE = 103
+HISTORICAL_TRAINER_DEFEATED_SIZE = 79
+PERSISTENT_TRAINER_COUNT = 1676
 
 # Defined by the current serialized layout. These are the exact
 # byte counts passed to CalculateChecksum for logical sector ids 0..13.
@@ -26,7 +28,7 @@ PAYLOAD_SIZES = (
     3968,
     3968,
     3968,
-    3744,
+    3768,
     3968,
     3968,
     3968,
@@ -368,6 +370,45 @@ def with_saved_flags(image: SaveImage, flags: Mapping[int, bool]) -> SaveImage:
                 output[start : start + SECTOR_SIZE], PAYLOAD_SIZES[sector_id]
             )
             struct.pack_into("<H", output, start + SECTOR_FOOTER_OFFSET + 2, checksum)
+
+    return SaveImage.from_bytes(bytes(output))
+
+
+def with_trainer_defeated(image: SaveImage, trainers: Mapping[int, bool]) -> SaveImage:
+    """Return a checksum-valid cold-loadable variant with defeat bits changed."""
+    output = bytearray(image.data)
+    first_bitmap_trainer = 858
+    last_bitmap_trainer = PERSISTENT_TRAINER_COUNT
+    for trainer_id in trainers:
+        if not first_bitmap_trainer <= trainer_id < last_bitmap_trainer:
+            raise ValueError(f"trainer is outside the defeat bitmap: {trainer_id}")
+
+    for slot in image.slots:
+        slot_start = slot.physical_index * SECTORS_PER_SLOT
+        physical_sector = None
+        for physical_index in range(SECTORS_PER_SLOT):
+            absolute_index = slot_start + physical_index
+            start = absolute_index * SECTOR_SIZE
+            if struct.unpack_from("<H", output, start + SECTOR_FOOTER_OFFSET)[0] == 4:
+                physical_sector = absolute_index
+                break
+        if physical_sector is None:
+            raise ValueError(f"save slot {slot.physical_index} lacks logical sector 4")
+        start = physical_sector * SECTOR_SIZE
+        for trainer_id, defeated in trainers.items():
+            bit_index = trainer_id - first_bitmap_trainer
+            value_offset = (
+                start + TRAINER_DEFEATED_OFFSET - 3 * SECTOR_DATA_SIZE + bit_index // 8
+            )
+            bit = 1 << (bit_index % 8)
+            if defeated:
+                output[value_offset] |= bit
+            else:
+                output[value_offset] &= ~bit
+        checksum = calculate_checksum(
+            output[start : start + SECTOR_SIZE], PAYLOAD_SIZES[4]
+        )
+        struct.pack_into("<H", output, start + SECTOR_FOOTER_OFFSET + 2, checksum)
 
     return SaveImage.from_bytes(bytes(output))
 

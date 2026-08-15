@@ -46,7 +46,7 @@ TEST("Persistent regional trainer IDs use every dedicated bitmap bit exactly onc
     }
     for (u32 i = 0; i + 1 < sizeof(gSaveBlock1Ptr->trainerDefeated); i++)
         EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[i], 0xFF);
-    EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[PERSISTENT_TRAINER_BITMAP_BYTES - 1], 1);
+    EXPECT_EQ(gSaveBlock1Ptr->trainerDefeated[PERSISTENT_TRAINER_BITMAP_BYTES - 1], 3);
 
     for (u16 trainerId = PERSISTENT_TRAINER_BITMAP_FIRST; trainerId < PERSISTENT_TRAINER_COUNT; trainerId++)
         EXPECT(PersistentId_ClearTrainerDefeated(trainerId));
@@ -65,6 +65,21 @@ TEST("Eugene owns the next stable trainer identity and bitmap defeat bit")
     EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
     EXPECT_EQ(binding.id, 78);
     EXPECT_EQ(binding.bit, 0);
+}
+
+TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
+{
+    struct TrainerDefeatBinding binding;
+
+    EXPECT_EQ(TRAINER_EXPERT_ROXANNE_JOHTO, 1675);
+    EXPECT_EQ(PERSISTENT_TRAINER_COUNT, 1676);
+    EXPECT(PersistentId_GetTrainerDefeatBinding(
+        TRAINER_EXPERT_ROXANNE_JOHTO,
+        &binding));
+    EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+    EXPECT_EQ(binding.id, 102);
+    EXPECT_EQ(binding.bit, 1);
+    EXPECT(!PersistentId_GetTrainerDefeatBinding(1676, &binding));
 }
 
 TEST("Persistent trainer IDs fail closed when invalid")

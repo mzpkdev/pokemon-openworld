@@ -7,8 +7,13 @@
 
 #define BATTLER_RECORD_SIZE 388
 
-// Frozen partner-namespace base serialized by historical recorded battles.
-#define RECORDED_BATTLE_LEGACY_PARTNER_BASE 864
+// Partner-namespace bases serialized by supported recorded-battle versions.
+#define RECORDED_BATTLE_PARTNER_BASE_EMERALD 864
+#define RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V1 1536
+#define RECORDED_BATTLE_PARTNER_BASE_OPENWORLD_V2 1792
+
+// Compatibility name for the oldest published recorded-battle namespace.
+#define RECORDED_BATTLE_LEGACY_PARTNER_BASE RECORDED_BATTLE_PARTNER_BASE_EMERALD
 
 struct RecordedBattleSave
 {

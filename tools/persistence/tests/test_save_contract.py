@@ -30,6 +30,7 @@ from tools.persistence.contract import (
     _canonicalize_anonymous_layouts,
     _bindings,
     _parse_dwarf,
+    _project_compatible_tail_extension,
     DwarfLayouts,
 )
 
@@ -106,6 +107,52 @@ def set_path(value, path, replacement):
 
 
 class SaveContractTests(unittest.TestCase):
+    def test_reviewed_trainer_bitmap_tail_extension_preserves_frozen_base(self):
+        path = Path(__file__).parents[2] / "integrity/save_contract.json"
+        contract = json.loads(path.read_text())
+        projected = _project_compatible_tail_extension(contract)
+
+        self.assertEqual(contract["structs"]["SaveBlock1"]["size"], 15648)
+        self.assertEqual(
+            contract["structs"]["SaveBlock1"]["members"][-1]["type"]["dimensions"],
+            [79],
+        )
+        self.assertEqual(projected["structs"]["SaveBlock1"]["size"], 15672)
+        self.assertEqual(
+            projected["structs"]["SaveBlock1"]["members"][-1]["type"]["dimensions"],
+            [103],
+        )
+        self.assertEqual(
+            projected["physical"]["slotLayout"][4]["payload"]["size"], 3768
+        )
+
+    def test_reviewed_tail_extension_rejects_prefix_member_offset_drift(self):
+        path = Path(__file__).parents[2] / "integrity/save_contract.json"
+        contract = json.loads(path.read_text())
+        actual = {
+            key: copy.deepcopy(value)
+            for key, value in _project_compatible_tail_extension(contract).items()
+            if key not in CONTRACT_METADATA_KEYS
+        }
+        actual["structs"]["SaveBlock1"]["members"][83]["offset"] += 1
+
+        with self.assertRaisesRegex(ContractError, r"members\[83\].offset"):
+            validate_abi(contract, actual, "normal")
+
+    def test_reviewed_tail_extension_rejects_non_tail_bitmap(self):
+        path = Path(__file__).parents[2] / "integrity/save_contract.json"
+        contract = json.loads(path.read_text())
+        contract["structs"]["SaveBlock1"]["members"].append(
+            {
+                "name": "foreignTail",
+                "offset": 15648,
+                "type": {"kind": "base", "size": 1, "encoding": 8},
+            }
+        )
+
+        with self.assertRaisesRegex(ContractError, "not the tail"):
+            validate_contract(contract)
+
     def test_fast_ship_flag_and_frozen_unused_owner_are_both_published(self):
         bindings = _bindings(
             {

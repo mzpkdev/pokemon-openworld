@@ -14,6 +14,7 @@ from tools.trainer_rematches.generate import (
     CALVIN,
     CHAIN_COUNT,
     CHAIN_WIDTH,
+    FRLG_BINDING_COUNT,
     MANIFEST_PATH,
     NONE_BINDINGS,
     PROVENANCE,
@@ -83,6 +84,11 @@ class TrainerRematchDataTests(unittest.TestCase):
         second = render(self.mutated(), self.values)
         self.assertEqual(first, second)
         self.assertIn("#define FRLG_TRAINER_REMATCH_CHAIN_COUNT 221", first)
+        self.assertIn("#define FRLG_TRAINER_REMATCH_BINDING_COUNT 1481", first)
+        self.assertIn(
+            "sTrainerRematchBindings_FRLG[FRLG_TRAINER_REMATCH_BINDING_COUNT]",
+            first,
+        )
         self.assertIn(
             "[0] = { .trainerIds = { TRAINER_FRLG_YOUNGSTER_BEN, "
             "TRAINER_FRLG_YOUNGSTER_BEN_2, 0xFFFF, "
@@ -94,16 +100,17 @@ class TrainerRematchDataTests(unittest.TestCase):
             "TRAINER_REMATCH_BINDING_NONE, .index = 0 },",
             first,
         )
-        self.assertIn(
+        self.assertNotIn(
             "[TRAINER_YOUNGSTER_SAMUEL_JOHTO] = { .kind = "
             "TRAINER_REMATCH_BINDING_NONE, .index = 0 },",
             first,
         )
-        self.assertIn(
+        self.assertNotIn(
             "[TRAINER_SAILOR_EUGENE_JOHTO] = { .kind = "
             "TRAINER_REMATCH_BINDING_NONE, .index = 0 },",
             first,
         )
+        self.assertEqual(FRLG_BINDING_COUNT, 1481)
 
     def test_make_rule_regenerates_identical_output(self):
         expected = render(self.manifest, self.values).encode()

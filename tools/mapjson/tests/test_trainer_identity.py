@@ -90,8 +90,10 @@ class GlobalTrainerIdentityTests(unittest.TestCase):
         self.assertEqual(set(hoenn.values()), set(range(858)))
         self.assertEqual(definitions["TRAINER_YOUNGSTER_SAMUEL_JOHTO"], 1481)
         self.assertEqual(definitions["TRAINER_SAILOR_EUGENE_JOHTO"], 1482)
-        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1483$")
-        self.assertRegex(opponents, r"(?m)^#define MAX_TRAINERS_COUNT\s+1536$")
+        self.assertEqual(definitions["TRAINER_FISHERMAN_SCOTT_JOHTO"], 1483)
+        self.assertEqual(definitions["TRAINER_EXPERT_ROXANNE_JOHTO"], 1675)
+        self.assertRegex(opponents, r"(?m)^#define TRAINERS_COUNT\s+1676$")
+        self.assertRegex(opponents, r"(?m)^#define MAX_TRAINERS_COUNT\s+1792$")
 
     def test_every_live_frlg_party_is_generated_and_nonempty(self) -> None:
         party_symbols = PARTY_SECTION.findall(FRLG_PARTIES.read_text())

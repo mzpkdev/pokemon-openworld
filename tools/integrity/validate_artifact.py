@@ -35,14 +35,14 @@ except ImportError:  # Direct script execution.
 try:
     from tools.persistence.contract import (
         ContractError,
-        abi_evidence_values_for_purpose,
+        projected_abi_evidence_values_for_purpose,
         validate_contract,
     )
 except ImportError:  # Direct script execution from outside the repository root.
     sys.path.insert(0, str(Path(__file__).parents[2]))
     from tools.persistence.contract import (
         ContractError,
-        abi_evidence_values_for_purpose,
+        projected_abi_evidence_values_for_purpose,
         validate_contract,
     )
 
@@ -133,7 +133,7 @@ def expected_save_abi_values(
 ) -> list[tuple[str, int]]:
     try:
         validate_contract(contract)
-        return abi_evidence_values_for_purpose(contract, purpose)
+        return projected_abi_evidence_values_for_purpose(contract, purpose)
     except (ContractError, KeyError, TypeError, ValueError) as error:
         raise ValidationError(
             f"save contract ABI evidence is incomplete: {error}"

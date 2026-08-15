@@ -74806,6 +74806,2322 @@
     {
       "alias": null,
       "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 625,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_SCOTT_JOHTO",
+      "value": 1483
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 626,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_SEAN_JOHTO",
+      "value": 1484
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 627,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_TROY_JOHTO",
+      "value": 1485
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 628,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_ROD_JOHTO",
+      "value": 1486
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 629,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BEAUTY_VALERIE_JOHTO",
+      "value": 1487
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 630,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_JOYCE_JOHTO",
+      "value": 1488
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 631,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_TODD_JOHTO",
+      "value": 1489
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 632,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_TIMOTHY_JOHTO",
+      "value": 1490
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 633,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_DEVIN_JOHTO",
+      "value": 1491
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 634,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_GRANT_JOHTO",
+      "value": 1492
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 635,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BEAUTY_CASSIE_JOHTO",
+      "value": 1493
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 636,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_JEFFREY_JOHTO",
+      "value": 1494
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 637,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_NORMAN_JOHTO",
+      "value": 1495
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 638,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_LASS_KRISE_JOHTO",
+      "value": 1496
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 639,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_RAYMOND_JOHTO",
+      "value": 1497
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 640,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_LAO_JOHTO",
+      "value": 1498
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 641,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_TWINS_LEA_AND_PIA_JOHTO",
+      "value": 1499
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 642,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_REENA_JOHTO",
+      "value": 1500
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 643,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SCHOOL_KID_RICKY_JOHTO",
+      "value": 1501
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 644,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_DRAGON_TAMER_CODY_JOHTO",
+      "value": 1502
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 645,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_GWEN_JOHTO",
+      "value": 1503
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 646,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_SIMON_JOHTO",
+      "value": 1504
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 647,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_CHARLIE_JOHTO",
+      "value": 1505
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 648,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_RANDALL_JOHTO",
+      "value": 1506
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 649,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_GEORGE_JOHTO",
+      "value": 1507
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 650,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_BERKE_JOHTO",
+      "value": 1508
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 651,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_ELAINE_JOHTO",
+      "value": 1509
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 652,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_EDGAR_JOHTO",
+      "value": 1510
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 653,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNGSTER_ALBERT_JOHTO",
+      "value": 1511
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 654,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_WENDY_JOHTO",
+      "value": 1512
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 655,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_EMMA_JOHTO",
+      "value": 1513
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 656,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_ERIK_JOHTO",
+      "value": 1514
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 657,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_ERIN_JOHTO",
+      "value": 1515
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 658,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_ERNEST_JOHTO",
+      "value": 1516
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 659,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_WAI_JOHTO",
+      "value": 1517
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 660,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_SHIRLEY_JOHTO",
+      "value": 1518
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 661,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_LASS_CONNIE_JOHTO",
+      "value": 1519
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 662,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_LASS_BRIDGET_JOHTO",
+      "value": 1520
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 663,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BEAUTY_OLIVIA_JOHTO",
+      "value": 1521
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 664,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_TIFFANY_JOHTO",
+      "value": 1522
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 665,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_MARK_JOHTO",
+      "value": 1523
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 666,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_DOUGLAS_JOHTO",
+      "value": 1524
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 667,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_SPENCER_JOHTO",
+      "value": 1525
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 668,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_ROLAND_JOHTO",
+      "value": 1526
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 669,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SUPER_NERD_STAN_JOHTO",
+      "value": 1527
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 670,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_RICHARD_JOHTO",
+      "value": 1528
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 671,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_GILBERT_JOHTO",
+      "value": 1529
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 672,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SCHOOL_KID_JACK_JOHTO",
+      "value": 1530
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 673,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SCHOOL_KID_CHAD_JOHTO",
+      "value": 1531
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 674,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_KIRK_JOHTO",
+      "value": 1532
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 675,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_JENN_JOHTO",
+      "value": 1533
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 676,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_JEFF_JOHTO",
+      "value": 1534
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 677,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_COREY_JOHTO",
+      "value": 1535
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 678,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_DENIS_JOHTO",
+      "value": 1536
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 679,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_DANIEL_JOHTO",
+      "value": 1537
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 680,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_LARRY_JOHTO",
+      "value": 1538
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 681,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_SHANE_JOHTO",
+      "value": 1539
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 682,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_JUSTIN_JOHTO",
+      "value": 1540
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 683,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_NATHAN_JOHTO",
+      "value": 1541
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 684,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_NEAL_JOHTO",
+      "value": 1542
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 685,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_NICK_JOHTO",
+      "value": 1543
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 686,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_NICO_JOHTO",
+      "value": 1544
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 687,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_BRENT_JOHTO",
+      "value": 1545
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 688,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEFAN_DEREK_JOHTO",
+      "value": 1546
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 689,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_GENTLEMAN_EDWARD_JOHTO",
+      "value": 1547
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 690,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_GENTLEMAN_PRESTON_JOHTO",
+      "value": 1548
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 691,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_BLAKE_JOHTO",
+      "value": 1549
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 692,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEFAN_WILLIAM_JOHTO",
+      "value": 1550
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 693,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_GAVEN_JOHTO",
+      "value": 1551
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 694,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_GINA_JOHTO",
+      "value": 1552
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 695,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNGSTER_GORDON_JOHTO",
+      "value": 1553
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 696,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BEAUTY_SAMANTHA_JOHTO",
+      "value": 1554
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 697,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_BENJAMIN_JOHTO",
+      "value": 1555
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 698,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_PING_JOHTO",
+      "value": 1556
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 699,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_TED_JOHTO",
+      "value": 1557
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 700,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_DRAGON_TAMER_PAUL_JOHTO",
+      "value": 1558
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 701,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BEAUTY_VICTORIA_JOHTO",
+      "value": 1559
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 702,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_JOSH_JOHTO",
+      "value": 1560
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 703,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_BEN_JOHTO",
+      "value": 1561
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 704,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_KENNETH_JOHTO",
+      "value": 1562
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 705,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_FRAN_JOHTO",
+      "value": 1563
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 706,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_JUGGLER_FRITZ_JOHTO",
+      "value": 1564
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 707,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BURGLAR_EDDIE_JOHTO",
+      "value": 1565
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 708,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_ALLEN_JOHTO",
+      "value": 1566
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 709,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_ANDREW_JOHTO",
+      "value": 1567
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 710,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_IVAN_JOHTO",
+      "value": 1568
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 711,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_CYBIL_JOHTO",
+      "value": 1569
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 712,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_WADE_JOHTO",
+      "value": 1570
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 713,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_M_MATHEW_JOHTO",
+      "value": 1571
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 714,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_TWINS_MEG_AND_PEG_JOHTO",
+      "value": 1572
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 715,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_MEGAN_JOHTO",
+      "value": 1573
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 716,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_MICHAEL_JOHTO",
+      "value": 1574
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 717,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_RONALD_JOHTO",
+      "value": 1575
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 718,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_ANTHONY_JOHTO",
+      "value": 1576
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 719,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_ABE_JOHTO",
+      "value": 1577
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 720,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_AL_JOHTO",
+      "value": 1578
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 721,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_GENTLEMAN_ALFRED_JOHTO",
+      "value": 1579
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 722,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_ANDRE_JOHTO",
+      "value": 1580
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 723,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_LIZ_JOHTO",
+      "value": 1581
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 724,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_GARRETT_JOHTO",
+      "value": 1582
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 725,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_KIM_JOHTO",
+      "value": 1583
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 726,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_AARON_JOHTO",
+      "value": 1584
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 727,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SUPER_NERD_HUGH_JOHTO",
+      "value": 1585
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 728,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_PHIL_JOHTO",
+      "value": 1586
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 729,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEFAN_COLIN_JOHTO",
+      "value": 1587
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 730,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_BENNY_JOHTO",
+      "value": 1588
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 731,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_KENJI_JOHTO",
+      "value": 1589
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 732,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_LUNG_JOHTO",
+      "value": 1590
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 733,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_PAULA_JOHTO",
+      "value": 1591
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 734,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_JAKE_JOHTO",
+      "value": 1592
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 735,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_CLARISSA_JOHTO",
+      "value": 1593
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 736,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PARASOL_LADY_BEVERLY_JOHTO",
+      "value": 1594
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 737,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_DENISE_JOHTO",
+      "value": 1595
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 738,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_BETH_JOHTO",
+      "value": 1596
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 739,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HEX_MANIAC_GRACE_JOHTO",
+      "value": 1597
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 740,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_SUSIE_JOHTO",
+      "value": 1598
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 741,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_KARA_JOHTO",
+      "value": 1599
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 742,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_LASS_DANA_JOHTO",
+      "value": 1600
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 743,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_DEBRA_JOHTO",
+      "value": 1601
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 744,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SWIMMER_F_KAYLEE_JOHTO",
+      "value": 1602
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 745,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_DRAGON_TAMER_DARIN_JOHTO",
+      "value": 1603
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 746,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_CAROL_JOHTO",
+      "value": 1604
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 747,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HEX_MANIAC_MARTHA_JOHTO",
+      "value": 1605
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 748,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_IRENE_JOHTO",
+      "value": 1606
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 749,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_KELLY_JOHTO",
+      "value": 1607
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 750,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_KEN_JOHTO",
+      "value": 1608
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 751,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_TWINS_AMY_AND_MAY_JOHTO",
+      "value": 1609
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 752,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_TWINS_ANN_AND_ANNE_JOHTO",
+      "value": 1610
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 753,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PARASOL_LADY_RUTH_JOHTO",
+      "value": 1611
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 754,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_RYAN_JOHTO",
+      "value": 1612
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 755,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_HUEY_JOHTO",
+      "value": 1613
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 756,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_EDMOND_JOHTO",
+      "value": 1614
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 757,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_DRAGON_TAMER_MIKE_JOHTO",
+      "value": 1615
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 758,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_PHILLIP_JOHTO",
+      "value": 1616
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 759,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_LEONARD_JOHTO",
+      "value": 1617
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 760,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BURGLAR_DUNCAN_JOHTO",
+      "value": 1618
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 761,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+      "value": 1619
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 762,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_MILLER_JOHTO",
+      "value": 1620
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 763,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_LASS_CARRIE_JOHTO",
+      "value": 1621
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 764,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_GUITARIST_CLYDE_JOHTO",
+      "value": 1622
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 765,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_LOLA_JOHTO",
+      "value": 1623
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 766,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SUPER_NERD_MARKUS_JOHTO",
+      "value": 1624
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 767,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNG_COUPLE_THOM_AND_KAE_JOHTO",
+      "value": 1625
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 768,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNG_COUPLE_DUFF_AND_EDA_JOHTO",
+      "value": 1626
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 769,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_VANCE_JOHTO",
+      "value": 1627
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 770,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_TOBY_JOHTO",
+      "value": 1628
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 771,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_TERRELL_JOHTO",
+      "value": 1629
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 772,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_CHOW_JOHTO",
+      "value": 1630
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 773,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_THEO_JOHTO",
+      "value": 1631
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 774,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SCHOOL_KID_NATE_JOHTO",
+      "value": 1632
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 775,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_WALT_JOHTO",
+      "value": 1633
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 776,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_WILTON_JOHTO",
+      "value": 1634
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 777,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_YOSHI_JOHTO",
+      "value": 1635
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 778,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_ZACH_JOHTO",
+      "value": 1636
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 779,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_BRIAN_JOHTO",
+      "value": 1637
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 780,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_HARRY_JOHTO",
+      "value": 1638
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 781,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_LYLE_JOHTO",
+      "value": 1639
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 782,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_JOSE_JOHTO",
+      "value": 1640
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 783,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PSYCHIC_M_GREG_JOHTO",
+      "value": 1641
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 784,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAILOR_KENT_JOHTO",
+      "value": 1642
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 785,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_ELLIOT_JOHTO",
+      "value": 1643
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 786,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SCHOOL_KID_ALAN_JOHTO",
+      "value": 1644
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 787,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_RUSSELL_JOHTO",
+      "value": 1645
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 788,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_RAY_JOHTO",
+      "value": 1646
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 789,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_JONAH_JOHTO",
+      "value": 1647
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 790,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_HENRY_JOHTO",
+      "value": 1648
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 791,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_BAILEY_JOHTO",
+      "value": 1649
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 792,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_WAYNE_JOHTO",
+      "value": 1650
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 793,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_BRAD_JOHTO",
+      "value": 1651
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 794,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_CARA_JOHTO",
+      "value": 1652
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 795,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BURGLAR_RICHARDO_JOHTO",
+      "value": 1653
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 796,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_NARD_JOHTO",
+      "value": 1654
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 797,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_MARVIN_JOHTO",
+      "value": 1655
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 798,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_BRYAN_JOHTO",
+      "value": 1656
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 799,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_ETHAN_JOHTO",
+      "value": 1657
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 800,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FIREBREATHER_BILL_JOHTO",
+      "value": 1658
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 801,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_COOLTRAINER_KATE_JOHTO",
+      "value": 1659
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 802,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_ARNIE_JOHTO",
+      "value": 1660
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 803,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BLACK_BELT_NOB_JOHTO",
+      "value": 1661
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 804,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BUG_CATCHER_DON_JOHTO",
+      "value": 1662
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 805,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_CAMPER_QUENTIN_JOHTO",
+      "value": 1663
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 806,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_FISHERMAN_RALPH_JOHTO",
+      "value": 1664
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 807,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_SAGE_JIN_JOHTO",
+      "value": 1665
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 808,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_NOLAND_JOHTO",
+      "value": 1666
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 809,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEFAN_BRANDON_JOHTO",
+      "value": 1667
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 810,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_PICNICKER_BROOKE_JOHTO",
+      "value": 1668
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 811,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_CALVIN_JOHTO",
+      "value": 1669
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 812,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_YOUNGSTER_IAN_JOHTO",
+      "value": 1670
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 813,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_JUGGLER_IRWIN_JOHTO",
+      "value": 1671
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 814,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_HIKER_PARRY_JOHTO",
+      "value": 1672
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 815,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_BIRD_KEEPER_PETER_JOHTO",
+      "value": 1673
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 816,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_POKEMANIAC_RON_JOHTO",
+      "value": 1674
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
+      "source": "johto-trainer-identities",
+      "state": {
+        "bitIndex": 817,
+        "kind": "trainer-defeat-bitmap"
+      },
+      "storage": "u32-id",
+      "symbol": "TRAINER_EXPERT_ROXANNE_JOHTO",
+      "value": 1675
+    },
+    {
+      "alias": null,
+      "domain": "trainerIds",
       "source": "contract-trainer-ids",
       "state": {
         "kind": "published-binding"

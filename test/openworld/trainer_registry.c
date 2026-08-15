@@ -89,6 +89,7 @@ TEST("Ordinary trainer registry rejects invalid IDs holes and missing parties")
     };
     EXPECT(!TrainerRegistry_TestResolve(&sRegistryTrainers[0][0], REGISTRY_TEST_TRAINER_COUNT, 3, DIFFICULTY_HARD, &resolved));
     EXPECT(!TryResolveOrdinaryTrainer(TRAINERS_COUNT, &resolved));
+    EXPECT(!TryResolveOrdinaryTrainer(TRAINER_FISHERMAN_SCOTT_JOHTO, &resolved));
 }
 
 TEST("Samuel resolves his authored normal party without legacy defeat flag or rematch state")
