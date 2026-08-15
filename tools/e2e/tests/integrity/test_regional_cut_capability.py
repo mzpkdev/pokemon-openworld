@@ -32,6 +32,8 @@ REGIONAL_FACT_GRANTS = tuple(
     (item["value"], item["grants"][0]) for item in POLICY["exact"] if item["grants"]
 )
 REGIONAL_FACTS = tuple(item["value"] for item in POLICY["exact"])
+TM_HM_POCKET_OFFSET = 0x690
+TM_HM_POCKET_SIZE = 64 * 4
 
 
 def _continue_to_overworld(game) -> None:
@@ -54,6 +56,15 @@ def _quickstart_to_overworld(game) -> None:
     else:
         raise AssertionError("regional Cut Quickstart did not reach overworld")
     game.wait_for_controls_unlocked(max_frames=1_200)
+
+
+def _remove_debug_field_kit(game) -> None:
+    # This fixture isolates regional-fact routing. New debug games intentionally
+    # bypass that routing while their complete HM kit remains in the bag.
+    game.write(
+        game.save_block1() + TM_HM_POCKET_OFFSET,
+        bytes(TM_HM_POCKET_SIZE),
+    )
 
 
 def _assert_no_regional_facts(game) -> None:
@@ -116,6 +127,7 @@ def test_historical_capability_matrix_matches_oracle_through_resave_and_restart(
 
 def test_each_regional_fact_unlocks_only_its_real_field_move_consumer(integrity_game):
     _quickstart_to_overworld(integrity_game)
+    _remove_debug_field_kit(integrity_game)
     for flag in REGIONAL_FACTS:
         integrity_game.set_flag(flag, False)
     for flag in LEGACY_FLAGS:
