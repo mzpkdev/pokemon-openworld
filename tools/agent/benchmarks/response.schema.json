@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "checkPassed", "requiredChecks", "sources", "conclusion"],
+  "properties": {
+    "taskId": {"type": "string"},
+    "checkPassed": {"type": "boolean"},
+    "requiredChecks": {"type": "array", "items": {"type": "string"}},
+    "sources": {"type": "array", "items": {"type": "string"}},
+    "conclusion": {"type": "string", "enum": ["pass", "fail"]}
+  }
+}

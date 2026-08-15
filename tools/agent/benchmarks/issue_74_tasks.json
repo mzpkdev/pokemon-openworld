@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "benchmark": "issue-74-same-model-v1",
+  "model": "gpt-5.6-sol",
+  "reasoningEffort": "medium",
+  "tasks": [
+    {
+      "id": "release-workflow",
+      "scenario": "Review a release workflow change and identify its required checks.",
+      "paths": [".github/workflows/release.yml"],
+      "expectedChecks": ["actionlint", "release-self-test"],
+      "expectedSources": [".github/workflows/release.yml"],
+      "baselineCheck": [".github/release/release.py", "self-test"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "release-self-test"]
+    },
+    {
+      "id": "content-port",
+      "scenario": "Review a content-port semantics fix and identify its ownership and test coverage.",
+      "paths": ["tools/content_port/semantics.py"],
+      "query": ["content-port", "NewBarkTown"],
+      "expectedChecks": ["content-port-test", "content-port-ownership-check"],
+      "expectedSources": ["tools/content_port/semantics.py"],
+      "baselineCheck": ["make", "content-port-test"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "content-port-test"]
+    },
+    {
+      "id": "map-travel",
+      "scenario": "Review a Vermilion map travel change and locate the authoritative map record.",
+      "paths": ["data/maps/VermilionCity_Frlg/scripts.inc"],
+      "query": ["map", "MAP_VERMILION_CITY_FRLG"],
+      "expectedChecks": ["debug-check"],
+      "expectedSources": ["data/maps/VermilionCity_Frlg/map.json"],
+      "baselineCheck": ["python3", "-m", "unittest", "tools.mapjson.tests.test_map_formats", "-v"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "python-unittest", "--selector", "tools.mapjson.tests.test_map_formats"]
+    },
+    {
+      "id": "wild-encounters",
+      "scenario": "Review a wild-encounter generator change and identify its focused handoff check.",
+      "paths": ["tools/wild_encounters/wild_encounters_to_header.py"],
+      "expectedChecks": ["wild-encounter-test"],
+      "expectedSources": ["tools/wild_encounters/wild_encounters_to_header.py"],
+      "baselineCheck": ["make", "wild-encounter-test"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "wild-encounter-test"]
+    },
+    {
+      "id": "persistence",
+      "scenario": "Review a published persistence allocation change and identify cross-purpose coverage.",
+      "paths": ["tools/persistence/published_allocations.json"],
+      "query": ["persistence", "TRAINER_FRLG_YOUNGSTER_BEN"],
+      "expectedChecks": ["debug-check", "integrity-check-rom-purposes"],
+      "expectedSources": ["tools/persistence/published_allocations.json"],
+      "baselineCheck": ["python3", "-m", "unittest", "tools.persistence.tests.test_persistent_ids", "-v"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "python-unittest", "--selector", "tools.persistence.tests.test_persistent_ids"]
+    },
+    {
+      "id": "e2e-focused",
+      "scenario": "Review an E2E runner change that explicitly needs emulator evidence.",
+      "paths": ["tools/e2e/run.py"],
+      "impacts": ["emulator-evidence"],
+      "expectedChecks": ["e2e-core"],
+      "expectedSources": ["tools/e2e/run.py"],
+      "baselineCheck": ["python3", "-m", "pytest", "tools/e2e/tests/unit/test_run.py", "-q"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "python-pytest", "--selector", "tools/e2e/tests/unit/test_run.py"]
+    },
+    {
+      "id": "trainer",
+      "scenario": "Review an authored trainer change and locate the trainer authority.",
+      "paths": ["src/data/trainers.party"],
+      "query": ["trainer", "TRAINER_FRLG_YOUNGSTER_BEN"],
+      "expectedChecks": ["debug-check"],
+      "expectedSources": ["src/data/trainers.party"],
+      "baselineCheck": ["python3", "-m", "unittest", "tools.mapjson.tests.test_trainer_registry", "-v"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "python-unittest", "--selector", "tools.mapjson.tests.test_trainer_registry"]
+    },
+    {
+      "id": "make-orchestration",
+      "scenario": "Review Make command orchestration and identify the focused isolation and ROM handoff checks.",
+      "paths": ["Makefile"],
+      "expectedChecks": ["make-isolation-test", "debug-check"],
+      "expectedSources": ["Makefile"],
+      "baselineCheck": ["python3", "-m", "unittest", "tools.mapjson.tests.test_make_isolation", "-v"],
+      "agentCheck": ["python3", "-m", "tools.agent", "check", "make-isolation-test", "--timeout", "120"]
+    }
+  ]
+}

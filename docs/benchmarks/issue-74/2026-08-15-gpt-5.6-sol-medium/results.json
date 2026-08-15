@@ -1,0 +1,581 @@
+{
+  "benchmark": "issue-74-same-model-v1",
+  "gates": {
+    "checkOutputBytes": false,
+    "inputTokens": true,
+    "noOutcomeRegression": false
+  },
+  "generatedAt": "2026-08-15T10:09:08.016869+00:00",
+  "metrics": {
+    "correctTasks": {
+      "agent": 6,
+      "baseline": 6
+    },
+    "medianLatencySeconds": {
+      "agent": 27.9815,
+      "baseline": 36.1315
+    },
+    "medianToolRounds": {
+      "agent": 2.5,
+      "baseline": 3.5
+    },
+    "medianUncachedInputTokens": {
+      "agent": 20953.0,
+      "baseline": 35318.5,
+      "reductionPercent": 40.67
+    },
+    "totalAdmittedCheckOutputBytes": {
+      "agent": 11091,
+      "baseline": 4893,
+      "reductionPercent": -126.67
+    }
+  },
+  "model": "gpt-5.6-sol",
+  "reasoningEffort": "medium",
+  "results": [
+    {
+      "admittedCheckOutputBytes": 33,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": false,
+      "latencySeconds": 32.104,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 87040,
+        "input_tokens": 117289,
+        "output_tokens": 886,
+        "reasoning_output_tokens": 427
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "actionlint .github/workflows/release.yml",
+          ".github/release/release.py self-test"
+        ],
+        "sources": [
+          "AGENTS.md",
+          "tools/agent/registry.json",
+          ".github/workflows/release.yml",
+          ".github/release/release.py"
+        ],
+        "taskId": "release-workflow"
+      },
+      "returnCode": 0,
+      "taskId": "release-workflow",
+      "toolRounds": 4,
+      "uncachedInputTokens": 30249
+    },
+    {
+      "admittedCheckOutputBytes": 906,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 14.553,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 35328,
+        "input_tokens": 55977,
+        "output_tokens": 421,
+        "reasoning_output_tokens": 193
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "actionlint .github/workflows/release.yml",
+          "release-self-test"
+        ],
+        "sources": [
+          ".github/workflows/release.yml",
+          ".github/release/release.py"
+        ],
+        "taskId": "release-workflow"
+      },
+      "returnCode": 0,
+      "taskId": "release-workflow",
+      "toolRounds": 2,
+      "uncachedInputTokens": 20649
+    },
+    {
+      "admittedCheckOutputBytes": 367,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 385.536,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 756480,
+        "input_tokens": 805155,
+        "output_tokens": 2098,
+        "reasoning_output_tokens": 771
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "content-port-test",
+          "content-port-ownership-check"
+        ],
+        "sources": [
+          "tools/content_port/semantics.py"
+        ],
+        "taskId": "content-port"
+      },
+      "returnCode": 0,
+      "taskId": "content-port",
+      "toolRounds": 4,
+      "uncachedInputTokens": 48675
+    },
+    {
+      "admittedCheckOutputBytes": 1354,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 363.302,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 463104,
+        "input_tokens": 498168,
+        "output_tokens": 1407,
+        "reasoning_output_tokens": 256
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "content-port-ownership-check",
+          "content-port-test",
+          "format-check",
+          "lint-check"
+        ],
+        "sources": [
+          "tools/content_port/semantics.py",
+          "tools/content_port/ports/johto/adaptations.json",
+          "tools/content_port/ports/johto/allocation_lock.json",
+          "tools/content_port/ports/johto/animation_policy.json",
+          "tools/content_port/ports/johto/capabilities.json",
+          "tools/content_port/ports/johto/encounter_ecology.json"
+        ],
+        "taskId": "content-port"
+      },
+      "returnCode": 0,
+      "taskId": "content-port",
+      "toolRounds": 3,
+      "uncachedInputTokens": 35064
+    },
+    {
+      "admittedCheckOutputBytes": 872,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 30.645,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 110592,
+        "input_tokens": 148322,
+        "output_tokens": 807,
+        "reasoning_output_tokens": 252
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "debug-check"
+        ],
+        "sources": [
+          "data/maps/VermilionCity_Frlg/map.json"
+        ],
+        "taskId": "map-travel"
+      },
+      "returnCode": 0,
+      "taskId": "map-travel",
+      "toolRounds": 4,
+      "uncachedInputTokens": 37730
+    },
+    {
+      "admittedCheckOutputBytes": 1949,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": false,
+      "latencySeconds": 22.741,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 54528,
+        "input_tokens": 75611,
+        "output_tokens": 571,
+        "reasoning_output_tokens": 257
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "debug-check"
+        ],
+        "sources": [
+          "data/maps/VermilionCity_Frlg/scripts.inc"
+        ],
+        "taskId": "map-travel"
+      },
+      "returnCode": 0,
+      "taskId": "map-travel",
+      "toolRounds": 3,
+      "uncachedInputTokens": 21083
+    },
+    {
+      "admittedCheckOutputBytes": 317,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 39.189,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 63744,
+        "input_tokens": 89453,
+        "output_tokens": 692,
+        "reasoning_output_tokens": 351
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "wild-encounter-test"
+        ],
+        "sources": [
+          "tools/wild_encounters/wild_encounters_to_header.py"
+        ],
+        "taskId": "wild-encounters"
+      },
+      "returnCode": 0,
+      "taskId": "wild-encounters",
+      "toolRounds": 2,
+      "uncachedInputTokens": 25709
+    },
+    {
+      "admittedCheckOutputBytes": 1312,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 31.649,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 53504,
+        "input_tokens": 75054,
+        "output_tokens": 527,
+        "reasoning_output_tokens": 248
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "format-check",
+          "lint-check",
+          "wild-encounter-test"
+        ],
+        "sources": [
+          "tools/wild_encounters/wild_encounters_to_header.py",
+          "tools/agent/registry.json",
+          "tools/wild_encounters/tests"
+        ],
+        "taskId": "wild-encounters"
+      },
+      "returnCode": 0,
+      "taskId": "wild-encounters",
+      "toolRounds": 2,
+      "uncachedInputTokens": 21550
+    },
+    {
+      "admittedCheckOutputBytes": 0,
+      "arm": "baseline",
+      "checkExitStatuses": [],
+      "correct": false,
+      "latencySeconds": 80.372,
+      "matchedCheckCommands": 0,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 92160,
+        "input_tokens": 125067,
+        "output_tokens": 1493,
+        "reasoning_output_tokens": 1087
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "debug-check",
+          "integrity-check-rom-purposes"
+        ],
+        "sources": [
+          "tools/persistence/published_allocations.json"
+        ],
+        "taskId": "persistence"
+      },
+      "returnCode": 0,
+      "taskId": "persistence",
+      "toolRounds": 2,
+      "uncachedInputTokens": 32907
+    },
+    {
+      "admittedCheckOutputBytes": 1142,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 115.832,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 144384,
+        "input_tokens": 189502,
+        "output_tokens": 842,
+        "reasoning_output_tokens": 275
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "python-unittest: tools.persistence.tests.test_persistent_ids",
+          "debug-check",
+          "integrity-check-rom-purposes (conditional: ROM-purpose variance)"
+        ],
+        "sources": [
+          "tools/persistence/published_allocations.json",
+          "src/data/persistence/persistent_ids.json"
+        ],
+        "taskId": "persistence"
+      },
+      "returnCode": 0,
+      "taskId": "persistence",
+      "toolRounds": 3,
+      "uncachedInputTokens": 45118
+    },
+    {
+      "admittedCheckOutputBytes": 82,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        1
+      ],
+      "correct": true,
+      "latencySeconds": 17.444,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 39424,
+        "input_tokens": 63385,
+        "output_tokens": 533,
+        "reasoning_output_tokens": 265
+      },
+      "response": {
+        "checkPassed": false,
+        "conclusion": "fail",
+        "requiredChecks": [
+          "e2e-core"
+        ],
+        "sources": [
+          "tools/e2e/run.py"
+        ],
+        "taskId": "e2e-focused"
+      },
+      "returnCode": 0,
+      "taskId": "e2e-focused",
+      "toolRounds": 2,
+      "uncachedInputTokens": 23961
+    },
+    {
+      "admittedCheckOutputBytes": 997,
+      "arm": "agent",
+      "checkExitStatuses": [
+        1
+      ],
+      "correct": true,
+      "latencySeconds": 18.868,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 35328,
+        "input_tokens": 56151,
+        "output_tokens": 492,
+        "reasoning_output_tokens": 251
+      },
+      "response": {
+        "checkPassed": false,
+        "conclusion": "fail",
+        "requiredChecks": [
+          "format-check",
+          "lint-check",
+          "e2e-core (conditional: runtime behavior needs emulator evidence)"
+        ],
+        "sources": [
+          "tools/e2e/run.py"
+        ],
+        "taskId": "e2e-focused"
+      },
+      "returnCode": 0,
+      "taskId": "e2e-focused",
+      "toolRounds": 2,
+      "uncachedInputTokens": 20823
+    },
+    {
+      "admittedCheckOutputBytes": 101,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 33.074,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 85248,
+        "input_tokens": 128692,
+        "output_tokens": 571,
+        "reasoning_output_tokens": 190
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "debug-check"
+        ],
+        "sources": [
+          "src/data/trainers.party"
+        ],
+        "taskId": "trainer"
+      },
+      "returnCode": 0,
+      "taskId": "trainer",
+      "toolRounds": 3,
+      "uncachedInputTokens": 43444
+    },
+    {
+      "admittedCheckOutputBytes": 1472,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": false,
+      "latencySeconds": 24.314,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 53504,
+        "input_tokens": 74177,
+        "output_tokens": 589,
+        "reasoning_output_tokens": 265
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "content-port-ownership-check",
+          "content-port-test",
+          "debug-check"
+        ],
+        "sources": [
+          "src/data/trainers_frlg.party",
+          "tools/content_port/ports/johto/ownership.json"
+        ],
+        "taskId": "trainer"
+      },
+      "returnCode": 0,
+      "taskId": "trainer",
+      "toolRounds": 3,
+      "uncachedInputTokens": 20673
+    },
+    {
+      "admittedCheckOutputBytes": 3121,
+      "arm": "baseline",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 111.454,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 168192,
+        "input_tokens": 206660,
+        "output_tokens": 1845,
+        "reasoning_output_tokens": 1108
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "make-isolation-test",
+          "debug-check"
+        ],
+        "sources": [
+          "Makefile"
+        ],
+        "taskId": "make-orchestration"
+      },
+      "returnCode": 0,
+      "taskId": "make-orchestration",
+      "toolRounds": 6,
+      "uncachedInputTokens": 38468
+    },
+    {
+      "admittedCheckOutputBytes": 1959,
+      "arm": "agent",
+      "checkExitStatuses": [
+        0
+      ],
+      "correct": true,
+      "latencySeconds": 67.473,
+      "matchedCheckCommands": 1,
+      "providerUsage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 113920,
+        "input_tokens": 129474,
+        "output_tokens": 801,
+        "reasoning_output_tokens": 425
+      },
+      "response": {
+        "checkPassed": true,
+        "conclusion": "pass",
+        "requiredChecks": [
+          "make-isolation-test",
+          "debug-check"
+        ],
+        "sources": [
+          "Makefile",
+          "tools/agent/registry.json",
+          "tools/mapjson/tests/test_make_isolation.py"
+        ],
+        "taskId": "make-orchestration"
+      },
+      "returnCode": 0,
+      "taskId": "make-orchestration",
+      "toolRounds": 2,
+      "uncachedInputTokens": 15554
+    }
+  ],
+  "schemaVersion": 1,
+  "taskCount": 8
+}
