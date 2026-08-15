@@ -2,7 +2,8 @@ import struct
 
 import pytest
 
-from tools.e2e.save_journey import save_from_start_menu
+from tools.e2e.save_file import SUBSTRUCT_OFFSETS, decode_box_pokemon
+from tools.e2e.save_journey import probe_field_move, save_from_start_menu
 from tools.e2e.start_profile import (
     StartProfile,
     StartProfileStatus,
@@ -12,6 +13,10 @@ from tools.e2e.start_profile import (
 
 
 DIR_SOUTH = 1
+SPECIES_MEW = 151
+DEBUG_FIELD_MOVES = (57, 249, 15, 19)
+DEBUG_HMS = set(range(682, 690))
+FIELD_MOVES = range(8)
 PROFILE_EXPECTATIONS = {
     StartProfile.HOENN: {"map": (25, 40), "position": None, "checkpoint": None},
     StartProfile.KANTO: {
@@ -25,6 +30,28 @@ PROFILE_EXPECTATIONS = {
         "checkpoint": (89, 0, 15, 44),
     },
 }
+
+
+def _moves(record: bytes) -> tuple[int, ...]:
+    personality, ot_id = struct.unpack_from("<II", record)
+    secure = bytearray(record[32:80])
+    for offset in range(0, len(secure), 4):
+        value = struct.unpack_from("<I", secure, offset)[0] ^ personality ^ ot_id
+        struct.pack_into("<I", secure, offset, value)
+    move_offset = SUBSTRUCT_OFFSETS[1][personality % 24] * 12
+    return tuple(
+        move & 0x7FF for move in struct.unpack_from("<4H", secure, move_offset)
+    )
+
+
+def _tm_hm_pocket(game) -> dict[int, int]:
+    encryption_key = game.read_u32(game.save_block2() + 0xAC) & 0xFFFF
+    pocket = game.read(game.save_block1() + 0x690, 64 * 4)
+    return {
+        item_id: quantity ^ encryption_key
+        for item_id, quantity in struct.iter_unpack("<HH", pocket)
+        if item_id
+    }
 
 
 def _checkpoint(game) -> tuple[int, int, int, int, int]:
@@ -43,7 +70,12 @@ def _assert_profile(game, profile: StartProfile) -> None:
     encryption_key = game.read_u32(game.save_block2() + 0xAC)
     assert game.read_u32(game.save_block1() + 0x490) ^ encryption_key == 3000
     assert game.read_u16(game.save_block1() + 0x494) ^ (encryption_key & 0xFFFF) == 0
-    assert game.read_u8(game.address("gPartiesCount")) == 0
+    assert game.read_u8(game.address("gPartiesCount")) == 1
+    mon = game.read(game.address("gParties"), 100)
+    assert decode_box_pokemon(mon)["species"] == SPECIES_MEW
+    assert mon[84] == 100
+    assert _moves(mon) == DEBUG_FIELD_MOVES
+    assert _tm_hm_pocket(game) == {item_id: 1 for item_id in DEBUG_HMS}
     if profile == StartProfile.HOENN:
         # The unchanged truck onboarding owns the gender-dependent home checkpoint;
         # the regional profile must not preempt it before the player exits the truck.
@@ -70,6 +102,15 @@ def _save_and_settle(game):
     save_from_start_menu(game)
     game.wait_for_controls_unlocked(max_frames=1_200)
     return game.battery_snapshot()
+
+
+def test_debug_field_kit_unlocks_every_hm_capability(session_factory):
+    game = session_factory()
+    quickstart_with_profile(game, StartProfile.KANTO, 0x484D0000)
+    assert all(
+        probe_field_move(game, field_move, 0x484D0100 + field_move)
+        for field_move in FIELD_MOVES
+    )
 
 
 @pytest.mark.parametrize("profile", list(StartProfile))

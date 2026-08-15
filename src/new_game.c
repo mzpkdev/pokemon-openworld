@@ -50,6 +50,10 @@
 #include "union_room_chat.h"
 #include "constants/map_groups.h"
 #include "constants/items.h"
+#ifdef DEBUG
+#include "constants/moves.h"
+#include "constants/species.h"
+#endif
 #include "difficulty.h"
 #include "follower_npc.h"
 
@@ -60,6 +64,10 @@ static void ClearFrontierRecord(void);
 static void ResetMiniGamesRecords(void);
 static void ResetItemFlags(void);
 static void ResetDexNav(void);
+
+#ifdef DEBUG
+static void GiveDebugFieldKit(void);
+#endif
 
 EWRAM_DATA bool8 gDifferentSaveFile = FALSE;
 EWRAM_DATA bool8 gEnableContestDebugging = FALSE;
@@ -194,6 +202,9 @@ void NewGameInitData(void)
     DeactivateAllRoamers();
     gSaveBlock1Ptr->registeredItem = ITEM_NONE;
     ClearBag();
+#ifdef DEBUG
+    GiveDebugFieldKit();
+#endif
     NewGameInitPCItems();
     ClearPokeblocks();
     ClearDecorationInventories();
@@ -226,6 +237,32 @@ void NewGameInitData(void)
     ResetDexNav();
     ClearFollowerNPCData();
 }
+
+#ifdef DEBUG
+
+static void GiveDebugFieldKit(void)
+{
+    static const enum Move sFieldMoves[MAX_MON_MOVES] =
+    {
+        MOVE_SURF,
+        MOVE_ROCK_SMASH,
+        MOVE_CUT,
+        MOVE_FLY,
+    };
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][0];
+
+    CreateMonWithIVs(mon, SPECIES_MEW, 100, Random32(), OTID_STRUCT_PLAYER_ID, MAX_PER_STAT_IVS);
+    for (u32 i = 0; i < ARRAY_COUNT(sFieldMoves); i++)
+        SetBoxMonMoveSlot(&mon->box, sFieldMoves[i], i);
+    gPartiesCount[B_TRAINER_PLAYER] = 1;
+    FlagSet(FLAG_SYS_POKEMON_GET);
+
+#define GIVE_DEBUG_HM(move) AddBagItem(CAT(ITEM_HM_, move), 1);
+    FOREACH_HM(GIVE_DEBUG_HM)
+#undef GIVE_DEBUG_HM
+}
+
+#endif // DEBUG
 
 static void ResetMiniGamesRecords(void)
 {

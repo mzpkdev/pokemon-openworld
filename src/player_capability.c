@@ -3,8 +3,33 @@
 #include "player_capability.h"
 #include "regional_fact.h"
 
+#ifdef DEBUG
+#include "item.h"
+#include "constants/items.h"
+#endif
+
+#ifdef DEBUG
+
+static bool32 DebugFieldKitIsAvailable(void)
+{
+#define REQUIRE_DEBUG_HM(move) \
+    if (!CheckBagHasItem(CAT(ITEM_HM_, move), 1)) \
+        return FALSE;
+
+    FOREACH_HM(REQUIRE_DEBUG_HM)
+#undef REQUIRE_DEBUG_HM
+    return TRUE;
+}
+
+#endif // DEBUG
+
 bool32 PlayerHasCapability(enum PlayerCapability capability)
 {
+#ifdef DEBUG
+    if (capability < PLAYER_CAPABILITY_COUNT && DebugFieldKitIsAvailable())
+        return TRUE;
+#endif
+
     switch (capability)
     {
     case PLAYER_CAPABILITY_CUT:

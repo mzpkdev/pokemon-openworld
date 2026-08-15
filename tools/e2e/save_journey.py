@@ -410,13 +410,12 @@ def assert_runtime_semantics(game, expected: dict[str, Any]) -> None:
 def save_from_start_menu(game):
     """Drive the real field start-menu Save action and await its flash write."""
     before = game.battery_path.read_bytes() if game.battery_path.is_file() else b""
-    game.press("Start", release_frames=30)
-    game.wait_until(
-        lambda: game.read_u8(game.address("sNumStartMenuActions")) > 0,
-        description="populated start menu",
-        max_frames=300,
-        step_frames=2,
-    )
+    for _ in range(10):
+        game.press("Start", release_frames=30)
+        if game.task_active("Task_ShowStartMenu"):
+            break
+    else:
+        raise AssertionError("populated start menu not reached in 300 frames")
     count = game.read_u8(game.address("sNumStartMenuActions"))
     actions = game.read(game.address("sCurrentStartMenuActions"), count)
     try:
