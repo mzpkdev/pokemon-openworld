@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "appendOnlyBaseline": {
-    "batchCount": 9,
-    "sha256": "ad6670a1424a566ff43f00acfb481f3335a023b30e30d5aad96801705375160b"
+    "batchCount": 10,
+    "sha256": "e0ffa5d26d181229bf2bf287cb49b16c2c5cf3b7c5a2e5acbd1735ce1e045b46"
   },
   "batches": [
     {
@@ -1192,6 +1192,63 @@
           "identity": "TRAINER_CARA",
           "placements": [
             "DragonsDen_Cavern/3/DragonsDen_Cavern_EventScript_Cara"
+          ]
+        }
+      ]
+    },
+    {
+      "sequence": 9,
+      "key": "final-connection-state-overlay-standard-singles-8",
+      "kind": "standard-singles",
+      "identities": [
+        {
+          "identity": "TRAINER_RICHARD",
+          "placements": [
+            "Route26/0/Route26_EventScript_Richard"
+          ]
+        },
+        {
+          "identity": "TRAINER_JAKE",
+          "placements": [
+            "Route26/1/Route26_EventScript_Jake",
+            "Route26North/1/Route26_EventScript_Jake"
+          ]
+        },
+        {
+          "identity": "TRAINER_JOYCE",
+          "placements": [
+            "Route26/2/Route26_EventScript_Joyce",
+            "Route26North/5/Route26_EventScript_Joyce"
+          ]
+        },
+        {
+          "identity": "TRAINER_GAVEN",
+          "placements": [
+            "Route26/14/Route26_EventScript_Gaven"
+          ]
+        },
+        {
+          "identity": "TRAINER_BETH",
+          "placements": [
+            "Route26North/0/Route26_EventScript_Beth"
+          ]
+        },
+        {
+          "identity": "TRAINER_EDWARD",
+          "placements": [
+            "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward"
+          ]
+        },
+        {
+          "identity": "TRAINER_COREY",
+          "placements": [
+            "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey"
+          ]
+        },
+        {
+          "identity": "TRAINER_JEFF",
+          "placements": [
+            "SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff"
           ]
         }
       ]

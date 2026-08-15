@@ -162,6 +162,57 @@ _REVIEWED_STANDARD_SINGLE_BATCHES = (
     ("bulk-ordinary-standard-singles-26", 26),
     ("bulk-route45-route46-standard-singles-11", 11),
     ("bulk-complex-tail-standard-singles-41", 41),
+    (
+        "final-connection-state-overlay-standard-singles-8",
+        (
+            (
+                "TRAINER_RICHARD",
+                "TRAINER_PSYCHIC_M_RICHARD_JOHTO",
+                ("Route26/0/Route26_EventScript_Richard",),
+            ),
+            (
+                "TRAINER_JAKE",
+                "TRAINER_COOLTRAINER_JAKE_JOHTO",
+                (
+                    "Route26/1/Route26_EventScript_Jake",
+                    "Route26North/1/Route26_EventScript_Jake",
+                ),
+            ),
+            (
+                "TRAINER_JOYCE",
+                "TRAINER_COOLTRAINER_JOYCE_JOHTO",
+                (
+                    "Route26/2/Route26_EventScript_Joyce",
+                    "Route26North/5/Route26_EventScript_Joyce",
+                ),
+            ),
+            (
+                "TRAINER_GAVEN",
+                "TRAINER_COOLTRAINER_GAVEN_JOHTO",
+                ("Route26/14/Route26_EventScript_Gaven",),
+            ),
+            (
+                "TRAINER_BETH",
+                "TRAINER_COOLTRAINER_BETH_JOHTO",
+                ("Route26North/0/Route26_EventScript_Beth",),
+            ),
+            (
+                "TRAINER_EDWARD",
+                "TRAINER_GENTLEMAN_EDWARD_JOHTO",
+                ("SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward",),
+            ),
+            (
+                "TRAINER_COREY",
+                "TRAINER_FIREBREATHER_COREY_JOHTO",
+                ("SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey",),
+            ),
+            (
+                "TRAINER_JEFF",
+                "TRAINER_SAILOR_JEFF_JOHTO",
+                ("SSAqua_1F/4/SSAqua_B1F_EventScript_Jeff",),
+            ),
+        ),
+    ),
 )
 _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     {
@@ -232,7 +283,7 @@ _REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
     }
 )
 _REVIEWED_FIXED_PLACEMENT_DIGEST = (
-    "2a086eaf5ef6df078e01bb052ea8413790d954109b05260998cd38a8daa41577"
+    "002a48401b14080c180fd09be96c8e51a40f85462e02cadf8ccecca22b296737"
 )
 _REVIEWED_FIXED_MAPS = MappingProxyType(
     {
@@ -3057,6 +3108,78 @@ def _authenticate_reviewed_fixed_placements(
         )
 
 
+def _authenticate_reviewed_special_placements(
+    target_root: Path,
+    selected_events: Mapping[str, tuple[TrainerEventRecord, ...]],
+) -> None:
+    """Authenticate the final connection clones and preserve-map overlay."""
+
+    by_identity = {
+        f"{event.map_name}/{event.object_index}/{event.script_name}": event
+        for events in selected_events.values()
+        for event in events
+    }
+    for source, target in (
+        (
+            "Route26/1/Route26_EventScript_Jake",
+            "Route26North/1/Route26_EventScript_Jake",
+        ),
+        (
+            "Route26/2/Route26_EventScript_Joyce",
+            "Route26North/5/Route26_EventScript_Joyce",
+        ),
+    ):
+        source_event = by_identity[source]
+        target_event = by_identity[target]
+        source_object = dict(source_event.object_event)
+        target_object = dict(target_event.object_event)
+        source_xy = (source_object.pop("x"), source_object.pop("y"))
+        target_xy = (target_object.pop("x"), target_object.pop("y"))
+        if (
+            source_xy != (target_xy[0], target_xy[1] - 30)
+            or source_object != target_object
+            or source_event.trainers != target_event.trainers
+        ):
+            raise ContentPortError(
+                f"{source}: reviewed Route 26 connection clone drifted"
+            )
+
+    expected_object = {
+        "graphics_id": "OBJ_EVENT_GFX_SAILOR",
+        "x": 10,
+        "y": 18,
+        "elevation": 0,
+        "movement_type": "MOVEMENT_TYPE_WALK_UP_AND_DOWN",
+        "movement_range_x": 4,
+        "movement_range_y": 4,
+        "trainer_type": "TRAINER_TYPE_NORMAL",
+        "trainer_sight_or_berry_tree_id": "4",
+        "script": "SSAqua_B1F_EventScript_Jeff",
+        "flag": "0",
+    }
+    map_path = target_root / "data/maps/SSAqua_1F/map.json"
+    try:
+        target_map = json.loads(map_path.read_text(encoding="utf-8"))
+        target_script = (target_root / "data/maps/SSAqua_1F/scripts.inc").read_text(
+            encoding="utf-8"
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ContentPortError(
+            f"cannot authenticate S.S. Aqua 1F trainer overlay: {error}"
+        ) from error
+    if target_map.get("object_events") != [expected_object]:
+        raise ContentPortError("S.S. Aqua 1F reviewed trainer overlay drifted")
+    required_script_tokens = (
+        "SSAqua_B1F_EventScript_Jeff::",
+        "trainerbattle_single TRAINER_SAILOR_JEFF_JOHTO,",
+        "SSAqua_B1F_Text_SailorJeffSeen:",
+        "SSAqua_B1F_Text_SailorJeffBeaten:",
+        "SSAqua_B1F_Text_SailorJeffAfter:",
+    )
+    if any(target_script.count(token) != 1 for token in required_script_tokens):
+        raise ContentPortError("S.S. Aqua 1F reviewed trainer script overlay drifted")
+
+
 def resolve_port_sources(
     descriptor: PortDescriptor, repo: Path | str
 ) -> tuple[ContractEvidence, PortSourceState]:
@@ -3776,6 +3899,9 @@ def resolve_port_sources(
                 selected_layouts,
                 selected_trainer_events,
             )
+            _authenticate_reviewed_special_placements(
+                target_root, selected_trainer_events
+            )
     else:
         for decision in enabled_trainer_decisions:
             requested = tuple(
@@ -3933,11 +4059,15 @@ def resolve_port_sources(
     event_policy_path = descriptor.event_policy_path
     entries = dict(descriptor.event_entries)
     effect_policy = dict(descriptor.effect_policy)
+    derived_trainer_entries: set[str] = set()
     for events in (
         selected_trainer_events.values() if trainer_materialization is not None else ()
     ):
         for event in events:
-            if event.script_name in entries:
+            if (
+                event.script_name in entries
+                and event.script_name not in derived_trainer_entries
+            ):
                 raise ContentPortError(
                     f"{event.script_name}: cumulative trainer materialization must "
                     "not be restated in events policy"
@@ -3945,6 +4075,7 @@ def resolve_port_sources(
             entries[event.script_name] = EventEntry(
                 event.script_name, "trainers", CapabilityState.ENABLED.value
             )
+            derived_trainer_entries.add(event.script_name)
             msgbox = next(
                 instruction
                 for instruction in event.instructions

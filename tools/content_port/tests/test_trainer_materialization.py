@@ -342,7 +342,8 @@ class TrainerMaterializationTests(unittest.TestCase):
             reviewed_prefix=reviewed,
         )
         self.assertEqual(
-            result.batches[-1].key, "bulk-complex-tail-standard-singles-41"
+            result.batches[-1].key,
+            "final-connection-state-overlay-standard-singles-8",
         )
 
         changed = copy.deepcopy(value)

@@ -37,6 +37,12 @@ _BYTE_IDENTICAL_TRAINER_PICS = MappingProxyType(
         "Youngster FRLG": "Youngster",
     }
 )
+_REVIEWED_TRAINER_OBJECT_OVERLAYS = MappingProxyType(
+    {
+        "SSAqua_RoomNW/1/SSAqua_RoomNW_EventScript_Edward": {"x": 2, "y": 6},
+        "SSAqua_RoomNW/2/SSAqua_RoomNW_EventScript_Corey": {"x": 4, "y": 3},
+    }
+)
 
 
 def _thaw(value: Any) -> Any:
@@ -405,18 +411,28 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                 instructions.append(
                     {"command": instruction.command, "operands": operands}
                 )
-            rendered_events.append(
-                {
-                    "script": event.script_name,
-                    "instructions": instructions,
-                    "texts": [
-                        {"label": text.label, "fragments": list(text.fragments)}
-                        for text in event.texts
-                    ],
-                }
-            )
+            # Route 26 North's connection clones intentionally reference the
+            # canonical Route 26-owned script and text closure.
+            if not (
+                name == "Route26North"
+                and event.script_name
+                in {"Route26_EventScript_Jake", "Route26_EventScript_Joyce"}
+            ):
+                rendered_events.append(
+                    {
+                        "script": event.script_name,
+                        "instructions": instructions,
+                        "texts": [
+                            {"label": text.label, "fragments": list(text.fragments)}
+                            for text in event.texts
+                        ],
+                    }
+                )
             object_event = _thaw(event.object_event)
             object_event["graphics_id"] = placement.overworld_graphic
+            object_event.update(
+                _REVIEWED_TRAINER_OBJECT_OVERLAYS.get(event_identity, {})
+            )
             selected_objects.append(object_event)
             observed_objects.setdefault(source_trainer, []).append(event_identity)
             observed_scripts.setdefault(source_trainer, []).append(event_identity)
@@ -467,8 +483,6 @@ def _trainer_units(
     independently_selected: dict[str, list[str]] = {}
     if state.trainer_materialization is not None:
         for map_name, rows in state.trainer_event_projections.items():
-            if descriptor.map_ownership.get(map_name) != "rendered":
-                continue
             for row in rows:
                 identity = (
                     f"{row.event.map_name}/{row.event.object_index}/"
@@ -587,15 +601,13 @@ def _trainer_units(
             }
         )
     if state.trainer_materialization is not None:
-        _require_rendered_materialization_exact_cover(
-            descriptor,
-            state,
+        require_materialization_exact_cover(
+            state.trainer_materialization,
             observed_parties,
             owner="emitted trainer parties",
         )
-        _require_rendered_materialization_exact_cover(
-            descriptor,
-            state,
+        require_materialization_exact_cover(
+            state.trainer_materialization,
             observed_runtime_rows,
             owner="emitted trainer runtime rows",
         )
