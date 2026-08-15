@@ -17,6 +17,17 @@ SPECIES_MEW = 151
 DEBUG_FIELD_MOVES = (57, 249, 15, 19)
 DEBUG_HMS = set(range(682, 690))
 FIELD_MOVES = range(8)
+DEBUG_START_FLAGS = {
+    0x112,  # FLAG_RECEIVED_RUNNING_SHOES
+    0x861,  # FLAG_SYS_POKEDEX_GET
+    0x862,  # FLAG_SYS_POKENAV_GET
+    *range(0x86F, 0x87F),  # Hoenn Fly destinations
+    0x8A8,  # FLAG_LANDMARK_BATTLE_FRONTIER
+    0x8B4,  # FLAG_LANDMARK_POKEMON_LEAGUE
+    0x8C0,  # FLAG_SYS_B_DASH
+    0x909,  # FLAG_WORLD_MAP_ROUTE4_POKEMON_CENTER_1F
+    0x90A,  # FLAG_WORLD_MAP_ROUTE10_POKEMON_CENTER_1F
+}
 PROFILE_EXPECTATIONS = {
     StartProfile.HOENN: {"map": (25, 40), "position": None, "checkpoint": None},
     StartProfile.KANTO: {
@@ -76,6 +87,7 @@ def _assert_profile(game, profile: StartProfile) -> None:
     assert mon[84] == 100
     assert _moves(mon) == DEBUG_FIELD_MOVES
     assert _tm_hm_pocket(game) == {item_id: 1 for item_id in DEBUG_HMS}
+    assert all(game.read_flag(flag) for flag in DEBUG_START_FLAGS)
     if profile == StartProfile.HOENN:
         # The unchanged truck onboarding owns the gender-dependent home checkpoint;
         # the regional profile must not preempt it before the player exits the truck.

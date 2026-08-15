@@ -56,6 +56,9 @@
 #endif
 #include "difficulty.h"
 #include "follower_npc.h"
+#ifdef DEBUG
+#include "debug.h"
+#endif
 
 extern const u8 EventScript_ResetAllMapFlags[];
 extern const u8 EventScript_ResetAllMapFlagsFrlg[];
@@ -218,6 +221,9 @@ void NewGameInitData(void)
         RunScriptImmediately(EventScript_ResetAllMapFlagsFrlg);
     else
         RunScriptImmediately(EventScript_ResetAllMapFlags);
+#ifdef DEBUG
+    Debug_GrantStartConveniences();
+#endif
 #if IS_FRLG
         StringCopy(gSaveBlock1Ptr->rivalName, rivalName);
 #endif
