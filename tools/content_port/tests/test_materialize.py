@@ -229,6 +229,9 @@ class MaterializeTests(unittest.TestCase):
                 "Route34_EventScript_PokefanMBrandon",
                 "Route34_EventScript_CamperTodd",
                 "Route34_EventScript_YoungsterIan",
+                "Route34_EventScript_Jenn",
+                "Route34_EventScript_Irene",
+                "Route34_EventScript_Kate",
                 "Route34_EventScript_PicnickerGina",
             ],
         )
@@ -240,6 +243,9 @@ class MaterializeTests(unittest.TestCase):
                 "TRAINER_POKEFAN_BRANDON_JOHTO",
                 "TRAINER_CAMPER_TODD_JOHTO",
                 "TRAINER_YOUNGSTER_IAN_JOHTO",
+                "TRAINER_COOLTRAINER_JENN_JOHTO",
+                "TRAINER_COOLTRAINER_IRENE_JOHTO",
+                "TRAINER_COOLTRAINER_KATE_JOHTO",
                 "TRAINER_PICNICKER_GINA_JOHTO",
             ],
         )
@@ -912,9 +918,26 @@ class MaterializeTests(unittest.TestCase):
             self.assertEqual(route30["id"], route30_allocation.map_id)
             self.assertEqual(route30["layout"], route30_allocation.layout)
             self.assertEqual(route30["region_map_section"], route30_allocation.section)
+            authenticated_route30 = next(
+                unit.value
+                for unit in _map_units(descriptor, state)
+                if unit.key == "map:Route30"
+            )
+            self.assertEqual(
+                route30["object_events"], authenticated_route30["object_events"]
+            )
+            self.assertEqual(
+                [event["script"] for event in route30["object_events"]],
+                [
+                    "Route30_EventScript_Bugcatcher_Don",
+                    "Route30_EventScript_Youngster_Mikey",
+                ],
+            )
             for field in descriptor.adaptations["materializationProfile"][
                 "stripEventKinds"
             ]:
+                if field == "object_events":
+                    continue
                 self.assertEqual(route30[field], [])
             self.assertTrue(route30["warp_events"])
             incomplete_adaptations = dict(descriptor.adaptations)
@@ -1171,6 +1194,10 @@ class MaterializeTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             donor = Path(directory) / "donor"
+            ledger = ROOT / "src/data/persistence/persistent_ids.json"
+            installed_ledger = Path(directory) / ledger.relative_to(ROOT)
+            installed_ledger.parent.mkdir(parents=True)
+            shutil.copyfile(ledger, installed_ledger)
             route30 = donor / "data/maps/Route30/map.json"
             route30.parent.mkdir(parents=True)
             route30.write_bytes(source.read_bytes())

@@ -1478,6 +1478,10 @@ class SourceGraphTests(unittest.TestCase):
             ):
                 source_script = Path("data/maps") / name / "scripts.inc"
                 shutil.copyfile(source_script, target / source_script)
+            overlay_script = Path("data/maps/SSAqua_1F/scripts.inc")
+            overlay_target = target / overlay_script
+            overlay_target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(overlay_script, overlay_target)
             self.assertEqual(
                 validate_port_sources(descriptor, target).inventory["tilesets"], 71
             )
