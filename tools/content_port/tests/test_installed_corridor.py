@@ -562,6 +562,33 @@ class InstalledCorridorTests(unittest.TestCase):
             "msgbox Route31_Text_BugCatcherWade1_After, MSGBOX_AUTOCLOSE", script
         )
 
+    def test_route30_and_route33_install_reviewed_trainer_batch(self) -> None:
+        route30 = _map("Route30")
+        self.assertEqual(
+            [event["script"] for event in route30["object_events"]],
+            [
+                "Route30_EventScript_Bugcatcher_Don",
+                "Route30_EventScript_Youngster_Mikey",
+            ],
+        )
+        route30_script = (ROOT / "data/maps/Route30/scripts.inc").read_text()
+        self.assertIn(
+            "trainerbattle_single TRAINER_BUG_CATCHER_DON_JOHTO", route30_script
+        )
+        self.assertIn(
+            "trainerbattle_single TRAINER_YOUNGSTER_MIKEY_JOHTO", route30_script
+        )
+
+        route33 = _map("Route33")
+        self.assertEqual(
+            [event["script"] for event in route33["object_events"]],
+            ["Route33_EventScript_HikerAnthony"],
+        )
+        route33_script = (ROOT / "data/maps/Route33/scripts.inc").read_text()
+        self.assertIn(
+            "trainerbattle_single TRAINER_HIKER_ANTHONY_JOHTO", route33_script
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -123,9 +123,124 @@ TRAINER_GRAPHIC_PROJECTIONS = MappingProxyType(
     }
 )
 
-_ROUTE31_WADE_PLACEMENT = "Route31/0/Route31_EventScript_Bugcatcher_Wade"
-_ROUTE31_WADE_MAP_SHA256 = (
-    "3b14155315df3d86cc12a875b2cd33314a5201914fe495d619bd9594b038b743"
+_REVIEWED_STANDARD_SINGLE_BATCHES = (
+    (
+        "route31-wade",
+        (
+            (
+                "TRAINER_WADE",
+                "TRAINER_BUG_CATCHER_WADE_JOHTO",
+                ("Route31/0/Route31_EventScript_Bugcatcher_Wade",),
+            ),
+        ),
+    ),
+    (
+        "route30-route33-don-mikey-anthony",
+        (
+            (
+                "TRAINER_DON",
+                "TRAINER_BUG_CATCHER_DON_JOHTO",
+                ("Route30/3/Route30_EventScript_Bugcatcher_Don",),
+            ),
+            (
+                "TRAINER_MIKEY",
+                "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+                ("Route30/6/Route30_EventScript_Youngster_Mikey",),
+            ),
+            (
+                "TRAINER_ANTHONY",
+                "TRAINER_HIKER_ANTHONY_JOHTO",
+                ("Route33/0/Route33_EventScript_HikerAnthony",),
+            ),
+        ),
+    ),
+)
+_REVIEWED_FIXED_PLACEMENTS = MappingProxyType(
+    {
+        "Route31/0/Route31_EventScript_Bugcatcher_Wade": (
+            "TRAINER_WADE",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                "x": 27,
+                "y": 10,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                "movement_range_x": 0,
+                "movement_range_y": 3,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "3",
+                "script": "Route31_EventScript_Bugcatcher_Wade",
+                "flag": "0",
+            },
+        ),
+        "Route30/3/Route30_EventScript_Bugcatcher_Don": (
+            "TRAINER_DON",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+                "x": 20,
+                "y": 8,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+                "movement_range_x": 3,
+                "movement_range_y": 3,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "2",
+                "script": "Route30_EventScript_Bugcatcher_Don",
+                "flag": "0",
+            },
+        ),
+        "Route30/6/Route30_EventScript_Youngster_Mikey": (
+            "TRAINER_MIKEY",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_YOUNGSTER",
+                "x": 23,
+                "y": 22,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+                "movement_range_x": 1,
+                "movement_range_y": 1,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "2",
+                "script": "Route30_EventScript_Youngster_Mikey",
+                "flag": "0",
+            },
+        ),
+        "Route33/0/Route33_EventScript_HikerAnthony": (
+            "TRAINER_ANTHONY",
+            {
+                "graphics_id": "OBJ_EVENT_GFX_HIKER",
+                "x": 17,
+                "y": 20,
+                "elevation": 0,
+                "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+                "movement_range_x": 5,
+                "movement_range_y": 5,
+                "trainer_type": "TRAINER_TYPE_NORMAL",
+                "trainer_sight_or_berry_tree_id": "5",
+                "script": "Route33_EventScript_HikerAnthony",
+                "flag": "0",
+            },
+        ),
+    }
+)
+_REVIEWED_FIXED_MAPS = MappingProxyType(
+    {
+        "Route30": (
+            58,
+            58,
+            "168873e5a6b63132826b9ff521a1dc273e3b39251a7e42fe88485d7db457dccf",
+        ),
+        "Route31": (
+            60,
+            23,
+            "3b14155315df3d86cc12a875b2cd33314a5201914fe495d619bd9594b038b743",
+        ),
+        "Route33": (
+            44,
+            40,
+            "696dc8b682705dabcf215bfde1637e519297e46496723a2d89b9a862d1b5ad84",
+        ),
+    }
 )
 
 
@@ -2504,120 +2619,105 @@ def _automatic_unreachable_shells(
 def _require_trainer_geometry_adapter(
     authority: TrainerMaterializationAuthority,
 ) -> None:
-    """Keep every standard-single batch except reviewed Route31 Wade blocked."""
+    """Allow only standard-single batches covered by the fixed-placement table."""
 
     pending = tuple(
         batch for batch in authority.batches if batch.kind == "standard-singles"
     )
-    if len(pending) > 1 or (
-        pending
-        and (
-            pending[0].key != "route31-wade"
-            or tuple(
+    observed = tuple(
+        (
+            batch.key,
+            tuple(
                 (record.identity, record.target, record.placements)
-                for record in pending[0].identities
-            )
-            != (
-                (
-                    "TRAINER_WADE",
-                    "TRAINER_BUG_CATCHER_WADE_JOHTO",
-                    (_ROUTE31_WADE_PLACEMENT,),
-                ),
-            )
+                for record in batch.identities
+            ),
         )
-    ):
+        for batch in pending
+    )
+    if observed != _REVIEWED_STANDARD_SINGLE_BATCHES:
+        next_batch = next(
+            (
+                batch.key
+                for index, batch in enumerate(pending)
+                if index >= len(_REVIEWED_STANDARD_SINGLE_BATCHES)
+                or observed[index] != _REVIEWED_STANDARD_SINGLE_BATCHES[index]
+            ),
+            "missing-reviewed-batch",
+        )
         raise ContentPortError(
-            "trainer materialization requires the authenticated geometry adapter "
-            f"before standard-single batch activation: {pending[0].key}"
+            "trainer materialization requires an explicit reviewed fixed-placement "
+            f"entry before standard-single batch activation: {next_batch}"
         )
 
 
-def _authenticate_route31_wade_geometry(
+def _authenticate_reviewed_fixed_placements(
     descriptor: PortDescriptor,
     target_root: Path,
     content: ExpansionSourceContext,
-    selected_maps: Mapping[str, Mapping[str, Any]],
     selected_layouts: Mapping[str, SourceRecord],
     selected_events: Mapping[str, tuple[TrainerEventRecord, ...]],
 ) -> None:
-    """Authenticate Wade's compact object and one reviewed playable approach."""
+    """Authenticate only the explicit fixed objects and their frozen map bytes."""
 
-    events = selected_events.get("Route31", ())
-    if len(events) != 1:
-        raise ContentPortError("route31-wade: expected exactly one emitted object")
-    event = events[0]
-    identity = f"{event.map_name}/{event.object_index}/{event.script_name}"
-    expected_object = {
-        "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
-        "x": 27,
-        "y": 10,
-        "elevation": 0,
-        "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
-        "movement_range_x": 0,
-        "movement_range_y": 3,
-        "trainer_type": "TRAINER_TYPE_NORMAL",
-        "trainer_sight_or_berry_tree_id": "3",
-        "script": "Route31_EventScript_Bugcatcher_Wade",
-        "flag": "0",
+    all_events = {
+        f"{event.map_name}/{event.object_index}/{event.script_name}": event
+        for events in selected_events.values()
+        for event in events
     }
-    if (
-        identity != _ROUTE31_WADE_PLACEMENT
-        or event.object_index != 0
-        or event.trainers != ("TRAINER_WADE",)
-        or dict(event.object_event) != expected_object
-    ):
-        raise ContentPortError("route31-wade: authenticated donor object drifted")
+    if not set(_REVIEWED_FIXED_PLACEMENTS) <= set(all_events):
+        raise ContentPortError("reviewed fixed-placement event coverage drifted")
+    for identity, (trainer, expected_object) in _REVIEWED_FIXED_PLACEMENTS.items():
+        event = all_events[identity]
+        if event.trainers != (trainer,) or dict(event.object_event) != expected_object:
+            raise ContentPortError(
+                f"{identity}: authenticated fixed-placement donor object drifted"
+            )
 
-    layout_record = selected_layouts.get("LAYOUT_ROUTE31")
-    if layout_record is None:
-        raise ContentPortError("route31-wade: authenticated layout is absent")
-    layout = layout_record.value
-    if (
-        layout.get("width") != 60
-        or layout.get("height") != 23
-        or layout.get("blockdata_filepath") != "data/layouts/Route31/map.bin"
-    ):
-        raise ContentPortError("route31-wade: authenticated layout geometry drifted")
-    route31 = selected_maps.get("Route31")
-    if route31 is None or not any(
-        warp.get("x") == 4
-        and warp.get("y") == 10
-        and warp.get("dest_map") == "MAP_GATE_ROUTE31_VIOLET_CITY"
-        for warp in route31.get("warp_events", ())
-        if isinstance(warp, Mapping)
-    ):
-        raise ContentPortError("route31-wade: reviewed playable entry drifted")
-
-    block_path = content.donor_root / "data/layouts/Route31/map.bin"
-    try:
-        block_data = block_path.read_bytes()
-    except OSError as error:
-        raise ContentPortError(
-            f"route31-wade: cannot read authenticated map bytes: {error}"
-        ) from error
-    if (
-        hashlib.sha256(block_data).hexdigest() != _ROUTE31_WADE_MAP_SHA256
-        or len(block_data) != 60 * 23 * 2
-    ):
-        raise ContentPortError("route31-wade: authenticated map bytes drifted")
-    asset_rows = tuple(
-        row
-        for row in descriptor.assets["assets"]
-        if row["donor"] == "content"
-        and row["sourcePath"] == "data/layouts/Route31/map.bin"
-    )
-    if (
-        len(asset_rows) != 1
-        or asset_rows[0]["sourceSha256"] != _ROUTE31_WADE_MAP_SHA256
-    ):
-        raise ContentPortError("route31-wade: reviewed map asset authority drifted")
+    for map_name, (width, height, map_sha256) in _REVIEWED_FIXED_MAPS.items():
+        layout_name = f"LAYOUT_{map_name.upper()}"
+        block_path_value = f"data/layouts/{map_name}/map.bin"
+        layout_record = selected_layouts.get(layout_name)
+        if layout_record is None:
+            raise ContentPortError(f"{map_name}: authenticated layout is absent")
+        layout = layout_record.value
+        if (
+            layout.get("width") != width
+            or layout.get("height") != height
+            or layout.get("blockdata_filepath") != block_path_value
+        ):
+            raise ContentPortError(
+                f"{map_name}: authenticated fixed-placement layout drifted"
+            )
+        block_path = content.donor_root / block_path_value
+        try:
+            block_data = block_path.read_bytes()
+        except OSError as error:
+            raise ContentPortError(
+                f"{map_name}: cannot read authenticated map bytes: {error}"
+            ) from error
+        if (
+            hashlib.sha256(block_data).hexdigest() != map_sha256
+            or len(block_data) != width * height * 2
+        ):
+            raise ContentPortError(
+                f"{map_name}: authenticated fixed-placement map bytes drifted"
+            )
+        asset_rows = tuple(
+            row
+            for row in descriptor.assets["assets"]
+            if row["donor"] == "content" and row["sourcePath"] == block_path_value
+        )
+        if len(asset_rows) != 1 or asset_rows[0]["sourceSha256"] != map_sha256:
+            raise ContentPortError(
+                f"{map_name}: reviewed fixed-placement map asset authority drifted"
+            )
 
     constants_path = target_root / "include/constants/global.h"
     try:
         constants = constants_path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as error:
         raise ContentPortError(
-            f"route31-wade: cannot read object capacity authority: {error}"
+            f"cannot read fixed-placement object capacity authority: {error}"
         ) from error
     capacities = {
         name: int(value)
@@ -2628,15 +2728,17 @@ def _authenticate_route31_wade_geometry(
         )
     }
     if capacities != {"OBJECT_EVENTS_COUNT": 16, "OBJECT_EVENT_TEMPLATES_COUNT": 64}:
-        raise ContentPortError("route31-wade: target object capacity authority drifted")
+        raise ContentPortError("fixed-placement object capacity authority drifted")
     # The renderer strips deferred objects and emits selected trainers in donor
-    # object order. Wade is therefore compact local ID 1, with one static and
-    # three peak active slots including player and follower.
+    # object order. Route30 is the largest reviewed batch: two static objects,
+    # plus player and follower at peak.
     if (
-        1 > capacities["OBJECT_EVENT_TEMPLATES_COUNT"]
-        or 3 > capacities["OBJECT_EVENTS_COUNT"]
+        2 > capacities["OBJECT_EVENT_TEMPLATES_COUNT"]
+        or 4 > capacities["OBJECT_EVENTS_COUNT"]
     ):
-        raise ContentPortError("route31-wade: object capacity is insufficient")
+        raise ContentPortError(
+            "reviewed fixed-placement object capacity is insufficient"
+        )
 
 
 def resolve_port_sources(
@@ -3328,11 +3430,10 @@ def resolve_port_sources(
             batch.kind == "standard-singles"
             for batch in trainer_materialization.batches
         ):
-            _authenticate_route31_wade_geometry(
+            _authenticate_reviewed_fixed_placements(
                 descriptor,
                 target_root,
                 content,
-                selected_maps,
                 selected_layouts,
                 selected_trainer_events,
             )

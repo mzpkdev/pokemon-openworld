@@ -23,7 +23,7 @@ from tools.content_port.sources import (
     resolve_port_sources,
     validate_port_sources,
     _automatic_unreachable_shells,
-    _authenticate_route31_wade_geometry,
+    _authenticate_reviewed_fixed_placements,
     _authenticated_trainer_inventory,
     _semantic_record_digest,
     _require_trainer_geometry_adapter,
@@ -938,8 +938,8 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
         with patch(
-            "tools.content_port.sources._authenticate_route31_wade_geometry",
-            wraps=_authenticate_route31_wade_geometry,
+            "tools.content_port.sources._authenticate_reviewed_fixed_placements",
+            wraps=_authenticate_reviewed_fixed_placements,
         ) as geometry_gate:
             _, state = resolve_port_sources(
                 replace(descriptor, legacy_report=None),
@@ -967,6 +967,23 @@ class SourceGraphTests(unittest.TestCase):
             ResourceKey("trainer-class", "TRAINER_CLASS_BUG_CATCHER"),
             ResourceKey("asset", "TRAINER_PIC_BUG_CATCHER"),
             ResourceKey("service", "Route31_EventScript_Bugcatcher_Wade"),
+            ResourceKey("trainer", "TRAINER_DON"),
+            ResourceKey("party", "sParty_Don"),
+            ResourceKey("species", "SPECIES_LEDYBA"),
+            ResourceKey("species", "SPECIES_SPINARAK"),
+            ResourceKey("service", "Route30_EventScript_Bugcatcher_Don"),
+            ResourceKey("trainer", "TRAINER_MIKEY"),
+            ResourceKey("party", "sParty_Mikey"),
+            ResourceKey("species", "SPECIES_HOOTHOOT"),
+            ResourceKey("species", "SPECIES_SENTRET"),
+            ResourceKey("service", "Route30_EventScript_Youngster_Mikey"),
+            ResourceKey("trainer", "TRAINER_ANTHONY"),
+            ResourceKey("party", "sParty_Anthony"),
+            ResourceKey("species", "SPECIES_GEODUDE"),
+            ResourceKey("species", "SPECIES_MACHOP"),
+            ResourceKey("trainer-class", "TRAINER_CLASS_HIKER"),
+            ResourceKey("asset", "TRAINER_PIC_HIKER"),
+            ResourceKey("service", "Route33_EventScript_HikerAnthony"),
         }
         self.assertTrue(expected <= set(state.resources))
         self.assertNotIn(ResourceKey("trainer", "TRAINER_TODD"), state.resources)
@@ -999,17 +1016,18 @@ class SourceGraphTests(unittest.TestCase):
         drifted_object = dict(route31_event.object_event)
         drifted_object["x"] = 28
         with self.assertRaisesRegex(ContentPortError, "donor object drifted"):
-            _authenticate_route31_wade_geometry(
+            _authenticate_reviewed_fixed_placements(
                 descriptor,
                 Path("."),
                 ExpansionSourceContext(donor_root / "pokemonHnS"),
-                state.maps,
                 {
-                    "LAYOUT_ROUTE31": SourceRecord(
-                        state.layouts["LAYOUT_ROUTE31"], Provenance("fixture")
-                    )
+                    layout: SourceRecord(state.layouts[layout], Provenance("fixture"))
+                    for layout in ("LAYOUT_ROUTE30", "LAYOUT_ROUTE31", "LAYOUT_ROUTE33")
                 },
-                {"Route31": (replace(route31_event, object_event=drifted_object),)},
+                {
+                    **state.trainer_events,
+                    "Route31": (replace(route31_event, object_event=drifted_object),),
+                },
             )
         self.assertIsNotNone(state.trainer_materialization)
         future = replace(
@@ -1019,7 +1037,7 @@ class SourceGraphTests(unittest.TestCase):
                 replace(state.trainer_materialization.batches[-1], key="future"),
             ),
         )
-        with self.assertRaisesRegex(ContentPortError, "geometry adapter"):
+        with self.assertRaisesRegex(ContentPortError, "fixed-placement"):
             _require_trainer_geometry_adapter(future)
         eugene = state.semantic_values[ResourceKey("trainer", "TRAINER_EUGENE")]
         self.assertEqual(
@@ -1154,7 +1172,7 @@ class SourceGraphTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(
             ContentPortError,
-            "authenticated selected trainer closure.*extra=.*TRAINER_DON",
+            "authenticated selected trainer closure.*missing=.*TRAINER_MIKEY",
         ):
             resolve_port_sources(
                 replace(

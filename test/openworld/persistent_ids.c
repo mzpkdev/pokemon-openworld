@@ -80,6 +80,34 @@ TEST("Wade owns his stable trainer identity and bitmap defeat bit")
     EXPECT_EQ(binding.bit, 0);
 }
 
+TEST("Route 30 and Route 33 trainers own their stable identities and bitmap defeat bits")
+{
+    static const struct
+    {
+        u16 trainerId;
+        u16 value;
+        u8 id;
+        u8 bit;
+    } cases[] =
+    {
+        { TRAINER_HIKER_ANTHONY_JOHTO, 1576, 89, 6 },
+        { TRAINER_YOUNGSTER_MIKEY_JOHTO, 1619, 95, 1 },
+        { TRAINER_BUG_CATCHER_DON_JOHTO, 1662, 100, 4 },
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        struct TrainerDefeatBinding binding;
+
+        EXPECT_EQ(cases[i].trainerId, cases[i].value);
+        EXPECT(PersistentId_GetTrainerDefeatBinding(cases[i].trainerId, &binding));
+        EXPECT_EQ(binding.storage, TRAINER_DEFEAT_STORAGE_BITMAP);
+        EXPECT_EQ(binding.id, cases[i].id);
+        EXPECT_EQ(binding.bit, cases[i].bit);
+    }
+}
+
 TEST("Last admitted Johto trainer owns the final allocated bit without consuming padding")
 {
     struct TrainerDefeatBinding binding;

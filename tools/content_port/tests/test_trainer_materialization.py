@@ -40,6 +40,9 @@ POLICY = PORT / "trainer_materialization.json"
 SAMUEL_PLACEMENT = "Route34/0/Route34_EventScript_YoungsterSamuel"
 EUGENE_PLACEMENT = "Route39/4/Route39_EventScript_Eugene"
 WADE_PLACEMENT = "Route31/0/Route31_EventScript_Bugcatcher_Wade"
+DON_PLACEMENT = "Route30/3/Route30_EventScript_Bugcatcher_Don"
+MIKEY_PLACEMENT = "Route30/6/Route30_EventScript_Youngster_Mikey"
+ANTHONY_PLACEMENT = "Route33/0/Route33_EventScript_HikerAnthony"
 SEEDED_REVIEWED_PREFIX = ReviewedMaterializationPrefix(
     1, "7dc0cdbee3a86a518a7910679a0d108610cfb822c41b7077082097fcbd2104c1"
 )
@@ -82,6 +85,27 @@ def inventory() -> TrainerInventory:
             projection("TRAINER_BUG_CATCHER_WADE_JOHTO"),
         ),
         TrainerIdentity(
+            "TRAINER_DON",
+            "ordinary",
+            None,
+            True,
+            projection("TRAINER_BUG_CATCHER_DON_JOHTO"),
+        ),
+        TrainerIdentity(
+            "TRAINER_MIKEY",
+            "ordinary",
+            None,
+            True,
+            projection("TRAINER_YOUNGSTER_MIKEY_JOHTO"),
+        ),
+        TrainerIdentity(
+            "TRAINER_ANTHONY",
+            "ordinary",
+            None,
+            True,
+            projection("TRAINER_HIKER_ANTHONY_JOHTO"),
+        ),
+        TrainerIdentity(
             "TRAINER_TWINS",
             "ordinary",
             None,
@@ -119,6 +143,33 @@ def inventory() -> TrainerInventory:
             "OBJ_EVENT_GFX_BUG_CATCHER",
         ),
         TrainerPlacement(
+            DON_PLACEMENT,
+            "Route30",
+            3,
+            "Route30_EventScript_Bugcatcher_Don",
+            "TRAINER_DON",
+            True,
+            "OBJ_EVENT_GFX_BUG_CATCHER",
+        ),
+        TrainerPlacement(
+            MIKEY_PLACEMENT,
+            "Route30",
+            6,
+            "Route30_EventScript_Youngster_Mikey",
+            "TRAINER_MIKEY",
+            True,
+            "OBJ_EVENT_GFX_YOUNGSTER",
+        ),
+        TrainerPlacement(
+            ANTHONY_PLACEMENT,
+            "Route33",
+            0,
+            "Route33_EventScript_HikerAnthony",
+            "TRAINER_ANTHONY",
+            True,
+            "OBJ_EVENT_GFX_HIKER",
+        ),
+        TrainerPlacement(
             "Gym/1/TwinA",
             "Gym",
             1,
@@ -154,7 +205,14 @@ def allocations(*, include_wade: bool = True) -> BindingIndex:
         ("TRAINER_TWINS_AMY_AND_MAY_JOHTO", 1609),
     ]
     if include_wade:
-        symbols.append(("TRAINER_BUG_CATCHER_WADE_JOHTO", 1570))
+        symbols.extend(
+            (
+                ("TRAINER_BUG_CATCHER_WADE_JOHTO", 1570),
+                ("TRAINER_HIKER_ANTHONY_JOHTO", 1576),
+                ("TRAINER_YOUNGSTER_MIKEY_JOHTO", 1619),
+                ("TRAINER_BUG_CATCHER_DON_JOHTO", 1662),
+            )
+        )
     return BindingIndex(
         PersistentBinding(
             "trainerIds", symbol, value, "u32-id", "trainer-defeat-bitmap"
@@ -169,6 +227,7 @@ def document() -> dict:
 
 def pending_wade_document() -> dict:
     value = document()
+    value["batches"] = value["batches"][:2]
     value["appendOnlyBaseline"] = {
         "batchCount": SEEDED_REVIEWED_PREFIX.batch_count,
         "sha256": SEEDED_REVIEWED_PREFIX.sha256,
@@ -183,11 +242,26 @@ class TrainerMaterializationTests(unittest.TestCase):
         )
         self.assertEqual(result.baseline_digest, PRODUCTION_REVIEWED_PREFIX.sha256)
         self.assertEqual(
-            result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE")
+            result.identity_names,
+            (
+                "TRAINER_SAMUEL",
+                "TRAINER_EUGENE",
+                "TRAINER_WADE",
+                "TRAINER_DON",
+                "TRAINER_MIKEY",
+                "TRAINER_ANTHONY",
+            ),
         )
         self.assertEqual(
             result.placement_names,
-            (SAMUEL_PLACEMENT, EUGENE_PLACEMENT, WADE_PLACEMENT),
+            (
+                SAMUEL_PLACEMENT,
+                EUGENE_PLACEMENT,
+                WADE_PLACEMENT,
+                DON_PLACEMENT,
+                MIKEY_PLACEMENT,
+                ANTHONY_PLACEMENT,
+            ),
         )
         self.assertEqual(
             dict(materialized_targets(result)),
@@ -195,6 +269,9 @@ class TrainerMaterializationTests(unittest.TestCase):
                 "TRAINER_SAMUEL": "TRAINER_YOUNGSTER_SAMUEL_JOHTO",
                 "TRAINER_EUGENE": "TRAINER_SAILOR_EUGENE_JOHTO",
                 "TRAINER_WADE": "TRAINER_BUG_CATCHER_WADE_JOHTO",
+                "TRAINER_DON": "TRAINER_BUG_CATCHER_DON_JOHTO",
+                "TRAINER_MIKEY": "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+                "TRAINER_ANTHONY": "TRAINER_HIKER_ANTHONY_JOHTO",
             },
         )
         with self.assertRaises(TypeError):
@@ -215,7 +292,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             allocations(),
             reviewed_prefix=reviewed,
         )
-        self.assertEqual(result.batches[-1].key, "route31-wade")
+        self.assertEqual(result.batches[-1].key, "route30-route33-don-mikey-anthony")
 
         changed = copy.deepcopy(value)
         changed["batches"][1]["identities"][0]["placements"] = []
@@ -336,7 +413,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         reordered = document()
         reordered["batches"].append(
             {
-                "sequence": 2,
+                "sequence": 3,
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -358,7 +435,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         grouped = document()
         grouped["batches"].append(
             {
-                "sequence": 2,
+                "sequence": 3,
                 "key": "grouped",
                 "kind": "standard-singles",
                 "identities": [
@@ -375,7 +452,7 @@ class TrainerMaterializationTests(unittest.TestCase):
             )
 
         excluded = copy.deepcopy(grouped)
-        excluded["batches"][2]["identities"] = [
+        excluded["batches"][3]["identities"] = [
             {"identity": "TRAINER_STORY", "placements": []}
         ]
         with self.assertRaisesRegex(ContentPortError, "not an admitted projected"):
@@ -399,6 +476,9 @@ class TrainerMaterializationTests(unittest.TestCase):
                 "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
                 "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
                 "TRAINER_WADE": (WADE_PLACEMENT,),
+                "TRAINER_DON": (DON_PLACEMENT,),
+                "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
+                "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
             },
             owner="selected trainer surface",
         )
@@ -408,6 +488,9 @@ class TrainerMaterializationTests(unittest.TestCase):
                 {
                     "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
                     "TRAINER_WADE": (WADE_PLACEMENT,),
+                    "TRAINER_DON": (DON_PLACEMENT,),
+                    "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
+                    "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
                 },
                 owner="selected trainer surface",
             )
@@ -418,6 +501,9 @@ class TrainerMaterializationTests(unittest.TestCase):
                     "TRAINER_SAMUEL": (SAMUEL_PLACEMENT, SAMUEL_PLACEMENT),
                     "TRAINER_EUGENE": (EUGENE_PLACEMENT,),
                     "TRAINER_WADE": (WADE_PLACEMENT,),
+                    "TRAINER_DON": (DON_PLACEMENT,),
+                    "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
+                    "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
                 },
                 owner="selected trainer surface",
             )
@@ -434,7 +520,7 @@ class TrainerMaterializationTests(unittest.TestCase):
         multiple = document()
         multiple["batches"].append(
             {
-                "sequence": 2,
+                "sequence": 3,
                 "key": "repeat-placement",
                 "kind": "standard-singles",
                 "identities": [
@@ -455,6 +541,9 @@ class TrainerMaterializationTests(unittest.TestCase):
                 "TRAINER_SAMUEL": (SAMUEL_PLACEMENT,),
                 "TRAINER_TWINS": ("Gym/2/TwinB", "Gym/1/TwinA"),
                 "TRAINER_WADE": (WADE_PLACEMENT,),
+                "TRAINER_DON": (DON_PLACEMENT,),
+                "TRAINER_MIKEY": (MIKEY_PLACEMENT,),
+                "TRAINER_ANTHONY": (ANTHONY_PLACEMENT,),
             },
             owner="selected trainer surface",
         )
@@ -487,7 +576,14 @@ class TrainerMaterializationTests(unittest.TestCase):
         self.assertIsNotNone(state.trainer_materialization)
         self.assertEqual(
             state.trainer_materialization.identity_names,
-            ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE"),
+            (
+                "TRAINER_SAMUEL",
+                "TRAINER_EUGENE",
+                "TRAINER_WADE",
+                "TRAINER_DON",
+                "TRAINER_MIKEY",
+                "TRAINER_ANTHONY",
+            ),
         )
         result = load_trainer_materialization(
             POLICY,
@@ -495,7 +591,15 @@ class TrainerMaterializationTests(unittest.TestCase):
             load_binding_index(ROOT / "src/data/persistence/persistent_ids.json"),
         )
         self.assertEqual(
-            result.identity_names, ("TRAINER_SAMUEL", "TRAINER_EUGENE", "TRAINER_WADE")
+            result.identity_names,
+            (
+                "TRAINER_SAMUEL",
+                "TRAINER_EUGENE",
+                "TRAINER_WADE",
+                "TRAINER_DON",
+                "TRAINER_MIKEY",
+                "TRAINER_ANTHONY",
+            ),
         )
         selected: dict[str, list[str]] = {}
         for events in state.trainer_events.values():

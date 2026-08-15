@@ -43,6 +43,7 @@ TRAINER_FRLG_YOUNGSTER_BEN = 858
 TRAINER_FRLG_RUIN_MANIAC_LAWSON = 1345
 TRAINER_YOUNGSTER_SAMUEL_JOHTO = 1481
 TRAINER_BUG_CATCHER_WADE_JOHTO = 1570
+TRAINER_HIKER_ANTHONY_JOHTO = 1576
 FLAG_DEFEATED_CALVIN_1 = 0x63E
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 
@@ -372,6 +373,55 @@ def test_route31_wade_is_reachable_and_starts_his_authored_battle(integrity_game
     )
     trainer_battle = integrity_game.address("gTrainerBattleParameter")
     assert integrity_game.read_u16(trainer_battle + 2) == TRAINER_BUG_CATCHER_WADE_JOHTO
+
+
+@pytest.mark.long_journey
+def test_route30_route33_batch_starts_an_authored_battle(integrity_game):
+    _quickstart(integrity_game)
+    disable_battle_animations_through_options(integrity_game)
+    set_battle_party_through_debug_menu(integrity_game)
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    route33 = maps["Route33"]
+    load_result = integrity_game.request_map_load(
+        IntegrityMapLoadRequest(
+            request_id=0xD6000033,
+            map_group=route33.group,
+            map_num=route33.number,
+            x=27,
+            y=17,
+        ),
+        max_frames=1_800,
+    )
+    assert load_result.status is IntegrityLoadStatus.SUCCESS
+    assert load_result.phase is IntegrityLoadPhase.FIELD_READY
+    assert load_result.error is IntegrityLoadError.NONE
+    integrity_game.wait_for_controls_unlocked(max_frames=1_200)
+    assert integrity_game.position() == (27, 18)
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
+    integrity_game.move_path((25, 18), (25, 23), (18, 23))
+    integrity_game.advance_until(
+        lambda: (
+            integrity_game.callback_is("BattleMainCB2")
+            or integrity_game.position() == (17, 23)
+        ),
+        description="Anthony trainer sight column",
+        max_pulses=20,
+        button="Left",
+    )
+    for _ in range(1_200):
+        if integrity_game.callback_is("BattleMainCB2"):
+            break
+        integrity_game.press("A", release_frames=4)
+    else:
+        raise AssertionError("ordinary Route33 movement did not trigger Anthony")
+    assert (
+        integrity_game.read_u32(integrity_game.address("gBattleTypeFlags"))
+        & BATTLE_TYPE_TRAINER
+    )
+    trainer_battle = integrity_game.address("gTrainerBattleParameter")
+    assert integrity_game.read_u16(trainer_battle + 2) == TRAINER_HIKER_ANTHONY_JOHTO
 
 
 @pytest.mark.long_journey

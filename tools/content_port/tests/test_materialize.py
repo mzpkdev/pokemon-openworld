@@ -257,6 +257,35 @@ class MaterializeTests(unittest.TestCase):
             route31_script["events"][0]["instructions"][0]["operands"][0],
             "TRAINER_BUG_CATCHER_WADE_JOHTO",
         )
+        route30 = map_units["map:Route30"].value
+        self.assertEqual(
+            [event["script"] for event in route30["object_events"]],
+            [
+                "Route30_EventScript_Bugcatcher_Don",
+                "Route30_EventScript_Youngster_Mikey",
+            ],
+        )
+        route30_script = map_units["map-script:Route30"].value
+        self.assertEqual(
+            [
+                event["instructions"][0]["operands"][0]
+                for event in route30_script["events"]
+            ],
+            [
+                "TRAINER_BUG_CATCHER_DON_JOHTO",
+                "TRAINER_YOUNGSTER_MIKEY_JOHTO",
+            ],
+        )
+        route33 = map_units["map:Route33"].value
+        self.assertEqual(
+            route33["object_events"][0]["script"],
+            "Route33_EventScript_HikerAnthony",
+        )
+        route33_script = map_units["map-script:Route33"].value
+        self.assertEqual(
+            route33_script["events"][0]["instructions"][0]["operands"][0],
+            "TRAINER_HIKER_ANTHONY_JOHTO",
+        )
         route39 = map_units["map:Route39"].value
         self.assertEqual(len(route39["object_events"]), 1)
         self.assertEqual(

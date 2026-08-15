@@ -173,6 +173,48 @@ TEST("Wade resolves his authored normal party without legacy defeat flag or rema
         TRAINER_REMATCH_BINDING_NONE);
 }
 
+TEST("Route 30 and Route 33 trainers resolve their authored normal parties")
+{
+    static const struct
+    {
+        u16 trainerId;
+        u16 species1;
+        u8 level1;
+        u16 species2;
+        u8 level2;
+    } cases[] =
+    {
+        { TRAINER_BUG_CATCHER_DON_JOHTO, SPECIES_LEDYBA, 3, SPECIES_SPINARAK, 3 },
+        { TRAINER_YOUNGSTER_MIKEY_JOHTO, SPECIES_HOOTHOOT, 2, SPECIES_SENTRET, 4 },
+        { TRAINER_HIKER_ANTHONY_JOHTO, SPECIES_GEODUDE, 11, SPECIES_MACHOP, 11 },
+    };
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(cases); i++)
+    {
+        struct ResolvedOrdinaryTrainer resolved;
+        u16 defeatFlag = TRAINER_NONE;
+
+        EXPECT(TryResolveOrdinaryTrainerAtDifficulty(
+            cases[i].trainerId,
+            DIFFICULTY_HARD,
+            &resolved));
+        EXPECT_EQ(resolved.difficulty, DIFFICULTY_NORMAL);
+        EXPECT_EQ((u32)resolved.trainer.partySize, 2);
+        EXPECT_EQ(resolved.trainer.party[0].species, cases[i].species1);
+        EXPECT_EQ((u32)resolved.trainer.party[0].lvl, cases[i].level1);
+        EXPECT_EQ((u32)resolved.trainer.party[0].iv, 0);
+        EXPECT_EQ(resolved.trainer.party[1].species, cases[i].species2);
+        EXPECT_EQ((u32)resolved.trainer.party[1].lvl, cases[i].level2);
+        EXPECT_EQ((u32)resolved.trainer.party[1].iv, 0);
+        EXPECT(!PersistentId_GetTrainerDefeatFlag(cases[i].trainerId, &defeatFlag));
+        EXPECT_EQ(defeatFlag, TRAINER_NONE);
+        EXPECT_EQ(
+            TrainerRematch_GetBinding(cases[i].trainerId).kind,
+            TRAINER_REMATCH_BINDING_NONE);
+    }
+}
+
 TEST("Ordinary trainer registry rejects invalid and cyclic party overrides")
 {
     struct ResolvedOrdinaryTrainer resolved;
