@@ -117,13 +117,17 @@ class SaveContractTests(unittest.TestCase):
             contract["structs"]["SaveBlock1"]["members"][-1]["type"]["dimensions"],
             [79],
         )
-        self.assertEqual(projected["structs"]["SaveBlock1"]["size"], 15672)
+        self.assertEqual(projected["structs"]["SaveBlock1"]["size"], 15736)
         self.assertEqual(
-            projected["structs"]["SaveBlock1"]["members"][-1]["type"]["dimensions"],
+            projected["structs"]["SaveBlock1"]["members"][-3]["type"]["dimensions"],
             [103],
         )
         self.assertEqual(
-            projected["physical"]["slotLayout"][4]["payload"]["size"], 3768
+            projected["physical"]["slotLayout"][4]["payload"]["size"], 3832
+        )
+        self.assertEqual(
+            projected["structs"]["SaveBlock1"]["members"][-1]["name"],
+            "generatedDungeon",
         )
 
     def test_reviewed_tail_extension_rejects_prefix_member_offset_drift(self):

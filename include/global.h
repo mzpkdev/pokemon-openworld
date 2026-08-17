@@ -1214,7 +1214,11 @@ struct SaveBlock1
     // new trainer bits clear. Downgrade-after-use and arbitrary foreign writers
     // with a nonzero historical tail are outside the compatibility contract.
     /*0x3CD0*/ u8 trainerDefeated[103];
-    // sizeof: 0x3D38
+    /*0x3D37*/ u8 generatedDungeonPadding;
+    // This independently checksummed record remains inside the normal SaveBlock1
+    // sector checksum. Its byte layout is defined by generated_dungeon_persistence.h.
+    /*0x3D38*/ u8 generatedDungeon[64];
+    // sizeof: 0x3D78
 };
 
 extern struct SaveBlock1 *gSaveBlock1Ptr;
