@@ -72,20 +72,20 @@ voice_group hns_pewter
 	.rept 5
 	voice_square_1 60, 0, 0, 2, 0, 0, 15, 0
 	.endr
-	voice_keysplit hns_pewter_vibraphone, hns_pewter_keysplit_vibraphone
+	voice_keysplit voicegroup_hns_pewter_vibraphone, hns_pewter_keysplit_vibraphone
 	.rept 9
 	voice_square_1 60, 0, 0, 2, 0, 0, 15, 0
 	.endr
-	voice_keysplit hns_pewter_martin_guitar, hns_pewter_keysplit_martin_guitar
+	voice_keysplit voicegroup_hns_pewter_martin_guitar, hns_pewter_keysplit_martin_guitar
 	.rept 4
 	voice_square_1 60, 0, 0, 2, 0, 0, 15, 0
 	.endr
-	voice_keysplit hns_pewter_fingered_bass, hns_pewter_keysplit_fingered_bass
+	voice_keysplit voicegroup_hns_pewter_fingered_bass, hns_pewter_keysplit_fingered_bass
 	.rept 14
 	voice_square_1 60, 0, 0, 2, 0, 0, 15, 0
 	.endr
-	voice_keysplit hns_pewter_bassoon, hns_pewter_keysplit_bassoon
+	voice_keysplit voicegroup_hns_pewter_bassoon, hns_pewter_keysplit_bassoon
 	.rept 3
 	voice_square_1 60, 0, 0, 2, 0, 0, 15, 0
 	.endr
-	voice_keysplit_all hns_pewter_taiko
+	voice_keysplit_all voicegroup_hns_pewter_taiko
