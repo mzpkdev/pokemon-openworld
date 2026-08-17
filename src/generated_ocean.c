@@ -27,6 +27,7 @@ enum GeneratedOceanCell
 {
     GENERATED_OCEAN_CELL_CALM_WATER,
     GENERATED_OCEAN_CELL_ROUGH_WATER,
+    GENERATED_OCEAN_CELL_IMPASSABLE_WATER,
 };
 
 extern const u8 Route40_EventScript_Elaine[];
@@ -65,6 +66,11 @@ static bool32 TranslateCell(const struct GeneratedDungeonProvider *provider, u16
     case GENERATED_OCEAN_CELL_ROUGH_WATER:
         *metatile = METATILE_General_RoughWater;
         return TRUE;
+    case GENERATED_OCEAN_CELL_IMPASSABLE_WATER:
+        // Collision is map-cell data, so preserve the ocean tile's visual and
+        // behavior while making the generated reef unenterable to the engine.
+        *metatile = METATILE_General_RoughWater | MAPGRID_IMPASSABLE;
+        return TRUE;
     default:
         return FALSE;
     }
@@ -78,8 +84,10 @@ static bool32 CanMove(const struct GeneratedDungeonProvider *provider, const str
     if (provider == NULL
      || !GeneratedDungeonWorkspace_GetCell(workspace, from.x, from.y, &fromCell)
      || !GeneratedDungeonWorkspace_GetCell(workspace, to.x, to.y, &toCell)
-     || fromCell > GENERATED_OCEAN_CELL_ROUGH_WATER
-     || toCell > GENERATED_OCEAN_CELL_ROUGH_WATER)
+     || fromCell > GENERATED_OCEAN_CELL_IMPASSABLE_WATER
+     || toCell > GENERATED_OCEAN_CELL_IMPASSABLE_WATER
+     || fromCell == GENERATED_OCEAN_CELL_IMPASSABLE_WATER
+     || toCell == GENERATED_OCEAN_CELL_IMPASSABLE_WATER)
         return FALSE;
 
     return (from.x == to.x && (from.y + 1 == to.y || to.y + 1 == from.y))
@@ -117,9 +125,12 @@ static bool32 FindObjectPosition(struct GeneratedDungeonWorkspace *workspace, rn
     {
         u16 candidateX = 4 + LocalRandom(rng) % (GENERATED_OCEAN_WIDTH - 8);
         u16 candidateY = 1 + LocalRandom(rng) % (GENERATED_OCEAN_HEIGHT - 2);
+        u16 cell;
 
         if (!IsEndpoint(candidateX, candidateY)
          && candidateY != GENERATED_OCEAN_ENDPOINT_Y
+         && GeneratedDungeonWorkspace_GetCell(workspace, candidateX, candidateY, &cell)
+         && cell != GENERATED_OCEAN_CELL_IMPASSABLE_WATER
          && !IsOccupiedByPreviousObject(workspace, objectCount, candidateX, candidateY))
         {
             *x = candidateX;
@@ -149,6 +160,7 @@ static bool32 SetObject(struct GeneratedDungeonWorkspace *workspace, u8 index, u
 
 static bool32 SetTerrain(struct GeneratedDungeonWorkspace *workspace, struct GeneratedDungeonRngStreams *rng)
 {
+    u16 impassableCount = 0;
     u16 x;
     u16 y;
 
@@ -156,16 +168,29 @@ static bool32 SetTerrain(struct GeneratedDungeonWorkspace *workspace, struct Gen
     {
         for (x = 0; x < GENERATED_OCEAN_WIDTH; x++)
         {
-            u16 cell = (LocalRandom(&rng->values[GENERATED_DUNGEON_RNG_TOPOLOGY]) & 3) == 0
-                ? GENERATED_OCEAN_CELL_ROUGH_WATER
-                : GENERATED_OCEAN_CELL_CALM_WATER;
+            u16 roll = LocalRandom(&rng->values[GENERATED_DUNGEON_RNG_TOPOLOGY]);
+            u16 cell = (roll & 7) == 0
+                ? GENERATED_OCEAN_CELL_IMPASSABLE_WATER
+                : (roll & 3) == 0
+                    ? GENERATED_OCEAN_CELL_ROUGH_WATER
+                    : GENERATED_OCEAN_CELL_CALM_WATER;
 
             if (y == GENERATED_OCEAN_ENDPOINT_Y || IsEndpoint(x, y))
                 cell = GENERATED_OCEAN_CELL_CALM_WATER;
+            else if (cell == GENERATED_OCEAN_CELL_IMPASSABLE_WATER)
+                impassableCount++;
             if (!GeneratedDungeonWorkspace_SetCell(workspace, x, y, cell))
                 return FALSE;
         }
     }
+
+    // A generated run always contains terrain that changes routing, even for
+    // an unusually sparse deterministic stream. The central calm lane keeps
+    // both recorded departures reachable.
+    if (impassableCount == 0
+     && !GeneratedDungeonWorkspace_SetCell(workspace, 10, GENERATED_OCEAN_ENDPOINT_Y - 2,
+                                           GENERATED_OCEAN_CELL_IMPASSABLE_WATER))
+        return FALSE;
     return TRUE;
 }
 
@@ -211,6 +236,10 @@ static bool32 Generate(const struct GeneratedDungeonProvider *provider, struct G
 
 static bool32 Fallback(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonWorkspace *workspace)
 {
+    static const struct GeneratedDungeonPoint sImpassablePoints[] =
+    {
+        {10, 4}, {23, 6}, {38, 18}, {51, 3},
+    };
     static const struct GeneratedDungeonPoint sTrainerPoints[GENERATED_OCEAN_TRAINER_COUNT] =
     {
         {13, 16}, {27, 3}, {42, 8}, {54, 19},
@@ -231,6 +260,11 @@ static bool32 Fallback(const struct GeneratedDungeonProvider *provider, struct G
         for (x = 0; x < GENERATED_OCEAN_WIDTH; x++)
             if (!GeneratedDungeonWorkspace_SetCell(workspace, x, y, GENERATED_OCEAN_CELL_CALM_WATER))
                 return FALSE;
+
+    for (i = 0; i < ARRAY_COUNT(sImpassablePoints); i++)
+        if (!GeneratedDungeonWorkspace_SetCell(workspace, sImpassablePoints[i].x, sImpassablePoints[i].y,
+                                               GENERATED_OCEAN_CELL_IMPASSABLE_WATER))
+            return FALSE;
 
     for (i = 0; i < GENERATED_OCEAN_TRAINER_COUNT; i++)
     {

@@ -6,6 +6,7 @@
 #include "test/test.h"
 #include "constants/event_objects.h"
 #include "constants/maps.h"
+#include "constants/metatile_labels.h"
 #include "constants/trainer_types.h"
 
 STATIC_ASSERT(sizeof(struct GeneratedDungeonWorkspace) <= sizeof(sBackupMapData), GeneratedOceanTestWorkspaceFitsBackupMapBuffer);
@@ -15,11 +16,40 @@ static struct GeneratedDungeonWorkspace *GetTestWorkspace(void)
     return (void *)sBackupMapData;
 }
 
+static bool32 AlwaysFailGeneration(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonRngStreams *rng, u8 attempt, struct GeneratedDungeonWorkspace *workspace)
+{
+    (void)provider;
+    (void)rng;
+    (void)attempt;
+    (void)workspace;
+    return FALSE;
+}
+
+static u16 CountImpassableCells(const struct GeneratedDungeonProvider *provider, const struct GeneratedDungeonWorkspace *workspace)
+{
+    u16 impassableCount = 0;
+    u16 i;
+
+    for (i = 0; i < workspace->width * workspace->height; i++)
+    {
+        u16 metatile;
+
+        if (provider->translateCell(provider, workspace->cells[i], &metatile)
+         && (metatile & MAPGRID_IMPASSABLE) != 0)
+            impassableCount++;
+    }
+    return impassableCount;
+}
+
 TEST("Generated ocean registers its fixed shell and only emits swimmers")
 {
     const struct GeneratedDungeonProvider *provider = NULL;
     struct GeneratedDungeonWorkspace *workspace = GetTestWorkspace();
+    struct GeneratedDungeonPoint blocked = {0};
+    struct GeneratedDungeonPoint adjacent = {0};
+    u16 metatile;
     u8 i;
+    bool32 foundBlocked = FALSE;
 
     EXPECT(GeneratedOcean_Init());
     EXPECT(GeneratedDungeon_FindProviderById(GENERATED_OCEAN_PROVIDER_ID, GENERATED_OCEAN_GENERATION_VERSION, &provider));
@@ -35,7 +65,13 @@ TEST("Generated ocean registers its fixed shell and only emits swimmers")
     EXPECT_EQ(workspace->destinationEndpoint.x, 60);
     EXPECT_EQ(workspace->spawn.y, 12);
     EXPECT_EQ(workspace->objectCount, 4);
-    EXPECT(workspace->cells[workspace->spawn.x + workspace->spawn.y * workspace->width] <= 1);
+    EXPECT(provider->translateCell(provider, workspace->cells[workspace->spawn.x + workspace->spawn.y * workspace->width], &metatile));
+    EXPECT_EQ(metatile, METATILE_General_CalmWater);
+    EXPECT(provider->translateCell(provider, workspace->cells[workspace->originEndpoint.x + workspace->originEndpoint.y * workspace->width], &metatile));
+    EXPECT_EQ(metatile, METATILE_General_CalmWater);
+    EXPECT(provider->translateCell(provider, workspace->cells[workspace->destinationEndpoint.x + workspace->destinationEndpoint.y * workspace->width], &metatile));
+    EXPECT_EQ(metatile, METATILE_General_CalmWater);
+    EXPECT(CountImpassableCells(provider, workspace) > 0);
 
     for (i = 0; i < workspace->objectCount; i++)
     {
@@ -45,6 +81,40 @@ TEST("Generated ocean registers its fixed shell and only emits swimmers")
         EXPECT_EQ(workspace->objects[i].template.trainerType, TRAINER_TYPE_NORMAL);
         EXPECT_NE(workspace->objects[i].template.script, NULL);
     }
+
+    for (u16 y = 0; y < workspace->height && !foundBlocked; y++)
+    {
+        for (u16 x = 0; x < workspace->width; x++)
+        {
+            if (!provider->translateCell(provider, workspace->cells[x + y * workspace->width], &metatile)
+             || (metatile & MAPGRID_IMPASSABLE) == 0)
+                continue;
+
+            blocked = (struct GeneratedDungeonPoint){x, y};
+            adjacent = (struct GeneratedDungeonPoint){x + 1, y};
+            if (adjacent.x >= workspace->width)
+                adjacent = (struct GeneratedDungeonPoint){x - 1, y};
+            foundBlocked = TRUE;
+            break;
+        }
+    }
+    EXPECT(foundBlocked);
+    EXPECT(!provider->canMove(provider, workspace, adjacent, blocked));
+}
+
+TEST("Generated ocean fallback retains impassable terrain and endpoint reachability")
+{
+    const struct GeneratedDungeonProvider *provider = NULL;
+    struct GeneratedDungeonProvider fallbackProvider;
+    struct GeneratedDungeonWorkspace *workspace = GetTestWorkspace();
+
+    EXPECT(GeneratedOcean_Init());
+    EXPECT(GeneratedDungeon_FindProviderById(GENERATED_OCEAN_PROVIDER_ID, GENERATED_OCEAN_GENERATION_VERSION, &provider));
+    fallbackProvider = *provider;
+    fallbackProvider.generate = AlwaysFailGeneration;
+    EXPECT_EQ(GeneratedDungeon_Generate(&fallbackProvider, 0x91a5c0de, workspace), GENERATED_DUNGEON_GENERATION_FALLBACK);
+    EXPECT(CountImpassableCells(&fallbackProvider, workspace) > 0);
+    EXPECT(GeneratedDungeonWorkspace_HasReachableEndpoints(&fallbackProvider, workspace));
 }
 
 TEST("Generated ocean trainer progress is checksummed and isolated to the active run")
