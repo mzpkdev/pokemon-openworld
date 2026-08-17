@@ -73,7 +73,14 @@ PewterCity_Hns_EventScript_FatMan::
 PewterCity_Hns_EventScript_BugCatcher::
 	lock
 	faceplayer
+	msgbox PewterCity_Text_DoYouKnowWhatImDoing, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, YES, PewterCity_Hns_EventScript_KnowWhatTheyreDoing
 	msgbox PewterCity_Text_SprayingRepelToKeepWildMonsOut
+	release
+	end
+
+PewterCity_Hns_EventScript_KnowWhatTheyreDoing::
+	msgbox PewterCity_Text_ThatsRightItsHardWork
 	release
 	end
 
@@ -144,38 +151,116 @@ PewterCity_Hns_EventScript_RunningShoesAideTriggerBottom::
 
 PewterCity_Hns_EventScript_GiveRunningShoes::
 	goto_if_set FLAG_SYS_B_DASH, PewterCity_Hns_EventScript_RunningShoesAlreadyDelivered
+	textcolor NPC_TEXT_COLOR_MALE
+	call_if_eq VAR_TEMP_1, 1, PewterCity_Hns_EventScript_AideNoticePlayer
+	call_if_eq VAR_TEMP_1, 2, PewterCity_Hns_EventScript_AideNoticePlayer
+	call_if_eq VAR_TEMP_1, 3, PewterCity_Hns_EventScript_AideNoticePlayer
+	call_if_eq VAR_TEMP_1, 4, PewterCity_Hns_EventScript_AideNoticePlayer
+	waitse
+	playse SE_PIN
+	applymovement LOCALID_PEWTER_AIDE, Common_Movement_ExclamationMark
+	waitmovement 0
+	applymovement LOCALID_PEWTER_AIDE, Common_Movement_Delay48
+	waitmovement 0
+	msgbox PewterCity_Text_OhPlayer
+	call_if_eq VAR_TEMP_1, 0, PewterCity_Hns_EventScript_AideApproachPlayer0
+	call_if_eq VAR_TEMP_1, 1, PewterCity_Hns_EventScript_AideApproachPlayerTop
 	call_if_eq VAR_TEMP_1, 2, PewterCity_Hns_EventScript_AideApproachPlayerMid
 	call_if_eq VAR_TEMP_1, 3, PewterCity_Hns_EventScript_AideApproachPlayerLow
 	call_if_eq VAR_TEMP_1, 4, PewterCity_Hns_EventScript_AideApproachPlayerBottom
-	msgbox PewterCity_Text_OhPlayer
 	msgbox PewterCity_Text_AskedToDeliverThis
+	textcolor NPC_TEXT_COLOR_NEUTRAL
 	playfanfare MUS_RG_OBTAIN_KEY_ITEM
 	message PewterCity_Text_ReceivedRunningShoesFromAide
 	waitmessage
 	waitfanfare
 	msgbox PewterCity_Text_SwitchedShoesWithRunningShoes
+	special DisableMsgBoxWalkaway
+	signmsg
+	msgbox PewterCity_Text_ExplainRunningShoes
+	normalmsg
+	call EventScript_RestorePrevTextColor
+	msgbox PewterCity_Text_MustBeGoingBackToLab
+	closemessage
+	call_if_eq VAR_TEMP_1, 0, PewterCity_Hns_EventScript_AideExit0
+	call_if_eq VAR_TEMP_1, 1, PewterCity_Hns_EventScript_AideExitTop
+	call_if_eq VAR_TEMP_1, 2, PewterCity_Hns_EventScript_AideExitMid
+	call_if_eq VAR_TEMP_1, 3, PewterCity_Hns_EventScript_AideExitLow
+	call_if_eq VAR_TEMP_1, 4, PewterCity_Hns_EventScript_AideExitBottom
+	delay 30
+	textcolor NPC_TEXT_COLOR_NEUTRAL
+	msgbox PewterCity_Text_RunningShoesLetterFromMom
+	closemessage
+	removeobject LOCALID_PEWTER_AIDE
 	setflag FLAG_SYS_B_DASH
 	setvar VAR_MAP_SCENE_PEWTER_CITY, 2
-	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExit
-	waitmovement 0
-	removeobject LOCALID_PEWTER_AIDE
 	return
 
 PewterCity_Hns_EventScript_RunningShoesAlreadyDelivered::
 	return
 
+PewterCity_Hns_EventScript_AideNoticePlayer::
+	applymovement LOCALID_PEWTER_AIDE, Common_Movement_WalkInPlaceFasterDown
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideApproachPlayer0::
+	closemessage
+	delay 20
+	return
+
+PewterCity_Hns_EventScript_AideApproachPlayerTop::
+	closemessage
+	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterUp
+	waitmovement 0
+	return
+
 PewterCity_Hns_EventScript_AideApproachPlayerMid::
+	closemessage
 	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideApproachPlayerMid
+	waitmovement 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterUp
 	waitmovement 0
 	return
 
 PewterCity_Hns_EventScript_AideApproachPlayerLow::
+	closemessage
 	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideApproachPlayerLow
+	waitmovement 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterUp
 	waitmovement 0
 	return
 
 PewterCity_Hns_EventScript_AideApproachPlayerBottom::
+	closemessage
 	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideApproachPlayerBottom
+	waitmovement 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterUp
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideExit0::
+	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExit0
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideExitTop::
+	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExitTop
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideExitMid::
+	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExitMid
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideExitLow::
+	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExitLow
+	waitmovement 0
+	return
+
+PewterCity_Hns_EventScript_AideExitBottom::
+	applymovement LOCALID_PEWTER_AIDE, PewterCity_Hns_Movement_AideExitBottom
 	waitmovement 0
 	return
 
@@ -356,21 +441,76 @@ PewterCity_Hns_Movement_GymGuideExit::
 	step_end
 
 PewterCity_Hns_Movement_AideApproachPlayerMid::
+	delay_4
 	walk_down
 	step_end
 
 PewterCity_Hns_Movement_AideApproachPlayerLow::
+	delay_4
 	walk_down
 	walk_down
 	step_end
 
 PewterCity_Hns_Movement_AideApproachPlayerBottom::
+	delay_4
 	walk_down
 	walk_down
 	walk_down
 	step_end
 
-PewterCity_Hns_Movement_AideExit::
+PewterCity_Hns_Movement_AideExit0::
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	step_end
+
+PewterCity_Hns_Movement_AideExitTop::
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	step_end
+
+PewterCity_Hns_Movement_AideExitMid::
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	step_end
+
+PewterCity_Hns_Movement_AideExitLow::
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	step_end
+
+PewterCity_Hns_Movement_AideExitBottom::
 	walk_left
 	walk_left
 	walk_left

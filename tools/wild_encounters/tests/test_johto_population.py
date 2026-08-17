@@ -173,7 +173,7 @@ class JohtoPopulationTests(unittest.TestCase):
         }
         self.assertTrue(maps.isdisjoint(excluded_ids))
         self.assertEqual(sum(kind == "special" for kind in kinds.values()), 18)
-        self.assertEqual(sum(kind == "encounter-free" for kind in kinds.values()), 147)
+        self.assertEqual(sum(kind == "encounter-free" for kind in kinds.values()), 148)
 
     def test_route39_and_non_johto_values_are_preserved(self):
         original_group = self.encounters["wild_encounter_groups"][0]["encounters"]

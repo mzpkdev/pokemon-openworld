@@ -928,7 +928,7 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
         evidence, state = resolve_port_sources(descriptor, Path("."))
-        self.assertEqual(evidence.inventory["maps"], 254)
+        self.assertEqual(evidence.inventory["maps"], 255)
         self.assertEqual(evidence.inventory["layouts"], 255)
         expected_asset_policy = tuple(
             sorted(
@@ -1348,7 +1348,7 @@ class SourceGraphTests(unittest.TestCase):
             descriptor = load_port(port, donor_root)
             self.assertEqual(descriptor.event_policy_path, selected.resolve())
             evidence, _ = resolve_port_sources(descriptor, Path("."))
-            self.assertEqual(evidence.inventory["maps"], 254)
+            self.assertEqual(evidence.inventory["maps"], 255)
 
     def test_full_real_port_contract_rejects_cross_domain_mutations(self) -> None:
         donor_root = self._donor_root()
@@ -1361,7 +1361,7 @@ class SourceGraphTests(unittest.TestCase):
         without_legacy = validate_port_sources(
             replace(descriptor, legacy_report=None), Path(".")
         )
-        self.assertEqual(without_legacy.inventory["maps"], 254)
+        self.assertEqual(without_legacy.inventory["maps"], 255)
 
         _, resolved = resolve_port_sources(descriptor, Path("."))
         new_bark = resolved.layouts["LAYOUT_NEW_BARK_TOWN"]
@@ -1419,7 +1419,7 @@ class SourceGraphTests(unittest.TestCase):
         renamed = validate_port_sources(
             replace(descriptor, donors_by_role=renamed_donors), Path(".")
         )
-        self.assertEqual(renamed.inventory["maps"], 254)
+        self.assertEqual(renamed.inventory["maps"], 255)
 
         adaptations = self._mutable(descriptor.adaptations)
         adaptations["contentFallback"]["maps"].append("NewBarkTown")

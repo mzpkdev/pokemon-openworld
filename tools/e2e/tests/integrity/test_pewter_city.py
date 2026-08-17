@@ -16,6 +16,7 @@ from tools.e2e.tests.integrity.manifest import (
 )
 from tools.e2e.tests.integrity.test_pokecenter_regressions import (
     _add_debug_party,
+    _current_debug_menu_is,
     _damage_and_poison_lead,
     _force_whiteout_and_wait_for_center,
     _interact_with_nurse,
@@ -109,6 +110,11 @@ def _open_utilities(game) -> None:
         description="debug main menu",
         max_frames=300,
     )
+    game.advance_until(
+        lambda: _current_debug_menu_is(game, "sDebugMenu_Actions_Utilities", level=1),
+        description="Utilities debug submenu",
+        max_pulses=20,
+    )
 
 
 def _named_warp_task(game, function: str) -> int:
@@ -146,16 +152,6 @@ def _select_named_warp_map(game, target) -> None:
             return
         game.press("Down", release_frames=2)
     raise AssertionError(f"named-warp map {target.name} was not selectable")
-    menu_data = game.pointer("sDebugMenuListData")
-    game.advance_until(
-        lambda: bool(
-            menu_data
-            and game.read_u32(menu_data + 4)
-            == game.address("sDebugMenu_Actions_Utilities")
-        ),
-        description="Utilities debug submenu",
-        max_pulses=20,
-    )
 
 
 @pytest.mark.parametrize("case", DOORS, ids=lambda case: case.name)

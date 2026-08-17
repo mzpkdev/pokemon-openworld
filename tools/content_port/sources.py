@@ -3367,8 +3367,8 @@ def resolve_port_sources(
         )
         source_prefix = f"data/layouts/{authority.source}/"
         target_prefix = f"data/layouts/{target_maps[0]}/"
-        for field in ("border_filepath", "blockdata_filepath"):
-            source_path = source_layout_record.value.get(field)
+        for field_name in ("border_filepath", "blockdata_filepath"):
+            source_path = source_layout_record.value.get(field_name)
             if isinstance(source_path, str) and source_path.startswith(source_prefix):
                 target_path = target_prefix + source_path.removeprefix(source_prefix)
                 contexts[authority.source_role]._aliases[
