@@ -1883,8 +1883,9 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     )
     assets = _load_policy(
         _safe_child(port_dir, root["assetPolicy"], "$.assetPolicy"),
-        {"schemaVersion", "permissionRecords", "assets", "audioClosures"},
+        {"schemaVersion", "permissionRecords", "assets"},
         "$",
+        {"audioClosures"},
     )
     # Asset policy has domain-specific field and permission validation in the
     # donor-governance module. Blocked entries remain loadable by design.

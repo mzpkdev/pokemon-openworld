@@ -3349,6 +3349,31 @@ def resolve_port_sources(
         )
         for role, pin in donor_pins.items()
     }
+    for authority in descriptor.layout_binary_authorities:
+        source_layout = authority.source_layout or authority.layout
+        if source_layout == authority.layout:
+            continue
+        target_maps = [
+            allocation.name
+            for allocation in descriptor.allocation_index.maps.values()
+            if allocation.layout == authority.layout
+        ]
+        if len(target_maps) != 1:
+            raise ContentPortError(
+                f"{authority.layout}: aliased layout must belong to exactly one target map"
+            )
+        source_layout_record = contexts[authority.source_role].load(
+            ResourceKey("layout", source_layout)
+        )
+        source_prefix = f"data/layouts/{authority.source}/"
+        target_prefix = f"data/layouts/{target_maps[0]}/"
+        for field in ("border_filepath", "blockdata_filepath"):
+            source_path = source_layout_record.value.get(field)
+            if isinstance(source_path, str) and source_path.startswith(source_prefix):
+                target_path = target_prefix + source_path.removeprefix(source_prefix)
+                contexts[authority.source_role]._aliases[
+                    ResourceKey("asset", target_path)
+                ] = ResourceKey("asset", source_path)
     mechanical_pin = descriptor.donor("mechanical")
     content_pin = descriptor.donor("content")
     mechanical = contexts["mechanical"]
@@ -3846,9 +3871,28 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{authority.layout}: overlapping layout binary authorities"
             )
-        selected_layouts[authority.layout] = SourceRecord(
-            {**_thaw(record.value), "id": authority.layout}, record.provenance
-        )
+        value = _thaw(record.value)
+        value["id"] = authority.layout
+        source_layout = authority.source_layout or authority.layout
+        if source_layout != authority.layout:
+            target_maps = [
+                allocation.name
+                for allocation in descriptor.allocation_index.maps.values()
+                if allocation.layout == authority.layout
+            ]
+            if len(target_maps) != 1:
+                raise ContentPortError(
+                    f"{authority.layout}: aliased layout must belong to exactly one target map"
+                )
+            target_map = target_maps[0]
+            value["name"] = f"{target_map}_Layout"
+            source_prefix = f"data/layouts/{authority.source}/"
+            target_prefix = f"data/layouts/{target_map}/"
+            for field in ("border_filepath", "blockdata_filepath"):
+                path = value.get(field)
+                if isinstance(path, str) and path.startswith(source_prefix):
+                    value[field] = target_prefix + path.removeprefix(source_prefix)
+        selected_layouts[authority.layout] = SourceRecord(value, record.provenance)
         layout_authorities[authority.layout] = authority.source_role
 
     for layout_id, record in list(selected_layouts.items()):
@@ -4497,8 +4541,11 @@ def resolve_port_sources(
         for field_name in ("border_filepath", "blockdata_filepath"):
             role = layout_field_authorities[layout_id][field_name]
             relative = str(record.value[field_name])
-            safe_repo_path(donor_roots[role], relative, allow_missing=False)
-            qualified = f"{role}:{relative}"
+            source_relative = (
+                contexts[role].canonicalize(ResourceKey("asset", relative)).name
+            )
+            safe_repo_path(donor_roots[role], source_relative, allow_missing=False)
+            qualified = f"{role}:{source_relative}"
             required_assets.add(ResourceKey("asset", qualified))
             required_asset_targets[qualified] = relative
     authority_roles = {value: role for role, value in donor_fields.items()}

@@ -1449,6 +1449,8 @@
       "asset:content:data/layouts/OlivineCity_PortOutside/map.bin",
       "asset:content:data/layouts/PewterCity/border.bin",
       "asset:content:data/layouts/PewterCity/map.bin",
+      "asset:content:data/layouts/PewterCity_Hns/border.bin",
+      "asset:content:data/layouts/PewterCity_Hns/map.bin",
       "asset:content:data/layouts/ReceptionGate/border.bin",
       "asset:content:data/layouts/ReceptionGate/map.bin",
       "asset:content:data/layouts/Route26/border.bin",
@@ -4985,10 +4987,10 @@
     ]
   },
   "evidence": {
-    "graphDigest": "5c984996d4dd96f457b5aef757d71be6d15a8e1b04bc349a32f5066369905ce8",
-    "resourceDigest": "61e90b2acddf6558db5eabdb6383a0c9fc2bfacd047363e8c2b540f940f95d51",
+    "graphDigest": "bfc3891cd02ecfdd42c1cbef42ba7a542cea65f570c9608f8a628a3bcaf97867",
+    "resourceDigest": "962f6e9bcac3032509d41366e7ca71afa8c34ca72c4c03811832dc509e521b57",
     "inputDigest": "072501c95d69212a4981edfec16c12c833609310dd3ec259d73597e0c7afe3d3",
-    "resourceCount": 3849,
+    "resourceCount": 3851,
     "edgeCount": 6638,
     "enabledCapabilityCount": 563,
     "attributeFormats": {
