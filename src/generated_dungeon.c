@@ -1,8 +1,14 @@
 #include "global.h"
 #include "generated_dungeon.h"
+#include "generated_dungeon_persistence.h"
 
 static const struct GeneratedDungeonProvider *sRegistry;
 static u16 sRegistryCount;
+
+static const struct GeneratedDungeonSaveRecord *GetActiveRecord(void)
+{
+    return (const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+}
 
 STATIC_ASSERT(sizeof(struct GeneratedDungeonWorkspace) < GENERATED_DUNGEON_WORKSPACE_MAX_BYTES, GeneratedDungeonWorkspaceFitsMapBufferOverlay);
 
@@ -92,6 +98,32 @@ bool32 GeneratedDungeon_FindProviderById(u16 providerId, u16 generationVersion, 
     }
 
     return FALSE;
+}
+
+bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum)
+{
+    const struct GeneratedDungeonProvider *provider;
+    const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
+
+    if (!GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider))
+        return FALSE;
+    if (GeneratedDungeonRecordClassify(record, TRUE) != GENERATED_DUNGEON_RECORD_ACTIVE)
+        return FALSE;
+    return provider->mapGroup == mapGroup && provider->mapNum == mapNum;
+}
+
+u8 GeneratedDungeon_GetActiveObjectEventCount(void)
+{
+    const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
+    const struct GeneratedDungeonProvider *provider;
+
+    if (!GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider)
+     || GeneratedDungeonRecordClassify(record, TRUE) != GENERATED_DUNGEON_RECORD_ACTIVE)
+        return 0;
+    for (u8 count = 0; count < provider->maxGeneratedObjects; count++)
+        if (gSaveBlock1Ptr->objectEventTemplates[count].localId == 0)
+            return count;
+    return provider->maxGeneratedObjects;
 }
 
 rng_value_t GeneratedDungeon_DeriveStream(u16 providerId, u16 generationVersion, u32 seed, enum GeneratedDungeonRngDomain domain, u8 attempt)
@@ -374,12 +406,27 @@ static void Publish(const struct GeneratedDungeonProvider *provider, struct Gene
     u8 i;
     u16 metatile;
 
-    for (y = 0; y < workspace->height; y++)
-        for (x = 0; x < workspace->width; x++)
-        {
-            provider->translateCell(provider, workspace->cells[x + y * workspace->width], &metatile);
-            publication->map[x + y * publication->mapStride] = metatile;
-        }
+    if (publication->mapWritesAfterCells)
+    {
+        // The map shell begins after the workspace's semantic cell storage.
+        // Descending order keeps an aliased destination from replacing a cell
+        // which the next translation has not yet consumed.
+        for (y = workspace->height; y-- > 0;)
+            for (x = workspace->width; x-- > 0;)
+            {
+                provider->translateCell(provider, workspace->cells[x + y * workspace->width], &metatile);
+                publication->map[x + y * publication->mapStride] = metatile;
+            }
+    }
+    else
+    {
+        for (y = 0; y < workspace->height; y++)
+            for (x = 0; x < workspace->width; x++)
+            {
+                provider->translateCell(provider, workspace->cells[x + y * workspace->width], &metatile);
+                publication->map[x + y * publication->mapStride] = metatile;
+            }
+    }
     memset(publication->templates, 0, sizeof(*publication->templates) * publication->templateCapacity);
     for (i = 0; i < workspace->objectCount; i++)
         publication->templates[i] = workspace->objects[i].template;

@@ -76,6 +76,7 @@
 #include "wild_encounter_ow.h"
 #include "vs_seeker.h"
 #include "frontier_util.h"
+#include "generated_dungeon.h"
 #include "constants/abilities.h"
 #include "constants/battle_frontier.h"
 #include "constants/event_object_movement.h"
@@ -946,11 +947,16 @@ static void LoadMapFromWarp(bool32 a1)
 {
     bool8 isOutdoors;
     bool8 isIndoors;
+    bool8 generatedDungeonLoaded = FALSE;
 #ifdef DEBUG
     const u8 *mapScripts;
 #endif
 
     LoadCurrentMapData();
+    if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR
+     && !InTrainerHill()
+     && GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+        generatedDungeonLoaded = InitGeneratedDungeonMap();
     if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
 #ifdef DEBUG
      && !IntegrityMapLoad_ShouldSuppressEvents()
@@ -961,6 +967,8 @@ static void LoadMapFromWarp(bool32 a1)
             LoadBattlePyramidObjectEventTemplates();
         else if (InTrainerHill())
             LoadTrainerHillObjectEventTemplates();
+        else if (generatedDungeonLoaded)
+            ;
         else
             LoadObjEventTemplatesFromHeader();
     }
@@ -1002,7 +1010,7 @@ static void LoadMapFromWarp(bool32 a1)
         InitBattlePyramidMap(FALSE);
     else if (InTrainerHill())
         InitTrainerHillMap();
-    else
+    else if (!generatedDungeonLoaded)
     {
 #ifdef DEBUG
         // InitMap runs MAP_SCRIPT_ON_LOAD internally. Hide the script table for
@@ -2179,6 +2187,7 @@ u8 GetFacilityChallengeStatusOnContinue(u8 saveStatus, u8 challengeStatus, u8 fa
 void CB2_ContinueSavedGame(void)
 {
     u8 trainerHillMapId;
+    bool8 generatedDungeonLoaded = FALSE;
 
     FieldClearVBlankHBlankCallbacks();
     StopMapMusic();
@@ -2200,6 +2209,9 @@ void CB2_ContinueSavedGame(void)
         LoadBattlePyramidFloorObjectEventScripts();
     else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
         LoadTrainerHillFloorObjectEventScripts();
+    else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum)
+          && InitGeneratedDungeonMap())
+        generatedDungeonLoaded = TRUE;
     else
         LoadSaveblockObjEventScripts();
 
@@ -2210,7 +2222,7 @@ void CB2_ContinueSavedGame(void)
         InitBattlePyramidMap(TRUE);
     else if (trainerHillMapId != 0)
         InitTrainerHillMap();
-    else
+    else if (!generatedDungeonLoaded)
         InitMapFromSavedGame();
 
     PlayTimeCounter_Start();

@@ -1,6 +1,7 @@
 #include "global.h"
 #include "fieldmap.h"
 #include "generated_dungeon.h"
+#include "generated_dungeon_persistence.h"
 #include "test/test.h"
 
 static u8 sGenerateCalls;
@@ -53,6 +54,17 @@ static bool32 GenerateOneCell(const struct GeneratedDungeonProvider *provider, s
     return GeneratedDungeonWorkspace_SetDimensions(workspace, 1, 1)
         && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 7)
         && SetEndpoints(workspace, 1, 1);
+}
+
+static bool32 GenerateTwoCells(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonRngStreams *rng, u8 attempt, struct GeneratedDungeonWorkspace *workspace)
+{
+    (void)provider;
+    (void)rng;
+    (void)attempt;
+    return GeneratedDungeonWorkspace_SetDimensions(workspace, 2, 1)
+        && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 7)
+        && GeneratedDungeonWorkspace_SetCell(workspace, 1, 0, 8)
+        && SetEndpoints(workspace, 2, 1);
 }
 
 static bool32 GenerateAfterAllAttempts(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonRngStreams *rng, u8 attempt, struct GeneratedDungeonWorkspace *workspace)
@@ -139,6 +151,31 @@ TEST("Generated dungeon registry uses stable identities and rejects malformed pr
     invalid.maxWorkspaceCells = GENERATED_DUNGEON_MAX_CELLS + 1;
     EXPECT(!GeneratedDungeon_ValidateRegistry(&invalid, 1));
 
+    GeneratedDungeon_TestResetRegistry();
+}
+
+TEST("Generated dungeon active maps require a supported record and use generated object count")
+{
+    struct GeneratedDungeonSaveRecord *record = (struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+
+    GeneratedDungeonRecordClear(record);
+    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    EXPECT(!GeneratedDungeon_IsActiveMap(1, 2));
+
+    record->providerId = 17;
+    record->generationVersion = 3;
+    record->seed = 9;
+    record->originFacing = DIR_SOUTH;
+    record->destinationFacing = DIR_NORTH;
+    GeneratedDungeonRecordFinalize(record);
+    EXPECT(GeneratedDungeon_IsActiveMap(1, 2));
+    EXPECT(!GeneratedDungeon_IsActiveMap(1, 3));
+    gSaveBlock1Ptr->objectEventTemplates[0].localId = 1;
+    EXPECT_EQ(GeneratedDungeon_GetActiveObjectEventCount(), 1);
+
+    GeneratedDungeonRecordClear(record);
+    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
     GeneratedDungeon_TestResetRegistry();
 }
 
@@ -238,6 +275,28 @@ TEST("Generated dungeon publication is transactional after translation and templ
     publication.mapWidth = 2;
     EXPECT_EQ(GeneratedDungeon_GenerateAndPublish(&sProviders[0], 7, workspace, &publication), GENERATED_DUNGEON_GENERATION_FAILED);
     EXPECT_EQ(map[0], 0xaaaa);
+}
+
+TEST("Generated dungeon publication preserves semantic cells when its map aliases the workspace")
+{
+    struct GeneratedDungeonWorkspace *workspace = GetTestWorkspace();
+    struct GeneratedDungeonProvider provider = sProviders[0];
+    struct GeneratedDungeonPublication publication =
+    {
+        .map = &workspace->cells[1],
+        .mapWidth = 2,
+        .mapHeight = 1,
+        .mapStride = 2,
+        .mapWritesAfterCells = TRUE,
+        .templates = gSaveBlock1Ptr->objectEventTemplates,
+        .templateCapacity = OBJECT_EVENT_TEMPLATES_COUNT,
+    };
+
+    provider.generate = GenerateTwoCells;
+    GeneratedDungeonWorkspace_Reset(workspace);
+    EXPECT_EQ(GeneratedDungeon_GenerateAndPublish(&provider, 9, workspace, &publication), GENERATED_DUNGEON_GENERATION_SUCCEEDED);
+    EXPECT_EQ(publication.map[0], 107);
+    EXPECT_EQ(publication.map[1], 108);
 }
 
 TEST("Generated dungeon generation retries and uses a validated deterministic fallback")

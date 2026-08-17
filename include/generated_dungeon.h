@@ -87,6 +87,7 @@ struct GeneratedDungeonPublication
     u16 mapWidth;
     u16 mapHeight;
     u16 mapStride;
+    bool8 mapWritesAfterCells;
     struct ObjectEventTemplate *templates;
     u8 templateCapacity;
 };
@@ -101,6 +102,8 @@ enum GeneratedDungeonGenerationResult
 bool32 GeneratedDungeon_ValidateRegistry(const struct GeneratedDungeonProvider *providers, u16 count);
 bool32 GeneratedDungeon_FindProviderByMap(u8 mapGroup, u8 mapNum, const struct GeneratedDungeonProvider **provider);
 bool32 GeneratedDungeon_FindProviderById(u16 providerId, u16 generationVersion, const struct GeneratedDungeonProvider **provider);
+bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum);
+u8 GeneratedDungeon_GetActiveObjectEventCount(void);
 
 rng_value_t GeneratedDungeon_DeriveStream(u16 providerId, u16 generationVersion, u32 seed, enum GeneratedDungeonRngDomain domain, u8 attempt);
 void GeneratedDungeon_DeriveStreams(const struct GeneratedDungeonProvider *provider, u32 seed, u8 attempt, struct GeneratedDungeonRngStreams *rng);
