@@ -1,6 +1,7 @@
 #include "global.h"
 #include "fieldmap.h"
 #include "constants/maps.h"
+#include "event_object_movement.h"
 #include "generated_dungeon.h"
 #include "generated_dungeon_persistence.h"
 #include "overworld.h"
@@ -294,6 +295,40 @@ TEST("Generated dungeon active maps require a supported record and use generated
     gSaveBlock1Ptr->objectEventTemplates[0].localId = 1;
     EXPECT_EQ(GeneratedDungeon_GetActiveObjectEventCount(), 1);
 
+    GeneratedDungeonRecordClear(record);
+    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    GeneratedDungeon_TestResetRegistry();
+}
+
+TEST("Generated dungeon object lookup includes generated templates beyond the static map count")
+{
+    struct GeneratedDungeonSaveRecord *record = (struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+    struct MapHeader savedMapHeader = gMapHeader;
+    struct MapEvents staticEvents = { .objectEventCount = 1 };
+    u8 savedMapGroup = gSaveBlock1Ptr->location.mapGroup;
+    u8 savedMapNum = gSaveBlock1Ptr->location.mapNum;
+
+    GeneratedDungeonRecordClear(record);
+    CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    record->providerId = 17;
+    record->generationVersion = 3;
+    record->seed = 9;
+    record->originFacing = DIR_SOUTH;
+    record->destinationFacing = DIR_NORTH;
+    GeneratedDungeonRecordFinalize(record);
+    gSaveBlock1Ptr->location.mapGroup = 1;
+    gSaveBlock1Ptr->location.mapNum = 2;
+    gMapHeader.events = &staticEvents;
+    gSaveBlock1Ptr->objectEventTemplates[0].localId = 1;
+    gSaveBlock1Ptr->objectEventTemplates[1].localId = 2;
+
+    EXPECT_EQ(GeneratedDungeon_GetActiveObjectEventCount(), 2);
+    EXPECT(GetObjectEventTemplateByLocalIdAndMap(2, 2, 1) == &gSaveBlock1Ptr->objectEventTemplates[1]);
+
+    gMapHeader = savedMapHeader;
+    gSaveBlock1Ptr->location.mapGroup = savedMapGroup;
+    gSaveBlock1Ptr->location.mapNum = savedMapNum;
     GeneratedDungeonRecordClear(record);
     CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
     GeneratedDungeon_TestResetRegistry();

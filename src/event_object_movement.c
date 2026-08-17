@@ -3764,7 +3764,14 @@ const struct ObjectEventTemplate *GetObjectEventTemplateByLocalIdAndMap(u8 local
     if (gSaveBlock1Ptr->location.mapNum == mapNum && gSaveBlock1Ptr->location.mapGroup == mapGroup)
     {
         templates = gSaveBlock1Ptr->objectEventTemplates;
-        count = gMapHeader.events->objectEventCount;
+        if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
+            count = GetNumBattlePyramidObjectEvents();
+        else if (InTrainerHill())
+            count = HILL_TRAINERS_PER_FLOOR;
+        else if (GeneratedDungeon_IsActiveMap(mapGroup, mapNum))
+            count = GeneratedDungeon_GetActiveObjectEventCount();
+        else
+            count = gMapHeader.events->objectEventCount;
     }
     else
     {
