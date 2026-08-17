@@ -5,6 +5,8 @@
 #include "fldeff.h"
 #include "fldeff_misc.h"
 #include "frontier_util.h"
+#include "generated_dungeon.h"
+#include "generated_dungeon_persistence.h"
 #include "menu.h"
 #include "mirage_tower.h"
 #include "overworld.h"
@@ -201,6 +203,51 @@ void InitTrainerHillMap(void)
 {
     CpuFastFill16(MAPGRID_UNDEFINED, sBackupMapData, sizeof(sBackupMapData));
     GenerateTrainerHillFloorLayout(sBackupMapData);
+}
+
+// The generated workspace shares the backup-map allocation only while the
+// provider runs.  Publication is validated before any interior cell or object
+// template is changed; afterward the unused shell is made explicitly bounded.
+bool32 InitGeneratedDungeonMap(void)
+{
+    const struct GeneratedDungeonProvider *provider;
+    const struct GeneratedDungeonSaveRecord *record = (const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+    const struct MapLayout *layout = gMapHeader.mapLayout;
+    struct GeneratedDungeonWorkspace *workspace = (void *)sBackupMapData;
+    struct GeneratedDungeonPublication publication;
+    u16 x;
+    u16 y;
+
+    if (!GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum)
+     || !GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider)
+     || layout == NULL
+     || layout->width + MAP_OFFSET_W > 0xFFFF
+     || layout->height + MAP_OFFSET_H > 0xFFFF
+     || (u32)(layout->width + MAP_OFFSET_W) * (layout->height + MAP_OFFSET_H) > MAX_MAP_DATA_SIZE
+     || provider->maxWorkspaceCells < (u32)layout->width * layout->height)
+        return FALSE;
+
+    gBackupMapLayout.map = sBackupMapData;
+    gBackupMapLayout.width = layout->width + MAP_OFFSET_W;
+    gBackupMapLayout.height = layout->height + MAP_OFFSET_H;
+    publication.map = &sBackupMapData[gBackupMapLayout.width * MAP_OFFSET + MAP_OFFSET];
+    publication.mapWidth = layout->width;
+    publication.mapHeight = layout->height;
+    publication.mapStride = gBackupMapLayout.width;
+    publication.mapWritesAfterCells = (u32)publication.map >= (u32)workspace->cells;
+    publication.templates = gSaveBlock1Ptr->objectEventTemplates;
+    publication.templateCapacity = OBJECT_EVENT_TEMPLATES_COUNT;
+
+    if (GeneratedDungeon_GenerateAndPublish(provider, record->seed, workspace, &publication) == GENERATED_DUNGEON_GENERATION_FAILED)
+        return FALSE;
+
+    // Only the shell is touched after commit, so a failed reconstruction never
+    // exposes a partly replaced live map.
+    for (y = 0; y < gBackupMapLayout.height; y++)
+        for (x = 0; x < gBackupMapLayout.width; x++)
+            if (x < MAP_OFFSET || x >= MAP_OFFSET + layout->width || y < MAP_OFFSET || y >= MAP_OFFSET + layout->height)
+                sBackupMapData[x + y * gBackupMapLayout.width] = MAPGRID_UNDEFINED;
+    return TRUE;
 }
 
 static void InitMapLayoutData(const struct MapHeader *mapHeader)

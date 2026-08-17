@@ -1,4 +1,5 @@
 #include "global.h"
+#include "generated_dungeon.h"
 #include "malloc.h"
 #include "battle_anim.h"
 #include "battle_pyramid.h"
@@ -2869,6 +2870,8 @@ void TrySpawnLightSprites(s16 camX, s16 camY)
         objectCount = GetNumBattlePyramidObjectEvents();
     else if (InTrainerHill())
         objectCount = 2;
+    else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+        objectCount = GeneratedDungeon_GetActiveObjectEventCount();
     else
         objectCount = gMapHeader.events->objectEventCount;
 
@@ -2901,6 +2904,8 @@ void TrySpawnObjectEvents(s16 cameraX, s16 cameraY)
             objectCount = GetNumBattlePyramidObjectEvents();
         else if (InTrainerHill())
             objectCount = HILL_TRAINERS_PER_FLOOR;
+        else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+            objectCount = GeneratedDungeon_GetActiveObjectEventCount();
         else
             objectCount = gMapHeader.events->objectEventCount;
 
@@ -3759,7 +3764,14 @@ const struct ObjectEventTemplate *GetObjectEventTemplateByLocalIdAndMap(u8 local
     if (gSaveBlock1Ptr->location.mapNum == mapNum && gSaveBlock1Ptr->location.mapGroup == mapGroup)
     {
         templates = gSaveBlock1Ptr->objectEventTemplates;
-        count = gMapHeader.events->objectEventCount;
+        if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
+            count = GetNumBattlePyramidObjectEvents();
+        else if (InTrainerHill())
+            count = HILL_TRAINERS_PER_FLOOR;
+        else if (GeneratedDungeon_IsActiveMap(mapGroup, mapNum))
+            count = GeneratedDungeon_GetActiveObjectEventCount();
+        else
+            count = gMapHeader.events->objectEventCount;
     }
     else
     {

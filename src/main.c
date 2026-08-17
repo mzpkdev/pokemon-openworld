@@ -32,6 +32,7 @@
 #include "debug_field_move_probe.h"
 #include "debug_wild_encounter_probe.h"
 #include "debug_trainer_battle_scenario.h"
+#include "debug_generated_dungeon_fixture.h"
 #endif
 
 static void VBlankIntr(void);
@@ -121,6 +122,10 @@ void AgbMain(void)
     SetDefaultFontsPointer();
     InitHeap(gHeap, HEAP_SIZE);
 
+#ifdef DEBUG
+    DebugGeneratedDungeonFixture_Init();
+#endif
+
     gSoftResetDisabled = FALSE;
 
     if (gFlashMemoryPresent != TRUE)
@@ -152,6 +157,7 @@ void AgbMainLoop(void)
         DebugFieldMoveProbe_Update();
         DebugWildEncounterProbe_Update();
         DebugTrainerBattleScenario_Update();
+        DebugGeneratedDungeonFixture_Update();
 #endif
 
         if (gSoftResetDisabled == FALSE

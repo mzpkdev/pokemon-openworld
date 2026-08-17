@@ -9,6 +9,7 @@ from tools.e2e.save_file import decode_box_pokemon
 
 
 MENU_ACTION_SAVE = 5
+SAVE_STATUS_OK = 1
 SAVE_SCENARIO_SIZE = 36
 SAVE_SCENARIO_STATUS_OFFSET = 21
 FIELD_MOVE_PROBE_SIZE = 8
@@ -407,9 +408,18 @@ def assert_runtime_semantics(game, expected: dict[str, Any]) -> None:
     )
 
 
-def save_from_start_menu(game):
+def save_from_start_menu(
+    game,
+    *,
+    max_pulses: int = 600,
+    release_frames: int = 6,
+    persist_to_disk: bool = False,
+):
     """Drive the real field start-menu Save action and await its flash write."""
     before = game.battery_path.read_bytes() if game.battery_path.is_file() else b""
+    counter_before = (
+        game.read_u32(game.address("gSaveCounter")) if persist_to_disk else None
+    )
     for _ in range(10):
         game.press("Start", release_frames=30)
         if game.task_active("Task_ShowStartMenu"):
@@ -429,8 +439,27 @@ def save_from_start_menu(game):
         game.press("Down", release_frames=4)
     # Selecting Save enters two default-Yes prompts.
     game.press("A", release_frames=12)
+    if persist_to_disk:
+        for _ in range(max_pulses):
+            game.press("A", release_frames=release_frames)
+            if game.read_u32(game.address("gSaveCounter")) != counter_before:
+                break
+        else:
+            raise AssertionError(
+                f"in-game save did not start after {max_pulses} A pulses"
+            )
+
+        for _ in range(max_pulses):
+            if game.read_u32(game.address("gDamagedSaveSectors")) != 0:
+                raise AssertionError("in-game save did not complete successfully")
+            if game.read_u16(game.address("gSaveAttemptStatus")) == SAVE_STATUS_OK:
+                after = game.export_battery()
+                assert after.data != before
+                return after
+            game.step()
+        raise AssertionError("in-game save did not complete after starting")
     after = game.wait_for_battery_change(
-        before, max_pulses=600, button="A", release_frames=6
+        before, max_pulses=max_pulses, button="A", release_frames=release_frames
     )
     assert after.data != before
     return after

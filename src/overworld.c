@@ -76,6 +76,7 @@
 #include "wild_encounter_ow.h"
 #include "vs_seeker.h"
 #include "frontier_util.h"
+#include "generated_dungeon.h"
 #include "constants/abilities.h"
 #include "constants/battle_frontier.h"
 #include "constants/event_object_movement.h"
@@ -228,6 +229,7 @@ s16 gTimeUpdateCounter; // playTimeVBlanks will eventually overflow, so this is 
 EWRAM_DATA static u8 sObjectEventLoadFlag = 0;
 EWRAM_DATA struct WarpData gLastUsedWarp = {0};
 EWRAM_DATA static struct WarpData sWarpDestination = {0};  // new warp position
+EWRAM_DATA static u8 sGeneratedDungeonWarpFacing = DIR_NONE;
 EWRAM_DATA static struct WarpData sFixedDiveWarp = {0};
 EWRAM_DATA static struct WarpData sFixedHoleWarp = {0};
 EWRAM_DATA static MapSectionId sLastMapSectionId = 0;
@@ -625,6 +627,8 @@ const struct MapLayout *GetMapLayout(u16 mapLayoutId)
 
 void ApplyCurrentWarp(void)
 {
+    GeneratedDungeon_RecoverUnsupportedRun();
+    GeneratedDungeon_ClearForDeparture(&gSaveBlock1Ptr->location, &sWarpDestination);
     gLastUsedWarp = gSaveBlock1Ptr->location;
     gSaveBlock1Ptr->location = sWarpDestination;
     sFixedDiveWarp = sDummyWarpData;
@@ -716,10 +720,52 @@ void WarpIntoMap(void)
     SetPlayerCoordsFromWarp();
 }
 
+static bool32 RecoverFailedGeneratedDungeonMap(void)
+{
+    if (!GeneratedDungeon_DepartToOrigin())
+        return FALSE;
+
+    ApplyCurrentWarp();
+    LoadCurrentMapData();
+    SetPlayerCoordsFromWarp();
+    return TRUE;
+}
+
 void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y)
 {
+    // A regular warp must never inherit a generated run's one-shot facing.
+    sGeneratedDungeonWarpFacing = DIR_NONE;
     SetWarpData(&sWarpDestination, mapGroup, mapNum, warpId, x, y);
 }
+
+void SetGeneratedDungeonWarpDestination(const struct WarpData *warp, enum Direction facing)
+{
+    if (warp == NULL || facing < DIR_SOUTH || facing >= CARDINAL_DIRECTION_COUNT)
+        return;
+
+    sWarpDestination = *warp;
+    sGeneratedDungeonWarpFacing = facing;
+}
+
+static enum Direction ApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing)
+{
+    enum Direction facing = sGeneratedDungeonWarpFacing;
+
+    sGeneratedDungeonWarpFacing = DIR_NONE;
+    return facing == DIR_NONE ? ordinaryFacing : facing;
+}
+
+#if TESTING
+const struct WarpData *Overworld_TestGetGeneratedDungeonWarpDestination(void)
+{
+    return &sWarpDestination;
+}
+
+enum Direction Overworld_TestApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing)
+{
+    return ApplyGeneratedDungeonWarpFacing(ordinaryFacing);
+}
+#endif
 
 void SetWarpDestinationToMapWarp(s8 mapGroup, s8 mapNum, s8 warpId)
 {
@@ -946,11 +992,20 @@ static void LoadMapFromWarp(bool32 a1)
 {
     bool8 isOutdoors;
     bool8 isIndoors;
+    bool8 generatedDungeonLoaded = FALSE;
 #ifdef DEBUG
     const u8 *mapScripts;
 #endif
 
     LoadCurrentMapData();
+    if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR
+     && !InTrainerHill()
+     && GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+    {
+        generatedDungeonLoaded = InitGeneratedDungeonMap();
+        if (!generatedDungeonLoaded && !RecoverFailedGeneratedDungeonMap())
+            GeneratedDungeon_ClearRun();
+    }
     if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
 #ifdef DEBUG
      && !IntegrityMapLoad_ShouldSuppressEvents()
@@ -961,6 +1016,8 @@ static void LoadMapFromWarp(bool32 a1)
             LoadBattlePyramidObjectEventTemplates();
         else if (InTrainerHill())
             LoadTrainerHillObjectEventTemplates();
+        else if (generatedDungeonLoaded)
+            ;
         else
             LoadObjEventTemplatesFromHeader();
     }
@@ -1002,7 +1059,7 @@ static void LoadMapFromWarp(bool32 a1)
         InitBattlePyramidMap(FALSE);
     else if (InTrainerHill())
         InitTrainerHillMap();
-    else
+    else if (!generatedDungeonLoaded)
     {
 #ifdef DEBUG
         // InitMap runs MAP_SCRIPT_ON_LOAD internally. Hide the script table for
@@ -1061,6 +1118,7 @@ static struct InitialPlayerAvatarState *GetInitialPlayerAvatarState(void)
     u8 transitionFlags = GetAdjustedInitialTransitionFlags(&sInitialPlayerAvatarState, metatileBehavior, mapType);
     playerStruct.transitionFlags = transitionFlags;
     playerStruct.direction = GetAdjustedInitialDirection(&sInitialPlayerAvatarState, transitionFlags, metatileBehavior, mapType);
+    playerStruct.direction = ApplyGeneratedDungeonWarpFacing(playerStruct.direction);
     sInitialPlayerAvatarState = playerStruct;
     return &sInitialPlayerAvatarState;
 }
@@ -2179,6 +2237,8 @@ u8 GetFacilityChallengeStatusOnContinue(u8 saveStatus, u8 challengeStatus, u8 fa
 void CB2_ContinueSavedGame(void)
 {
     u8 trainerHillMapId;
+    bool8 generatedDungeonLoaded = FALSE;
+    bool8 recoveredGeneratedDungeon = FALSE;
 
     FieldClearVBlankHBlankCallbacks();
     StopMapMusic();
@@ -2193,13 +2253,40 @@ void CB2_ContinueSavedGame(void)
             gSaveBlock2Ptr->specialSaveWarpFlags
         );
 
-    LoadSaveblockMapHeader();
     ClearDiveAndHoleWarps();
+    if (GeneratedDungeon_RecoverUnsupportedRun())
+    {
+        ApplyCurrentWarp();
+        recoveredGeneratedDungeon = TRUE;
+    }
+    if (recoveredGeneratedDungeon)
+        LoadCurrentMapData();
+    else
+        LoadSaveblockMapHeader();
     trainerHillMapId = GetCurrentTrainerHillMapId();
     if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
         LoadBattlePyramidFloorObjectEventScripts();
     else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
         LoadTrainerHillFloorObjectEventScripts();
+    else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+    {
+        generatedDungeonLoaded = InitGeneratedDungeonMap();
+        if (!generatedDungeonLoaded)
+        {
+            if (!RecoverFailedGeneratedDungeonMap())
+                GeneratedDungeon_ClearRun();
+            trainerHillMapId = GetCurrentTrainerHillMapId();
+            if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
+                LoadBattlePyramidFloorObjectEventScripts();
+            else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
+                LoadTrainerHillFloorObjectEventScripts();
+            else
+            {
+                LoadObjEventTemplatesFromHeader();
+                LoadSaveblockObjEventScripts();
+            }
+        }
+    }
     else
         LoadSaveblockObjEventScripts();
 
@@ -2210,7 +2297,7 @@ void CB2_ContinueSavedGame(void)
         InitBattlePyramidMap(TRUE);
     else if (trainerHillMapId != 0)
         InitTrainerHillMap();
-    else
+    else if (!generatedDungeonLoaded)
         InitMapFromSavedGame();
 
     PlayTimeCounter_Start();

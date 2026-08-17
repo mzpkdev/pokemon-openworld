@@ -1,16 +1,19 @@
 #include "global.h"
 #include "battle_tower.h"
+#include "generated_dungeon_persistence.h"
 #include "save.h"
 #include "test/test.h"
 
 TEST("Save sector physical layout matches the frozen contract")
 {
-    EXPECT_EQ(sizeof(struct SaveBlock1), 15672);
+    EXPECT_EQ(sizeof(struct SaveBlock1), 15736);
     EXPECT_EQ(offsetof(struct SaveBlock1, trainerDefeated), 0x3CD0);
     EXPECT_EQ(sizeof(gSaveBlock1Ptr->trainerDefeated), 103);
-    EXPECT_EQ(sizeof(struct SaveBlock1) - offsetof(struct SaveBlock1, trainerDefeated), 104);
-    EXPECT_EQ(sizeof(struct SaveBlock1) - 3 * SECTOR_DATA_SIZE, 3768);
-    EXPECT_EQ(4 * SECTOR_DATA_SIZE - sizeof(struct SaveBlock1), 200);
+    EXPECT_EQ(sizeof(struct SaveBlock1) - offsetof(struct SaveBlock1, trainerDefeated), 168);
+    EXPECT_EQ(offsetof(struct SaveBlock1, generatedDungeon), 0x3D38);
+    EXPECT_EQ(sizeof(gSaveBlock1Ptr->generatedDungeon), GENERATED_DUNGEON_RECORD_SIZE);
+    EXPECT_EQ(sizeof(struct SaveBlock1) - 3 * SECTOR_DATA_SIZE, 3832);
+    EXPECT_EQ(4 * SECTOR_DATA_SIZE - sizeof(struct SaveBlock1), 136);
     EXPECT_EQ(sizeof(struct SaveSector), 4096);
     EXPECT_EQ(offsetof(struct SaveSector, data), 0);
     EXPECT_EQ(offsetof(struct SaveSector, saveBlock3Chunk), 3968);

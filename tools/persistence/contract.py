@@ -1654,10 +1654,11 @@ def _tail_extension_metadata(contract: dict[str, Any]) -> dict[str, int] | None:
         "baseSaveBlock1Size": 15648,
         "baseSector4PayloadSize": 3744,
         "currentBitmapBytes": 103,
-        "currentSaveBlock1Size": 15672,
-        "currentSector4PayloadSize": 3768,
+        "currentSaveBlock1Size": 15736,
+        "currentSector4PayloadSize": 3832,
         "memberIndex": 84,
         "memberOffset": 15568,
+        "recordBytes": 64,
     }
     if metadata != expected:
         raise ContractError("$.compatibleTailExtension: unsupported evolution")
@@ -1701,6 +1702,24 @@ def _project_compatible_tail_extension(contract: dict[str, Any]) -> dict[str, An
         raise ContractError("$.compatibleTailExtension: sector 4 base payload drifted")
     layout["size"] = metadata["currentSaveBlock1Size"]
     member["type"]["dimensions"] = [metadata["currentBitmapBytes"]]
+    members.append(
+        {
+            "name": "generatedDungeonPadding",
+            "offset": metadata["memberOffset"] + metadata["currentBitmapBytes"],
+            "type": {"encoding": 8, "kind": "base", "size": 1},
+        }
+    )
+    members.append(
+        {
+            "name": "generatedDungeon",
+            "offset": metadata["currentSaveBlock1Size"] - metadata["recordBytes"],
+            "type": {
+                "dimensions": [metadata["recordBytes"]],
+                "element": {"encoding": 8, "kind": "base", "size": 1},
+                "kind": "array",
+            },
+        }
+    )
     sector["payload"]["size"] = metadata["currentSector4PayloadSize"]
     return projected
 
@@ -1712,34 +1731,17 @@ def projected_abi_evidence_values_for_purpose(
     metadata = _tail_extension_metadata(contract)
     if metadata is None:
         return evidence
-    replacements = {
-        "$.structs.SaveBlock1.sizeAlignment": (
-            metadata["baseSaveBlock1Size"] << 8 | 4,
-            metadata["currentSaveBlock1Size"] << 8 | 4,
-        ),
-        "$.structs.SaveBlock1.members[84].type.array.dimensions[0]": (
-            metadata["baseBitmapBytes"],
-            metadata["currentBitmapBytes"],
-        ),
-        "$.structs.SaveBlock1.members[84].type.array.cardinality": (
-            metadata["baseBitmapBytes"],
-            metadata["currentBitmapBytes"],
-        ),
-    }
+    normal_base = dict(abi_evidence_values(contract))
+    purpose_base = dict(evidence)
+    projected_normal = abi_evidence_values(_project_compatible_tail_extension(contract))
     projected = []
-    seen = set()
-    for path, value in evidence:
-        replacement = replacements.get(path)
-        if replacement is not None:
-            if value != replacement[0]:
-                raise ContractError(
-                    f"$.compatibleTailExtension: frozen evidence drifted at {path}"
-                )
-            value = replacement[1]
-            seen.add(path)
-        projected.append((path, value))
-    if seen != set(replacements):
-        raise ContractError("$.compatibleTailExtension: frozen evidence is incomplete")
+    for path, value in projected_normal:
+        if path not in normal_base:
+            projected.append((path, value))
+        elif purpose_base.get(path) == normal_base[path]:
+            projected.append((path, value))
+        elif path in purpose_base:
+            projected.append((path, purpose_base[path]))
     return projected
 
 

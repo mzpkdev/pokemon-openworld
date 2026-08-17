@@ -101,7 +101,13 @@ struct MapHeader const *const Overworld_GetMapHeaderByGroupAndId(u16 mapGroup, u
 struct MapHeader const *const GetDestinationWarpMapHeader(void);
 void WarpIntoMap(void);
 void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
+void SetGeneratedDungeonWarpDestination(const struct WarpData *warp, enum Direction facing);
 void SetWarpDestinationToMapWarp(s8 mapGroup, s8 mapNum, s8 warpId);
+
+#if TESTING
+const struct WarpData *Overworld_TestGetGeneratedDungeonWarpDestination(void);
+enum Direction Overworld_TestApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing);
+#endif
 void SetDynamicWarp(s32 unused, s8 mapGroup, s8 mapNum, s8 warpId);
 void SetDynamicWarpWithCoords(s32 unused, s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
 void SetWarpDestinationToDynamicWarp(u8 unusedWarpId);
