@@ -57,7 +57,11 @@ def _generated_runtime_snapshot(game) -> tuple[bytes, bytes]:
 
     start = map_address + 2 * (width * MAP_OFFSET + MAP_OFFSET)
     cell_count = GENERATED_MAP_WIDTH * GENERATED_MAP_HEIGHT
-    cells = _read_bytes(game, start, cell_count * 2)
+    row_size = GENERATED_MAP_WIDTH * 2
+    cells = b"".join(
+        _read_bytes(game, start + row * width * 2, row_size)
+        for row in range(GENERATED_MAP_HEIGHT)
+    )
     assert (
         struct.unpack(f"<{cell_count}H", cells)
         == (GENERATED_FLOOR_METATILE,) * cell_count
