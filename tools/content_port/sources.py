@@ -4946,7 +4946,10 @@ def resolve_port_sources(
         for name, ownership in descriptor.map_ownership.items()
         if ownership == "preserve"
     )
-    symbols, legacy_inputs = _referenced_inputs(content_pin.root, preserved_maps)
+    # Preserve-owned maps are target authority, including the scripts they
+    # recursively reference. Their donor aliases establish spatial provenance
+    # earlier; they must never redirect target evidence back to a donor path.
+    symbols, legacy_inputs = _referenced_inputs(target_root, preserved_maps)
     attribute_formats = _attribute_fixture_evidence(
         adaptations["attributeFixtures"], donor_fields, contexts, donor_roots
     )

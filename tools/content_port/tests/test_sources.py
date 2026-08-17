@@ -25,6 +25,7 @@ from tools.content_port.sources import (
     _automatic_unreachable_shells,
     _authenticate_reviewed_fixed_placements,
     _authenticated_trainer_inventory,
+    _referenced_inputs,
     _semantic_record_digest,
     _require_trainer_geometry_adapter,
     _trainer_class_money,
@@ -47,6 +48,17 @@ from tools.content_port.world_graph import (
 
 
 class SourceGraphTests(unittest.TestCase):
+    def test_preserved_source_alias_uses_target_recursive_input_evidence(self) -> None:
+        root = Path(__file__).resolve().parents[3]
+        map_path = root / "data/maps/PewterCity_Hns/map.json"
+        if not map_path.is_file():
+            self.skipTest("HnS Pewter target map is not present")
+        _, inputs = _referenced_inputs(root, ("PewterCity_Hns",))
+        self.assertIn(
+            "data/maps/PewterCity_Hns/map.json",
+            {str(item["path"]) for item in inputs},
+        )
+
     def test_expansion_context_resolves_target_map_and_layout_aliases(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
