@@ -234,6 +234,7 @@ EWRAM_DATA static struct WarpData sFixedDiveWarp = {0};
 EWRAM_DATA static struct WarpData sFixedHoleWarp = {0};
 EWRAM_DATA static MapSectionId sLastMapSectionId = 0;
 EWRAM_DATA static struct InitialPlayerAvatarState sInitialPlayerAvatarState = {0};
+EWRAM_DATA static enum Direction sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
 EWRAM_DATA static enum Species sAmbientCrySpecies = SPECIES_NONE;
 EWRAM_DATA static bool8 sIsAmbientCryWaterMon = FALSE;
 EWRAM_DATA static u8 sHoursOverride = 0; // used to override apparent time of day hours
@@ -641,7 +642,7 @@ static void ClearDiveAndHoleWarps(void)
     sFixedHoleWarp = sDummyWarpData;
 }
 
-static void SetWarpData(struct WarpData *warp, s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y)
+static void SetWarpData(struct WarpData *warp, s8 mapGroup, s8 mapNum, s8 warpId, s16 x, s16 y)
 {
     warp->mapGroup = mapGroup;
     warp->mapNum = mapNum;
@@ -731,10 +732,11 @@ static bool32 RecoverFailedGeneratedDungeonMap(void)
     return TRUE;
 }
 
-void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y)
+void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s16 x, s16 y)
 {
     // A regular warp must never inherit a generated run's one-shot facing.
     sGeneratedDungeonWarpFacing = DIR_NONE;
+    sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
     SetWarpData(&sWarpDestination, mapGroup, mapNum, warpId, x, y);
 }
 
@@ -744,6 +746,7 @@ void SetGeneratedDungeonWarpDestination(const struct WarpData *warp, enum Direct
         return;
 
     sWarpDestination = *warp;
+    sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
     sGeneratedDungeonWarpFacing = facing;
 }
 
@@ -764,6 +767,11 @@ const struct WarpData *Overworld_TestGetGeneratedDungeonWarpDestination(void)
 enum Direction Overworld_TestApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing)
 {
     return ApplyGeneratedDungeonWarpFacing(ordinaryFacing);
+}
+
+struct WarpData Test_GetWarpDestination(void)
+{
+    return sWarpDestination;
 }
 #endif
 
@@ -1087,12 +1095,37 @@ void ResetInitialPlayerAvatarState(void)
 {
     sInitialPlayerAvatarState.direction = DIR_SOUTH;
     sInitialPlayerAvatarState.transitionFlags = PLAYER_AVATAR_FLAG_ON_FOOT;
+    sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
 }
 
 void SetInitialPlayerAvatarStateDirection(enum Direction direction)
 {
     sInitialPlayerAvatarState.direction = direction;
 }
+
+void SetInitialPlayerAvatarStateFacingOverride(enum Direction direction)
+{
+    sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
+    if (direction > DIR_NONE && direction < CARDINAL_DIRECTION_COUNT)
+        sInitialPlayerAvatarStateFacingOverride = direction;
+}
+
+static enum Direction ConsumeInitialPlayerAvatarStateFacingOverride(enum Direction fallback)
+{
+    enum Direction direction = sInitialPlayerAvatarStateFacingOverride;
+
+    sInitialPlayerAvatarStateFacingOverride = DIR_NONE;
+    if (direction > DIR_NONE && direction < CARDINAL_DIRECTION_COUNT)
+        return direction;
+    return fallback;
+}
+
+#if TESTING
+enum Direction Test_ConsumeInitialPlayerAvatarStateFacingOverride(enum Direction fallback)
+{
+    return ConsumeInitialPlayerAvatarStateFacingOverride(fallback);
+}
+#endif
 
 void StoreInitialPlayerAvatarState(void)
 {
@@ -1119,6 +1152,7 @@ static struct InitialPlayerAvatarState *GetInitialPlayerAvatarState(void)
     playerStruct.transitionFlags = transitionFlags;
     playerStruct.direction = GetAdjustedInitialDirection(&sInitialPlayerAvatarState, transitionFlags, metatileBehavior, mapType);
     playerStruct.direction = ApplyGeneratedDungeonWarpFacing(playerStruct.direction);
+    playerStruct.direction = ConsumeInitialPlayerAvatarStateFacingOverride(playerStruct.direction);
     sInitialPlayerAvatarState = playerStruct;
     return &sInitialPlayerAvatarState;
 }

@@ -144,7 +144,7 @@ bool32 GeneratedDungeon_FindProviderById(u16 providerId, u16 generationVersion, 
 
 bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum)
 {
-    const struct GeneratedDungeonProvider *provider;
+    const struct GeneratedDungeonProvider *provider = NULL;
     const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
 
     if (!GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider))
@@ -157,7 +157,7 @@ bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum)
 u8 GeneratedDungeon_GetActiveObjectEventCount(void)
 {
     const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
-    const struct GeneratedDungeonProvider *provider;
+    const struct GeneratedDungeonProvider *provider = NULL;
 
     if (!GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider)
      || GeneratedDungeonRecordClassify(record, TRUE) != GENERATED_DUNGEON_RECORD_ACTIVE)
@@ -170,7 +170,7 @@ u8 GeneratedDungeon_GetActiveObjectEventCount(void)
 
 bool32 GeneratedDungeon_BeginRun(u16 providerId, u16 generationVersion, u32 seed, const struct WarpData *origin, u8 originFacing, const struct WarpData *destination, u8 destinationFacing)
 {
-    const struct GeneratedDungeonProvider *provider;
+    const struct GeneratedDungeonProvider *provider = NULL;
     struct GeneratedDungeonSaveRecord record;
 
     if (!GeneratedDungeon_FindProviderById(providerId, generationVersion, &provider)

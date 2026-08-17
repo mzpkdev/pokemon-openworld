@@ -278,6 +278,22 @@ class DescriptorTests(unittest.TestCase):
                 "content",
             ),
             (
+                "surfEdgeExits",
+                {
+                    "map": "TestMap",
+                    "exitEdge": "west",
+                    "targetMap": "MAP_TARGET",
+                    "targetX": 1,
+                    "targetY": 2,
+                    "targetFacing": "north",
+                },
+                "map",
+                "targetX",
+                False,
+                "$.surfEdgeExits[0]",
+                "targetX",
+            ),
+            (
                 "materializationProfile",
                 {
                     "mapScripts": "empty",
@@ -407,6 +423,19 @@ class DescriptorTests(unittest.TestCase):
         self.assertEqual(len(descriptor.map_ownership), 254)
         self.assertEqual(len(descriptor.capabilities), 254 * 12)
         self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 20)
+        self.assertEqual(
+            descriptor.adaptations["surfEdgeExits"],
+            (
+                {
+                    "map": "Route40",
+                    "exitEdge": "west",
+                    "targetMap": "MAP_ROUTE19",
+                    "targetX": 20,
+                    "targetY": 59,
+                    "targetFacing": "north",
+                },
+            ),
+        )
         state_counts: dict[str, int] = {}
         for decision in descriptor.capabilities:
             state_counts[decision.state.value] = (
@@ -553,6 +582,62 @@ class DescriptorTests(unittest.TestCase):
                 document["encounterProfiles"] = profiles
                 document["encounterTimePolicy"] = [policy]
                 dump(path, document)
+                with self.assertRaisesRegex(ContentPortError, message):
+                    load_port(root, root / "donors")
+
+    def test_surf_edge_exit_policy_requires_a_rendered_source_and_valid_scalars(self):
+        policy = {
+            "map": "TestMap",
+            "exitEdge": "west",
+            "targetMap": "MAP_TARGET",
+            "targetX": 1,
+            "targetY": 2,
+            "targetFacing": "north",
+        }
+        cases = (
+            (
+                lambda record, capabilities: record.update(exitEdge="up"),
+                "cardinal map edge",
+            ),
+            (
+                lambda record, capabilities: record.update(targetFacing="down"),
+                "cardinal facing",
+            ),
+            (
+                lambda record, capabilities: record.update(targetMap="TARGET"),
+                "MAP_ target",
+            ),
+            (
+                lambda record, capabilities: record.update(targetX=0x8000),
+                "signed 16-bit",
+            ),
+            (
+                lambda record, capabilities: capabilities["maps"][0].update(
+                    ownership="preserve"
+                ),
+                "requires rendered map ownership",
+            ),
+        )
+        for mutation, message in cases:
+            with (
+                self.subTest(message=message),
+                tempfile.TemporaryDirectory() as directory,
+            ):
+                root = Path(directory)
+                self.make_port(root)
+                adaptation_path = root / "adaptations.json"
+                adaptations = read_json(adaptation_path)
+                adaptations["surfEdgeExits"] = [copy.deepcopy(policy)]
+                mutation(
+                    adaptations["surfEdgeExits"][0],
+                    read_json(root / "capabilities.json"),
+                )
+                dump(adaptation_path, adaptations)
+                if "requires rendered" in message:
+                    capability_path = root / "capabilities.json"
+                    capabilities = read_json(capability_path)
+                    capabilities["maps"][0]["ownership"] = "preserve"
+                    dump(capability_path, capabilities)
                 with self.assertRaisesRegex(ContentPortError, message):
                     load_port(root, root / "donors")
 
@@ -1205,6 +1290,7 @@ class DescriptorTests(unittest.TestCase):
             ("warpReindexes", "path"),
             ("warpRemovals", "path"),
             ("berryTreeAllocations", "path"),
+            ("surfEdgeExits", "exitEdge"),
             ("worldGateway", "index"),
             ("worldDynamicWarp", "index"),
             ("worldScriptWarp", "index"),

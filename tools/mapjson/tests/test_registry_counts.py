@@ -82,6 +82,7 @@ class ProductRegistryTests(unittest.TestCase):
                 "groupedMaps": grouped_map_count,
                 "reviewedMaps": len(self.maps_by_name),
                 "layouts": layout_count,
+                "edgeExits": len(self.manifest["edgeExits"]),
                 "regions": region_counts,
             },
         )

@@ -26,6 +26,15 @@
       "direction": "left"
     }
   ],
+  "edge_exits": [
+    {
+      "exit_edge": "south",
+      "target_map": "MAP_ROUTE40",
+      "target_x": 0,
+      "target_y": 30,
+      "target_facing": "east"
+    }
+  ],
   "object_events": [
     {
       "type": "object",

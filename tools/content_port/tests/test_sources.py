@@ -33,6 +33,7 @@ from tools.content_port.sources import (
     _validate_trainer_projection_rule,
     _bind_script_warp_policy,
     _extract_preserved_script_warps,
+    _validate_surf_edge_exit_policy,
     _validate_selected_trainer_event,
 )
 from tools.content_port.trainer_inventory import TrainerProjection
@@ -52,7 +53,7 @@ class SourceGraphTests(unittest.TestCase):
             return {
                 key: SourceGraphTests._mutable(child) for key, child in value.items()
             }
-        if isinstance(value, tuple):
+        if isinstance(value, tuple) or isinstance(value, list):
             return [SourceGraphTests._mutable(child) for child in value]
         return value
 
@@ -106,6 +107,59 @@ class SourceGraphTests(unittest.TestCase):
         self.assertEqual(
             str(edge.provenance), "data/maps/Town/map.json/connections/0/map"
         )
+
+    def test_surf_edge_exit_policy_resolves_grouped_target_bounds_and_connections(
+        self,
+    ) -> None:
+        policy = {
+            "surfEdgeExits": [
+                {
+                    "map": "Route40",
+                    "exitEdge": "west",
+                    "targetMap": "MAP_ROUTE19",
+                    "targetX": 20,
+                    "targetY": 59,
+                    "targetFacing": "north",
+                }
+            ]
+        }
+        selected_maps = {"Route40": {"connections": []}}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data/maps/Route19").mkdir(parents=True)
+            (root / "data/layouts").mkdir(parents=True)
+            (root / "data/maps/map_groups.json").write_text(
+                json.dumps({"group_order": ["gTest"], "gTest": ["Route19"]})
+            )
+            (root / "data/layouts/layouts.json").write_text(
+                json.dumps(
+                    {"layouts": [{"id": "LAYOUT_ROUTE19", "width": 24, "height": 60}]}
+                )
+            )
+            (root / "data/maps/Route19/map.json").write_text(
+                json.dumps({"id": "MAP_ROUTE19", "layout": "LAYOUT_ROUTE19"})
+            )
+            _validate_surf_edge_exit_policy(policy, selected_maps, root)
+
+            cases = (
+                ("targetMap", "MAP_MISSING", "unknown or ungrouped target"),
+                ("targetX", 24, "outside target map"),
+            )
+            for field, value, message in cases:
+                with self.subTest(field=field):
+                    mutated = self._mutable(policy)
+                    mutated["surfEdgeExits"][0][field] = value
+                    with self.assertRaisesRegex(ContentPortError, message):
+                        _validate_surf_edge_exit_policy(mutated, selected_maps, root)
+
+            connection_policy = self._mutable(policy)
+            selected_with_connection = {
+                "Route40": {"connections": [{"direction": "left"}]}
+            }
+            with self.assertRaisesRegex(ContentPortError, "cardinal connection"):
+                _validate_surf_edge_exit_policy(
+                    connection_policy, selected_with_connection, root
+                )
 
     def test_script_warp_policy_binds_parsed_owned_evidence_exactly(self) -> None:
         maps = {
@@ -1463,12 +1517,23 @@ class SourceGraphTests(unittest.TestCase):
                 ContentPortError, "preserved target map NewBarkTown is unavailable"
             ):
                 validate_port_sources(descriptor, target)
+            for relative in (
+                Path("data/maps/map_groups.json"),
+                Path("data/layouts/layouts.json"),
+            ):
+                target_path = target / relative
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(relative, target_path)
+            for source_map in Path("data/maps").glob("*/map.json"):
+                target_map = target / source_map
+                target_map.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_map, target_map)
             for name, ownership in descriptor.map_ownership.items():
                 if ownership != "preserve":
                     continue
                 source_map = Path("data/maps") / name / "map.json"
                 target_map = target / source_map
-                target_map.parent.mkdir(parents=True)
+                target_map.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source_map, target_map)
             for name in sorted(
                 {

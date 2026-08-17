@@ -6742,6 +6742,16 @@
       "SafariZoneIndoor"
     ]
   },
+  "surfEdgeExits": [
+    {
+      "map": "Route40",
+      "exitEdge": "west",
+      "targetMap": "MAP_ROUTE19",
+      "targetX": 20,
+      "targetY": 59,
+      "targetFacing": "north"
+    }
+  ],
   "generatedSections": [
     {"authorities": ["allocation-lock", "target-contract"], "key": "map scripts", "path": "data/event_scripts.s", "sourceSymbol": "map-scripts"},
     {"authorities": ["persistence-ledger", "port-policy"], "key": "berry tree allocations", "path": "include/constants/berry.h", "sourceSymbol": "berry-bindings"},

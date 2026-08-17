@@ -173,5 +173,14 @@
   ],
   "coord_events": [],
   "bg_events": [],
-  "region": "REGION_JOHTO"
+  "region": "REGION_JOHTO",
+  "edge_exits": [
+    {
+      "exit_edge": "west",
+      "target_map": "MAP_ROUTE19",
+      "target_x": 20,
+      "target_y": 59,
+      "target_facing": "north"
+    }
+  ]
 }

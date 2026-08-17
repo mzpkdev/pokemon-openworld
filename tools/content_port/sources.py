@@ -2399,6 +2399,125 @@ def _set_path(document: dict[str, Any], path: str, value: Any) -> None:
         current[final] = value
 
 
+def _target_surf_exit_maps(
+    target_root: Path, selected_maps: Mapping[str, Mapping[str, Any]]
+) -> Mapping[str, tuple[str, int, int]]:
+    """Index grouped target maps by runtime ID for target-owned Surf policies."""
+    groups_path = safe_repo_path(
+        target_root, "data/maps/map_groups.json", allow_missing=False
+    )
+    layouts_path = safe_repo_path(
+        target_root, "data/layouts/layouts.json", allow_missing=False
+    )
+    groups = json_record(groups_path).value
+    layouts = json_record(layouts_path).value
+    if not isinstance(groups.get("group_order"), list):
+        raise ContentPortError("target map groups have no group_order array")
+    if not isinstance(layouts.get("layouts"), list):
+        raise ContentPortError("target layouts have no layouts array")
+    dimensions: dict[str, tuple[int, int]] = {}
+    for index, raw in enumerate(layouts["layouts"]):
+        if not isinstance(raw, dict):
+            raise ContentPortError(f"target layouts[{index}] is not an object")
+        layout_id, width, height = raw.get("id"), raw.get("width"), raw.get("height")
+        if (
+            not isinstance(layout_id, str)
+            or not isinstance(width, int)
+            or isinstance(width, bool)
+            or not isinstance(height, int)
+            or isinstance(height, bool)
+            or width <= 0
+            or height <= 0
+            or layout_id in dimensions
+        ):
+            raise ContentPortError(
+                f"target layouts[{index}] has invalid identity or bounds"
+            )
+        dimensions[layout_id] = (width, height)
+
+    grouped_names: set[str] = set()
+    for group in groups["group_order"]:
+        if not isinstance(group, str) or not isinstance(groups.get(group), list):
+            raise ContentPortError(
+                "target map groups contain an invalid group declaration"
+            )
+        for map_name in groups[group]:
+            if not isinstance(map_name, str) or not map_name:
+                raise ContentPortError(
+                    f"target map group {group!r} has invalid map name"
+                )
+            if map_name in grouped_names:
+                raise ContentPortError(
+                    f"target map {map_name!r} appears in multiple map groups"
+                )
+            grouped_names.add(map_name)
+
+    destinations: dict[str, tuple[str, int, int]] = {}
+    for map_name in sorted(grouped_names):
+        document = selected_maps.get(map_name)
+        if document is None:
+            path = safe_repo_path(
+                target_root, f"data/maps/{map_name}/map.json", allow_missing=False
+            )
+            if path.is_symlink():
+                raise ContentPortError(
+                    f"target map {map_name} must not be a symbolic link"
+                )
+            document = json_record(path).value
+        map_id, layout = document.get("id"), document.get("layout")
+        if not isinstance(map_id, str) or not map_id.startswith("MAP_"):
+            raise ContentPortError(f"target map {map_name} has invalid map id")
+        if not isinstance(layout, str) or layout not in dimensions:
+            raise ContentPortError(f"target map {map_name} has unknown layout")
+        if map_id in destinations:
+            raise ContentPortError(f"target map id {map_id!r} is not unique")
+        width, height = dimensions[layout]
+        destinations[map_id] = (map_name, width, height)
+    return MappingProxyType(destinations)
+
+
+def _validate_surf_edge_exit_policy(
+    adaptations: Mapping[str, Any],
+    selected_maps: Mapping[str, Mapping[str, Any]],
+    target_root: Path,
+) -> None:
+    destinations = _target_surf_exit_maps(target_root, selected_maps)
+    connection_edges = {
+        "up": "north",
+        "down": "south",
+        "left": "west",
+        "right": "east",
+    }
+    for index, raw in enumerate(adaptations["surfEdgeExits"]):
+        pointer = f"surfEdgeExits[{index}]"
+        if not isinstance(raw, dict):
+            raise ContentPortError(f"{pointer}: malformed Surf edge-exit policy")
+        map_name = raw["map"]
+        if map_name not in selected_maps:
+            raise ContentPortError(f"{pointer}.map: names an unavailable source map")
+        target_map = raw["targetMap"]
+        target = destinations.get(target_map)
+        if target is None:
+            raise ContentPortError(
+                f"{pointer}.targetMap: unknown or ungrouped target map {target_map!r}"
+            )
+        _, width, height = target
+        target_x, target_y = raw["targetX"], raw["targetY"]
+        if target_x >= width or target_y >= height:
+            raise ContentPortError(
+                f"{pointer}: target coordinate is outside target map {target[0]!r}"
+            )
+        source_connections = selected_maps[map_name].get("connections") or ()
+        if any(
+            connection_edges.get(connection.get("direction")) == raw["exitEdge"]
+            for connection in source_connections
+            if isinstance(connection, dict)
+        ):
+            raise ContentPortError(
+                f"{pointer}.exitEdge: conflicts with an authored cardinal connection"
+            )
+
+
 def _canonical_digest(values: Iterable[str]) -> str:
     payload = json.dumps(
         sorted(set(values)), separators=(",", ":"), ensure_ascii=True
@@ -3400,6 +3519,8 @@ def resolve_port_sources(
                     f"{name}/{field_name}: resolved map binding differs from "
                     "allocation authority"
                 )
+
+    _validate_surf_edge_exit_policy(adaptations, selected_maps, target_root)
 
     # Validate the authored retained/deferred inventory against the adapted maps
     # before reviewed removals are applied.
