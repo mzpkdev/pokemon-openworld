@@ -1,6 +1,7 @@
 #include "global.h"
 #include "generated_dungeon.h"
 #include "generated_dungeon_persistence.h"
+#include "overworld.h"
 
 static const struct GeneratedDungeonProvider *sRegistry;
 static u16 sRegistryCount;
@@ -8,6 +9,25 @@ static u16 sRegistryCount;
 static const struct GeneratedDungeonSaveRecord *GetActiveRecord(void)
 {
     return (const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+}
+
+static bool32 IsValidFacing(u8 facing)
+{
+    return facing >= DIR_SOUTH && facing < CARDINAL_DIRECTION_COUNT;
+}
+
+static bool32 IsValidWarpContext(const struct WarpData *warp)
+{
+    return warp != NULL && warp->mapGroup >= 0 && warp->mapNum >= 0;
+}
+
+static enum GeneratedDungeonRecordClassification ClassifyCurrentRecord(void)
+{
+    const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
+    const struct GeneratedDungeonProvider *provider;
+    bool8 payloadSupported = GeneratedDungeon_FindProviderById(record->providerId, record->generationVersion, &provider);
+
+    return GeneratedDungeonRecordClassify(record, payloadSupported);
 }
 
 STATIC_ASSERT(sizeof(struct GeneratedDungeonWorkspace) < GENERATED_DUNGEON_WORKSPACE_MAX_BYTES, GeneratedDungeonWorkspaceFitsMapBufferOverlay);
@@ -124,6 +144,102 @@ u8 GeneratedDungeon_GetActiveObjectEventCount(void)
         if (gSaveBlock1Ptr->objectEventTemplates[count].localId == 0)
             return count;
     return provider->maxGeneratedObjects;
+}
+
+bool32 GeneratedDungeon_BeginRun(u16 providerId, u16 generationVersion, u32 seed, const struct WarpData *origin, u8 originFacing, const struct WarpData *destination, u8 destinationFacing)
+{
+    const struct GeneratedDungeonProvider *provider;
+    struct GeneratedDungeonSaveRecord record;
+
+    if (!GeneratedDungeon_FindProviderById(providerId, generationVersion, &provider)
+     || !IsValidWarpContext(origin)
+     || !IsValidWarpContext(destination)
+     || !IsValidFacing(originFacing)
+     || !IsValidFacing(destinationFacing))
+        return FALSE;
+
+    GeneratedDungeonRecordClear(&record);
+    record.providerId = provider->providerId;
+    record.generationVersion = provider->generationVersion;
+    record.seed = seed;
+    record.origin = *origin;
+    record.originFacing = originFacing;
+    record.destination = *destination;
+    record.destinationFacing = destinationFacing;
+    GeneratedDungeonRecordFinalize(&record);
+    *(struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon = record;
+    return TRUE;
+}
+
+void GeneratedDungeon_ClearRun(void)
+{
+    GeneratedDungeonRecordClear((struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon);
+}
+
+static bool32 DepartUsingRecordedWarp(bool32 useDestination)
+{
+    const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
+    struct WarpData warp;
+    u8 facing;
+
+    if (ClassifyCurrentRecord() != GENERATED_DUNGEON_RECORD_ACTIVE)
+        return FALSE;
+
+    warp = useDestination ? record->destination : record->origin;
+    facing = useDestination ? record->destinationFacing : record->originFacing;
+    if (!IsValidWarpContext(&warp) || !IsValidFacing(facing))
+        return FALSE;
+
+    GeneratedDungeon_ClearRun();
+    SetGeneratedDungeonWarpDestination(&warp, facing);
+    return TRUE;
+}
+
+bool32 GeneratedDungeon_DepartToOrigin(void)
+{
+    return DepartUsingRecordedWarp(FALSE);
+}
+
+bool32 GeneratedDungeon_DepartToDestination(void)
+{
+    return DepartUsingRecordedWarp(TRUE);
+}
+
+bool32 GeneratedDungeon_RecoverUnsupportedRun(void)
+{
+    const struct GeneratedDungeonSaveRecord *record = GetActiveRecord();
+    struct WarpData origin;
+    u8 facing;
+
+    if (ClassifyCurrentRecord() != GENERATED_DUNGEON_RECORD_RECOVER_TO_ORIGIN)
+        return FALSE;
+
+    origin = record->origin;
+    facing = record->originFacing;
+    GeneratedDungeon_ClearRun();
+    if (!IsValidWarpContext(&origin) || !IsValidFacing(facing))
+        return FALSE;
+
+    SetGeneratedDungeonWarpDestination(&origin, facing);
+    return TRUE;
+}
+
+bool32 GeneratedDungeon_ShouldClearForDeparture(const struct WarpData *source, const struct WarpData *destination)
+{
+    if (source == NULL || destination == NULL)
+        return FALSE;
+    if (!GeneratedDungeon_IsActiveMap(source->mapGroup, source->mapNum))
+        return FALSE;
+    return source->mapGroup != destination->mapGroup || source->mapNum != destination->mapNum;
+}
+
+bool32 GeneratedDungeon_ClearForDeparture(const struct WarpData *source, const struct WarpData *destination)
+{
+    if (!GeneratedDungeon_ShouldClearForDeparture(source, destination))
+        return FALSE;
+
+    GeneratedDungeon_ClearRun();
+    return TRUE;
 }
 
 rng_value_t GeneratedDungeon_DeriveStream(u16 providerId, u16 generationVersion, u32 seed, enum GeneratedDungeonRngDomain domain, u8 attempt)

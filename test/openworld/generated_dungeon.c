@@ -2,6 +2,7 @@
 #include "fieldmap.h"
 #include "generated_dungeon.h"
 #include "generated_dungeon_persistence.h"
+#include "overworld.h"
 #include "test/test.h"
 
 static u8 sGenerateCalls;
@@ -176,6 +177,97 @@ TEST("Generated dungeon active maps require a supported record and use generated
 
     GeneratedDungeonRecordClear(record);
     CpuFill32(0, gSaveBlock1Ptr->objectEventTemplates, sizeof(gSaveBlock1Ptr->objectEventTemplates));
+    GeneratedDungeon_TestResetRegistry();
+}
+
+TEST("Generated dungeon begin replaces only valid runs without advancing global RNG")
+{
+    struct GeneratedDungeonSaveRecord *record = (struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+    struct WarpData origin = { .mapGroup = 4, .mapNum = 5, .warpId = WARP_ID_NONE, .x = -300, .y = 301 };
+    struct WarpData destination = { .mapGroup = 6, .mapNum = 7, .warpId = WARP_ID_NONE, .x = 1234, .y = -1235 };
+    rng_value_t rngBefore;
+
+    GeneratedDungeonRecordClear(record);
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    SeedRng(0x5678);
+    rngBefore = gRngValue;
+    EXPECT(GeneratedDungeon_BeginRun(17, 3, 0x12345678, &origin, DIR_EAST, &destination, DIR_NORTH));
+    EXPECT_EQ(memcmp(&rngBefore, &gRngValue, sizeof(rngBefore)), 0);
+    EXPECT_EQ(record->seed, 0x12345678);
+    EXPECT_EQ(record->origin.x, -300);
+    EXPECT_EQ(record->destination.y, -1235);
+    EXPECT_EQ(GeneratedDungeonRecordClassify(record, TRUE), GENERATED_DUNGEON_RECORD_ACTIVE);
+    EXPECT(!GeneratedDungeon_BeginRun(17, 2, 0, &origin, DIR_EAST, &destination, DIR_NORTH));
+    EXPECT_EQ(record->seed, 0x12345678);
+    EXPECT(GeneratedDungeon_BeginRun(18, 3, 9, &origin, DIR_SOUTH, &destination, DIR_WEST));
+    EXPECT_EQ(record->providerId, 18);
+    EXPECT_EQ(record->seed, 9);
+
+    GeneratedDungeon_ClearRun();
+    GeneratedDungeon_TestResetRegistry();
+}
+
+TEST("Generated dungeon departures only clear active generated-map sources")
+{
+    struct WarpData generated = { .mapGroup = 1, .mapNum = 2, .warpId = WARP_ID_NONE, .x = 0, .y = 0 };
+    struct WarpData sameGenerated = { .mapGroup = 1, .mapNum = 2, .warpId = WARP_ID_NONE, .x = 1, .y = 1 };
+    struct WarpData elsewhere = { .mapGroup = 4, .mapNum = 5, .warpId = WARP_ID_NONE, .x = 0, .y = 0 };
+    struct WarpData destination = { .mapGroup = 6, .mapNum = 7, .warpId = WARP_ID_NONE, .x = 1234, .y = -1235 };
+
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    EXPECT(GeneratedDungeon_BeginRun(17, 3, 1, &elsewhere, DIR_SOUTH, &destination, DIR_NORTH));
+    EXPECT(!GeneratedDungeon_ShouldClearForDeparture(&generated, &sameGenerated));
+    EXPECT(GeneratedDungeon_ShouldClearForDeparture(&generated, &elsewhere));
+    EXPECT(!GeneratedDungeon_ShouldClearForDeparture(&elsewhere, &generated));
+    EXPECT(!GeneratedDungeon_ClearForDeparture(&generated, &sameGenerated));
+    EXPECT_EQ(GeneratedDungeonRecordClassify((const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon, TRUE), GENERATED_DUNGEON_RECORD_ACTIVE);
+    EXPECT(GeneratedDungeon_ClearForDeparture(&generated, &elsewhere));
+    EXPECT_EQ(GeneratedDungeonRecordClassify((const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon, TRUE), GENERATED_DUNGEON_RECORD_INACTIVE);
+    EXPECT(GeneratedDungeon_BeginRun(17, 3, 1, &elsewhere, DIR_SOUTH, &destination, DIR_NORTH));
+    EXPECT(GeneratedDungeon_DepartToDestination());
+    EXPECT_EQ(GeneratedDungeonRecordClassify((const struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon, TRUE), GENERATED_DUNGEON_RECORD_INACTIVE);
+
+    GeneratedDungeon_TestResetRegistry();
+}
+
+TEST("Generated dungeon warp destination preserves signed coordinates and consumes facing once")
+{
+    struct WarpData warp = { .mapGroup = 6, .mapNum = 7, .warpId = WARP_ID_NONE, .x = 1234, .y = -1235 };
+    const struct WarpData *destination;
+
+    SetGeneratedDungeonWarpDestination(&warp, DIR_WEST);
+    destination = Overworld_TestGetGeneratedDungeonWarpDestination();
+    EXPECT_EQ(destination->mapGroup, warp.mapGroup);
+    EXPECT_EQ(destination->mapNum, warp.mapNum);
+    EXPECT_EQ(destination->x, 1234);
+    EXPECT_EQ(destination->y, -1235);
+    EXPECT_EQ(Overworld_TestApplyGeneratedDungeonWarpFacing(DIR_SOUTH), DIR_WEST);
+    EXPECT_EQ(Overworld_TestApplyGeneratedDungeonWarpFacing(DIR_NORTH), DIR_NORTH);
+
+    SetGeneratedDungeonWarpDestination(&warp, DIR_EAST);
+    SetWarpDestination(1, 2, WARP_ID_NONE, 3, 4);
+    EXPECT_EQ(Overworld_TestApplyGeneratedDungeonWarpFacing(DIR_NORTH), DIR_NORTH);
+}
+
+TEST("Generated dungeon recovery routes a supported envelope with an unsupported provider to its origin")
+{
+    struct GeneratedDungeonSaveRecord *record = (struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+    struct WarpData origin = { .mapGroup = 4, .mapNum = 5, .warpId = WARP_ID_NONE, .x = -300, .y = 301 };
+    struct WarpData destination = { .mapGroup = 6, .mapNum = 7, .warpId = WARP_ID_NONE, .x = 1234, .y = -1235 };
+    const struct WarpData *warp;
+
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    EXPECT(GeneratedDungeon_BeginRun(17, 3, 1, &origin, DIR_EAST, &destination, DIR_NORTH));
+    record->generationVersion = 4;
+    GeneratedDungeonRecordFinalize(record);
+    EXPECT_EQ(GeneratedDungeonRecordClassify(record, FALSE), GENERATED_DUNGEON_RECORD_RECOVER_TO_ORIGIN);
+    EXPECT(GeneratedDungeon_RecoverUnsupportedRun());
+    EXPECT_EQ(GeneratedDungeonRecordClassify(record, TRUE), GENERATED_DUNGEON_RECORD_INACTIVE);
+    warp = Overworld_TestGetGeneratedDungeonWarpDestination();
+    EXPECT_EQ(warp->x, -300);
+    EXPECT_EQ(warp->y, 301);
+    EXPECT_EQ(Overworld_TestApplyGeneratedDungeonWarpFacing(DIR_SOUTH), DIR_EAST);
+
     GeneratedDungeon_TestResetRegistry();
 }
 

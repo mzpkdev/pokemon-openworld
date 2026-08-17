@@ -104,6 +104,13 @@ bool32 GeneratedDungeon_FindProviderByMap(u8 mapGroup, u8 mapNum, const struct G
 bool32 GeneratedDungeon_FindProviderById(u16 providerId, u16 generationVersion, const struct GeneratedDungeonProvider **provider);
 bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum);
 u8 GeneratedDungeon_GetActiveObjectEventCount(void);
+bool32 GeneratedDungeon_BeginRun(u16 providerId, u16 generationVersion, u32 seed, const struct WarpData *origin, u8 originFacing, const struct WarpData *destination, u8 destinationFacing);
+void GeneratedDungeon_ClearRun(void);
+bool32 GeneratedDungeon_DepartToOrigin(void);
+bool32 GeneratedDungeon_DepartToDestination(void);
+bool32 GeneratedDungeon_RecoverUnsupportedRun(void);
+bool32 GeneratedDungeon_ShouldClearForDeparture(const struct WarpData *source, const struct WarpData *destination);
+bool32 GeneratedDungeon_ClearForDeparture(const struct WarpData *source, const struct WarpData *destination);
 
 rng_value_t GeneratedDungeon_DeriveStream(u16 providerId, u16 generationVersion, u32 seed, enum GeneratedDungeonRngDomain domain, u8 attempt);
 void GeneratedDungeon_DeriveStreams(const struct GeneratedDungeonProvider *provider, u32 seed, u8 attempt, struct GeneratedDungeonRngStreams *rng);

@@ -229,6 +229,7 @@ s16 gTimeUpdateCounter; // playTimeVBlanks will eventually overflow, so this is 
 EWRAM_DATA static u8 sObjectEventLoadFlag = 0;
 EWRAM_DATA struct WarpData gLastUsedWarp = {0};
 EWRAM_DATA static struct WarpData sWarpDestination = {0};  // new warp position
+EWRAM_DATA static u8 sGeneratedDungeonWarpFacing = DIR_NONE;
 EWRAM_DATA static struct WarpData sFixedDiveWarp = {0};
 EWRAM_DATA static struct WarpData sFixedHoleWarp = {0};
 EWRAM_DATA static MapSectionId sLastMapSectionId = 0;
@@ -626,6 +627,8 @@ const struct MapLayout *GetMapLayout(u16 mapLayoutId)
 
 void ApplyCurrentWarp(void)
 {
+    GeneratedDungeon_RecoverUnsupportedRun();
+    GeneratedDungeon_ClearForDeparture(&gSaveBlock1Ptr->location, &sWarpDestination);
     gLastUsedWarp = gSaveBlock1Ptr->location;
     gSaveBlock1Ptr->location = sWarpDestination;
     sFixedDiveWarp = sDummyWarpData;
@@ -719,8 +722,39 @@ void WarpIntoMap(void)
 
 void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y)
 {
+    // A regular warp must never inherit a generated run's one-shot facing.
+    sGeneratedDungeonWarpFacing = DIR_NONE;
     SetWarpData(&sWarpDestination, mapGroup, mapNum, warpId, x, y);
 }
+
+void SetGeneratedDungeonWarpDestination(const struct WarpData *warp, enum Direction facing)
+{
+    if (warp == NULL || facing < DIR_SOUTH || facing >= CARDINAL_DIRECTION_COUNT)
+        return;
+
+    sWarpDestination = *warp;
+    sGeneratedDungeonWarpFacing = facing;
+}
+
+static enum Direction ApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing)
+{
+    enum Direction facing = sGeneratedDungeonWarpFacing;
+
+    sGeneratedDungeonWarpFacing = DIR_NONE;
+    return facing == DIR_NONE ? ordinaryFacing : facing;
+}
+
+#if TESTING
+const struct WarpData *Overworld_TestGetGeneratedDungeonWarpDestination(void)
+{
+    return &sWarpDestination;
+}
+
+enum Direction Overworld_TestApplyGeneratedDungeonWarpFacing(enum Direction ordinaryFacing)
+{
+    return ApplyGeneratedDungeonWarpFacing(ordinaryFacing);
+}
+#endif
 
 void SetWarpDestinationToMapWarp(s8 mapGroup, s8 mapNum, s8 warpId)
 {
@@ -1069,6 +1103,7 @@ static struct InitialPlayerAvatarState *GetInitialPlayerAvatarState(void)
     u8 transitionFlags = GetAdjustedInitialTransitionFlags(&sInitialPlayerAvatarState, metatileBehavior, mapType);
     playerStruct.transitionFlags = transitionFlags;
     playerStruct.direction = GetAdjustedInitialDirection(&sInitialPlayerAvatarState, transitionFlags, metatileBehavior, mapType);
+    playerStruct.direction = ApplyGeneratedDungeonWarpFacing(playerStruct.direction);
     sInitialPlayerAvatarState = playerStruct;
     return &sInitialPlayerAvatarState;
 }
@@ -2202,8 +2237,10 @@ void CB2_ContinueSavedGame(void)
             gSaveBlock2Ptr->specialSaveWarpFlags
         );
 
-    LoadSaveblockMapHeader();
     ClearDiveAndHoleWarps();
+    if (GeneratedDungeon_RecoverUnsupportedRun())
+        ApplyCurrentWarp();
+    LoadSaveblockMapHeader();
     trainerHillMapId = GetCurrentTrainerHillMapId();
     if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
         LoadBattlePyramidFloorObjectEventScripts();
