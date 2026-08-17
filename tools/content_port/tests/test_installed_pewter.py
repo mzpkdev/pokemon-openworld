@@ -52,7 +52,9 @@ class InstalledPewterTests(unittest.TestCase):
     def setUp(self) -> None:
         groups = _json(ROOT / "data/maps/map_groups.json")
         if HNS not in groups.get("gMapGroup_HnsPewterCity", []):
-            self.skipTest("HnS Pewter registry state is supplied by the pending port bundle")
+            self.skipTest(
+                "HnS Pewter registry state is supplied by the pending port bundle"
+            )
 
     def test_hns_and_frlg_are_separate_append_only_identities(self) -> None:
         groups = _json(ROOT / "data/maps/map_groups.json")
@@ -143,9 +145,7 @@ class InstalledPewterTests(unittest.TestCase):
         }
         for name, warp_id in returns.items():
             exterior_returns = [
-                warp
-                for warp in _map(name)["warp_events"]
-                if warp["dest_map"] == HNS_ID
+                warp for warp in _map(name)["warp_events"] if warp["dest_map"] == HNS_ID
             ]
             self.assertTrue(exterior_returns)
             self.assertEqual(
@@ -350,7 +350,9 @@ class InstalledPewterTests(unittest.TestCase):
         ids = {document["id"]: name for name, document in docs.items()}
         edges = {name: set() for name in nodes}
         for name, document in docs.items():
-            for destination in (document.get("connections") or []) + document["warp_events"]:
+            for destination in (document.get("connections") or []) + document[
+                "warp_events"
+            ]:
                 target = destination.get("map", destination.get("dest_map"))
                 if target in ids:
                     edges[name].add(ids[target])
