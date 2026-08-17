@@ -21,6 +21,7 @@
 #define GENERATED_OCEAN_ENDPOINT_Y (GENERATED_OCEAN_HEIGHT / 2)
 #define GENERATED_OCEAN_TRAINER_COUNT 4
 #define GENERATED_OCEAN_TRAINER_LOCAL_ID_BASE 1
+#define GENERATED_OCEAN_TRAINER_SIGHT_RANGE 3
 #define GENERATED_OCEAN_OBJECT_COUNT GENERATED_OCEAN_TRAINER_COUNT
 
 enum GeneratedOceanCell
@@ -128,7 +129,11 @@ static bool32 FindObjectPosition(struct GeneratedDungeonWorkspace *workspace, rn
         u16 cell;
 
         if (!IsEndpoint(candidateX, candidateY)
-         && candidateY != GENERATED_OCEAN_ENDPOINT_Y
+         // Keep the only guaranteed endpoint lane outside every trainer's
+         // ordinary line-of-sight range, while leaving the swimmers as real
+         // encounters elsewhere in the generated ocean.
+         && (candidateY + GENERATED_OCEAN_TRAINER_SIGHT_RANGE < GENERATED_OCEAN_ENDPOINT_Y
+          || candidateY > GENERATED_OCEAN_ENDPOINT_Y + GENERATED_OCEAN_TRAINER_SIGHT_RANGE)
          && GeneratedDungeonWorkspace_GetCell(workspace, candidateX, candidateY, &cell)
          && cell != GENERATED_OCEAN_CELL_IMPASSABLE_WATER
          && !IsOccupiedByPreviousObject(workspace, objectCount, candidateX, candidateY))
@@ -213,7 +218,8 @@ static bool32 SetGeneratedObjects(struct GeneratedDungeonWorkspace *workspace, s
         if (!FindObjectPosition(workspace, &rng->values[GENERATED_DUNGEON_RNG_TRAINERS], i, &x, &y)
          || !SetObject(workspace, i, GENERATED_OCEAN_TRAINER_LOCAL_ID_BASE + i,
                        sTrainerGraphics[trainerIndex], MOVEMENT_TYPE_LOOK_AROUND,
-                       TRAINER_TYPE_NORMAL, 3, sTrainerScripts[trainerIndex], TRUE, x, y))
+                       TRAINER_TYPE_NORMAL, GENERATED_OCEAN_TRAINER_SIGHT_RANGE,
+                       sTrainerScripts[trainerIndex], TRUE, x, y))
             return FALSE;
     }
     return TRUE;

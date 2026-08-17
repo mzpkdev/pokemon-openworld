@@ -20,6 +20,7 @@ from tools.e2e.tests.integrity.manifest import (
 FIELD_MOVE_SURF = 4
 FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE = 44
 FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE = 45
+FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 PLAYER_AVATAR_FLAG_SURFING = 1 << 3
 DIR_SOUTH = 1
 DIR_NORTH = 2
@@ -107,14 +108,17 @@ def _traverse_generated_ocean(
     for _ in range(60):
         game.press(direction, hold_frames=2, release_frames=1)
         game.step(20)
+        # Crossing the endpoint starts a normal DoWarp fade: movement stays
+        # non-idle until the destination avatar is rebuilt, so wait for that
+        # map transition instead of requiring an impossible intermediate idle.
+        if game.map_id() == destination.map_id or game.controls_locked():
+            break
         game.wait_until(
             game.movement_idle,
             description="generated-ocean movement idle",
             max_frames=120,
             step_frames=2,
         )
-        if game.map_id() == destination.map_id:
-            break
     game.wait_for_map(destination.map_id, max_frames=1_800)
     _assert_field_ready(game, destination, position, facing)
 
@@ -134,6 +138,9 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     ):
         integrity_game.set_flag(fact)
     assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555246)
+    # The shell retains ordinary water encounters; disable only debug-ROM RNG
+    # here so this route-ownership journey reaches its recorded endpoints.
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
 
     _load_map(integrity_game, route19, (20, 59), 0x53454601)
     _set_surfing(integrity_game)
@@ -156,7 +163,7 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555247)
 
     _cross_edge(integrity_game, "Left", generated_ocean, (2, 12), DIR_WEST)
-    _traverse_generated_ocean(integrity_game, "Left", route19, (20, 59), DIR_NORTH)
+    _traverse_generated_ocean(integrity_game, "Right", route19, (20, 59), DIR_NORTH)
     _assert_map_presentation(integrity_game, route19, MUS_RG_ROUTE3, WEATHER_SUNNY)
 
     saved = save_from_start_menu(integrity_game)

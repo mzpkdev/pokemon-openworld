@@ -80,6 +80,8 @@ TEST("Generated ocean registers its fixed shell and only emits swimmers")
             || workspace->objects[i].template.graphicsId == OBJ_EVENT_GFX_SWIMMER_F_WATER);
         EXPECT_EQ(workspace->objects[i].template.trainerType, TRAINER_TYPE_NORMAL);
         EXPECT_NE(workspace->objects[i].template.script, NULL);
+        EXPECT(workspace->objects[i].template.y + workspace->objects[i].template.trainerRange_berryTreeId < workspace->spawn.y
+            || workspace->objects[i].template.y > workspace->spawn.y + workspace->objects[i].template.trainerRange_berryTreeId);
     }
 
     for (u16 y = 0; y < workspace->height && !foundBlocked; y++)
