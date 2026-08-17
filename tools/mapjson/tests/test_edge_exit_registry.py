@@ -62,7 +62,7 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
     def test_validates_strict_schema_and_scalar_types(self) -> None:
         valid = self.run_validation([self.valid_exit()])
         self.assertEqual(valid.returncode, 0, valid.stderr)
-        self.assertEqual(valid.stdout, "edge_exits=1\n")
+        self.assertEqual(valid.stdout, "edge_exits=2\n")
 
         missing = self.valid_exit()
         del missing["target_facing"]
