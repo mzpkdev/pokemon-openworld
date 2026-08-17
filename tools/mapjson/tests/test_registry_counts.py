@@ -136,7 +136,7 @@ class ProductRegistryTests(unittest.TestCase):
         self.assertEqual(len(self.manifest["layouts"]) - active_johto_layouts, 785)
         self.assertEqual(
             self.manifest["counts"]["regions"],
-            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+            {"REGION_HOENN": 518, "REGION_KANTO": 423, "REGION_JOHTO": 253},
         )
 
     def test_route28_is_real_johto_mixed_width_product_fixture(self) -> None:
