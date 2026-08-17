@@ -390,6 +390,25 @@ TEST("Generated dungeon recovery routes a supported envelope with an unsupported
     GeneratedDungeon_TestResetRegistry();
 }
 
+TEST("Generated dungeon recovery preserves an unsupported record with an invalid origin")
+{
+    struct GeneratedDungeonSaveRecord *record = (struct GeneratedDungeonSaveRecord *)gSaveBlock1Ptr->generatedDungeon;
+    struct WarpData origin = { .mapGroup = MAP_GROUP(MAP_LITTLEROOT_TOWN), .mapNum = MAP_NUM(MAP_LITTLEROOT_TOWN), .warpId = WARP_ID_NONE, .x = 0, .y = 0 };
+    struct WarpData destination = { .mapGroup = MAP_GROUP(MAP_OLDALE_TOWN), .mapNum = MAP_NUM(MAP_OLDALE_TOWN), .warpId = WARP_ID_NONE, .x = 0, .y = 0 };
+
+    EXPECT(GeneratedDungeon_TestSetRegistry(sProviders, ARRAY_COUNT(sProviders)));
+    EXPECT(GeneratedDungeon_BeginRun(17, 3, 1, &origin, DIR_EAST, &destination, DIR_NORTH));
+    record->generationVersion = 4;
+    record->origin.mapGroup = MAP_GROUPS_COUNT;
+    GeneratedDungeonRecordFinalize(record);
+    EXPECT_EQ(GeneratedDungeonRecordClassify(record, FALSE), GENERATED_DUNGEON_RECORD_RECOVER_TO_ORIGIN);
+    EXPECT(!GeneratedDungeon_RecoverUnsupportedRun());
+    EXPECT_EQ(GeneratedDungeonRecordClassify(record, FALSE), GENERATED_DUNGEON_RECORD_RECOVER_TO_ORIGIN);
+
+    GeneratedDungeon_ClearRun();
+    GeneratedDungeon_TestResetRegistry();
+}
+
 TEST("Generated dungeon named RNG streams are deterministic and isolated")
 {
     rng_value_t topology = GeneratedDungeon_DeriveStream(17, 3, 0x12345678, GENERATED_DUNGEON_RNG_TOPOLOGY, 0);

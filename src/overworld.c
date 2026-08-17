@@ -720,6 +720,17 @@ void WarpIntoMap(void)
     SetPlayerCoordsFromWarp();
 }
 
+static bool32 RecoverFailedGeneratedDungeonMap(void)
+{
+    if (!GeneratedDungeon_DepartToOrigin())
+        return FALSE;
+
+    ApplyCurrentWarp();
+    LoadCurrentMapData();
+    SetPlayerCoordsFromWarp();
+    return TRUE;
+}
+
 void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y)
 {
     // A regular warp must never inherit a generated run's one-shot facing.
@@ -990,7 +1001,11 @@ static void LoadMapFromWarp(bool32 a1)
     if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR
      && !InTrainerHill()
      && GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+    {
         generatedDungeonLoaded = InitGeneratedDungeonMap();
+        if (!generatedDungeonLoaded && !RecoverFailedGeneratedDungeonMap())
+            GeneratedDungeon_ClearRun();
+    }
     if (!(sObjectEventLoadFlag & SKIP_OBJECT_EVENT_LOAD)
 #ifdef DEBUG
      && !IntegrityMapLoad_ShouldSuppressEvents()
@@ -2253,9 +2268,25 @@ void CB2_ContinueSavedGame(void)
         LoadBattlePyramidFloorObjectEventScripts();
     else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
         LoadTrainerHillFloorObjectEventScripts();
-    else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum)
-          && InitGeneratedDungeonMap())
-        generatedDungeonLoaded = TRUE;
+    else if (GeneratedDungeon_IsActiveMap(gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
+    {
+        generatedDungeonLoaded = InitGeneratedDungeonMap();
+        if (!generatedDungeonLoaded)
+        {
+            if (!RecoverFailedGeneratedDungeonMap())
+                GeneratedDungeon_ClearRun();
+            trainerHillMapId = GetCurrentTrainerHillMapId();
+            if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
+                LoadBattlePyramidFloorObjectEventScripts();
+            else if (trainerHillMapId != 0 && trainerHillMapId != TRAINER_HILL_ENTRANCE)
+                LoadTrainerHillFloorObjectEventScripts();
+            else
+            {
+                LoadObjEventTemplatesFromHeader();
+                LoadSaveblockObjEventScripts();
+            }
+        }
+    }
     else
         LoadSaveblockObjEventScripts();
 

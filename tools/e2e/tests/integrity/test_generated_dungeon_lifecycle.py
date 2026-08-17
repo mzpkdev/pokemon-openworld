@@ -1,3 +1,5 @@
+import struct
+
 from tools.e2e.generated_dungeon_fixture import FixtureRequest, activate_fixture
 from tools.e2e.save_journey import cold_restart_and_continue, save_from_start_menu
 from tools.e2e.skyemu import (
@@ -10,6 +12,13 @@ from tools.e2e.skyemu import (
 
 GENERATED_DUNGEON_RECORD_OFFSET = 0x3D38
 GENERATED_DUNGEON_RECORD_SIZE = 64
+OBJECT_EVENT_TEMPLATES_OFFSET = 0xC70
+OBJECT_EVENT_TEMPLATE_SIZE = 0x18
+OBJECT_EVENT_TEMPLATE_COUNT = 64
+MAP_OFFSET = 7
+GENERATED_MAP_WIDTH = 20
+GENERATED_MAP_HEIGHT = 20
+GENERATED_FLOOR_METATILE = 0x201
 NORMAL_FIELD_MAP = (0, 9)
 
 
@@ -30,6 +39,30 @@ def _record(game) -> bytes:
     )
 
 
+def _generated_runtime_snapshot(game) -> tuple[bytes, bytes]:
+    backup_layout = game.read(game.address("gBackupMapLayout"), 12)
+    width, height, map_address = struct.unpack("<iiI", backup_layout)
+    assert (width, height) == (
+        GENERATED_MAP_WIDTH + MAP_OFFSET * 2 + 1,
+        GENERATED_MAP_HEIGHT + MAP_OFFSET * 2,
+    )
+
+    start = map_address + 2 * (width * MAP_OFFSET + MAP_OFFSET)
+    cell_count = GENERATED_MAP_WIDTH * GENERATED_MAP_HEIGHT
+    cells = game.read(start, cell_count * 2)
+    assert (
+        struct.unpack(f"<{cell_count}H", cells)
+        == (GENERATED_FLOOR_METATILE,) * cell_count
+    )
+
+    templates = game.read(
+        game.save_block1() + OBJECT_EVENT_TEMPLATES_OFFSET,
+        OBJECT_EVENT_TEMPLATE_SIZE * OBJECT_EVENT_TEMPLATE_COUNT,
+    )
+    assert templates == bytes(len(templates))
+    return cells, templates
+
+
 def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(
     game_from_hoenn_save,
 ):
@@ -41,6 +74,7 @@ def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(
     game.wait_for_controls_unlocked(max_frames=1_200)
     snapshot = _record(game)
     assert snapshot != bytes(GENERATED_DUNGEON_RECORD_SIZE)
+    runtime_snapshot = _generated_runtime_snapshot(game)
 
     saved = save_from_start_menu(game, max_pulses=1_200, release_frames=2)
     assert (
@@ -55,6 +89,7 @@ def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(
     assert game.map_id() == (fixture.map_group, fixture.map_num)
     game.wait_for_controls_unlocked(max_frames=1_200)
     assert _record(game) == snapshot
+    assert _generated_runtime_snapshot(game) == runtime_snapshot
 
     departure = game.request_map_load(
         IntegrityMapLoadRequest(

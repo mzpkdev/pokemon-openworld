@@ -238,10 +238,10 @@ bool32 GeneratedDungeon_RecoverUnsupportedRun(void)
 
     origin = record->origin;
     facing = record->originFacing;
-    GeneratedDungeon_ClearRun();
     if (!IsValidWarpContext(&origin) || !IsValidFacing(facing))
         return FALSE;
 
+    GeneratedDungeon_ClearRun();
     SetGeneratedDungeonWarpDestination(&origin, facing);
     return TRUE;
 }
