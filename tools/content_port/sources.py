@@ -3449,6 +3449,20 @@ def resolve_port_sources(
             selected_role = "target"
         document = _thaw(selected_record.value)
         allocation = descriptor.allocation_index.map_allocation(name)
+        # A source-map alias intentionally borrows donor bytes under a new
+        # target identity.  Every non-aliased map, however, must already carry
+        # its allocation-locked ID and layout before downstream layout loading
+        # can mask a drift by reporting a less useful source-layout error.
+        if descriptor.map_source_identities[name] == name:
+            for field_name, expected in (
+                ("id", allocation.map_id),
+                ("layout", allocation.layout),
+            ):
+                if document.get(field_name) != expected:
+                    raise ContentPortError(
+                        f"{name}/{field_name}: resolved map binding differs from "
+                        "allocation authority"
+                    )
         # Aliased donor maps retain donor bytes and provenance, while the
         # allocation lock remains the sole authority for emitted identities.
         document["id"] = allocation.map_id
@@ -3693,11 +3707,12 @@ def resolve_port_sources(
         for _, _, _, destination in reviewed_retained
         if destination in external_by_alias
     }
-    if not set(declared_external).issubset(retained_external):
+    if set(declared_external) != retained_external:
+        missing = sorted(retained_external - set(declared_external))
         extra = sorted(set(declared_external) - retained_external)
         raise ContentPortError(
-            "retainedExternalEndpoints must name retained external destinations; "
-            f"extra={extra[:1]}"
+            "retainedExternalEndpoints must exactly match declared retained external "
+            f"destinations; missing={missing[:1]}, extra={extra[:1]}"
         )
     source_records.update(external_records)
     for alias, name in external_by_alias.items():

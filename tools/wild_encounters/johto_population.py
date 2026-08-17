@@ -54,10 +54,6 @@ CLASSIFICATION_COUNTS = {
     "ordinary": 84,
     "alias": 5,
     "special": 18,
-    "encounter-free": 147,
-}
-CURRENT_CLASSIFICATION_COUNTS = {
-    **CLASSIFICATION_COUNTS,
     "encounter-free": 148,
 }
 JOHTO_PROFILE_COUNT = 147
@@ -126,14 +122,9 @@ def _classification(document):
             raise ProjectionError(f"classification/maps/{index}: invalid map row")
         result[name] = kind
         counts[kind] += 1
-    # The checked-in policy has one additional encounter-free target map.  Keep
-    # the established synthetic fixture shape accepted while requiring every
-    # other classification total to remain exact.
-    if counts not in (CLASSIFICATION_COUNTS, CURRENT_CLASSIFICATION_COUNTS):
+    if counts != CLASSIFICATION_COUNTS:
         raise ProjectionError(
-            "classification: expected one of "
-            f"{CLASSIFICATION_COUNTS} or {CURRENT_CLASSIFICATION_COUNTS}, "
-            f"found {counts}"
+            f"classification: expected {CLASSIFICATION_COUNTS}, found {counts}"
         )
     return result
 
