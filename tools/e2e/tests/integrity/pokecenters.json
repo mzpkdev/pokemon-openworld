@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
   "ordinaryNurses": [
-    "OldaleTown_PokemonCenter_1F"
+    "OldaleTown_PokemonCenter_1F",
+    "PewterCity_PokemonCenter_1F_Frlg"
   ],
   "facilityNurses": [],
   "whiteoutCases": [
-    "OldaleTown_PokemonCenter_1F"
+    "OldaleTown_PokemonCenter_1F",
+    "PewterCity_PokemonCenter_1F_Frlg"
   ],
   "runtimeCases": {
     "OldaleTown_PokemonCenter_1F": {
@@ -15,6 +17,12 @@
       "nurseLocalId": 1
     },
     "OlivineCity_PokemonCenter": {
+      "x": 7,
+      "y": 3,
+      "direction": "Up",
+      "nurseLocalId": 1
+    },
+    "PewterCity_PokemonCenter_1F_Frlg": {
       "x": 7,
       "y": 3,
       "direction": "Up",

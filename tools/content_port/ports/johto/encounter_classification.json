@@ -1034,6 +1034,10 @@
     {
       "map": "MahoganyHideout_B3F",
       "kind": "encounter-free"
+    },
+    {
+      "map": "PewterCity_Hns",
+      "kind": "encounter-free"
     }
   ]
 }

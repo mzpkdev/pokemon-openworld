@@ -232,9 +232,9 @@
     },
     {
       "id": "HEAL_LOCATION_PEWTER_CITY",
-      "map": "MAP_PEWTER_CITY",
-      "x": 17,
-      "y": 26,
+      "map": "MAP_PEWTER_CITY_HNS",
+      "x": 19,
+      "y": 30,
       "respawn_map": "MAP_PEWTER_CITY_POKEMON_CENTER_1F",
       "respawn_npc": "LOCALID_PEWTER_NURSE",
       "recovery_mode": "HEALER"

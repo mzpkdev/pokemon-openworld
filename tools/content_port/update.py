@@ -521,8 +521,11 @@ def validate_assets(
         "permissionEvidence",
         "capability",
         "supportState",
+        "assetType",
     }
-    if set(document) != {"schemaVersion", "permissionRecords", "assets"}:
+    required_document_keys = {"schemaVersion", "permissionRecords", "assets"}
+    allowed_document_keys = required_document_keys | {"audioClosures"}
+    if set(document) not in (required_document_keys, allowed_document_keys):
         raise DonorUpdateError("assets.json: expected exact asset policy fields")
     assets = document.get("assets")
     permission_records = document.get("permissionRecords")
@@ -677,6 +680,18 @@ def validate_assets(
             raise DonorUpdateError(
                 f"{pointer}.supportState: unknown state {support_state!r}"
             )
+        asset_type = asset.get("assetType", "tileset")
+        if asset_type not in {"tileset", "audio"}:
+            raise DonorUpdateError(
+                f"{pointer}.assetType: unknown asset type {asset_type!r}"
+            )
+        if asset_type == "audio":
+            for field in ("sourcePath", "semanticTarget"):
+                value = asset[field]
+                if not isinstance(value, str) or not value.startswith("sound/"):
+                    raise DonorUpdateError(
+                        f"{pointer}.{field}: audio assets must stay under sound/"
+                    )
         result.append(asset)
     unused_permissions = sorted(
         set(validated_permissions)
@@ -686,7 +701,110 @@ def validate_assets(
         raise DonorUpdateError(
             f"assets.json: unused permission record {unused_permissions[0]!r}"
         )
+    _validate_audio_closures(document.get("audioClosures", ()), result)
     return tuple(result)
+
+
+def _validate_audio_closures(
+    value: object, assets: Sequence[Mapping[str, object]]
+) -> None:
+    """Bind each typed audio payload to one reviewed program closure."""
+
+    if not isinstance(value, (list, tuple)):
+        raise DonorUpdateError("$.audioClosures: expected an array")
+    by_key = {str(asset["key"]): asset for asset in assets}
+    audio_keys = {
+        key
+        for key, asset in by_key.items()
+        if asset.get("assetType", "tileset") == "audio"
+    }
+    claimed: set[str] = set()
+    closure_keys: set[str] = set()
+    for index, raw in enumerate(value):
+        pointer = f"$.audioClosures[{index}]"
+        if not isinstance(raw, Mapping) or set(raw) != {
+            "key",
+            "capability",
+            "midiAsset",
+            "aifAssets",
+            "integration",
+        }:
+            raise DonorUpdateError(f"{pointer}: expected exact audio closure fields")
+        key = raw["key"]
+        capability = raw["capability"]
+        if not isinstance(key, str) or not key:
+            raise DonorUpdateError(f"{pointer}.key: expected a non-empty string")
+        if key in closure_keys:
+            raise DonorUpdateError(f"{pointer}.key: duplicate audio closure")
+        closure_keys.add(key)
+        if not isinstance(capability, str) or not capability:
+            raise DonorUpdateError(f"{pointer}.capability: expected a non-empty string")
+        midi = raw["midiAsset"]
+        aifs = raw["aifAssets"]
+        if not isinstance(midi, str) or not midi:
+            raise DonorUpdateError(f"{pointer}.midiAsset: expected an asset key")
+        if not isinstance(aifs, (list, tuple)) or not aifs:
+            raise DonorUpdateError(f"{pointer}.aifAssets: expected a non-empty array")
+        members = (midi, *aifs)
+        if len(members) != len(set(members)):
+            raise DonorUpdateError(f"{pointer}: duplicate audio asset key")
+        for member_index, member in enumerate(members):
+            member_pointer = (
+                f"{pointer}.midiAsset"
+                if member_index == 0
+                else f"{pointer}.aifAssets[{member_index - 1}]"
+            )
+            if not isinstance(member, str) or member not in audio_keys:
+                raise DonorUpdateError(f"{member_pointer}: unknown typed audio asset")
+            asset = by_key[member]
+            if asset["capability"] != capability:
+                raise DonorUpdateError(
+                    f"{member_pointer}: capability differs from closure"
+                )
+            suffix = ".mid" if member_index == 0 else ".aif"
+            if not str(asset["sourcePath"]).lower().endswith(suffix):
+                raise DonorUpdateError(
+                    f"{member_pointer}: expected a {suffix} source asset"
+                )
+            if member in claimed:
+                raise DonorUpdateError(
+                    f"{member_pointer}: audio asset belongs to multiple closures"
+                )
+            claimed.add(member)
+        integration = raw["integration"]
+        if not isinstance(integration, (list, tuple)) or not integration:
+            raise DonorUpdateError(f"{pointer}.integration: expected a non-empty array")
+        paths: set[str] = set()
+        for integration_index, item in enumerate(integration):
+            item_pointer = f"{pointer}.integration[{integration_index}]"
+            if not isinstance(item, Mapping) or set(item) != {"path", "sections"}:
+                raise DonorUpdateError(f"{item_pointer}: expected path and sections")
+            path = item["path"]
+            sections = item["sections"]
+            if not isinstance(path, str) or not path.startswith("sound/"):
+                raise DonorUpdateError(f"{item_pointer}.path: expected a sound/ path")
+            _safe_source_path(path, f"{item_pointer}.path")
+            if path in paths:
+                raise DonorUpdateError(
+                    f"{item_pointer}.path: duplicate integration path"
+                )
+            paths.add(path)
+            if (
+                not isinstance(sections, (list, tuple))
+                or not sections
+                or not all(isinstance(section, str) and section for section in sections)
+                or len(sections) != len(set(sections))
+            ):
+                raise DonorUpdateError(
+                    f"{item_pointer}.sections: expected unique symbols"
+                )
+    if claimed != audio_keys:
+        missing = sorted(audio_keys - claimed)
+        extra = sorted(claimed - audio_keys)
+        raise DonorUpdateError(
+            f"$.audioClosures: must exactly cover typed audio assets; "
+            f"missing={missing[:1]}, extra={extra[:1]}"
+        )
 
 
 def _asset_changes(

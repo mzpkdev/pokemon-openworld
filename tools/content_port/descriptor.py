@@ -69,7 +69,7 @@ DONOR_KEYS = {
 }
 INVENTORY_DOMAINS = {"maps", "layouts", "groups", "sections", "tilesets"}
 CAPABILITY_KEYS = {"schemaVersion", "capabilities", "maps"}
-MAP_POLICY_KEYS = {"map", "ownership", "capabilities"}
+MAP_POLICY_KEYS = {"map", "ownership", "capabilities", "sourceMap", "allowSharedSource"}
 ADAPTATION_KEYS = {
     "schemaVersion",
     "adaptations",
@@ -80,6 +80,7 @@ ADAPTATION_KEYS = {
     "attributeFixtures",
     "contentFallback",
     "retainedEdges",
+    "retainedExternalEndpoints",
     "deferredEdges",
     "graphicsAdaptations",
     "musicAdaptations",
@@ -320,7 +321,12 @@ def _thaw(value: object) -> object:
 
 def _validate_adaptation_policy(value: object, pointer: str) -> None:
     document = _object(value, pointer)
-    _exact_keys(document, ADAPTATION_KEYS, pointer)
+    unknown = sorted(set(document) - ADAPTATION_KEYS)
+    missing = sorted((ADAPTATION_KEYS - {"retainedExternalEndpoints"}) - set(document))
+    if unknown:
+        raise ContentPortError(f"{pointer}: unknown field {unknown[0]!r}")
+    if missing:
+        raise ContentPortError(f"{pointer}: missing field {missing[0]!r}")
     if _integer(document["schemaVersion"], f"{pointer}.schemaVersion") != 1:
         raise ContentPortError(
             f"{pointer}.schemaVersion: unsupported adaptation schema"
@@ -455,6 +461,15 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
                 raise ContentPortError(
                     f"{item_pointer}.kind: expected 'connection' or 'warp'"
                 )
+
+    external_endpoints = _string_array(
+        document.get("retainedExternalEndpoints", []),
+        f"{pointer}.retainedExternalEndpoints",
+    )
+    if len(external_endpoints) != len(set(external_endpoints)):
+        raise ContentPortError(
+            f"{pointer}.retainedExternalEndpoints: duplicate map identity"
+        )
 
     fixture_fields = {
         "representative",
@@ -970,6 +985,7 @@ class PortDescriptor:
     allocation_index: AllocationIndex
     capabilities: tuple[CapabilityDecision, ...]
     map_ownership: Mapping[str, str]
+    map_source_identities: Mapping[str, str]
     adaptations: Mapping[str, object]
     events: Mapping[str, object]
     event_entries: Mapping[str, EventEntry]
@@ -1253,11 +1269,26 @@ def _load_renderer_policy(
     ):
         item_pointer = f"{pointer}.layoutBinaryAuthorities[{index}]"
         item = _object(raw, item_pointer)
-        _exact_keys(item, {"layout", "source", "sourceRole"}, item_pointer)
+        _policy_record(
+            item,
+            item_pointer,
+            {"layout", "source", "sourceRole"},
+            {"sourceLayout", "allowSharedSource"},
+        )
         record = LayoutBinaryAuthority(
             layout=_string(item["layout"], f"{item_pointer}.layout"),
             source=_string(item["source"], f"{item_pointer}.source"),
             source_role=_string(item["sourceRole"], f"{item_pointer}.sourceRole"),
+            source_layout=(
+                _string(item["sourceLayout"], f"{item_pointer}.sourceLayout")
+                if "sourceLayout" in item
+                else None
+            ),
+            allow_shared_source=(
+                _boolean(item["allowSharedSource"], f"{item_pointer}.allowSharedSource")
+                if "allowSharedSource" in item
+                else False
+            ),
         )
         if record.source_role not in donor_roles:
             raise ContentPortError(
@@ -1274,6 +1305,17 @@ def _load_renderer_policy(
             "$.layoutBinaryAuthorities: must cover every allocated layout; "
             f"missing={missing[:1]}, extra={extra[:1]}"
         )
+    claimed_layout_sources: dict[tuple[str, str], str] = {}
+    for record in layout_records:
+        source_identity = (record.source_role, record.source_layout or record.layout)
+        previous = claimed_layout_sources.get(source_identity)
+        if previous is not None and not record.allow_shared_source:
+            raise ContentPortError(
+                f"$.layoutBinaryAuthorities: donor layout {source_identity[0]}:"
+                f"{source_identity[1]} is already claimed by {previous}; "
+                "set allowSharedSource to share it explicitly"
+            )
+        claimed_layout_sources[source_identity] = record.layout
 
     layout_field_records: list[LayoutFieldAuthority] = []
     allowed_layout_fields = {"border_height", "border_width"}
@@ -1569,7 +1611,7 @@ def _decision(
 
 def _load_capabilities(
     value: object, pointer: str
-) -> tuple[tuple[CapabilityDecision, ...], Mapping[str, str]]:
+) -> tuple[tuple[CapabilityDecision, ...], Mapping[str, str], Mapping[str, str]]:
     root = _object(value, pointer)
     _exact_keys(root, CAPABILITY_KEYS, pointer)
     if root["schemaVersion"] != 1:
@@ -1588,10 +1630,17 @@ def _load_capabilities(
         )
     decisions: list[CapabilityDecision] = []
     ownership: dict[str, str] = {}
+    source_identities: dict[str, str] = {}
+    claimed_sources: dict[str, str] = {}
     for index, raw in enumerate(_array(root["maps"], f"{pointer}.maps")):
         item_pointer = f"{pointer}.maps[{index}]"
         item = _object(raw, item_pointer)
-        _exact_keys(item, MAP_POLICY_KEYS, item_pointer)
+        _policy_record(
+            item,
+            item_pointer,
+            {"map", "ownership", "capabilities"},
+            {"sourceMap", "allowSharedSource"},
+        )
         map_name = _string(item["map"], f"{item_pointer}.map")
         if map_name in ownership:
             raise ContentPortError(
@@ -1603,6 +1652,24 @@ def _load_capabilities(
         policy = _object(item["capabilities"], f"{item_pointer}.capabilities")
         _exact_keys(policy, set(names), f"{item_pointer}.capabilities")
         ownership[map_name] = mode
+        source_map = (
+            _string(item["sourceMap"], f"{item_pointer}.sourceMap")
+            if "sourceMap" in item
+            else map_name
+        )
+        allow_shared_source = (
+            _boolean(item["allowSharedSource"], f"{item_pointer}.allowSharedSource")
+            if "allowSharedSource" in item
+            else False
+        )
+        previous = claimed_sources.get(source_map)
+        if previous is not None and not allow_shared_source:
+            raise ContentPortError(
+                f"{item_pointer}.sourceMap: donor map {source_map!r} is already "
+                f"claimed by {previous}; set allowSharedSource to share it explicitly"
+            )
+        claimed_sources[source_map] = map_name
+        source_identities[map_name] = source_map
         for capability in names:
             state, dependencies = _decision(
                 policy[capability], f"{item_pointer}.capabilities.{capability}"
@@ -1610,19 +1677,25 @@ def _load_capabilities(
             decisions.append(
                 CapabilityDecision(map_name, capability, state, dependencies)
             )
-    return tuple(decisions), MappingProxyType(ownership)
+    return (
+        tuple(decisions),
+        MappingProxyType(ownership),
+        MappingProxyType(source_identities),
+    )
 
 
 def _load_policy(
     path: Path,
     expected_keys: set[str] | None,
     pointer: str,
+    optional_keys: set[str] | None = None,
 ) -> Mapping[str, object]:
     value = _object(read_json(path), pointer)
     if value.get("schemaVersion") != 1:
         raise ContentPortError(f"{pointer}.schemaVersion: unsupported policy schema")
     if expected_keys is not None:
-        unknown = sorted(set(value) - expected_keys)
+        optional_keys = optional_keys or set()
+        unknown = sorted(set(value) - expected_keys - optional_keys)
         missing = sorted(expected_keys - set(value))
         if unknown:
             raise ContentPortError(f"{pointer}: unknown field {unknown[0]!r}")
@@ -1769,7 +1842,9 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     )
     capability_doc = read_json(capability_path)
     forbid_numeric_policy(capability_doc)
-    capabilities, ownership = _load_capabilities(capability_doc, "$")
+    capabilities, ownership, map_source_identities = _load_capabilities(
+        capability_doc, "$"
+    )
     for decision in capabilities:
         if (
             decision.state is CapabilityState.ENABLED
@@ -1789,8 +1864,9 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
 
     adaptations = _load_policy(
         _safe_child(port_dir, root["adaptations"], "$.adaptations"),
-        ADAPTATION_KEYS,
+        ADAPTATION_KEYS - {"retainedExternalEndpoints"},
         "$",
+        {"retainedExternalEndpoints"},
     )
     _validate_adaptation_policy(_thaw(adaptations), "$")
     _validate_encounter_profile_reachability(_thaw(adaptations), capabilities)
@@ -1807,7 +1883,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     )
     assets = _load_policy(
         _safe_child(port_dir, root["assetPolicy"], "$.assetPolicy"),
-        {"schemaVersion", "permissionRecords", "assets"},
+        {"schemaVersion", "permissionRecords", "assets", "audioClosures"},
         "$",
     )
     # Asset policy has domain-specific field and permission validation in the
@@ -1903,6 +1979,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
         allocation_index=allocation_index,
         capabilities=capabilities,
         map_ownership=ownership,
+        map_source_identities=map_source_identities,
         adaptations=adaptations,
         events=events,
         event_entries=event_entries,

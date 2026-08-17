@@ -155,6 +155,11 @@
       "source": "MAPSEC_VERMILION_CITY",
       "target": "MAPSEC_JOHTO_VERMILION_PORT",
       "reason": "isolate Johto port residency from the incompatible resident Kanto Vermilion section"
+    },
+    {
+      "source": "MAPSEC_PEWTER_CITY",
+      "target": "MAPSEC_JOHTO_PEWTER_PORT",
+      "reason": "isolate HnS Pewter residency from the resident Kanto Pewter section"
     }
   ],
   "layoutTilesetRemaps": [
@@ -163,6 +168,12 @@
       "field": "secondary_tileset",
       "source": "gTileset_PokemonDayCare",
       "target": "gTileset_JohtoPokemonDayCare"
+    },
+    {
+      "layout": "LAYOUT_PEWTER_CITY_HNS",
+      "field": "secondary_tileset",
+      "source": "gTileset_PewterCity",
+      "target": "gTileset_PewterCity_Hns"
     }
   ],
   "attributeFixtures": [
@@ -5773,7 +5784,26 @@
       "path": "warp_events/2",
       "kind": "warp",
       "destination": "MAP_JOHTO_VICTORY_ROAD_1F"
-    }
+    },
+    {"source":"PewterCity_Hns","path":"connections/0","kind":"connection","destination":"MAP_ROUTE2"},
+    {"source":"PewterCity_Hns","path":"connections/1","kind":"connection","destination":"MAP_ROUTE3"},
+    {"source":"PewterCity_Hns","path":"warp_events/0","kind":"warp","destination":"MAP_PEWTER_CITY_MUSEUM_1F"},
+    {"source":"PewterCity_Hns","path":"warp_events/1","kind":"warp","destination":"MAP_PEWTER_CITY_MUSEUM_1F"},
+    {"source":"PewterCity_Hns","path":"warp_events/2","kind":"warp","destination":"MAP_PEWTER_CITY_GYM"},
+    {"source":"PewterCity_Hns","path":"warp_events/3","kind":"warp","destination":"MAP_PEWTER_CITY_MART"},
+    {"source":"PewterCity_Hns","path":"warp_events/4","kind":"warp","destination":"MAP_PEWTER_CITY_HOUSE1"},
+    {"source":"PewterCity_Hns","path":"warp_events/5","kind":"warp","destination":"MAP_PEWTER_CITY_POKEMON_CENTER_1F"},
+    {"source":"PewterCity_Hns","path":"warp_events/6","kind":"warp","destination":"MAP_PEWTER_CITY_HOUSE2"}
+  ],
+  "retainedExternalEndpoints": [
+    "Route2_Frlg",
+    "Route3_Frlg",
+    "PewterCity_Museum_1F_Frlg",
+    "PewterCity_Gym_Frlg",
+    "PewterCity_Mart_Frlg",
+    "PewterCity_House1_Frlg",
+    "PewterCity_PokemonCenter_1F_Frlg",
+    "PewterCity_House2_Frlg"
   ],
   "deferredEdges": [
     {
@@ -6066,6 +6096,10 @@
     {
       "hns": "MUS_HG_VERMILION",
       "target": "MUS_SLATEPORT"
+    },
+    {
+      "hns": "MUS_HG_PEWTER",
+      "target": "MUS_HG_PEWTER"
     }
   ],
   "tilesetAdaptations": [
@@ -6574,6 +6608,16 @@
       "secondary": true,
       "paletteCount": 13,
       "authority": "hns"
+    },
+    {
+      "role": "secondary",
+      "directory": "pewter_city",
+      "symbol": "PewterCity",
+      "targetDirectory": "pewter_city_hns",
+      "targetSymbol": "PewterCity_Hns",
+      "secondary": true,
+      "paletteCount": 13,
+      "authority": "hns"
     }
   ],
   "trainerPresentation": [
@@ -6656,7 +6700,8 @@
   },
   "worldPolicy": {
     "roots": [
-      "NewBarkTown"
+      "NewBarkTown",
+      "PewterCity_Hns"
     ],
     "gateways": [],
     "scriptWarps": [
@@ -7024,7 +7069,8 @@
     {"layout":"LAYOUT_JOHTO_VICTORY_ROAD_B2F","source":"JohtoVictoryRoad_B2F","sourceRole":"mechanical"},
     {"layout":"LAYOUT_MAHOGANY_HIDEOUT_B1F","source":"MahoganyHideout_B1F","sourceRole":"mechanical"},
     {"layout":"LAYOUT_MAHOGANY_HIDEOUT_B2F","source":"MahoganyHideout_B2F","sourceRole":"mechanical"},
-    {"layout":"LAYOUT_MAHOGANY_HIDEOUT_B3F","source":"MahoganyHideout_B3F","sourceRole":"mechanical"}
+    {"layout":"LAYOUT_MAHOGANY_HIDEOUT_B3F","source":"MahoganyHideout_B3F","sourceRole":"mechanical"},
+    {"layout":"LAYOUT_PEWTER_CITY_HNS","source":"PewterCity","sourceRole":"content","sourceLayout":"LAYOUT_PEWTER_CITY"}
   ],
   "sectionMetadataAuthorities": [
     {"section":"MAPSEC_NEW_BARK_TOWN","sourceRole":"content","sourceSymbol":"MAPSEC_NEW_BARK_TOWN"},
@@ -7084,7 +7130,8 @@
     {"section":"MAPSEC_TOHJO_FALLS","sourceRole":"content","sourceSymbol":"MAPSEC_TOHJO_FALLS"},
     {"section":"MAPSEC_JOHTO_VICTORY_ROAD","sourceRole":"content","sourceSymbol":"MAPSEC_VICTORY_ROAD"},
     {"section":"MAPSEC_JOHTO_INDIGO_PLATEAU","sourceRole":"mechanical","sourceSymbol":"MAPSEC_JOHTO_INDIGO_PLATEAU"},
-    {"section":"MAPSEC_MAHOGANY_HIDEOUT","sourceRole":"mechanical","sourceSymbol":"MAPSEC_MAHOGANY_HIDEOUT"}
+    {"section":"MAPSEC_MAHOGANY_HIDEOUT","sourceRole":"mechanical","sourceSymbol":"MAPSEC_MAHOGANY_HIDEOUT"},
+    {"section":"MAPSEC_PEWTER_CITY","sourceRole":"content","sourceSymbol":"MAPSEC_PEWTER_CITY"}
   ],
   "encounterProfiles": [
     {

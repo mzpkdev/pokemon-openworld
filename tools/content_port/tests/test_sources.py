@@ -47,6 +47,40 @@ from tools.content_port.world_graph import (
 
 
 class SourceGraphTests(unittest.TestCase):
+    def test_expansion_context_resolves_target_map_and_layout_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            map_path = root / "data/maps/Donor/map.json"
+            map_path.parent.mkdir(parents=True)
+            map_path.write_text(
+                json.dumps(
+                    {"name": "Donor", "id": "MAP_DONOR", "layout": "LAYOUT_DONOR"}
+                ),
+                encoding="utf-8",
+            )
+            layouts = root / "data/layouts/layouts.json"
+            layouts.parent.mkdir(parents=True)
+            layouts.write_text(
+                json.dumps({"layouts": [{"id": "LAYOUT_DONOR", "width": 1}]}),
+                encoding="utf-8",
+            )
+            context = ExpansionSourceContext(
+                root,
+                resource_aliases={
+                    ResourceKey("map", "Target"): ResourceKey("map", "Donor"),
+                    ResourceKey("layout", "LAYOUT_TARGET"): ResourceKey(
+                        "layout", "LAYOUT_DONOR"
+                    ),
+                },
+            )
+            self.assertEqual(
+                context.load(ResourceKey("map", "Target")).value["id"], "MAP_DONOR"
+            )
+            self.assertEqual(
+                context.load(ResourceKey("layout", "LAYOUT_TARGET")).value["id"],
+                "LAYOUT_DONOR",
+            )
+
     @staticmethod
     def _mutable(value):
         if isinstance(value, dict) or hasattr(value, "items"):

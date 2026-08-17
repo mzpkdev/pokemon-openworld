@@ -140,6 +140,8 @@ class LayoutBinaryAuthority:
     layout: str
     source: str
     source_role: str
+    source_layout: str | None = None
+    allow_shared_source: bool = False
 
 
 @dataclass(frozen=True, order=True)

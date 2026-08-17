@@ -100,6 +100,10 @@
     {
       "name": "gMapGroup_JohtoLeague",
       "targetId": 99
+    },
+    {
+      "name": "gMapGroup_HnsPewterCity",
+      "targetId": 100
     }
   ],
   "sections": [
@@ -334,6 +338,10 @@
     {
       "name": "MAPSEC_MAHOGANY_HIDEOUT",
       "targetId": 266
+    },
+    {
+      "name": "MAPSEC_PEWTER_CITY",
+      "targetId": 267
     }
   ],
   "layouts": [
@@ -1356,6 +1364,10 @@
     {
       "id": "LAYOUT_MAHOGANY_HIDEOUT_B3F",
       "targetIndex": 1039
+    },
+    {
+      "id": "LAYOUT_PEWTER_CITY_HNS",
+      "targetIndex": 1040
     }
   ],
   "maps": [
@@ -4152,6 +4164,17 @@
       "targetLayoutIndex": 1039,
       "section": "MAPSEC_MAHOGANY_HIDEOUT",
       "targetSection": 266
+    },
+    {
+      "name": "PewterCity_Hns",
+      "id": "MAP_PEWTER_CITY_HNS",
+      "targetGroup": "gMapGroup_HnsPewterCity",
+      "targetGroupId": 100,
+      "targetMember": 0,
+      "layout": "LAYOUT_PEWTER_CITY_HNS",
+      "targetLayoutIndex": 1040,
+      "section": "MAPSEC_PEWTER_CITY",
+      "targetSection": 267
     }
   ]
 }

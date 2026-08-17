@@ -5594,6 +5594,25 @@
         "travel-presentation": "deferred",
         "environment-assets": "enabled"
       }
+    },
+    {
+      "map": "PewterCity_Hns",
+      "sourceMap": "PewterCity",
+      "ownership": "preserve",
+      "capabilities": {
+        "spatial": "enabled",
+        "ambient-actors": "story-owned",
+        "interactions": "story-owned",
+        "trainers": "story-owned",
+        "encounters": "story-owned",
+        "pickups-rewards": "story-owned",
+        "shops-services": "story-owned",
+        "healing-checkpoints": "story-owned",
+        "trades": "story-owned",
+        "facilities": "story-owned",
+        "travel-presentation": "story-owned",
+        "environment-assets": "enabled"
+      }
     }
   ]
 }

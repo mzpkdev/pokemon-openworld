@@ -392,6 +392,7 @@ RENDERERS: Mapping[str, Renderer] = MappingProxyType(
         "map-group-registry": render_map_group_registry,
         "region-section-registry": render_region_section_registry,
         "tileset-assets": render_tileset_assets,
+        "audio-assets": render_tileset_assets,
         "encounter-registry": render_encounter_registry,
         "generated-section": render_generated_section,
         "trainer-script": render_trainer_script,

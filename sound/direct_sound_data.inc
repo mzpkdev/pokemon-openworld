@@ -9041,3 +9041,51 @@ DirectSoundWaveData_sd90_classical_whistle::
 	.align 2
 DirectSoundWaveData_sd90_enhanced_delay_shaku::
 	.incbin "sound/direct_sound_samples/sd90_enhanced_delay_shaku.bin"
+
+	.align 2
+DirectSoundWaveData_hg_148vibrc4::
+	.incbin "sound/direct_sound_samples/hg_148vibrc4.bin"
+
+	.align 2
+DirectSoundWaveData_hg_149vibrc5::
+	.incbin "sound/direct_sound_samples/hg_149vibrc5.bin"
+
+	.align 2
+DirectSoundWaveData_hg_117marting2::
+	.incbin "sound/direct_sound_samples/hg_117marting2.bin"
+
+	.align 2
+DirectSoundWaveData_hg_118marting3::
+	.incbin "sound/direct_sound_samples/hg_118marting3.bin"
+
+	.align 2
+DirectSoundWaveData_hg_116martine4::
+	.incbin "sound/direct_sound_samples/hg_116martine4.bin"
+
+	.align 2
+DirectSoundWaveData_hg_115martinc5::
+	.incbin "sound/direct_sound_samples/hg_115martinc5.bin"
+
+	.align 2
+DirectSoundWaveData_hg_041ampega2::
+	.incbin "sound/direct_sound_samples/hg_041ampega2.bin"
+
+	.align 2
+DirectSoundWaveData_hg_042ampega3::
+	.incbin "sound/direct_sound_samples/hg_042ampega3.bin"
+
+	.align 2
+DirectSoundWaveData_hg_012bsne2::
+	.incbin "sound/direct_sound_samples/hg_012bsne2.bin"
+
+	.align 2
+DirectSoundWaveData_hg_011bsnc3::
+	.incbin "sound/direct_sound_samples/hg_011bsnc3.bin"
+
+	.align 2
+DirectSoundWaveData_hg_010bsna3::
+	.incbin "sound/direct_sound_samples/hg_010bsna3.bin"
+
+	.align 2
+DirectSoundWaveData_hg_128jdruml::
+	.incbin "sound/direct_sound_samples/hg_128jdruml.bin"
