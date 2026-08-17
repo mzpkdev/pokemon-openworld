@@ -453,6 +453,7 @@ class MaterializeTests(unittest.TestCase):
                     "target_x": 20,
                     "target_y": 59,
                     "target_facing": "north",
+                    "route_profile": "generated_ocean",
                 }
             ],
         )
