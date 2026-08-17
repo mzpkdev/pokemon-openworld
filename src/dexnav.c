@@ -1677,7 +1677,7 @@ static bool32 TrySelectDexNavProfileOutcomeForSpecies(const struct WildEncounter
     while (TRUE)
     {
         u16 candidateIndex;
-        u32 matchingLevelIndex;
+        u32 matchingLevelIndex = 0;
 
         roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, proposalWeight - 1);
         for (candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
