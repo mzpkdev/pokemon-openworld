@@ -7,6 +7,7 @@ import unittest
 
 from tools.persistence.contract import ContractError
 from tools.persistence.cut_policy import (
+    EXACT_RATING_STORY_PRODUCERS,
     EXACT_STORY_PRODUCERS,
     EXACT_STORY_READERS,
     ROOT,
@@ -30,6 +31,7 @@ POLICY_FILES = tuple(
             "data/maps/CeruleanCity_Gym_Frlg/scripts.inc",
             "data/scripts/route23.inc",
             *(path for path, _, _, _ in EXACT_STORY_PRODUCERS),
+            *(path for path, _, _ in EXACT_RATING_STORY_PRODUCERS),
             *(path for path, _, _, _ in EXACT_STORY_READERS),
         )
     )

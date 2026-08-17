@@ -27,8 +27,6 @@ DEFAULT_SPECIES = ROOT / "include/constants/species.h"
 DEFAULT_SPECIES_INFO = ROOT / "src/data/pokemon/species_info.h"
 DEFAULT_SPECIES_CONFIG = ROOT / "include/config/pokemon.h"
 DEFAULT_REGIONAL_FACTS = ROOT / "include/regional_fact.h"
-DEFAULT_FLAGS = ROOT / "include/constants/flags.h"
-DEFAULT_PERSISTENT_IDS = ROOT / "src/data/persistence/persistent_ids.json"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 REVIEWED_METHOD_TIME_FALLBACKS = frozenset(
@@ -204,55 +202,6 @@ def _load_regional_facts(path):
     return facts
 
 
-def _load_flag_identifiers(path):
-    try:
-        source = Path(path).read_text(encoding="utf-8")
-    except OSError as error:
-        raise ValidationError(f"{path}: {error}") from error
-    flags = set(re.findall(r"^\s*#define\s+(FLAG_[A-Z0-9_]+)\b", source, re.MULTILINE))
-    if not flags:
-        raise ValidationError(f"{path}: no flag identifiers found")
-    return flags
-
-
-def _load_persistent_flag_identifiers(path):
-    document = _load_json(path)
-    entries = document.get("entries") if isinstance(document, dict) else None
-    if not isinstance(entries, list):
-        raise ValidationError(f"{path}: missing entries")
-    flags = {
-        entry.get("symbol")
-        for entry in entries
-        if isinstance(entry, dict)
-        and entry.get("domain") == "flags"
-        and entry.get("storage") == "flag-id"
-        and isinstance(entry.get("symbol"), str)
-    }
-    if not flags:
-        raise ValidationError(f"{path}: no persisted flag identifiers found")
-    return flags
-
-
-def _load_authenticated_legacy_badge_pairs(maps_root):
-    pairs = set()
-    pattern = re.compile(
-        r"^\s*setflag\s+(FLAG_REGIONAL_FACT_HOENN_[A-Z0-9_]+)\s*$\n"
-        r"^\s*setflag\s+(FLAG_BADGE0[1-8]_GET)\s*$",
-        re.MULTILINE,
-    )
-    for path in sorted(Path(maps_root).glob("*/scripts.inc")):
-        try:
-            source = path.read_text(encoding="utf-8")
-        except OSError as error:
-            raise ValidationError(f"{path}: {error}") from error
-        pairs.update(pattern.findall(source))
-    if not pairs:
-        raise ValidationError(
-            f"{maps_root}: no authenticated Hoenn legacy badge script pairs"
-        )
-    return pairs
-
-
 def _interpolate_fraction(start, end, progress):
     return start + (end - start) * progress
 
@@ -261,13 +210,7 @@ def _round_half_up(value):
     return (2 * value.numerator + value.denominator) // (2 * value.denominator)
 
 
-def _load_scaling(
-    path,
-    regional_facts_path,
-    flags_path=DEFAULT_FLAGS,
-    persistent_ids_path=DEFAULT_PERSISTENT_IDS,
-    maps_root=DEFAULT_MAPS_ROOT,
-):
+def _load_scaling(path, regional_facts_path):
     document = _load_json(path)
     _require_exact_keys(
         document,
@@ -296,9 +239,6 @@ def _load_scaling(
         MAX_TRAINER_RATING_PROJECTION_CAP,
     )
     regional_facts = _load_regional_facts(regional_facts_path)
-    flag_identifiers = _load_flag_identifiers(flags_path)
-    persistent_flag_identifiers = _load_persistent_flag_identifiers(persistent_ids_path)
-    authenticated_legacy_badge_pairs = _load_authenticated_legacy_badge_pairs(maps_root)
 
     segments = trainer_rating["badgeSegments"]
     if not isinstance(segments, list) or not segments:
@@ -347,15 +287,7 @@ def _load_scaling(
         if not isinstance(row, dict):
             raise ValidationError(f"{location}: expected object")
         kind = row.get("kind")
-        expected_keys = (
-            {"id", "kind"}
-            if kind == "badge" and "legacyFallbackFlag" not in row
-            else (
-                {"id", "kind", "legacyFallbackFlag"}
-                if kind == "badge"
-                else {"id", "kind", "value"}
-            )
-        )
+        expected_keys = {"id", "kind"} if kind == "badge" else {"id", "kind", "value"}
         _require_exact_keys(row, expected_keys, location)
         source_id = _require_identifier(row["id"], f"{location}/id")
         if source_id not in regional_facts:
@@ -368,42 +300,6 @@ def _load_scaling(
         if kind == "badge":
             badge_source_count += 1
             value = 0
-            legacy_fallback_flag = row.get(
-                "legacyFallbackFlag", "TRAINER_RATING_LEGACY_FLAG_NONE"
-            )
-            if legacy_fallback_flag != "TRAINER_RATING_LEGACY_FLAG_NONE":
-                legacy_fallback_flag = _require_identifier(
-                    legacy_fallback_flag,
-                    f"{location}/legacyFallbackFlag",
-                    re.compile(r"^FLAG_[A-Z0-9_]+$"),
-                )
-                regional_flag = f"FLAG_{source_id}"
-                if not source_id.startswith("REGIONAL_FACT_HOENN_"):
-                    raise ValidationError(
-                        f"{location}/legacyFallbackFlag: only authenticated Hoenn "
-                        "badge sources may declare a legacy fallback"
-                    )
-                if legacy_fallback_flag not in flag_identifiers:
-                    raise ValidationError(
-                        f"{location}/legacyFallbackFlag: unknown flag "
-                        f"{legacy_fallback_flag}"
-                    )
-                if {
-                    regional_flag,
-                    legacy_fallback_flag,
-                } - persistent_flag_identifiers:
-                    raise ValidationError(
-                        f"{location}/legacyFallbackFlag: both source and fallback "
-                        "must be stable persisted flags"
-                    )
-                if (
-                    regional_flag,
-                    legacy_fallback_flag,
-                ) not in authenticated_legacy_badge_pairs:
-                    raise ValidationError(
-                        f"{location}/legacyFallbackFlag: unauthenticated legacy "
-                        "badge script pair"
-                    )
         else:
             value = _require_int(
                 row["value"],
@@ -412,13 +308,11 @@ def _load_scaling(
                 MAX_TRAINER_RATING_SOURCE_VALUE,
             )
             story_rating += value
-            legacy_fallback_flag = "TRAINER_RATING_LEGACY_FLAG_NONE"
         normalized_sources.append(
             {
                 "id": source_id,
                 "kind": kind,
                 "value": value,
-                "legacy_fallback_flag": legacy_fallback_flag,
             }
         )
 
@@ -2216,12 +2110,7 @@ def _render_scaling(output, scaling, profile_offsets, species_metadata):
     output.write("{\n")
     for source in scaling["sources"]:
         kind = f"TRAINER_RATING_SOURCE_{source['kind'].upper()}"
-        output.write(
-            "    { "
-            f"{source['id']}, {source['legacy_fallback_flag']}, "
-            f"{source['value']}, {kind}"
-            " },\n"
-        )
+        output.write(f"    {{ {source['id']}, {source['value']}, {kind} }},\n")
     output.write("};\n")
     output.write(
         "const u16 gTrainerRatingSourceCount = ARRAY_COUNT(gTrainerRatingSources);\n\n"

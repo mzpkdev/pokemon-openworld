@@ -18,6 +18,7 @@ SilphCo_11F_EventScript_President::
 	giveitem_msg SilphCo_11F_Text_ObtainedMasterBallFromPresident, ITEM_MASTER_BALL, 1, MUS_RG_OBTAIN_KEY_ITEM
 	msgbox SilphCo_11F_Text_ThatsOurSecretPrototype
 	setflag FLAG_GOT_MASTER_BALL_FROM_SILPH
+	setflag FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED
 	release
 	end
 
@@ -225,4 +226,3 @@ SilphCo_11F_Text_MonitorHasMonsOnIt::
 SilphCo_11F_Text_FloorSign::
 	.string "SILPH CO. HEAD OFFICE\n"
 	.string "11F$"
-

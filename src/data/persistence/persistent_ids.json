@@ -20330,6 +20330,20 @@
       "value": 52
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x035",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED",
+      "value": 53
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20339,6 +20353,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x035",
       "value": 53
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x036",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED",
+      "value": 54
     },
     {
       "alias": null,
@@ -20352,6 +20380,20 @@
       "value": 54
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x037",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED",
+      "value": 55
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20361,6 +20403,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x037",
       "value": 55
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x038",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_KANTO_CHAMPION_CROWNED",
+      "value": 56
     },
     {
       "alias": null,
@@ -20374,6 +20430,20 @@
       "value": 56
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x039",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED",
+      "value": 57
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20383,6 +20453,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x039",
       "value": 57
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03A",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_SURF_RECEIVED",
+      "value": 58
     },
     {
       "alias": null,
@@ -20396,6 +20480,20 @@
       "value": 58
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03B",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED",
+      "value": 59
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20405,6 +20503,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x03B",
       "value": 59
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03C",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED",
+      "value": 60
     },
     {
       "alias": null,
@@ -20418,6 +20530,20 @@
       "value": 60
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03D",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_DIVE_RECEIVED",
+      "value": 61
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20427,6 +20553,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x03D",
       "value": 61
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03E",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED",
+      "value": 62
     },
     {
       "alias": null,
@@ -20440,6 +20580,20 @@
       "value": 62
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x03F",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_HOENN_WATERFALL_RECEIVED",
+      "value": 63
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20449,6 +20603,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x03F",
       "value": 63
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x040",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED",
+      "value": 64
     },
     {
       "alias": null,
@@ -20462,6 +20630,20 @@
       "value": 64
     },
     {
+      "alias": {
+        "of": "FLAG_UNUSED_0x041",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED",
+      "value": 65
+    },
+    {
       "alias": null,
       "domain": "flags",
       "source": "contract-flags",
@@ -20471,6 +20653,20 @@
       "storage": "flag-id",
       "symbol": "FLAG_UNUSED_0x041",
       "value": 65
+    },
+    {
+      "alias": {
+        "of": "FLAG_UNUSED_0x042",
+        "owner": "regional-facts"
+      },
+      "domain": "flags",
+      "source": "regional-facts",
+      "state": {
+        "kind": "allocated-binding"
+      },
+      "storage": "flag-id",
+      "symbol": "FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED",
+      "value": 66
     },
     {
       "alias": null,

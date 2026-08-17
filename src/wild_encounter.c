@@ -1768,10 +1768,13 @@ static enum Species ChooseLocalSpeciesFromProfile(const struct WildEncounterProf
     struct WildEncounterSlot entry;
     struct WildEncounterSlotOutcome outcome;
     u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+    u8 vanillaLevel;
 
     if (eligibleWeight == 0
-     || !TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry)
-     || !ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile->context, &outcome))
+     || !TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry))
+        return SPECIES_NONE;
+    vanillaLevel = ChooseStandardWildMonLevel(profile, &entry);
+    if (!ProjectWildSlotOutcome(entry.species, vanillaLevel, trainerRating, &profile->context, &outcome))
         return SPECIES_NONE;
     return outcome.species;
 }

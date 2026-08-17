@@ -25,6 +25,7 @@
 #include "string_util.h"
 #include "strings.h"
 #include "task.h"
+#include "trainer_rating.h"
 #include "wild_encounter.h"
 #include "window.h"
 #include "field_name_box.h"
@@ -1734,6 +1735,28 @@ static void PopulateMapName(int matchCallId, u8 *destStr)
     GetMapName(destStr, GetRematchTrainerLocation(matchCallId), 0);
 }
 
+static bool8 TrySelectMatchCallProfileSpecies(
+    const struct WildEncounterProfileView *profile,
+    u16 trainerRating,
+    enum Species *species)
+{
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+    u8 vanillaLevel;
+
+    if (eligibleWeight == 0
+     || !TrySelectWildEncounterEligibleEntry(
+         profile, trainerRating, Random() % eligibleWeight, &entry))
+        return FALSE;
+    vanillaLevel = entry.minLevel + Random() % (entry.maxLevel - entry.minLevel + 1);
+    if (!ProjectWildSlotOutcome(
+        entry.species, vanillaLevel, trainerRating, &profile->context, &outcome))
+        return FALSE;
+    *species = outcome.species;
+    return TRUE;
+}
+
 static enum Species SelectSpeciesFromLocation(u8 mapGroup, u8 mapNum)
 {
     enum Species species[2];
@@ -1742,7 +1765,7 @@ static enum Species SelectSpeciesFromLocation(u8 mapGroup, u8 mapNum)
     u16 trainerRating;
     enum TimeOfDay timeOfDay;
     struct WildEncounterProfileView profile;
-    struct WildEncounterSlot entry;
+    enum Species selectedSpecies;
 
     if (TryFindWildEncounterHeader(
         mapGroup,
@@ -1754,24 +1777,14 @@ static enum Species SelectSpeciesFromLocation(u8 mapGroup, u8 mapNum)
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
         if (TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
         {
-            u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(&profile, trainerRating);
-            struct WildEncounterSlotOutcome outcome;
-
-            if (eligibleWeight != 0
-             && TrySelectWildEncounterEligibleEntry(&profile, trainerRating, Random() % eligibleWeight, &entry)
-             && ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile.context, &outcome))
-                species[numSpecies++] = outcome.species;
+            if (TrySelectMatchCallProfileSpecies(&profile, trainerRating, &selectedSpecies))
+                species[numSpecies++] = selectedSpecies;
         }
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
         if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
         {
-            u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(&profile, trainerRating);
-            struct WildEncounterSlotOutcome outcome;
-
-            if (eligibleWeight != 0
-             && TrySelectWildEncounterEligibleEntry(&profile, trainerRating, Random() % eligibleWeight, &entry)
-             && ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile.context, &outcome))
-                species[numSpecies++] = outcome.species;
+            if (TrySelectMatchCallProfileSpecies(&profile, trainerRating, &selectedSpecies))
+                species[numSpecies++] = selectedSpecies;
         }
         if (numSpecies)
             return species[Random() % numSpecies];

@@ -18,6 +18,7 @@ SSAnne_CaptainsOffice_EventScript_Captain::
 	giveitem_msg SSAnne_CaptainsOffice_Text_ObtainedHM01FromCaptain, ITEM_HM01, 1, MUS_RG_OBTAIN_KEY_ITEM
 	msgbox SSAnne_CaptainsOffice_Text_ExplainCut
 	setflag FLAG_GOT_HM01
+	setflag FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED
 	setvar VAR_MAP_SCENE_VERMILION_CITY, 1
 	release
 	end
@@ -98,4 +99,3 @@ SSAnne_CaptainsOffice_Text_YuckShouldntHaveLooked::
 SSAnne_CaptainsOffice_Text_HowToConquerSeasickness::
 	.string "How to Conquer Seasickness…\n"
 	.string "The CAPTAIN's reading this!$"
-

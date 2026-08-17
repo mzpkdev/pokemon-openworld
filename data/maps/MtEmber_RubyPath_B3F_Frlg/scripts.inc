@@ -8,9 +8,9 @@ MtEmber_RubyPath_B5F_EventScript_Ruby::
 	setflag FLAG_GOT_RUBY
 	removeobject LOCALID_RUBY
 	giveitem_msg MtEmber_RubyPath_B3F_Text_FoundARuby, ITEM_RUBY, 1, MUS_RG_OBTAIN_KEY_ITEM
+	setflag FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED
 	release
 	end
 
 MtEmber_RubyPath_B3F_Text_FoundARuby::
 	.string "{PLAYER} found a RUBY!$"
-

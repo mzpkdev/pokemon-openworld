@@ -202,17 +202,10 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.assertNotIn("WildEncounterAuthored", output)
         self.assertNotIn("WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT", output)
         self.assertIn(
-            "{ REGIONAL_FACT_HOENN_STONE_BADGE, FLAG_BADGE01_GET, 0, "
-            "TRAINER_RATING_SOURCE_BADGE },",
+            "{ REGIONAL_FACT_HOENN_STONE_BADGE, 0, TRAINER_RATING_SOURCE_BADGE },",
             output,
         )
-        self.assertIn(
-            "{ REGIONAL_FACT_KANTO_CASCADE_BADGE, "
-            "TRAINER_RATING_LEGACY_FLAG_NONE, 0, "
-            "TRAINER_RATING_SOURCE_BADGE },",
-            output,
-        )
-        self.assertIn(".maximumRating = 46,", output)
+        self.assertIn(".maximumRating = 60,", output)
         ordinary_headers = output.split(
             "static const struct WildEncounterTimePolicy", 1
         )[0].split("static const struct WildPokemonHeader gWildMonHeaders[]", 1)[1]
@@ -1321,36 +1314,6 @@ class TrainerRatingScalingTests(unittest.TestCase):
                 scaling_path, generator.DEFAULT_REGIONAL_FACTS
             )
 
-    def test_legacy_fallbacks_are_limited_to_authenticated_hoenn_badges(self):
-        document = json.loads(generator.DEFAULT_SCALING.read_text(encoding="utf-8"))
-        scaling = self.load_scaling(document)
-        fallbacks = {
-            source["id"]: source["legacy_fallback_flag"]
-            for source in scaling["sources"]
-            if source["legacy_fallback_flag"] != "TRAINER_RATING_LEGACY_FLAG_NONE"
-        }
-        self.assertEqual(
-            fallbacks,
-            {
-                "REGIONAL_FACT_HOENN_STONE_BADGE": "FLAG_BADGE01_GET",
-                "REGIONAL_FACT_HOENN_KNUCKLE_BADGE": "FLAG_BADGE02_GET",
-                "REGIONAL_FACT_HOENN_DYNAMO_BADGE": "FLAG_BADGE03_GET",
-                "REGIONAL_FACT_HOENN_HEAT_BADGE": "FLAG_BADGE04_GET",
-                "REGIONAL_FACT_HOENN_BALANCE_BADGE": "FLAG_BADGE05_GET",
-                "REGIONAL_FACT_HOENN_FEATHER_BADGE": "FLAG_BADGE06_GET",
-                "REGIONAL_FACT_HOENN_MIND_BADGE": "FLAG_BADGE07_GET",
-                "REGIONAL_FACT_HOENN_RAIN_BADGE": "FLAG_BADGE08_GET",
-            },
-        )
-
-        document["trainerRating"]["sources"][1]["legacyFallbackFlag"] = (
-            "FLAG_BADGE02_GET"
-        )
-        with self.assertRaisesRegex(
-            generator.ValidationError, "only authenticated Hoenn"
-        ):
-            self.load_scaling(document)
-
     def test_configured_rating_total_may_exceed_the_projection_cap(self):
         document = json.loads(generator.DEFAULT_SCALING.read_text(encoding="utf-8"))
         document["trainerRating"]["sources"][-1]["value"] = 255
@@ -1358,7 +1321,7 @@ class TrainerRatingScalingTests(unittest.TestCase):
         scaling = self.load_scaling(document)
 
         self.assertEqual(scaling["projection_cap"], 80)
-        self.assertEqual(scaling["maximum_rating"], 300)
+        self.assertEqual(scaling["maximum_rating"], 314)
         self.assertEqual(len(scaling["points"]), 81)
 
 

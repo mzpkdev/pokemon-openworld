@@ -1,5 +1,4 @@
 #include "global.h"
-#include "event_data.h"
 #include "regional_fact.h"
 #include "trainer_rating.h"
 
@@ -42,10 +41,7 @@ u16 TrainerRating_GetBadge(void)
     {
         const struct TrainerRatingSource *source = &gTrainerRatingSources[i];
 
-        if (source->kind == TRAINER_RATING_SOURCE_BADGE
-         && (RegionalFact_Get(source->fact)
-          || (source->legacyFallbackFlag != TRAINER_RATING_LEGACY_FLAG_NONE
-           && FlagGet(source->legacyFallbackFlag))))
+        if (source->kind == TRAINER_RATING_SOURCE_BADGE && RegionalFact_Get(source->fact))
             badgeCount++;
     }
 

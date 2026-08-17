@@ -58,6 +58,7 @@ FiveIsland_RocketWarehouse_EventScript_DefeatedGideon::
 	msgbox FiveIsland_RocketWarehouse_Text_GideonPostBattle
 	setflag FLAG_RECOVERED_SAPPHIRE
 	giveitem ITEM_SAPPHIRE
+	setflag FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED
 	release
 	end
 
@@ -308,4 +309,3 @@ FiveIsland_RocketWarehouse_Text_GiovannisKidHasRedHair::
 	.string "GIOVANNI's kid has red hair.\p"
 	.string "You don't have any reasons for\n"
 	.string "bugging me. Leave me alone!$"
-

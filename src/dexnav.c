@@ -149,9 +149,10 @@ static u16 DexNavGenerateHeldItem(enum Species species, u8 searchLevel);
 static u8 DexNavGetAbilityNum(enum Species species, u8 searchLevel);
 static u8 DexNavGeneratePotential(u8 searchLevel);
 static u8 DexNavTryGenerateMonLevel(enum Species species, enum EncounterType environment);
+static u8 DexNavApplyChainLevelBonus(u8 levelBase);
 static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType environment);
 static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, struct WildEncounterProfileView *profile);
-static enum Species SelectDexNavProfileSpecies(const struct WildEncounterProfileView *profile);
+static bool32 TrySelectDexNavProfileOutcome(const struct WildEncounterProfileView *profile, struct WildEncounterSlotOutcome *outcome);
 static void CreateDexNavWildMon(enum Species species, u8 potential, u8 level, u8 abilityNum, enum Item item, enum Move *moves);
 static u8 GetPlayerDistance(s16 x, s16 y);
 static u8 DexNavPickTile(enum EncounterType environment, u8 xSize, u8 ySize, bool8 smallScan);
@@ -1205,10 +1206,16 @@ static void CreateDexNavWildMon(enum Species species, u8 potential, u8 level, u8
 static u8 DexNavTryGenerateMonLevel(enum Species species, enum EncounterType environment)
 {
     u8 levelBase = GetEncounterLevelFromMapData(species, environment);
-    u8 levelBonus = gSaveBlock3Ptr->dexNavChain / 5;
 
     if (levelBase == MON_LEVEL_NONEXISTENT)
         return MON_LEVEL_NONEXISTENT;   //species not found in the area
+
+    return DexNavApplyChainLevelBonus(levelBase);
+}
+
+static u8 DexNavApplyChainLevelBonus(u8 levelBase)
+{
+    u8 levelBonus = gSaveBlock3Ptr->dexNavChain / 5;
 
     if (Random() % 100 < 4)
         levelBonus += 10; //4% chance of having a +10 level
@@ -1545,6 +1552,22 @@ u8 DexNav_GetEncounterLevelFromMapDataForTesting(enum Species species, enum Enco
 {
     return GetEncounterLevelFromMapData(species, environment);
 }
+
+bool32 DexNav_TrySelectProfileOutcomeForTesting(enum WildPokemonArea area, enum Species *species, u8 *level)
+{
+    struct WildEncounterProfileView profile;
+    struct WildEncounterSlotOutcome outcome;
+    u16 headerId = GetCurrentMapWildMonHeaderId();
+
+    if (headerId == HEADER_NONE
+     || !TryResolveDexNavProfile(headerId, area, &profile)
+     || !TrySelectDexNavProfileOutcome(&profile, &outcome))
+        return FALSE;
+
+    *species = outcome.species;
+    *level = outcome.level;
+    return TRUE;
+}
 #endif
 
 static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, struct WildEncounterProfileView *profile)
@@ -1554,20 +1577,22 @@ static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, s
     return TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, profile);
 }
 
-static enum Species SelectDexNavProfileSpecies(const struct WildEncounterProfileView *profile)
+static bool32 TrySelectDexNavProfileOutcome(const struct WildEncounterProfileView *profile, struct WildEncounterSlotOutcome *outcome)
 {
     struct WildEncounterSlot entry;
-    struct WildEncounterSlotOutcome outcome;
     u16 trainerRating = TrainerRating_Get();
     u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+    u8 vanillaLevel;
 
     // Hidden encounters deliberately remain on their separate data path. Standard
-    // DexNav encounters use the same eligible population as ordinary encounters.
-    if (eligibleWeight != 0
-     && TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry)
-     && ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile->context, &outcome))
-        return outcome.species;
-    return SPECIES_NONE;
+    // DexNav encounters use the same eligible population and projected slot outcome
+    // as ordinary encounters.
+    if (eligibleWeight == 0
+     || !TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry))
+        return FALSE;
+
+    vanillaLevel = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, entry.minLevel, entry.maxLevel);
+    return ProjectWildSlotOutcome(entry.species, vanillaLevel, trainerRating, &profile->context, outcome);
 }
 
 
@@ -2566,6 +2591,7 @@ bool32 TryFindHiddenPokemon(void)
         // hidden Pokémon
         u32 headerId = GetCurrentMapWildMonHeaderId();
         u8 index;
+        u8 monLevel = MON_LEVEL_NONEXISTENT;
         enum Species species;
         enum EncounterType environment;
 
@@ -2599,9 +2625,14 @@ bool32 TryFindHiddenPokemon(void)
             else
             {
                 struct WildEncounterProfileView profile;
+                struct WildEncounterSlotOutcome outcome;
+
                 if (!TryResolveDexNavProfile(headerId, WILD_AREA_LAND, &profile))
                     return FALSE;
-                species = SelectDexNavProfileSpecies(&profile);
+                if (!TrySelectDexNavProfileOutcome(&profile, &outcome))
+                    return FALSE;
+                species = outcome.species;
+                monLevel = DexNavApplyChainLevelBonus(outcome.level);
                 environment = ENCOUNTER_TYPE_LAND;
             }
             break;
@@ -2620,9 +2651,14 @@ bool32 TryFindHiddenPokemon(void)
                 else
                 {
                     struct WildEncounterProfileView profile;
+                    struct WildEncounterSlotOutcome outcome;
+
                     if (!TryResolveDexNavProfile(headerId, WILD_AREA_WATER, &profile))
                         return FALSE;
-                    species = SelectDexNavProfileSpecies(&profile);
+                    if (!TrySelectDexNavProfileOutcome(&profile, &outcome))
+                        return FALSE;
+                    species = outcome.species;
+                    monLevel = DexNavApplyChainLevelBonus(outcome.level);
                     environment = ENCOUNTER_TYPE_WATER;
 
                 }
@@ -2647,7 +2683,9 @@ bool32 TryFindHiddenPokemon(void)
         sDexNavSearchDataPtr->species = species;
         sDexNavSearchDataPtr->hiddenSearch = TRUE;
         sDexNavSearchDataPtr->environment = environment;    // updated in DexNavTryGenerateMonLevel if hidden mon
-        sDexNavSearchDataPtr->monLevel = DexNavTryGenerateMonLevel(species, environment);
+        sDexNavSearchDataPtr->monLevel = isHiddenMon
+            ? DexNavTryGenerateMonLevel(species, environment)
+            : monLevel;
         if (sDexNavSearchDataPtr->monLevel == MON_LEVEL_NONEXISTENT)
         {
             FREE_AND_SET_NULL(sDexNavSearchDataPtr);

@@ -73,25 +73,28 @@ TEST("Trainer Rating counts every reviewed regional badge fact exactly once")
     EXPECT_EQ(TrainerRating_GetBadge(), 45);
 }
 
-TEST("Trainer Rating preserves legacy Hoenn badge progress exactly once")
+TEST("Trainer Rating ignores ambiguous generic badges and keeps Kanto progress singular")
 {
     ClearTrainerRatingFacts();
     for (u32 i = 0; i < ARRAY_COUNT(sLegacyBadgeFlags); i++)
         FlagSet(sLegacyBadgeFlags[i]);
 
-    EXPECT_EQ(TrainerRating_GetBadge(), 24);
+    EXPECT_EQ(TrainerRating_GetBadge(), 0);
     EXPECT_EQ(TrainerRating_GetStory(), 0);
-    EXPECT_EQ(TrainerRating_Get(), 24);
+    EXPECT_EQ(TrainerRating_Get(), 0);
 
-    FlagSet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
-    EXPECT_EQ(TrainerRating_GetBadge(), 24);
+    FlagSet(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
+    EXPECT_EQ(TrainerRating_GetBadge(), 3);
     EXPECT_EQ(TrainerRating_GetStory(), 0);
-    EXPECT_EQ(TrainerRating_Get(), 24);
+    EXPECT_EQ(TrainerRating_Get(), 3);
 
     FlagSet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
-    EXPECT_EQ(TrainerRating_GetBadge(), 24);
+    EXPECT_EQ(TrainerRating_GetBadge(), 3);
     EXPECT_EQ(TrainerRating_GetStory(), 1);
-    EXPECT_EQ(TrainerRating_Get(), 25);
+    EXPECT_EQ(TrainerRating_Get(), 4);
+
+    for (u32 i = 0; i < ARRAY_COUNT(sLegacyBadgeFlags); i++)
+        EXPECT(FlagGet(sLegacyBadgeFlags[i]));
 }
 
 TEST("Trainer Rating queries are idempotent and do not mutate save state")
