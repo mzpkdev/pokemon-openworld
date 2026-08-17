@@ -2,7 +2,10 @@
 #define GUARD_TRAINER_RATING_H
 
 #include "global.h"
+#include "constants/flags.h"
 #include "regional_fact.h"
+
+#define TRAINER_RATING_LEGACY_FLAG_NONE 0xFFFF
 
 enum TrainerRatingSourceKind
 {
@@ -13,6 +16,7 @@ enum TrainerRatingSourceKind
 struct TrainerRatingSource
 {
     enum RegionalFact fact;
+    u16 legacyFallbackFlag;
     u8 value;
     u8 kind;
 };

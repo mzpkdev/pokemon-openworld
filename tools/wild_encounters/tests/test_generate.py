@@ -201,6 +201,18 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.assertIn("WildEncounterRegistryParallelArraysMustMatch", output)
         self.assertNotIn("WildEncounterAuthored", output)
         self.assertNotIn("WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT", output)
+        self.assertIn(
+            "{ REGIONAL_FACT_HOENN_STONE_BADGE, FLAG_BADGE01_GET, 0, "
+            "TRAINER_RATING_SOURCE_BADGE },",
+            output,
+        )
+        self.assertIn(
+            "{ REGIONAL_FACT_KANTO_CASCADE_BADGE, "
+            "TRAINER_RATING_LEGACY_FLAG_NONE, 0, "
+            "TRAINER_RATING_SOURCE_BADGE },",
+            output,
+        )
+        self.assertIn(".maximumRating = 46,", output)
         ordinary_headers = output.split(
             "static const struct WildEncounterTimePolicy", 1
         )[0].split("static const struct WildPokemonHeader gWildMonHeaders[]", 1)[1]
@@ -1300,6 +1312,56 @@ class WildEncounterSpeciesMetadataTests(unittest.TestCase):
             self.load_metadata()
 
 
+class TrainerRatingScalingTests(unittest.TestCase):
+    def load_scaling(self, document):
+        with tempfile.TemporaryDirectory() as temporary:
+            scaling_path = Path(temporary) / "wild_encounter_scaling.json"
+            scaling_path.write_text(json.dumps(document), encoding="utf-8")
+            return generator._load_scaling(
+                scaling_path, generator.DEFAULT_REGIONAL_FACTS
+            )
+
+    def test_legacy_fallbacks_are_limited_to_authenticated_hoenn_badges(self):
+        document = json.loads(generator.DEFAULT_SCALING.read_text(encoding="utf-8"))
+        scaling = self.load_scaling(document)
+        fallbacks = {
+            source["id"]: source["legacy_fallback_flag"]
+            for source in scaling["sources"]
+            if source["legacy_fallback_flag"] != "TRAINER_RATING_LEGACY_FLAG_NONE"
+        }
+        self.assertEqual(
+            fallbacks,
+            {
+                "REGIONAL_FACT_HOENN_STONE_BADGE": "FLAG_BADGE01_GET",
+                "REGIONAL_FACT_HOENN_KNUCKLE_BADGE": "FLAG_BADGE02_GET",
+                "REGIONAL_FACT_HOENN_DYNAMO_BADGE": "FLAG_BADGE03_GET",
+                "REGIONAL_FACT_HOENN_HEAT_BADGE": "FLAG_BADGE04_GET",
+                "REGIONAL_FACT_HOENN_BALANCE_BADGE": "FLAG_BADGE05_GET",
+                "REGIONAL_FACT_HOENN_FEATHER_BADGE": "FLAG_BADGE06_GET",
+                "REGIONAL_FACT_HOENN_MIND_BADGE": "FLAG_BADGE07_GET",
+                "REGIONAL_FACT_HOENN_RAIN_BADGE": "FLAG_BADGE08_GET",
+            },
+        )
+
+        document["trainerRating"]["sources"][1]["legacyFallbackFlag"] = (
+            "FLAG_BADGE02_GET"
+        )
+        with self.assertRaisesRegex(
+            generator.ValidationError, "only authenticated Hoenn"
+        ):
+            self.load_scaling(document)
+
+    def test_configured_rating_total_may_exceed_the_projection_cap(self):
+        document = json.loads(generator.DEFAULT_SCALING.read_text(encoding="utf-8"))
+        document["trainerRating"]["sources"][-1]["value"] = 255
+
+        scaling = self.load_scaling(document)
+
+        self.assertEqual(scaling["projection_cap"], 80)
+        self.assertEqual(scaling["maximum_rating"], 300)
+        self.assertEqual(len(scaling["points"]), 81)
+
+
 class WildEncounterBalanceAuditTests(unittest.TestCase):
     def test_audit_reports_a_profile_that_loses_every_eligible_slot(self):
         scaling = generator._load_scaling(
@@ -1362,13 +1424,87 @@ class WildEncounterBalanceAuditTests(unittest.TestCase):
             and profile["method"] == "land_mons"
             and profile["fishingRod"] == "NONE"
         )
-        self.assertEqual(route101["aggregate"][0]["totalWeight"], 100)
-        self.assertEqual(route101["aggregate"][0]["eligibleWeight"], 100)
+        matrix = route101["matrix"]
+        self.assertEqual(matrix[0]["totalWeight"], 100)
+        self.assertEqual(matrix[0]["eligibleWeight"], 100)
+        self.assertEqual(
+            set(matrix[0]),
+            {
+                "rating",
+                "original",
+                "effective",
+                "stageChanges",
+                "lockedSlots",
+                "eligibleSlotCount",
+                "lockedSlotCount",
+                "unlockRatings",
+                "totalWeight",
+                "eligibleWeight",
+                "lockedWeight",
+                "renormalizedProbabilities",
+                "slotOutcomes",
+            },
+        )
+        self.assertEqual(
+            sum(
+                probability["numerator"]
+                for probability in matrix[0]["renormalizedProbabilities"]
+            ),
+            matrix[0]["eligibleWeight"],
+        )
+        self.assertTrue(
+            all(
+                probability["denominator"] == matrix[0]["eligibleWeight"]
+                for probability in matrix[0]["renormalizedProbabilities"]
+            )
+        )
+        self.assertIn("weightedAverage", matrix[0]["original"])
+        self.assertIn("weightedAverage", matrix[0]["effective"])
         self.assertTrue(
             all(
                 "startsLocked" in slot and "unlockRating" in slot
                 for slot in route101["slots"]
             )
+        )
+
+    def test_audit_fails_when_strict_profile_ordering_inverts(self):
+        def matrix(minimum, maximum):
+            return [
+                {
+                    "rating": rating,
+                    "original": {
+                        "minimumLevel": minimum,
+                        "maximumLevel": maximum,
+                    },
+                    "effective": {
+                        "minimumLevel": minimum,
+                        "maximumLevel": maximum,
+                    },
+                }
+                for rating in generator.REQUIRED_AUDIT_RATINGS
+            ]
+
+        weaker = {
+            "label": "gWeaker",
+            "headerId": 1,
+            "method": "land_mons",
+            "fishingRod": "NONE",
+            "matrix": matrix(2, 4),
+        }
+        stronger = {
+            "label": "gStronger",
+            "headerId": 2,
+            "method": "land_mons",
+            "fishingRod": "NONE",
+            "matrix": matrix(5, 7),
+        }
+        stronger["matrix"][0]["effective"]["minimumLevel"] = 3
+
+        failures = generator._cross_profile_ordering_failures([weaker, stronger])
+
+        self.assertEqual(len(failures), 1)
+        self.assertIn(
+            "gWeaker above the strictly stronger vanilla profile gStronger", failures[0]
         )
 
 

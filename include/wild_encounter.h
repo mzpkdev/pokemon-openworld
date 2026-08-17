@@ -78,7 +78,7 @@ struct WildEncounterSlotOutcome
 struct WildEncounterScalingBalance
 {
     u8 projectionCap;
-    u8 maximumRating;
+    u16 maximumRating;
 };
 
 struct WildEncounterScalingAnchor

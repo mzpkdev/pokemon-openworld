@@ -27,6 +27,8 @@ DEFAULT_SPECIES = ROOT / "include/constants/species.h"
 DEFAULT_SPECIES_INFO = ROOT / "src/data/pokemon/species_info.h"
 DEFAULT_SPECIES_CONFIG = ROOT / "include/config/pokemon.h"
 DEFAULT_REGIONAL_FACTS = ROOT / "include/regional_fact.h"
+DEFAULT_FLAGS = ROOT / "include/constants/flags.h"
+DEFAULT_PERSISTENT_IDS = ROOT / "src/data/persistence/persistent_ids.json"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 REVIEWED_METHOD_TIME_FALLBACKS = frozenset(
@@ -86,7 +88,9 @@ FISHING_RODS = {
     "GOOD_ROD": "GOOD_ROD",
     "SUPER_ROD": "SUPER_ROD",
 }
-MAX_TRAINER_RATING = 0xFF
+MAX_TRAINER_RATING_PROJECTION_CAP = 0xFF
+MAX_TRAINER_RATING_SOURCE_VALUE = 0xFF
+MAX_TRAINER_RATING_MAXIMUM = 0xFFFF
 MAX_PROFILE_LEVEL_OFFSET = 5
 MAX_ORDINARY_WILD_LEVEL = 100
 MAX_WILD_ENCOUNTER_SPECIES_METADATA = 0xFFFF
@@ -200,6 +204,55 @@ def _load_regional_facts(path):
     return facts
 
 
+def _load_flag_identifiers(path):
+    try:
+        source = Path(path).read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValidationError(f"{path}: {error}") from error
+    flags = set(re.findall(r"^\s*#define\s+(FLAG_[A-Z0-9_]+)\b", source, re.MULTILINE))
+    if not flags:
+        raise ValidationError(f"{path}: no flag identifiers found")
+    return flags
+
+
+def _load_persistent_flag_identifiers(path):
+    document = _load_json(path)
+    entries = document.get("entries") if isinstance(document, dict) else None
+    if not isinstance(entries, list):
+        raise ValidationError(f"{path}: missing entries")
+    flags = {
+        entry.get("symbol")
+        for entry in entries
+        if isinstance(entry, dict)
+        and entry.get("domain") == "flags"
+        and entry.get("storage") == "flag-id"
+        and isinstance(entry.get("symbol"), str)
+    }
+    if not flags:
+        raise ValidationError(f"{path}: no persisted flag identifiers found")
+    return flags
+
+
+def _load_authenticated_legacy_badge_pairs(maps_root):
+    pairs = set()
+    pattern = re.compile(
+        r"^\s*setflag\s+(FLAG_REGIONAL_FACT_HOENN_[A-Z0-9_]+)\s*$\n"
+        r"^\s*setflag\s+(FLAG_BADGE0[1-8]_GET)\s*$",
+        re.MULTILINE,
+    )
+    for path in sorted(Path(maps_root).glob("*/scripts.inc")):
+        try:
+            source = path.read_text(encoding="utf-8")
+        except OSError as error:
+            raise ValidationError(f"{path}: {error}") from error
+        pairs.update(pattern.findall(source))
+    if not pairs:
+        raise ValidationError(
+            f"{maps_root}: no authenticated Hoenn legacy badge script pairs"
+        )
+    return pairs
+
+
 def _interpolate_fraction(start, end, progress):
     return start + (end - start) * progress
 
@@ -208,7 +261,13 @@ def _round_half_up(value):
     return (2 * value.numerator + value.denominator) // (2 * value.denominator)
 
 
-def _load_scaling(path, regional_facts_path):
+def _load_scaling(
+    path,
+    regional_facts_path,
+    flags_path=DEFAULT_FLAGS,
+    persistent_ids_path=DEFAULT_PERSISTENT_IDS,
+    maps_root=DEFAULT_MAPS_ROOT,
+):
     document = _load_json(path)
     _require_exact_keys(
         document,
@@ -234,9 +293,12 @@ def _load_scaling(path, regional_facts_path):
         trainer_rating["projectionCap"],
         f"{path}/trainerRating/projectionCap",
         1,
-        MAX_TRAINER_RATING,
+        MAX_TRAINER_RATING_PROJECTION_CAP,
     )
     regional_facts = _load_regional_facts(regional_facts_path)
+    flag_identifiers = _load_flag_identifiers(flags_path)
+    persistent_flag_identifiers = _load_persistent_flag_identifiers(persistent_ids_path)
+    authenticated_legacy_badge_pairs = _load_authenticated_legacy_badge_pairs(maps_root)
 
     segments = trainer_rating["badgeSegments"]
     if not isinstance(segments, list) or not segments:
@@ -252,7 +314,12 @@ def _load_scaling(path, regional_facts_path):
             row["firstBadgeOrdinal"], f"{location}/firstBadgeOrdinal", 1, 255
         )
         badge_count = _require_int(row["badgeCount"], f"{location}/badgeCount", 1, 255)
-        value = _require_int(row["value"], f"{location}/value", 1, projection_cap)
+        value = _require_int(
+            row["value"],
+            f"{location}/value",
+            1,
+            MAX_TRAINER_RATING_SOURCE_VALUE,
+        )
         if first_badge != expected_first_badge:
             raise ValidationError(
                 f"{location}/firstBadgeOrdinal: badge segments must be contiguous from 1"
@@ -280,7 +347,15 @@ def _load_scaling(path, regional_facts_path):
         if not isinstance(row, dict):
             raise ValidationError(f"{location}: expected object")
         kind = row.get("kind")
-        expected_keys = {"id", "kind"} if kind == "badge" else {"id", "kind", "value"}
+        expected_keys = (
+            {"id", "kind"}
+            if kind == "badge" and "legacyFallbackFlag" not in row
+            else (
+                {"id", "kind", "legacyFallbackFlag"}
+                if kind == "badge"
+                else {"id", "kind", "value"}
+            )
+        )
         _require_exact_keys(row, expected_keys, location)
         source_id = _require_identifier(row["id"], f"{location}/id")
         if source_id not in regional_facts:
@@ -293,10 +368,59 @@ def _load_scaling(path, regional_facts_path):
         if kind == "badge":
             badge_source_count += 1
             value = 0
+            legacy_fallback_flag = row.get(
+                "legacyFallbackFlag", "TRAINER_RATING_LEGACY_FLAG_NONE"
+            )
+            if legacy_fallback_flag != "TRAINER_RATING_LEGACY_FLAG_NONE":
+                legacy_fallback_flag = _require_identifier(
+                    legacy_fallback_flag,
+                    f"{location}/legacyFallbackFlag",
+                    re.compile(r"^FLAG_[A-Z0-9_]+$"),
+                )
+                regional_flag = f"FLAG_{source_id}"
+                if not source_id.startswith("REGIONAL_FACT_HOENN_"):
+                    raise ValidationError(
+                        f"{location}/legacyFallbackFlag: only authenticated Hoenn "
+                        "badge sources may declare a legacy fallback"
+                    )
+                if legacy_fallback_flag not in flag_identifiers:
+                    raise ValidationError(
+                        f"{location}/legacyFallbackFlag: unknown flag "
+                        f"{legacy_fallback_flag}"
+                    )
+                if {
+                    regional_flag,
+                    legacy_fallback_flag,
+                } - persistent_flag_identifiers:
+                    raise ValidationError(
+                        f"{location}/legacyFallbackFlag: both source and fallback "
+                        "must be stable persisted flags"
+                    )
+                if (
+                    regional_flag,
+                    legacy_fallback_flag,
+                ) not in authenticated_legacy_badge_pairs:
+                    raise ValidationError(
+                        f"{location}/legacyFallbackFlag: unauthenticated legacy "
+                        "badge script pair"
+                    )
         else:
-            value = _require_int(row["value"], f"{location}/value", 1, projection_cap)
+            value = _require_int(
+                row["value"],
+                f"{location}/value",
+                1,
+                MAX_TRAINER_RATING_SOURCE_VALUE,
+            )
             story_rating += value
-        normalized_sources.append({"id": source_id, "kind": kind, "value": value})
+            legacy_fallback_flag = "TRAINER_RATING_LEGACY_FLAG_NONE"
+        normalized_sources.append(
+            {
+                "id": source_id,
+                "kind": kind,
+                "value": value,
+                "legacy_fallback_flag": legacy_fallback_flag,
+            }
+        )
 
     configured_badges = sum(segment["badge_count"] for segment in badge_segments)
     if badge_source_count > configured_badges:
@@ -311,10 +435,10 @@ def _load_scaling(path, regional_facts_path):
         badge_rating += earned_badges * segment["value"]
         remaining_badges -= earned_badges
     maximum_rating = badge_rating + story_rating
-    if maximum_rating > projection_cap:
+    if maximum_rating > MAX_TRAINER_RATING_MAXIMUM:
         raise ValidationError(
             f"{path}/trainerRating: configured maximum rating {maximum_rating} "
-            f"exceeds projection cap {projection_cap}"
+            f"does not fit u16"
         )
 
     anchors = document["levelAnchors"]
@@ -2092,7 +2216,12 @@ def _render_scaling(output, scaling, profile_offsets, species_metadata):
     output.write("{\n")
     for source in scaling["sources"]:
         kind = f"TRAINER_RATING_SOURCE_{source['kind'].upper()}"
-        output.write(f"    {{ {source['id']}, {source['value']}, {kind} }},\n")
+        output.write(
+            "    { "
+            f"{source['id']}, {source['legacy_fallback_flag']}, "
+            f"{source['value']}, {kind}"
+            " },\n"
+        )
     output.write("};\n")
     output.write(
         "const u16 gTrainerRatingSourceCount = ARRAY_COUNT(gTrainerRatingSources);\n\n"
@@ -2251,6 +2380,7 @@ def _project_levels(scaling, vanilla_level, rating_cap, level_offset):
 
 def _effective_species(species, vanilla_level, level, metadata_by_species):
     effective_species = species
+    stage_changes = []
     while True:
         metadata = metadata_by_species[effective_species]
         predecessor = metadata["predecessor"]
@@ -2260,13 +2390,23 @@ def _effective_species(species, vanilla_level, level, metadata_by_species):
             or vanilla_level < metadata["predecessor_level"]
             or level >= metadata["predecessor_level"]
         ):
-            return effective_species
+            return effective_species, stage_changes
+        stage_changes.append((effective_species, predecessor))
         effective_species = predecessor
 
 
 def _summarize_slot_outcomes(slot, scaling, level_offset, metadata_by_species):
     rating_cap = scaling["projection_cap"]
-    summaries = [{"locked": False, "outcomes": {}} for _ in range(rating_cap + 1)]
+    summaries = [
+        {
+            "locked": False,
+            "outcomes": {},
+            "stage_changes": set(),
+            "level_sum": 0,
+            "level_count": 0,
+        }
+        for _ in range(rating_cap + 1)
+    ]
     previous_levels = {}
     for vanilla_level in range(slot["min_level"], slot["max_level"] + 1):
         projected_levels = _project_levels(
@@ -2274,16 +2414,20 @@ def _summarize_slot_outcomes(slot, scaling, level_offset, metadata_by_species):
         )
         previous_level = None
         for rating, level in enumerate(projected_levels):
-            effective_species = _effective_species(
+            effective_species, stage_changes = _effective_species(
                 slot["species"], vanilla_level, level, metadata_by_species
             )
-            outcome = summaries[rating]["outcomes"].setdefault(
+            summary = summaries[rating]
+            outcome = summary["outcomes"].setdefault(
                 effective_species, {"min_level": level, "max_level": level}
             )
             outcome["min_level"] = min(outcome["min_level"], level)
             outcome["max_level"] = max(outcome["max_level"], level)
+            summary["stage_changes"].update(stage_changes)
+            summary["level_sum"] += level
+            summary["level_count"] += 1
             if level < metadata_by_species[effective_species]["minimum_level"]:
-                summaries[rating]["locked"] = True
+                summary["locked"] = True
             if previous_level is not None and level < previous_level:
                 previous_levels.setdefault(vanilla_level, []).append(
                     (rating - 1, previous_level, rating, level)
@@ -2326,20 +2470,6 @@ def _audit_profile_slots(
         rating for rating in REQUIRED_AUDIT_RATINGS if rating <= rating_cap
     ]
     slot_rows = []
-    profile_ratings = {
-        rating: {
-            "rating": rating,
-            "eligibleSlots": 0,
-            "lockedSlots": 0,
-            "eligibleWeight": 0,
-            "lockedWeight": 0,
-            "totalWeight": sum(weights),
-            "effectiveSpecies": set(),
-            "minimumEffectiveLevel": MAX_ORDINARY_WILD_LEVEL,
-            "maximumEffectiveLevel": 0,
-        }
-        for rating in required_ratings
-    }
     failures = []
     for index, (slot, weight) in enumerate(
         zip(encounter[method]["mons"], weights, strict=True)
@@ -2371,34 +2501,6 @@ def _audit_profile_slots(
                 )
             unlocked |= eligible
 
-        for rating in required_ratings:
-            summary = summaries[rating]
-            outcomes = [
-                {
-                    "species": species,
-                    "minimumLevel": outcome["min_level"],
-                    "maximumLevel": outcome["max_level"],
-                }
-                for species, outcome in sorted(summary["outcomes"].items())
-            ]
-            aggregate = profile_ratings[rating]
-            if summary["locked"]:
-                aggregate["lockedSlots"] += 1
-                aggregate["lockedWeight"] += weight
-            else:
-                aggregate["eligibleSlots"] += 1
-                aggregate["eligibleWeight"] += weight
-            aggregate["effectiveSpecies"].update(
-                outcome["species"] for outcome in outcomes
-            )
-            aggregate["minimumEffectiveLevel"] = min(
-                aggregate["minimumEffectiveLevel"],
-                *(outcome["minimumLevel"] for outcome in outcomes),
-            )
-            aggregate["maximumEffectiveLevel"] = max(
-                aggregate["maximumEffectiveLevel"],
-                *(outcome["maximumLevel"] for outcome in outcomes),
-            )
         slot_rows.append(
             {
                 "slot": index,
@@ -2410,19 +2512,200 @@ def _audit_profile_slots(
                 },
                 "startsLocked": summaries[0]["locked"],
                 "unlockRating": unlock_rating,
+                "summaries": summaries,
             }
         )
 
-    aggregates = []
+    original_minimum = min(row["vanilla"]["minimumLevel"] for row in slot_rows)
+    original_maximum = max(row["vanilla"]["maximumLevel"] for row in slot_rows)
+    original_average_numerator = sum(
+        row["weight"]
+        * sum(
+            range(
+                row["vanilla"]["minimumLevel"],
+                row["vanilla"]["maximumLevel"] + 1,
+            )
+        )
+        for row in slot_rows
+    )
+    original_average_denominator = sum(
+        row["weight"]
+        * (row["vanilla"]["maximumLevel"] - row["vanilla"]["minimumLevel"] + 1)
+        for row in slot_rows
+    )
+    matrix = []
     for rating in required_ratings:
-        aggregate = profile_ratings[rating]
-        if aggregate["eligibleSlots"] == 0:
+        eligible_rows = [
+            row for row in slot_rows if not row["summaries"][rating]["locked"]
+        ]
+        locked_rows = [row for row in slot_rows if row["summaries"][rating]["locked"]]
+        eligible_weight = sum(row["weight"] for row in eligible_rows)
+        locked_weight = sum(row["weight"] for row in locked_rows)
+        if not eligible_rows:
             failures.append(
                 f"{label}/{method}/{fishing_rod}: all slots are locked at rating {rating}"
             )
-        aggregate["effectiveSpecies"] = sorted(aggregate["effectiveSpecies"])
-        aggregates.append(aggregate)
-    return slot_rows, aggregates, failures
+            effective_minimum = None
+            effective_maximum = None
+            effective_average_numerator = 0
+            effective_average_denominator = 0
+        else:
+            effective_minimum = min(
+                outcome["min_level"]
+                for row in eligible_rows
+                for outcome in row["summaries"][rating]["outcomes"].values()
+            )
+            effective_maximum = max(
+                outcome["max_level"]
+                for row in eligible_rows
+                for outcome in row["summaries"][rating]["outcomes"].values()
+            )
+            effective_average_numerator = sum(
+                row["weight"] * row["summaries"][rating]["level_sum"]
+                for row in eligible_rows
+            )
+            effective_average_denominator = sum(
+                row["weight"] * row["summaries"][rating]["level_count"]
+                for row in eligible_rows
+            )
+
+        slot_outcomes = []
+        effective_species = set()
+        stage_changes = []
+        for row in slot_rows:
+            summary = row["summaries"][rating]
+            outcomes = [
+                {
+                    "species": species,
+                    "minimumLevel": outcome["min_level"],
+                    "maximumLevel": outcome["max_level"],
+                }
+                for species, outcome in sorted(summary["outcomes"].items())
+            ]
+            changes = [
+                {"fromSpecies": source, "toSpecies": target}
+                for source, target in sorted(summary["stage_changes"])
+            ]
+            if not summary["locked"]:
+                effective_species.update(outcome["species"] for outcome in outcomes)
+                stage_changes.extend(
+                    {
+                        "slot": row["slot"],
+                        "fromSpecies": change["fromSpecies"],
+                        "toSpecies": change["toSpecies"],
+                    }
+                    for change in changes
+                )
+            slot_outcomes.append(
+                {
+                    "slot": row["slot"],
+                    "weight": row["weight"],
+                    "original": row["vanilla"],
+                    "effective": outcomes,
+                    "stageChanges": changes,
+                    "locked": summary["locked"],
+                    "unlockRating": row["unlockRating"],
+                }
+            )
+        matrix.append(
+            {
+                "rating": rating,
+                "original": {
+                    "minimumLevel": original_minimum,
+                    "weightedAverage": {
+                        "numerator": original_average_numerator,
+                        "denominator": original_average_denominator,
+                    },
+                    "maximumLevel": original_maximum,
+                },
+                "effective": {
+                    "minimumLevel": effective_minimum,
+                    "weightedAverage": {
+                        "numerator": effective_average_numerator,
+                        "denominator": effective_average_denominator,
+                    },
+                    "maximumLevel": effective_maximum,
+                    "species": sorted(effective_species),
+                },
+                "stageChanges": stage_changes,
+                "lockedSlots": [row["slot"] for row in locked_rows],
+                "eligibleSlotCount": len(eligible_rows),
+                "lockedSlotCount": len(locked_rows),
+                "unlockRatings": [
+                    {"slot": row["slot"], "rating": row["unlockRating"]}
+                    for row in slot_rows
+                ],
+                "totalWeight": sum(weights),
+                "eligibleWeight": eligible_weight,
+                "lockedWeight": locked_weight,
+                "renormalizedProbabilities": [
+                    {
+                        "slot": row["slot"],
+                        "weight": row["weight"],
+                        "numerator": row["weight"],
+                        "denominator": eligible_weight,
+                    }
+                    for row in eligible_rows
+                ],
+                "slotOutcomes": slot_outcomes,
+            }
+        )
+    for row in slot_rows:
+        row.pop("summaries")
+    return slot_rows, matrix, failures
+
+
+def _cross_profile_ordering_failures(profiles):
+    failures = []
+    profiles_by_method = {}
+    for profile in profiles:
+        profiles_by_method.setdefault(
+            (profile["method"], profile["fishingRod"]), []
+        ).append(profile)
+
+    for (method, fishing_rod), method_profiles in sorted(profiles_by_method.items()):
+        for index, weaker_profile in enumerate(method_profiles):
+            weaker_matrix = {row["rating"]: row for row in weaker_profile["matrix"]}
+            for stronger_profile in method_profiles[index + 1 :]:
+                stronger_matrix = {
+                    row["rating"]: row for row in stronger_profile["matrix"]
+                }
+                for rating in REQUIRED_AUDIT_RATINGS:
+                    first = weaker_matrix[rating]
+                    second = stronger_matrix[rating]
+                    if (
+                        first["original"]["maximumLevel"]
+                        < second["original"]["minimumLevel"]
+                    ):
+                        weaker, stronger = first, second
+                        weaker_label, stronger_label = (
+                            weaker_profile["label"],
+                            stronger_profile["label"],
+                        )
+                    elif (
+                        second["original"]["maximumLevel"]
+                        < first["original"]["minimumLevel"]
+                    ):
+                        weaker, stronger = second, first
+                        weaker_label, stronger_label = (
+                            stronger_profile["label"],
+                            weaker_profile["label"],
+                        )
+                    else:
+                        continue
+                    if (
+                        weaker["effective"]["maximumLevel"] is not None
+                        and stronger["effective"]["minimumLevel"] is not None
+                        and weaker["effective"]["maximumLevel"]
+                        > stronger["effective"]["minimumLevel"]
+                    ):
+                        failures.append(
+                            "cross-profile ordering: "
+                            f"{method}/{fishing_rod} rating {rating} projects "
+                            f"{weaker_label} above the strictly stronger vanilla "
+                            f"profile {stronger_label}"
+                        )
+    return failures
 
 
 def build_wild_encounter_balance_audit(
@@ -2549,7 +2832,7 @@ def build_wild_encounter_balance_audit(
                         "fishingRod": fishing_rod,
                         "encounterRate": encounter[method]["encounter_rate"],
                         "levelOffset": offsets.get(context, 0),
-                        "aggregate": aggregates,
+                        "matrix": aggregates,
                         "slots": slot_rows,
                     }
                 )
@@ -2562,6 +2845,7 @@ def build_wild_encounter_balance_audit(
             profile["label"],
         )
     )
+    failures.extend(_cross_profile_ordering_failures(audit_profiles))
     return {
         "schemaVersion": 1,
         "ratings": list(REQUIRED_AUDIT_RATINGS),

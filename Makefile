@@ -439,9 +439,12 @@ $(DATA_SRC_SUBDIR)/wild_encounters.h: $(DATA_SRC_SUBDIR)/wild_encounters.json \
                                        $(SOURCE_INCLUDE_DIR)/config/pokemon.h \
                                        $(SOURCE_INCLUDE_DIR)/constants/rtc.h \
                                        $(SOURCE_INCLUDE_DIR)/constants/species.h \
+                                       $(SOURCE_INCLUDE_DIR)/constants/flags.h \
                                        $(SOURCE_INCLUDE_DIR)/regional_fact.h \
+                                       $(DATA_SRC_SUBDIR)/persistence/persistent_ids.json \
                                        data/maps/map_groups.json \
                                        $(wildcard data/maps/*/map.json) \
+                                       $(wildcard data/maps/*/scripts.inc) \
                                        $(DATA_SRC_SUBDIR)/pokemon/species_info.h \
                                        $(DATA_SRC_SUBDIR)/region_map/region_map_sections.json
 	python3 $(WILD_ENCOUNTERS_TOOL_DIR)/wild_encounters_to_header.py
@@ -629,7 +632,7 @@ content-port-check: content-port-transaction-check
 	python3 -m tools.content_port check --port $(CONTENT_PORT) \
 		--donor-root $(CONTENT_PORT_DONOR_ROOT)
 
-wild-encounter-test: content-port-transaction-check
+wild-encounter-test: content-port-transaction-check wild-encounter-balance-audit
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 		-s $(WILD_ENCOUNTERS_TOOL_DIR)/tests -p 'test_*.py' -q
 
