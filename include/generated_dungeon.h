@@ -139,4 +139,8 @@ bool32 GeneratedDungeon_TestSetRegistry(const struct GeneratedDungeonProvider *p
 void GeneratedDungeon_TestResetRegistry(void);
 #endif
 
+#ifdef DEBUG
+bool32 GeneratedDungeon_DebugSetRegistry(const struct GeneratedDungeonProvider *providers, u16 count);
+#endif
+
 #endif // GUARD_GENERATED_DUNGEON_H

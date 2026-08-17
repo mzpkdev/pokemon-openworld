@@ -624,3 +624,15 @@ void GeneratedDungeon_TestResetRegistry(void)
     sRegistryCount = 0;
 }
 #endif
+
+#ifdef DEBUG
+bool32 GeneratedDungeon_DebugSetRegistry(const struct GeneratedDungeonProvider *providers, u16 count)
+{
+    if (!GeneratedDungeon_ValidateRegistry(providers, count))
+        return FALSE;
+
+    sRegistry = providers;
+    sRegistryCount = count;
+    return TRUE;
+}
+#endif
