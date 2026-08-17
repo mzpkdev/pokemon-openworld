@@ -278,7 +278,7 @@ class IntegrityToolTests(unittest.TestCase):
         expected = expected_save_abi_values(contract, "normal")
         by_path = dict(expected)
         self.assertEqual(
-            by_path["$.structs.SaveBlock1.sizeAlignment"], (15672 << 8) | 4
+            by_path["$.structs.SaveBlock1.sizeAlignment"], (15736 << 8) | 4
         )
         self.assertEqual(
             by_path["$.structs.SaveBlock1.members[84].type.array.dimensions[0]"],
