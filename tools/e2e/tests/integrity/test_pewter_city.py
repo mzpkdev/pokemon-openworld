@@ -182,17 +182,21 @@ def test_hns_museum_public_and_side_entries_stay_distinct(integrity_game):
 
 
 @pytest.mark.parametrize(
-    ("source", "x", "y", "direction"),
+    ("source", "x", "y", "direction", "destination", "request_id"),
     (
-        ("Route2_Frlg", 14, 0, "Up"),
-        ("Route3_Frlg", 0, 15, "Left"),
+        ("Route2_Frlg", 14, 0, "Up", "PewterCity_Hns", 0xF5820200),
+        ("Route3_Frlg", 0, 15, "Left", "PewterCity_Hns", 0xF5820201),
+        ("PewterCity_Hns", 0, 43, "Down", "Route2_Frlg", 0xF5820202),
+        ("PewterCity_Hns", 51, 0, "Right", "Route3_Frlg", 0xF5820203),
     ),
 )
-def test_normal_kanto_seams_enter_hns_pewter(integrity_game, source, x, y, direction):
+def test_normal_kanto_pewter_seams_are_bidirectional(
+    integrity_game, source, x, y, direction, destination, request_id
+):
     _settle_overworld(integrity_game)
     maps = _maps()
-    _load(integrity_game, maps[source], x, y, 0xF5820200 + (direction == "Left"))
-    _hold_until_map(integrity_game, direction, maps["PewterCity_Hns"])
+    _load(integrity_game, maps[source], x, y, request_id)
+    _hold_until_map(integrity_game, direction, maps[destination])
 
 
 def test_hns_running_shoes_progression_is_one_time(integrity_game):
