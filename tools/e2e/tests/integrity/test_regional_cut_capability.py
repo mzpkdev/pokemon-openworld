@@ -32,6 +32,10 @@ REGIONAL_FACT_GRANTS = tuple(
     (item["value"], item["grants"][0]) for item in POLICY["exact"] if item["grants"]
 )
 REGIONAL_FACTS = tuple(item["value"] for item in POLICY["exact"])
+# The reviewed Hoenn Continue fixture retains the historical Sapphire recovery
+# source flag. Version-three migration must backfill its exact regional fact,
+# but must not infer any other regional story state.
+FIXTURE_MIGRATED_REGIONAL_FACTS = (66,)
 TM_HM_POCKET_OFFSET = 0x690
 TM_HM_POCKET_SIZE = 64 * 4
 
@@ -67,8 +71,9 @@ def _remove_debug_field_kit(game) -> None:
     )
 
 
-def _assert_no_regional_facts(game) -> None:
-    assert all(not game.read_flag(flag) for flag in REGIONAL_FACTS)
+def _assert_fixture_story_migration(game) -> None:
+    for flag in REGIONAL_FACTS:
+        assert game.read_flag(flag) is (flag in FIXTURE_MIGRATED_REGIONAL_FACTS)
 
 
 def _probe_capabilities(game, request_base: int) -> list[str]:
@@ -101,7 +106,7 @@ def test_historical_capability_matrix_matches_oracle_through_resave_and_restart(
     game = session_factory(battery_save=save)
 
     _continue_to_overworld(game)
-    _assert_no_regional_facts(game)
+    _assert_fixture_story_migration(game)
     assert (
         _probe_capabilities(game, 0x4E450000 + scenario_index * len(CAPABILITIES))
         == scenario["unlockedCapabilities"]
@@ -111,12 +116,15 @@ def test_historical_capability_matrix_matches_oracle_through_resave_and_restart(
     assert is_strictly_newer_save_counter(
         rewritten.active_slot.counter, variant.active_slot.counter
     )
-    assert all(not rewritten.active_slot.saved_flag(flag) for flag in REGIONAL_FACTS)
+    for flag in REGIONAL_FACTS:
+        assert rewritten.active_slot.saved_flag(flag) is (
+            flag in FIXTURE_MIGRATED_REGIONAL_FACTS
+        )
     for flag, enabled in legacy_flags.items():
         assert rewritten.active_slot.saved_flag(flag) is enabled
 
     cold_restart_and_continue(game)
-    _assert_no_regional_facts(game)
+    _assert_fixture_story_migration(game)
     for flag, enabled in legacy_flags.items():
         assert game.read_flag(flag) is enabled
     assert (
