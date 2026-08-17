@@ -99,7 +99,9 @@ def _cross_edge(game, direction: str, destination, position, facing: int) -> Non
     _assert_field_ready(game, destination, position, facing)
 
 
-def _traverse_generated_ocean(game, direction: str, destination, position, facing: int) -> None:
+def _traverse_generated_ocean(
+    game, direction: str, destination, position, facing: int
+) -> None:
     for _ in range(60):
         game.press(direction, hold_frames=2, release_frames=1)
         game.wait_for_controls_unlocked(max_frames=120)
@@ -128,7 +130,9 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     _load_map(integrity_game, route19, (20, 59), 0x53454601)
     _set_surfing(integrity_game)
     _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
-    _assert_map_presentation(integrity_game, generated_ocean, MUS_ROUTE119, WEATHER_SUNNY)
+    _assert_map_presentation(
+        integrity_game, generated_ocean, MUS_ROUTE119, WEATHER_SUNNY
+    )
     saved = save_from_start_menu(integrity_game)
     cold_restart_and_continue(integrity_game)
     _assert_field_ready(integrity_game, generated_ocean, (2, 12), DIR_SOUTH)
