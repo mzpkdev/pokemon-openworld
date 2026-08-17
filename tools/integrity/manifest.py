@@ -186,6 +186,36 @@ EXPECTED_ABIS = {
         "metLocationToSectionOffset": 16,
         "sectionCountOffset": 20,
     },
+    "surfEdgeExit": {
+        "size": 10,
+        "alignment": 2,
+        "sourceMapOffset": 0,
+        "targetMapOffset": 2,
+        "targetXOffset": 4,
+        "targetYOffset": 6,
+        "exitEdgeOffset": 8,
+        "targetFacingOffset": 9,
+    },
+}
+
+CARDINAL_VALUES = {"south": 1, "north": 2, "west": 3, "east": 4}
+EDGE_EXIT_FIELDS = {
+    "sourceName",
+    "sourceId",
+    "sourceGroup",
+    "sourceNumber",
+    "sourceMapValue",
+    "exitEdge",
+    "exitEdgeValue",
+    "targetName",
+    "targetId",
+    "targetGroup",
+    "targetNumber",
+    "targetMapValue",
+    "targetX",
+    "targetY",
+    "targetFacing",
+    "targetFacingValue",
 }
 
 
@@ -210,12 +240,94 @@ def _unique(records: list[dict[str, Any]], field: str, owner: str) -> None:
         raise ManifestError(f"{owner} must have unique non-null {field} values")
 
 
+def _map_value(group: int, number: int) -> int:
+    return number | (group << 8)
+
+
+def _validate_edge_exits(
+    edge_exits: Any,
+    maps: list[dict[str, Any]],
+    layouts: list[dict[str, Any]],
+) -> None:
+    if not isinstance(edge_exits, list):
+        raise ManifestError("edgeExits must be an array")
+    maps_by_name = {entry["name"]: entry for entry in maps}
+    layouts_by_id = {entry["id"]: entry for entry in layouts}
+    seen: set[tuple[int, int, int]] = set()
+    order: list[tuple[int, int, int]] = []
+    string_fields = {
+        "sourceName",
+        "sourceId",
+        "exitEdge",
+        "targetName",
+        "targetId",
+        "targetFacing",
+    }
+    int_fields = EDGE_EXIT_FIELDS - string_fields
+    for index, entry in enumerate(edge_exits):
+        if not isinstance(entry, dict) or set(entry) != EDGE_EXIT_FIELDS:
+            raise ManifestError(f"edgeExits[{index}] has invalid fields")
+        if any(type(entry[field]) is not str for field in string_fields) or any(
+            type(entry[field]) is not int for field in int_fields
+        ):
+            raise ManifestError(f"edgeExits[{index}] has invalid field types")
+        if entry["exitEdgeValue"] != CARDINAL_VALUES.get(entry["exitEdge"]):
+            raise ManifestError(f"edgeExits[{index}] exit edge name/value disagree")
+        if entry["targetFacingValue"] != CARDINAL_VALUES.get(entry["targetFacing"]):
+            raise ManifestError(f"edgeExits[{index}] facing name/value disagree")
+        for prefix in ("source", "target"):
+            map_entry = maps_by_name.get(entry[f"{prefix}Name"])
+            if map_entry is None:
+                raise ManifestError(f"edgeExits[{index}] names unknown {prefix} map")
+            identity = (
+                map_entry.get("id"),
+                map_entry.get("group"),
+                map_entry.get("number"),
+            )
+            declared = (
+                entry[f"{prefix}Id"],
+                entry[f"{prefix}Group"],
+                entry[f"{prefix}Number"],
+            )
+            if declared != identity or entry[f"{prefix}MapValue"] != _map_value(
+                entry[f"{prefix}Group"], entry[f"{prefix}Number"]
+            ):
+                raise ManifestError(
+                    f"edgeExits[{index}] {prefix} map identity disagrees"
+                )
+        target = maps_by_name[entry["targetName"]]
+        layout = layouts_by_id.get(target.get("layoutId"))
+        if layout is None or not (
+            0 <= entry["targetX"] < layout["width"]
+            and 0 <= entry["targetY"] < layout["height"]
+        ):
+            raise ManifestError(f"edgeExits[{index}] target is outside its layout")
+        key = (
+            entry["sourceGroup"],
+            entry["sourceNumber"],
+            entry["exitEdgeValue"],
+        )
+        if key in seen:
+            raise ManifestError("edgeExits must have unique source edge values")
+        seen.add(key)
+        order.append(key)
+    if order != sorted(order):
+        raise ManifestError("edgeExits are not in canonical order")
+
+
 def validate_manifest(manifest: dict[str, Any]) -> None:
-    if manifest.get("schemaVersion") != 2:
+    if manifest.get("schemaVersion") != 3:
         raise ManifestError("unsupported integrity manifest schema")
     if manifest.get("product") != EXPECTED_PRODUCT:
         raise ManifestError(f"wrong product identity: {manifest.get('product')!r}")
-    if manifest.get("counts") != EXPECTED_COUNTS:
+    counts = manifest.get("counts")
+    if (
+        not isinstance(counts, dict)
+        or set(counts) != {*EXPECTED_COUNTS, "edgeExits"}
+        or any(counts.get(name) != value for name, value in EXPECTED_COUNTS.items())
+        or type(counts.get("edgeExits")) is not int
+        or counts["edgeExits"] < 0
+    ):
         raise ManifestError(f"wrong registry counts: {manifest.get('counts')!r}")
     if manifest.get("abis") != EXPECTED_ABIS:
         raise ManifestError(f"wrong ABI contracts: {manifest.get('abis')!r}")
@@ -229,6 +341,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     count_sentinels = manifest.get("countSentinels")
     codecs = manifest.get("codecs")
     section_metadata = manifest.get("mapSectionMetadata")
+    edge_exits = manifest.get("edgeExits")
     if not all(
         isinstance(records, list)
         for records in (groups, maps, layouts, tilesets, exclusions, symbols)
@@ -252,6 +365,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         4,
     ):
         raise ManifestError("manifest arrays disagree with their count sentinels")
+    if not isinstance(edge_exits, list) or len(edge_exits) != counts["edgeExits"]:
+        raise ManifestError("edgeExits disagree with their count sentinel")
 
     _unique(groups, "name", "groups")
     _unique(maps, "name", "maps")
@@ -307,6 +422,12 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         "mapSections": {
             "registry": "gMapSectionRegistry",
             "count": EXPECTED_MAP_SECTIONS,
+        },
+        "edgeExits": {
+            "registry": "gSurfEdgeExits",
+            "countSymbol": "gSurfEdgeExitCount",
+            "count": counts["edgeExits"],
+            "stride": EXPECTED_ABIS["surfEdgeExit"]["size"],
         },
     }
     if count_sentinels != expected_sentinels:
@@ -423,6 +544,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
                 f"tileset {tileset['name']} lacks an exact attribute ABI"
             )
     tilesets_by_name = {tileset["name"]: tileset for tileset in tilesets}
+    _validate_edge_exits(edge_exits, maps, layouts)
     for name, callback in EXPECTED_ANIMATION_CALLBACKS.items():
         tileset = tilesets_by_name.get(name)
         if tileset is None or tileset.get("callback") != callback:
@@ -431,6 +553,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             )
     if any(not symbol["name"] or symbol.get("kind") != "rom" for symbol in symbols):
         raise ManifestError("every required symbol must name a ROM resident object")
+    symbol_names = {symbol["name"] for symbol in symbols}
+    if not {"gSurfEdgeExits", "gSurfEdgeExitCount"} <= symbol_names:
+        raise ManifestError("surf edge-exit symbols are not required ROM symbols")
 
 
 def main() -> int:

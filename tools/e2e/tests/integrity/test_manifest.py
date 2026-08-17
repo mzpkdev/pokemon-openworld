@@ -146,8 +146,9 @@ def test_manifest_path_honors_environment_override(monkeypatch, tmp_path):
     assert integrity_manifest_path() == expected
 
 
-def test_manifest_map_contract_accepts_schema_2(tmp_path):
-    path = write_manifest(tmp_path, [map_entry()], schema_version=2)
+@pytest.mark.parametrize("schema_version", [2, 3])
+def test_manifest_map_contract_accepts_current_schemas(tmp_path, schema_version):
+    path = write_manifest(tmp_path, [map_entry()], schema_version=schema_version)
     [entry] = load_manifest_maps(path)
     assert entry.map_id == (0, 9)
 

@@ -15,6 +15,7 @@ MAP_GENERATION_STAMP := $(GENERATED_ROOT)/.map-build-policy
 INTEGRITY_MANIFEST := $(GENERATED_ROOT)/integrity-manifest.json
 MAP_SECTION_METADATA_HEADER := $(GENERATED_ROOT)/include/generated/map_section_metadata.h
 MAP_SECTION_METADATA_SOURCE := $(GENERATED_ROOT)/src/data/map_section_metadata.inc.c
+SURF_EDGE_EXITS_SOURCE := $(GENERATED_ROOT)/src/data/surf_edge_exits.inc.c
 
 AUTO_GEN_TARGETS += $(MAP_GENERATION_STAMP)
 
@@ -57,6 +58,7 @@ MAP_GENERATED_GLOBALS := \
 	$(DEBUG_MAP_NAMES_OUT) \
 	$(MAP_SECTION_METADATA_HEADER) \
 	$(MAP_SECTION_METADATA_SOURCE) \
+	$(SURF_EDGE_EXITS_SOURCE) \
 	$(INTEGRITY_MANIFEST)
 
 $(MAP_GENERATION_STAMP): $(MAPS_DIR)/map_groups.json $(LAYOUTS_DIR)/layouts.json $(MAP_JSONS) \
@@ -89,6 +91,7 @@ $(DATA_ASM_BUILDDIR)/map_events.o: $(DATA_ASM_SUBDIR)/map_events.s $(MAPS_OUTDIR
 $(C_BUILDDIR)/debug.o: $(MAP_GROUP_COUNT_OUT) $(DEBUG_MAP_NAMES_OUT)
 $(TEST_BUILDDIR)/text.o: $(MAP_GROUP_COUNT_OUT)
 $(C_BUILDDIR)/location_codecs.o $(C_BUILDDIR)/regions.o: $(MAP_SECTION_METADATA_HEADER) $(MAP_SECTION_METADATA_SOURCE)
+$(C_BUILDDIR)/surf_edge_exits.o: $(SURF_EDGE_EXITS_SOURCE)
 
 # Retail dialects remain useful generator diagnostics, but never inherit the
 # product name or enter a link/release graph.

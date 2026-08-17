@@ -153,9 +153,9 @@ def load_manifest_maps(path: Path) -> list[ManifestMap]:
         ) from error
     if not isinstance(document, dict):
         raise ValueError("integrity manifest root must be an object")
-    if document.get("schemaVersion") not in (1, 2):
+    if document.get("schemaVersion") not in (1, 2, 3):
         raise ValueError(
-            "integrity manifest schemaVersion must be 1 or 2, got "
+            "integrity manifest schemaVersion must be 1, 2, or 3, got "
             f"{document.get('schemaVersion')!r}"
         )
     metadata_entries = document.get("mapSectionMetadata")

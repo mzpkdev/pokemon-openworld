@@ -100,7 +100,7 @@ void ApplyCurrentWarp(void);
 struct MapHeader const *const Overworld_GetMapHeaderByGroupAndId(u16 mapGroup, u16 mapNum);
 struct MapHeader const *const GetDestinationWarpMapHeader(void);
 void WarpIntoMap(void);
-void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s8 x, s8 y);
+void SetWarpDestination(s8 mapGroup, s8 mapNum, s8 warpId, s16 x, s16 y);
 void SetGeneratedDungeonWarpDestination(const struct WarpData *warp, enum Direction facing);
 void SetWarpDestinationToMapWarp(s8 mapGroup, s8 mapNum, s8 warpId);
 
@@ -129,6 +129,11 @@ bool8 SetDiveWarpDive(u16 x, u16 y);
 void LoadMapFromCameraTransition(u8 mapGroup, u8 mapNum);
 void ResetInitialPlayerAvatarState(void);
 void StoreInitialPlayerAvatarState(void);
+void SetInitialPlayerAvatarStateFacingOverride(enum Direction direction);
+#if TESTING
+enum Direction Test_ConsumeInitialPlayerAvatarStateFacingOverride(enum Direction fallback);
+struct WarpData Test_GetWarpDestination(void);
+#endif
 bool32 Overworld_IsBikingAllowed(void);
 void SetDefaultFlashLevel(void);
 void SetFlashLevel(s32 flashLevel);

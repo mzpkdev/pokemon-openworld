@@ -33,6 +33,7 @@ from tools.integrity.validate_artifact import (
     validate_layouts,
     validate_map_headers,
     validate_section_metadata,
+    validate_surf_edge_exits,
 )
 
 
@@ -73,6 +74,107 @@ class IntegrityToolTests(unittest.TestCase):
         manifest["counts"]["groupedMaps"] -= 1
         with self.assertRaisesRegex(ManifestError, "wrong registry counts"):
             validate_manifest(manifest)
+
+    def manifest_with_surf_edge_exit(self):
+        manifest = json.loads((self.generated / "integrity-manifest.json").read_text())
+        source = manifest["maps"][0]
+        layouts = {layout["id"]: layout for layout in manifest["layouts"]}
+        target = next(
+            entry
+            for entry in manifest["maps"]
+            if layouts[entry["layoutId"]]["width"] > 129
+        )
+        entry = {
+            "sourceName": source["name"],
+            "sourceId": source["id"],
+            "sourceMapValue": source["number"] | (source["group"] << 8),
+            "sourceGroup": source["group"],
+            "sourceNumber": source["number"],
+            "targetName": target["name"],
+            "targetId": target["id"],
+            "targetMapValue": target["number"] | (target["group"] << 8),
+            "targetGroup": target["group"],
+            "targetNumber": target["number"],
+            "exitEdge": "east",
+            "exitEdgeValue": 4,
+            "targetFacing": "north",
+            "targetFacingValue": 2,
+            "targetX": 129,
+            "targetY": 0,
+        }
+        manifest["edgeExits"] = [entry]
+        manifest["counts"]["edgeExits"] = 1
+        manifest["countSentinels"]["edgeExits"]["count"] = 1
+        return manifest
+
+    def test_manifest_validates_complete_surf_edge_exit_evidence(self) -> None:
+        original = self.manifest_with_surf_edge_exit()
+        validate_manifest(original)
+        mutations = (
+            (
+                "extra field",
+                lambda entry: entry.__setitem__("unexpected", 0),
+                "invalid fields",
+            ),
+            (
+                "boolean coordinate",
+                lambda entry: entry.__setitem__("targetX", True),
+                "invalid field types",
+            ),
+            (
+                "direction encoding",
+                lambda entry: entry.__setitem__("exitEdgeValue", 3),
+                "name/value disagree",
+            ),
+            (
+                "source identity",
+                lambda entry: entry.__setitem__("sourceMapValue", 0xFFFF),
+                "source map identity disagrees",
+            ),
+            (
+                "target bounds",
+                lambda entry: entry.__setitem__("targetX", 32767),
+                "outside its layout",
+            ),
+        )
+        for label, mutate, message in mutations:
+            with self.subTest(label=label):
+                manifest = copy.deepcopy(original)
+                mutate(manifest["edgeExits"][0])
+                with self.assertRaisesRegex(ManifestError, message):
+                    validate_manifest(manifest)
+
+        duplicate = copy.deepcopy(original)
+        duplicate["edgeExits"].append(copy.deepcopy(duplicate["edgeExits"][0]))
+        duplicate["counts"]["edgeExits"] = 2
+        duplicate["countSentinels"]["edgeExits"]["count"] = 2
+        with self.assertRaisesRegex(ManifestError, "unique source edge"):
+            validate_manifest(duplicate)
+
+        noncanonical = copy.deepcopy(original)
+        second = copy.deepcopy(noncanonical["edgeExits"][0])
+        second_source = noncanonical["maps"][1]
+        second.update(
+            {
+                "sourceName": second_source["name"],
+                "sourceId": second_source["id"],
+                "sourceMapValue": second_source["number"]
+                | (second_source["group"] << 8),
+                "sourceGroup": second_source["group"],
+                "sourceNumber": second_source["number"],
+            }
+        )
+        noncanonical["edgeExits"] = [second, noncanonical["edgeExits"][0]]
+        noncanonical["counts"]["edgeExits"] = 2
+        noncanonical["countSentinels"]["edgeExits"]["count"] = 2
+        with self.assertRaisesRegex(ManifestError, "canonical order"):
+            validate_manifest(noncanonical)
+
+        count_mismatch = copy.deepcopy(original)
+        count_mismatch["counts"]["edgeExits"] = 0
+        count_mismatch["countSentinels"]["edgeExits"]["count"] = 0
+        with self.assertRaisesRegex(ManifestError, "count sentinel"):
+            validate_manifest(count_mismatch)
 
     def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
         self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
@@ -317,6 +419,100 @@ class IntegrityToolTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValidationError, "unsupported evolution"):
             expected_save_abi_values(contract, "normal")
+
+    def surf_edge_exit_fixture(self):
+        rom = bytearray(0x60)
+        symbols = {
+            "gSurfEdgeExits": ROM_BASE,
+            "gSurfEdgeExitCount": ROM_BASE + 0x40,
+        }
+        struct.pack_into("<HHhhBB", rom, 0, 0x0102, 0x0304, 129, 5, 4, 2)
+        struct.pack_into("<H", rom, 0x40, 1)
+        manifest = {
+            "abis": {"surfEdgeExit": EXPECTED_ABIS["surfEdgeExit"]},
+            "countSentinels": {
+                "edgeExits": {
+                    "registry": "gSurfEdgeExits",
+                    "countSymbol": "gSurfEdgeExitCount",
+                    "count": 1,
+                }
+            },
+            "edgeExits": [
+                {
+                    "sourceMapValue": 0x0102,
+                    "targetMapValue": 0x0304,
+                    "targetX": 129,
+                    "targetY": 5,
+                    "exitEdgeValue": 4,
+                    "targetFacingValue": 2,
+                }
+            ],
+        }
+        return rom, manifest, symbols
+
+    def test_linked_surf_edge_exit_decodes_signed_16_bit_coordinates(self) -> None:
+        rom, manifest, symbols = self.surf_edge_exit_fixture()
+        report = validate_surf_edge_exits(rom, manifest, symbols, ROM_BASE + len(rom))
+        self.assertEqual(report, {"count": 1, "bytes": 10})
+
+        mutations = (
+            (0, 0xFF, "sourceMapValue"),
+            (2, 0xFF, "targetMapValue"),
+            (4, 0xFF, "targetX"),
+            (6, 0xFF, "targetY"),
+            (8, 0x03, "exitEdgeValue"),
+            (9, 0x04, "targetFacingValue"),
+        )
+        for offset, value, message in mutations:
+            with self.subTest(message=message):
+                changed = bytearray(rom)
+                changed[offset] = value
+                with self.assertRaisesRegex(ValidationError, message):
+                    validate_surf_edge_exits(
+                        changed, manifest, symbols, ROM_BASE + len(changed)
+                    )
+
+    def test_linked_surf_edge_exit_rejects_count_alignment_and_truncation(self) -> None:
+        rom, manifest, symbols = self.surf_edge_exit_fixture()
+        wrong_count = bytearray(rom)
+        struct.pack_into("<H", wrong_count, 0x40, 2)
+        with self.assertRaisesRegex(ValidationError, "count is 2, expected 1"):
+            validate_surf_edge_exits(
+                wrong_count, manifest, symbols, ROM_BASE + len(wrong_count)
+            )
+
+        for symbol, message in (
+            ("gSurfEdgeExits", "registry violates ABI alignment"),
+            ("gSurfEdgeExitCount", "count violates u16 alignment"),
+        ):
+            with self.subTest(symbol=symbol):
+                misaligned = dict(symbols)
+                misaligned[symbol] += 1
+                with self.assertRaisesRegex(ValidationError, message):
+                    validate_surf_edge_exits(
+                        rom, manifest, misaligned, ROM_BASE + len(rom)
+                    )
+
+        with self.assertRaisesRegex(ValidationError, "registry is truncated"):
+            truncated_symbols = dict(symbols)
+            truncated_symbols["gSurfEdgeExits"] = ROM_BASE + len(rom) - 8
+            validate_surf_edge_exits(
+                rom, manifest, truncated_symbols, ROM_BASE + len(rom)
+            )
+
+    def test_linked_empty_surf_edge_exit_requires_ten_zero_bytes(self) -> None:
+        rom, manifest, symbols = self.surf_edge_exit_fixture()
+        manifest["edgeExits"] = []
+        manifest["countSentinels"]["edgeExits"]["count"] = 0
+        struct.pack_into("<H", rom, 0x40, 0)
+        rom[:10] = bytes(10)
+        self.assertEqual(
+            validate_surf_edge_exits(rom, manifest, symbols, ROM_BASE + len(rom)),
+            {"count": 0, "bytes": 10},
+        )
+        rom[9] = 1
+        with self.assertRaisesRegex(ValidationError, "not zero-filled"):
+            validate_surf_edge_exits(rom, manifest, symbols, ROM_BASE + len(rom))
 
     def test_purpose_conditional_save_abi_drift_is_rejected(self) -> None:
         contract = json.loads(SAVE_CONTRACT.read_text())

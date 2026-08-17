@@ -23,6 +23,7 @@
 #include "sound.h"
 #include "sprite.h"
 #include "strings.h"
+#include "surf_edge_exits.h"
 #include "task.h"
 #include "tv.h"
 #include "wild_encounter.h"
@@ -846,6 +847,9 @@ static void PlayerNotOnBikeTurningInPlace(enum Direction direction, u16 heldKeys
 static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
 {
     enum Collision collision = CheckForPlayerAvatarCollision(direction);
+
+    if (TryStartSurfEdgeExit(direction, collision))
+        return;
 
     if (collision)
     {
