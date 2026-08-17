@@ -106,6 +106,21 @@ class IntegrityToolTests(unittest.TestCase):
         manifest["edgeExits"] = [entry]
         manifest["counts"]["edgeExits"] = 1
         manifest["countSentinels"]["edgeExits"]["count"] = 1
+        manifest["edgeRouteProfiles"] = [
+            {
+                "sourceName": source["name"],
+                "sourceId": source["id"],
+                "sourceMapValue": source["number"] | (source["group"] << 8),
+                "sourceGroup": source["group"],
+                "sourceNumber": source["number"],
+                "exitEdge": "east",
+                "exitEdgeValue": 4,
+                "profile": "generated_ocean",
+                "profileValue": 1,
+            }
+        ]
+        manifest["counts"]["edgeRouteProfiles"] = 1
+        manifest["countSentinels"]["edgeRouteProfiles"]["count"] = 1
         return manifest
 
     def test_manifest_validates_complete_surf_edge_exit_evidence(self) -> None:

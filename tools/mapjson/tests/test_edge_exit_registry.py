@@ -73,7 +73,8 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
             "invalid route profile 'unknown'",
         )
         self.assert_invalid(
-            [self.valid_exit(route_profile=1)], "route_profile must be a string"
+            [self.valid_exit(route_profile=1)],
+            "Surf edge exit field 'route_profile' must be a string",
         )
         self.assert_invalid(
             [self.valid_exit(target_x=1.5)], "target_x' must be an integer"

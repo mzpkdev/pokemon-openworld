@@ -83,6 +83,7 @@ class ProductRegistryTests(unittest.TestCase):
                 "reviewedMaps": len(self.maps_by_name),
                 "layouts": layout_count,
                 "edgeExits": len(self.manifest["edgeExits"]),
+                "edgeRouteProfiles": len(self.manifest["edgeRouteProfiles"]),
                 "regions": region_counts,
             },
         )
