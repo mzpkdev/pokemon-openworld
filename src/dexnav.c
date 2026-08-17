@@ -1624,59 +1624,107 @@ static bool32 TrySelectDexNavProfileOutcome(const struct WildEncounterProfileVie
 
 static bool32 TrySelectDexNavProfileOutcomeForSpecies(const struct WildEncounterProfileView *profile, enum Species species, struct WildEncounterSlotOutcome *outcome)
 {
-    struct WildEncounterSlot entry;
+    struct DexNavProfileSpeciesCandidate
+    {
+        struct WildEncounterSlot entry;
+        u8 fullRange;
+        u8 matchingLevelCount;
+    } candidates[NUM_LAND_MONS_ENCOUNTER_SLOTS];
     struct WildEncounterSlotOutcome candidate;
     u16 trainerRating = TrainerRating_Get();
-    u32 totalWeight = 0;
+    u32 proposalWeight = 0;
     u32 roll;
+    u16 candidateCount = 0;
+    u8 minimumRange = MAX_LEVEL;
     u16 i;
 
     if (outcome == NULL || !IsWildEncounterProfileViewValid(profile))
         return FALSE;
 
-    // Select a weighted (slot, vanilla level) pair so the selected DexNav species
-    // and its battle level come from one projection.
+    // Propose each qualifying raw level with entry.weight, then correct for its
+    // full source range. This preserves the ordinary source distribution
+    // conditioned on the DexNav-selected effective species.
+    if (profile->entryCount > ARRAY_COUNT(candidates))
+        return FALSE;
     for (i = 0; i < profile->entryCount; i++)
     {
+        struct DexNavProfileSpeciesCandidate *entryCandidate;
+        struct WildEncounterSlot entry;
         u16 vanillaLevel;
 
         if (!TryGetWildEncounterProfileEntry(profile, i, &entry)
          || !IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
             continue;
+        entryCandidate = &candidates[candidateCount];
+        entryCandidate->entry = entry;
+        entryCandidate->fullRange = entry.maxLevel - entry.minLevel + 1;
+        entryCandidate->matchingLevelCount = 0;
         for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
         {
             if (TryProjectWildEncounterProfileEntry(profile, i, vanillaLevel, trainerRating, &candidate)
              && candidate.species == species)
-                totalWeight += entry.weight;
+                entryCandidate->matchingLevelCount++;
         }
+        if (entryCandidate->matchingLevelCount == 0)
+            continue;
+        proposalWeight += entry.weight * entryCandidate->matchingLevelCount;
+        minimumRange = min(minimumRange, entryCandidate->fullRange);
+        candidateCount++;
     }
 
-    if (totalWeight == 0)
+    if (proposalWeight == 0)
         return FALSE;
-    roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, totalWeight - 1);
-
-    for (i = 0; i < profile->entryCount; i++)
+    while (TRUE)
     {
-        u16 vanillaLevel;
+        u16 candidateIndex;
+        u32 matchingLevelIndex;
 
-        if (!TryGetWildEncounterProfileEntry(profile, i, &entry)
-         || !IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
-            continue;
-        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, proposalWeight - 1);
+        for (candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
         {
-            if (!TryProjectWildEncounterProfileEntry(profile, i, vanillaLevel, trainerRating, &candidate)
+            u32 candidateWeight = candidates[candidateIndex].entry.weight
+                * candidates[candidateIndex].matchingLevelCount;
+
+            if (roll < candidateWeight)
+            {
+                matchingLevelIndex = roll / candidates[candidateIndex].entry.weight;
+                break;
+            }
+            roll -= candidateWeight;
+        }
+        if (candidateIndex == candidateCount)
+            return FALSE;
+
+        for (u16 vanillaLevel = candidates[candidateIndex].entry.minLevel;
+             vanillaLevel <= candidates[candidateIndex].entry.maxLevel;
+             vanillaLevel++)
+        {
+            if (!ProjectWildSlotOutcome(
+                    candidates[candidateIndex].entry.species,
+                    vanillaLevel,
+                    trainerRating,
+                    &profile->context,
+                    &candidate)
              || candidate.species != species)
                 continue;
-            if (roll < entry.weight)
+            if (matchingLevelIndex != 0)
+            {
+                matchingLevelIndex--;
+                continue;
+            }
+            // This acceptance factor makes every accepted raw level's mass
+            // entry.weight / fullRange, exactly matching an ordinary encounter.
+            if (RandomUniform(
+                    RNG_DEXNAV_ENCOUNTER_LEVEL,
+                    1,
+                    candidates[candidateIndex].fullRange) <= minimumRange)
             {
                 *outcome = candidate;
                 return TRUE;
             }
-            roll -= entry.weight;
+            break;
         }
     }
-
-    return FALSE;
 }
 
 static bool32 TrySelectDexNavStandardSearchOutcome(enum Species species, enum EncounterType environment, struct WildEncounterSlotOutcome *outcome)

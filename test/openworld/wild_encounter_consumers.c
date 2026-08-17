@@ -427,56 +427,101 @@ static bool32 SelectExpectedDexNavNormalSearchOutcome(
     u16 trainerRating,
     struct WildEncounterSlotOutcome *outcome)
 {
-    struct WildEncounterSlot entry;
+    struct DexNavProfileSpeciesCandidate
+    {
+        struct WildEncounterSlot entry;
+        u8 fullRange;
+        u8 matchingLevelCount;
+    } candidates[NUM_LAND_MONS_ENCOUNTER_SLOTS];
     struct WildEncounterSlotOutcome candidate;
-    u32 totalWeight = 0;
+    u32 proposalWeight = 0;
     u32 roll;
+    u16 candidateCount = 0;
+    u8 minimumRange = MAX_LEVEL;
     u16 index;
 
+    if (profile->entryCount > ARRAY_COUNT(candidates))
+        return FALSE;
     for (index = 0; index < profile->entryCount; index++)
     {
+        struct DexNavProfileSpeciesCandidate *entryCandidate;
+        struct WildEncounterSlot entry;
         u16 vanillaLevel;
 
         if (!TryGetWildEncounterProfileEntry(profile, index, &entry)
          || !IsWildEncounterProfileEntryEligible(profile, index, trainerRating))
             continue;
+        entryCandidate = &candidates[candidateCount];
+        entryCandidate->entry = entry;
+        entryCandidate->fullRange = entry.maxLevel - entry.minLevel + 1;
+        entryCandidate->matchingLevelCount = 0;
         for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
         {
             if (TryProjectWildEncounterProfileEntry(profile, index, vanillaLevel, trainerRating, &candidate)
              && candidate.species == species)
-                totalWeight += entry.weight;
+                entryCandidate->matchingLevelCount++;
         }
+        if (entryCandidate->matchingLevelCount == 0)
+            continue;
+        proposalWeight += entry.weight * entryCandidate->matchingLevelCount;
+        minimumRange = min(minimumRange, entryCandidate->fullRange);
+        candidateCount++;
     }
 
-    if (totalWeight == 0)
+    if (proposalWeight == 0)
         return FALSE;
-    roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, totalWeight - 1);
-
-    for (index = 0; index < profile->entryCount; index++)
+    while (TRUE)
     {
-        u16 vanillaLevel;
+        u16 candidateIndex;
+        u32 matchingLevelIndex;
 
-        if (!TryGetWildEncounterProfileEntry(profile, index, &entry)
-         || !IsWildEncounterProfileEntryEligible(profile, index, trainerRating))
-            continue;
-        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, proposalWeight - 1);
+        for (candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
         {
-            if (!TryProjectWildEncounterProfileEntry(profile, index, vanillaLevel, trainerRating, &candidate)
+            u32 candidateWeight = candidates[candidateIndex].entry.weight
+                * candidates[candidateIndex].matchingLevelCount;
+
+            if (roll < candidateWeight)
+            {
+                matchingLevelIndex = roll / candidates[candidateIndex].entry.weight;
+                break;
+            }
+            roll -= candidateWeight;
+        }
+        if (candidateIndex == candidateCount)
+            return FALSE;
+
+        for (u16 vanillaLevel = candidates[candidateIndex].entry.minLevel;
+             vanillaLevel <= candidates[candidateIndex].entry.maxLevel;
+             vanillaLevel++)
+        {
+            if (!ProjectWildSlotOutcome(
+                    candidates[candidateIndex].entry.species,
+                    vanillaLevel,
+                    trainerRating,
+                    &profile->context,
+                    &candidate)
              || candidate.species != species)
                 continue;
-            if (roll < entry.weight)
+            if (matchingLevelIndex != 0)
+            {
+                matchingLevelIndex--;
+                continue;
+            }
+            if (RandomUniform(
+                    RNG_DEXNAV_ENCOUNTER_LEVEL,
+                    1,
+                    candidates[candidateIndex].fullRange) <= minimumRange)
             {
                 *outcome = candidate;
                 return TRUE;
             }
-            roll -= entry.weight;
+            break;
         }
     }
-
-    return FALSE;
 }
 
-TEST("Normal DexNav search projects the selected slot and level together")
+TEST("Normal DexNav search conditions selected source levels by their full range")
 {
     struct EncounterConsumerState saved;
     struct WildEncounterProfileView profile;
@@ -485,6 +530,8 @@ TEST("Normal DexNav search projects the selected slot and level together")
     enum Species selectedSpecies = SPECIES_NONE;
     enum Species species;
     u8 level;
+    u8 minimumMatchingRange = MAX_LEVEL;
+    u8 maximumMatchingRange = 0;
     u8 savedFlashLevel;
     u8 savedDexNavChain;
     u16 headerId;
@@ -494,7 +541,7 @@ TEST("Normal DexNav search projects the selected slot and level together")
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
-    PrepareMap(MAP_ROUTE32);
+    PrepareMap(MAP_ROUTE102);
     SetTrainerRatingBadgeCount(8);
 
     headerId = GetCurrentMapWildMonHeaderId();
@@ -526,6 +573,28 @@ TEST("Normal DexNav search projects the selected slot and level together")
         }
     }
     EXPECT_NE(selectedSpecies, SPECIES_NONE);
+    for (index = 0; index < profile.entryCount; index++)
+    {
+        u16 vanillaLevel;
+
+        EXPECT(TryGetWildEncounterProfileEntry(&profile, index, &entry));
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            struct WildEncounterSlotOutcome outcome;
+
+            if (TryProjectWildEncounterProfileEntry(
+                &profile, index, vanillaLevel, trainerRating, &outcome)
+             && outcome.species == selectedSpecies)
+            {
+                u8 fullRange = entry.maxLevel - entry.minLevel + 1;
+
+                minimumMatchingRange = min(minimumMatchingRange, fullRange);
+                maximumMatchingRange = max(maximumMatchingRange, fullRange);
+                break;
+            }
+        }
+    }
+    EXPECT_LT(minimumMatchingRange, maximumMatchingRange);
 
     savedFlashLevel = GetFlashLevel();
     savedDexNavChain = gSaveBlock3Ptr->dexNavChain;
