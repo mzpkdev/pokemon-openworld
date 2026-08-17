@@ -341,6 +341,20 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         for placement in state.trainer_inventory.placements
         if placement.admitted
     }
+    surf_edge_exits: dict[str, list[dict[str, Any]]] = {}
+    for decision in descriptor.adaptations["surfEdgeExits"]:
+        name = decision["map"]
+        if not isinstance(name, str):
+            raise ContentPortError("Surf edge-exit policy map identity is invalid")
+        surf_edge_exits.setdefault(name, []).append(
+            {
+                "exit_edge": decision["exitEdge"],
+                "target_map": decision["targetMap"],
+                "target_x": decision["targetX"],
+                "target_y": decision["targetY"],
+                "target_facing": decision["targetFacing"],
+            }
+        )
     units: list[RenderUnit] = []
     observed_objects: dict[str, list[str]] = {}
     observed_scripts: dict[str, list[str]] = {}
@@ -366,6 +380,8 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
         if isinstance(music, str):
             value["music"] = music_remaps.get(music, music)
         value["connections"] = list(value.get("connections") or ())
+        if name in surf_edge_exits:
+            value["edge_exits"] = surf_edge_exits[name]
         for decision in descriptor.adaptations["berryTreeAllocations"]:
             if decision["source"] == name:
                 _set_pointer(value, decision["path"], decision["target"])

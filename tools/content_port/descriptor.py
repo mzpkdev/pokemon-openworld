@@ -98,6 +98,7 @@ ADAPTATION_KEYS = {
     "targetBindings",
     "encounterProfiles",
     "encounterTimePolicy",
+    "surfEdgeExits",
 }
 LEGACY_MIGRATION_KEYS = {
     "addedPaths",
@@ -589,6 +590,38 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         else:
             _integer(target, f"{item_pointer}.to")
 
+    surf_exit_fields = {
+        "map",
+        "exitEdge",
+        "targetMap",
+        "targetX",
+        "targetY",
+        "targetFacing",
+    }
+    for item, item_pointer in _policy_records(
+        document, "surfEdgeExits", pointer, surf_exit_fields
+    ):
+        for field in ("map", "exitEdge", "targetMap", "targetFacing"):
+            _string(item[field], f"{item_pointer}.{field}")
+        if item["exitEdge"] not in {"north", "south", "west", "east"}:
+            raise ContentPortError(
+                f"{item_pointer}.exitEdge: expected a cardinal map edge"
+            )
+        if item["targetFacing"] not in {"north", "south", "west", "east"}:
+            raise ContentPortError(
+                f"{item_pointer}.targetFacing: expected a cardinal facing"
+            )
+        if not item["targetMap"].startswith("MAP_"):
+            raise ContentPortError(
+                f"{item_pointer}.targetMap: expected a MAP_ target identifier"
+            )
+        for field in ("targetX", "targetY"):
+            coordinate = _integer(item[field], f"{item_pointer}.{field}")
+            if coordinate > 0x7FFF:
+                raise ContentPortError(
+                    f"{item_pointer}.{field}: expected a signed 16-bit coordinate"
+                )
+
     profile_pointer = f"{pointer}.materializationProfile"
     profile = _policy_record(
         document["materializationProfile"],
@@ -764,6 +797,7 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "warpReindexes": ("source", "path"),
         "warpRemovals": ("source", "path"),
         "berryTreeAllocations": ("source", "path"),
+        "surfEdgeExits": ("map", "exitEdge"),
     }
     for family, identity_fields in unique_families.items():
         _unique_policy_records(document, family, pointer, identity_fields)
@@ -880,6 +914,28 @@ def _validate_encounter_profile_reachability(
             raise ContentPortError(
                 f"{pointer}.encounterProfiles[{index}].map: does not match enabled "
                 "encounter dependency owner"
+            )
+
+
+def _validate_surf_edge_exit_ownership(
+    adaptations: Mapping[str, object],
+    allocation_index: AllocationIndex,
+    map_ownership: Mapping[str, str],
+    pointer: str = "$",
+) -> None:
+    for index, raw in enumerate(
+        _array(adaptations["surfEdgeExits"], f"{pointer}.surfEdgeExits")
+    ):
+        item_pointer = f"{pointer}.surfEdgeExits[{index}]"
+        item = _object(raw, item_pointer)
+        map_name = _string(item["map"], f"{item_pointer}.map")
+        if map_name not in allocation_index.maps:
+            raise ContentPortError(
+                f"{item_pointer}.map: names unknown allocation map {map_name!r}"
+            )
+        if map_ownership.get(map_name) != "rendered":
+            raise ContentPortError(
+                f"{item_pointer}.map: Surf edge-exit policy requires rendered map ownership"
             )
 
 
@@ -1733,6 +1789,7 @@ def load_port(port_dir: Path, donor_root: Path) -> PortDescriptor:
     )
     _validate_adaptation_policy(_thaw(adaptations), "$")
     _validate_encounter_profile_reachability(_thaw(adaptations), capabilities)
+    _validate_surf_edge_exit_ownership(_thaw(adaptations), allocation_index, ownership)
     event_path = _safe_child(port_dir, root["eventPolicy"], "$.eventPolicy")
     events = _load_policy(event_path, {"schemaVersion", "entries", "effects"}, "$")
     # Event semantics are part of the descriptor contract, not deferred until a

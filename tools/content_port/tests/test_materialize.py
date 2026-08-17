@@ -235,6 +235,7 @@ class MaterializeTests(unittest.TestCase):
                 "Route34_EventScript_PicnickerGina",
             ],
         )
+
         script = map_units["map-script:Route34"].value
         self.assertEqual(
             [event["instructions"][0]["operands"][0] for event in script["events"]],
@@ -438,6 +439,24 @@ class MaterializeTests(unittest.TestCase):
             ).hexdigest(),
             "f2163b8059ef83d28fc87e422705125e8e7517e92cc90b2baf8e27ab5bdaf393",
         )
+
+    def test_surf_edge_exit_materializes_only_on_its_rendered_source(self) -> None:
+        descriptor = self.descriptor()
+        _, state = resolve_port_sources(descriptor, ROOT)
+        map_units = {unit.key: unit for unit in _map_units(descriptor, state)}
+        self.assertEqual(
+            map_units["map:Route40"].value["edge_exits"],
+            [
+                {
+                    "exit_edge": "west",
+                    "target_map": "MAP_ROUTE19",
+                    "target_x": 20,
+                    "target_y": 59,
+                    "target_facing": "north",
+                }
+            ],
+        )
+        self.assertNotIn("edge_exits", map_units["map:Route41"].value)
 
     def test_installed_baseline_and_location_refresh_have_exact_desired_delta(
         self,
