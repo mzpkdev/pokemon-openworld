@@ -106,7 +106,13 @@ def _traverse_generated_ocean(
 ) -> None:
     for _ in range(60):
         game.press(direction, hold_frames=2, release_frames=1)
-        game.wait_for_controls_unlocked(max_frames=120)
+        game.step(20)
+        game.wait_until(
+            game.movement_idle,
+            description="generated-ocean movement idle",
+            max_frames=120,
+            step_frames=2,
+        )
         if game.map_id() == destination.map_id:
             break
     game.wait_for_map(destination.map_id, max_frames=1_800)
