@@ -193,16 +193,16 @@ class IntegrityToolTests(unittest.TestCase):
             validate_manifest(count_mismatch)
 
     def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
-        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
+        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 255)
         self.assertEqual(
             REVIEWED_CROSS_GEOGRAPHY_MAPS,
             {"VermilionCity_PortInside": "REGION_KANTO"},
         )
         self.assertEqual(
             EXPECTED_COUNTS["regions"],
-            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+            {"REGION_HOENN": 518, "REGION_KANTO": 423, "REGION_JOHTO": 253},
         )
-        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
+        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1194)
 
     def test_manifest_rejects_missing_reviewed_animation_callback(self) -> None:
         manifest = json.loads((self.generated / "integrity-manifest.json").read_text())

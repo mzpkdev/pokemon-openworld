@@ -133,7 +133,7 @@ EXPECTED_COUNTS = {
     "layouts": EXPECTED_LAYOUTS,
     "regions": {
         "REGION_HOENN": 518,
-        "REGION_KANTO": 422,
+        "REGION_KANTO": 423,
         "REGION_JOHTO": 253,
     },
 }
