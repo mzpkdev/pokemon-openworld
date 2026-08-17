@@ -1,4 +1,5 @@
 import argparse
+from fractions import Fraction
 import hashlib
 import io
 import json
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 DEFAULT_REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
 DEFAULT_BANDS = ROOT / "src/data/wild_encounter_bands.json"
+DEFAULT_SCALING = ROOT / "src/data/wild_encounter_scaling.json"
 DEFAULT_OUTPUT = ROOT / "src/data/wild_encounters.h"
 DEFAULT_CONFIG = ROOT / "include/config/overworld.h"
 DEFAULT_RTC_CONSTANTS = ROOT / "include/constants/rtc.h"
@@ -20,6 +22,7 @@ DEFAULT_MAP_GROUPS = ROOT / "data/maps/map_groups.json"
 DEFAULT_MAPS_ROOT = ROOT / "data/maps"
 DEFAULT_MAP_SECTIONS = ROOT / "src/data/region_map/region_map_sections.json"
 DEFAULT_SPECIES = ROOT / "include/constants/species.h"
+DEFAULT_REGIONAL_FACTS = ROOT / "include/regional_fact.h"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 REVIEWED_METHOD_TIME_FALLBACKS = frozenset(
@@ -106,6 +109,11 @@ NON_ENCOUNTER_SPECIES = {
     "SPECIES_EGG",
     "SPECIES_SHINY_TAG",
 }
+MAX_TRAINER_RATING = 0xFF
+MAX_PROFILE_LEVEL_OFFSET = 5
+MAX_ORDINARY_WILD_LEVEL = 100
+TRAINER_RATING_SOURCE_KINDS = {"badge", "story"}
+ZONE_IDENTITY_SHAPES = {"quadraticEaseOut", "quadraticEaseIn"}
 PRODUCT_GUARD = re.compile(
     r"^\s*#\s*(?:if|ifdef|ifndef)\b[^\n]*\b(?:EMERALD|FIRERED|LEAFGREEN)\b",
     re.MULTILINE,
@@ -175,6 +183,283 @@ def _require_identifier(value, location, pattern=IDENTIFIER):
     if not isinstance(value, str) or pattern.fullmatch(value) is None:
         raise ValidationError(f"{location}: invalid identifier {value!r}")
     return value
+
+
+def _require_int(value, location, minimum, maximum):
+    if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
+        raise ValidationError(
+            f"{location}: expected integer from {minimum} through {maximum}"
+        )
+    return value
+
+
+def _load_regional_facts(path):
+    try:
+        source = Path(path).read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValidationError(f"{path}: {error}") from error
+    match = re.search(r"enum\s+RegionalFact\s*\{(.*?)\};", source, re.DOTALL)
+    if match is None:
+        raise ValidationError(f"{path}: missing enum RegionalFact")
+    facts = set(re.findall(r"\bREGIONAL_FACT_[A-Z0-9_]+\b", match.group(1)))
+    facts.discard("REGIONAL_FACT_COUNT")
+    if not facts:
+        raise ValidationError(f"{path}: enum RegionalFact has no facts")
+    return facts
+
+
+def _interpolate_fraction(start, end, progress):
+    return start + (end - start) * progress
+
+
+def _round_half_up(value):
+    return (2 * value.numerator + value.denominator) // (2 * value.denominator)
+
+
+def _load_scaling(path, regional_facts_path):
+    document = _load_json(path)
+    _require_exact_keys(
+        document,
+        {
+            "schemaVersion",
+            "trainerRating",
+            "levelAnchors",
+            "zoneIdentity",
+            "profileOffsets",
+        },
+        path,
+    )
+    if document["schemaVersion"] != 1 or isinstance(document["schemaVersion"], bool):
+        raise ValidationError(f"{path}/schemaVersion: expected 1")
+
+    trainer_rating = document["trainerRating"]
+    _require_exact_keys(
+        trainer_rating, {"projectionCap", "badgeSegments", "sources"}, f"{path}/trainerRating"
+    )
+    projection_cap = _require_int(
+        trainer_rating["projectionCap"],
+        f"{path}/trainerRating/projectionCap",
+        1,
+        MAX_TRAINER_RATING,
+    )
+    regional_facts = _load_regional_facts(regional_facts_path)
+
+    segments = trainer_rating["badgeSegments"]
+    if not isinstance(segments, list) or not segments:
+        raise ValidationError(
+            f"{path}/trainerRating/badgeSegments: expected nonempty list"
+        )
+    badge_segments = []
+    expected_first_badge = 1
+    for index, row in enumerate(segments):
+        location = f"{path}/trainerRating/badgeSegments/{index}"
+        _require_exact_keys(row, {"firstBadgeOrdinal", "badgeCount", "value"}, location)
+        first_badge = _require_int(row["firstBadgeOrdinal"], f"{location}/firstBadgeOrdinal", 1, 255)
+        badge_count = _require_int(row["badgeCount"], f"{location}/badgeCount", 1, 255)
+        value = _require_int(row["value"], f"{location}/value", 1, projection_cap)
+        if first_badge != expected_first_badge:
+            raise ValidationError(
+                f"{location}/firstBadgeOrdinal: badge segments must be contiguous from 1"
+            )
+        if first_badge + badge_count - 1 > 255:
+            raise ValidationError(f"{location}: badge ordinal exceeds 255")
+        expected_first_badge += badge_count
+        badge_segments.append(
+            {
+                "first_badge_ordinal": first_badge,
+                "badge_count": badge_count,
+                "value": value,
+            }
+        )
+
+    sources = trainer_rating["sources"]
+    if not isinstance(sources, list) or not sources:
+        raise ValidationError(f"{path}/trainerRating/sources: expected nonempty list")
+    source_ids = set()
+    normalized_sources = []
+    badge_source_count = 0
+    story_rating = 0
+    for index, row in enumerate(sources):
+        location = f"{path}/trainerRating/sources/{index}"
+        if not isinstance(row, dict):
+            raise ValidationError(f"{location}: expected object")
+        kind = row.get("kind")
+        expected_keys = {"id", "kind"} if kind == "badge" else {"id", "kind", "value"}
+        _require_exact_keys(row, expected_keys, location)
+        source_id = _require_identifier(row["id"], f"{location}/id")
+        if source_id not in regional_facts:
+            raise ValidationError(f"{location}/id: unknown regional fact {source_id}")
+        if source_id in source_ids:
+            raise ValidationError(f"{location}/id: duplicate rating source")
+        source_ids.add(source_id)
+        if kind not in TRAINER_RATING_SOURCE_KINDS:
+            raise ValidationError(f"{location}/kind: expected badge or story")
+        if kind == "badge":
+            badge_source_count += 1
+            value = 0
+        else:
+            value = _require_int(row["value"], f"{location}/value", 1, projection_cap)
+            story_rating += value
+        normalized_sources.append({"id": source_id, "kind": kind, "value": value})
+
+    configured_badges = sum(segment["badge_count"] for segment in badge_segments)
+    if badge_source_count > configured_badges:
+        raise ValidationError(
+            f"{path}/trainerRating/sources: {badge_source_count} badge sources exceed "
+            f"the {configured_badges} configured badge ordinals"
+        )
+    badge_rating = 0
+    remaining_badges = badge_source_count
+    for segment in badge_segments:
+        earned_badges = min(remaining_badges, segment["badge_count"])
+        badge_rating += earned_badges * segment["value"]
+        remaining_badges -= earned_badges
+    maximum_rating = badge_rating + story_rating
+    if maximum_rating > projection_cap:
+        raise ValidationError(
+            f"{path}/trainerRating: configured maximum rating {maximum_rating} "
+            f"exceeds projection cap {projection_cap}"
+        )
+
+    anchors = document["levelAnchors"]
+    if not isinstance(anchors, list) or len(anchors) < 2:
+        raise ValidationError(f"{path}/levelAnchors: expected at least two anchors")
+    normalized_anchors = []
+    previous_rating = None
+    previous_level = None
+    for index, row in enumerate(anchors):
+        location = f"{path}/levelAnchors/{index}"
+        _require_exact_keys(row, {"rating", "level"}, location)
+        rating = _require_int(row["rating"], f"{location}/rating", 0, projection_cap)
+        level = _require_int(row["level"], f"{location}/level", 1, MAX_ORDINARY_WILD_LEVEL)
+        if previous_rating is not None and rating <= previous_rating:
+            raise ValidationError(f"{location}/rating: anchors must be strictly ordered")
+        if previous_level is not None and level <= previous_level:
+            raise ValidationError(f"{location}/level: anchors must rise with rating")
+        previous_rating = rating
+        previous_level = level
+        normalized_anchors.append({"rating": rating, "level": level})
+    if normalized_anchors[0]["rating"] != 0:
+        raise ValidationError(f"{path}/levelAnchors: first anchor must be rating 0")
+    if normalized_anchors[-1]["rating"] != projection_cap:
+        raise ValidationError(
+            f"{path}/levelAnchors: final anchor must equal projection cap {projection_cap}"
+        )
+
+    zone_identity = document["zoneIdentity"]
+    _require_exact_keys(zone_identity, {"opening", "convergence"}, f"{path}/zoneIdentity")
+    normalized_identity = []
+    for name in ("opening", "convergence"):
+        row = zone_identity[name]
+        location = f"{path}/zoneIdentity/{name}"
+        _require_exact_keys(
+            row,
+            {
+                "startRating",
+                "endRating",
+                "startRetentionBasisPoints",
+                "endRetentionBasisPoints",
+                "shape",
+            },
+            location,
+        )
+        start_rating = _require_int(row["startRating"], f"{location}/startRating", 0, projection_cap)
+        end_rating = _require_int(row["endRating"], f"{location}/endRating", 0, projection_cap)
+        if end_rating <= start_rating:
+            raise ValidationError(f"{location}: endRating must follow startRating")
+        start_retention = _require_int(
+            row["startRetentionBasisPoints"],
+            f"{location}/startRetentionBasisPoints",
+            0,
+            10000,
+        )
+        end_retention = _require_int(
+            row["endRetentionBasisPoints"],
+            f"{location}/endRetentionBasisPoints",
+            0,
+            10000,
+        )
+        shape = row["shape"]
+        if shape not in ZONE_IDENTITY_SHAPES:
+            raise ValidationError(
+                f"{location}/shape: expected one of {sorted(ZONE_IDENTITY_SHAPES)}"
+            )
+        normalized_identity.append(
+            {
+                "start_rating": start_rating,
+                "end_rating": end_rating,
+                "start_retention": start_retention,
+                "end_retention": end_retention,
+                "shape": shape,
+            }
+        )
+    if normalized_identity[0]["start_rating"] != 0:
+        raise ValidationError(f"{path}/zoneIdentity/opening: must begin at rating 0")
+    if normalized_identity[-1]["end_rating"] != projection_cap:
+        raise ValidationError(
+            f"{path}/zoneIdentity/convergence: must end at projection cap {projection_cap}"
+        )
+    if normalized_identity[0]["end_rating"] != normalized_identity[1]["start_rating"]:
+        raise ValidationError(f"{path}/zoneIdentity: segments must be contiguous")
+    if normalized_identity[0]["end_retention"] != normalized_identity[1]["start_retention"]:
+        raise ValidationError(f"{path}/zoneIdentity: segment retentions must join")
+
+    points = []
+    anchor_index = 0
+    identity_index = 0
+    for rating in range(projection_cap + 1):
+        while rating > normalized_anchors[anchor_index + 1]["rating"]:
+            anchor_index += 1
+        anchor_start = normalized_anchors[anchor_index]
+        anchor_end = normalized_anchors[anchor_index + 1]
+        anchor_progress = Fraction(
+            rating - anchor_start["rating"],
+            anchor_end["rating"] - anchor_start["rating"],
+        )
+        anchor_level = _round_half_up(
+            _interpolate_fraction(
+                Fraction(anchor_start["level"]),
+                Fraction(anchor_end["level"]),
+                anchor_progress,
+            )
+        )
+        while rating > normalized_identity[identity_index]["end_rating"]:
+            identity_index += 1
+        identity = normalized_identity[identity_index]
+        progress = Fraction(
+            rating - identity["start_rating"],
+            identity["end_rating"] - identity["start_rating"],
+        )
+        if identity["shape"] == "quadraticEaseOut":
+            eased = 1 - (1 - progress) ** 2
+        else:
+            eased = progress**2
+        retention = _interpolate_fraction(
+            Fraction(identity["start_retention"], 10000),
+            Fraction(identity["end_retention"], 10000),
+            eased,
+        )
+        if retention.numerator > 0xFFFF or retention.denominator > 0xFFFF:
+            raise ValidationError(
+                f"{path}/zoneIdentity: retention for rating {rating} does not fit u16"
+            )
+        points.append(
+            {
+                "anchor_level": anchor_level,
+                "retention_numerator": retention.numerator,
+                "retention_denominator": retention.denominator,
+            }
+        )
+
+    return {
+        "projection_cap": projection_cap,
+        "maximum_rating": maximum_rating,
+        "badge_segments": badge_segments,
+        "sources": normalized_sources,
+        "anchors": normalized_anchors,
+        "points": points,
+        "profile_offsets": document["profileOffsets"],
+    }
 
 
 class Config:
@@ -1353,6 +1638,86 @@ def _load_authored_bands(
     return authored
 
 
+def _load_profile_offsets(
+    rows, scaling_path, profiles, encounters, config, time_policy_labels
+):
+    if not isinstance(rows, list):
+        raise ValidationError(f"{scaling_path}/profileOffsets: expected list")
+    profile_by_label = {profile["label"]: profile for profile in profiles}
+    encounter_by_label = {
+        encounter["base_label"]: encounter
+        for group in encounters["wild_encounter_groups"]
+        for encounter in group["encounters"]
+    }
+    runtime_profiles = {
+        profile["label"]: profile
+        for profile in _select_runtime_profiles(profiles, config, time_policy_labels)
+        if profile["group"] == "gWildMonHeaders"
+    }
+    header_indices = _runtime_header_indices(profiles, config, time_policy_labels)
+    offsets = []
+    identities = set()
+    for index, row in enumerate(rows):
+        location = f"{scaling_path}/profileOffsets/{index}"
+        _require_exact_keys(row, {"label", "method", "fishingRod", "levelOffset"}, location)
+        label = _require_identifier(row["label"], f"{location}/label")
+        profile = profile_by_label.get(label)
+        if profile is None or label not in runtime_profiles:
+            raise ValidationError(f"{location}/label: unknown active standard profile")
+        method = row["method"]
+        if method not in config.mon_types or method not in METHOD_AREAS:
+            raise ValidationError(f"{location}/method: unknown encounter method")
+        if method not in encounter_by_label[label]:
+            raise ValidationError(
+                f"{location}/method: profile does not support {method!r}"
+            )
+        fishing_rod = row["fishingRod"]
+        if fishing_rod not in FISHING_RODS:
+            raise ValidationError(f"{location}/fishingRod: unknown rod condition")
+        if method == "fishing_mons":
+            if fishing_rod == "NONE":
+                raise ValidationError(
+                    f"{location}/fishingRod: fishing method requires a rod"
+                )
+        elif fishing_rod != "NONE":
+            raise ValidationError(
+                f"{location}/fishingRod: non-fishing method requires NONE"
+            )
+        level_offset = _require_int(
+            row["levelOffset"],
+            f"{location}/levelOffset",
+            -MAX_PROFILE_LEVEL_OFFSET,
+            MAX_PROFILE_LEVEL_OFFSET,
+        )
+        identity = (
+            header_indices[profile["header"]],
+            METHOD_AREAS[method],
+            _resolve_profile_time(profile, config, time_policy_labels),
+            FISHING_RODS[fishing_rod],
+        )
+        if identity in identities:
+            raise ValidationError(f"{location}: duplicate resolved profile offset")
+        identities.add(identity)
+        offsets.append(
+            {
+                "header_id": identity[0],
+                "area": identity[1],
+                "time_of_day": identity[2],
+                "fishing_rod": identity[3],
+                "level_offset": level_offset,
+            }
+        )
+    offsets.sort(
+        key=lambda offset: (
+            offset["header_id"],
+            offset["area"],
+            offset["time_of_day"],
+            offset["fishing_rod"],
+        )
+    )
+    return offsets
+
+
 class WildEncounterAssembler:
     def __init__(
         self,
@@ -1645,6 +2010,85 @@ def _render_authored_bands(output, authored_profiles):
     output.write("};\n")
 
 
+def _render_scaling(output, scaling, profile_offsets):
+    output.write("\n")
+    output.write("const struct TrainerRatingSource gTrainerRatingSources[] =\n")
+    output.write("{\n")
+    for source in scaling["sources"]:
+        kind = f"TRAINER_RATING_SOURCE_{source['kind'].upper()}"
+        output.write(
+            f"    {{ {source['id']}, {source['value']}, {kind} }},\n"
+        )
+    output.write("};\n")
+    output.write(
+        "const u16 gTrainerRatingSourceCount = "
+        "ARRAY_COUNT(gTrainerRatingSources);\n\n"
+    )
+    output.write("const struct TrainerRatingBadgeSegment gTrainerRatingBadgeSegments[] =\n")
+    output.write("{\n")
+    for segment in scaling["badge_segments"]:
+        output.write(
+            "    { "
+            f"{segment['first_badge_ordinal']}, {segment['badge_count']}, "
+            f"{segment['value']}"
+            " },\n"
+        )
+    output.write("};\n")
+    output.write(
+        "const u16 gTrainerRatingBadgeSegmentCount = "
+        "ARRAY_COUNT(gTrainerRatingBadgeSegments);\n\n"
+    )
+    output.write("const struct WildEncounterScalingBalance gWildEncounterScalingBalance =\n")
+    output.write("{\n")
+    output.write(f"    .projectionCap = {scaling['projection_cap']},\n")
+    output.write(f"    .maximumRating = {scaling['maximum_rating']},\n")
+    output.write("};\n\n")
+    output.write("const struct WildEncounterScalingAnchor gWildEncounterScalingAnchors[] =\n")
+    output.write("{\n")
+    for anchor in scaling["anchors"]:
+        output.write(f"    {{ {anchor['rating']}, {anchor['level']} }},\n")
+    output.write("};\n")
+    output.write(
+        "const u16 gWildEncounterScalingAnchorCount = "
+        "ARRAY_COUNT(gWildEncounterScalingAnchors);\n\n"
+    )
+    output.write("const struct WildEncounterScalingPoint gWildEncounterScalingPoints[] =\n")
+    output.write("{\n")
+    for point in scaling["points"]:
+        output.write(
+            "    { "
+            f"{point['anchor_level']}, {point['retention_numerator']}, "
+            f"{point['retention_denominator']}"
+            " },\n"
+        )
+    output.write("};\n")
+    output.write(
+        "const u16 gWildEncounterScalingPointCount = "
+        "ARRAY_COUNT(gWildEncounterScalingPoints);\n\n"
+    )
+    output.write("const struct WildEncounterProfileOffset gWildEncounterProfileOffsets[] =\n")
+    output.write("{\n")
+    if profile_offsets:
+        for offset in profile_offsets:
+            output.write("    {\n")
+            output.write(f"        .headerId = {offset['header_id']},\n")
+            output.write(f"        .area = {offset['area']},\n")
+            output.write(f"        .timeOfDay = {offset['time_of_day']},\n")
+            output.write(f"        .fishingRod = {offset['fishing_rod']},\n")
+            output.write(f"        .levelOffset = {offset['level_offset']},\n")
+            output.write("    },\n")
+    else:
+        output.write("    { 0 }, // Typed sentinel; count remains zero.\n")
+    output.write("};\n")
+    if profile_offsets:
+        output.write(
+            "const u16 gWildEncounterProfileOffsetCount = "
+            "ARRAY_COUNT(gWildEncounterProfileOffsets);\n"
+        )
+    else:
+        output.write("const u16 gWildEncounterProfileOffsetCount = 0;\n")
+
+
 def render_header(
     encounters,
     config,
@@ -1652,6 +2096,8 @@ def render_header(
     time_policy_labels,
     time_policy_headers,
     authored_profiles,
+    scaling,
+    profile_offsets,
 ):
     output = io.StringIO()
     assembler = WildEncounterAssembler(
@@ -1661,6 +2107,7 @@ def render_header(
     assembler.write_macros()
     assembler.write_encounters()
     _render_authored_bands(output, authored_profiles)
+    _render_scaling(output, scaling, profile_offsets)
     rendered = output.getvalue()
     if PRODUCT_GUARD.search(rendered):
         raise ValidationError("generated output contains a product residency guard")
@@ -1702,6 +2149,7 @@ def generate(
     encounters_path=DEFAULT_ENCOUNTERS,
     registry_path=DEFAULT_REGISTRY,
     bands_path=DEFAULT_BANDS,
+    scaling_path=DEFAULT_SCALING,
     output_path=DEFAULT_OUTPUT,
     config_path=DEFAULT_CONFIG,
     rtc_constants_path=DEFAULT_RTC_CONSTANTS,
@@ -1730,6 +2178,15 @@ def generate(
     authored_profiles = _load_authored_bands(
         bands_path, profiles, encounters, config, species, time_policy_labels
     )
+    scaling = _load_scaling(scaling_path, DEFAULT_REGIONAL_FACTS)
+    profile_offsets = _load_profile_offsets(
+        scaling["profile_offsets"],
+        scaling_path,
+        profiles,
+        encounters,
+        config,
+        time_policy_labels,
+    )
     rendered = render_header(
         encounters,
         config,
@@ -1737,6 +2194,8 @@ def generate(
         time_policy_labels,
         time_policy_headers,
         authored_profiles,
+        scaling,
+        profile_offsets,
     )
     _atomic_write(output_path, rendered)
 
@@ -1748,6 +2207,7 @@ def _arguments():
     parser.add_argument("--encounters", type=Path, default=DEFAULT_ENCOUNTERS)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     parser.add_argument("--bands", type=Path, default=DEFAULT_BANDS)
+    parser.add_argument("--scaling", type=Path, default=DEFAULT_SCALING)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--rtc-constants", type=Path, default=DEFAULT_RTC_CONSTANTS)
@@ -1766,6 +2226,7 @@ def main():
             arguments.encounters,
             arguments.registry,
             arguments.bands,
+            arguments.scaling,
             arguments.output,
             arguments.config,
             arguments.rtc_constants,

@@ -20,6 +20,7 @@
 #include "safari_zone.h"
 #include "script.h"
 #include "tv.h"
+#include "trainer_rating.h"
 #include "wild_encounter.h"
 #include "battle_debug.h"
 #include "battle_pike.h"
@@ -702,69 +703,12 @@ static bool32 IsWildEncounterFishingRodValid(u8 fishingRod)
     return fishingRod == OLD_ROD || fishingRod == GOOD_ROD || fishingRod == SUPER_ROD;
 }
 
-static bool32 IsWildEncounterAuthoredEntryValid(const struct WildEncounterAuthoredEntry *entry)
+static bool32 IsWildEncounterSlotValid(const struct WildEncounterSlot *entry)
 {
     return entry != NULL
         && entry->species != SPECIES_NONE && entry->species < NUM_SPECIES
         && entry->weight != 0 && entry->minLevel != 0
         && entry->minLevel <= entry->maxLevel && entry->maxLevel <= MAX_LEVEL;
-}
-
-static bool32 IsWildEncounterAuthoredBandValid(const struct WildEncounterAuthoredBand *band)
-{
-    u32 totalWeight = 0;
-    u16 i;
-
-    if (band == NULL || band->entries == NULL || band->entryCount == 0
-     || (u32)band->tier >= WORLD_TIER_COUNT || band->totalWeight == 0)
-        return FALSE;
-
-    for (i = 0; i < band->entryCount; i++)
-    {
-        const struct WildEncounterAuthoredEntry *entry = &band->entries[i];
-
-        if (!IsWildEncounterAuthoredEntryValid(entry))
-            return FALSE;
-        totalWeight += entry->weight;
-    }
-
-    return totalWeight == band->totalWeight;
-}
-
-bool32 TryResolveWildEncounterAuthoredBand(const struct WildEncounterAuthoredProfile *profile, enum WorldTier tier, const struct WildEncounterAuthoredBand **band)
-{
-    const struct WildEncounterAuthoredBand *resolved = NULL;
-    u16 i;
-
-    if (profile == NULL || band == NULL || profile->bands == NULL || profile->bandCount == 0
-     || (u32)tier >= WORLD_TIER_COUNT
-     || (profile->missingBandPolicy != WILD_ENCOUNTER_MISSING_BAND_COMPLETE
-      && profile->missingBandPolicy != WILD_ENCOUNTER_MISSING_BAND_FLOOR))
-        return FALSE;
-    if (profile->missingBandPolicy == WILD_ENCOUNTER_MISSING_BAND_COMPLETE
-     && profile->bandCount != WORLD_TIER_COUNT)
-        return FALSE;
-
-    for (i = 0; i < profile->bandCount; i++)
-    {
-        const struct WildEncounterAuthoredBand *candidate = &profile->bands[i];
-
-        if (!IsWildEncounterAuthoredBandValid(candidate)
-         || (profile->missingBandPolicy == WILD_ENCOUNTER_MISSING_BAND_COMPLETE && candidate->tier != i)
-         || (i != 0 && candidate->tier <= profile->bands[i - 1].tier))
-            return FALSE;
-        if (candidate->tier == tier)
-            resolved = candidate;
-        else if (profile->missingBandPolicy == WILD_ENCOUNTER_MISSING_BAND_FLOOR
-              && candidate->tier < tier
-              && (resolved == NULL || candidate->tier > resolved->tier))
-            resolved = candidate;
-    }
-
-    if (resolved == NULL)
-        return FALSE;
-    *band = resolved;
-    return TRUE;
 }
 
 static bool32 TryGetLegacyProfileShape(enum WildPokemonArea area, u8 fishingRod, u16 *startIndex, u16 *entryCount, u16 *totalWeight)
@@ -836,26 +780,19 @@ static u16 GetLegacyProfileEntryWeight(const struct WildEncounterProfileView *vi
     return 0;
 }
 
-static void GetWildEncounterProfileEntryUnchecked(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterAuthoredEntry *entry)
+static void GetWildEncounterProfileEntryUnchecked(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterSlot *entry)
 {
-    if (view->source == WILD_ENCOUNTER_PROFILE_AUTHORED)
-    {
-        *entry = view->authoredEntries[index];
-    }
-    else
-    {
-        const struct WildPokemon *legacyEntry = &view->legacyEntries[view->legacyStartIndex + index];
+    const struct WildPokemon *sourceEntry = &view->entries[view->legacyStartIndex + index];
 
-        entry->species = legacyEntry->species;
-        entry->weight = GetLegacyProfileEntryWeight(view, index);
-        entry->minLevel = min(legacyEntry->minLevel, legacyEntry->maxLevel);
-        entry->maxLevel = max(legacyEntry->minLevel, legacyEntry->maxLevel);
-    }
+    entry->species = sourceEntry->species;
+    entry->weight = GetLegacyProfileEntryWeight(view, index);
+    entry->minLevel = min(sourceEntry->minLevel, sourceEntry->maxLevel);
+    entry->maxLevel = max(sourceEntry->minLevel, sourceEntry->maxLevel);
 }
 
 bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *view)
 {
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
     u32 totalWeight = 0;
     u16 expectedStart;
     u16 expectedCount;
@@ -866,33 +803,23 @@ bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *vi
      || view->totalWeight == 0 || view->entryCount > view->totalWeight
      || (u32)view->area > WILD_AREA_FISHING
      || (view->area == WILD_AREA_FISHING && !IsWildEncounterFishingRodValid(view->fishingRod))
-     || (view->area != WILD_AREA_FISHING && view->fishingRod != WILD_ENCOUNTER_FISHING_ROD_NONE))
+     || (view->area != WILD_AREA_FISHING && view->fishingRod != WILD_ENCOUNTER_FISHING_ROD_NONE)
+     || view->context.area != view->area || view->context.fishingRod != view->fishingRod
+     || (u32)view->context.timeOfDay >= TIMES_OF_DAY_COUNT
+     || view->context.headerId >= sWildEncounterRegistry.count)
         return FALSE;
     if (!TryGetLegacyProfileShape(view->area, view->fishingRod, &expectedStart, &expectedCount, &expectedTotalWeight)
      || view->entryCount > expectedCount)
         return FALSE;
 
-    if (view->source == WILD_ENCOUNTER_PROFILE_AUTHORED)
-    {
-        if (view->authoredEntries == NULL || view->legacyEntries != NULL || view->legacyStartIndex != 0)
-            return FALSE;
-    }
-    else if (view->source == WILD_ENCOUNTER_PROFILE_LEGACY)
-    {
-        if (view->authoredEntries != NULL || view->legacyEntries == NULL
-         || view->legacyStartIndex != expectedStart || view->entryCount != expectedCount
-         || view->totalWeight != expectedTotalWeight)
-            return FALSE;
-    }
-    else
-    {
+    if (view->entries == NULL || view->legacyStartIndex != expectedStart
+     || view->entryCount != expectedCount || view->totalWeight != expectedTotalWeight)
         return FALSE;
-    }
 
     for (i = 0; i < view->entryCount; i++)
     {
         GetWildEncounterProfileEntryUnchecked(view, i, &entry);
-        if (!IsWildEncounterAuthoredEntryValid(&entry))
+        if (!IsWildEncounterSlotValid(&entry))
             return FALSE;
         totalWeight += entry.weight;
     }
@@ -900,20 +827,16 @@ bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *vi
     return totalWeight == view->totalWeight;
 }
 
-bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, enum TimeOfDay timeOfDay, u8 fishingRod, enum WorldTier tier, struct WildEncounterProfileView *view)
+bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, enum TimeOfDay timeOfDay, u8 fishingRod, struct WildEncounterProfileView *view)
 {
-    const struct WildEncounterAuthoredProfile *authoredProfile = NULL;
-    const struct WildEncounterAuthoredBand *band;
     const struct WildPokemonInfo *legacyInfo;
     struct WildEncounterProfileView resolved;
     u16 startIndex;
     u16 entryCount;
     u16 legacyTotalWeight;
-    u16 i;
 
     if (view == NULL || headerId >= sWildEncounterRegistry.count
      || (u32)area > WILD_AREA_HIDDEN || (u32)timeOfDay >= TIMES_OF_DAY_COUNT
-     || (u32)tier >= WORLD_TIER_COUNT
      || (area == WILD_AREA_FISHING && !IsWildEncounterFishingRodValid(fishingRod))
      || (area != WILD_AREA_FISHING && fishingRod != WILD_ENCOUNTER_FISHING_ROD_NONE))
         return FALSE;
@@ -922,47 +845,22 @@ bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, e
     if (legacyInfo == NULL || legacyInfo->wildPokemon == NULL || legacyInfo->encounterRate == 0)
         return FALSE;
 
-    for (i = 0; i < WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT; i++)
+    if (!TryGetLegacyProfileShape(area, fishingRod, &startIndex, &entryCount, &legacyTotalWeight))
+        return FALSE;
+    resolved.context = (struct WildEncounterContext)
     {
-        const struct WildEncounterAuthoredProfile *candidate = &sWildEncounterAuthoredProfiles[i];
-
-        if (candidate->headerId == headerId && candidate->area == area
-         && candidate->timeOfDay == timeOfDay && candidate->fishingRod == fishingRod)
-        {
-            if (authoredProfile != NULL)
-                return FALSE;
-            authoredProfile = candidate;
-        }
-    }
-
-    if (authoredProfile != NULL)
-    {
-        if (!TryResolveWildEncounterAuthoredBand(authoredProfile, tier, &band))
-            return FALSE;
-        resolved.source = WILD_ENCOUNTER_PROFILE_AUTHORED;
-        resolved.area = area;
-        resolved.fishingRod = fishingRod;
-        resolved.encounterRate = legacyInfo->encounterRate;
-        resolved.entryCount = band->entryCount;
-        resolved.totalWeight = band->totalWeight;
-        resolved.legacyStartIndex = 0;
-        resolved.authoredEntries = band->entries;
-        resolved.legacyEntries = NULL;
-    }
-    else
-    {
-        if (!TryGetLegacyProfileShape(area, fishingRod, &startIndex, &entryCount, &legacyTotalWeight))
-            return FALSE;
-        resolved.source = WILD_ENCOUNTER_PROFILE_LEGACY;
-        resolved.area = area;
-        resolved.fishingRod = fishingRod;
-        resolved.encounterRate = legacyInfo->encounterRate;
-        resolved.entryCount = entryCount;
-        resolved.totalWeight = legacyTotalWeight;
-        resolved.legacyStartIndex = startIndex;
-        resolved.authoredEntries = NULL;
-        resolved.legacyEntries = legacyInfo->wildPokemon;
-    }
+        .headerId = headerId,
+        .area = area,
+        .timeOfDay = timeOfDay,
+        .fishingRod = fishingRod,
+    };
+    resolved.area = area;
+    resolved.fishingRod = fishingRod;
+    resolved.encounterRate = legacyInfo->encounterRate;
+    resolved.entryCount = entryCount;
+    resolved.totalWeight = legacyTotalWeight;
+    resolved.legacyStartIndex = startIndex;
+    resolved.entries = legacyInfo->wildPokemon;
 
     if (!IsWildEncounterProfileViewValid(&resolved))
         return FALSE;
@@ -970,9 +868,9 @@ bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, e
     return TRUE;
 }
 
-bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterAuthoredEntry *entry)
+bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterSlot *entry)
 {
-    struct WildEncounterAuthoredEntry resolved;
+    struct WildEncounterSlot resolved;
 
     if (entry == NULL || !IsWildEncounterProfileViewValid(view) || index >= view->entryCount)
         return FALSE;
@@ -981,9 +879,9 @@ bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *vi
     return TRUE;
 }
 
-bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterAuthoredEntry *entry)
+bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterSlot *entry)
 {
-    struct WildEncounterAuthoredEntry candidate;
+    struct WildEncounterSlot candidate;
     u32 totalWeight = 0;
     u16 i;
 
@@ -1004,15 +902,15 @@ bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView 
     return FALSE;
 }
 
-bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterAuthoredEntry *entry, u16 rangeRoll, bool32 lureActive, u8 *level)
+bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterSlot *entry, u16 rangeRoll, bool32 lureActive, u8 *level)
 {
-    struct WildEncounterAuthoredEntry candidate;
+    struct WildEncounterSlot candidate;
     u16 range;
     u16 i;
     u8 resolved;
 
     if (level == NULL || !IsWildEncounterProfileViewValid(view)
-     || !IsWildEncounterAuthoredEntryValid(entry))
+     || !IsWildEncounterSlotValid(entry))
         return FALSE;
 
     for (i = 0; i < view->entryCount; i++)
@@ -1045,6 +943,72 @@ bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, 
     }
 
     *level = resolved;
+    return TRUE;
+}
+
+static s32 DivideRoundSigned(s32 numerator, u16 denominator)
+{
+    if (numerator >= 0)
+        return (numerator + denominator / 2) / denominator;
+    return -((-numerator + denominator / 2) / denominator);
+}
+
+static s8 GetWildEncounterProfileOffset(const struct WildEncounterContext *context)
+{
+    u16 i;
+
+    for (i = 0; i < gWildEncounterProfileOffsetCount; i++)
+    {
+        const struct WildEncounterProfileOffset *offset = &gWildEncounterProfileOffsets[i];
+
+        if (offset->headerId == context->headerId
+         && offset->area == context->area
+         && offset->timeOfDay == context->timeOfDay
+         && offset->fishingRod == context->fishingRod)
+            return offset->levelOffset;
+    }
+    return 0;
+}
+
+bool32 ProjectWildSlotOutcome(enum Species originalSpecies, u8 vanillaLevel, u16 trainerRating, const struct WildEncounterContext *context, struct WildEncounterSlotOutcome *outcome)
+{
+    u16 clampedRating;
+    s32 vanillaDifference;
+    s32 highWaterLevel;
+    s8 profileOffset;
+    u16 rating;
+
+    if (context == NULL || outcome == NULL || originalSpecies == SPECIES_NONE
+     || originalSpecies >= NUM_SPECIES || vanillaLevel == 0 || vanillaLevel > MAX_LEVEL
+     || (u32)context->area > WILD_AREA_FISHING
+     || (u32)context->timeOfDay >= TIMES_OF_DAY_COUNT
+     || (context->area == WILD_AREA_FISHING && !IsWildEncounterFishingRodValid(context->fishingRod))
+     || (context->area != WILD_AREA_FISHING && context->fishingRod != WILD_ENCOUNTER_FISHING_ROD_NONE)
+     || gWildEncounterScalingBalance.projectionCap == 0
+     || gWildEncounterScalingPointCount <= gWildEncounterScalingBalance.projectionCap
+     || gWildEncounterScalingPoints[0].anchorLevel == 0)
+        return FALSE;
+
+    clampedRating = min(trainerRating, gWildEncounterScalingBalance.projectionCap);
+    vanillaDifference = vanillaLevel - gWildEncounterScalingPoints[0].anchorLevel;
+    highWaterLevel = 0;
+    for (rating = 0; rating <= clampedRating; rating++)
+    {
+        const struct WildEncounterScalingPoint *point = &gWildEncounterScalingPoints[rating];
+        s32 rawLevel;
+
+        if (point->anchorLevel == 0 || point->retentionDenominator == 0)
+            return FALSE;
+        rawLevel = point->anchorLevel + DivideRoundSigned(
+            vanillaDifference * point->retentionNumerator,
+            point->retentionDenominator);
+        if (rawLevel > highWaterLevel)
+            highWaterLevel = rawLevel;
+    }
+
+    profileOffset = GetWildEncounterProfileOffset(context);
+    outcome->species = originalSpecies;
+    outcome->level = clamp(highWaterLevel + profileOffset, 1, MAX_LEVEL);
     return TRUE;
 }
 
@@ -1145,7 +1109,7 @@ bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPok
     return TRUE;
 }
 
-static bool8 TrySelectAuthoredEntryByType(const struct WildEncounterProfileView *profile, enum Type type, struct WildEncounterAuthoredEntry *entry)
+static bool8 TrySelectStandardEntryByType(const struct WildEncounterProfileView *profile, enum Type type, struct WildEncounterSlot *entry)
 {
     u16 matchingCount = 0;
     u16 matchingWeight = 0;
@@ -1154,7 +1118,9 @@ static bool8 TrySelectAuthoredEntryByType(const struct WildEncounterProfileView 
 
     for (i = 0; i < profile->entryCount; i++)
     {
-        const struct WildEncounterAuthoredEntry *candidate = &profile->authoredEntries[i];
+        struct WildEncounterSlot candidate;
+
+        GetWildEncounterProfileEntryUnchecked(profile, i, &candidate);
 
         if (GetSpeciesType(candidate->species, 0) == type || GetSpeciesType(candidate->species, 1) == type)
         {
@@ -1169,7 +1135,9 @@ static bool8 TrySelectAuthoredEntryByType(const struct WildEncounterProfileView 
     roll = Random() % matchingWeight;
     for (i = 0; i < profile->entryCount; i++)
     {
-        const struct WildEncounterAuthoredEntry *candidate = &profile->authoredEntries[i];
+        struct WildEncounterSlot candidate;
+
+        GetWildEncounterProfileEntryUnchecked(profile, i, &candidate);
 
         if (GetSpeciesType(candidate->species, 0) != type && GetSpeciesType(candidate->species, 1) != type)
             continue;
@@ -1184,7 +1152,7 @@ static bool8 TrySelectAuthoredEntryByType(const struct WildEncounterProfileView 
     return FALSE;
 }
 
-static bool8 TrySelectAbilityInfluencedAuthoredEntry(const struct WildEncounterProfileView *profile, enum Type type, enum Ability ability, struct WildEncounterAuthoredEntry *entry)
+static bool8 TrySelectAbilityInfluencedStandardEntry(const struct WildEncounterProfileView *profile, enum Type type, enum Ability ability, struct WildEncounterSlot *entry)
 {
     if (GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_SANITY_IS_EGG))
         return FALSE;
@@ -1192,37 +1160,37 @@ static bool8 TrySelectAbilityInfluencedAuthoredEntry(const struct WildEncounterP
         return FALSE;
     if (Random() % 2 != 0)
         return FALSE;
-    return TrySelectAuthoredEntryByType(profile, type, entry);
+    return TrySelectStandardEntryByType(profile, type, entry);
 }
 
-static bool8 TryChooseAuthoredEntry(const struct WildEncounterProfileView *profile, struct WildEncounterAuthoredEntry *entry)
+static bool8 TryChooseStandardEntry(const struct WildEncounterProfileView *profile, struct WildEncounterSlot *entry)
 {
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_STEEL, ABILITY_MAGNET_PULL, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_STEEL, ABILITY_MAGNET_PULL, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_ELECTRIC, ABILITY_STATIC, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_STATIC, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_LIGHTNING_ROD >= GEN_8
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_ELECTRIC, ABILITY_LIGHTNING_ROD, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_LIGHTNING_ROD, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_FLASH_FIRE >= GEN_8
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_FIRE, ABILITY_FLASH_FIRE, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_FIRE, ABILITY_FLASH_FIRE, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_HARVEST >= GEN_8
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_GRASS, ABILITY_HARVEST, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_GRASS, ABILITY_HARVEST, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_STORM_DRAIN >= GEN_8
-     && TrySelectAbilityInfluencedAuthoredEntry(profile, TYPE_WATER, ABILITY_STORM_DRAIN, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_WATER, ABILITY_STORM_DRAIN, entry))
         return TRUE;
     return TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, entry);
 }
 
-static u8 ChooseAuthoredWildMonLevel(const struct WildEncounterProfileView *profile, const struct WildEncounterAuthoredEntry *entry)
+static u8 ChooseStandardWildMonLevel(const struct WildEncounterProfileView *profile, const struct WildEncounterSlot *entry)
 {
     u8 level = entry->minLevel;
     u8 range;
@@ -1254,69 +1222,49 @@ static u8 ChooseAuthoredWildMonLevel(const struct WildEncounterProfileView *prof
 
 bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags)
 {
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 trainerRating;
     u8 level;
 
     if (!IsWildEncounterProfileViewValid(profile))
         return FALSE;
 
-    if (profile->source == WILD_ENCOUNTER_PROFILE_LEGACY)
-    {
-        const struct WildPokemonInfo legacyInfo =
-        {
-            .encounterRate = profile->encounterRate,
-            .wildPokemon = profile->legacyEntries,
-        };
-        return TryGenerateWildMon(&legacyInfo, profile->area, flags);
-    }
-
-    if (!TryChooseAuthoredEntry(profile, &entry))
+    trainerRating = TrainerRating_Get();
+    if (!TryChooseStandardEntry(profile, &entry))
         return FALSE;
-    level = ChooseAuthoredWildMonLevel(profile, &entry);
-    if (flags & WILD_CHECK_REPEL && !IsWildLevelAllowedByRepel(level))
+    level = ChooseStandardWildMonLevel(profile, &entry);
+    if (!ProjectWildSlotOutcome(entry.species, level, trainerRating, &profile->context, &outcome))
+        return FALSE;
+    if (flags & WILD_CHECK_REPEL && !IsWildLevelAllowedByRepel(outcome.level))
         return FALSE;
     if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PIKE_ROOM_WILD_MONS
-     && flags & WILD_CHECK_KEEN_EYE && !IsAbilityAllowingEncounter(level))
+     && flags & WILD_CHECK_KEEN_EYE && !IsAbilityAllowingEncounter(outcome.level))
         return FALSE;
 
-    CreateWildMon(entry.species, level);
+    CreateWildMon(outcome.species, outcome.level);
     return TRUE;
-}
-
-static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo, u8 rod)
-{
-    u8 wildMonIndex = ChooseWildMonIndex_Fishing(rod);
-    enum Species wildMonSpecies = wildMonInfo->wildPokemon[wildMonIndex].species;
-    u8 level = ChooseWildMonLevel(wildMonInfo->wildPokemon, wildMonIndex, WILD_AREA_FISHING);
-
-    UpdateChainFishingStreak();
-    CreateWildMon(wildMonSpecies, level);
-    return wildMonSpecies;
 }
 
 static u16 GenerateFishingWildMonFromProfile(const struct WildEncounterProfileView *profile)
 {
-    struct WildEncounterAuthoredEntry entry;
-    enum Species species;
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 trainerRating;
     u8 level;
 
-    if (profile->source == WILD_ENCOUNTER_PROFILE_LEGACY)
-    {
-        const struct WildPokemonInfo legacyInfo =
-        {
-            .encounterRate = profile->encounterRate,
-            .wildPokemon = profile->legacyEntries,
-        };
-        return GenerateFishingWildMon(&legacyInfo, profile->fishingRod);
-    }
+    if (!IsWildEncounterProfileViewValid(profile))
+        return SPECIES_NONE;
 
+    trainerRating = TrainerRating_Get();
     if (!TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, &entry))
         return SPECIES_NONE;
-    species = entry.species;
-    level = ChooseAuthoredWildMonLevel(profile, &entry);
+    level = ChooseStandardWildMonLevel(profile, &entry);
+    if (!ProjectWildSlotOutcome(entry.species, level, trainerRating, &profile->context, &outcome))
+        return SPECIES_NONE;
     UpdateChainFishingStreak();
-    CreateWildMon(species, level);
-    return species;
+    CreateWildMon(outcome.species, outcome.level);
+    return outcome.species;
 }
 
 bool8 SetUpMassOutbreakEncounter(u8 flags)
@@ -1467,7 +1415,7 @@ bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior)
         {
             timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
 
-            if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+            if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
                 return FALSE;
             else if (prevMetatileBehavior != curMetatileBehavior && !AllowWildCheckOnNewMetatile())
                 return FALSE;
@@ -1518,7 +1466,7 @@ bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior)
 
             if (AreLegendariesInSootopolisPreventingEncounters() == TRUE)
                 return FALSE;
-            else if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+            else if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
                 return FALSE;
             else if (prevMetatileBehavior != curMetatileBehavior && !AllowWildCheckOnNewMetatile())
                 return FALSE;
@@ -1571,7 +1519,7 @@ void RockSmashWildEncounter(void)
     {
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_ROCKS);
 
-        if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_ROCKS, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+        if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_ROCKS, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
         {
             gSpecialVar_Result = FALSE;
         }
@@ -1611,7 +1559,7 @@ static bool8 SweetScentWildEncounterForArea(u32 headerId, enum WildPokemonArea a
         return FALSE;
 
     timeOfDay = GetTimeOfDayForEncounters(headerId, area);
-    if (!TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+    if (!TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
         return FALSE;
 
     if (TryStartRoamerEncounter())
@@ -1696,7 +1644,7 @@ bool8 DoesCurrentMapHaveFishingMons(void)
         return FALSE;
 
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
-    return TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, OLD_ROD, WorldTier_Get(), &profile);
+    return TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, OLD_ROD, &profile);
 }
 
 void FishingWildEncounter(u8 rod)
@@ -1720,7 +1668,7 @@ void FishingWildEncounter(u8 rod)
     {
         headerId = GetCurrentMapWildMonHeaderId();
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
-        if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, rod, WorldTier_Get(), &profile))
+        if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, rod, &profile))
             return;
         species = GenerateFishingWildMonFromProfile(&profile);
         if (species == SPECIES_NONE)
@@ -1734,14 +1682,7 @@ void FishingWildEncounter(u8 rod)
 
 static enum Species ChooseLocalSpeciesFromProfile(const struct WildEncounterProfileView *profile)
 {
-    struct WildEncounterAuthoredEntry entry;
-
-    if (profile->source == WILD_ENCOUNTER_PROFILE_LEGACY)
-    {
-        if (profile->area == WILD_AREA_LAND)
-            return profile->legacyEntries[ChooseWildMonIndex_Land()].species;
-        return profile->legacyEntries[ChooseWildMonIndex_Water()].species;
-    }
+    struct WildEncounterSlot entry;
 
     if (!TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, &entry))
         return SPECIES_NONE;
@@ -1756,19 +1697,17 @@ u16 GetLocalWildMon(bool8 *isWaterMon)
     struct WildEncounterProfileView waterProfile;
     bool32 hasLand;
     bool32 hasWater;
-    enum WorldTier tier;
 
     *isWaterMon = FALSE;
     headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
         return SPECIES_NONE;
 
-    tier = WorldTier_Get();
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
-    hasLand = TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &landProfile);
+    hasLand = TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &landProfile);
 
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
-    hasWater = TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &waterProfile);
+    hasWater = TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &waterProfile);
 
     // Neither
     if (!hasLand && !hasWater)
@@ -1804,7 +1743,7 @@ u16 GetLocalWaterMon(void)
     {
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
 
-        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
             return ChooseLocalSpeciesFromProfile(&profile);
     }
     return SPECIES_NONE;
@@ -1993,7 +1932,7 @@ bool8 StandardWildEncounter_Debug(void)
     enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
     struct WildEncounterProfileView profile;
 
-    if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile)
+    if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
      || TryGenerateWildMonFromProfile(&profile, 0) != TRUE)
         return FALSE;
 
