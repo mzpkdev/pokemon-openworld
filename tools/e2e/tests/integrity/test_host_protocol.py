@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 from tools.e2e.skyemu import (
+    FLASH_BANK_SIZE,
+    FLASH_MEMORY_BASE,
     IntegrityLoadError,
     IntegrityLoadPhase,
     IntegrityLoadStatus,
@@ -8,6 +12,7 @@ from tools.e2e.skyemu import (
     IntegrityMapLoadResult,
     SkyEmuSession,
 )
+from tools.e2e.save_file import SaveImage
 
 
 def result(
@@ -116,6 +121,48 @@ def test_load_state_uses_skyemu_load_endpoint_and_releases_buttons(tmp_path):
 
     assert harness.calls == [("load", [("path", str(state.resolve()))])]
     assert harness.buttons and not any(harness.buttons.values())
+
+
+class FlashExportHarness:
+    def __init__(self, battery_path, image):
+        self.battery_path = battery_path
+        self.image = image
+        self.bank = 0
+        self.writes = []
+
+    def write(self, address, data):
+        self.writes.append((address, data))
+        if address == FLASH_MEMORY_BASE and len(data) == 1:
+            self.bank = data[0]
+
+    def read(self, address, size):
+        assert FLASH_MEMORY_BASE <= address < FLASH_MEMORY_BASE + FLASH_BANK_SIZE
+        offset = address - FLASH_MEMORY_BASE
+        start = self.bank * FLASH_BANK_SIZE + offset
+        return self.image[start : start + size]
+
+    def battery_snapshot_for_wait(self):
+        return SaveImage.from_path(self.battery_path)
+
+
+def test_flash_export_reads_each_flash1m_bank_and_restores_bank_zero(tmp_path):
+    source = Path(__file__).parents[2] / "fixtures" / "hoenn_continue.sav"
+    image = source.read_bytes()
+    harness = FlashExportHarness(tmp_path / "game.sav", image)
+
+    exported = SkyEmuSession.export_battery(harness)
+
+    assert harness.battery_path.read_bytes() == image
+    assert exported.data == image
+    assert exported.active_slot.counter == 1
+    assert harness.bank == 0
+    assert [
+        data for address, data in harness.writes if address == FLASH_MEMORY_BASE
+    ] == [
+        b"\x00",
+        b"\x01",
+        b"\x00",
+    ]
 
 
 class SavedVarHarness:

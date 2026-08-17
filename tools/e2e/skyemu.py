@@ -35,7 +35,11 @@ SETTINGS_THEME_OFFSET = 8
 SETTINGS_VERSION_OFFSET = 12
 CUSTOM_THEME = 3
 SETTINGS_VERSION = 3
-
+FLASH_MEMORY_BASE = 0x0E000000
+FLASH_BANK_SIZE = 64 * 1024
+FLASH_EXPORT_READ_SIZE = 128
+FLASH_COMMAND_1_OFFSET = 0x5555
+FLASH_COMMAND_2_OFFSET = 0x2AAA
 INTEGRITY_REQUEST_STATUS_OFFSET = 14
 INTEGRITY_REQUEST_SIZE = 16
 INTEGRITY_RESULT_SIZE = 12
@@ -715,6 +719,37 @@ class SkyEmuSession:
         result = self._text("save", [("path", str(output.resolve()))])
         if result != "ok":
             raise RuntimeError(f"SkyEmu save failed: {result}")
+
+    def _select_flash_bank(self, bank: int) -> None:
+        if bank not in (0, 1):
+            raise ValueError(f"FLASH1M bank must be 0 or 1, got {bank}")
+        self.write(FLASH_MEMORY_BASE + FLASH_COMMAND_1_OFFSET, b"\xaa")
+        self.write(FLASH_MEMORY_BASE + FLASH_COMMAND_2_OFFSET, b"\x55")
+        self.write(FLASH_MEMORY_BASE + FLASH_COMMAND_1_OFFSET, b"\xb0")
+        self.write(FLASH_MEMORY_BASE, bytes((bank,)))
+
+    def export_battery(self) -> SaveImage:
+        """Persist both FLASH1M banks through SkyEmu's cartridge memory API."""
+        banks = []
+        try:
+            for bank in range(2):
+                SkyEmuSession._select_flash_bank(self, bank)
+                banks.append(
+                    b"".join(
+                        self.read(
+                            FLASH_MEMORY_BASE + offset,
+                            min(FLASH_EXPORT_READ_SIZE, FLASH_BANK_SIZE - offset),
+                        )
+                        for offset in range(0, FLASH_BANK_SIZE, FLASH_EXPORT_READ_SIZE)
+                    )
+                )
+        finally:
+            SkyEmuSession._select_flash_bank(self, 0)
+        image = b"".join(banks)
+        if len(image) != FLASH_SIZE:
+            raise AssertionError("FLASH1M export size drifted")
+        self.battery_path.write_bytes(image)
+        return self.battery_snapshot_for_wait()
 
     def load_state(self, state: Path) -> None:
         if not state.is_file():

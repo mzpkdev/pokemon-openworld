@@ -89,7 +89,9 @@ def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(
     assert snapshot != bytes(GENERATED_DUNGEON_RECORD_SIZE)
     runtime_snapshot = _generated_runtime_snapshot(game)
 
-    saved = save_from_start_menu(game, max_pulses=1_200, release_frames=2)
+    saved = save_from_start_menu(
+        game, max_pulses=1_200, release_frames=2, persist_to_disk=True
+    )
     assert (
         saved.active_slot.save_block1[
             GENERATED_DUNGEON_RECORD_OFFSET : GENERATED_DUNGEON_RECORD_OFFSET
