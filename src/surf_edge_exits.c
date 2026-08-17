@@ -3,6 +3,7 @@
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
 #include "fieldmap.h"
+#include "generated_ocean.h"
 #include "metatile_behavior.h"
 #include "overworld.h"
 #include "surf_edge_exits.h"
@@ -66,6 +67,20 @@ const struct SurfEdgeExit *SurfEdgeExit_Select(
     return NULL;
 }
 
+u8 SurfEdgeRouteProfile_Select(u16 sourceMap, u8 exitEdge)
+{
+    u16 i;
+
+    for (i = 0; i < gSurfEdgeRouteProfileCount; i++)
+    {
+        if (gSurfEdgeRouteProfiles[i].sourceMap == sourceMap
+         && gSurfEdgeRouteProfiles[i].exitEdge == exitEdge)
+            return gSurfEdgeRouteProfiles[i].profile;
+    }
+
+    return SURF_EDGE_ROUTE_PROFILE_NONE;
+}
+
 bool8 TryStartSurfEdgeExit(enum Direction direction, enum Collision collision)
 {
     struct ObjectEvent *playerObjEvent = &gObjectEvents[gPlayerAvatar.objectEventId];
@@ -93,6 +108,10 @@ bool8 TryStartSurfEdgeExit(enum Direction direction, enum Collision collision)
     exit = SurfEdgeExit_Select(&attempt, gSurfEdgeExits, gSurfEdgeExitCount);
     if (exit == NULL)
         return FALSE;
+
+    if (SurfEdgeRouteProfile_Select(exit->sourceMap, exit->exitEdge)
+        == SURF_EDGE_ROUTE_PROFILE_GENERATED_OCEAN)
+        return GeneratedOcean_TryBegin(exit);
 
     StoreInitialPlayerAvatarState();
     SetWarpDestination(

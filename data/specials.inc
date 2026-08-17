@@ -641,3 +641,5 @@ gSpecials::
 	def_special CheckAddCoins
 	def_special EnterKantoSafariMode
 	def_special GetSafariZoneFacility
+	def_special GeneratedOcean_DepartToOrigin
+	def_special GeneratedOcean_DepartToDestination

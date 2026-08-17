@@ -120,6 +120,7 @@ class SourceGraphTests(unittest.TestCase):
                     "targetX": 20,
                     "targetY": 59,
                     "targetFacing": "north",
+                    "routeProfile": "generated_ocean",
                 }
             ]
         }

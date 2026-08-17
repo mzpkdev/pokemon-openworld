@@ -23,6 +23,7 @@
 #include "tv.h"
 #include "trainer_see.h"
 #include "field_message_box.h"
+#include "generated_ocean.h"
 #include "sound.h"
 #include "strings.h"
 #include "trainer_hill.h"
@@ -1461,6 +1462,13 @@ bool8 GetTrainerFlag(void)
         return GetBattlePyramidTrainerFlag(gSelectedObjectEvent);
     else if (InTrainerHill())
         return GetHillTrainerFlag(gSelectedObjectEvent);
+    else if (GeneratedOcean_IsActive())
+    {
+        if (gSelectedObjectEvent >= OBJECT_EVENTS_COUNT
+         || !GeneratedOcean_GetTrainerDefeated(gObjectEvents[gSelectedObjectEvent].localId, &defeated))
+            return FALSE;
+        return defeated;
+    }
     else if (PersistentId_GetTrainerDefeated(TRAINER_BATTLE_PARAM.opponentA, &defeated))
         return defeated;
     else
@@ -1469,6 +1477,13 @@ bool8 GetTrainerFlag(void)
 
 static void SetBattledTrainersFlags(void)
 {
+    if (GeneratedOcean_IsActive())
+    {
+        if (gSelectedObjectEvent < OBJECT_EVENTS_COUNT)
+            (void)GeneratedOcean_SetTrainerDefeated(gObjectEvents[gSelectedObjectEvent].localId);
+        return;
+    }
+
     if (TRAINER_BATTLE_PARAM.opponentB != TRAINER_NONE && TRAINER_BATTLE_PARAM.opponentB != 0xFFFF)
         PersistentId_SetTrainerDefeated(TRAINER_BATTLE_PARAM.opponentB);
     PersistentId_SetTrainerDefeated(TRAINER_BATTLE_PARAM.opponentA);
@@ -1690,7 +1705,8 @@ static void CB2_EndTrainerBattle(void)
         DowngradeBadPoison();
         if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE && !InTrainerHillChallenge())
         {
-            RegisterTrainerInMatchCall();
+            if (!GeneratedOcean_IsActive())
+                RegisterTrainerInMatchCall();
             SetBattledTrainersFlags();
         }
     }
@@ -1710,9 +1726,16 @@ static void CB2_EndRematchBattle(void)
     else
     {
         SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
-        RegisterTrainerInMatchCall();
-        SetBattledTrainersFlags();
-        HandleRematchVarsOnBattleEnd();
+        if (GeneratedOcean_IsActive())
+        {
+            SetBattledTrainersFlags();
+        }
+        else
+        {
+            RegisterTrainerInMatchCall();
+            SetBattledTrainersFlags();
+            HandleRematchVarsOnBattleEnd();
+        }
         DowngradeBadPoison();
     }
 }

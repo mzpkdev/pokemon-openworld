@@ -1918,6 +1918,8 @@ struct SurfEdgeExitRecord
     int exitEdgeValue;
     string targetFacing;
     int targetFacingValue;
+    string routeProfile;
+    int routeProfileValue;
 };
 
 struct SurfEdgeMapIdentity
@@ -1946,6 +1948,19 @@ static string surf_edge_direction_constant(const string &direction)
     if (direction == "west") return "DIR_WEST";
     if (direction == "east") return "DIR_EAST";
     FATAL_ERROR("unknown Surf edge direction '%s'\n", direction.c_str());
+}
+
+static int surf_edge_route_profile_value(const string &profile)
+{
+    if (profile.empty()) return 0;
+    if (profile == "generated_ocean") return 1;
+    return -1;
+}
+
+static string surf_edge_route_profile_constant(const string &profile)
+{
+    if (profile == "generated_ocean") return "SURF_EDGE_ROUTE_PROFILE_GENERATED_OCEAN";
+    FATAL_ERROR("unknown Surf edge route profile '%s'\n", profile.c_str());
 }
 
 static string connection_edge_name(const string &direction)
@@ -2029,6 +2044,9 @@ static vector<SurfEdgeExitRecord> normalize_surf_edge_exits(
     const set<string> requiredFields = {
         "exit_edge", "target_map", "target_x", "target_y", "target_facing"
     };
+    const set<string> profiledFields = {
+        "exit_edge", "target_map", "target_x", "target_y", "target_facing", "route_profile"
+    };
     for (const auto &[sourceName, mapData] : mapsByName) {
         const bool hasDeclarations = mapData.object_items().find("edge_exits")
                                   != mapData.object_items().end();
@@ -2047,8 +2065,8 @@ static vector<SurfEdgeExitRecord> normalize_surf_edge_exits(
             set<string> actualFields;
             for (const auto &[field, unused] : declaration.object_items())
                 actualFields.insert(field);
-            require_product_registry(actualFields == requiredFields,
-                                     "map '" + sourceName + "' Surf edge exit must contain exactly exit_edge, target_map, target_x, target_y, and target_facing");
+            require_product_registry(actualFields == requiredFields || actualFields == profiledFields,
+                                     "map '" + sourceName + "' Surf edge exit must contain exactly exit_edge, target_map, target_x, target_y, target_facing, and optional route_profile");
 
             require_product_registry(declaration["exit_edge"].type() == Json::Type::STRING,
                                      "map '" + sourceName + "' Surf edge exit field 'exit_edge' must be a string");
@@ -2056,6 +2074,15 @@ static vector<SurfEdgeExitRecord> normalize_surf_edge_exits(
                                      "map '" + sourceName + "' Surf edge exit field 'target_map' must be a string");
             require_product_registry(declaration["target_facing"].type() == Json::Type::STRING,
                                      "map '" + sourceName + "' Surf edge exit field 'target_facing' must be a string");
+            require_product_registry(actualFields != profiledFields
+                                  || declaration["route_profile"].type() == Json::Type::STRING,
+                                     "map '" + sourceName + "' Surf edge exit field 'route_profile' must be a string");
+            const string routeProfile = actualFields == profiledFields
+                                      ? json_to_string(declaration, "route_profile")
+                                      : "";
+            const int routeProfileValue = surf_edge_route_profile_value(routeProfile);
+            require_product_registry(routeProfileValue >= 0,
+                                     "map '" + sourceName + "' Surf edge exit has invalid route profile '" + routeProfile + "'");
             const string edge = declaration["exit_edge"].string_value();
             const string targetId = declaration["target_map"].string_value();
             const string facing = declaration["target_facing"].string_value();
@@ -2100,7 +2127,7 @@ static vector<SurfEdgeExitRecord> normalize_surf_edge_exits(
                 records.push_back({
                     source->second.name, source->second.id, source->second.group, source->second.number,
                     target->second.name, target->second.id, target->second.group, target->second.number,
-                    x, y, edge, edgeValue, facing, facingValue,
+                    x, y, edge, edgeValue, facing, facingValue, routeProfile, routeProfileValue,
                 });
             }
         }
@@ -2133,6 +2160,21 @@ static void write_surf_edge_exit_registry(const std::filesystem::path &staging,
         }
     }
     text << "};\n\nconst u16 gSurfEdgeExitCount = " << records.size() << ";\n";
+    text << "\nconst struct SurfEdgeRouteProfile gSurfEdgeRouteProfiles[] =\n{\n";
+    bool wroteProfile = false;
+    size_t profileCount = 0;
+    for (const SurfEdgeExitRecord &record : records) {
+        if (record.routeProfileValue != 0) {
+            text << "    { " << record.sourceId << ", "
+                 << surf_edge_direction_constant(record.exitEdge) << ", "
+                 << surf_edge_route_profile_constant(record.routeProfile) << " },\n";
+            wroteProfile = true;
+            profileCount++;
+        }
+    }
+    if (!wroteProfile)
+        text << "    {0},\n";
+    text << "};\n\nconst u16 gSurfEdgeRouteProfileCount = " << profileCount << ";\n";
     write_text_file(output.string(), text.str());
 }
 
@@ -2416,6 +2458,8 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
     required_symbols.insert("gMapSectionRegistry");
     required_symbols.insert("gSurfEdgeExits");
     required_symbols.insert("gSurfEdgeExitCount");
+    required_symbols.insert("gSurfEdgeRouteProfiles");
+    required_symbols.insert("gSurfEdgeRouteProfileCount");
 
     Json::array surf_edge_exit_records;
     for (const SurfEdgeExitRecord &exit : surfEdgeExits) {
@@ -2439,12 +2483,29 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         });
     }
 
+    Json::array surf_edge_route_profile_records;
+    for (const SurfEdgeExitRecord &exit : surfEdgeExits) {
+        if (exit.routeProfileValue != 0) {
+            surf_edge_route_profile_records.push_back(Json::object {
+                {"sourceName", exit.sourceName},
+                {"sourceId", exit.sourceId},
+                {"sourceMapValue", exit.sourceNumber | (exit.sourceGroup << 8)},
+                {"sourceGroup", exit.sourceGroup},
+                {"sourceNumber", exit.sourceNumber},
+                {"exitEdge", exit.exitEdge},
+                {"exitEdgeValue", exit.exitEdgeValue},
+                {"profile", exit.routeProfile},
+                {"profileValue", exit.routeProfileValue},
+            });
+        }
+    }
+
     Json::array symbol_records;
     for (const string &symbol : required_symbols)
         symbol_records.push_back(Json::object {{"name", symbol}, {"kind", "rom"}});
 
     const Json manifest = Json::object {
-        {"schemaVersion", 3},
+        {"schemaVersion", 4},
         {"product", Json::object {
             {"gameVersion", "EMERALD"},
             {"mapVersion", MapBuildModeName(policy.mode)},
@@ -2457,6 +2518,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             {"reviewedMaps", static_cast<int>(map_filepaths.size())},
             {"layouts", included_layout_count},
             {"edgeExits", static_cast<int>(surfEdgeExits.size())},
+            {"edgeRouteProfiles", static_cast<int>(surf_edge_route_profile_records.size())},
             {"regions", Json::object {
                 {"REGION_HOENN", region_counts["REGION_HOENN"]},
                 {"REGION_KANTO", region_counts["REGION_KANTO"]},
@@ -2496,6 +2558,10 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
                 {"targetYOffset", 6}, {"exitEdgeOffset", 8},
                 {"targetFacingOffset", 9},
             }},
+            {"surfEdgeRouteProfile", Json::object {
+                {"size", 4}, {"alignment", 2}, {"sourceMapOffset", 0},
+                {"exitEdgeOffset", 2}, {"profileOffset", 3},
+            }},
         }},
         {"countSentinels", Json::object {
             {"groups", Json::object {{"start", "gMapGroups"}, {"end", "gMapGroupsEnd"},
@@ -2508,6 +2574,10 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
                                          {"countSymbol", "gSurfEdgeExitCount"},
                                          {"count", static_cast<int>(surfEdgeExits.size())},
                                          {"stride", 10}}},
+            {"edgeRouteProfiles", Json::object {{"registry", "gSurfEdgeRouteProfiles"},
+                                                  {"countSymbol", "gSurfEdgeRouteProfileCount"},
+                                                  {"count", static_cast<int>(surf_edge_route_profile_records.size())},
+                                                  {"stride", 4}}},
         }},
         {"codecs", Json::object {
             {"sectionToSavedLocation", sectionRegistry.sectionToSaved},
@@ -2517,6 +2587,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         }},
         {"mapSectionMetadata", section_metadata_records},
         {"edgeExits", surf_edge_exit_records},
+        {"edgeRouteProfiles", surf_edge_route_profile_records},
         {"exclusions", exclusion_records},
         {"groups", group_records},
         {"maps", map_records},

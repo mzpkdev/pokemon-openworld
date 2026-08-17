@@ -6749,7 +6749,8 @@
       "targetMap": "MAP_ROUTE19",
       "targetX": 20,
       "targetY": 59,
-      "targetFacing": "north"
+      "targetFacing": "north",
+      "routeProfile": "generated_ocean"
     }
   ],
   "generatedSections": [

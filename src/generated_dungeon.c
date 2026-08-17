@@ -7,6 +7,8 @@
 
 extern const struct MapHeader *const *const gMapGroups[];
 
+static struct GeneratedDungeonProvider sRuntimeRegistry[GENERATED_DUNGEON_MAX_PROVIDERS];
+static u16 sRuntimeRegistryCount;
 static const struct GeneratedDungeonProvider *sRegistry;
 static u16 sRegistryCount;
 
@@ -102,6 +104,33 @@ bool32 GeneratedDungeon_ValidateRegistry(const struct GeneratedDungeonProvider *
     }
 
     return TRUE;
+}
+
+static bool32 AppendRuntimeProviders(const struct GeneratedDungeonProvider *providers, u16 count)
+{
+    u16 previousCount;
+    u16 newCount;
+
+    if (!GeneratedDungeon_ValidateRegistry(providers, count)
+     || count > GENERATED_DUNGEON_MAX_PROVIDERS - sRuntimeRegistryCount
+     || (sRegistry != NULL && sRegistry != sRuntimeRegistry))
+        return FALSE;
+
+    previousCount = sRuntimeRegistryCount;
+    newCount = previousCount + count;
+    memcpy(&sRuntimeRegistry[previousCount], providers, sizeof(*providers) * count);
+    if (!GeneratedDungeon_ValidateRegistry(sRuntimeRegistry, newCount))
+        return FALSE;
+
+    sRuntimeRegistryCount = newCount;
+    sRegistry = sRuntimeRegistry;
+    sRegistryCount = sRuntimeRegistryCount;
+    return TRUE;
+}
+
+bool32 GeneratedDungeon_RegisterProviders(const struct GeneratedDungeonProvider *providers, u16 count)
+{
+    return AppendRuntimeProviders(providers, count);
 }
 
 bool32 GeneratedDungeon_FindProviderByMap(u8 mapGroup, u8 mapNum, const struct GeneratedDungeonProvider **provider)
@@ -620,8 +649,8 @@ bool32 GeneratedDungeon_TestSetRegistry(const struct GeneratedDungeonProvider *p
 
 void GeneratedDungeon_TestResetRegistry(void)
 {
-    sRegistry = NULL;
-    sRegistryCount = 0;
+    sRegistry = sRuntimeRegistryCount != 0 ? sRuntimeRegistry : NULL;
+    sRegistryCount = sRuntimeRegistryCount;
 }
 #endif
 
@@ -634,5 +663,10 @@ bool32 GeneratedDungeon_DebugSetRegistry(const struct GeneratedDungeonProvider *
     sRegistry = providers;
     sRegistryCount = count;
     return TRUE;
+}
+
+bool32 GeneratedDungeon_DebugRegisterProviders(const struct GeneratedDungeonProvider *providers, u16 count)
+{
+    return AppendRuntimeProviders(providers, count);
 }
 #endif

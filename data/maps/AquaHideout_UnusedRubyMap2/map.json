@@ -2,20 +2,39 @@
   "id": "MAP_AQUA_HIDEOUT_UNUSED_RUBY_MAP2",
   "name": "AquaHideout_UnusedRubyMap2",
   "layout": "LAYOUT_AQUA_HIDEOUT_UNUSED_RUBY_MAP2",
-  "music": "MUS_AQUA_MAGMA_HIDEOUT",
+  "music": "MUS_ROUTE119",
   "region": "REGION_HOENN",
-  "region_map_section": "MAPSEC_AQUA_HIDEOUT",
+  "region_map_section": "MAPSEC_DYNAMIC",
   "requires_flash": false,
-  "weather": "WEATHER_NONE",
-  "map_type": "MAP_TYPE_UNDERGROUND",
-  "allow_cycling": true,
-  "allow_escaping": true,
+  "weather": "WEATHER_SUNNY",
+  "map_type": "MAP_TYPE_OCEAN_ROUTE",
+  "allow_cycling": false,
+  "allow_escaping": false,
   "allow_running": true,
-  "show_map_name": true,
-  "battle_scene": "MAP_BATTLE_SCENE_MAGMA",
+  "show_map_name": false,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
   "connections": null,
   "object_events": [],
   "warp_events": [],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 1,
+      "y": 12,
+      "elevation": 0,
+      "var": "VAR_TEMP_E",
+      "var_value": "0",
+      "script": "GeneratedOcean_EventScript_DepartToOrigin"
+    },
+    {
+      "type": "trigger",
+      "x": 60,
+      "y": 12,
+      "elevation": 0,
+      "var": "VAR_TEMP_F",
+      "var_value": "0",
+      "script": "GeneratedOcean_EventScript_DepartToDestination"
+    }
+  ],
   "bg_events": []
 }

@@ -597,11 +597,12 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         "targetX",
         "targetY",
         "targetFacing",
+        "routeProfile",
     }
     for item, item_pointer in _policy_records(
         document, "surfEdgeExits", pointer, surf_exit_fields
     ):
-        for field in ("map", "exitEdge", "targetMap", "targetFacing"):
+        for field in ("map", "exitEdge", "targetMap", "targetFacing", "routeProfile"):
             _string(item[field], f"{item_pointer}.{field}")
         if item["exitEdge"] not in {"north", "south", "west", "east"}:
             raise ContentPortError(
@@ -614,6 +615,10 @@ def _validate_adaptation_policy(value: object, pointer: str) -> None:
         if not item["targetMap"].startswith("MAP_"):
             raise ContentPortError(
                 f"{item_pointer}.targetMap: expected a MAP_ target identifier"
+            )
+        if item["routeProfile"] != "generated_ocean":
+            raise ContentPortError(
+                f"{item_pointer}.routeProfile: unsupported Surf edge route profile"
             )
         for field in ("targetX", "targetY"):
             coordinate = _integer(item[field], f"{item_pointer}.{field}")

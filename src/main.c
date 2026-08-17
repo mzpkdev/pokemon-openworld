@@ -24,6 +24,7 @@
 #include "main.h"
 #include "trainer_hill.h"
 #include "test_runner.h"
+#include "generated_ocean.h"
 #include "constants/rgb.h"
 #ifdef DEBUG
 #include "integrity_map_load.h"
@@ -121,6 +122,8 @@ void AgbMain(void)
     ResetBgs();
     SetDefaultFontsPointer();
     InitHeap(gHeap, HEAP_SIZE);
+
+    GeneratedOcean_Init();
 
 #ifdef DEBUG
     DebugGeneratedDungeonFixture_Init();

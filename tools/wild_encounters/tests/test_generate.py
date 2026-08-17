@@ -546,13 +546,13 @@ class WildEncounterGenerationTests(unittest.TestCase):
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()
         profiles = self.registry["profiles"]
-        self.assertEqual(len(profiles), 546)
+        self.assertEqual(len(profiles), 547)
         self.assertEqual(
             {
                 residency: sum(row[3] == residency for row in profiles)
                 for residency in generator.RESIDENCIES
             },
-            {"hoenn": 135, "kanto": 132, "sevii": 132, "johto": 147},
+            {"hoenn": 136, "kanto": 132, "sevii": 132, "johto": 147},
         )
         self.assertIsNone(generator.PRODUCT_GUARD.search(output))
         self.assertEqual(output.count("const struct WildPokemonHeader "), 3)

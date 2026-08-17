@@ -44,20 +44,20 @@ PROFILE_FIELDS = (
 )
 FALLBACK_TIME_ROLE = "TIME_FALLBACK"
 RESIDENCIES = {"hoenn", "kanto", "sevii", "johto"}
-REVIEWED_PROFILE_COUNT = 546
+REVIEWED_PROFILE_COUNT = 547
 REVIEWED_RESIDENCY_COUNTS = {
-    "hoenn": 135,
+    "hoenn": 136,
     "kanto": 132,
     "sevii": 132,
     "johto": 147,
 }
 # SHA-256 of compact JSON containing every PROFILE_FIELDS value in registry order.
 REVIEWED_ORDERED_PROFILE_SHA256 = (
-    "d41fbb466a76038891cfe452a11b29a2d4b5b6e557fbe97d7e12b5019e0ab45c"
+    "be359a0f716d3710d7ab9ded8b04eeed90040c446bf95c491783c9c80f79a683"
 )
 # Deliberately revised only when authenticated authored encounter content changes.
 REVIEWED_AUTHORED_CONTRACT_SHA256 = (
-    "5fc4952b3ae5e1ce6f9ab0782b35054a486654b1a21c18c5895ca241717f4325"
+    "a4645b254cfd3721f535ce983ee7a778bea9747b1215e9522b5b09321263d4bc"
 )
 NON_MAP_RESIDENCY = {
     "gBattlePyramidWildMonHeaders": "hoenn",

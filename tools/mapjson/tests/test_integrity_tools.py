@@ -34,6 +34,7 @@ from tools.integrity.validate_artifact import (
     validate_map_headers,
     validate_section_metadata,
     validate_surf_edge_exits,
+    validate_surf_edge_route_profiles,
 )
 
 
@@ -513,6 +514,47 @@ class IntegrityToolTests(unittest.TestCase):
         rom[9] = 1
         with self.assertRaisesRegex(ValidationError, "not zero-filled"):
             validate_surf_edge_exits(rom, manifest, symbols, ROM_BASE + len(rom))
+
+    def test_linked_surf_edge_route_profiles_decode_and_require_zero_sentinel(self) -> None:
+        rom = bytearray(0x60)
+        symbols = {
+            "gSurfEdgeRouteProfiles": ROM_BASE,
+            "gSurfEdgeRouteProfileCount": ROM_BASE + 0x40,
+        }
+        struct.pack_into("<HBB", rom, 0, 0x0102, 4, 1)
+        struct.pack_into("<H", rom, 0x40, 1)
+        manifest = {
+            "abis": {"surfEdgeRouteProfile": EXPECTED_ABIS["surfEdgeRouteProfile"]},
+            "countSentinels": {
+                "edgeRouteProfiles": {
+                    "registry": "gSurfEdgeRouteProfiles",
+                    "countSymbol": "gSurfEdgeRouteProfileCount",
+                    "count": 1,
+                }
+            },
+            "edgeRouteProfiles": [
+                {"sourceMapValue": 0x0102, "exitEdgeValue": 4, "profileValue": 1}
+            ],
+        }
+        self.assertEqual(
+            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom)),
+            {"count": 1, "bytes": 4},
+        )
+        rom[3] = 0
+        with self.assertRaisesRegex(ValidationError, "profileValue"):
+            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom))
+
+        manifest["edgeRouteProfiles"] = []
+        manifest["countSentinels"]["edgeRouteProfiles"]["count"] = 0
+        struct.pack_into("<H", rom, 0x40, 0)
+        rom[:4] = bytes(4)
+        self.assertEqual(
+            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom)),
+            {"count": 0, "bytes": 4},
+        )
+        rom[3] = 1
+        with self.assertRaisesRegex(ValidationError, "not zero-filled"):
+            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom))
 
     def test_purpose_conditional_save_abi_drift_is_rejected(self) -> None:
         contract = json.loads(SAVE_CONTRACT.read_text())
