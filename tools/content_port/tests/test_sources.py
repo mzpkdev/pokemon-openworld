@@ -1612,7 +1612,7 @@ class SourceGraphTests(unittest.TestCase):
             overlay_target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(overlay_script, overlay_target)
             self.assertEqual(
-                validate_port_sources(descriptor, target).inventory["tilesets"], 71
+                validate_port_sources(descriptor, target).inventory["tilesets"], 72
             )
             new_bark = target / "data/maps/NewBarkTown/map.json"
             original_new_bark = new_bark.read_bytes()
