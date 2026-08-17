@@ -1517,12 +1517,23 @@ class SourceGraphTests(unittest.TestCase):
                 ContentPortError, "preserved target map NewBarkTown is unavailable"
             ):
                 validate_port_sources(descriptor, target)
+            for relative in (
+                Path("data/maps/map_groups.json"),
+                Path("data/layouts/layouts.json"),
+            ):
+                target_path = target / relative
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(relative, target_path)
+            for source_map in Path("data/maps").glob("*/map.json"):
+                target_map = target / source_map
+                target_map.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_map, target_map)
             for name, ownership in descriptor.map_ownership.items():
                 if ownership != "preserve":
                     continue
                 source_map = Path("data/maps") / name / "map.json"
                 target_map = target / source_map
-                target_map.parent.mkdir(parents=True)
+                target_map.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source_map, target_map)
             for name in sorted(
                 {
