@@ -103,6 +103,15 @@ struct WildEncounterProfileOffset
     s8 levelOffset;
 };
 
+struct WildEncounterSpeciesMetadata
+{
+    enum Species species;
+    u8 minimumOrdinaryWildLevel;
+    enum Species predecessorSpecies;
+    u8 predecessorLevel;
+    bool8 hasAlternateNonLevelRoute;
+};
+
 extern const struct WildEncounterScalingBalance gWildEncounterScalingBalance;
 extern const struct WildEncounterScalingAnchor gWildEncounterScalingAnchors[];
 extern const u16 gWildEncounterScalingAnchorCount;
@@ -110,6 +119,8 @@ extern const struct WildEncounterScalingPoint gWildEncounterScalingPoints[];
 extern const u16 gWildEncounterScalingPointCount;
 extern const struct WildEncounterProfileOffset gWildEncounterProfileOffsets[];
 extern const u16 gWildEncounterProfileOffsetCount;
+extern const struct WildEncounterSpeciesMetadata gWildEncounterSpeciesMetadata[];
+extern const u16 gWildEncounterSpeciesMetadataCount;
 
 struct WildEncounterProfileView
 {
@@ -179,6 +190,10 @@ bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *vi
 bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterSlot *entry);
 bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterSlot *entry, u16 rangeRoll, bool32 lureActive, u8 *level);
 bool32 ProjectWildSlotOutcome(enum Species originalSpecies, u8 vanillaLevel, u16 trainerRating, const struct WildEncounterContext *context, struct WildEncounterSlotOutcome *outcome);
+bool32 TryProjectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, u8 vanillaLevel, u16 trainerRating, struct WildEncounterSlotOutcome *outcome);
+bool32 IsWildEncounterProfileEntryEligible(const struct WildEncounterProfileView *view, u16 index, u16 trainerRating);
+u16 GetWildEncounterProfileEligibleWeight(const struct WildEncounterProfileView *view, u16 trainerRating);
+bool32 TrySelectWildEncounterEligibleEntry(const struct WildEncounterProfileView *view, u16 trainerRating, u16 weightedRoll, struct WildEncounterSlot *entry);
 bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags);
 bool8 CheckFeebasAtCoords(s16 x, s16 y);
 u32 ChooseWildMonIndex_Land(void);

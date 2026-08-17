@@ -131,7 +131,7 @@ static void SetAreaHasMon(u16, u16);
 static void SetSpecialMapHasMon(u16, u16);
 static MapSectionId GetRegionMapSectionId(u8, u8);
 static bool8 MapHasSpecies(u16, enum TimeOfDay, MapSectionId, enum Species);
-static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *, enum Species);
+static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *, enum Species, u16);
 static void DoAreaGlow(void);
 static void Task_ShowPokedexAreaScreen(u8 taskId);
 static void Task_UpdatePokedexAreaScreen(u8 taskId);
@@ -446,8 +446,8 @@ static MapSectionId GetRegionMapSectionId(u8 mapGroup, u8 mapNum)
 static bool8 MapHasSpecies(u16 headerId, enum TimeOfDay timeOfDay, MapSectionId headerSectionId, enum Species species)
 {
     struct WildEncounterProfileView profile;
-    enum WorldTier tier = WorldTier_Get();
     static const u8 sFishingRods[] = { OLD_ROD, GOOD_ROD, SUPER_ROD };
+    u16 trainerRating = TrainerRating_Get();
     u16 i;
 
     // If this is a header for Altering Cave, skip it if it's not the current Altering Cave encounter set
@@ -464,20 +464,20 @@ static bool8 MapHasSpecies(u16 headerId, enum TimeOfDay timeOfDay, MapSectionId 
             return FALSE;
     }
 
-    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
-     && ProfileHasSpecies(&profile, species))
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
+     && ProfileHasSpecies(&profile, species, trainerRating))
         return TRUE;
-    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
-     && ProfileHasSpecies(&profile, species))
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
+     && ProfileHasSpecies(&profile, species, trainerRating))
         return TRUE;
     for (i = 0; i < ARRAY_COUNT(sFishingRods); i++)
     {
-        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, sFishingRods[i], tier, &profile)
-         && ProfileHasSpecies(&profile, species))
+        if (TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, sFishingRods[i], &profile)
+         && ProfileHasSpecies(&profile, species, trainerRating))
             return TRUE;
     }
-    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_ROCKS, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, tier, &profile)
-     && ProfileHasSpecies(&profile, species))
+    if (TryResolveWildEncounterProfile(headerId, WILD_AREA_ROCKS, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
+     && ProfileHasSpecies(&profile, species, trainerRating))
         return TRUE;
     return FALSE;
 }
@@ -495,15 +495,26 @@ bool8 PokedexArea_MapHasSpeciesForTesting(u8 mapGroup, u8 mapNum, enum TimeOfDay
 }
 #endif
 
-static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *profile, enum Species species)
+static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *profile, enum Species species, u16 trainerRating)
 {
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
     u16 i;
 
     for (i = 0; i < profile->entryCount; i++)
     {
-        if (TryGetWildEncounterProfileEntry(profile, i, &entry) && entry.species == species)
-            return TRUE;
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, i, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            struct WildEncounterSlotOutcome outcome;
+
+            if (TryProjectWildEncounterProfileEntry(profile, i, vanillaLevel, trainerRating, &outcome)
+             && outcome.species == species)
+                return TRUE;
+        }
     }
     return FALSE;
 }

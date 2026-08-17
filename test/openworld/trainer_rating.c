@@ -40,10 +40,6 @@ static const u16 sLegacyBadgeFlags[] =
     FLAG_BADGE08_GET,
 };
 
-static EWRAM_DATA struct SaveBlock1 sOriginalSaveBlock1;
-static EWRAM_DATA struct SaveBlock2 sOriginalSaveBlock2;
-static EWRAM_DATA struct SaveBlock3 sOriginalSaveBlock3;
-
 static void ClearTrainerRatingFacts(void)
 {
     for (u32 i = 0; i < ARRAY_COUNT(sTrainerRatingBadgeFacts); i++)
@@ -95,13 +91,17 @@ TEST("Trainer Rating story sources add to badge progress without legacy badge al
 
 TEST("Trainer Rating queries are idempotent and do not mutate save state")
 {
+    bool8 badgeStates[ARRAY_COUNT(sTrainerRatingBadgeFacts)];
+    bool8 legacyBadgeStates[ARRAY_COUNT(sLegacyBadgeFlags)];
+
     ClearTrainerRatingFacts();
     FlagSet(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
     FlagSet(FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE);
     FlagSet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
-    memcpy(&sOriginalSaveBlock1, gSaveBlock1Ptr, sizeof(sOriginalSaveBlock1));
-    memcpy(&sOriginalSaveBlock2, gSaveBlock2Ptr, sizeof(sOriginalSaveBlock2));
-    memcpy(&sOriginalSaveBlock3, gSaveBlock3Ptr, sizeof(sOriginalSaveBlock3));
+    for (u32 i = 0; i < ARRAY_COUNT(sTrainerRatingBadgeFacts); i++)
+        badgeStates[i] = FlagGet(sTrainerRatingBadgeFacts[i]);
+    for (u32 i = 0; i < ARRAY_COUNT(sLegacyBadgeFlags); i++)
+        legacyBadgeStates[i] = FlagGet(sLegacyBadgeFlags[i]);
 
     EXPECT_EQ(TrainerRating_GetBadge(), 6);
     EXPECT_EQ(TrainerRating_GetStory(), 1);
@@ -110,7 +110,9 @@ TEST("Trainer Rating queries are idempotent and do not mutate save state")
     EXPECT_EQ(TrainerRating_GetStory(), 1);
     EXPECT_EQ(TrainerRating_Get(), 7);
 
-    EXPECT_EQ(memcmp(&sOriginalSaveBlock1, gSaveBlock1Ptr, sizeof(sOriginalSaveBlock1)), 0);
-    EXPECT_EQ(memcmp(&sOriginalSaveBlock2, gSaveBlock2Ptr, sizeof(sOriginalSaveBlock2)), 0);
-    EXPECT_EQ(memcmp(&sOriginalSaveBlock3, gSaveBlock3Ptr, sizeof(sOriginalSaveBlock3)), 0);
+    for (u32 i = 0; i < ARRAY_COUNT(sTrainerRatingBadgeFacts); i++)
+        EXPECT_EQ(FlagGet(sTrainerRatingBadgeFacts[i]), badgeStates[i]);
+    for (u32 i = 0; i < ARRAY_COUNT(sLegacyBadgeFlags); i++)
+        EXPECT_EQ(FlagGet(sLegacyBadgeFlags[i]), legacyBadgeStates[i]);
+    EXPECT(FlagGet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED));
 }

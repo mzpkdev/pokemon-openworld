@@ -297,7 +297,6 @@ class PinnedDonorTests(unittest.TestCase):
         production_paths = {
             "encounters": Path("src/data/wild_encounters.json"),
             "registry": Path("src/data/wild_encounter_registry.json"),
-            "bands": Path("src/data/wild_encounter_bands.json"),
             "timePolicies": Path("src/data/wild_encounter_time_policies.json"),
         }
         production = {
@@ -319,7 +318,6 @@ class PinnedDonorTests(unittest.TestCase):
             fallbacks,
             production["encounters"],
             production["registry"],
-            production["bands"],
             map_ids,
             donor_document,
         )

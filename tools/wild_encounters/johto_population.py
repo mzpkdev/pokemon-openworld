@@ -24,7 +24,6 @@ DEFAULT_ECOLOGY = PORT_ROOT / "encounter_ecology.json"
 DEFAULT_FALLBACKS = PORT_ROOT / "encounter_fallbacks.json"
 DEFAULT_ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 DEFAULT_REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
-DEFAULT_BANDS = ROOT / "src/data/wild_encounter_bands.json"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 DEFAULT_MAPS_ROOT = ROOT / "data/maps"
 
@@ -58,7 +57,6 @@ CLASSIFICATION_COUNTS = {
     "encounter-free": 147,
 }
 JOHTO_PROFILE_COUNT = 147
-NON_JOHTO_BAND_COUNT = 9
 ROUTE39_LABELS = {"gRoute39", "gRoute39_Night"}
 REVIEWED_METHOD_TIME_FALLBACKS = {
     ("RuinsOfAlph_Outside", "rock_smash_mons", "night", "day"),
@@ -456,31 +454,6 @@ def _profile(label, map_id, source, location):
     return encounter, {method["name"] for method in methods}
 
 
-def _non_johto_bands(bands, registry):
-    _exact(bands, {"schema_version", "profiles"}, "bands")
-    if bands["schema_version"] != 1 or not isinstance(bands["profiles"], list):
-        raise ProjectionError("bands: unsupported schema")
-    profiles_by_label = {}
-    for index, row in enumerate(registry.get("profiles", [])):
-        if not isinstance(row, list) or len(row) < 4 or row[1] in profiles_by_label:
-            raise ProjectionError(f"registry/profiles/{index}: invalid band authority")
-        profiles_by_label[row[1]] = row
-    retained = []
-    for index, row in enumerate(bands["profiles"]):
-        label = row.get("label") if isinstance(row, dict) else None
-        authority = profiles_by_label.get(label)
-        if authority is None:
-            raise ProjectionError(f"bands/profiles/{index}: unknown registry profile")
-        if authority[3] != "johto":
-            retained.append(copy.deepcopy(row))
-    if len(retained) != NON_JOHTO_BAND_COUNT:
-        raise ProjectionError(
-            f"bands: expected {NON_JOHTO_BAND_COUNT} non-Johto proof rows, "
-            f"found {len(retained)}"
-        )
-    return {"schema_version": 1, "profiles": retained}
-
-
 def _complete_time_pair_methods(map_name, profiles):
     """Apply the exact reviewed same-map fallback matrix for asymmetric methods."""
     by_condition = {profile["condition"]: profile for profile in profiles}
@@ -525,11 +498,10 @@ def project_documents(
     fallbacks,
     encounters,
     registry,
-    bands,
     map_ids,
     ecology_source,
 ):
-    """Return the four projected documents without mutating any input."""
+    """Return the three projected documents without mutating any input."""
     try:
         validate_fallback_document(fallbacks)
     except ContentPortError as error:
@@ -713,8 +685,6 @@ def project_documents(
             f"found {len(johto_profiles)}"
         )
 
-    output_bands = _non_johto_bands(bands, registry)
-
     typed = []
     policies = []
     for name, day_label, night_label, habitat in pair_info:
@@ -794,7 +764,7 @@ def project_documents(
             )
         ],
     }
-    return output_encounters, output_registry, output_bands, time_policies
+    return output_encounters, output_registry, time_policies
 
 
 def _map_ids(classification, maps_root):
@@ -854,7 +824,6 @@ def main(argv=None):
     parser.add_argument("--fallbacks", type=Path, default=DEFAULT_FALLBACKS)
     parser.add_argument("--encounters", type=Path, default=DEFAULT_ENCOUNTERS)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
-    parser.add_argument("--bands", type=Path, default=DEFAULT_BANDS)
     parser.add_argument("--time-policies", type=Path, default=DEFAULT_TIME_POLICIES)
     parser.add_argument("--maps-root", type=Path, default=DEFAULT_MAPS_ROOT)
     parser.add_argument("--ecology-source", type=Path, default=DEFAULT_ECOLOGY_SOURCE)
@@ -875,11 +844,10 @@ def main(argv=None):
         fallbacks,
         encounters,
         _load(args.registry),
-        _load(args.bands),
         _map_ids(classification, args.maps_root),
         ecology_source,
     )
-    paths = (args.encounters, args.registry, args.bands, args.time_policies)
+    paths = (args.encounters, args.registry, args.time_policies)
     mismatches = check_or_write(dict(zip(paths, projected)), write=args.write)
     if mismatches and not args.write:
         for path in mismatches:

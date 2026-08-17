@@ -1469,6 +1469,7 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
     u8 min = MAX_LEVEL;
     u8 max = 0;
     u16 i;
+    u16 trainerRating = TrainerRating_Get();
 
     if (headerId == HEADER_NONE)
         return MON_LEVEL_NONEXISTENT;
@@ -1480,17 +1481,29 @@ static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType 
     {
         enum WildPokemonArea area = environment == ENCOUNTER_TYPE_LAND ? WILD_AREA_LAND : WILD_AREA_WATER;
         struct WildEncounterProfileView profile;
-        struct WildEncounterAuthoredEntry entry;
+        struct WildEncounterSlot entry;
 
         if (!TryResolveDexNavProfile(headerId, area, &profile))
             return MON_LEVEL_NONEXISTENT; //Hidden Pokémon should only appear on walkable tiles or surf tiles
 
         for (i = 0; i < profile.entryCount; i++)
         {
-            if (TryGetWildEncounterProfileEntry(&profile, i, &entry) && entry.species == species)
+            u16 vanillaLevel;
+
+            if (!TryGetWildEncounterProfileEntry(&profile, i, &entry)
+             || !IsWildEncounterProfileEntryEligible(&profile, i, trainerRating))
+                continue;
+            for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
             {
-                min = (min < entry.minLevel) ? min : entry.minLevel;
-                max = (max > entry.maxLevel) ? max : entry.maxLevel;
+                struct WildEncounterSlotOutcome outcome;
+
+                if (TryProjectWildEncounterProfileEntry(
+                    &profile, i, vanillaLevel, trainerRating, &outcome)
+                 && outcome.species == species)
+                {
+                    min = (min < outcome.level) ? min : outcome.level;
+                    max = (max > outcome.level) ? max : outcome.level;
+                }
             }
         }
         break;
@@ -1538,21 +1551,22 @@ static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, s
 {
     enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, area);
 
-    return TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), profile);
+    return TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, profile);
 }
 
 static enum Species SelectDexNavProfileSpecies(const struct WildEncounterProfileView *profile)
 {
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 trainerRating = TrainerRating_Get();
+    u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
 
-    if (profile->source == WILD_ENCOUNTER_PROFILE_LEGACY)
-    {
-        if (profile->area == WILD_AREA_LAND)
-            return profile->legacyEntries[ChooseWildMonIndex_Land()].species;
-        return profile->legacyEntries[ChooseWildMonIndex_Water()].species;
-    }
-    if (TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, &entry))
-        return entry.species;
+    // Hidden encounters deliberately remain on their separate data path. Standard
+    // DexNav encounters use the same eligible population as ordinary encounters.
+    if (eligibleWeight != 0
+     && TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry)
+     && ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile->context, &outcome))
+        return outcome.species;
     return SPECIES_NONE;
 }
 
@@ -1702,29 +1716,37 @@ static void CreateNoDataIcon(s16 x, s16 y)
 
 static bool8 CapturedAllLandMons(u32 headerId)
 {
-    u16 i, species;
-    int count = 0;
+    u16 i;
+    u16 trainerRating = TrainerRating_Get();
+    bool8 hasSpecies = FALSE;
     struct WildEncounterProfileView profile;
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
 
     if (TryResolveDexNavProfile(headerId, WILD_AREA_LAND, &profile))
     {
         for (i = 0; i < profile.entryCount; ++i)
         {
-            if (!TryGetWildEncounterProfileEntry(&profile, i, &entry))
-                break;
-            species = entry.species;
-            if (species != SPECIES_NONE)
-            {
-                if (!GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_CAUGHT))
-                    break;
+            u16 vanillaLevel;
 
-                count++;
+            if (!TryGetWildEncounterProfileEntry(&profile, i, &entry)
+             || !IsWildEncounterProfileEntryEligible(&profile, i, trainerRating))
+                continue;
+            for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+            {
+                struct WildEncounterSlotOutcome outcome;
+
+                if (!TryProjectWildEncounterProfileEntry(
+                    &profile, i, vanillaLevel, trainerRating, &outcome)
+                 || outcome.species == SPECIES_NONE)
+                    continue;
+                hasSpecies = TRUE;
+                if (!GetSetPokedexFlag(
+                    SpeciesToNationalPokedexNum(outcome.species), FLAG_GET_CAUGHT))
+                    return FALSE;
             }
         }
 
-        if (i >= profile.entryCount && count > 0) //All land mons caught
-            return TRUE;
+        return hasSpecies;
     }
     else
     {
@@ -1738,28 +1760,36 @@ static bool8 CapturedAllLandMons(u32 headerId)
 static bool8 CapturedAllWaterMons(u32 headerId)
 {
     u32 i;
-    enum Species species;
-    u8 count = 0;
+    u16 trainerRating = TrainerRating_Get();
+    bool8 hasSpecies = FALSE;
     struct WildEncounterProfileView profile;
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
 
     if (TryResolveDexNavProfile(headerId, WILD_AREA_WATER, &profile))
     {
         for (i = 0; i < profile.entryCount; ++i)
         {
-            if (!TryGetWildEncounterProfileEntry(&profile, i, &entry))
-                break;
-            species = entry.species;
-            if (species != SPECIES_NONE)
+            u16 vanillaLevel;
+
+            if (!TryGetWildEncounterProfileEntry(&profile, i, &entry)
+             || !IsWildEncounterProfileEntryEligible(&profile, i, trainerRating))
+                continue;
+            for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
             {
-                count++;
-                if (!GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_CAUGHT))
-                    break;
+                struct WildEncounterSlotOutcome outcome;
+
+                if (!TryProjectWildEncounterProfileEntry(
+                    &profile, i, vanillaLevel, trainerRating, &outcome)
+                 || outcome.species == SPECIES_NONE)
+                    continue;
+                hasSpecies = TRUE;
+                if (!GetSetPokedexFlag(
+                    SpeciesToNationalPokedexNum(outcome.species), FLAG_GET_CAUGHT))
+                    return FALSE;
             }
         }
 
-        if (i >= profile.entryCount && count > 0)
-            return TRUE;
+        return hasSpecies;
     }
     else
     {
@@ -1922,7 +1952,8 @@ static void DexNavLoadEncounterData(void)
     u32 headerId = GetCurrentMapWildMonHeaderId();
     struct WildEncounterProfileView landProfile;
     struct WildEncounterProfileView waterProfile;
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
+    u16 trainerRating = TrainerRating_Get();
 
     if (headerId == HEADER_NONE)
         return;
@@ -1942,11 +1973,23 @@ static void DexNavLoadEncounterData(void)
     {
         for (i = 0; i < landProfile.entryCount; i++)
         {
-            if (!TryGetWildEncounterProfileEntry(&landProfile, i, &entry))
+            u16 vanillaLevel;
+
+            if (!TryGetWildEncounterProfileEntry(&landProfile, i, &entry)
+             || !IsWildEncounterProfileEntryEligible(&landProfile, i, trainerRating))
                 continue;
-            species = entry.species;
-            if (species != SPECIES_NONE && !SpeciesInArray(species, 0) && grassIndex < ARRAY_COUNT(sDexNavUiDataPtr->landSpecies))
-                sDexNavUiDataPtr->landSpecies[grassIndex++] = species;
+            for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+            {
+                struct WildEncounterSlotOutcome outcome;
+
+                if (!TryProjectWildEncounterProfileEntry(
+                    &landProfile, i, vanillaLevel, trainerRating, &outcome))
+                    continue;
+                species = outcome.species;
+                if (species != SPECIES_NONE && !SpeciesInArray(species, 0)
+                 && grassIndex < ARRAY_COUNT(sDexNavUiDataPtr->landSpecies))
+                    sDexNavUiDataPtr->landSpecies[grassIndex++] = species;
+            }
         }
     }
 
@@ -1955,11 +1998,23 @@ static void DexNavLoadEncounterData(void)
     {
         for (i = 0; i < waterProfile.entryCount; i++)
         {
-            if (!TryGetWildEncounterProfileEntry(&waterProfile, i, &entry))
+            u16 vanillaLevel;
+
+            if (!TryGetWildEncounterProfileEntry(&waterProfile, i, &entry)
+             || !IsWildEncounterProfileEntryEligible(&waterProfile, i, trainerRating))
                 continue;
-            species = entry.species;
-            if (species != SPECIES_NONE && !SpeciesInArray(species, 1) && waterIndex < ARRAY_COUNT(sDexNavUiDataPtr->waterSpecies))
-                sDexNavUiDataPtr->waterSpecies[waterIndex++] = species;
+            for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+            {
+                struct WildEncounterSlotOutcome outcome;
+
+                if (!TryProjectWildEncounterProfileEntry(
+                    &waterProfile, i, vanillaLevel, trainerRating, &outcome))
+                    continue;
+                species = outcome.species;
+                if (species != SPECIES_NONE && !SpeciesInArray(species, 1)
+                 && waterIndex < ARRAY_COUNT(sDexNavUiDataPtr->waterSpecies))
+                    sDexNavUiDataPtr->waterSpecies[waterIndex++] = species;
+            }
         }
     }
 

@@ -3,8 +3,8 @@
 #ifdef DEBUG
 
 #include "debug_wild_encounter_probe.h"
+#include "trainer_rating.h"
 #include "wild_encounter.h"
-#include "world_tier.h"
 
 struct DebugWildEncounterProbeRequest gWildEncounterProbeRequest;
 struct DebugWildEncounterProbeResult gWildEncounterProbeResult;
@@ -33,9 +33,9 @@ void DebugWildEncounterProbe_Update(void)
 {
     struct DebugWildEncounterProbeRequest request;
     struct WildEncounterProfileView profile;
-    struct WildEncounterAuthoredEntry entry;
+    struct WildEncounterSlot entry;
     enum TimeOfDay timeOfDay;
-    enum WorldTier tier;
+    u16 trainerRating;
     u16 headerId;
 
     if (gWildEncounterProbeRequest.status != DEBUG_WILD_ENCOUNTER_PROBE_PENDING)
@@ -57,9 +57,9 @@ void DebugWildEncounterProbe_Update(void)
         return;
     }
 
-    tier = WorldTier_Get();
+    trainerRating = TrainerRating_Get();
     timeOfDay = GetTimeOfDayForEncounters(headerId, request.area);
-    if (!TryResolveWildEncounterProfile(headerId, request.area, timeOfDay, request.fishingRod, tier, &profile))
+    if (!TryResolveWildEncounterProfile(headerId, request.area, timeOfDay, request.fishingRod, &profile))
     {
         PublishError(&request, DEBUG_WILD_ENCOUNTER_PROBE_ERROR_PROFILE);
         return;
@@ -81,8 +81,7 @@ void DebugWildEncounterProbe_Update(void)
         .weight = entry.weight,
         .area = request.area,
         .fishingRod = request.fishingRod,
-        .tier = tier,
-        .source = profile.source,
+        .trainerRating = trainerRating,
         .minLevel = entry.minLevel,
         .maxLevel = entry.maxLevel,
         .error = DEBUG_WILD_ENCOUNTER_PROBE_ERROR_NONE,

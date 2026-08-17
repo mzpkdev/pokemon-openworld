@@ -379,58 +379,6 @@ u32 ChooseWildMonIndex_Rocks(void)
     return wildMonIndex;
 }
 
-// NUM_FISHING_MONS_ENCOUNTER_SLOTS
-static u32 ChooseWildMonIndex_Fishing(u8 rod)
-{
-    u8 wildMonIndex = 0;
-    bool8 swap = FALSE;
-    u8 rand = Random() % max(max(ENCOUNTER_CHANCE_FISHING_MONS_OLD_ROD_TOTAL, ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_TOTAL),
-                             ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_TOTAL);
-
-    if (LURE_STEP_COUNT != 0 && (Random() % 10 < 2))
-        swap = TRUE;
-
-    switch (rod)
-    {
-    case OLD_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_OLD_ROD_SLOT_0)
-            wildMonIndex = 0;
-        else
-            wildMonIndex = 1;
-
-        if (swap)
-            wildMonIndex = 1 - wildMonIndex;
-        break;
-    case GOOD_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_2)
-            wildMonIndex = 2;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_2 && rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_3)
-            wildMonIndex = 3;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_3 && rand < ENCOUNTER_CHANCE_FISHING_MONS_GOOD_ROD_SLOT_4)
-            wildMonIndex = 4;
-
-        if (swap)
-            wildMonIndex = 6 - wildMonIndex;
-        break;
-    case SUPER_ROD:
-        if (rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_5)
-            wildMonIndex = 5;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_5 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_6)
-            wildMonIndex = 6;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_6 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_7)
-            wildMonIndex = 7;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_7 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_8)
-            wildMonIndex = 8;
-        if (rand >= ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_8 && rand < ENCOUNTER_CHANCE_FISHING_MONS_SUPER_ROD_SLOT_9)
-            wildMonIndex = 9;
-
-        if (swap)
-            wildMonIndex = 14 - wildMonIndex;
-        break;
-    }
-    return wildMonIndex;
-}
-
 u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, enum WildPokemonArea area)
 {
     u8 min;
@@ -970,6 +918,50 @@ static s8 GetWildEncounterProfileOffset(const struct WildEncounterContext *conte
     return 0;
 }
 
+static const struct WildEncounterSpeciesMetadata *GetWildEncounterSpeciesMetadata(enum Species species)
+{
+    u16 i;
+
+    for (i = 0; i < gWildEncounterSpeciesMetadataCount; i++)
+    {
+        const struct WildEncounterSpeciesMetadata *metadata = &gWildEncounterSpeciesMetadata[i];
+
+        if (metadata->species == species)
+            return metadata;
+    }
+    return NULL;
+}
+
+static enum Species ResolveWildEncounterEffectiveSpecies(enum Species originalSpecies, u8 vanillaLevel, u8 scaledLevel)
+{
+    enum Species species = originalSpecies;
+    u16 steps;
+
+    // The generated predecessor graph is cycle-checked. Retain a runtime
+    // bound so malformed generated data cannot trap an encounter path.
+    for (steps = 0; steps < gWildEncounterSpeciesMetadataCount; steps++)
+    {
+        const struct WildEncounterSpeciesMetadata *metadata = GetWildEncounterSpeciesMetadata(species);
+
+        if (metadata == NULL || metadata->predecessorSpecies == SPECIES_NONE
+         || metadata->predecessorLevel == 0 || metadata->hasAlternateNonLevelRoute
+         || vanillaLevel < metadata->predecessorLevel
+         || scaledLevel >= metadata->predecessorLevel)
+            break;
+        species = metadata->predecessorSpecies;
+    }
+    return species;
+}
+
+static u8 GetMinimumOrdinaryWildLevel(enum Species species)
+{
+    const struct WildEncounterSpeciesMetadata *metadata = GetWildEncounterSpeciesMetadata(species);
+
+    if (metadata == NULL)
+        return 1;
+    return metadata->minimumOrdinaryWildLevel;
+}
+
 bool32 ProjectWildSlotOutcome(enum Species originalSpecies, u8 vanillaLevel, u16 trainerRating, const struct WildEncounterContext *context, struct WildEncounterSlotOutcome *outcome)
 {
     u16 clampedRating;
@@ -1007,9 +999,84 @@ bool32 ProjectWildSlotOutcome(enum Species originalSpecies, u8 vanillaLevel, u16
     }
 
     profileOffset = GetWildEncounterProfileOffset(context);
-    outcome->species = originalSpecies;
-    outcome->level = clamp(highWaterLevel + profileOffset, 1, MAX_LEVEL);
+    outcome->level = min(max(highWaterLevel + profileOffset, 1), MAX_LEVEL);
+    outcome->species = ResolveWildEncounterEffectiveSpecies(originalSpecies, vanillaLevel, outcome->level);
     return TRUE;
+}
+
+bool32 TryProjectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, u8 vanillaLevel, u16 trainerRating, struct WildEncounterSlotOutcome *outcome)
+{
+    struct WildEncounterSlot entry;
+
+    if (outcome == NULL || !TryGetWildEncounterProfileEntry(view, index, &entry)
+     || vanillaLevel < entry.minLevel || vanillaLevel > entry.maxLevel)
+        return FALSE;
+    return ProjectWildSlotOutcome(entry.species, vanillaLevel, trainerRating, &view->context, outcome);
+}
+
+bool32 IsWildEncounterProfileEntryEligible(const struct WildEncounterProfileView *view, u16 index, u16 trainerRating)
+{
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 level;
+
+    if (!TryGetWildEncounterProfileEntry(view, index, &entry))
+        return FALSE;
+
+    for (level = entry.minLevel; level <= entry.maxLevel; level++)
+    {
+        if (!TryProjectWildEncounterProfileEntry(view, index, level, trainerRating, &outcome)
+         || outcome.level < GetMinimumOrdinaryWildLevel(outcome.species))
+            return FALSE;
+    }
+    return TRUE;
+}
+
+u16 GetWildEncounterProfileEligibleWeight(const struct WildEncounterProfileView *view, u16 trainerRating)
+{
+    struct WildEncounterSlot entry;
+    u32 totalWeight = 0;
+    u16 i;
+
+    if (!IsWildEncounterProfileViewValid(view))
+        return 0;
+
+    for (i = 0; i < view->entryCount; i++)
+    {
+        GetWildEncounterProfileEntryUnchecked(view, i, &entry);
+        if (IsWildEncounterProfileEntryEligible(view, i, trainerRating))
+            totalWeight += entry.weight;
+    }
+    if (totalWeight > 0xFFFF)
+        return 0;
+    return totalWeight;
+}
+
+bool32 TrySelectWildEncounterEligibleEntry(const struct WildEncounterProfileView *view, u16 trainerRating, u16 weightedRoll, struct WildEncounterSlot *entry)
+{
+    struct WildEncounterSlot candidate;
+    u16 totalWeight;
+    u16 i;
+
+    if (entry == NULL || !IsWildEncounterProfileViewValid(view))
+        return FALSE;
+    totalWeight = GetWildEncounterProfileEligibleWeight(view, trainerRating);
+    if (totalWeight == 0 || weightedRoll >= totalWeight)
+        return FALSE;
+
+    for (i = 0; i < view->entryCount; i++)
+    {
+        GetWildEncounterProfileEntryUnchecked(view, i, &candidate);
+        if (!IsWildEncounterProfileEntryEligible(view, i, trainerRating))
+            continue;
+        if (weightedRoll < candidate.weight)
+        {
+            *entry = candidate;
+            return TRUE;
+        }
+        weightedRoll -= candidate.weight;
+    }
+    return FALSE;
 }
 
 static u8 PickWildMonNature(enum Species species)
@@ -1109,9 +1176,10 @@ bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPok
     return TRUE;
 }
 
-static bool8 TrySelectStandardEntryByType(const struct WildEncounterProfileView *profile, enum Type type, struct WildEncounterSlot *entry)
+static bool8 TrySelectStandardEntryByType(const struct WildEncounterProfileView *profile, enum Type type, u16 trainerRating, struct WildEncounterSlot *entry)
 {
     u16 matchingCount = 0;
+    u16 eligibleCount = 0;
     u16 matchingWeight = 0;
     u16 roll;
     u16 i;
@@ -1121,15 +1189,18 @@ static bool8 TrySelectStandardEntryByType(const struct WildEncounterProfileView 
         struct WildEncounterSlot candidate;
 
         GetWildEncounterProfileEntryUnchecked(profile, i, &candidate);
+        if (!IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
+            continue;
+        eligibleCount++;
 
-        if (GetSpeciesType(candidate->species, 0) == type || GetSpeciesType(candidate->species, 1) == type)
+        if (GetSpeciesType(candidate.species, 0) == type || GetSpeciesType(candidate.species, 1) == type)
         {
             matchingCount++;
-            matchingWeight += candidate->weight;
+            matchingWeight += candidate.weight;
         }
     }
 
-    if (matchingCount == 0 || matchingCount == profile->entryCount || matchingWeight == 0)
+    if (matchingCount == 0 || matchingCount == eligibleCount || matchingWeight == 0)
         return FALSE;
 
     roll = Random() % matchingWeight;
@@ -1138,21 +1209,23 @@ static bool8 TrySelectStandardEntryByType(const struct WildEncounterProfileView 
         struct WildEncounterSlot candidate;
 
         GetWildEncounterProfileEntryUnchecked(profile, i, &candidate);
-
-        if (GetSpeciesType(candidate->species, 0) != type && GetSpeciesType(candidate->species, 1) != type)
+        if (!IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
             continue;
-        if (roll < candidate->weight)
+
+        if (GetSpeciesType(candidate.species, 0) != type && GetSpeciesType(candidate.species, 1) != type)
+            continue;
+        if (roll < candidate.weight)
         {
-            *entry = *candidate;
+            *entry = candidate;
             return TRUE;
         }
-        roll -= candidate->weight;
+        roll -= candidate.weight;
     }
 
     return FALSE;
 }
 
-static bool8 TrySelectAbilityInfluencedStandardEntry(const struct WildEncounterProfileView *profile, enum Type type, enum Ability ability, struct WildEncounterSlot *entry)
+static bool8 TrySelectAbilityInfluencedStandardEntry(const struct WildEncounterProfileView *profile, enum Type type, enum Ability ability, u16 trainerRating, struct WildEncounterSlot *entry)
 {
     if (GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_SANITY_IS_EGG))
         return FALSE;
@@ -1160,34 +1233,39 @@ static bool8 TrySelectAbilityInfluencedStandardEntry(const struct WildEncounterP
         return FALSE;
     if (Random() % 2 != 0)
         return FALSE;
-    return TrySelectStandardEntryByType(profile, type, entry);
+    return TrySelectStandardEntryByType(profile, type, trainerRating, entry);
 }
 
-static bool8 TryChooseStandardEntry(const struct WildEncounterProfileView *profile, struct WildEncounterSlot *entry)
+static bool8 TryChooseStandardEntry(const struct WildEncounterProfileView *profile, u16 trainerRating, struct WildEncounterSlot *entry)
 {
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_STEEL, ABILITY_MAGNET_PULL, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_STEEL, ABILITY_MAGNET_PULL, trainerRating, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_STATIC, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_STATIC, trainerRating, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_LIGHTNING_ROD >= GEN_8
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_LIGHTNING_ROD, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_ELECTRIC, ABILITY_LIGHTNING_ROD, trainerRating, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_FLASH_FIRE >= GEN_8
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_FIRE, ABILITY_FLASH_FIRE, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_FIRE, ABILITY_FLASH_FIRE, trainerRating, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_HARVEST >= GEN_8
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_GRASS, ABILITY_HARVEST, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_GRASS, ABILITY_HARVEST, trainerRating, entry))
         return TRUE;
     if ((profile->area == WILD_AREA_LAND || profile->area == WILD_AREA_WATER)
      && OW_STORM_DRAIN >= GEN_8
-     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_WATER, ABILITY_STORM_DRAIN, entry))
+     && TrySelectAbilityInfluencedStandardEntry(profile, TYPE_WATER, ABILITY_STORM_DRAIN, trainerRating, entry))
         return TRUE;
-    return TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, entry);
+    {
+        u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+
+        return eligibleWeight != 0
+            && TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, entry);
+    }
 }
 
 static u8 ChooseStandardWildMonLevel(const struct WildEncounterProfileView *profile, const struct WildEncounterSlot *entry)
@@ -1231,7 +1309,7 @@ bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profi
         return FALSE;
 
     trainerRating = TrainerRating_Get();
-    if (!TryChooseStandardEntry(profile, &entry))
+    if (!TryChooseStandardEntry(profile, trainerRating, &entry))
         return FALSE;
     level = ChooseStandardWildMonLevel(profile, &entry);
     if (!ProjectWildSlotOutcome(entry.species, level, trainerRating, &profile->context, &outcome))
@@ -1257,8 +1335,13 @@ static u16 GenerateFishingWildMonFromProfile(const struct WildEncounterProfileVi
         return SPECIES_NONE;
 
     trainerRating = TrainerRating_Get();
-    if (!TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, &entry))
-        return SPECIES_NONE;
+    {
+        u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+
+        if (eligibleWeight == 0
+         || !TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry))
+            return SPECIES_NONE;
+    }
     level = ChooseStandardWildMonLevel(profile, &entry);
     if (!ProjectWildSlotOutcome(entry.species, level, trainerRating, &profile->context, &outcome))
         return SPECIES_NONE;
@@ -1680,13 +1763,17 @@ void FishingWildEncounter(u8 rod)
     BattleSetup_StartWildBattle();
 }
 
-static enum Species ChooseLocalSpeciesFromProfile(const struct WildEncounterProfileView *profile)
+static enum Species ChooseLocalSpeciesFromProfile(const struct WildEncounterProfileView *profile, u16 trainerRating)
 {
     struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
 
-    if (!TrySelectWildEncounterProfileEntry(profile, Random() % profile->totalWeight, &entry))
+    if (eligibleWeight == 0
+     || !TrySelectWildEncounterEligibleEntry(profile, trainerRating, Random() % eligibleWeight, &entry)
+     || !ProjectWildSlotOutcome(entry.species, entry.minLevel, trainerRating, &profile->context, &outcome))
         return SPECIES_NONE;
-    return entry.species;
+    return outcome.species;
 }
 
 u16 GetLocalWildMon(bool8 *isWaterMon)
@@ -1697,11 +1784,14 @@ u16 GetLocalWildMon(bool8 *isWaterMon)
     struct WildEncounterProfileView waterProfile;
     bool32 hasLand;
     bool32 hasWater;
+    u16 trainerRating;
 
     *isWaterMon = FALSE;
     headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
         return SPECIES_NONE;
+
+    trainerRating = TrainerRating_Get();
 
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
     hasLand = TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &landProfile);
@@ -1714,22 +1804,22 @@ u16 GetLocalWildMon(bool8 *isWaterMon)
         return SPECIES_NONE;
     // Land Pokémon
     else if (hasLand && !hasWater)
-        return ChooseLocalSpeciesFromProfile(&landProfile);
+        return ChooseLocalSpeciesFromProfile(&landProfile, trainerRating);
     // Water Pokémon
     else if (!hasLand && hasWater)
     {
         *isWaterMon = TRUE;
-        return ChooseLocalSpeciesFromProfile(&waterProfile);
+        return ChooseLocalSpeciesFromProfile(&waterProfile, trainerRating);
     }
     // Either land or water Pokémon
     if ((Random() % 100) < 80)
     {
-        return ChooseLocalSpeciesFromProfile(&landProfile);
+        return ChooseLocalSpeciesFromProfile(&landProfile, trainerRating);
     }
     else
     {
         *isWaterMon = TRUE;
-        return ChooseLocalSpeciesFromProfile(&waterProfile);
+        return ChooseLocalSpeciesFromProfile(&waterProfile, trainerRating);
     }
 }
 
@@ -1738,13 +1828,15 @@ u16 GetLocalWaterMon(void)
     u32 headerId = GetCurrentMapWildMonHeaderId();
     enum TimeOfDay timeOfDay;
     struct WildEncounterProfileView profile;
+    u16 trainerRating;
 
     if (headerId != HEADER_NONE)
     {
+        trainerRating = TrainerRating_Get();
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
 
         if (TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
-            return ChooseLocalSpeciesFromProfile(&profile);
+            return ChooseLocalSpeciesFromProfile(&profile, trainerRating);
     }
     return SPECIES_NONE;
 }
