@@ -17,6 +17,39 @@ struct MigrationCase
     u8 expectedVersion;
 };
 
+struct ExactStoryFactMigrationCase
+{
+    u16 historicalFlag;
+    u16 regionalFactFlag;
+    enum RegionalFact fact;
+};
+
+enum HistoricalRegionalStoryFlag
+{
+    HISTORICAL_FLAG_GOT_HM01 = 0x237,
+    HISTORICAL_FLAG_RESCUED_MR_FUJI = 0x23C,
+    HISTORICAL_FLAG_GOT_MASTER_BALL_FROM_SILPH = 0x250,
+    HISTORICAL_FLAG_RESCUED_LOSTELLE = 0x2A3,
+    HISTORICAL_FLAG_RECOVERED_SAPPHIRE = 0x2DC,
+    HISTORICAL_FLAG_GOT_RUBY = 0x2DD,
+};
+
+static const struct ExactStoryFactMigrationCase sExactStoryFactMigrationCases[] =
+{
+    {HISTORICAL_FLAG_GOT_HM01,         FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED,       REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED},
+    {HISTORICAL_FLAG_RESCUED_MR_FUJI,  FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED,            REGIONAL_FACT_KANTO_MR_FUJI_RESCUED},
+    {HISTORICAL_FLAG_GOT_MASTER_BALL_FROM_SILPH, FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED, REGIONAL_FACT_KANTO_SILPH_SAVED},
+    {FLAG_DELIVERED_DEVON_GOODS,       FLAG_REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED,       REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED},
+    {FLAG_RECEIVED_HM_SURF,            FLAG_REGIONAL_FACT_HOENN_SURF_RECEIVED,               REGIONAL_FACT_HOENN_SURF_RECEIVED},
+    {FLAG_RECEIVED_DEVON_SCOPE,        FLAG_REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED,        REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED},
+    {FLAG_RECEIVED_HM_DIVE,            FLAG_REGIONAL_FACT_HOENN_DIVE_RECEIVED,               REGIONAL_FACT_HOENN_DIVE_RECEIVED},
+    {FLAG_DEFEATED_WALLY_VICTORY_ROAD, FLAG_REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED, REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED},
+    {FLAG_RECEIVED_HM_WATERFALL,       FLAG_REGIONAL_FACT_HOENN_WATERFALL_RECEIVED,          REGIONAL_FACT_HOENN_WATERFALL_RECEIVED},
+    {HISTORICAL_FLAG_RESCUED_LOSTELLE, FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED,            REGIONAL_FACT_SEVII_LOSTELLE_RESCUED},
+    {HISTORICAL_FLAG_GOT_RUBY,         FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED,              REGIONAL_FACT_SEVII_RUBY_RECOVERED},
+    {HISTORICAL_FLAG_RECOVERED_SAPPHIRE, FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED, REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED},
+};
+
 static void SetMarker(u8 signature, u8 version)
 {
     gSaveBlock1Ptr->unused_9C2[0] = signature;
@@ -128,6 +161,61 @@ TEST("Every regional story migration is ordered and idempotent")
     EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_CURRENT);
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[0], REGIONAL_STORY_MIGRATION_SIGNATURE);
     EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
+}
+
+TEST("Version two saves backfill only exact regional story facts")
+{
+    u8 expectedFlags[sizeof(gSaveBlock1Ptr->flags)];
+    u16 originalVars[ARRAY_COUNT(gSaveBlock1Ptr->vars)];
+
+    InitEventData();
+    for (u32 i = 0; i < ARRAY_COUNT(sExactStoryFactMigrationCases); i++)
+        FlagSet(sExactStoryFactMigrationCases[i].historicalFlag);
+    // This permanent flag can denote a Hoenn champion and is consequently not
+    // evidence that the Kanto champion fact is true.
+    FlagSet(FLAG_IS_CHAMPION);
+    // This transient flag alone is insufficient; the durable completion pair
+    // below is the migration source.
+    FlagSet(FLAG_DEFEATED_MAGMA_SPACE_CENTER);
+    VarSet(VAR_SAFARI_ZONE_STATE, 0xA55A);
+    VarSet(VAR_MOSSDEEP_CITY_STATE, 3);
+    VarSet(VAR_MOSSDEEP_SPACE_CENTER_STATE, 3);
+    memcpy(expectedFlags, gSaveBlock1Ptr->flags, sizeof(expectedFlags));
+    memcpy(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars));
+    for (u32 i = 0; i < ARRAY_COUNT(sExactStoryFactMigrationCases); i++)
+        expectedFlags[sExactStoryFactMigrationCases[i].regionalFactFlag / 8]
+            |= 1 << (sExactStoryFactMigrationCases[i].regionalFactFlag & 7);
+    expectedFlags[FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED / 8]
+        |= 1 << (FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED & 7);
+    SetMarker(REGIONAL_STORY_MIGRATION_SIGNATURE, 2);
+
+    EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
+    EXPECT_EQ(memcmp(expectedFlags, gSaveBlock1Ptr->flags, sizeof(expectedFlags)), 0);
+    EXPECT_EQ(memcmp(originalVars, gSaveBlock1Ptr->vars, sizeof(originalVars)), 0);
+    for (u32 i = 0; i < ARRAY_COUNT(sExactStoryFactMigrationCases); i++)
+    {
+        EXPECT(FlagGet(sExactStoryFactMigrationCases[i].historicalFlag));
+        EXPECT(RegionalFact_Get(sExactStoryFactMigrationCases[i].fact));
+    }
+    EXPECT(FlagGet(FLAG_IS_CHAMPION));
+    EXPECT(!RegionalFact_Get(REGIONAL_FACT_KANTO_CHAMPION_CROWNED));
+    EXPECT(FlagGet(FLAG_DEFEATED_MAGMA_SPACE_CENTER));
+    EXPECT(RegionalFact_Get(REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED));
+    EXPECT_EQ(gSaveBlock1Ptr->unused_9C2[1], REGIONAL_STORY_MIGRATION_VERSION);
+
+    EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_CURRENT);
+    EXPECT_EQ(memcmp(expectedFlags, gSaveBlock1Ptr->flags, sizeof(expectedFlags)), 0);
+}
+
+TEST("Transient Space Center state does not backfill its regional fact")
+{
+    InitEventData();
+    FlagSet(FLAG_DEFEATED_MAGMA_SPACE_CENTER);
+    SetMarker(REGIONAL_STORY_MIGRATION_SIGNATURE, 2);
+
+    EXPECT_EQ(RegionalStoryMigration_Apply(), REGIONAL_STORY_MIGRATION_APPLIED);
+    EXPECT(FlagGet(FLAG_DEFEATED_MAGMA_SPACE_CENTER));
+    EXPECT(!RegionalFact_Get(REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED));
 }
 
 TEST("Historical migration preserves regional fact and variable isolation")

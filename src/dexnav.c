@@ -136,6 +136,10 @@ EWRAM_DATA static struct DexNavSearch *sDexNavSearchDataPtr = NULL;
 EWRAM_DATA static struct DexNavGUI *sDexNavUiDataPtr = NULL;
 EWRAM_DATA static u8 *sBg1TilemapBuffer = NULL;
 EWRAM_DATA enum Species gDexNavSpecies = SPECIES_NONE;
+#if TESTING
+EWRAM_DATA static struct WildEncounterSlotOutcome sDexNavLastNormalSearchOutcome;
+EWRAM_DATA static bool8 sDexNavLastNormalSearchOutcomeValid;
+#endif
 
 //// Function Declarations
 //GUI
@@ -153,6 +157,8 @@ static u8 DexNavApplyChainLevelBonus(u8 levelBase);
 static u8 GetEncounterLevelFromMapData(enum Species species, enum EncounterType environment);
 static bool32 TryResolveDexNavProfile(u16 headerId, enum WildPokemonArea area, struct WildEncounterProfileView *profile);
 static bool32 TrySelectDexNavProfileOutcome(const struct WildEncounterProfileView *profile, struct WildEncounterSlotOutcome *outcome);
+static bool32 TrySelectDexNavProfileOutcomeForSpecies(const struct WildEncounterProfileView *profile, enum Species species, struct WildEncounterSlotOutcome *outcome);
+static bool32 TrySelectDexNavStandardSearchOutcome(enum Species species, enum EncounterType environment, struct WildEncounterSlotOutcome *outcome);
 static void CreateDexNavWildMon(enum Species species, u8 potential, u8 level, u8 abilityNum, enum Item item, enum Move *moves);
 static u8 GetPlayerDistance(s16 x, s16 y);
 static u8 DexNavPickTile(enum EncounterType environment, u8 xSize, u8 ySize, bool8 smallScan);
@@ -840,6 +846,11 @@ static void DexNavSearchBail(const u8 *script)
 
 static bool8 InitDexNavSearch(enum Species species, u32 environment)
 {
+    struct WildEncounterSlotOutcome outcome;
+
+#if TESTING
+    sDexNavLastNormalSearchOutcomeValid = FALSE;
+#endif
     sDexNavSearchDataPtr = AllocZeroed(sizeof(struct DexNavSearch));
     if (sDexNavSearchDataPtr == NULL)
     {
@@ -852,7 +863,24 @@ static bool8 InitDexNavSearch(enum Species species, u32 environment)
     sDexNavSearchDataPtr->species = species;
     sDexNavSearchDataPtr->environment = environment;  //updated in DexNavTryGenerateMonLevel if hidden mon
     sDexNavSearchDataPtr->isHiddenMon = (environment == ENCOUNTER_TYPE_HIDDEN) ? TRUE : FALSE;
-    sDexNavSearchDataPtr->monLevel = DexNavTryGenerateMonLevel(species, environment);
+    if (sDexNavSearchDataPtr->isHiddenMon)
+    {
+        sDexNavSearchDataPtr->monLevel = DexNavTryGenerateMonLevel(species, environment);
+    }
+    else if (TrySelectDexNavStandardSearchOutcome(species, environment, &outcome))
+    {
+        sDexNavSearchDataPtr->species = outcome.species;
+        sDexNavSearchDataPtr->monLevel = DexNavApplyChainLevelBonus(outcome.level);
+#if TESTING
+        sDexNavLastNormalSearchOutcome = outcome;
+        sDexNavLastNormalSearchOutcome.level = sDexNavSearchDataPtr->monLevel;
+        sDexNavLastNormalSearchOutcomeValid = TRUE;
+#endif
+    }
+    else
+    {
+        sDexNavSearchDataPtr->monLevel = MON_LEVEL_NONEXISTENT;
+    }
 
     if (GetFlashLevel() > 0)
     {
@@ -1553,19 +1581,18 @@ u8 DexNav_GetEncounterLevelFromMapDataForTesting(enum Species species, enum Enco
     return GetEncounterLevelFromMapData(species, environment);
 }
 
-bool32 DexNav_TrySelectProfileOutcomeForTesting(enum WildPokemonArea area, enum Species *species, u8 *level)
+bool32 DexNav_TryStartNormalSearchForTesting(enum Species species, enum EncounterType environment)
 {
-    struct WildEncounterProfileView profile;
-    struct WildEncounterSlotOutcome outcome;
-    u16 headerId = GetCurrentMapWildMonHeaderId();
+    return InitDexNavSearch(species, environment);
+}
 
-    if (headerId == HEADER_NONE
-     || !TryResolveDexNavProfile(headerId, area, &profile)
-     || !TrySelectDexNavProfileOutcome(&profile, &outcome))
+bool32 DexNav_GetLastNormalSearchOutcomeForTesting(enum Species *species, u8 *level)
+{
+    if (!sDexNavLastNormalSearchOutcomeValid)
         return FALSE;
 
-    *species = outcome.species;
-    *level = outcome.level;
+    *species = sDexNavLastNormalSearchOutcome.species;
+    *level = sDexNavLastNormalSearchOutcome.level;
     return TRUE;
 }
 #endif
@@ -1593,6 +1620,88 @@ static bool32 TrySelectDexNavProfileOutcome(const struct WildEncounterProfileVie
 
     vanillaLevel = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, entry.minLevel, entry.maxLevel);
     return ProjectWildSlotOutcome(entry.species, vanillaLevel, trainerRating, &profile->context, outcome);
+}
+
+static bool32 TrySelectDexNavProfileOutcomeForSpecies(const struct WildEncounterProfileView *profile, enum Species species, struct WildEncounterSlotOutcome *outcome)
+{
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome candidate;
+    u16 trainerRating = TrainerRating_Get();
+    u32 totalWeight = 0;
+    u32 roll;
+    u16 i;
+
+    if (outcome == NULL || !IsWildEncounterProfileViewValid(profile))
+        return FALSE;
+
+    // Select a weighted (slot, vanilla level) pair so the selected DexNav species
+    // and its battle level come from one projection.
+    for (i = 0; i < profile->entryCount; i++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, i, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            if (TryProjectWildEncounterProfileEntry(profile, i, vanillaLevel, trainerRating, &candidate)
+             && candidate.species == species)
+                totalWeight += entry.weight;
+        }
+    }
+
+    if (totalWeight == 0)
+        return FALSE;
+    roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, totalWeight - 1);
+
+    for (i = 0; i < profile->entryCount; i++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, i, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, i, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            if (!TryProjectWildEncounterProfileEntry(profile, i, vanillaLevel, trainerRating, &candidate)
+             || candidate.species != species)
+                continue;
+            if (roll < entry.weight)
+            {
+                *outcome = candidate;
+                return TRUE;
+            }
+            roll -= entry.weight;
+        }
+    }
+
+    return FALSE;
+}
+
+static bool32 TrySelectDexNavStandardSearchOutcome(enum Species species, enum EncounterType environment, struct WildEncounterSlotOutcome *outcome)
+{
+    enum WildPokemonArea area;
+    struct WildEncounterProfileView profile;
+    u16 headerId = GetCurrentMapWildMonHeaderId();
+
+    if (headerId == HEADER_NONE)
+        return FALSE;
+
+    switch (environment)
+    {
+    case ENCOUNTER_TYPE_LAND:
+        area = WILD_AREA_LAND;
+        break;
+    case ENCOUNTER_TYPE_WATER:
+        area = WILD_AREA_WATER;
+        break;
+    default:
+        return FALSE;
+    }
+
+    return TryResolveDexNavProfile(headerId, area, &profile)
+        && TrySelectDexNavProfileOutcomeForSpecies(&profile, species, outcome);
 }
 
 

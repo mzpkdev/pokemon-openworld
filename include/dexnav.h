@@ -2,7 +2,6 @@
 #define GUARD_DEXNAV_H
 
 #include "config/dexnav.h"
-#include "wild_encounter.h"
 
 // GUI Info
 enum RowGUIInfo
@@ -82,7 +81,8 @@ bool32 OnStep_DexNavSearch(void);
 
 #if TESTING
 u8 DexNav_GetEncounterLevelFromMapDataForTesting(enum Species species, enum EncounterType environment);
-bool32 DexNav_TrySelectProfileOutcomeForTesting(enum WildPokemonArea area, enum Species *species, u8 *level);
+bool32 DexNav_TryStartNormalSearchForTesting(enum Species species, enum EncounterType environment);
+bool32 DexNav_GetLastNormalSearchOutcomeForTesting(enum Species *species, u8 *level);
 #endif
 
 extern enum Species gDexNavSpecies;

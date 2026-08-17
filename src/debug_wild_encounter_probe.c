@@ -12,6 +12,7 @@ struct DebugWildEncounterProbeResult gWildEncounterProbeResult;
 STATIC_ASSERT(sizeof(struct DebugWildEncounterProbeRequest) == 12, DebugWildEncounterProbeRequestSize);
 STATIC_ASSERT(offsetof(struct DebugWildEncounterProbeRequest, status) == 11, DebugWildEncounterProbeRequestStatusOffset);
 STATIC_ASSERT(sizeof(struct DebugWildEncounterProbeResult) == 24, DebugWildEncounterProbeResultSize);
+STATIC_ASSERT(offsetof(struct DebugWildEncounterProbeResult, trainerRating) == 18, DebugWildEncounterProbeResultTrainerRatingOffset);
 STATIC_ASSERT(offsetof(struct DebugWildEncounterProbeResult, status) == 23, DebugWildEncounterProbeResultStatusOffset);
 
 static void PublishError(const struct DebugWildEncounterProbeRequest *request, enum DebugWildEncounterProbeError error)

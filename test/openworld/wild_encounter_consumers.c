@@ -421,17 +421,75 @@ TEST("Match Call projects a selected slot's rolled vanilla level")
     RestoreEncounterConsumerState(&saved);
 }
 
-TEST("DexNav standard selection projects its rolled slot level")
+static bool32 SelectExpectedDexNavNormalSearchOutcome(
+    const struct WildEncounterProfileView *profile,
+    enum Species species,
+    u16 trainerRating,
+    struct WildEncounterSlotOutcome *outcome)
+{
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome candidate;
+    u32 totalWeight = 0;
+    u32 roll;
+    u16 index;
+
+    for (index = 0; index < profile->entryCount; index++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, index, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, index, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            if (TryProjectWildEncounterProfileEntry(profile, index, vanillaLevel, trainerRating, &candidate)
+             && candidate.species == species)
+                totalWeight += entry.weight;
+        }
+    }
+
+    if (totalWeight == 0)
+        return FALSE;
+    roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, totalWeight - 1);
+
+    for (index = 0; index < profile->entryCount; index++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, index, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, index, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            if (!TryProjectWildEncounterProfileEntry(profile, index, vanillaLevel, trainerRating, &candidate)
+             || candidate.species != species)
+                continue;
+            if (roll < entry.weight)
+            {
+                *outcome = candidate;
+                return TRUE;
+            }
+            roll -= entry.weight;
+        }
+    }
+
+    return FALSE;
+}
+
+TEST("Normal DexNav search projects the selected slot and level together")
 {
     struct EncounterConsumerState saved;
     struct WildEncounterProfileView profile;
     struct WildEncounterSlot entry;
-    struct WildEncounterSlotOutcome expected;
+    struct WildEncounterSlotOutcome expected = {0};
+    enum Species selectedSpecies = SPECIES_NONE;
     enum Species species;
     u8 level;
+    u8 savedFlashLevel;
+    u8 savedDexNavChain;
     u16 headerId;
     u16 trainerRating;
-    u16 eligibleWeight;
+    u16 index;
     u32 seed;
 
     EstablishEncounterConsumerFixture();
@@ -448,27 +506,49 @@ TEST("DexNav standard selection projects its rolled slot level")
         WILD_ENCOUNTER_FISHING_ROD_NONE,
         &profile));
     trainerRating = TrainerRating_Get();
-    eligibleWeight = GetWildEncounterProfileEligibleWeight(&profile, trainerRating);
-    EXPECT(eligibleWeight != 0);
+    for (index = 0; index < profile.entryCount && selectedSpecies == SPECIES_NONE; index++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(&profile, index, &entry)
+         || !IsWildEncounterProfileEntryEligible(&profile, index, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            struct WildEncounterSlotOutcome outcome;
+
+            if (TryProjectWildEncounterProfileEntry(
+                &profile, index, vanillaLevel, trainerRating, &outcome))
+            {
+                selectedSpecies = outcome.species;
+                break;
+            }
+        }
+    }
+    EXPECT_NE(selectedSpecies, SPECIES_NONE);
+
+    savedFlashLevel = GetFlashLevel();
+    savedDexNavChain = gSaveBlock3Ptr->dexNavChain;
+    gSaveBlock3Ptr->dexNavChain = 0;
+    gSaveBlock1Ptr->flashLevel = 1; // Stop after normal initialization, before field-effect setup.
 
     for (seed = 1; seed <= 32; seed++)
     {
-        u8 vanillaLevel;
+        SeedRng(seed);
+        EXPECT(SelectExpectedDexNavNormalSearchOutcome(
+            &profile, selectedSpecies, trainerRating, &expected));
+        if (Random() % 100 < 4)
+            expected.level = min(MAX_LEVEL, expected.level + 10);
 
         SeedRng(seed);
-        EXPECT(TrySelectWildEncounterEligibleEntry(
-            &profile, trainerRating, Random() % eligibleWeight, &entry));
-        vanillaLevel = RandomUniform(
-            RNG_DEXNAV_ENCOUNTER_LEVEL, entry.minLevel, entry.maxLevel);
-        EXPECT(ProjectWildSlotOutcome(
-            entry.species, vanillaLevel, trainerRating, &profile.context, &expected));
-
-        SeedRng(seed);
-        EXPECT(DexNav_TrySelectProfileOutcomeForTesting(WILD_AREA_WATER, &species, &level));
+        EXPECT(DexNav_TryStartNormalSearchForTesting(selectedSpecies, ENCOUNTER_TYPE_WATER));
+        EXPECT(DexNav_GetLastNormalSearchOutcomeForTesting(&species, &level));
         EXPECT_EQ(species, expected.species);
         EXPECT_EQ(level, expected.level);
     }
 
+    gSaveBlock1Ptr->flashLevel = savedFlashLevel;
+    gSaveBlock3Ptr->dexNavChain = savedDexNavChain;
     RestoreEncounterConsumerState(&saved);
 }
 

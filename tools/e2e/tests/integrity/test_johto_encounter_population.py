@@ -31,6 +31,7 @@ WILD_ENCOUNTER_FISHING_ROD_NONE = 0xFF
 PROBE_REQUEST_SIZE = 12
 PROBE_REQUEST_STATUS_OFFSET = 11
 PROBE_RESULT_SIZE = 24
+PROBE_RESULT_FORMAT = "<I6H2BH4B"
 FLAG_REGIONAL_FACT_HOENN_STONE_BADGE = 32
 FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE = 33
 FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE = 34
@@ -75,7 +76,6 @@ class EncounterProbeResult:
     area: int
     fishing_rod: int
     trainer_rating: int
-    reserved: int
     min_level: int
     max_level: int
     error: int
@@ -96,7 +96,7 @@ def _probe_encounter(
     game.write(
         result,
         struct.pack(
-            "<I6H8B",
+            PROBE_RESULT_FORMAT,
             request_id ^ 0xFFFFFFFF,
             0,
             entry_index,
@@ -106,7 +106,6 @@ def _probe_encounter(
             0,
             area,
             fishing_rod,
-            0,
             0,
             0,
             0,
@@ -134,7 +133,7 @@ def _probe_encounter(
 
     for _ in range(120):
         payload = game.read(result, PROBE_RESULT_SIZE)
-        unpacked = struct.unpack("<I6H8B", payload)
+        unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
         status = ProbeStatus(unpacked[-1])
         if unpacked[0] == request_id and status in (
             ProbeStatus.SUCCESS,

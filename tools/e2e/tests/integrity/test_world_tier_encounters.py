@@ -35,6 +35,7 @@ FLAG_REGIONAL_FACT_HOENN_STONE_BADGE = 32
 PROBE_REQUEST_SIZE = 12
 PROBE_REQUEST_STATUS_OFFSET = 11
 PROBE_RESULT_SIZE = 24
+PROBE_RESULT_FORMAT = "<I6H2BH4B"
 VERMILION_COORDINATES = (24, 25)
 
 
@@ -57,7 +58,6 @@ class EncounterProbeResult:
     area: int
     fishing_rod: int
     trainer_rating: int
-    reserved: int
     min_level: int
     max_level: int
     error: int
@@ -107,7 +107,7 @@ def _probe_encounter(
     game.write(
         result,
         struct.pack(
-            "<I6H8B",
+            PROBE_RESULT_FORMAT,
             request_id ^ 0xFFFFFFFF,
             0,
             entry_index,
@@ -117,7 +117,6 @@ def _probe_encounter(
             0,
             area,
             fishing_rod,
-            0,
             0,
             0,
             0,
@@ -145,7 +144,7 @@ def _probe_encounter(
 
     for _ in range(120):
         payload = game.read(result, PROBE_RESULT_SIZE)
-        unpacked = struct.unpack("<I6H8B", payload)
+        unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
         status = ProbeStatus(unpacked[-1])
         if unpacked[0] == request_id and status in (
             ProbeStatus.SUCCESS,
@@ -161,6 +160,31 @@ def _probe_encounter(
             return resolved
         game.step()
     raise AssertionError(f"encounter probe {request_id:#x} timed out")
+
+
+def test_wild_encounter_probe_abi_preserves_u16_trainer_rating():
+    payload = struct.pack(
+        PROBE_RESULT_FORMAT,
+        0xE2900000,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        WILD_AREA_WATER,
+        WILD_ENCOUNTER_FISHING_ROD_NONE,
+        0x1FF,
+        4,
+        8,
+        0,
+        ProbeStatus.SUCCESS,
+    )
+    unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
+    result = EncounterProbeResult(*unpacked[:-1], ProbeStatus(unpacked[-1]))
+
+    assert len(payload) == PROBE_RESULT_SIZE
+    assert result.trainer_rating == 0x1FF
 
 
 def _instant_win_real_roxanne_battle(game) -> None:
