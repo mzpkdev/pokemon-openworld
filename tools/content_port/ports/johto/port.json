@@ -54,8 +54,8 @@
   },
   "expectedInventory": {
     "maps": {
-      "count": 254,
-      "digest": "1d4252858eb630077d5c0508958ffb648d126d6169d3e1603635f16eeb5ceb23"
+      "count": 255,
+      "digest": "5e8e66e1b9f4f37f2f3a28f454f893354be7fb36858e086dfb22b874f817de7a"
     },
     "layouts": {
       "count": 256,
