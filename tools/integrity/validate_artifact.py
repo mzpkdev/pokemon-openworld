@@ -994,7 +994,9 @@ def validate_surf_edge_route_profiles(
         raise ValidationError("Surf edge route-profile count is truncated")
     linked_count = read_u16(rom, count_address, "gSurfEdgeRouteProfileCount")
     expected_count = sentinel["count"]
-    if linked_count != expected_count or linked_count != len(manifest["edgeRouteProfiles"]):
+    if linked_count != expected_count or linked_count != len(
+        manifest["edgeRouteProfiles"]
+    ):
         raise ValidationError(
             f"Surf edge route-profile count is {linked_count}, expected {expected_count}"
         )
@@ -1157,7 +1159,9 @@ def validate_artifact(
     validate_tilesets(rom, manifest, symbols, rom_end)
     validate_count_sentinels(manifest, symbols)
     surf_edge_exits = validate_surf_edge_exits(rom, manifest, symbols, rom_end)
-    surf_edge_route_profiles = validate_surf_edge_route_profiles(rom, manifest, symbols, rom_end)
+    surf_edge_route_profiles = validate_surf_edge_route_profiles(
+        rom, manifest, symbols, rom_end
+    )
     validate_section_metadata(rom, manifest, symbols, rom_end)
     validate_section_codecs(rom, manifest, symbols, rom_end)
     animation = validate_linked_animation_contract(symbol_records, ANIMATION_POLICY)

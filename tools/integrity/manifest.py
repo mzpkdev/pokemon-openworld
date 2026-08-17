@@ -349,19 +349,34 @@ def _validate_edge_route_profiles(
     for index, entry in enumerate(profiles):
         if not isinstance(entry, dict) or set(entry) != EDGE_ROUTE_PROFILE_FIELDS:
             raise ManifestError(f"edgeRouteProfiles[{index}] has invalid fields")
-        if any(type(entry[field]) is not str for field in ("sourceName", "sourceId", "exitEdge", "profile")) or any(
-            type(entry[field]) is not int for field in EDGE_ROUTE_PROFILE_FIELDS - {"sourceName", "sourceId", "exitEdge", "profile"}
+        if any(
+            type(entry[field]) is not str
+            for field in ("sourceName", "sourceId", "exitEdge", "profile")
+        ) or any(
+            type(entry[field]) is not int
+            for field in EDGE_ROUTE_PROFILE_FIELDS
+            - {"sourceName", "sourceId", "exitEdge", "profile"}
         ):
             raise ManifestError(f"edgeRouteProfiles[{index}] has invalid field types")
         if entry["exitEdgeValue"] != CARDINAL_VALUES.get(entry["exitEdge"]):
-            raise ManifestError(f"edgeRouteProfiles[{index}] exit edge name/value disagree")
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] exit edge name/value disagree"
+            )
         if entry["profileValue"] != EDGE_ROUTE_PROFILE_VALUES.get(entry["profile"]):
-            raise ManifestError(f"edgeRouteProfiles[{index}] profile name/value disagree")
-        if entry["sourceMapValue"] != _map_value(entry["sourceGroup"], entry["sourceNumber"]):
-            raise ManifestError(f"edgeRouteProfiles[{index}] source map identity disagrees")
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] profile name/value disagree"
+            )
+        if entry["sourceMapValue"] != _map_value(
+            entry["sourceGroup"], entry["sourceNumber"]
+        ):
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] source map identity disagrees"
+            )
         source = maps_by_name.get(entry["sourceName"])
         if source is None or (
-            entry["sourceId"], entry["sourceGroup"], entry["sourceNumber"]
+            entry["sourceId"],
+            entry["sourceGroup"],
+            entry["sourceNumber"],
         ) != (source["id"], source["group"], source["number"]):
             raise ManifestError(f"edgeRouteProfiles[{index}] names unknown source map")
         key = (entry["sourceGroup"], entry["sourceNumber"], entry["exitEdgeValue"])
@@ -430,7 +445,10 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ManifestError("manifest arrays disagree with their count sentinels")
     if not isinstance(edge_exits, list) or len(edge_exits) != counts["edgeExits"]:
         raise ManifestError("edgeExits disagree with their count sentinel")
-    if not isinstance(edge_route_profiles, list) or len(edge_route_profiles) != counts["edgeRouteProfiles"]:
+    if (
+        not isinstance(edge_route_profiles, list)
+        or len(edge_route_profiles) != counts["edgeRouteProfiles"]
+    ):
         raise ManifestError("edgeRouteProfiles disagree with their count sentinel")
 
     _unique(groups, "name", "groups")
@@ -626,7 +644,15 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     if any(not symbol["name"] or symbol.get("kind") != "rom" for symbol in symbols):
         raise ManifestError("every required symbol must name a ROM resident object")
     symbol_names = {symbol["name"] for symbol in symbols}
-    if not {"gSurfEdgeExits", "gSurfEdgeExitCount", "gSurfEdgeRouteProfiles", "gSurfEdgeRouteProfileCount"} <= symbol_names:
+    if (
+        not {
+            "gSurfEdgeExits",
+            "gSurfEdgeExitCount",
+            "gSurfEdgeRouteProfiles",
+            "gSurfEdgeRouteProfileCount",
+        }
+        <= symbol_names
+    ):
         raise ManifestError("surf edge-exit symbols are not required ROM symbols")
 
 

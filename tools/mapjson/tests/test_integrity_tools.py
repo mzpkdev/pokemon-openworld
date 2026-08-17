@@ -515,7 +515,9 @@ class IntegrityToolTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "not zero-filled"):
             validate_surf_edge_exits(rom, manifest, symbols, ROM_BASE + len(rom))
 
-    def test_linked_surf_edge_route_profiles_decode_and_require_zero_sentinel(self) -> None:
+    def test_linked_surf_edge_route_profiles_decode_and_require_zero_sentinel(
+        self,
+    ) -> None:
         rom = bytearray(0x60)
         symbols = {
             "gSurfEdgeRouteProfiles": ROM_BASE,
@@ -537,24 +539,32 @@ class IntegrityToolTests(unittest.TestCase):
             ],
         }
         self.assertEqual(
-            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom)),
+            validate_surf_edge_route_profiles(
+                rom, manifest, symbols, ROM_BASE + len(rom)
+            ),
             {"count": 1, "bytes": 4},
         )
         rom[3] = 0
         with self.assertRaisesRegex(ValidationError, "profileValue"):
-            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom))
+            validate_surf_edge_route_profiles(
+                rom, manifest, symbols, ROM_BASE + len(rom)
+            )
 
         manifest["edgeRouteProfiles"] = []
         manifest["countSentinels"]["edgeRouteProfiles"]["count"] = 0
         struct.pack_into("<H", rom, 0x40, 0)
         rom[:4] = bytes(4)
         self.assertEqual(
-            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom)),
+            validate_surf_edge_route_profiles(
+                rom, manifest, symbols, ROM_BASE + len(rom)
+            ),
             {"count": 0, "bytes": 4},
         )
         rom[3] = 1
         with self.assertRaisesRegex(ValidationError, "not zero-filled"):
-            validate_surf_edge_route_profiles(rom, manifest, symbols, ROM_BASE + len(rom))
+            validate_surf_edge_route_profiles(
+                rom, manifest, symbols, ROM_BASE + len(rom)
+            )
 
     def test_purpose_conditional_save_abi_drift_is_rejected(self) -> None:
         contract = json.loads(SAVE_CONTRACT.read_text())

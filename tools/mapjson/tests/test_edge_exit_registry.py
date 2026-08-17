@@ -69,7 +69,8 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
         self.assert_invalid([missing], "must contain exactly")
         self.assert_invalid([self.valid_exit(comment="extra")], "must contain exactly")
         self.assert_invalid(
-            [self.valid_exit(route_profile="unknown")], "invalid route profile 'unknown'"
+            [self.valid_exit(route_profile="unknown")],
+            "invalid route profile 'unknown'",
         )
         self.assert_invalid(
             [self.valid_exit(route_profile=1)], "route_profile must be a string"
@@ -236,7 +237,11 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
                 },
             )
             self.assertEqual(
-                [entry["profile"] for entry in manifest["edgeRouteProfiles"] if entry["sourceId"] == "MAP_ROUTE19"],
+                [
+                    entry["profile"]
+                    for entry in manifest["edgeRouteProfiles"]
+                    if entry["sourceId"] == "MAP_ROUTE19"
+                ],
                 ["generated_ocean", "generated_ocean"],
             )
             source_text = (product / "src/data/surf_edge_exits.inc.c").read_text()
