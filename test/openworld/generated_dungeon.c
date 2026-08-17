@@ -4,6 +4,7 @@
 #include "test/test.h"
 
 static u8 sGenerateCalls;
+static const u8 sTestScript[] = {0};
 
 STATIC_ASSERT(sizeof(struct GeneratedDungeonWorkspace) <= sizeof(sBackupMapData), GeneratedDungeonTestWorkspaceFitsBackupMapBuffer);
 
@@ -12,13 +13,46 @@ static struct GeneratedDungeonWorkspace *GetTestWorkspace(void)
     return (void *)sBackupMapData;
 }
 
+static bool32 TranslateTestCell(const struct GeneratedDungeonProvider *provider, u16 cell, u16 *metatile)
+{
+    (void)provider;
+    if (cell > 99)
+        return FALSE;
+    *metatile = cell + 100;
+    return TRUE;
+}
+
+static bool32 CanWalkEverywhere(const struct GeneratedDungeonProvider *provider, const struct GeneratedDungeonWorkspace *workspace, struct GeneratedDungeonPoint from, struct GeneratedDungeonPoint to)
+{
+    (void)provider;
+    (void)workspace;
+    (void)from;
+    (void)to;
+    return TRUE;
+}
+
+static bool32 CanMoveEastOnly(const struct GeneratedDungeonProvider *provider, const struct GeneratedDungeonWorkspace *workspace, struct GeneratedDungeonPoint from, struct GeneratedDungeonPoint to)
+{
+    (void)provider;
+    (void)workspace;
+    return to.x == from.x + 1 && to.y == from.y;
+}
+
+static bool32 SetEndpoints(struct GeneratedDungeonWorkspace *workspace, u16 width, u16 height)
+{
+    return GeneratedDungeonWorkspace_SetSpawn(workspace, 0, 0)
+        && GeneratedDungeonWorkspace_SetOriginEndpoint(workspace, width - 1, 0)
+        && GeneratedDungeonWorkspace_SetDestinationEndpoint(workspace, width - 1, height - 1);
+}
+
 static bool32 GenerateOneCell(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonRngStreams *rng, u8 attempt, struct GeneratedDungeonWorkspace *workspace)
 {
     (void)provider;
     (void)rng;
     (void)attempt;
     return GeneratedDungeonWorkspace_SetDimensions(workspace, 1, 1)
-        && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 7);
+        && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 7)
+        && SetEndpoints(workspace, 1, 1);
 }
 
 static bool32 GenerateAfterAllAttempts(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonRngStreams *rng, u8 attempt, struct GeneratedDungeonWorkspace *workspace)
@@ -43,7 +77,8 @@ static bool32 FallbackOneCell(const struct GeneratedDungeonProvider *provider, s
 {
     (void)provider;
     return GeneratedDungeonWorkspace_SetDimensions(workspace, 1, 1)
-        && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 9);
+        && GeneratedDungeonWorkspace_SetCell(workspace, 0, 0, 9)
+        && SetEndpoints(workspace, 1, 1);
 }
 
 static bool32 FallbackOversize(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonWorkspace *workspace)
@@ -61,6 +96,8 @@ static const struct GeneratedDungeonProvider sProviders[] =
         .mapNum = 2,
         .maxWorkspaceCells = 64,
         .maxGeneratedObjects = 2,
+        .translateCell = TranslateTestCell,
+        .canMove = CanWalkEverywhere,
         .generate = GenerateOneCell,
         .fallback = FallbackOneCell,
     },
@@ -71,6 +108,8 @@ static const struct GeneratedDungeonProvider sProviders[] =
         .mapNum = 3,
         .maxWorkspaceCells = 64,
         .maxGeneratedObjects = 2,
+        .translateCell = TranslateTestCell,
+        .canMove = CanWalkEverywhere,
         .generate = GenerateAfterAllAttempts,
         .fallback = FallbackOneCell,
     },
@@ -142,6 +181,63 @@ TEST("Generated dungeon workspace and progress APIs are bounded")
     EXPECT(!GeneratedDungeonProgress_TrySet(&progress, 64));
     EXPECT(GeneratedDungeonProgress_TryClear(&progress, 63));
     EXPECT_EQ(progress, 0);
+}
+
+TEST("Generated dungeon reachability uses provider-directed movement and blocking objects")
+{
+    struct GeneratedDungeonWorkspace *workspace = GetTestWorkspace();
+    struct GeneratedDungeonProvider provider = sProviders[0];
+    struct ObjectEventTemplate blocking = { .localId = 1, .x = 1, .y = 0, .script = sTestScript };
+
+    provider.canMove = CanMoveEastOnly;
+    GeneratedDungeonWorkspace_Reset(workspace);
+    EXPECT(GeneratedDungeonWorkspace_SetDimensions(workspace, 3, 1));
+    EXPECT(SetEndpoints(workspace, 3, 1));
+    EXPECT(GeneratedDungeonWorkspace_SetObjectCount(workspace, 0));
+    EXPECT(GeneratedDungeonWorkspace_HasReachableEndpoints(&provider, workspace));
+
+    EXPECT(GeneratedDungeonWorkspace_SetObjectCount(workspace, 1));
+    EXPECT(GeneratedDungeonWorkspace_SetObject(workspace, 0, &blocking, TRUE));
+    EXPECT(!GeneratedDungeonWorkspace_HasReachableEndpoints(&provider, workspace));
+
+    GeneratedDungeonWorkspace_Reset(workspace);
+    EXPECT(GeneratedDungeonWorkspace_SetDimensions(workspace, 3, 1));
+    EXPECT(GeneratedDungeonWorkspace_SetSpawn(workspace, 2, 0));
+    EXPECT(GeneratedDungeonWorkspace_SetOriginEndpoint(workspace, 0, 0));
+    EXPECT(GeneratedDungeonWorkspace_SetDestinationEndpoint(workspace, 0, 0));
+    EXPECT(!GeneratedDungeonWorkspace_HasReachableEndpoints(&provider, workspace));
+}
+
+TEST("Generated dungeon publication is transactional after translation and template validation")
+{
+    struct GeneratedDungeonWorkspace *workspace = GetTestWorkspace();
+    struct ObjectEventTemplate templates[2] = {{ .localId = 77 }};
+    u16 map[2] = {0xaaaa, 0xbbbb};
+    struct GeneratedDungeonPublication publication =
+    {
+        .map = map,
+        .mapWidth = 1,
+        .mapHeight = 1,
+        .mapStride = 1,
+        .templates = templates,
+        .templateCapacity = ARRAY_COUNT(templates),
+    };
+    struct GeneratedDungeonProvider invalid = sProviders[0];
+
+    EXPECT_EQ(GeneratedDungeon_GenerateAndPublish(&sProviders[0], 7, workspace, &publication), GENERATED_DUNGEON_GENERATION_SUCCEEDED);
+    EXPECT_EQ(map[0], 107);
+    EXPECT_EQ(templates[0].localId, 0);
+
+    map[0] = 0xaaaa;
+    templates[0].localId = 77;
+    invalid.translateCell = NULL;
+    EXPECT_EQ(GeneratedDungeon_GenerateAndPublish(&invalid, 7, workspace, &publication), GENERATED_DUNGEON_GENERATION_FAILED);
+    EXPECT_EQ(map[0], 0xaaaa);
+    EXPECT_EQ(templates[0].localId, 77);
+
+    publication.mapWidth = 2;
+    EXPECT_EQ(GeneratedDungeon_GenerateAndPublish(&sProviders[0], 7, workspace, &publication), GENERATED_DUNGEON_GENERATION_FAILED);
+    EXPECT_EQ(map[0], 0xaaaa);
 }
 
 TEST("Generated dungeon generation retries and uses a validated deterministic fallback")

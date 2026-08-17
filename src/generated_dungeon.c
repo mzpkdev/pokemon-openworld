@@ -14,6 +14,8 @@ static bool32 IsProviderValid(const struct GeneratedDungeonProvider *provider)
      || provider->maxWorkspaceCells == 0
      || provider->maxWorkspaceCells > GENERATED_DUNGEON_MAX_CELLS
      || provider->maxGeneratedObjects > GENERATED_DUNGEON_MAX_OBJECTS
+     || provider->translateCell == NULL
+     || provider->canMove == NULL
      || provider->generate == NULL
      || provider->fallback == NULL)
         return FALSE;
@@ -157,20 +159,166 @@ bool32 GeneratedDungeonWorkspace_SetObjectCount(struct GeneratedDungeonWorkspace
     return TRUE;
 }
 
+static bool32 IsPointInWorkspace(const struct GeneratedDungeonWorkspace *workspace, struct GeneratedDungeonPoint point)
+{
+    return workspace != NULL && point.x < workspace->width && point.y < workspace->height;
+}
+
+bool32 GeneratedDungeonWorkspace_SetSpawn(struct GeneratedDungeonWorkspace *workspace, u16 x, u16 y)
+{
+    struct GeneratedDungeonPoint point = {x, y};
+
+    if (!IsPointInWorkspace(workspace, point))
+        return FALSE;
+    workspace->spawn = point;
+    return TRUE;
+}
+
+bool32 GeneratedDungeonWorkspace_SetOriginEndpoint(struct GeneratedDungeonWorkspace *workspace, u16 x, u16 y)
+{
+    struct GeneratedDungeonPoint point = {x, y};
+
+    if (!IsPointInWorkspace(workspace, point))
+        return FALSE;
+    workspace->originEndpoint = point;
+    return TRUE;
+}
+
+bool32 GeneratedDungeonWorkspace_SetDestinationEndpoint(struct GeneratedDungeonWorkspace *workspace, u16 x, u16 y)
+{
+    struct GeneratedDungeonPoint point = {x, y};
+
+    if (!IsPointInWorkspace(workspace, point))
+        return FALSE;
+    workspace->destinationEndpoint = point;
+    return TRUE;
+}
+
+bool32 GeneratedDungeonWorkspace_SetObject(struct GeneratedDungeonWorkspace *workspace, u8 index, const struct ObjectEventTemplate *template, bool8 blocksMovement)
+{
+    if (workspace == NULL || template == NULL || index >= workspace->objectCount)
+        return FALSE;
+
+    workspace->objects[index].template = *template;
+    workspace->objects[index].blocksMovement = blocksMovement;
+    return TRUE;
+}
+
+static bool32 IsObjectValid(const struct GeneratedDungeonWorkspace *workspace, const struct GeneratedDungeonObject *object, u8 index)
+{
+    u8 i;
+
+    if (object->template.localId == 0
+     || object->template.script == NULL
+     || object->template.x < 0
+     || object->template.y < 0
+     || object->template.x >= workspace->width
+     || object->template.y >= workspace->height)
+        return FALSE;
+
+    for (i = 0; i < index; i++)
+    {
+        if (workspace->objects[i].template.localId == object->template.localId
+         || (workspace->objects[i].template.x == object->template.x && workspace->objects[i].template.y == object->template.y))
+            return FALSE;
+    }
+    return TRUE;
+}
+
+static bool32 IsOccupied(const struct GeneratedDungeonWorkspace *workspace, struct GeneratedDungeonPoint point)
+{
+    u8 i;
+
+    for (i = 0; i < workspace->objectCount; i++)
+    {
+        const struct GeneratedDungeonObject *object = &workspace->objects[i];
+
+        if (object->blocksMovement && object->template.x == point.x && object->template.y == point.y)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 bool32 GeneratedDungeonWorkspace_IsValid(const struct GeneratedDungeonProvider *provider, const struct GeneratedDungeonWorkspace *workspace)
 {
     u32 cells;
+    u8 i;
 
     if (!IsProviderValid(provider) || workspace == NULL)
         return FALSE;
 
     cells = (u32)workspace->width * workspace->height;
-    return workspace->width != 0
+    if (!(workspace->width != 0
         && workspace->height != 0
         && cells <= provider->maxWorkspaceCells
         && cells <= GENERATED_DUNGEON_MAX_CELLS
         && workspace->objectCount <= provider->maxGeneratedObjects
-        && workspace->objectCount <= GENERATED_DUNGEON_MAX_OBJECTS;
+        && workspace->objectCount <= GENERATED_DUNGEON_MAX_OBJECTS
+        && IsPointInWorkspace(workspace, workspace->spawn)
+        && IsPointInWorkspace(workspace, workspace->originEndpoint)
+        && IsPointInWorkspace(workspace, workspace->destinationEndpoint)))
+        return FALSE;
+
+    if (IsOccupied(workspace, workspace->spawn)
+     || IsOccupied(workspace, workspace->originEndpoint)
+     || IsOccupied(workspace, workspace->destinationEndpoint))
+        return FALSE;
+
+    for (i = 0; i < workspace->objectCount; i++)
+        if (!IsObjectValid(workspace, &workspace->objects[i], i))
+            return FALSE;
+
+    return TRUE;
+}
+
+static bool32 IsReached(const struct GeneratedDungeonWorkspace *workspace, u16 index)
+{
+    return (workspace->reached[index / 8] & (1 << (index % 8))) != 0;
+}
+
+static void SetReached(struct GeneratedDungeonWorkspace *workspace, u16 index)
+{
+    workspace->reached[index / 8] |= 1 << (index % 8);
+}
+
+bool32 GeneratedDungeonWorkspace_HasReachableEndpoints(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonWorkspace *workspace)
+{
+    static const s8 sDx[] = {0, 1, 0, -1};
+    static const s8 sDy[] = {-1, 0, 1, 0};
+    u16 head = 0;
+    u16 tail = 0;
+
+    if (!GeneratedDungeonWorkspace_IsValid(provider, workspace))
+        return FALSE;
+
+    memset(workspace->reached, 0, sizeof(workspace->reached));
+    workspace->queue[tail++] = workspace->spawn.x + workspace->spawn.y * workspace->width;
+    SetReached(workspace, workspace->queue[0]);
+    while (head < tail)
+    {
+        struct GeneratedDungeonPoint from;
+        u8 direction;
+        u16 index = workspace->queue[head++];
+
+        from.x = index % workspace->width;
+        from.y = index / workspace->width;
+        for (direction = 0; direction < ARRAY_COUNT(sDx); direction++)
+        {
+            struct GeneratedDungeonPoint to = {from.x + sDx[direction], from.y + sDy[direction]};
+            u16 toIndex;
+
+            if ((s16)to.x < 0 || (s16)to.y < 0 || !IsPointInWorkspace(workspace, to) || IsOccupied(workspace, to))
+                continue;
+            toIndex = to.x + to.y * workspace->width;
+            if (!IsReached(workspace, toIndex) && provider->canMove(provider, workspace, from, to))
+            {
+                SetReached(workspace, toIndex);
+                workspace->queue[tail++] = toIndex;
+            }
+        }
+    }
+    return IsReached(workspace, workspace->originEndpoint.x + workspace->originEndpoint.y * workspace->width)
+        && IsReached(workspace, workspace->destinationEndpoint.x + workspace->destinationEndpoint.y * workspace->width);
 }
 
 enum GeneratedDungeonGenerationResult GeneratedDungeon_Generate(const struct GeneratedDungeonProvider *provider, u32 seed, struct GeneratedDungeonWorkspace *workspace)
@@ -186,17 +334,65 @@ enum GeneratedDungeonGenerationResult GeneratedDungeon_Generate(const struct Gen
         GeneratedDungeonWorkspace_Reset(workspace);
         GeneratedDungeon_DeriveStreams(provider, seed, attempt, &rng);
         if (provider->generate(provider, &rng, attempt, workspace)
-         && GeneratedDungeonWorkspace_IsValid(provider, workspace))
+         && GeneratedDungeonWorkspace_IsValid(provider, workspace)
+         && GeneratedDungeonWorkspace_HasReachableEndpoints(provider, workspace))
             return GENERATED_DUNGEON_GENERATION_SUCCEEDED;
     }
 
     GeneratedDungeonWorkspace_Reset(workspace);
     if (provider->fallback(provider, workspace)
-     && GeneratedDungeonWorkspace_IsValid(provider, workspace))
+     && GeneratedDungeonWorkspace_IsValid(provider, workspace)
+     && GeneratedDungeonWorkspace_HasReachableEndpoints(provider, workspace))
         return GENERATED_DUNGEON_GENERATION_FALLBACK;
 
     GeneratedDungeonWorkspace_Reset(workspace);
     return GENERATED_DUNGEON_GENERATION_FAILED;
+}
+
+static bool32 CanPublish(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonWorkspace *workspace, const struct GeneratedDungeonPublication *publication)
+{
+    u32 cells;
+    u16 i;
+    u16 metatile;
+
+    if (publication == NULL || publication->map == NULL || publication->templates == NULL
+     || publication->mapWidth != workspace->width || publication->mapHeight != workspace->height
+     || publication->mapStride < workspace->width || publication->templateCapacity < workspace->objectCount)
+        return FALSE;
+
+    cells = (u32)workspace->width * workspace->height;
+    for (i = 0; i < cells; i++)
+        if (!provider->translateCell(provider, workspace->cells[i], &metatile))
+            return FALSE;
+    return TRUE;
+}
+
+static void Publish(const struct GeneratedDungeonProvider *provider, struct GeneratedDungeonWorkspace *workspace, const struct GeneratedDungeonPublication *publication)
+{
+    u16 x;
+    u16 y;
+    u8 i;
+    u16 metatile;
+
+    for (y = 0; y < workspace->height; y++)
+        for (x = 0; x < workspace->width; x++)
+        {
+            provider->translateCell(provider, workspace->cells[x + y * workspace->width], &metatile);
+            publication->map[x + y * publication->mapStride] = metatile;
+        }
+    memset(publication->templates, 0, sizeof(*publication->templates) * publication->templateCapacity);
+    for (i = 0; i < workspace->objectCount; i++)
+        publication->templates[i] = workspace->objects[i].template;
+}
+
+enum GeneratedDungeonGenerationResult GeneratedDungeon_GenerateAndPublish(const struct GeneratedDungeonProvider *provider, u32 seed, struct GeneratedDungeonWorkspace *workspace, const struct GeneratedDungeonPublication *publication)
+{
+    enum GeneratedDungeonGenerationResult result = GeneratedDungeon_Generate(provider, seed, workspace);
+
+    if (result == GENERATED_DUNGEON_GENERATION_FAILED || !CanPublish(provider, workspace, publication))
+        return GENERATED_DUNGEON_GENERATION_FAILED;
+    Publish(provider, workspace, publication);
+    return result;
 }
 
 bool32 GeneratedDungeonProgress_TryGet(u64 progress, u8 bit, bool32 *set)
