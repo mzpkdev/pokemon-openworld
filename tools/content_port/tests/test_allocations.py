@@ -30,6 +30,23 @@ def allocation_document() -> dict[str, object]:
 
 
 class AllocationTests(unittest.TestCase):
+    def test_resident_section_reference_needs_no_section_allocation(self):
+        document = allocation_document()
+        document["sections"] = []
+        document["maps"][0].update(  # type: ignore[index]
+            {
+                "section": "MAPSEC_RESIDENT",
+                "targetSection": 90,
+                "sectionOwnership": "reference",
+            }
+        )
+        allocation = load_allocation_index(document).map_allocation("TestMap")
+        self.assertEqual(allocation.section_ownership, "reference")
+        self.assertEqual(allocation.target_section, 90)
+        with self.assertRaisesRegex(ContentPortError, "must not be allocated"):
+            document["sections"] = [{"name": "MAPSEC_RESIDENT", "targetId": 90}]
+            load_allocation_index(document)
+
     def test_exposes_numeric_placements_only_through_immutable_index(self):
         index = load_allocation_index(allocation_document())
         self.assertEqual(index.map_slot("TestMap"), ("gMapGroup_Test", 4, 0))

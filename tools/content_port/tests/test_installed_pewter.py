@@ -84,7 +84,8 @@ class InstalledPewterTests(unittest.TestCase):
                 "layout": "LAYOUT_PEWTER_CITY_HNS",
                 "targetLayoutIndex": 1040,
                 "section": "MAPSEC_PEWTER_CITY",
-                "targetSection": 267,
+                "targetSection": 90,
+                "sectionOwnership": "reference",
             },
         )
 

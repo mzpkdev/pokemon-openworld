@@ -816,6 +816,7 @@ def _section_units(
         allocation.section
         for name, allocation in descriptor.allocation_index.maps.items()
         if descriptor.map_ownership.get(name) == "rendered"
+        and allocation.section_ownership == "allocated"
     }
     units: list[RenderUnit] = []
     for authority in descriptor.section_metadata_authorities:

@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 
 from tools.content_port.descriptor import load_port
+from tools.content_port.allocations import AllocationIndex
 from tools.content_port.donors import records_digest, source_tree_records
 from tools.content_port.errors import ContentPortError
 from tools.content_port.materialize import (
@@ -1180,6 +1181,39 @@ class MaterializeTests(unittest.TestCase):
         self.assertEqual(route30_map.value["region"], "REGION_JOHTO")
         self.assertEqual(route30_section.value["region"], "REGION_JOHTO")
         self.assertEqual(route30_section.slot, 214)
+        resident_allocation = replace(allocation, section_ownership="reference")
+        resident_descriptor = replace(
+            descriptor,
+            allocation_index=AllocationIndex(
+                MappingProxyType(
+                    {
+                        **descriptor.allocation_index.maps,
+                        "Route30": resident_allocation,
+                    }
+                ),
+                descriptor.allocation_index.layouts,
+                descriptor.allocation_index.groups,
+                MappingProxyType(
+                    {
+                        name: slot
+                        for name, slot in descriptor.allocation_index.sections.items()
+                        if name != allocation.section
+                    }
+                ),
+            ),
+            section_metadata_authorities=tuple(
+                authority
+                for authority in descriptor.section_metadata_authorities
+                if authority.section != allocation.section
+            ),
+        )
+        self.assertNotIn(
+            allocation.section,
+            {
+                unit.record_key
+                for unit in _section_units(resident_descriptor, state, ROOT)
+            },
+        )
         manifest, _ = render_units(
             RenderContext("johto"), (route30_map, route30_section)
         )

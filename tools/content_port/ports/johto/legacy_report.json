@@ -568,7 +568,6 @@
       "MAPSEC_NEW_BARK_TOWN",
       "MAPSEC_OLIVINE_CITY",
       "MAPSEC_OLIVINE_LIGHTHOUSE",
-      "MAPSEC_PEWTER_CITY",
       "MAPSEC_ROUTE_26",
       "MAPSEC_ROUTE_27",
       "MAPSEC_ROUTE_28",
@@ -5253,7 +5252,7 @@
     "maps": 255,
     "layouts": 256,
     "groups": 26,
-    "sections": 59,
+    "sections": 58,
     "tilesets": 72
   },
   "schemaVersion": 1,

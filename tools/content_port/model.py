@@ -104,6 +104,7 @@ class MapAllocation:
     target_layout_index: int
     section: str
     target_section: int
+    section_ownership: str = "allocated"
 
     def __post_init__(self) -> None:
         for field in (
@@ -118,6 +119,10 @@ class MapAllocation:
                 raise ContentPortError(
                     f"map allocation {field} must be a non-empty string"
                 )
+        if self.section_ownership not in {"allocated", "preserve", "reference"}:
+            raise ContentPortError(
+                "map allocation section_ownership must be allocated, preserve, or reference"
+            )
         for field in (
             "target_group_id",
             "target_member",

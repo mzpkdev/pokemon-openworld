@@ -155,11 +155,6 @@
       "source": "MAPSEC_VERMILION_CITY",
       "target": "MAPSEC_JOHTO_VERMILION_PORT",
       "reason": "isolate Johto port residency from the incompatible resident Kanto Vermilion section"
-    },
-    {
-      "source": "MAPSEC_PEWTER_CITY",
-      "target": "MAPSEC_JOHTO_PEWTER_PORT",
-      "reason": "isolate HnS Pewter residency from the resident Kanto Pewter section"
     }
   ],
   "layoutTilesetRemaps": [
@@ -7130,8 +7125,7 @@
     {"section":"MAPSEC_TOHJO_FALLS","sourceRole":"content","sourceSymbol":"MAPSEC_TOHJO_FALLS"},
     {"section":"MAPSEC_JOHTO_VICTORY_ROAD","sourceRole":"content","sourceSymbol":"MAPSEC_VICTORY_ROAD"},
     {"section":"MAPSEC_JOHTO_INDIGO_PLATEAU","sourceRole":"mechanical","sourceSymbol":"MAPSEC_JOHTO_INDIGO_PLATEAU"},
-    {"section":"MAPSEC_MAHOGANY_HIDEOUT","sourceRole":"mechanical","sourceSymbol":"MAPSEC_MAHOGANY_HIDEOUT"},
-    {"section":"MAPSEC_PEWTER_CITY","sourceRole":"content","sourceSymbol":"MAPSEC_PEWTER_CITY"}
+    {"section":"MAPSEC_MAHOGANY_HIDEOUT","sourceRole":"mechanical","sourceSymbol":"MAPSEC_MAHOGANY_HIDEOUT"}
   ],
   "encounterProfiles": [
     {
