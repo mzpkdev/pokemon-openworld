@@ -120,6 +120,7 @@ extern u8 gChainFishingDexNavStreak;
 u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, enum WildPokemonArea area);
 void DisableWildEncounters(bool8 disabled);
 bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior);
+void RockSmashWildEncounter(void);
 bool8 SweetScentWildEncounter(void);
 bool8 DoesCurrentMapHaveFishingMons(void);
 void FishingWildEncounter(u8 rod);
@@ -130,6 +131,9 @@ bool8 IsWildLevelAllowedByRepel(u8 wildLevel);
 bool8 IsAbilityAllowingEncounter(u8 level);
 bool8 TryDoDoubleWildBattle(void);
 bool8 StandardWildEncounter_Debug(void);
+#if TESTING
+bool8 SweetScentWildEncounterForTesting(enum WildPokemonArea area);
+#endif
 u32 CalculateChainFishingShinyRolls(void);
 void CreateWildMon(enum Species species, u8 level);
 bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPokemonArea area, u8 flags);

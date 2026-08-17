@@ -482,6 +482,19 @@ static bool8 MapHasSpecies(u16 headerId, enum TimeOfDay timeOfDay, MapSectionId 
     return FALSE;
 }
 
+#if TESTING
+bool8 PokedexArea_MapHasSpeciesForTesting(u8 mapGroup, u8 mapNum, enum TimeOfDay timeOfDay, enum Species species)
+{
+    const struct MapHeader *mapHeader;
+    u16 headerId;
+
+    if (!TryFindWildEncounterHeader(mapGroup, mapNum, &headerId))
+        return FALSE;
+    mapHeader = Overworld_GetMapHeaderByGroupAndId(mapGroup, mapNum);
+    return MapHasSpecies(headerId, timeOfDay, mapHeader->regionMapSectionId, species);
+}
+#endif
+
 static bool8 ProfileHasSpecies(const struct WildEncounterProfileView *profile, enum Species species)
 {
     struct WildEncounterAuthoredEntry entry;

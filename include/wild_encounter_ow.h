@@ -105,6 +105,11 @@ struct SpritePalette GetOWESpawnDespawnAnimFldEffPalette(enum SpawnDespawnTypeOW
 u32 RemoveOldestGeneratedOWE(void);
 bool32 CanRemoveObjectForOWEMovement(struct ObjectEvent *objectEvent);
 
+#if TESTING
+bool32 OWE_CheckCurrentWildMonHeaderForTesting(bool32 shouldSpawnWaterMons);
+bool32 OWE_GenerateCurrentWildMonForTesting(bool32 shouldSpawnWaterMons);
+#endif
+
 extern const u8 InteractWithOverworldWildEncounter[];
 
 #endif // GUARD_WILD_ENCOUNTER_OW_H

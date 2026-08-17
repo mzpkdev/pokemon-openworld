@@ -1734,7 +1734,7 @@ static void PopulateMapName(int matchCallId, u8 *destStr)
     GetMapName(destStr, GetRematchTrainerLocation(matchCallId), 0);
 }
 
-static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
+static enum Species SelectSpeciesFromLocation(u8 mapGroup, u8 mapNum)
 {
     enum Species species[2];
     int numSpecies;
@@ -1745,8 +1745,8 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
     struct WildEncounterAuthoredEntry entry;
 
     if (TryFindWildEncounterHeader(
-        gRematchTable[matchCallId].mapGroup,
-        gRematchTable[matchCallId].mapNum,
+        mapGroup,
+        mapNum,
         &headerId))
     {
         numSpecies = 0;
@@ -1773,14 +1773,30 @@ static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
                 species[numSpecies++] = entry.species;
         }
         if (numSpecies)
-        {
-            StringCopy(destStr, GetSpeciesName(species[Random() % numSpecies]));
-            return;
-        }
+            return species[Random() % numSpecies];
     }
 
-    destStr[0] = EOS;
+    return SPECIES_NONE;
 }
+
+static void PopulateSpeciesFromTrainerLocation(int matchCallId, u8 *destStr)
+{
+    enum Species species = SelectSpeciesFromLocation(
+        gRematchTable[matchCallId].mapGroup,
+        gRematchTable[matchCallId].mapNum);
+
+    if (species == SPECIES_NONE)
+        destStr[0] = EOS;
+    else
+        StringCopy(destStr, GetSpeciesName(species));
+}
+
+#if TESTING
+enum Species MatchCall_SelectSpeciesFromLocationForTesting(u8 mapGroup, u8 mapNum)
+{
+    return SelectSpeciesFromLocation(mapGroup, mapNum);
+}
+#endif
 
 static void PopulateSpeciesFromTrainerParty(int matchCallId, u8 *destStr)
 {

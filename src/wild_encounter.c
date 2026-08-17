@@ -1602,12 +1602,38 @@ void RockSmashWildEncounter(void)
     }
 }
 
+static bool8 SweetScentWildEncounterForArea(u32 headerId, enum WildPokemonArea area)
+{
+    enum TimeOfDay timeOfDay;
+    struct WildEncounterProfileView profile;
+
+    if (area == WILD_AREA_WATER && AreLegendariesInSootopolisPreventingEncounters() == TRUE)
+        return FALSE;
+
+    timeOfDay = GetTimeOfDayForEncounters(headerId, area);
+    if (!TryResolveWildEncounterProfile(headerId, area, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+        return FALSE;
+
+    if (TryStartRoamerEncounter())
+    {
+        BattleSetup_StartRoamerBattle();
+        return TRUE;
+    }
+
+    if (area == WILD_AREA_LAND && DoMassOutbreakEncounterTest() == TRUE)
+        SetUpMassOutbreakEncounter(0);
+    else
+        TryGenerateWildMonFromProfile(&profile, 0);
+
+    BattleSetup_StartWildBattle();
+    return TRUE;
+}
+
 bool8 SweetScentWildEncounter(void)
 {
     s16 x, y;
     u32 headerId;
     enum TimeOfDay timeOfDay;
-    struct WildEncounterProfileView profile;
 
     PlayerGetDestCoords(&x, &y);
     headerId = GetCurrentMapWildMonHeaderId();
@@ -1641,59 +1667,36 @@ bool8 SweetScentWildEncounter(void)
     else
     {
         if (MetatileBehavior_IsLandWildEncounter(MapGridGetMetatileBehaviorAt(x, y)) == TRUE)
-        {
-            timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
-
-            if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
-                return FALSE;
-
-            if (TryStartRoamerEncounter())
-            {
-                BattleSetup_StartRoamerBattle();
-                return TRUE;
-            }
-
-            if (DoMassOutbreakEncounterTest() == TRUE)
-                SetUpMassOutbreakEncounter(0);
-            else
-                TryGenerateWildMonFromProfile(&profile, 0);
-
-            BattleSetup_StartWildBattle();
-            return TRUE;
-        }
+            return SweetScentWildEncounterForArea(headerId, WILD_AREA_LAND);
         else if (MetatileBehavior_IsWaterWildEncounter(MapGridGetMetatileBehaviorAt(x, y)) == TRUE)
-        {
-            timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
-
-            if (AreLegendariesInSootopolisPreventingEncounters() == TRUE)
-                return FALSE;
-            if (!TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
-                return FALSE;
-
-            if (TryStartRoamerEncounter())
-            {
-                BattleSetup_StartRoamerBattle();
-                return TRUE;
-            }
-
-            TryGenerateWildMonFromProfile(&profile, 0);
-            BattleSetup_StartWildBattle();
-            return TRUE;
-        }
+            return SweetScentWildEncounterForArea(headerId, WILD_AREA_WATER);
     }
 
     return FALSE;
 }
 
+#if TESTING
+bool8 SweetScentWildEncounterForTesting(enum WildPokemonArea area)
+{
+    u32 headerId = GetCurrentMapWildMonHeaderId();
+
+    if (headerId == HEADER_NONE || (area != WILD_AREA_LAND && area != WILD_AREA_WATER))
+        return FALSE;
+    return SweetScentWildEncounterForArea(headerId, area);
+}
+#endif
+
 bool8 DoesCurrentMapHaveFishingMons(void)
 {
     u32 headerId = GetCurrentMapWildMonHeaderId();
-    enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
+    enum TimeOfDay timeOfDay;
+    struct WildEncounterProfileView profile;
 
-    if (headerId != HEADER_NONE && GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_FISHING) != NULL)
-        return TRUE;
-    else
+    if (headerId == HEADER_NONE)
         return FALSE;
+
+    timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
+    return TryResolveWildEncounterProfile(headerId, WILD_AREA_FISHING, timeOfDay, OLD_ROD, WorldTier_Get(), &profile);
 }
 
 void FishingWildEncounter(u8 rod)

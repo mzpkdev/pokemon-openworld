@@ -26,4 +26,8 @@ void SetActiveTrainerRematches(u32 matchCallId, u32 value);
 u32 GetTrainerRematchStepCounter(void);
 void SetTrainerRematchStepCounter(u32 value);
 
+#if TESTING
+enum Species MatchCall_SelectSpeciesFromLocationForTesting(u8 mapGroup, u8 mapNum);
+#endif
+
 #endif //GUARD_MATCH_CALL_H
