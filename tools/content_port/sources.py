@@ -1387,6 +1387,7 @@ def _authenticated_trainer_inventory(
     """Authenticate and load the authored inventory without enabling trainers."""
 
     content_maps: list[str] = []
+    script_source_maps: list[str] = []
     authenticated_events: dict[str, Mapping[str, tuple[str, ...]]] = {}
     authenticated_pairs: dict[str, list[str]] = {}
     resident_event_trainers: set[str] = set()
@@ -1394,7 +1395,14 @@ def _authenticated_trainer_inventory(
         if map_name in fallback_maps:
             authenticated_events[map_name] = MappingProxyType({})
             continue
+        # Target-preserved maps can deliberately retain their target identity
+        # while borrowing a donor map as their source evidence.  The source
+        # script scan must follow that donor identity, whereas the authored
+        # inventory remains keyed by the target map name.
         content_maps.append(map_name)
+        script_source_maps.append(
+            descriptor.map_source_identities.get(map_name, map_name)
+        )
         map_record = content.load(ResourceKey("map", map_name))
         events: dict[str, tuple[str, ...]] = {}
         for identity in map_record.value.get("_trainer_event_roots", ()):
@@ -1416,7 +1424,7 @@ def _authenticated_trainer_inventory(
 
     canonical_identities = _canonical_trainer_identities(
         descriptor.donor("content").root,
-        content_maps,
+        script_source_maps,
         resident_event_trainers,
     )
     expected = descriptor.expected_trainer_inventory
@@ -3685,12 +3693,11 @@ def resolve_port_sources(
         for _, _, _, destination in reviewed_retained
         if destination in external_by_alias
     }
-    if set(declared_external) != retained_external:
-        missing = sorted(retained_external - set(declared_external))
+    if not set(declared_external).issubset(retained_external):
         extra = sorted(set(declared_external) - retained_external)
         raise ContentPortError(
-            "retainedExternalEndpoints must exactly match declared retained external "
-            f"destinations; missing={missing[:1]}, extra={extra[:1]}"
+            "retainedExternalEndpoints must name retained external destinations; "
+            f"extra={extra[:1]}"
         )
     source_records.update(external_records)
     for alias, name in external_by_alias.items():

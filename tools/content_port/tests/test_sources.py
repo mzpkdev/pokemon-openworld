@@ -929,7 +929,7 @@ class SourceGraphTests(unittest.TestCase):
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
         evidence, state = resolve_port_sources(descriptor, Path("."))
         self.assertEqual(evidence.inventory["maps"], 255)
-        self.assertEqual(evidence.inventory["layouts"], 255)
+        self.assertEqual(evidence.inventory["layouts"], 256)
         expected_asset_policy = tuple(
             sorted(
                 f"{item['donor']}:{item['sourcePath']}"
@@ -1578,6 +1578,11 @@ class SourceGraphTests(unittest.TestCase):
             for name, ownership in descriptor.map_ownership.items():
                 if ownership != "preserve":
                     continue
+                source_map = Path("data/maps") / name / "map.json"
+                target_map = target / source_map
+                target_map.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_map, target_map)
+            for name in descriptor.adaptations.get("retainedExternalEndpoints", []):
                 source_map = Path("data/maps") / name / "map.json"
                 target_map = target / source_map
                 target_map.parent.mkdir(parents=True, exist_ok=True)
