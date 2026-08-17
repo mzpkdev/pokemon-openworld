@@ -1157,6 +1157,10 @@ def _load_authored_bands(
         profile = profile_by_label.get(label)
         if profile is None:
             raise ValidationError(f"{location}/label: unknown canonical profile")
+        if profile["residency"] == "johto":
+            raise ValidationError(
+                f"{location}/label: Johto residency cannot author encounter bands"
+            )
         emits_runtime = label in runtime_labels
         if not emits_runtime and profile["alternate_of"] is not None:
             raise ValidationError(f"{location}/label: unknown canonical profile")

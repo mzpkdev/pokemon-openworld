@@ -647,7 +647,7 @@
     },
     {
       "map": "LakeOfRageLowTide",
-      "kind": "ordinary"
+      "kind": "alias"
     },
     {
       "map": "MahoganyTown_Gym",
@@ -941,7 +941,7 @@
     },
     {
       "map": "Route26North",
-      "kind": "ordinary"
+      "kind": "alias"
     },
     {
       "map": "Route26_House1",
@@ -1013,15 +1013,15 @@
     },
     {
       "map": "JohtoVictoryRoad_1F",
-      "kind": "ordinary"
+      "kind": "alias"
     },
     {
       "map": "JohtoVictoryRoad_B1F",
-      "kind": "ordinary"
+      "kind": "alias"
     },
     {
       "map": "JohtoVictoryRoad_B2F",
-      "kind": "ordinary"
+      "kind": "alias"
     },
     {
       "map": "MahoganyHideout_B1F",

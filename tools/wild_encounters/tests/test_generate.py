@@ -425,13 +425,11 @@ class WildEncounterGenerationTests(unittest.TestCase):
 
     def test_proof_profiles_preserve_tier_zero_ecology_and_weights(self):
         profiles = self.bands["profiles"]
-        self.assertEqual(len(profiles), 560)
+        self.assertEqual(len(profiles), 9)
         self.assertTrue(
             {
                 "gRoute101",
                 "sVermilionCity_FireRed",
-                "gRoute39",
-                "gRoute39_Night",
                 "sOneIsland_FireRed",
             }.issubset({profile["label"] for profile in profiles})
         )
@@ -455,8 +453,6 @@ class WildEncounterGenerationTests(unittest.TestCase):
                     )
                     for rod in ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
                 },
-                ("gRoute39", "gRoute39", "land_mons", "TIME_FALLBACK", "NONE"),
-                ("gRoute39_Night", "gRoute39", "land_mons", "TIME_NIGHT", "NONE"),
                 (
                     "sOneIsland_FireRed",
                     "sOneIsland_FireRed",
@@ -535,9 +531,17 @@ class WildEncounterGenerationTests(unittest.TestCase):
                 )
 
         output = self.generate()
-        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 560", output)
-        self.assertEqual(output.count(".missingBandPolicy ="), 560)
-        self.assertEqual(output.count(".totalWeight = 100,"), 2_240)
+        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 9", output)
+        self.assertEqual(output.count(".missingBandPolicy ="), 9)
+        self.assertEqual(output.count(".totalWeight = 100,"), 36)
+
+    def test_johto_residency_cannot_author_encounter_bands(self):
+        profile = copy.deepcopy(self.route101_band_profile())
+        profile["label"] = "gRoute39"
+        profile["header"] = "gRoute39"
+        self.assert_rejected_without_replacement(
+            bands={"schema_version": 1, "profiles": [profile]}
+        )
 
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()

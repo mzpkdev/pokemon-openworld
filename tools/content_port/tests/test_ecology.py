@@ -32,7 +32,7 @@ SOURCE = {
 }
 SPECIES = {"SPECIES_RATTATA", "SPECIES_SENTRET"}
 METHODS = {"land_mons", "fishing_mons"}
-BLOCKED_MAPS = {
+ALIAS_MAPS = {
     "LakeOfRageLowTide",
     "Route26North",
     "JohtoVictoryRoad_1F",
@@ -167,6 +167,18 @@ class ClassificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ContentPortError, "missing field 'owner'"):
             validate_classification_document(
                 {"schemaVersion": 1, "maps": [{"map": "A", "kind": "special"}]},
+                ["A"],
+            )
+        validate_classification_document(
+            {"schemaVersion": 1, "maps": [{"map": "A", "kind": "alias"}]},
+            ["A"],
+        )
+        with self.assertRaisesRegex(ContentPortError, "unknown field 'owner'"):
+            validate_classification_document(
+                {
+                    "schemaVersion": 1,
+                    "maps": [{"map": "A", "kind": "alias", "owner": "other"}],
+                },
                 ["A"],
             )
 
@@ -385,6 +397,9 @@ class ProductionArtifactsTests(unittest.TestCase):
         ordinary_maps = [
             row["map"] for row in classification["maps"] if row["kind"] == "ordinary"
         ]
+        alias_maps = {
+            row["map"] for row in classification["maps"] if row["kind"] == "alias"
+        }
         species = set(
             re.findall(
                 r"\bSPECIES_[A-Z0-9_]+\b",
@@ -406,18 +421,20 @@ class ProductionArtifactsTests(unittest.TestCase):
             supported_methods=SUPPORTED_SOURCE_METHODS,
             supported_species=species,
             source_map_by_target=source_map_by_target,
-            expected_blocked_maps=BLOCKED_MAPS,
+            expected_blocked_maps=set(),
             protected_route39_profile=ROUTE39_SOURCE_DIGEST,
         )
         self.assertEqual(len(canonical_maps), 254)
-        self.assertEqual(len(ordinary_maps), 89)
+        self.assertEqual(len(ordinary_maps), 84)
+        self.assertEqual(alias_maps, ALIAS_MAPS)
         kinds = [row["kind"] for row in classification["maps"]]
-        self.assertEqual(kinds.count("ordinary"), 89)
+        self.assertEqual(kinds.count("ordinary"), 84)
+        self.assertEqual(kinds.count("alias"), 5)
         self.assertEqual(kinds.count("encounter-free"), 147)
         self.assertEqual(kinds.count("special"), 18)
         statuses = [record["status"] for record in ecology_document["records"]]
         self.assertEqual(statuses.count("inventoried"), 84)
-        self.assertEqual(statuses.count("blocked"), 5)
+        self.assertEqual(statuses.count("blocked"), 0)
         profiles = [
             profile_value
             for record in ecology_document["records"]

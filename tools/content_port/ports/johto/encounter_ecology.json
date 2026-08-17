@@ -18061,12 +18061,6 @@
       ]
     },
     {
-      "map": "LakeOfRageLowTide",
-      "status": "blocked",
-      "reason": "No exact resident PokemonHnS encounter table exists for MAP_LAKE_OF_RAGE_LOW_TIDE.",
-      "evidenceNeeded": "Authenticated donor evidence for MAP_LAKE_OF_RAGE_LOW_TIDE or an approved low-tide ecology fallback."
-    },
-    {
       "map": "MtMortar_1F_North",
       "status": "inventoried",
       "profiles": [
@@ -26672,12 +26666,6 @@
       ]
     },
     {
-      "map": "Route26North",
-      "status": "blocked",
-      "reason": "No exact resident PokemonHnS encounter table exists for MAP_ROUTE26_NORTH.",
-      "evidenceNeeded": "Authenticated donor evidence for MAP_ROUTE26_NORTH or an approved map-specific ecology fallback."
-    },
-    {
       "map": "Route27",
       "status": "inventoried",
       "profiles": [
@@ -27673,24 +27661,6 @@
           ]
         }
       ]
-    },
-    {
-      "map": "JohtoVictoryRoad_1F",
-      "status": "blocked",
-      "reason": "No exact resident PokemonHnS encounter table exists for MAP_JOHTO_VICTORY_ROAD_1F; similarly named non-Johto tables are not substitutes.",
-      "evidenceNeeded": "Authenticated donor evidence for MAP_JOHTO_VICTORY_ROAD_1F or an approved floor-specific ecology fallback."
-    },
-    {
-      "map": "JohtoVictoryRoad_B1F",
-      "status": "blocked",
-      "reason": "No exact resident PokemonHnS encounter table exists for MAP_JOHTO_VICTORY_ROAD_B1F; similarly named non-Johto tables are not substitutes.",
-      "evidenceNeeded": "Authenticated donor evidence for MAP_JOHTO_VICTORY_ROAD_B1F or an approved floor-specific ecology fallback."
-    },
-    {
-      "map": "JohtoVictoryRoad_B2F",
-      "status": "blocked",
-      "reason": "No exact resident PokemonHnS encounter table exists for MAP_JOHTO_VICTORY_ROAD_B2F; similarly named non-Johto tables are not substitutes.",
-      "evidenceNeeded": "Authenticated donor evidence for MAP_JOHTO_VICTORY_ROAD_B2F or an approved floor-specific ecology fallback."
     }
   ]
 }

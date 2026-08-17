@@ -23,13 +23,6 @@ from tools.wild_encounters.johto_population import project_documents
 ROUTE39_SOURCE_DIGEST = (
     "0bc050ec9aeb066e2b5fe3b8c178e0064aeeb636b51649c600c0dbfa4718f033"
 )
-BLOCKED_MAPS = {
-    "LakeOfRageLowTide",
-    "Route26North",
-    "JohtoVictoryRoad_1F",
-    "JohtoVictoryRoad_B1F",
-    "JohtoVictoryRoad_B2F",
-}
 EXCLUDED_DONOR_MAPS = {
     "MAP_NATIONAL_PARK_BUG_CONTEST",
     "MAP_SAFARI_ZONE_GATE",
@@ -155,7 +148,7 @@ class PinnedDonorTests(unittest.TestCase):
             supported_methods=SUPPORTED_SOURCE_METHODS,
             supported_species=species,
             source_map_by_target=source_map_by_target,
-            expected_blocked_maps=BLOCKED_MAPS,
+            expected_blocked_maps=set(),
             protected_route39_profile=ROUTE39_SOURCE_DIGEST,
         )
 
@@ -318,7 +311,7 @@ class PinnedDonorTests(unittest.TestCase):
                 )
             )["id"]
             for row in classification["maps"]
-            if row["kind"] == "ordinary"
+            if row["kind"] in {"ordinary", "alias"}
         }
         projected = project_documents(
             classification,

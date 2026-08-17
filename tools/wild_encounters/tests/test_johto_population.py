@@ -55,46 +55,12 @@ class JohtoPopulationTests(unittest.TestCase):
             row for row in self.projected_encounters if row["base_label"] == label
         )
 
-    def band(self, label, method, rod="NONE"):
-        return next(
-            row
-            for row in self.outputs[2]["profiles"]
-            if row["label"] == label
-            and row["method"] == method
-            and row["fishing_rod"] == rod
-        )
-
-    def test_anomaly_rules_and_complete_aggregated_bands(self):
+    def test_anomaly_rules_preserve_normalized_standard_rows(self):
         new_bark = self.encounter("gNewBarkTown")
         self.assertNotIn("land_mons", new_bark)
         self.assertEqual(len(new_bark["water_mons"]["mons"]), 5)
         self.assertNotIn("water_mons", self.encounter("gMtSilver_1F_ItemRoom"))
         self.assertNotIn("water_mons", self.encounter("gMtSilver_MountainSide"))
-
-        water = self.band("gNewBarkTown", "water_mons")
-        self.assertEqual(
-            water["tiers"][0]["entries"],
-            [
-                {
-                    "species": "SPECIES_TENTACOOL",
-                    "weight": 100,
-                    "min_level": 4,
-                    "max_level": 8,
-                }
-            ],
-        )
-        self.assertEqual(
-            [
-                (tier["entries"][0]["min_level"], tier["entries"][0]["max_level"])
-                for tier in water["tiers"]
-            ],
-            list(projection.TIER_LEVELS),
-        )
-        fishing = [
-            self.band("gNewBarkTown", "fishing_mons", rod)
-            for rod in ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
-        ]
-        self.assertEqual([len(row["tiers"]) for row in fishing], [4, 4, 4])
 
         labels = {row["base_label"] for row in self.projected_encounters}
         self.assertIn("gMtSilver_Snow", labels)
@@ -112,7 +78,25 @@ class JohtoPopulationTests(unittest.TestCase):
 
     def test_fallbacks_use_target_not_source_identities(self):
         targets = {row["targetName"]: row for row in self.fallbacks["records"]}
+        aliases = {
+            row["map"] for row in self.classification["maps"] if row["kind"] == "alias"
+        }
+        self.assertEqual(set(targets), aliases)
+        alias_ids = {self.map_ids[name] for name in aliases}
+        direct_labels = {
+            profile["label"]
+            for record in self.ecology["records"]
+            for profile in record["profiles"]
+        }
+        target_labels = [
+            binding["targetLabel"]
+            for fallback in targets.values()
+            for binding in fallback["profiles"]
+        ]
+        self.assertEqual(len(target_labels), len(set(target_labels)))
+        self.assertTrue(direct_labels.isdisjoint(target_labels))
         for name, fallback in targets.items():
+            self.assertNotIn(fallback["sourceMap"], alias_ids)
             for binding in fallback["profiles"]:
                 encounter = self.encounter(binding["targetLabel"])
                 self.assertEqual(encounter["map"], fallback["targetMap"])
@@ -145,6 +129,23 @@ class JohtoPopulationTests(unittest.TestCase):
                 self.ecology_source,
             )
 
+    def test_projection_rejects_classification_alias_set_drift(self):
+        changed = copy.deepcopy(self.classification)
+        by_name = {row["map"]: row for row in changed["maps"]}
+        by_name["LakeOfRageLowTide"]["kind"] = "encounter-free"
+        by_name["MahoganyTown_Gym"]["kind"] = "alias"
+        with self.assertRaisesRegex(projection.ProjectionError, "fallback target"):
+            projection.project_documents(
+                changed,
+                self.ecology,
+                self.fallbacks,
+                self.encounters,
+                self.registry,
+                self.bands,
+                self.map_ids,
+                self.ecology_source,
+            )
+
     def test_all_ordinary_maps_are_eligible_and_exclusions_have_no_johto_rows(self):
         kinds = {row["map"]: row["kind"] for row in self.classification["maps"]}
         johto_rows = [row for row in self.outputs[1]["profiles"] if row[3] == "johto"]
@@ -153,16 +154,23 @@ class JohtoPopulationTests(unittest.TestCase):
             row for row in self.projected_encounters if row["base_label"] in labels
         ]
         maps = {row["map"] for row in encounter_rows}
-        ordinary_ids = {
+        direct_ids = {
             self.map_ids[name] for name, kind in kinds.items() if kind == "ordinary"
         }
-        self.assertEqual(maps, ordinary_ids)
-        self.assertEqual(len(ordinary_ids), 89)
+        alias_ids = {
+            self.map_ids[name] for name, kind in kinds.items() if kind == "alias"
+        }
+        self.assertEqual(maps, direct_ids | alias_ids)
+        self.assertEqual(len(direct_ids), 84)
+        self.assertEqual(len(alias_ids), 5)
+        self.assertEqual(len(johto_rows), 147)
         self.assertTrue(
             all(set(row) & set(projection.METHOD_ORDER) for row in encounter_rows)
         )
 
-        excluded_names = {name for name, kind in kinds.items() if kind != "ordinary"}
+        excluded_names = {
+            name for name, kind in kinds.items() if kind not in {"ordinary", "alias"}
+        }
         excluded_ids = {
             self.load(ROOT / "data/maps" / name / "map.json")["id"]
             for name in excluded_names
@@ -183,17 +191,10 @@ class JohtoPopulationTests(unittest.TestCase):
                 next(row for row in self.registry["profiles"] if row[1] == label),
                 next(row for row in self.outputs[1]["profiles"] if row[1] == label),
             )
-        self.assertEqual(
-            [
-                row
-                for row in self.bands["profiles"]
-                if row["label"] in projection.ROUTE39_LABELS
-            ],
-            [
-                row
-                for row in self.outputs[2]["profiles"]
-                if row["label"] in projection.ROUTE39_LABELS
-            ],
+        self.assertTrue(
+            projection.ROUTE39_LABELS.isdisjoint(
+                {row["label"] for row in self.outputs[2]["profiles"]}
+            )
         )
         original_non_johto = [
             row for row in self.registry["profiles"] if row[3] != "johto"
@@ -202,6 +203,14 @@ class JohtoPopulationTests(unittest.TestCase):
             row for row in self.outputs[1]["profiles"] if row[3] != "johto"
         ]
         self.assertEqual(original_non_johto, projected_non_johto)
+        registry_by_label = {row[1]: row for row in self.registry["profiles"]}
+        expected_bands = [
+            row
+            for row in self.bands["profiles"]
+            if registry_by_label[row["label"]][3] != "johto"
+        ]
+        self.assertEqual(self.outputs[2]["profiles"], expected_bands)
+        self.assertEqual(len(expected_bands), projection.NON_JOHTO_BAND_COUNT)
 
     def test_time_policies_cover_every_selected_pair(self):
         time_document = self.outputs[3]
