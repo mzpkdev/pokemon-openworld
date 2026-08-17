@@ -777,12 +777,16 @@ def _validate_regional_badge_story_compatibility(root: Path, bindings: dict) -> 
     if len(EXACT_RATING_STORY_PRODUCERS) != len(
         {(path, label) for path, label, _ in EXACT_RATING_STORY_PRODUCERS}
     ):
-        raise ContractError("regional facts: duplicate rating-story producer inventory entry")
+        raise ContractError(
+            "regional facts: duplicate rating-story producer inventory entry"
+        )
     for path, label, semantic_fact in EXACT_RATING_STORY_PRODUCERS:
         block = _script_block(root / path, label, root)
         _reject_selector(block)
         if block.count(f"setflag {semantic_fact}") != 1:
-            raise ContractError(f"regional facts: {label} omits durable story fact {semantic_fact}")
+            raise ContractError(
+                f"regional facts: {label} omits durable story fact {semantic_fact}"
+            )
         if any(fact in block for fact in exact_facts - {semantic_fact}):
             raise ContractError(f"regional facts: wrong exact fact in {label}")
 
