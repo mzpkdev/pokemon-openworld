@@ -19,6 +19,7 @@ MAP_OFFSET = 7
 GENERATED_MAP_WIDTH = 20
 GENERATED_MAP_HEIGHT = 20
 GENERATED_FLOOR_METATILE = 0x201
+MAX_SKYEMU_READ_BYTES = 128
 NORMAL_FIELD_MAP = (0, 9)
 
 
@@ -39,6 +40,13 @@ def _record(game) -> bytes:
     )
 
 
+def _read_bytes(game, address: int, size: int) -> bytes:
+    return b"".join(
+        game.read(address + offset, min(MAX_SKYEMU_READ_BYTES, size - offset))
+        for offset in range(0, size, MAX_SKYEMU_READ_BYTES)
+    )
+
+
 def _generated_runtime_snapshot(game) -> tuple[bytes, bytes]:
     backup_layout = game.read(game.address("gBackupMapLayout"), 12)
     width, height, map_address = struct.unpack("<iiI", backup_layout)
@@ -49,13 +57,14 @@ def _generated_runtime_snapshot(game) -> tuple[bytes, bytes]:
 
     start = map_address + 2 * (width * MAP_OFFSET + MAP_OFFSET)
     cell_count = GENERATED_MAP_WIDTH * GENERATED_MAP_HEIGHT
-    cells = game.read(start, cell_count * 2)
+    cells = _read_bytes(game, start, cell_count * 2)
     assert (
         struct.unpack(f"<{cell_count}H", cells)
         == (GENERATED_FLOOR_METATILE,) * cell_count
     )
 
-    templates = game.read(
+    templates = _read_bytes(
+        game,
         game.save_block1() + OBJECT_EVENT_TEMPLATES_OFFSET,
         OBJECT_EVENT_TEMPLATE_SIZE * OBJECT_EVENT_TEMPLATE_COUNT,
     )
