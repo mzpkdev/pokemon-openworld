@@ -70,10 +70,14 @@ class FixtureResult:
                 FixtureStatus(status),
             )
         except ValueError as value_error:
-            raise RuntimeError(f"malformed generated dungeon fixture result: {payload.hex()}") from value_error
+            raise RuntimeError(
+                f"malformed generated dungeon fixture result: {payload.hex()}"
+            ) from value_error
 
 
-def activate_fixture(game, request: FixtureRequest, *, max_frames: int = 1_800) -> FixtureResult:
+def activate_fixture(
+    game, request: FixtureRequest, *, max_frames: int = 1_800
+) -> FixtureResult:
     """Activate the DEBUG-only fixed provider with a status-last request."""
     if max_frames < 1:
         raise ValueError("max_frames must be positive")
@@ -90,7 +94,9 @@ def activate_fixture(game, request: FixtureRequest, *, max_frames: int = 1_800) 
     result = None
     for _ in range(max_frames):
         result = FixtureResult.unpack(
-            game.read(game.address("gDebugGeneratedDungeonFixtureResult"), FIXTURE_RESULT_SIZE)
+            game.read(
+                game.address("gDebugGeneratedDungeonFixtureResult"), FIXTURE_RESULT_SIZE
+            )
         )
         if result.status not in (FixtureStatus.SUCCESS, FixtureStatus.ERROR):
             game.step()

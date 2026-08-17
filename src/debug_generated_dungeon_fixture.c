@@ -9,8 +9,8 @@
 #include "overworld.h"
 #include "constants/maps.h"
 
-#define FIXTURE_WIDTH 11
-#define FIXTURE_HEIGHT 8
+#define FIXTURE_WIDTH 20
+#define FIXTURE_HEIGHT 20
 #define FIXTURE_FLOOR_METATILE 0x201
 
 volatile struct DebugGeneratedDungeonFixtureRequest gDebugGeneratedDungeonFixtureRequest;
@@ -47,9 +47,9 @@ static bool32 Generate(const struct GeneratedDungeonProvider *provider, struct G
     if (provider == NULL || rng == NULL || attempt != 0
      || !GeneratedDungeonWorkspace_SetDimensions(workspace, FIXTURE_WIDTH, FIXTURE_HEIGHT)
      || !GeneratedDungeonWorkspace_SetObjectCount(workspace, 0)
-     || !GeneratedDungeonWorkspace_SetSpawn(workspace, 5, 4)
-     || !GeneratedDungeonWorkspace_SetOriginEndpoint(workspace, 5, 6)
-     || !GeneratedDungeonWorkspace_SetDestinationEndpoint(workspace, 5, 1))
+     || !GeneratedDungeonWorkspace_SetSpawn(workspace, 10, 10)
+     || !GeneratedDungeonWorkspace_SetOriginEndpoint(workspace, 10, 15)
+     || !GeneratedDungeonWorkspace_SetDestinationEndpoint(workspace, 10, 4))
         return FALSE;
 
     for (y = 0; y < FIXTURE_HEIGHT; y++)
@@ -70,8 +70,8 @@ static const struct GeneratedDungeonProvider sProvider =
 {
     .providerId = DEBUG_GENERATED_DUNGEON_FIXTURE_PROVIDER_ID,
     .generationVersion = DEBUG_GENERATED_DUNGEON_FIXTURE_GENERATION_VERSION,
-    .mapGroup = MAP_GROUP(MAP_OLDALE_TOWN_MART),
-    .mapNum = MAP_NUM(MAP_OLDALE_TOWN_MART),
+    .mapGroup = MAP_GROUP(MAP_ROUTE101),
+    .mapNum = MAP_NUM(MAP_ROUTE101),
     .maxWorkspaceCells = FIXTURE_WIDTH * FIXTURE_HEIGHT,
     .maxGeneratedObjects = 0,
     .translateCell = TranslateCell,
@@ -111,7 +111,7 @@ void DebugGeneratedDungeonFixture_Init(void)
 
 void DebugGeneratedDungeonFixture_Update(void)
 {
-    struct WarpData origin = {MAP_GROUP(MAP_OLDALE_TOWN), MAP_NUM(MAP_OLDALE_TOWN), WARP_ID_NONE, 10, 10};
+    struct WarpData origin;
     struct DebugGeneratedDungeonFixtureRequest request;
 
     if (sActive)
@@ -141,6 +141,10 @@ void DebugGeneratedDungeonFixture_Update(void)
         Publish(DEBUG_GENERATED_DUNGEON_FIXTURE_ERROR, DEBUG_GENERATED_DUNGEON_FIXTURE_ERROR_NOT_READY);
         return;
     }
+    origin = gSaveBlock1Ptr->location;
+    origin.warpId = WARP_ID_NONE;
+    origin.x = gSaveBlock1Ptr->pos.x;
+    origin.y = gSaveBlock1Ptr->pos.y;
     if (!GeneratedDungeon_BeginRun(sProvider.providerId, sProvider.generationVersion, request.seed, &origin, DIR_SOUTH, &origin, DIR_SOUTH))
     {
         gDebugGeneratedDungeonFixtureRequest.status = DEBUG_GENERATED_DUNGEON_FIXTURE_ERROR;
@@ -151,7 +155,7 @@ void DebugGeneratedDungeonFixture_Update(void)
     gDebugGeneratedDungeonFixtureRequest.status = DEBUG_GENERATED_DUNGEON_FIXTURE_RUNNING;
     Publish(DEBUG_GENERATED_DUNGEON_FIXTURE_RUNNING, DEBUG_GENERATED_DUNGEON_FIXTURE_ERROR_NONE);
     sActive = TRUE;
-    SetWarpDestination(sProvider.mapGroup, sProvider.mapNum, WARP_ID_NONE, 5, 4);
+    SetWarpDestination(sProvider.mapGroup, sProvider.mapNum, WARP_ID_NONE, 10, 10);
     WarpIntoMap();
     gFieldCallback = FieldCB_WarpExitFadeFromBlack;
     SetMainCallback2(CB2_LoadMap);

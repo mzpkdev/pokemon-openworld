@@ -24,7 +24,9 @@ def test_fixture_result_rejects_unknown_status():
     payload = bytearray(FIXTURE_RESULT_SIZE)
     payload[-1] = 0xFF
 
-    with pytest.raises(RuntimeError, match="malformed generated dungeon fixture result"):
+    with pytest.raises(
+        RuntimeError, match="malformed generated dungeon fixture result"
+    ):
         FixtureResult.unpack(bytes(payload))
 
 

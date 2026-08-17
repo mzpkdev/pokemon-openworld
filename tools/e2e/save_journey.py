@@ -407,7 +407,7 @@ def assert_runtime_semantics(game, expected: dict[str, Any]) -> None:
     )
 
 
-def save_from_start_menu(game):
+def save_from_start_menu(game, *, max_pulses: int = 600, release_frames: int = 6):
     """Drive the real field start-menu Save action and await its flash write."""
     before = game.battery_path.read_bytes() if game.battery_path.is_file() else b""
     for _ in range(10):
@@ -430,7 +430,7 @@ def save_from_start_menu(game):
     # Selecting Save enters two default-Yes prompts.
     game.press("A", release_frames=12)
     after = game.wait_for_battery_change(
-        before, max_pulses=600, button="A", release_frames=6
+        before, max_pulses=max_pulses, button="A", release_frames=release_frames
     )
     assert after.data != before
     return after

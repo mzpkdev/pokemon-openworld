@@ -13,23 +13,28 @@ GENERATED_DUNGEON_RECORD_SIZE = 64
 NORMAL_FIELD_MAP = (0, 9)
 
 
-def _settle_overworld(game) -> None:
+def _continue_to_overworld(game) -> None:
     game.wait_for_callback("CB2_InitTitleScreen", max_frames=6_000)
-    for _ in range(3_000):
-        game.press("Select")
+    for _ in range(1_500):
+        game.press("A")
         if game.callback_is("CB2_Overworld"):
             game.wait_for_controls_unlocked(max_frames=1_200)
             return
-    raise AssertionError("Quickstart did not reach an unlocked overworld")
+    raise AssertionError("Continue did not reach an unlocked overworld")
 
 
 def _record(game) -> bytes:
-    return game.read(game.save_block1() + GENERATED_DUNGEON_RECORD_OFFSET, GENERATED_DUNGEON_RECORD_SIZE)
+    return game.read(
+        game.save_block1() + GENERATED_DUNGEON_RECORD_OFFSET,
+        GENERATED_DUNGEON_RECORD_SIZE,
+    )
 
 
-def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(integrity_game):
-    game = integrity_game
-    _settle_overworld(game)
+def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(
+    game_from_hoenn_save,
+):
+    game = game_from_hoenn_save
+    _continue_to_overworld(game)
 
     fixture = activate_fixture(game, FixtureRequest(0x90, 0x90C0FFEE))
     assert game.map_id() == (fixture.map_group, fixture.map_num)
@@ -37,10 +42,14 @@ def test_generated_dungeon_run_survives_cold_continue_then_clears_on_departure(i
     snapshot = _record(game)
     assert snapshot != bytes(GENERATED_DUNGEON_RECORD_SIZE)
 
-    saved = save_from_start_menu(game)
-    assert saved.active_slot.save_block1[
-        GENERATED_DUNGEON_RECORD_OFFSET : GENERATED_DUNGEON_RECORD_OFFSET + GENERATED_DUNGEON_RECORD_SIZE
-    ] == snapshot
+    saved = save_from_start_menu(game, max_pulses=1_200, release_frames=2)
+    assert (
+        saved.active_slot.save_block1[
+            GENERATED_DUNGEON_RECORD_OFFSET : GENERATED_DUNGEON_RECORD_OFFSET
+            + GENERATED_DUNGEON_RECORD_SIZE
+        ]
+        == snapshot
+    )
 
     cold_restart_and_continue(game)
     assert game.map_id() == (fixture.map_group, fixture.map_num)
