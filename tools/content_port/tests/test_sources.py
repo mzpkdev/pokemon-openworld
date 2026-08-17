@@ -53,7 +53,7 @@ class SourceGraphTests(unittest.TestCase):
             return {
                 key: SourceGraphTests._mutable(child) for key, child in value.items()
             }
-        if isinstance(value, tuple):
+        if isinstance(value, tuple) or isinstance(value, list):
             return [SourceGraphTests._mutable(child) for child in value]
         return value
 
