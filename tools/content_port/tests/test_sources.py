@@ -1587,6 +1587,18 @@ class SourceGraphTests(unittest.TestCase):
                 target_map = target / source_map
                 target_map.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source_map, target_map)
+            # This temporary target deliberately contains only the target-side
+            # authorities that source validation reads.  Preserve the declared
+            # legacy recursive evidence too, so the later mutation exercises
+            # its world-edge assertion rather than failing at an unrelated
+            # partial-fixture baseline mismatch.
+            assert descriptor.legacy_report is not None
+            legacy_evidence = descriptor.legacy_report["evidence"]
+            for item in legacy_evidence["inputs"]:
+                source_input = Path(item["path"])
+                target_input = target / source_input
+                target_input.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_input, target_input)
             for name in sorted(
                 {
                     warp["source"]

@@ -1400,10 +1400,9 @@ def _authenticated_trainer_inventory(
         # script scan must follow that donor identity, whereas the authored
         # inventory remains keyed by the target map name.
         content_maps.append(map_name)
-        script_source_maps.append(
-            descriptor.map_source_identities.get(map_name, map_name)
-        )
-        map_record = content.load(ResourceKey("map", map_name))
+        source_map = descriptor.map_source_identities.get(map_name, map_name)
+        script_source_maps.append(source_map)
+        map_record = content.load(ResourceKey("map", source_map))
         events: dict[str, tuple[str, ...]] = {}
         for identity in map_record.value.get("_trainer_event_roots", ()):
             event = content.trainer_event(ResourceKey("trainer-event", str(identity)))
