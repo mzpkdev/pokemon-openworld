@@ -2,6 +2,10 @@
 #include "generated_dungeon.h"
 #include "generated_dungeon_persistence.h"
 #include "overworld.h"
+#include "constants/map_groups.h"
+#include "data/map_group_count.h"
+
+extern const struct MapHeader *const *const gMapGroups[];
 
 static const struct GeneratedDungeonProvider *sRegistry;
 static u16 sRegistryCount;
@@ -18,7 +22,24 @@ static bool32 IsValidFacing(u8 facing)
 
 static bool32 IsValidWarpContext(const struct WarpData *warp)
 {
-    return warp != NULL && warp->mapGroup >= 0 && warp->mapNum >= 0;
+    const struct MapHeader *mapHeader;
+
+    if (warp == NULL || warp->mapGroup < 0 || warp->mapNum < 0
+     || warp->mapGroup >= MAP_GROUPS_COUNT
+     || gMapGroups[warp->mapGroup] == NULL
+     || warp->mapNum >= MAP_GROUP_COUNT[warp->mapGroup])
+        return FALSE;
+
+    mapHeader = gMapGroups[warp->mapGroup][warp->mapNum];
+    if (mapHeader == NULL || mapHeader->mapLayout == NULL || mapHeader->events == NULL)
+        return FALSE;
+
+    if (warp->warpId != WARP_ID_NONE)
+        return warp->warpId >= 0 && warp->warpId < mapHeader->events->warpCount;
+
+    return warp->x >= 0 && warp->y >= 0
+        && warp->x < mapHeader->mapLayout->width
+        && warp->y < mapHeader->mapLayout->height;
 }
 
 static enum GeneratedDungeonRecordClassification ClassifyCurrentRecord(void)
@@ -37,6 +58,7 @@ static bool32 IsProviderValid(const struct GeneratedDungeonProvider *provider)
     if (provider == NULL
      || provider->providerId == 0
      || provider->generationVersion == 0
+     || provider->generationVersion > 0xFF
      || provider->maxWorkspaceCells == 0
      || provider->maxWorkspaceCells > GENERATED_DUNGEON_MAX_CELLS
      || provider->maxGeneratedObjects > GENERATED_DUNGEON_MAX_OBJECTS

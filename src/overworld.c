@@ -2223,6 +2223,7 @@ void CB2_ContinueSavedGame(void)
 {
     u8 trainerHillMapId;
     bool8 generatedDungeonLoaded = FALSE;
+    bool8 recoveredGeneratedDungeon = FALSE;
 
     FieldClearVBlankHBlankCallbacks();
     StopMapMusic();
@@ -2239,8 +2240,14 @@ void CB2_ContinueSavedGame(void)
 
     ClearDiveAndHoleWarps();
     if (GeneratedDungeon_RecoverUnsupportedRun())
+    {
         ApplyCurrentWarp();
-    LoadSaveblockMapHeader();
+        recoveredGeneratedDungeon = TRUE;
+    }
+    if (recoveredGeneratedDungeon)
+        LoadCurrentMapData();
+    else
+        LoadSaveblockMapHeader();
     trainerHillMapId = GetCurrentTrainerHillMapId();
     if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR)
         LoadBattlePyramidFloorObjectEventScripts();
