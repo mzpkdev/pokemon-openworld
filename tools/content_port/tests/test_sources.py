@@ -1628,7 +1628,7 @@ class SourceGraphTests(unittest.TestCase):
             corrupt_header.parent.mkdir(parents=True)
             corrupt_header.write_text("corrupt generated output\n", encoding="utf-8")
             self.assertEqual(
-                validate_port_sources(descriptor, target).inventory["tilesets"], 71
+                validate_port_sources(descriptor, target).inventory["tilesets"], 72
             )
             first = ledger["entries"][0]
             duplicate = dict(first)
