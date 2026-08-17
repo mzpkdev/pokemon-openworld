@@ -195,7 +195,7 @@ TEST("Unmigrated legacy regions remain unscaled legacy views")
     }
 }
 
-TEST("Route 39 authored profiles follow its resolved day and night condition")
+TEST("Route 39 standard profiles preserve vanilla day and night levels")
 {
     struct WildEncounterProfileView day;
     struct WildEncounterProfileView night;
@@ -204,14 +204,16 @@ TEST("Route 39 authored profiles follow its resolved day and night condition")
 
     EXPECT(TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, TIME_DAY, WILD_ENCOUNTER_FISHING_ROD_NONE, WORLD_TIER_1, &day));
     EXPECT(TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, TIME_NIGHT, WILD_ENCOUNTER_FISHING_ROD_NONE, WORLD_TIER_1, &night));
-    EXPECT_EQ(day.source, WILD_ENCOUNTER_PROFILE_AUTHORED);
-    EXPECT_EQ(night.source, WILD_ENCOUNTER_PROFILE_AUTHORED);
+    EXPECT_EQ(day.source, WILD_ENCOUNTER_PROFILE_LEGACY);
+    EXPECT_EQ(night.source, WILD_ENCOUNTER_PROFILE_LEGACY);
     EXPECT(TryGetWildEncounterProfileEntry(&day, 0, &entry));
     EXPECT_EQ(entry.species, SPECIES_PONYTA);
-    EXPECT_EQ(entry.minLevel, 10);
+    EXPECT_EQ(entry.minLevel, 21);
+    EXPECT_EQ(entry.maxLevel, 21);
     EXPECT(TryGetWildEncounterProfileEntry(&night, 0, &entry));
     EXPECT_EQ(entry.species, SPECIES_MEOWTH);
-    EXPECT_EQ(entry.minLevel, 10);
+    EXPECT_EQ(entry.minLevel, 18);
+    EXPECT_EQ(entry.maxLevel, 21);
 }
 
 TEST("Vermilion rods use the same world tier band without offsets")

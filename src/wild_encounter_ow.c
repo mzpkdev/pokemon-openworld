@@ -27,6 +27,7 @@
 #include "constants/layouts.h"
 #include "constants/item.h"
 #include "constants/map_types.h"
+#include "constants/metatile_behaviors.h"
 #include "constants/trainer_types.h"
 #include "constants/songs.h"
 #include "constants/vars.h"
@@ -141,6 +142,7 @@ static inline bool32 IsObjectActiveOWE(struct ObjectEvent *owe)
 }
 
 static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y);
+static bool32 CreateEnemyPartyOWEWithBehavior(struct InfoOWE *info, s32 x, s32 y, u32 metatileBehavior);
 static bool32 OWE_DoesOWERoamerExist(void);
 static bool32 StartWildBattleWithOWE_CheckRoamer(enum CategoryOWE category);
 static bool32 StartWildBattleWithOWE_CheckBattleFrontier(u32 headerId);
@@ -807,11 +809,15 @@ void SetOverworldObjectSpecies(struct ScriptContext *ctx)
 
 static bool32 CreateEnemyPartyOWE(struct InfoOWE *info, s32 x, s32 y)
 {
+    return CreateEnemyPartyOWEWithBehavior(info, x, y, MapGridGetMetatileBehaviorAt(x, y));
+}
+
+static bool32 CreateEnemyPartyOWEWithBehavior(struct InfoOWE *info, s32 x, s32 y, u32 metatileBehavior)
+{
     struct WildEncounterProfileView profile;
     enum WildPokemonArea wildArea;
     enum TimeOfDay timeOfDay;
     u32 headerId = GetCurrentMapWildMonHeaderId();
-    u32 metatileBehavior = MapGridGetMetatileBehaviorAt(x, y);
 
     if (headerId == HEADER_NONE)
     {
@@ -1092,6 +1098,21 @@ static bool32 CheckCurrentWildMonHeaderForOWE(bool32 shouldSpawnWaterMons)
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
     return TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile);
 }
+
+#if TESTING
+bool32 OWE_CheckCurrentWildMonHeaderForTesting(bool32 shouldSpawnWaterMons)
+{
+    return CheckCurrentWildMonHeaderForOWE(shouldSpawnWaterMons);
+}
+
+bool32 OWE_GenerateCurrentWildMonForTesting(bool32 shouldSpawnWaterMons)
+{
+    struct InfoOWE info = {.category = OWE_CATEGORY_WILD};
+    u32 metatileBehavior = shouldSpawnWaterMons ? MB_POND_WATER : MB_TALL_GRASS;
+
+    return CreateEnemyPartyOWEWithBehavior(&info, 0, 0, metatileBehavior);
+}
+#endif
 
 static u32 GetOldestActiveOWESlot(bool32 forceRemove)
 {

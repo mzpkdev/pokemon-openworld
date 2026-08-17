@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+from pathlib import Path
+import re
 
 import pytest
 
@@ -16,7 +19,6 @@ from tools.e2e.tests.integrity.manifest import (
 )
 from tools.e2e.tests.integrity.test_world_tier_encounters import (
     WILD_ENCOUNTER_FISHING_ROD_NONE,
-    WILD_ENCOUNTER_PROFILE_AUTHORED,
     WORLD_TIER_0,
     EncounterProbeResult,
     _probe_encounter,
@@ -30,12 +32,38 @@ WILD_AREA_FISHING = 3
 OLD_ROD = 0
 GOOD_ROD = 1
 SUPER_ROD = 2
+WILD_ENCOUNTER_PROFILE_LEGACY = 1
+WORLD_TIER_3 = 3
+FLAG_REGIONAL_FACT_HOENN_STONE_BADGE = 32
+FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE = 33
+FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE = 34
+ROOT = Path(__file__).resolve().parents[4]
+STANDARD_ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
+SPECIES_CONSTANTS = ROOT / "include/constants/species.h"
+
+AREA_FIELDS = {
+    WILD_AREA_LAND: "land_mons",
+    WILD_AREA_WATER: "water_mons",
+    WILD_AREA_ROCKS: "rock_smash_mons",
+    WILD_AREA_FISHING: "fishing_mons",
+}
+AREA_WEIGHTS = {
+    WILD_AREA_LAND: (20, 20, 10, 10, 10, 10, 5, 5, 4, 4, 1, 1),
+    WILD_AREA_WATER: (60, 30, 5, 4, 1),
+    WILD_AREA_ROCKS: (60, 30, 5, 4, 1),
+}
+FISHING_SLICES = {
+    OLD_ROD: (0, 2, (70, 30)),
+    GOOD_ROD: (2, 5, (60, 20, 20)),
+    SUPER_ROD: (5, 10, (40, 40, 15, 4, 1)),
+}
 
 
 @dataclass(frozen=True)
 class EncounterCase:
     map_name: str
     area: int
+    labels: tuple[str, ...]
     fishing_rod: int = WILD_ENCOUNTER_FISHING_ROD_NONE
 
 
@@ -43,18 +71,96 @@ class EncounterCase:
 # exercise each reviewed fallback class: a tide layout, a connected route
 # segment, and a spatially identical cave floor.
 ORDINARY_CASES = (
-    EncounterCase("Route30", WILD_AREA_LAND),
-    EncounterCase("UnionCave_1F", WILD_AREA_LAND),
-    EncounterCase("LakeOfRageLowTide", WILD_AREA_WATER),
-    EncounterCase("Route26North", WILD_AREA_LAND),
-    EncounterCase("JohtoVictoryRoad_1F", WILD_AREA_LAND),
-    EncounterCase("Route32", WILD_AREA_ROCKS),
+    EncounterCase("Route30", WILD_AREA_LAND, ("gRoute30", "gRoute30_Night")),
+    EncounterCase("UnionCave_1F", WILD_AREA_LAND, ("gUnionCave_1F",)),
+    EncounterCase("LakeOfRageLowTide", WILD_AREA_WATER, ("gLakeOfRageLowTide",)),
+    EncounterCase(
+        "Route26North",
+        WILD_AREA_LAND,
+        ("gRoute26North", "gRoute26North_Night"),
+    ),
+    EncounterCase(
+        "JohtoVictoryRoad_1F",
+        WILD_AREA_LAND,
+        ("gJohtoVictoryRoad_1F", "gJohtoVictoryRoad_1F_Night"),
+    ),
+    EncounterCase(
+        "JohtoVictoryRoad_B1F",
+        WILD_AREA_LAND,
+        ("gJohtoVictoryRoad_B1F", "gJohtoVictoryRoad_B1F_Night"),
+    ),
+    EncounterCase(
+        "JohtoVictoryRoad_B2F",
+        WILD_AREA_LAND,
+        ("gJohtoVictoryRoad_B2F", "gJohtoVictoryRoad_B2F_Night"),
+    ),
+    EncounterCase("Route32", WILD_AREA_ROCKS, ("gRoute32", "gRoute32_Night")),
 )
 
 FISHING_CASES = tuple(
-    EncounterCase("Route30", WILD_AREA_FISHING, rod)
+    EncounterCase(
+        "Route30",
+        WILD_AREA_FISHING,
+        ("gRoute30", "gRoute30_Night"),
+        rod,
+    )
     for rod in (OLD_ROD, GOOD_ROD, SUPER_ROD)
 )
+
+
+def _species_ids() -> dict[str, int]:
+    pattern = re.compile(r"^\s*(SPECIES_[A-Z0-9_]+)\s*=\s*(\d+),", re.MULTILINE)
+    return {
+        match.group(1): int(match.group(2))
+        for match in pattern.finditer(SPECIES_CONSTANTS.read_text())
+    }
+
+
+def _standard_profiles() -> dict[str, dict]:
+    document = json.loads(STANDARD_ENCOUNTERS.read_text())
+    group = next(
+        group
+        for group in document["wild_encounter_groups"]
+        if group["label"] == "gWildMonHeaders"
+    )
+    return {profile["base_label"]: profile for profile in group["encounters"]}
+
+
+def _expected_profile_signatures(
+    case: EncounterCase,
+) -> set[tuple[tuple[int, ...], ...]]:
+    species = _species_ids()
+    profiles = _standard_profiles()
+    expected = set()
+    for label in case.labels:
+        method = profiles[label][AREA_FIELDS[case.area]]
+        mons = method["mons"]
+        if case.area == WILD_AREA_FISHING:
+            start, end, weights = FISHING_SLICES[case.fishing_rod]
+            mons = mons[start:end]
+        else:
+            weights = AREA_WEIGHTS[case.area]
+        expected.add(
+            tuple(
+                (
+                    species[mon["species"]],
+                    weight,
+                    min(mon["min_level"], mon["max_level"]),
+                    max(mon["min_level"], mon["max_level"]),
+                )
+                for mon, weight in zip(mons, weights, strict=True)
+            )
+        )
+    return expected
+
+
+def _runtime_profile_signature(
+    entries: tuple[EncounterProbeResult, ...],
+) -> tuple[tuple[int, ...], ...]:
+    return tuple(
+        (entry.species, entry.weight, entry.min_level, entry.max_level)
+        for entry in entries
+    )
 
 
 def _quickstart(game) -> None:
@@ -86,7 +192,7 @@ def _load_map(game, entry, request_id: int) -> None:
 
 
 def _probe_complete_profile(
-    game, case: EncounterCase, request_base: int
+    game, case: EncounterCase, request_base: int, expected_tier: int = WORLD_TIER_0
 ) -> tuple[EncounterProbeResult, ...]:
     first = _probe_encounter(
         game,
@@ -95,8 +201,8 @@ def _probe_complete_profile(
         fishing_rod=case.fishing_rod,
         entry_index=0,
     )
-    assert first.source == WILD_ENCOUNTER_PROFILE_AUTHORED
-    assert first.tier == WORLD_TIER_0
+    assert first.source == WILD_ENCOUNTER_PROFILE_LEGACY
+    assert first.tier == expected_tier
     assert first.entry_count > 0
     assert first.total_weight > 0
 
@@ -115,16 +221,18 @@ def _probe_complete_profile(
     assert all(entry.header_id == first.header_id for entry in entries)
     assert all(entry.entry_count == first.entry_count for entry in entries)
     assert all(entry.total_weight == first.total_weight for entry in entries)
-    assert all(entry.source == WILD_ENCOUNTER_PROFILE_AUTHORED for entry in entries)
-    assert all(entry.tier == WORLD_TIER_0 for entry in entries)
+    assert all(entry.source == WILD_ENCOUNTER_PROFILE_LEGACY for entry in entries)
+    assert all(entry.tier == expected_tier for entry in entries)
     assert all(entry.species > 0 and entry.weight > 0 for entry in entries)
-    assert all((entry.min_level, entry.max_level) == (4, 8) for entry in entries)
     assert sum(entry.weight for entry in entries) == first.total_weight
+    assert _runtime_profile_signature(tuple(entries)) in _expected_profile_signatures(
+        case
+    )
     return tuple(entries)
 
 
 @pytest.mark.long_journey
-def test_ordinary_johto_maps_dispatch_complete_authored_profiles(integrity_game):
+def test_ordinary_johto_maps_dispatch_exact_standard_profiles(integrity_game):
     _quickstart(integrity_game)
     maps = {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
@@ -142,7 +250,7 @@ def test_ordinary_johto_maps_dispatch_complete_authored_profiles(integrity_game)
 
 
 @pytest.mark.long_journey
-def test_johto_fishing_dispatches_each_authored_rod_profile(integrity_game):
+def test_johto_fishing_dispatches_each_standard_rod_profile(integrity_game):
     _quickstart(integrity_game)
     maps = {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
@@ -163,7 +271,7 @@ def test_johto_fishing_dispatches_each_authored_rod_profile(integrity_game):
 
 
 @pytest.mark.long_journey
-def test_route39_remains_an_authored_runtime_profile(integrity_game):
+def test_route39_remains_an_exact_standard_runtime_profile(integrity_game):
     _quickstart(integrity_game)
     maps = {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
@@ -172,12 +280,46 @@ def test_route39_remains_an_authored_runtime_profile(integrity_game):
 
     entries = _probe_complete_profile(
         integrity_game,
-        EncounterCase("Route39", WILD_AREA_LAND),
+        EncounterCase("Route39", WILD_AREA_LAND, ("gRoute39", "gRoute39_Night")),
         0xE3750000,
     )
 
     # The runtime clock selects either the protected day or night profile.
     assert entries[0].species in (52, 77)  # Meowth or Ponyta.
+
+
+@pytest.mark.long_journey
+def test_johto_standard_profile_is_invariant_at_real_world_tier_extremes(
+    integrity_game,
+):
+    _quickstart(integrity_game)
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    case = EncounterCase("Route32", WILD_AREA_LAND, ("gRoute32", "gRoute32_Night"))
+    _load_map(integrity_game, maps[case.map_name], 0xE3780000)
+
+    for flag in (
+        FLAG_REGIONAL_FACT_HOENN_STONE_BADGE,
+        FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE,
+        FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE,
+    ):
+        integrity_game.set_flag(flag, False)
+    tier_zero = _probe_complete_profile(integrity_game, case, 0xE3790000)
+
+    for flag in (
+        FLAG_REGIONAL_FACT_HOENN_STONE_BADGE,
+        FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE,
+        FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE,
+    ):
+        integrity_game.set_flag(flag)
+    tier_three = _probe_complete_profile(
+        integrity_game, case, 0xE37A0000, expected_tier=WORLD_TIER_3
+    )
+
+    assert _runtime_profile_signature(tier_three) == _runtime_profile_signature(
+        tier_zero
+    )
 
 
 @pytest.mark.long_journey

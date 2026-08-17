@@ -14,7 +14,7 @@ from .errors import ContentPortError
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 SPECIES_RE = re.compile(r"^SPECIES_[A-Z0-9_]+$")
-CLASSIFICATION_KINDS = frozenset({"ordinary", "encounter-free", "special"})
+CLASSIFICATION_KINDS = frozenset({"ordinary", "alias", "encounter-free", "special"})
 CLASSIFICATION_KEYS = frozenset({"schemaVersion", "maps"})
 SOURCE_KEYS = frozenset({"role", "name", "repository", "commit", "treeDigest", "path"})
 ECOLOGY_KEYS = frozenset({"schemaVersion", "source", "records"})

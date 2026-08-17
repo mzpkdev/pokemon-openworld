@@ -51,9 +51,14 @@ METHOD_CAPACITIES = {
     "fishing_mons": 10,
 }
 METHOD_ORDER = tuple(METHOD_CAPACITIES)
-RODS = (("OLD_ROD", "old_rod"), ("GOOD_ROD", "good_rod"), ("SUPER_ROD", "super_rod"))
-TIER_LEVELS = ((4, 8), (10, 14), (15, 19), (20, 24))
-CLASSIFICATION_COUNTS = {"ordinary": 89, "special": 18, "encounter-free": 147}
+CLASSIFICATION_COUNTS = {
+    "ordinary": 84,
+    "alias": 5,
+    "special": 18,
+    "encounter-free": 147,
+}
+JOHTO_PROFILE_COUNT = 147
+NON_JOHTO_BAND_COUNT = 9
 ROUTE39_LABELS = {"gRoute39", "gRoute39_Night"}
 REVIEWED_METHOD_TIME_FALLBACKS = {
     ("RuinsOfAlph_Outside", "rock_smash_mons", "night", "day"),
@@ -309,7 +314,7 @@ def _verified_checked_in_ecology_source(encounters, fallbacks):
     return document
 
 
-def _fallback_rows(document, blocked, source_profiles):
+def _fallback_rows(document, aliases, source_profiles):
     _exact(
         document,
         {"schemaVersion", "ecologySource", "spatialSource", "records"},
@@ -334,7 +339,7 @@ def _fallback_rows(document, blocked, source_profiles):
         )
         name = row["targetName"]
         if (
-            name not in blocked
+            name not in aliases
             or name in result
             or not isinstance(row["targetMap"], str)
         ):
@@ -363,10 +368,8 @@ def _fallback_rows(document, blocked, source_profiles):
             clone["condition"] = binding["condition"]
             projected.append(clone)
         result[name] = (row["targetMap"], projected)
-    if set(result) != blocked:
-        raise ProjectionError(
-            "fallbacks: rows do not exactly cover blocked ordinary maps"
-        )
+    if set(result) != aliases:
+        raise ProjectionError("fallbacks: rows do not exactly cover classified aliases")
     return result
 
 
@@ -438,7 +441,6 @@ def _profile(label, map_id, source, location):
     if not methods:
         raise ProjectionError(f"{location}: profile has no eligible runtime method")
     encounter = {"base_label": label, "map": map_id}
-    bands = []
     for method in methods:
         encounter[method["name"]] = {
             "encounter_rate": method["rate"],
@@ -451,50 +453,32 @@ def _profile(label, map_id, source, location):
                 for slot in method["slots"]
             ],
         }
-        rod_groups = RODS if method["name"] == "fishing_mons" else (("NONE", None),)
-        for rod, donor_rod in rod_groups:
-            slots = [
-                slot
-                for slot in method["slots"]
-                if donor_rod is None or slot["rodGroup"] == donor_rod
-            ]
-            if not slots:
-                raise ProjectionError(f"{location}/{method['name']}: empty {rod} group")
-            species_weights = {}
-            for slot in slots:
-                species_weights.setdefault(slot["species"], 0)
-                species_weights[slot["species"]] += slot["weight"]
-            condition = (
-                "TIME_NIGHT" if source["condition"] == "night" else "TIME_FALLBACK"
-            )
-            bands.append(
-                {
-                    "label": label,
-                    "header": label.removesuffix("_Night")
-                    if condition == "TIME_NIGHT"
-                    else label,
-                    "method": method["name"],
-                    "condition": condition,
-                    "fishing_rod": rod,
-                    "missing_band_policy": "complete",
-                    "tiers": [
-                        {
-                            "tier": tier,
-                            "entries": [
-                                {
-                                    "species": species,
-                                    "weight": weight,
-                                    "min_level": levels[0],
-                                    "max_level": levels[1],
-                                }
-                                for species, weight in species_weights.items()
-                            ],
-                        }
-                        for tier, levels in enumerate(TIER_LEVELS)
-                    ],
-                }
-            )
-    return encounter, bands, {method["name"] for method in methods}
+    return encounter, {method["name"] for method in methods}
+
+
+def _non_johto_bands(bands, registry):
+    _exact(bands, {"schema_version", "profiles"}, "bands")
+    if bands["schema_version"] != 1 or not isinstance(bands["profiles"], list):
+        raise ProjectionError("bands: unsupported schema")
+    profiles_by_label = {}
+    for index, row in enumerate(registry.get("profiles", [])):
+        if not isinstance(row, list) or len(row) < 4 or row[1] in profiles_by_label:
+            raise ProjectionError(f"registry/profiles/{index}: invalid band authority")
+        profiles_by_label[row[1]] = row
+    retained = []
+    for index, row in enumerate(bands["profiles"]):
+        label = row.get("label") if isinstance(row, dict) else None
+        authority = profiles_by_label.get(label)
+        if authority is None:
+            raise ProjectionError(f"bands/profiles/{index}: unknown registry profile")
+        if authority[3] != "johto":
+            retained.append(copy.deepcopy(row))
+    if len(retained) != NON_JOHTO_BAND_COUNT:
+        raise ProjectionError(
+            f"bands: expected {NON_JOHTO_BAND_COUNT} non-Johto proof rows, "
+            f"found {len(retained)}"
+        )
+    return {"schema_version": 1, "profiles": retained}
 
 
 def _complete_time_pair_methods(map_name, profiles):
@@ -552,8 +536,11 @@ def project_documents(
         raise ProjectionError(f"fallbacks: {error}") from error
     kinds = _classification(classification)
     ordinary = {name for name, kind in kinds.items() if kind == "ordinary"}
+    aliases = {name for name, kind in kinds.items() if kind == "alias"}
     records, source_profiles = _ecology(ecology, ordinary)
     blocked = {name for name, row in records.items() if row["status"] == "blocked"}
+    if blocked:
+        raise ProjectionError("ecology: direct ordinary maps must not be blocked")
     wanted_sources = {
         binding.get("sourceLabel")
         for row in fallbacks.get("records", [])
@@ -565,19 +552,37 @@ def project_documents(
     fallback_sources.update(
         _source_profiles(ecology_source, wanted_sources - set(source_profiles))
     )
-    fallback_by_map = _fallback_rows(fallbacks, blocked, fallback_sources)
+    fallback_by_map = _fallback_rows(fallbacks, aliases, fallback_sources)
+    alias_ids = {map_ids[name] for name in aliases}
+    target_labels = []
+    for name, (target_map, profiles) in fallback_by_map.items():
+        record = next(row for row in fallbacks["records"] if row["targetName"] == name)
+        if target_map != map_ids[name]:
+            raise ProjectionError(
+                f"{name}: fallback targetMap is not the alias map identity"
+            )
+        if record["sourceMap"] in alias_ids or record["sourceMap"] == target_map:
+            raise ProjectionError(
+                f"{name}: alias chains and self-aliases are forbidden"
+            )
+        target_labels.extend(profile["label"] for profile in profiles)
+    collisions = set(source_profiles) & set(target_labels)
+    if len(target_labels) != len(set(target_labels)) or collisions:
+        raise ProjectionError("fallbacks: alias profile label collision")
 
     selected = []
     applied_method_fallbacks = set()
     for name in (
-        row["map"] for row in classification["maps"] if row["kind"] == "ordinary"
+        row["map"]
+        for row in classification["maps"]
+        if row["kind"] in {"ordinary", "alias"}
     ):
-        record = records[name]
         if name == "Route39":
             continue
-        if record["status"] == "blocked":
+        if kinds[name] == "alias":
             map_id, profiles = fallback_by_map[name]
         else:
+            record = records[name]
             map_id = map_ids[name]
             profiles = record["profiles"]
             if name == "MtSilver_Snow":
@@ -608,7 +613,7 @@ def project_documents(
             "ecology: method/time asymmetries do not match the reviewed fallback matrix"
         )
 
-    projected_encounters, projected_registry, projected_bands = [], [], []
+    projected_encounters, projected_registry = [], []
     pair_info = []
     for name, map_id, profiles in selected:
         if map_id != map_ids[name]:
@@ -623,7 +628,7 @@ def project_documents(
                 raise ProjectionError(f"{name}: duplicate {condition} profile")
             conditions.add(condition)
             label = source["label"]
-            encounter, authored_bands, methods = _profile(
+            encounter, methods = _profile(
                 label, map_id, source, f"{name}/profiles/{index}"
             )
             header = label.removesuffix("_Night") if condition == "night" else label
@@ -641,7 +646,6 @@ def project_documents(
                     None,
                 ]
             )
-            projected_bands.extend(authored_bands)
         if not built:
             raise ProjectionError(f"{name}: ordinary map has no selected profile")
         if conditions == {"day", "night"}:
@@ -702,23 +706,14 @@ def project_documents(
         + route39_registry
         + non_johto_registry[split:]
     )
+    johto_profiles = [row for row in output_registry["profiles"] if row[3] == "johto"]
+    if len(johto_profiles) != JOHTO_PROFILE_COUNT:
+        raise ProjectionError(
+            f"registry: expected {JOHTO_PROFILE_COUNT} Johto profiles, "
+            f"found {len(johto_profiles)}"
+        )
 
-    output_bands = copy.deepcopy(bands)
-    route39_bands = [
-        copy.deepcopy(row)
-        for row in bands["profiles"]
-        if row["label"] in ROUTE39_LABELS
-    ]
-    johto_labels = {row[1] for row in registry["profiles"] if row[3] == "johto"}
-    output_bands["profiles"] = (
-        [
-            copy.deepcopy(row)
-            for row in bands["profiles"]
-            if row["label"] not in johto_labels
-        ]
-        + projected_bands
-        + route39_bands
-    )
+    output_bands = _non_johto_bands(bands, registry)
 
     typed = []
     policies = []
@@ -805,7 +800,7 @@ def project_documents(
 def _map_ids(classification, maps_root):
     result = {}
     for row in classification["maps"]:
-        if row["kind"] != "ordinary":
+        if row["kind"] not in {"ordinary", "alias"}:
             continue
         path = Path(maps_root) / row["map"] / "map.json"
         document = _load(path)
