@@ -286,6 +286,7 @@ class DescriptorTests(unittest.TestCase):
                     "targetX": 1,
                     "targetY": 2,
                     "targetFacing": "north",
+                    "routeProfile": "generated_ocean",
                 },
                 "map",
                 "targetX",
@@ -433,6 +434,7 @@ class DescriptorTests(unittest.TestCase):
                     "targetX": 20,
                     "targetY": 59,
                     "targetFacing": "north",
+                    "routeProfile": "generated_ocean",
                 },
             ),
         )
@@ -593,6 +595,7 @@ class DescriptorTests(unittest.TestCase):
             "targetX": 1,
             "targetY": 2,
             "targetFacing": "north",
+            "routeProfile": "generated_ocean",
         }
         cases = (
             (

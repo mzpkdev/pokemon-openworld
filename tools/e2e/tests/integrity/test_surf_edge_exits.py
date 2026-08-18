@@ -15,18 +15,28 @@ from tools.e2e.tests.integrity.manifest import (
     integrity_manifest_path,
     load_manifest_maps,
 )
+from tools.e2e.tests.integrity.test_world_tier_encounters import (
+    WILD_AREA_WATER,
+    WILD_ENCOUNTER_FISHING_ROD_NONE,
+    _probe_encounter,
+)
 
 
 FIELD_MOVE_SURF = 4
 FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE = 44
 FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE = 45
+FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 PLAYER_AVATAR_FLAG_SURFING = 1 << 3
+DIR_SOUTH = 1
 DIR_NORTH = 2
+DIR_WEST = 3
 DIR_EAST = 4
 MUS_RG_ROUTE3 = 505
 MUS_ROUTE119 = 402
 WEATHER_SUNNY = 2
 WEATHER_RAIN = 3
+GENERATED_OBJECT_TEMPLATES_OFFSET = 0xC70
+OBJECT_EVENT_TEMPLATE_SIZE = 0x18
 
 
 def _settle_overworld(game) -> None:
@@ -99,12 +109,50 @@ def _cross_edge(game, direction: str, destination, position, facing: int) -> Non
     _assert_field_ready(game, destination, position, facing)
 
 
+def _traverse_generated_ocean(
+    game, direction: str, destination, position, facing: int
+) -> None:
+    for _ in range(60):
+        game.press(direction, hold_frames=2, release_frames=1)
+        game.step(20)
+        # Crossing the endpoint starts a normal DoWarp fade: movement stays
+        # non-idle until the destination avatar is rebuilt, so wait for that
+        # map transition instead of requiring an impossible intermediate idle.
+        if game.map_id() == destination.map_id or game.controls_locked():
+            break
+        game.wait_until(
+            game.movement_idle,
+            description="generated-ocean movement idle",
+            max_frames=120,
+            step_frames=2,
+        )
+    game.wait_for_map(destination.map_id, max_frames=1_800)
+    _assert_field_ready(game, destination, position, facing)
+
+
+def _generated_trainer_position(game) -> tuple[int, int]:
+    templates = game.save_block1() + GENERATED_OBJECT_TEMPLATES_OFFSET
+    matches = []
+    for index in range(4):
+        template = templates + index * OBJECT_EVENT_TEMPLATE_SIZE
+        if 1 <= game.read_u8(template) <= 4:
+            matches.append(
+                (
+                    game.read_u16(template + 4),
+                    game.read_u16(template + 6),
+                )
+            )
+    assert matches, "generated ocean did not publish a live swimmer trainer"
+    return matches[0]
+
+
 def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_game):
     maps = {
         entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
     }
     route19 = maps["Route19_Frlg"]
     route40 = maps["Route40"]
+    generated_ocean = maps["AquaHideout_UnusedRubyMap2"]
 
     _settle_overworld(integrity_game)
     for fact in (
@@ -113,10 +161,20 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     ):
         integrity_game.set_flag(fact)
     assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555246)
+    # The shell retains ordinary water encounters; disable only debug-ROM RNG
+    # here so this route-ownership journey reaches its recorded endpoints.
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
 
     _load_map(integrity_game, route19, (20, 59), 0x53454601)
     _set_surfing(integrity_game)
-    _cross_edge(integrity_game, "Down", route40, (0, 30), DIR_EAST)
+    _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
+    _assert_map_presentation(
+        integrity_game, generated_ocean, MUS_ROUTE119, WEATHER_SUNNY
+    )
+    saved = save_from_start_menu(integrity_game)
+    cold_restart_and_continue(integrity_game)
+    _assert_field_ready(integrity_game, generated_ocean, (2, 12), DIR_SOUTH)
+    _traverse_generated_ocean(integrity_game, "Right", route40, (0, 30), DIR_EAST)
     _assert_map_presentation(integrity_game, route40, MUS_ROUTE119, WEATHER_RAIN)
     assert all(
         integrity_game.read_flag(fact)
@@ -127,7 +185,8 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     )
     assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555247)
 
-    _cross_edge(integrity_game, "Left", route19, (20, 59), DIR_NORTH)
+    _cross_edge(integrity_game, "Left", generated_ocean, (2, 12), DIR_WEST)
+    _traverse_generated_ocean(integrity_game, "Right", route19, (20, 59), DIR_NORTH)
     _assert_map_presentation(integrity_game, route19, MUS_RG_ROUTE3, WEATHER_SUNNY)
 
     saved = save_from_start_menu(integrity_game)
@@ -142,3 +201,36 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     _assert_field_ready(integrity_game, route19, (20, 59), DIR_NORTH)
     _assert_map_presentation(integrity_game, route19, MUS_RG_ROUTE3, WEATHER_SUNNY)
     assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555248)
+
+
+def test_generated_ocean_uses_normal_water_encounters_and_real_trainers(integrity_game):
+    maps = {
+        entry.name: entry for entry in load_manifest_maps(integrity_manifest_path())
+    }
+    route19 = maps["Route19_Frlg"]
+    generated_ocean = maps["AquaHideout_UnusedRubyMap2"]
+
+    _settle_overworld(integrity_game)
+    for fact in (
+        FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE,
+        FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE,
+    ):
+        integrity_game.set_flag(fact)
+    assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53454101)
+    integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
+
+    _load_map(integrity_game, route19, (20, 59), 0x53454102)
+    _set_surfing(integrity_game)
+    _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
+    encounter = _probe_encounter(
+        integrity_game,
+        request_id=0x53454103,
+        area=WILD_AREA_WATER,
+        fishing_rod=WILD_ENCOUNTER_FISHING_ROD_NONE,
+        entry_index=0,
+    )
+    assert encounter.area == WILD_AREA_WATER
+    assert encounter.entry_count > 0
+    trainer_x, trainer_y = _generated_trainer_position(integrity_game)
+    assert 0 < trainer_x < 61
+    assert trainer_y not in range(9, 16)

@@ -7,6 +7,7 @@
 #define GENERATED_DUNGEON_MAX_CELLS 4096
 #define GENERATED_DUNGEON_MAX_ATTEMPTS 8
 #define GENERATED_DUNGEON_MAX_OBJECTS OBJECT_EVENTS_COUNT
+#define GENERATED_DUNGEON_MAX_PROVIDERS 4
 #define GENERATED_DUNGEON_PROGRESS_BITS 64
 #define GENERATED_DUNGEON_WORKSPACE_MAX_BYTES 17920
 
@@ -100,6 +101,7 @@ enum GeneratedDungeonGenerationResult
 };
 
 bool32 GeneratedDungeon_ValidateRegistry(const struct GeneratedDungeonProvider *providers, u16 count);
+bool32 GeneratedDungeon_RegisterProviders(const struct GeneratedDungeonProvider *providers, u16 count);
 bool32 GeneratedDungeon_FindProviderByMap(u8 mapGroup, u8 mapNum, const struct GeneratedDungeonProvider **provider);
 bool32 GeneratedDungeon_FindProviderById(u16 providerId, u16 generationVersion, const struct GeneratedDungeonProvider **provider);
 bool32 GeneratedDungeon_IsActiveMap(u8 mapGroup, u8 mapNum);
@@ -141,6 +143,7 @@ void GeneratedDungeon_TestResetRegistry(void);
 
 #ifdef DEBUG
 bool32 GeneratedDungeon_DebugSetRegistry(const struct GeneratedDungeonProvider *providers, u16 count);
+bool32 GeneratedDungeon_DebugRegisterProviders(const struct GeneratedDungeonProvider *providers, u16 count);
 #endif
 
 #endif // GUARD_GENERATED_DUNGEON_H

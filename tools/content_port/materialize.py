@@ -353,6 +353,7 @@ def _map_units(descriptor: PortDescriptor, state: PortSourceState) -> list[Rende
                 "target_x": decision["targetX"],
                 "target_y": decision["targetY"],
                 "target_facing": decision["targetFacing"],
+                "route_profile": decision["routeProfile"],
             }
         )
     units: list[RenderUnit] = []

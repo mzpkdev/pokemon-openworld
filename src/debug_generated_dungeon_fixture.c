@@ -106,7 +106,7 @@ static void Publish(u8 status, u8 error)
 
 void DebugGeneratedDungeonFixture_Init(void)
 {
-    GeneratedDungeon_DebugSetRegistry(&sProvider, 1);
+    GeneratedDungeon_DebugRegisterProviders(&sProvider, 1);
 }
 
 void DebugGeneratedDungeonFixture_Update(void)

@@ -69,6 +69,14 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
         self.assert_invalid([missing], "must contain exactly")
         self.assert_invalid([self.valid_exit(comment="extra")], "must contain exactly")
         self.assert_invalid(
+            [self.valid_exit(route_profile="unknown")],
+            "invalid route profile 'unknown'",
+        )
+        self.assert_invalid(
+            [self.valid_exit(route_profile=1)],
+            "Surf edge exit field 'route_profile' must be a string",
+        )
+        self.assert_invalid(
             [self.valid_exit(target_x=1.5)], "target_x' must be an integer"
         )
         self.assert_invalid(
@@ -126,8 +134,13 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
             source = copied_map_dir / "map.json"
             data = json.loads(source.read_text())
             data["edge_exits"] = [
-                self.valid_exit(exit_edge="east", target_facing="west", target_x=2),
-                self.valid_exit(),
+                self.valid_exit(
+                    exit_edge="east",
+                    target_facing="west",
+                    target_x=2,
+                    route_profile="generated_ocean",
+                ),
+                self.valid_exit(route_profile="generated_ocean"),
             ]
             source.write_text(json.dumps(data))
             maps = [source if path == SOURCE else path for path in MAPS]
@@ -159,11 +172,15 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
                 for entry in manifest["edgeExits"]
                 if entry["sourceId"] == "MAP_ROUTE19"
             ]
-            self.assertEqual(manifest["schemaVersion"], 3)
+            self.assertEqual(manifest["schemaVersion"], 4)
             self.assertEqual(
                 manifest["counts"]["edgeExits"], len(manifest["edgeExits"])
             )
             self.assertGreaterEqual(manifest["counts"]["edgeExits"], 2)
+            self.assertEqual(
+                manifest["counts"]["edgeRouteProfiles"],
+                len(manifest["edgeRouteProfiles"]),
+            )
             self.assertEqual([entry["exitEdgeValue"] for entry in entries], [1, 4])
             self.assertEqual(
                 entries[0],
@@ -210,6 +227,24 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
                     "stride": 10,
                 },
             )
+            self.assertEqual(
+                manifest["abis"]["surfEdgeRouteProfile"],
+                {
+                    "size": 4,
+                    "alignment": 2,
+                    "sourceMapOffset": 0,
+                    "exitEdgeOffset": 2,
+                    "profileOffset": 3,
+                },
+            )
+            self.assertEqual(
+                [
+                    entry["profile"]
+                    for entry in manifest["edgeRouteProfiles"]
+                    if entry["sourceId"] == "MAP_ROUTE19"
+                ],
+                ["generated_ocean", "generated_ocean"],
+            )
             source_text = (product / "src/data/surf_edge_exits.inc.c").read_text()
             south = "{ MAP_ROUTE19, MAP_ROUTE40, 1, 1, DIR_SOUTH, DIR_NORTH }"
             east = "{ MAP_ROUTE19, MAP_ROUTE40, 2, 1, DIR_EAST, DIR_WEST }"
@@ -218,16 +253,23 @@ class SurfEdgeExitRegistryTests(unittest.TestCase):
                 f"const u16 gSurfEdgeExitCount = {len(manifest['edgeExits'])};",
                 source_text,
             )
+            self.assertIn(
+                f"const u16 gSurfEdgeRouteProfileCount = {len(manifest['edgeRouteProfiles'])};",
+                source_text,
+            )
 
             fixture = outputs["firered"]
             fixture_manifest = json.loads(
                 (fixture / "integrity-manifest.json").read_text()
             )
             self.assertEqual(fixture_manifest["counts"]["edgeExits"], 0)
+            self.assertEqual(fixture_manifest["counts"]["edgeRouteProfiles"], 0)
             self.assertEqual(fixture_manifest["edgeExits"], [])
+            self.assertEqual(fixture_manifest["edgeRouteProfiles"], [])
             fixture_source = (fixture / "src/data/surf_edge_exits.inc.c").read_text()
             self.assertIn("    {0},", fixture_source)
             self.assertIn("const u16 gSurfEdgeExitCount = 0;", fixture_source)
+            self.assertIn("const u16 gSurfEdgeRouteProfileCount = 0;", fixture_source)
 
 
 if __name__ == "__main__":

@@ -196,6 +196,13 @@ EXPECTED_ABIS = {
         "exitEdgeOffset": 8,
         "targetFacingOffset": 9,
     },
+    "surfEdgeRouteProfile": {
+        "size": 4,
+        "alignment": 2,
+        "sourceMapOffset": 0,
+        "exitEdgeOffset": 2,
+        "profileOffset": 3,
+    },
 }
 
 CARDINAL_VALUES = {"south": 1, "north": 2, "west": 3, "east": 4}
@@ -217,6 +224,18 @@ EDGE_EXIT_FIELDS = {
     "targetFacing",
     "targetFacingValue",
 }
+EDGE_ROUTE_PROFILE_FIELDS = {
+    "sourceName",
+    "sourceId",
+    "sourceGroup",
+    "sourceNumber",
+    "sourceMapValue",
+    "exitEdge",
+    "exitEdgeValue",
+    "profile",
+    "profileValue",
+}
+EDGE_ROUTE_PROFILE_VALUES = {"generated_ocean": 1}
 
 
 class ManifestError(ValueError):
@@ -315,18 +334,76 @@ def _validate_edge_exits(
         raise ManifestError("edgeExits are not in canonical order")
 
 
+def _validate_edge_route_profiles(
+    profiles: Any, edge_exits: list[dict[str, Any]], maps: list[dict[str, Any]]
+) -> None:
+    if not isinstance(profiles, list):
+        raise ManifestError("edgeRouteProfiles must be an array")
+    exits = {
+        (entry["sourceGroup"], entry["sourceNumber"], entry["exitEdgeValue"])
+        for entry in edge_exits
+    }
+    maps_by_name = {entry["name"]: entry for entry in maps}
+    seen: set[tuple[int, int, int]] = set()
+    order: list[tuple[int, int, int]] = []
+    for index, entry in enumerate(profiles):
+        if not isinstance(entry, dict) or set(entry) != EDGE_ROUTE_PROFILE_FIELDS:
+            raise ManifestError(f"edgeRouteProfiles[{index}] has invalid fields")
+        if any(
+            type(entry[field]) is not str
+            for field in ("sourceName", "sourceId", "exitEdge", "profile")
+        ) or any(
+            type(entry[field]) is not int
+            for field in EDGE_ROUTE_PROFILE_FIELDS
+            - {"sourceName", "sourceId", "exitEdge", "profile"}
+        ):
+            raise ManifestError(f"edgeRouteProfiles[{index}] has invalid field types")
+        if entry["exitEdgeValue"] != CARDINAL_VALUES.get(entry["exitEdge"]):
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] exit edge name/value disagree"
+            )
+        if entry["profileValue"] != EDGE_ROUTE_PROFILE_VALUES.get(entry["profile"]):
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] profile name/value disagree"
+            )
+        if entry["sourceMapValue"] != _map_value(
+            entry["sourceGroup"], entry["sourceNumber"]
+        ):
+            raise ManifestError(
+                f"edgeRouteProfiles[{index}] source map identity disagrees"
+            )
+        source = maps_by_name.get(entry["sourceName"])
+        if source is None or (
+            entry["sourceId"],
+            entry["sourceGroup"],
+            entry["sourceNumber"],
+        ) != (source["id"], source["group"], source["number"]):
+            raise ManifestError(f"edgeRouteProfiles[{index}] names unknown source map")
+        key = (entry["sourceGroup"], entry["sourceNumber"], entry["exitEdgeValue"])
+        if key not in exits:
+            raise ManifestError("edgeRouteProfiles must name an existing edge exit")
+        if key in seen:
+            raise ManifestError("edgeRouteProfiles must have unique source edge values")
+        seen.add(key)
+        order.append(key)
+    if order != sorted(order):
+        raise ManifestError("edgeRouteProfiles are not in canonical order")
+
+
 def validate_manifest(manifest: dict[str, Any]) -> None:
-    if manifest.get("schemaVersion") != 3:
+    if manifest.get("schemaVersion") != 4:
         raise ManifestError("unsupported integrity manifest schema")
     if manifest.get("product") != EXPECTED_PRODUCT:
         raise ManifestError(f"wrong product identity: {manifest.get('product')!r}")
     counts = manifest.get("counts")
     if (
         not isinstance(counts, dict)
-        or set(counts) != {*EXPECTED_COUNTS, "edgeExits"}
+        or set(counts) != {*EXPECTED_COUNTS, "edgeExits", "edgeRouteProfiles"}
         or any(counts.get(name) != value for name, value in EXPECTED_COUNTS.items())
         or type(counts.get("edgeExits")) is not int
+        or type(counts.get("edgeRouteProfiles")) is not int
         or counts["edgeExits"] < 0
+        or counts["edgeRouteProfiles"] < 0
     ):
         raise ManifestError(f"wrong registry counts: {manifest.get('counts')!r}")
     if manifest.get("abis") != EXPECTED_ABIS:
@@ -342,6 +419,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     codecs = manifest.get("codecs")
     section_metadata = manifest.get("mapSectionMetadata")
     edge_exits = manifest.get("edgeExits")
+    edge_route_profiles = manifest.get("edgeRouteProfiles")
     if not all(
         isinstance(records, list)
         for records in (groups, maps, layouts, tilesets, exclusions, symbols)
@@ -367,6 +445,11 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ManifestError("manifest arrays disagree with their count sentinels")
     if not isinstance(edge_exits, list) or len(edge_exits) != counts["edgeExits"]:
         raise ManifestError("edgeExits disagree with their count sentinel")
+    if (
+        not isinstance(edge_route_profiles, list)
+        or len(edge_route_profiles) != counts["edgeRouteProfiles"]
+    ):
+        raise ManifestError("edgeRouteProfiles disagree with their count sentinel")
 
     _unique(groups, "name", "groups")
     _unique(maps, "name", "maps")
@@ -428,6 +511,12 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             "countSymbol": "gSurfEdgeExitCount",
             "count": counts["edgeExits"],
             "stride": EXPECTED_ABIS["surfEdgeExit"]["size"],
+        },
+        "edgeRouteProfiles": {
+            "registry": "gSurfEdgeRouteProfiles",
+            "countSymbol": "gSurfEdgeRouteProfileCount",
+            "count": counts["edgeRouteProfiles"],
+            "stride": EXPECTED_ABIS["surfEdgeRouteProfile"]["size"],
         },
     }
     if count_sentinels != expected_sentinels:
@@ -545,6 +634,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             )
     tilesets_by_name = {tileset["name"]: tileset for tileset in tilesets}
     _validate_edge_exits(edge_exits, maps, layouts)
+    _validate_edge_route_profiles(edge_route_profiles, edge_exits, maps)
     for name, callback in EXPECTED_ANIMATION_CALLBACKS.items():
         tileset = tilesets_by_name.get(name)
         if tileset is None or tileset.get("callback") != callback:
@@ -554,7 +644,15 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     if any(not symbol["name"] or symbol.get("kind") != "rom" for symbol in symbols):
         raise ManifestError("every required symbol must name a ROM resident object")
     symbol_names = {symbol["name"] for symbol in symbols}
-    if not {"gSurfEdgeExits", "gSurfEdgeExitCount"} <= symbol_names:
+    if (
+        not {
+            "gSurfEdgeExits",
+            "gSurfEdgeExitCount",
+            "gSurfEdgeRouteProfiles",
+            "gSurfEdgeRouteProfileCount",
+        }
+        <= symbol_names
+    ):
         raise ManifestError("surf edge-exit symbols are not required ROM symbols")
 
 

@@ -976,6 +976,57 @@ def validate_surf_edge_exits(
     return {"count": linked_count, "bytes": linked_count * abi["size"]}
 
 
+def validate_surf_edge_route_profiles(
+    rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
+) -> dict[str, Any]:
+    """Validate the linked Surf edge route-profile sidecar."""
+    abi = manifest["abis"]["surfEdgeRouteProfile"]
+    sentinel = manifest["countSentinels"]["edgeRouteProfiles"]
+    registry = symbols[sentinel["registry"]]
+    count_address = symbols[sentinel["countSymbol"]]
+    if registry % abi["alignment"]:
+        raise ValidationError("Surf edge route-profile registry violates ABI alignment")
+    if count_address % 2:
+        raise ValidationError("Surf edge route-profile count violates u16 alignment")
+    require_rom_address("gSurfEdgeRouteProfiles", registry, rom_end)
+    require_rom_address("gSurfEdgeRouteProfileCount", count_address, rom_end)
+    if count_address + 2 > rom_end:
+        raise ValidationError("Surf edge route-profile count is truncated")
+    linked_count = read_u16(rom, count_address, "gSurfEdgeRouteProfileCount")
+    expected_count = sentinel["count"]
+    if linked_count != expected_count or linked_count != len(
+        manifest["edgeRouteProfiles"]
+    ):
+        raise ValidationError(
+            f"Surf edge route-profile count is {linked_count}, expected {expected_count}"
+        )
+    byte_count = abi["size"] if linked_count == 0 else linked_count * abi["size"]
+    registry_offset = registry - ROM_BASE
+    if (
+        registry_offset < 0
+        or registry + byte_count > rom_end
+        or registry_offset + byte_count > len(rom)
+    ):
+        raise ValidationError("Surf edge route-profile registry is truncated")
+    if linked_count == 0:
+        if rom[registry_offset : registry_offset + abi["size"]] != bytes(abi["size"]):
+            raise ValidationError(
+                "empty Surf edge route-profile registry sentinel is not zero-filled"
+            )
+        return {"count": 0, "bytes": abi["size"]}
+
+    fields = ("sourceMapValue", "exitEdgeValue", "profileValue")
+    for index, expected in enumerate(manifest["edgeRouteProfiles"]):
+        offset = registry_offset + index * abi["size"]
+        actual = struct.unpack_from("<HBB", rom, offset)
+        for field, value in zip(fields, actual):
+            if value != expected[field]:
+                raise ValidationError(
+                    f"Surf edge route-profile {index}.{field} is {value}, expected {expected[field]}"
+                )
+    return {"count": linked_count, "bytes": linked_count * abi["size"]}
+
+
 def validate_section_metadata(
     rom: bytes, manifest: dict[str, Any], symbols: dict[str, int], rom_end: int
 ) -> None:
@@ -1108,6 +1159,9 @@ def validate_artifact(
     validate_tilesets(rom, manifest, symbols, rom_end)
     validate_count_sentinels(manifest, symbols)
     surf_edge_exits = validate_surf_edge_exits(rom, manifest, symbols, rom_end)
+    surf_edge_route_profiles = validate_surf_edge_route_profiles(
+        rom, manifest, symbols, rom_end
+    )
     validate_section_metadata(rom, manifest, symbols, rom_end)
     validate_section_codecs(rom, manifest, symbols, rom_end)
     animation = validate_linked_animation_contract(symbol_records, ANIMATION_POLICY)
@@ -1175,6 +1229,7 @@ def validate_artifact(
         },
         "tilesetAnimations": animation,
         "surfEdgeExits": surf_edge_exits,
+        "surfEdgeRouteProfiles": surf_edge_route_profiles,
         "linkerMapBytes": len(linker_map.encode()),
     }
     return report

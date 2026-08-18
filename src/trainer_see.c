@@ -6,6 +6,7 @@
 #include "field_effect.h"
 #include "field_player_avatar.h"
 #include "follower_npc.h"
+#include "generated_ocean.h"
 #include "pokemon.h"
 #include "script.h"
 #include "script_movement.h"
@@ -696,7 +697,16 @@ static u8 CheckTrainer(u8 objectEventId)
     }
     else if (trainerBattlePtr)
     {
-        if (GetTrainerFlagFromScriptPointer(trainerBattlePtr))
+        bool32 defeated;
+
+        if (GeneratedOcean_IsActive())
+        {
+            if (objectEventId >= OBJECT_EVENTS_COUNT
+             || !GeneratedOcean_GetTrainerDefeated(gObjectEvents[objectEventId].localId, &defeated)
+             || defeated)
+                return 0;
+        }
+        else if (GetTrainerFlagFromScriptPointer(trainerBattlePtr))
         {
             //If there is a rematch, we want to trigger the approach sequence
             if (I_VS_SEEKER_CHARGING && GetRematchFromScriptPointer(trainerBattlePtr))

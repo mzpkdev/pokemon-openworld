@@ -32,7 +32,8 @@
       "target_map": "MAP_ROUTE40",
       "target_x": 0,
       "target_y": 30,
-      "target_facing": "east"
+      "target_facing": "east",
+      "route_profile": "generated_ocean"
     }
   ],
   "object_events": [

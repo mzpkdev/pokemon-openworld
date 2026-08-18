@@ -202,6 +202,20 @@ TEST("Surf edge exit map encoding and destination coordinates preserve all bits"
         savedDestination.y);
 }
 
+TEST("Surf edge route profiles select only their normalized source edge")
+{
+    const u16 route19 = SurfEdgeExit_EncodeMap(MAP_GROUP(MAP_ROUTE19), MAP_NUM(MAP_ROUTE19));
+
+    EXPECT_EQ(
+        SurfEdgeRouteProfile_Select(route19, DIR_SOUTH),
+        SURF_EDGE_ROUTE_PROFILE_GENERATED_OCEAN
+    );
+    EXPECT_EQ(
+        SurfEdgeRouteProfile_Select(route19, DIR_NORTH),
+        SURF_EDGE_ROUTE_PROFILE_NONE
+    );
+}
+
 TEST("Surf edge exit arrival facing is cardinal one shot and resettable")
 {
     static const enum Direction directions[] = {DIR_SOUTH, DIR_NORTH, DIR_WEST, DIR_EAST};
