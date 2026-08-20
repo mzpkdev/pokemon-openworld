@@ -2,8 +2,12 @@ import type { CatalogMap } from "./catalog";
 import type { Placement } from "./geography";
 import { toOpenLayersExtent } from "./geography";
 
-/** Keep exits out of a whole-region overview, where hundreds of pins obscure the maps. */
-export const EXIT_ZOOM_THRESHOLD = 2;
+/**
+ * Show exit markers at one source metatile per CSS pixel or closer. The catalog
+ * uses 16 source pixels per metatile, so this hides a whole-region overview
+ * while preserving markers at the existing map-detail focus scale.
+ */
+export const EXIT_DETAIL_RESOLUTION_PIXELS = 16;
 
 export interface WarpSelection {
   readonly sourceMapName: string;
@@ -55,8 +59,8 @@ export function warpCoordinate(
   ];
 }
 
-export function shouldShowExitMarkers(showExits: boolean, zoom: number | undefined): boolean {
-  return showExits || (zoom ?? Number.NEGATIVE_INFINITY) >= EXIT_ZOOM_THRESHOLD;
+export function shouldShowExitMarkers(showExits: boolean, resolution: number | undefined): boolean {
+  return showExits || (resolution ?? Number.POSITIVE_INFINITY) <= EXIT_DETAIL_RESOLUTION_PIXELS;
 }
 
 /** Return the rendered exterior's full extent for an explicit camera focus request. */

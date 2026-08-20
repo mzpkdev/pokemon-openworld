@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogMap } from "./catalog";
-import { EXIT_ZOOM_THRESHOLD, focusExtent, recordAtlasClickHit, searchMaps, shouldShowExitMarkers, warpCoordinate, type AtlasClickHit } from "./interactions";
+import { EXIT_DETAIL_RESOLUTION_PIXELS, focusExtent, recordAtlasClickHit, searchMaps, shouldShowExitMarkers, warpCoordinate, type AtlasClickHit } from "./interactions";
 
 function map(name: string, mapSection: string | null): CatalogMap {
   return {
@@ -38,10 +38,10 @@ describe("atlas interactions", () => {
     )).toEqual([216, -392]);
   });
 
-  it("shows exits only after the readable-detail zoom threshold unless explicitly toggled", () => {
-    expect(shouldShowExitMarkers(false, EXIT_ZOOM_THRESHOLD - 0.01)).toBe(false);
-    expect(shouldShowExitMarkers(false, EXIT_ZOOM_THRESHOLD)).toBe(true);
-    expect(shouldShowExitMarkers(true, 0)).toBe(true);
+  it("hides exits at a whole-region pixel resolution until explicitly toggled", () => {
+    expect(shouldShowExitMarkers(false, EXIT_DETAIL_RESOLUTION_PIXELS + 0.01)).toBe(false);
+    expect(shouldShowExitMarkers(false, EXIT_DETAIL_RESOLUTION_PIXELS)).toBe(true);
+    expect(shouldShowExitMarkers(true, EXIT_DETAIL_RESOLUTION_PIXELS * 8)).toBe(true);
   });
 
   it("focuses the exact rendered map extent", () => {

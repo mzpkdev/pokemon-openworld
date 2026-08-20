@@ -209,7 +209,7 @@ export function MapViewport({
       zoom: 0,
     });
     const map = new Map({ target: host.current, controls: [], layers: [...imageLayers, mapInteractionLayer, exitLayer], view });
-    const updateExitVisibility = () => exitLayer.setVisible(shouldShowExitMarkers(showExitsRef.current, view.getZoom()));
+    const updateExitVisibility = () => exitLayer.setVisible(shouldShowExitMarkers(showExitsRef.current, view.getResolution()));
     const reportCamera = () => {
       updateExitVisibility();
       const center = view.getCenter();
