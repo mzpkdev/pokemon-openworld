@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pokemon-openworld.invalid/map-catalog/catalog.schema.json",
+  "title": "Pokemon OpenWorld exterior map catalog",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "format",
+    "pixelsPerMetatile",
+    "source",
+    "regions",
+    "maps"
+  ],
+  "properties": {
+    "$schema": { "const": "catalog.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "format": { "const": "pokemon-openworld-exterior-map-catalog" },
+    "pixelsPerMetatile": { "type": "integer", "minimum": 1 },
+    "source": {
+      "type": "object",
+      "required": ["revision", "workingTreeDirty"],
+      "properties": {
+        "revision": { "type": "string" },
+        "workingTreeDirty": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "mapCount", "maps"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "mapCount": { "type": "integer", "minimum": 0 },
+          "maps": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "maps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/map" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "nullableString": { "type": ["string", "null"] },
+    "connection": {
+      "type": "object",
+      "required": [
+        "direction",
+        "offsetMetatiles",
+        "destinationMapId",
+        "destinationMap"
+      ],
+      "properties": {
+        "direction": {
+          "enum": ["up", "down", "left", "right", "dive", "emerge"]
+        },
+        "offsetMetatiles": { "type": "integer" },
+        "destinationMapId": { "type": "string" },
+        "destinationMap": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "warp": {
+      "type": "object",
+      "required": [
+        "warpId",
+        "xMetatiles",
+        "yMetatiles",
+        "elevation",
+        "destinationWarpId",
+        "destinationMapId",
+        "destinationMap"
+      ],
+      "properties": {
+        "warpId": { "type": "string" },
+        "xMetatiles": { "type": "integer" },
+        "yMetatiles": { "type": "integer" },
+        "elevation": { "type": "integer" },
+        "destinationWarpId": { "type": "string" },
+        "destinationMapId": { "type": "string" },
+        "destinationMap": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "map": {
+      "type": "object",
+      "required": [
+        "name",
+        "id",
+        "region",
+        "category",
+        "sourceGroup",
+        "sourceRegion",
+        "mapType",
+        "mapSection",
+        "image",
+        "layout",
+        "world",
+        "presentation",
+        "connections",
+        "warps"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "id": { "type": "string" },
+        "region": { "type": "string" },
+        "category": { "type": "string" },
+        "sourceGroup": { "type": "string" },
+        "sourceRegion": { "$ref": "#/$defs/nullableString" },
+        "mapType": { "type": "string" },
+        "mapSection": { "$ref": "#/$defs/nullableString" },
+        "image": {
+          "type": "object",
+          "required": ["path", "sha256", "widthPixels", "heightPixels"],
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "widthPixels": { "type": "integer", "minimum": 1 },
+            "heightPixels": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "layout": {
+          "type": "object",
+          "required": [
+            "id",
+            "format",
+            "widthMetatiles",
+            "heightMetatiles",
+            "primaryTileset",
+            "secondaryTileset"
+          ],
+          "properties": {
+            "id": { "type": "string" },
+            "format": { "type": "string" },
+            "widthMetatiles": { "type": "integer", "minimum": 1 },
+            "heightMetatiles": { "type": "integer", "minimum": 1 },
+            "primaryTileset": { "type": "string" },
+            "secondaryTileset": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "world": {
+          "type": "object",
+          "required": ["layer", "defaultVisible", "variantGroup", "variant"],
+          "properties": {
+            "layer": { "enum": ["surface", "underwater", "generated"] },
+            "defaultVisible": { "type": "boolean" },
+            "variantGroup": { "$ref": "#/$defs/nullableString" },
+            "variant": { "$ref": "#/$defs/nullableString" }
+          },
+          "additionalProperties": false
+        },
+        "presentation": {
+          "type": "object",
+          "required": ["music", "weather", "showMapName", "requiresFlash"],
+          "properties": {
+            "music": { "$ref": "#/$defs/nullableString" },
+            "weather": { "$ref": "#/$defs/nullableString" },
+            "showMapName": { "type": ["boolean", "null"] },
+            "requiresFlash": { "type": ["boolean", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "connections": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/connection" }
+        },
+        "warps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/warp" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

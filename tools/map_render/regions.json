@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "exteriorMapTypes": [
+    "MAP_TYPE_TOWN",
+    "MAP_TYPE_CITY",
+    "MAP_TYPE_ROUTE",
+    "MAP_TYPE_OCEAN_ROUTE",
+    "MAP_TYPE_UNDERWATER"
+  ],
+  "mapOverrides": {
+    "AquaHideout_UnusedRubyMap2": {
+      "layer": "generated",
+      "defaultVisible": false
+    },
+    "Route104": {
+      "variantGroup": "hoenn-route-104",
+      "variant": "current"
+    },
+    "Route104_Prototype": {
+      "defaultVisible": false,
+      "variantGroup": "hoenn-route-104",
+      "variant": "prototype"
+    },
+    "SaffronCity_Frlg": {
+      "variantGroup": "kanto-saffron-city",
+      "variant": "playable"
+    },
+    "SaffronCity_Connection_Frlg": {
+      "defaultVisible": false,
+      "variantGroup": "kanto-saffron-city",
+      "variant": "connection-proxy"
+    },
+    "LakeOfRage": {
+      "variantGroup": "johto-lake-of-rage",
+      "variant": "normal"
+    },
+    "LakeOfRageLowTide": {
+      "defaultVisible": false,
+      "variantGroup": "johto-lake-of-rage",
+      "variant": "low-tide"
+    },
+    "MtSilver_SummitDay": {
+      "variantGroup": "johto-mt-silver-summit",
+      "variant": "day"
+    },
+    "MtSilver_SummitNight": {
+      "defaultVisible": false,
+      "variantGroup": "johto-mt-silver-summit",
+      "variant": "night"
+    },
+    "NationalPark_Normal": {
+      "variantGroup": "johto-national-park",
+      "variant": "normal"
+    },
+    "NationalPark_BugContest": {
+      "defaultVisible": false,
+      "variantGroup": "johto-national-park",
+      "variant": "bug-contest"
+    }
+  },
+  "regions": [
+    {
+      "id": "hoenn",
+      "label": "Hoenn",
+      "rules": [
+        { "group": "gMapGroup_TownsAndRoutes", "match": "Route*", "category": "routes" },
+        { "group": "gMapGroup_TownsAndRoutes", "category": "towns" },
+        { "group": "gMapGroup_Dungeons", "match": "AquaHideout_UnusedRubyMap2", "category": "generated" },
+        { "group": "gMapGroup_Dungeons", "category": "special" },
+        { "group": "gMapGroup_SpecialArea", "category": "special" },
+        { "group": "gMapGroup_IndoorRoute104Prototype", "category": "prototypes" }
+      ]
+    },
+    {
+      "id": "kanto",
+      "label": "Kanto",
+      "rules": [
+        { "group": "gMapGroup_TownsAndRoutes_Frlg", "match": "Route*_Frlg", "category": "routes" },
+        {
+          "group": "gMapGroup_TownsAndRoutes_Frlg",
+          "match": [
+            "PalletTown_Frlg",
+            "ViridianCity_Frlg",
+            "PewterCity_Frlg",
+            "CeruleanCity_Frlg",
+            "LavenderTown_Frlg",
+            "VermilionCity_Frlg",
+            "CeladonCity_Frlg",
+            "FuchsiaCity_Frlg",
+            "CinnabarIsland_Frlg",
+            "IndigoPlateau_Exterior_Frlg",
+            "SaffronCity_Frlg"
+          ],
+          "category": "towns"
+        },
+        {
+          "group": "gMapGroup_TownsAndRoutes_Frlg",
+          "match": "SaffronCity_Connection_Frlg",
+          "category": "technical"
+        },
+        {
+          "group": "gMapGroup_Dungeons_Frlg",
+          "match": ["ViridianForest_Frlg", "SafariZone_*_Frlg"],
+          "category": "special"
+        }
+      ]
+    },
+    {
+      "id": "johto",
+      "label": "Johto",
+      "rules": [
+        { "group": "gMapGroup_JohtoTownsAndRoutes", "match": "RuinsOfAlph_Outside", "category": "special" },
+        { "group": "gMapGroup_JohtoTownsAndRoutes" },
+        { "group": "gMapGroup_MtSilver", "match": "Route28" },
+        { "group": "gMapGroup_MtSilver", "category": "special" },
+        { "group": "gMapGroup_JohtoAzalea", "match": "IlexForest", "category": "special" },
+        { "group": "gMapGroup_JohtoAzalea" },
+        { "group": "gMapGroup_JohtoGoldenrod", "match": "NationalPark*", "category": "special" },
+        { "group": "gMapGroup_JohtoGoldenrod" },
+        { "group": "gMapGroup_IndoorGoldenrod", "match": "GoldenrodCity_DepartmentStore_7FNight", "category": "technical" },
+        { "group": "gMapGroup_IndoorGoldenrod", "category": "special" },
+        { "group": "gMapGroup_JohtoEcruteak", "match": "BellchimeTrail", "category": "special" },
+        { "group": "gMapGroup_JohtoEcruteak" },
+        { "group": "gMapGroup_IndoorEcruteak", "category": "special" },
+        { "group": "gMapGroup_JohtoOlivine" },
+        { "group": "gMapGroup_IndoorOlivine", "category": "special" },
+        { "group": "gMapGroup_JohtoCianwood" },
+        { "group": "gMapGroup_JohtoMahogany", "match": "LakeOfRage*", "category": "special" },
+        { "group": "gMapGroup_JohtoMahogany" },
+        { "group": "gMapGroup_JohtoBlackthorn" },
+        { "group": "gMapGroup_SafariZoneJohto", "category": "special" },
+        { "group": "gMapGroup_JohtoFinal" },
+        { "group": "gMapGroup_JohtoLeague" }
+      ]
+    },
+    {
+      "id": "sevii-islands",
+      "label": "Sevii Islands",
+      "rules": [
+        {
+          "group": "gMapGroup_TownsAndRoutes_Frlg",
+          "match": [
+            "OneIsland_Frlg",
+            "TwoIsland_Frlg",
+            "ThreeIsland_Frlg",
+            "FourIsland_Frlg",
+            "FiveIsland_Frlg",
+            "SixIsland_Frlg",
+            "SevenIsland_Frlg"
+          ],
+          "category": "towns"
+        },
+        {
+          "group": "gMapGroup_TownsAndRoutes_Frlg",
+          "match": [
+            "OneIsland_*",
+            "TwoIsland_*",
+            "ThreeIsland_*",
+            "FourIsland_*",
+            "FiveIsland_*",
+            "SixIsland_*",
+            "SevenIsland_*"
+          ],
+          "category": "routes"
+        },
+        {
+          "group": "gMapGroup_Dungeons_Frlg",
+          "match": ["MtEmber*", "ThreeIsland*", "FourIsland*", "FiveIsland*", "SixIsland*"],
+          "category": "special"
+        },
+        { "group": "gMapGroup_SpecialArea_Frlg", "category": "special" }
+      ]
+    }
+  ]
+}

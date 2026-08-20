@@ -58,6 +58,8 @@ The E2E targets build fresh debug artifacts locally. `E2E_PREBUILT_DEBUG=1` is r
 - `make content-port-check` validates policy and authenticates the configured donors.
 - `make content-port-bundle` builds the configured donor-backed content bundle.
 - `make wild-encounter-test` runs wild-encounter generator tests.
+- `make map-catalog-test` tests the isolated exterior-map renderer and catalog contract.
+- `make map-catalog` writes every regional exterior PNG and `catalog.json` under `build/map-catalog/`.
 
 ## Product-owned C tests
 
