@@ -943,7 +943,10 @@
     "SevenIsland_TrainerTower_Frlg",
     "SevenIsland_SevaultCanyon_Entrance_Frlg",
     "SevenIsland_SevaultCanyon_Frlg",
-    "SevenIsland_TanobyRuins_Frlg"
+    "SevenIsland_TanobyRuins_Frlg",
+    "SouthernKantoSeaBasin_West_Frlg",
+    "SouthernKantoSeaBasin_Central_Frlg",
+    "SouthernKantoSeaBasin_East_Frlg"
   ],
   "gMapGroup_IndoorPallet_Frlg": [
     "PalletTown_PlayersHouse_1F_Frlg",

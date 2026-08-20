@@ -200,9 +200,9 @@ class IntegrityToolTests(unittest.TestCase):
         )
         self.assertEqual(
             EXPECTED_COUNTS["regions"],
-            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+            {"REGION_HOENN": 518, "REGION_KANTO": 425, "REGION_JOHTO": 253},
         )
-        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
+        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1196)
 
     def test_manifest_rejects_missing_reviewed_animation_callback(self) -> None:
         manifest = json.loads((self.generated / "integrity-manifest.json").read_text())

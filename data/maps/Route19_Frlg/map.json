@@ -24,6 +24,11 @@
       "map": "MAP_ROUTE20",
       "offset": 40,
       "direction": "left"
+    },
+    {
+      "map": "MAP_SOUTHERN_KANTO_SEA_BASIN_EAST",
+      "offset": 9,
+      "direction": "left"
     }
   ],
   "edge_exits": [

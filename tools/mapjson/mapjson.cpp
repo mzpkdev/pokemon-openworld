@@ -2426,7 +2426,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
             if (grouped_names.find(name) == grouped_names.end())
                 ungrouped_names.insert(name);
         }
-        const int expected_grouped_maps = 935 + active_johto_map_count;
+        const int expected_grouped_maps = 938 + active_johto_map_count;
         require_product_registry(nonempty_group_count + reviewed_empty_group_count == group_number,
                                  "one or more group pointer slots would be null");
         require_product_registry(grouped_map_count == expected_grouped_maps,
@@ -2434,7 +2434,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         require_product_registry(static_cast<int>(map_filepaths.size()) == grouped_map_count + 4,
                                  "reviewed map count disagrees with grouped maps plus exclusions");
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
-        require_product_registry(region_counts["REGION_KANTO"] == 422, "expected 422 Kanto/Sevii maps");
+        require_product_registry(region_counts["REGION_KANTO"] == 425, "expected 425 Kanto/Sevii maps");
         require_product_registry(region_counts["REGION_JOHTO"] == 253, "expected 253 Johto maps");
         require_product_registry(active_johto_map_count > 0 && active_johto_layout_count > 0,
                                  "expected an active Johto-format closure");
@@ -2442,7 +2442,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
                                      "LAYOUT_TIN_TOWER_ROOF_NIGHT",
                                  },
                                  "unexpected active mapless Johto layout closure");
-        require_product_registry(included_layout_count == 785 + active_johto_layout_count,
+        require_product_registry(included_layout_count == 788 + active_johto_layout_count,
                                  "layout count disagrees with the active Johto closure");
         require_product_registry(ungrouped_names == excluded_names,
                                  "ungrouped map directories differ from the explicit exclusion list");
