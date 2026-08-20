@@ -804,10 +804,7 @@
       "value": 0
     },
     {
-      "alias": {
-        "of": "FLAG_WORLD_MAP_BIRTH_ISLAND_EXTERIOR",
-        "owner": "contract-destinations"
-      },
+      "alias": null,
       "domain": "destinations",
       "source": "contract-destinations",
       "state": {
@@ -815,7 +812,7 @@
       },
       "storage": "u32-id",
       "symbol": "FLAG_WORLD_MAP_PEWTER_CITY",
-      "value": 0
+      "value": 2315
     },
     {
       "alias": {
@@ -18919,7 +18916,7 @@
     },
     {
       "alias": {
-        "of": "FLAG_0x077",
+        "of": "FLAG_UNUSED_0x90B",
         "owner": "contract-flags"
       },
       "domain": "flags",
@@ -18929,7 +18926,7 @@
       },
       "storage": "flag-id",
       "symbol": "FLAG_WORLD_MAP_PEWTER_CITY",
-      "value": 0
+      "value": 2315
     },
     {
       "alias": {

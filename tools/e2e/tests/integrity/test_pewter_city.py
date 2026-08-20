@@ -27,6 +27,7 @@ from tools.e2e.tests.integrity.test_pokecenter_regressions import (
 SCRIPT_IDLE = 2
 VAR_MAP_SCENE_PEWTER_CITY = 0x406C
 FLAG_SYS_B_DASH = 0x8C0
+FLAG_WORLD_MAP_PEWTER_CITY = 0x90B
 G_MAIN_STATE_OFFSET = 0x438
 G_MAIN_IN_BATTLE_MASK = 1 << 1
 
@@ -356,13 +357,26 @@ def test_hns_pokecenter_heal_and_whiteout_use_hns_checkpoint(integrity_game):
 def test_debug_fly_ui_returns_to_hns_pewter_heal_coordinate(integrity_game):
     _settle_overworld(integrity_game)
     hns = _maps()["PewterCity_Hns"]
+    assert not integrity_game.read_flag(FLAG_WORLD_MAP_PEWTER_CITY)
     _load(integrity_game, hns, 19, 30, 0xF5820400)
+    # The HnS map's transition script, not test setup, records the visit that
+    # makes the shared Pewter section a Fly destination.
+    assert integrity_game.read_flag(FLAG_WORLD_MAP_PEWTER_CITY)
     _open_utilities(integrity_game)
     game = integrity_game
     game.press("A", release_frames=2)  # Utilities > Fly to map
     game.wait_for_callback("CB2_FlyMap", max_frames=1_200)
     game.step(180)
     game.press("A", release_frames=2)
-    game.wait_for_map(hns.map_id, max_frames=2_400)
+    # The destination is the current map, so waiting on its map id alone
+    # would succeed before Fly has processed its confirmation input.
+    game.wait_until(
+        lambda: not game.callback_is("CB2_FlyMap"),
+        description="departed HnS Pewter Fly map",
+        max_frames=1_200,
+        step_frames=2,
+    )
+    game.wait_for_callback("CB2_Overworld", max_frames=2_400)
+    assert game.map_id() == hns.map_id
     _advance_to_field_controls(game, "settled HnS Pewter fly arrival")
     assert game.position() == (19, 30)
