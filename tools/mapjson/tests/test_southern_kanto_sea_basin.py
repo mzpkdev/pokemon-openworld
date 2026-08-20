@@ -188,32 +188,6 @@ def _seam_cells(
         raise AssertionError(f"unknown cardinal direction {direction!r}")
 
 
-def _is_route20_triple_junction(
-    source_id: str,
-    destination_id: str,
-    source_x: int,
-    source_y: int,
-    destination_x: int,
-    destination_y: int,
-) -> bool:
-    """The one seam corner joining independently mirrored Route 20 cells."""
-    return (
-        source_id,
-        destination_id,
-        source_x,
-        source_y,
-        destination_x,
-        destination_y,
-    ) == (
-        CENTRAL.map_id,
-        EAST.map_id,
-        59,
-        99,
-        0,
-        30,
-    )
-
-
 class SouthernKantoSeaBasinContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -360,30 +334,13 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
                     f"{destination['name']} ({destination_x}, {destination_y}) "
                     "disagree on collision",
                 )
-                if _is_route20_triple_junction(
-                    source_id,
-                    destination_id,
-                    source_x,
-                    source_y,
-                    destination_x,
-                    destination_y,
-                ):
-                    # Central x=59/y=99 mirrors Route 20 x=107, while East
-                    # x=0/y=30 mirrors Route 20 x=108. The two source cells
-                    # deliberately use distinct clear-collision ocean tiles.
-                    self.assertFalse(source_blocked)
-                    self.assertTrue(_is_surfable_ocean(source_word, self.attributes))
-                    self.assertTrue(
-                        _is_surfable_ocean(destination_word, self.attributes)
-                    )
-                else:
-                    self.assertEqual(
-                        source_word,
-                        destination_word,
-                        f"{source['name']} ({source_x}, {source_y}) and "
-                        f"{destination['name']} ({destination_x}, {destination_y}) "
-                        "do not use matching primary seam geometry",
-                    )
+                self.assertEqual(
+                    source_word,
+                    destination_word,
+                    f"{source['name']} ({source_x}, {source_y}) and "
+                    f"{destination['name']} ({destination_x}, {destination_y}) "
+                    "do not use matching primary seam geometry",
+                )
                 if not source_blocked:
                     self.assertTrue(
                         _is_surfable_ocean(source_word, self.attributes),
