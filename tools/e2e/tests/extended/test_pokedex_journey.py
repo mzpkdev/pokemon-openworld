@@ -354,7 +354,12 @@ def defeat_route103_rival_and_receive_pokedex(game):
     assert game.read_var(VAR_LITTLEROOT_RIVAL_STATE) == 4
     assert game.read_var(VAR_CABLE_CLUB_TUTORIAL_STATE) == 1
     assert game.read_u32(game.save_block2() + 0xA8) == 0x803F
-    assert game.read_u8(game.address("gPartiesCount")) == 1
+    party_count, party = player_party(game)
+    assert party_count == 2
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
+    assert party[1][84] == 5
+    assert decode_box_pokemon(party[1])["species"] in HOENN_STARTERS
 
 
 def test_quickstart_to_pokedex(game):
