@@ -1072,7 +1072,7 @@ libagbsyscall:
 
 # Enable LTO LDFLAGS if set
 ifneq ($(LTO),0)
-LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence
+LDFLAGS := -march=armv4t -mabi=apcs-gnu -mcpu=arm7tdmi -Xlinker -Map=../../$(MAP) -Xlinker --print-memory-usage -Xassembler -meabi=5 -Xassembler -march=armv4t -Xassembler -mcpu=arm7tdmi -Xlinker --gc-sections -Xlinker --undefined=gSaveAbiEvidence -Xlinker --undefined=gSurfEdgeExitCount -Xlinker --undefined=gSurfEdgeRouteProfiles -Xlinker --undefined=gSurfEdgeRouteProfileCount
 LDFLAGS += -Xlinker -flto=auto
 $(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
 	@echo "cd $(OBJ_DIR) && $(ARMCC) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs>"
@@ -1080,7 +1080,7 @@ $(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-c
 	$(FIX) $(ELF) -t"$(TITLE)" -c$(GAME_CODE) -m$(MAKER_CODE) -r$(REVISION) --silent
 else
 # Output .map file, memory usage readout and gc sections to clean-up unused data
-LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence
+LDFLAGS = -Map ../../$(MAP) --print-memory-usage --gc-sections --undefined=gSaveAbiEvidence --undefined=gSurfEdgeExitCount --undefined=gSurfEdgeRouteProfiles --undefined=gSurfEdgeRouteProfileCount
 $(ELF) $(MAP) &: $(LD_SCRIPT) $(OBJS) libagbsyscall | content-port-transaction-check
 	@cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$<  -o ../../$(ELF) $(OBJS_REL) $(LIB) | cat
 	@echo "cd $(OBJ_DIR) && $(LD) $(LDFLAGS) -T ../../$< -o ../../$(ELF) <objs> <libs> | cat"

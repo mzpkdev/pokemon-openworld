@@ -89,6 +89,18 @@ class ProductMakeContractTests(unittest.TestCase):
         self.assertIn("$(ELF) $(MAP) &:", makefile)
         self.assertIn("-o ../../$(ELF)", makefile)
 
+    def test_integrity_audit_symbols_are_linker_roots(self) -> None:
+        makefile = (ROOT / "Makefile").read_text()
+        expected_linker_roots = {
+            "gSaveAbiEvidence": 3,
+            "gSurfEdgeExitCount": 2,
+            "gSurfEdgeRouteProfiles": 2,
+            "gSurfEdgeRouteProfileCount": 2,
+        }
+        for symbol, occurrences in expected_linker_roots.items():
+            with self.subTest(symbol=symbol):
+                self.assertEqual(makefile.count(f"--undefined={symbol}"), occurrences)
+
     def make_probe_command(
         self, option: str, makefile: Path, target: Path
     ) -> list[str]:
