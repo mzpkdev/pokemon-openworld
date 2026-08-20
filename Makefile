@@ -466,7 +466,7 @@ RULES_NO_SCAN += normal-artifacts debug-artifacts snapshot-artifacts product-che
 RULES_NO_SCAN += _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 RULES_NO_SCAN += _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check format format-check lint lint-check
 RULES_NO_SCAN += content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test
-RULES_NO_SCAN += wild-encounter-test wild-encounter-balance-audit map-catalog-test map-catalog
+RULES_NO_SCAN += wild-encounter-test wild-encounter-balance-audit map-catalog-test map-catalog map-atlas-catalog map-atlas-build map-atlas-test
 RULES_NO_SCAN += validate-trainer-rematches
 RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-fixture-ruby
 .PHONY: all rom agbcc modern compare check debug release format format-check lint lint-check
@@ -474,7 +474,7 @@ RULES_NO_SCAN += generator-fixture-emerald generator-fixture-firered generator-f
 .PHONY: _audit-prebuilt-setup audit-prebuilt-debug audit-prebuilt-artifacts
 .PHONY: _e2e-build-debug-artifacts _e2e-require-artifacts _e2e-skyemu e2e-core e2e-extended e2e-integrity e2e-integrity-full integrity-check integrity-check-rom-purposes save-contract-check start-profile-contract-check build-variant-isolation-check
 .PHONY: content-port-transaction-check content-port-ownership-check content-port-check content-port-bundle content-port-test wild-encounter-test wild-encounter-balance-audit
-.PHONY: map-catalog-test map-catalog
+.PHONY: map-catalog-test map-catalog map-atlas-catalog map-atlas-build map-atlas-test
 .PHONY: $(RULES_NO_SCAN)
 
 infoshell = $(foreach line, $(shell $1 | sed "s/ /__SPACE__/g"), $(info $(subst __SPACE__, ,$(line))))
@@ -646,6 +646,18 @@ map-catalog-test: content-port-transaction-check
 
 map-catalog: content-port-transaction-check
 	python3 -m tools.map_render render --output "$(MAP_CATALOG_OUTPUT)"
+
+MAP_ATLAS_DIR := apps/map-atlas
+MAP_ATLAS_CATALOG_OUTPUT := $(BUILD_DIR)/map-atlas/public/map-catalog
+
+map-atlas-catalog:
+	$(MAKE) MAP_CATALOG_OUTPUT="$(MAP_ATLAS_CATALOG_OUTPUT)" map-catalog
+
+map-atlas-build: map-atlas-catalog
+	npm --prefix "$(MAP_ATLAS_DIR)" run build
+
+map-atlas-test:
+	npm --prefix "$(MAP_ATLAS_DIR)" run test
 
 content-port-bundle: content-port-transaction-check
 	python3 -m tools.content_port bundle --port $(CONTENT_PORT) \
