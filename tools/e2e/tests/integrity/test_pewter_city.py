@@ -284,11 +284,29 @@ def test_hns_running_shoes_progression_is_one_time(integrity_game):
     hns = _maps()["PewterCity_Hns"]
     integrity_game.set_flag(FLAG_SYS_B_DASH, False)
     integrity_game.set_var(VAR_MAP_SCENE_PEWTER_CITY, 1)
-    _load(integrity_game, hns, 49, 25, 0xF5820300)
-    assert integrity_game.read_flag(FLAG_SYS_B_DASH)
-    assert integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 2
+    # A host map-load starts on the requested coordinate; coordinate events
+    # run when the player enters it. Step onto the aide trigger in the same
+    # way a player does, then resolve its real message flow.
+    _load(integrity_game, hns, 48, 25, 0xF5820300)
+    integrity_game.press("Right", hold_frames=12, release_frames=2)
+    integrity_game.advance_until(
+        lambda: (
+            integrity_game.read_flag(FLAG_SYS_B_DASH)
+            and integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 2
+            and _field_controls_ready(integrity_game)
+        ),
+        description="completed Pewter Running Shoes delivery",
+        max_pulses=1_800,
+    )
     integrity_game.set_var(VAR_MAP_SCENE_PEWTER_CITY, 1)
-    _load(integrity_game, hns, 49, 25, 0xF5820301)
+    _load(integrity_game, hns, 48, 25, 0xF5820301)
+    integrity_game.press("Right", hold_frames=12, release_frames=2)
+    integrity_game.wait_until(
+        lambda: _field_controls_ready(integrity_game),
+        description="settled post-delivery Pewter re-entry",
+        max_frames=1_200,
+        step_frames=2,
+    )
     assert integrity_game.read_flag(FLAG_SYS_B_DASH)
     assert integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 1
 
@@ -298,11 +316,20 @@ def test_debug_named_warp_frlg_gym_exit_returns_to_hns(integrity_game):
     maps = _maps()
     _select_named_warp_map(integrity_game, maps["PewterCity_Frlg"])
     integrity_game.press("A", release_frames=2)  # map -> entry picker
-    for _ in range(3):
-        integrity_game.press("Down", release_frames=2)  # third FRLG warp is Gym
+    task = _wait_for_named_warp_task(
+        integrity_game, "DebugAction_Util_Warp_SelectNamedWarp"
+    )
+    for _ in range(8):
+        # The third Pewter FRLG warp is the Gym. Read the task's live entry
+        # selection instead of assuming an input arrived after the UI changed.
+        if integrity_game.read_u16(task + 8 + 7 * 2) == 3:
+            break
+        integrity_game.press("Down", release_frames=2)
+    else:
+        raise AssertionError("Pewter FRLG Gym entry was not selectable")
     integrity_game.press("A", release_frames=2)
     integrity_game.wait_for_map(maps["PewterCity_Gym_Frlg"].map_id, max_frames=1_800)
-    integrity_game.wait_for_controls_unlocked(max_frames=1_200)
+    _advance_to_field_controls(integrity_game, "settled Pewter Gym named-warp")
     _hold_until_map(integrity_game, "Down", maps["PewterCity_Hns"])
 
 
@@ -333,5 +360,5 @@ def test_debug_fly_ui_returns_to_hns_pewter_heal_coordinate(integrity_game):
     game.step(180)
     game.press("A", release_frames=2)
     game.wait_for_map(hns.map_id, max_frames=2_400)
-    game.wait_for_controls_unlocked(max_frames=1_200)
+    _advance_to_field_controls(game, "settled HnS Pewter fly arrival")
     assert game.position() == (19, 30)
