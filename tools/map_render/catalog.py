@@ -5,12 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import fnmatch
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Mapping
 
 
-CATALOG_SCHEMA_VERSION = 1
+CATALOG_SCHEMA_VERSION = 2
 PIXELS_PER_METATILE = 16
+OVERVIEW_SCALE = 4
 
 
 class MapRenderError(ValueError):
@@ -34,6 +35,10 @@ class RenderTarget:
     def image_path(self) -> str:
         return f"maps/{self.region_id}/{self.category}/{self.name}.png"
 
+    @property
+    def overview_image_path(self) -> str:
+        return f"overviews/{self.region_id}/{self.category}/{self.name}.png"
+
 
 @dataclass(frozen=True)
 class Discovery:
@@ -42,6 +47,24 @@ class Discovery:
     config: Mapping[str, object]
     targets: tuple[RenderTarget, ...]
     map_names_by_id: Mapping[str, str]
+
+
+def asset_output_paths(targets: tuple[RenderTarget, ...]) -> tuple[str, ...]:
+    """Validate and return the complete, distinct relative asset path set."""
+
+    owners: dict[str, str] = {}
+    for target in targets:
+        for path in (target.image_path, target.overview_image_path):
+            parsed = PurePosixPath(path)
+            if parsed.is_absolute() or ".." in parsed.parts or "\\" in path or not path:
+                raise MapRenderError(f"unsafe catalog asset path: {path!r}")
+            owner = owners.get(path)
+            if owner is not None:
+                raise MapRenderError(
+                    f"duplicate catalog asset path {path!r}: {owner} and {target.name}"
+                )
+            owners[path] = target.name
+    return tuple(owners)
 
 
 def default_config_path() -> Path:
@@ -261,6 +284,7 @@ def map_entry(
     target: RenderTarget,
     names_by_id: Mapping[str, str],
     image_sha256: str,
+    overview_sha256: str,
 ) -> dict[str, object]:
     """Build one frontend-facing map record."""
 
@@ -301,6 +325,12 @@ def map_entry(
             "sha256": image_sha256,
             "widthPixels": width * PIXELS_PER_METATILE,
             "heightPixels": height * PIXELS_PER_METATILE,
+            "overview": {
+                "path": target.overview_image_path,
+                "sha256": overview_sha256,
+                "widthPixels": width * PIXELS_PER_METATILE // OVERVIEW_SCALE,
+                "heightPixels": height * PIXELS_PER_METATILE // OVERVIEW_SCALE,
+            },
         },
         "layout": {
             "id": layout["id"],
@@ -326,6 +356,7 @@ def build_catalog(
     discovery: Discovery,
     targets: tuple[RenderTarget, ...],
     image_hashes: Mapping[str, str],
+    overview_hashes: Mapping[str, str],
     *,
     source_revision: str,
     working_tree_dirty: bool,
@@ -333,7 +364,12 @@ def build_catalog(
     """Build the versioned catalog consumed by a future map browser."""
 
     entries = [
-        map_entry(target, discovery.map_names_by_id, image_hashes[target.name])
+        map_entry(
+            target,
+            discovery.map_names_by_id,
+            image_hashes[target.name],
+            overview_hashes[target.name],
+        )
         for target in targets
     ]
     selected_region_ids = {target.region_id for target in targets}

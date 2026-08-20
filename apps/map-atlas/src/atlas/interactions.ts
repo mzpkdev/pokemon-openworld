@@ -9,6 +9,8 @@ import { toOpenLayersExtent } from "./geography";
  */
 export const EXIT_DETAIL_RESOLUTION_PIXELS = 16;
 
+export type MapImageAssetKind = "overview" | "native";
+
 export interface WarpSelection {
   readonly sourceMapName: string;
   readonly warpId: string;
@@ -61,6 +63,25 @@ export function warpCoordinate(
 
 export function shouldShowExitMarkers(showExits: boolean, resolution: number | undefined): boolean {
   return showExits || (resolution ?? Number.POSITIVE_INFINITY) <= EXIT_DETAIL_RESOLUTION_PIXELS;
+}
+
+/** Select native terrain only at the same detail boundary used for exit markers. */
+export function mapImageAssetKindForResolution(resolution: number | undefined): MapImageAssetKind {
+  return (resolution ?? Number.POSITIVE_INFINITY) <= EXIT_DETAIL_RESOLUTION_PIXELS ? "native" : "overview";
+}
+
+/** Return a source replacement only when a resolution boundary was crossed. */
+export function nextMapImageAssetKind(
+  current: MapImageAssetKind,
+  resolution: number | undefined,
+): MapImageAssetKind | null {
+  const next = mapImageAssetKindForResolution(resolution);
+  return next === current ? null : next;
+}
+
+/** Resolve a catalog map's selected raster without changing its native coordinate extent. */
+export function mapImageAssetPath(map: CatalogMap, kind: MapImageAssetKind): string {
+  return kind === "native" ? map.image.path : map.image.overview.path;
 }
 
 /** Return the rendered exterior's full extent for an explicit camera focus request. */

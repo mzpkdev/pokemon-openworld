@@ -1,6 +1,28 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Map Atlas", () => {
+  test("initial fitted Hoenn requests overview rasters and no native map PNGs", async ({ page }) => {
+    const requestedMapImages: string[] = [];
+    page.on("request", (request) => {
+      if (request.resourceType() !== "image") {
+        return;
+      }
+      const path = new URL(request.url()).pathname;
+      if (
+        (path.includes("/map-catalog/maps/") || path.includes("/map-catalog/overviews/"))
+        && path.endsWith(".png")
+      ) {
+        requestedMapImages.push(path);
+      }
+    });
+
+    await page.goto("/");
+    await expect(page.locator("section[aria-label='Interactive map atlas'] canvas").first()).toBeVisible();
+    await expect.poll(() => requestedMapImages.filter((path) => path.includes("/map-catalog/overviews/")).length).toBeGreaterThan(0);
+
+    expect(requestedMapImages.filter((path) => !path.includes("/map-catalog/overviews/"))).toEqual([]);
+  });
+
   test("loads the application and regional map canvas", async ({ page }) => {
     await page.goto("/");
 

@@ -20,6 +20,12 @@ function fixtureMap(
       sha256: "0".repeat(64),
       widthPixels: 64,
       heightPixels: 48,
+      overview: {
+        path: `overviews/test/${name}.png`,
+        sha256: "1".repeat(64),
+        widthPixels: 16,
+        heightPixels: 12,
+      },
     },
     layout: {
       id: `LAYOUT_${name.toUpperCase()}`,
@@ -51,7 +57,7 @@ function catalogFixture(): MapCatalog {
   const beta = fixtureMap("Beta", "MAP_BETA");
   return {
     $schema: "catalog.schema.json",
-    schemaVersion: 1,
+    schemaVersion: 2,
     format: "pokemon-openworld-exterior-map-catalog",
     pixelsPerMetatile: 16,
     source: { revision: "fixture", workingTreeDirty: false },
@@ -80,6 +86,13 @@ describe("validateCatalog", () => {
     expect(() => validateCatalog(catalogFixture())).not.toThrow();
   });
 
+  it("requires an overview asset before the atlas tries to render a catalog", () => {
+    const catalog = catalogFixture();
+    Reflect.deleteProperty(catalog.maps[0].image, "overview");
+
+    expect(() => validateCatalog(catalog)).toThrow(/overview/);
+  });
+
   it("rejects a schema-valid duplicate map name", () => {
     const catalog = catalogFixture();
     catalog.maps.push({ ...catalog.maps[1], name: "Alpha", id: "MAP_ALPHA_COPY" });
@@ -89,10 +102,11 @@ describe("validateCatalog", () => {
     expect(detailsFor(catalog)).toContain('maps contains duplicate map name "Alpha".');
   });
 
-  it("reports duplicate identifiers, region membership, and native image dimensions", () => {
+  it("reports duplicate identifiers, region membership, and image dimensions", () => {
     const catalog = catalogFixture();
     catalog.maps[1].id = "MAP_ALPHA";
     catalog.maps[0].image.widthPixels = 63;
+    catalog.maps[0].image.overview.heightPixels = 11;
     catalog.regions.push({ ...catalog.regions[0] });
     catalog.regions[0].mapCount = 1;
     catalog.regions[0].maps = ["Alpha"];
@@ -101,6 +115,8 @@ describe("validateCatalog", () => {
     expect(details).toContain('maps contains duplicate map id "MAP_ALPHA".');
     expect(details).toContain('regions contains duplicate region id "test".');
     expect(details).toContain('maps[0].image.widthPixels is 63, expected 64 from layout and pixelsPerMetatile.');
+    expect(details).toContain('maps[0].image.overview.widthPixels is 16, expected 15.75 as one-quarter of native image width.');
+    expect(details).toContain('maps[0].image.overview.heightPixels is 11, expected 12 as one-quarter of native image height.');
     expect(details).toContain('regions[0].maps is missing map "Beta" declared for this region.');
   });
 

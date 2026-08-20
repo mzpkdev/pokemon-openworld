@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
+from contextlib import redirect_stderr
+from dataclasses import replace
+import hashlib
+from io import StringIO
 import json
 from pathlib import Path
 import struct
@@ -11,16 +15,25 @@ from unittest.mock import patch
 
 from tools.map_render.catalog import (
     MapRenderError,
+    asset_output_paths,
     default_schema_path,
     discover,
     load_config,
     map_entry,
 )
-from tools.map_render.cli import main
-from tools.map_render.renderer import render
+from tools.map_render.cli import _prepare_output_directory, _promote_staging, main
+from tools.map_render.renderer import downscale_rgb_nearest, render
 
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def directory_contents(root: Path) -> dict[str, bytes]:
+    return {
+        str(path.relative_to(root)): path.read_bytes()
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
 
 
 class DiscoveryTests(unittest.TestCase):
@@ -72,7 +85,7 @@ class DiscoveryTests(unittest.TestCase):
         target = next(
             target for target in self.discovery.targets if target.name == "NewBarkTown"
         )
-        entry = map_entry(target, self.discovery.map_names_by_id, "a" * 64)
+        entry = map_entry(target, self.discovery.map_names_by_id, "a" * 64, "b" * 64)
         east = next(
             connection
             for connection in entry["connections"]
@@ -82,6 +95,15 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(east["offsetMetatiles"], -11)
         self.assertEqual(entry["layout"]["widthMetatiles"], 30)
         self.assertEqual(entry["image"]["widthPixels"], 480)
+        self.assertEqual(
+            entry["image"]["overview"],
+            {
+                "path": "overviews/johto/towns/NewBarkTown.png",
+                "sha256": "b" * 64,
+                "widthPixels": 120,
+                "heightPixels": 156,
+            },
+        )
         self.assertTrue(entry["warps"])
         self.assertEqual(entry["warps"][0]["warpId"], "0")
 
@@ -93,7 +115,7 @@ class DiscoveryTests(unittest.TestCase):
         self.assertFalse(warp_schema["additionalProperties"])
         allowed_directions = set(connection_schema["properties"]["direction"]["enum"])
         entries = [
-            map_entry(target, self.discovery.map_names_by_id, "a" * 64)
+            map_entry(target, self.discovery.map_names_by_id, "a" * 64, "b" * 64)
             for target in self.discovery.targets
         ]
         connections = [
@@ -122,28 +144,100 @@ class DiscoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(MapRenderError, "unassigned exterior map"):
             discover(ROOT, config)
 
+    def test_asset_output_paths_are_distinct_for_dotted_names_and_collisions(
+        self,
+    ) -> None:
+        source = self.discovery.targets[0]
+        plain = replace(source, name="Route")
+        dotted = replace(source, name="Route.overview")
+        paths = asset_output_paths((plain, dotted))
+
+        self.assertEqual(
+            paths,
+            (
+                f"maps/{source.region_id}/{source.category}/Route.png",
+                f"overviews/{source.region_id}/{source.category}/Route.png",
+                f"maps/{source.region_id}/{source.category}/Route.overview.png",
+                f"overviews/{source.region_id}/{source.category}/Route.overview.png",
+            ),
+        )
+        self.assertEqual(len(asset_output_paths(self.discovery.targets)), 430)
+        with self.assertRaisesRegex(MapRenderError, "duplicate catalog asset path"):
+            asset_output_paths((plain, replace(plain)))
+
 
 class RendererTests(unittest.TestCase):
-    def test_render_is_deterministic_and_native_resolution(self) -> None:
+    def test_downscale_rgb_nearest_samples_the_top_left_pixel_of_each_block(
+        self,
+    ) -> None:
+        width, height = 8, 8
+        pixels = bytearray(
+            component
+            for y in range(height)
+            for x in range(width)
+            for component in (x, y, (x + y) % 256)
+        )
+
+        overview_width, overview_height, overview_pixels = downscale_rgb_nearest(
+            width, height, pixels
+        )
+
+        self.assertEqual((overview_width, overview_height), (2, 2))
+        self.assertEqual(
+            list(overview_pixels),
+            [0, 0, 0, 4, 0, 4, 0, 4, 4, 4, 4, 8],
+        )
+
+    def test_render_is_deterministic_at_native_and_overview_resolutions(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            first = Path(temporary) / "first.png"
-            second = Path(temporary) / "second.png"
-            render(ROOT, "PalletTown_Frlg", first, announce=False)
-            render(ROOT, "PalletTown_Frlg", second, announce=False)
-            self.assertEqual(first.read_bytes(), second.read_bytes())
-            width, height = struct.unpack(">II", first.read_bytes()[16:24])
-            self.assertEqual((width, height), (384, 320))
+            first_native = Path(temporary) / "first.png"
+            first_overview = Path(temporary) / "first.overview.png"
+            second_native = Path(temporary) / "second.png"
+            second_overview = Path(temporary) / "second.overview.png"
+            render(
+                ROOT,
+                "PalletTown_Frlg",
+                first_native,
+                overview_output=first_overview,
+                announce=False,
+            )
+            render(
+                ROOT,
+                "PalletTown_Frlg",
+                second_native,
+                overview_output=second_overview,
+                announce=False,
+            )
+            self.assertEqual(first_native.read_bytes(), second_native.read_bytes())
+            self.assertEqual(first_overview.read_bytes(), second_overview.read_bytes())
+            self.assertEqual(
+                hashlib.sha256(first_native.read_bytes()).hexdigest(),
+                "0942a3bc5e682d00af3444d2886f9947c8e0aa4bfb327fdc3e20decd6a8eacfc",
+            )
+            self.assertEqual(
+                hashlib.sha256(first_overview.read_bytes()).hexdigest(),
+                "a59fac3e7dd3f18f546b946aad154e03e42eaac99f2a7ad5d7b9be5d4c4cf572",
+            )
+            native_dimensions = struct.unpack(">II", first_native.read_bytes()[16:24])
+            overview_dimensions = struct.unpack(
+                ">II", first_overview.read_bytes()[16:24]
+            )
+            self.assertEqual(native_dimensions, (384, 320))
+            self.assertEqual(overview_dimensions, (96, 80))
 
 
 class CliTests(unittest.TestCase):
     def test_render_writes_selected_region_catalog(self) -> None:
         events = []
 
-        def fake_render(_root, name, output, *, announce):
+        def fake_render(_root, name, output, *, overview_output, announce):
             self.assertEqual(events, ["source-state"])
             self.assertFalse(announce)
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_bytes(name.encode())
+            output.write_bytes(f"native:{name}".encode())
+            self.assertIsNotNone(overview_output)
+            overview_output.parent.mkdir(parents=True, exist_ok=True)
+            overview_output.write_bytes(f"overview:{name}".encode())
 
         def fake_source_state(_repo, _revision):
             events.append("source-state")
@@ -151,6 +245,8 @@ class CliTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "output"
+            output.mkdir()
+            (output / "stale-file.txt").write_text("obsolete")
             with (
                 patch("tools.map_render.cli.render", side_effect=fake_render),
                 patch(
@@ -173,16 +269,207 @@ class CliTests(unittest.TestCase):
             catalog = json.loads((output / "catalog.json").read_text())
             schema = json.loads((output / "catalog.schema.json").read_text())
             self.assertEqual(catalog["$schema"], "catalog.schema.json")
-            self.assertEqual(schema["properties"]["schemaVersion"]["const"], 1)
+            self.assertEqual(schema["properties"]["schemaVersion"]["const"], 2)
+            self.assertEqual(catalog["schemaVersion"], 2)
             self.assertEqual(catalog["source"]["revision"], "fixture-revision")
             self.assertEqual(catalog["regions"][0]["mapCount"], 43)
             self.assertEqual(len(catalog["maps"]), 43)
+            self.assertFalse((output / "stale-file.txt").exists())
             self.assertTrue(
                 all(
                     (output / entry["image"]["path"]).is_file()
                     for entry in catalog["maps"]
                 )
             )
+            self.assertTrue(
+                all(
+                    (output / entry["image"]["overview"]["path"]).is_file()
+                    for entry in catalog["maps"]
+                )
+            )
+            first_entry = catalog["maps"][0]
+            first_image = first_entry["image"]
+            self.assertEqual(
+                first_image["overview"]["path"],
+                "overviews/"
+                f"{first_entry['region']}/{first_entry['category']}/{first_entry['name']}.png",
+            )
+            self.assertEqual(
+                first_image["overview"]["widthPixels"],
+                first_image["widthPixels"] // 4,
+            )
+            self.assertEqual(
+                first_image["overview"]["heightPixels"],
+                first_image["heightPixels"] // 4,
+            )
+            self.assertEqual(
+                first_image["overview"]["sha256"],
+                hashlib.sha256(
+                    (output / first_image["overview"]["path"]).read_bytes()
+                ).hexdigest(),
+            )
+
+    def test_render_failure_leaves_previous_output_unchanged(self) -> None:
+        calls: list[str] = []
+
+        def failing_render(_root, name, output, *, overview_output, announce):
+            self.assertFalse(announce)
+            calls.append(name)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(f"native:{name}".encode())
+            overview_output.parent.mkdir(parents=True, exist_ok=True)
+            overview_output.write_bytes(f"overview:{name}".encode())
+            if len(calls) == 2:
+                raise OSError("injected render failure")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "output"
+            (output / "maps" / "old").mkdir(parents=True)
+            (output / "maps" / "old" / "previous.png").write_bytes(b"previous")
+            (output / "catalog.json").write_bytes(b'{"previous": true}\n')
+            previous = directory_contents(output)
+            with (
+                patch("tools.map_render.cli.render", side_effect=failing_render),
+                patch(
+                    "tools.map_render.cli._source_state",
+                    return_value=("fixture-revision", False),
+                ),
+                redirect_stderr(StringIO()),
+                self.assertRaises(SystemExit) as failure,
+            ):
+                main(
+                    [
+                        "render",
+                        "--repo",
+                        str(ROOT),
+                        "--output",
+                        str(output),
+                        "--region",
+                        "kanto",
+                    ]
+                )
+
+            self.assertEqual(failure.exception.code, 2)
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(directory_contents(output), previous)
+            self.assertFalse(list(Path(temporary).glob(".output.staging-*")))
+
+    def test_render_preflights_collisions_before_touching_output(self) -> None:
+        discovery = discover(ROOT, load_config())
+        first = discovery.targets[0]
+        collision = replace(discovery, targets=(first, replace(first)))
+
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "output"
+            output.mkdir()
+            (output / "catalog.json").write_bytes(b"previous catalog")
+            previous = directory_contents(output)
+            with (
+                patch("tools.map_render.cli.discover", return_value=collision),
+                patch(
+                    "tools.map_render.cli._source_state",
+                    return_value=("fixture-revision", False),
+                ),
+                patch("tools.map_render.cli.render") as mocked_render,
+                redirect_stderr(StringIO()),
+                self.assertRaises(SystemExit) as failure,
+            ):
+                main(
+                    [
+                        "render",
+                        "--repo",
+                        str(ROOT),
+                        "--output",
+                        str(output),
+                        "--region",
+                        first.region_id,
+                    ]
+                )
+
+            self.assertEqual(failure.exception.code, 2)
+            mocked_render.assert_not_called()
+            self.assertEqual(directory_contents(output), previous)
+            self.assertFalse(list(Path(temporary).glob(".output.staging-*")))
+
+    def test_render_rejects_file_and_symlink_output_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            file_output = root / "output-file"
+            file_output.write_bytes(b"not a directory")
+            symlink_target = root / "existing-output"
+            symlink_target.mkdir()
+            (symlink_target / "keep.txt").write_text("keep")
+            symlink_output = root / "output-link"
+            symlink_output.symlink_to(symlink_target, target_is_directory=True)
+
+            for output in (file_output, symlink_output):
+                with (
+                    patch(
+                        "tools.map_render.cli._source_state",
+                        return_value=("fixture-revision", False),
+                    ),
+                    patch("tools.map_render.cli.render") as mocked_render,
+                    redirect_stderr(StringIO()),
+                    self.assertRaises(SystemExit) as failure,
+                ):
+                    main(
+                        [
+                            "render",
+                            "--repo",
+                            str(ROOT),
+                            "--output",
+                            str(output),
+                            "--region",
+                            "kanto",
+                        ]
+                    )
+                self.assertEqual(failure.exception.code, 2)
+                mocked_render.assert_not_called()
+
+            self.assertEqual(file_output.read_bytes(), b"not a directory")
+            self.assertEqual((symlink_target / "keep.txt").read_text(), "keep")
+
+    def test_render_restricts_in_repository_outputs_to_build_descendants(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repo = root / "repo"
+            build = repo / "build"
+            build.mkdir(parents=True)
+            rejected = (
+                root,
+                repo,
+                repo / ".git" / "data" / "maps",
+                repo / "data" / "maps",
+                build,
+            )
+
+            for output in rejected:
+                with self.assertRaises(MapRenderError):
+                    _prepare_output_directory(output, repo)
+
+            allowed = build / "map-catalog"
+            outside = root / "explicit-output" / "map-catalog"
+            self.assertEqual(_prepare_output_directory(allowed, repo), allowed)
+            self.assertEqual(_prepare_output_directory(outside, repo), outside)
+            self.assertFalse((repo / ".git").exists())
+            self.assertFalse((repo / "data").exists())
+
+    def test_promotion_keeps_the_new_catalog_when_backup_cleanup_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            output = parent / "output"
+            output.mkdir()
+            (output / "old.txt").write_text("old")
+            staging = parent / ".output.staging-fixture"
+            staging.mkdir()
+            (staging / "new.txt").write_text("new")
+            backup = parent / ".output.previous-fixture"
+
+            with patch("tools.map_render.cli.shutil.rmtree", side_effect=OSError):
+                _promote_staging(staging, output)
+
+            self.assertEqual((output / "new.txt").read_text(), "new")
+            self.assertTrue((backup / "old.txt").is_file())
 
 
 if __name__ == "__main__":

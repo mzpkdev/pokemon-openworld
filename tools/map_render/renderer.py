@@ -8,6 +8,9 @@ import zlib
 from pathlib import Path
 
 
+OVERVIEW_SCALE = 4
+
+
 def read_define(path: Path, name: str) -> int:
     match = re.search(
         rf"^\s*#define\s+{re.escape(name)}\s+(\d+)\s*$",
@@ -124,6 +127,39 @@ def write_rgb_png(path: Path, width: int, height: int, pixels: bytearray) -> Non
     )
 
 
+def downscale_rgb_nearest(
+    width: int,
+    height: int,
+    pixels: bytearray,
+    *,
+    scale: int = OVERVIEW_SCALE,
+) -> tuple[int, int, bytearray]:
+    """Reduce an RGB image by an integral scale using each block's top-left pixel."""
+
+    if scale < 1:
+        raise ValueError("overview scale must be at least one")
+    if width < 1 or height < 1:
+        raise ValueError("image dimensions must be positive")
+    if width % scale or height % scale:
+        raise ValueError(
+            f"image dimensions {width}x{height} are not divisible by overview scale {scale}"
+        )
+    if len(pixels) != width * height * 3:
+        raise ValueError("RGB buffer length does not match image dimensions")
+
+    overview_width = width // scale
+    overview_height = height // scale
+    overview_pixels = bytearray(overview_width * overview_height * 3)
+    for overview_y in range(overview_height):
+        for overview_x in range(overview_width):
+            source_offset = (overview_y * scale * width + overview_x * scale) * 3
+            overview_offset = (overview_y * overview_width + overview_x) * 3
+            overview_pixels[overview_offset : overview_offset + 3] = pixels[
+                source_offset : source_offset + 3
+            ]
+    return overview_width, overview_height, overview_pixels
+
+
 def resolve_tileset_dir(root: Path, symbol: str) -> Path:
     graphics = (root / "src/data/tilesets/graphics.h").read_text()
     stem = symbol.removeprefix("gTileset_")
@@ -217,7 +253,14 @@ def split_tiles(
     ]
 
 
-def render(root: Path, map_name: str, output: Path, *, announce: bool = True) -> None:
+def render(
+    root: Path,
+    map_name: str,
+    output: Path,
+    *,
+    overview_output: Path | None = None,
+    announce: bool = True,
+) -> None:
     layouts = json.loads((root / "data/layouts/layouts.json").read_text())["layouts"]
     map_data = json.loads((root / f"data/maps/{map_name}/map.json").read_text())
     layout = next(item for item in layouts if item["id"] == map_data["layout"])
@@ -325,6 +368,12 @@ def render(root: Path, map_name: str, output: Path, *, announce: bool = True) ->
 
     output.parent.mkdir(parents=True, exist_ok=True)
     write_rgb_png(output, output_width, output_height, output_pixels)
+    if overview_output:
+        overview_width, overview_height, overview_pixels = downscale_rgb_nearest(
+            output_width, output_height, output_pixels
+        )
+        overview_output.parent.mkdir(parents=True, exist_ok=True)
+        write_rgb_png(overview_output, overview_width, overview_height, overview_pixels)
     if announce:
         print(f"{map_name}: {width}x{height} metatiles -> {output}")
 

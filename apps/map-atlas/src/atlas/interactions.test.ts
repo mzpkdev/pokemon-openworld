@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogMap } from "./catalog";
-import { EXIT_DETAIL_RESOLUTION_PIXELS, focusExtent, recordAtlasClickHit, searchMaps, shouldShowExitMarkers, warpCoordinate, type AtlasClickHit } from "./interactions";
+import {
+  EXIT_DETAIL_RESOLUTION_PIXELS,
+  focusExtent,
+  mapImageAssetKindForResolution,
+  mapImageAssetPath,
+  nextMapImageAssetKind,
+  recordAtlasClickHit,
+  searchMaps,
+  shouldShowExitMarkers,
+  warpCoordinate,
+  type AtlasClickHit,
+} from "./interactions";
 
 function map(name: string, mapSection: string | null): CatalogMap {
   return {
@@ -12,7 +23,18 @@ function map(name: string, mapSection: string | null): CatalogMap {
     sourceRegion: null,
     mapType: "MAP_TYPE_ROUTE",
     mapSection,
-    image: { path: `${name}.png`, sha256: "0".repeat(64), widthPixels: 64, heightPixels: 48 },
+    image: {
+      path: `${name}.png`,
+      sha256: "0".repeat(64),
+      widthPixels: 64,
+      heightPixels: 48,
+      overview: {
+        path: `overviews/${name}.png`,
+        sha256: "1".repeat(64),
+        widthPixels: 16,
+        heightPixels: 12,
+      },
+    },
     layout: { id: `LAYOUT_${name.toUpperCase()}`, format: "test", widthMetatiles: 4, heightMetatiles: 3, primaryTileset: "primary", secondaryTileset: "secondary" },
     world: { layer: "surface", defaultVisible: true, variantGroup: null, variant: null },
     presentation: { music: null, weather: null, showMapName: null, requiresFlash: null },
@@ -42,6 +64,19 @@ describe("atlas interactions", () => {
     expect(shouldShowExitMarkers(false, EXIT_DETAIL_RESOLUTION_PIXELS + 0.01)).toBe(false);
     expect(shouldShowExitMarkers(false, EXIT_DETAIL_RESOLUTION_PIXELS)).toBe(true);
     expect(shouldShowExitMarkers(true, EXIT_DETAIL_RESOLUTION_PIXELS * 8)).toBe(true);
+  });
+
+  it("keeps overview sources until detail resolution, then swaps only on boundary crossings", () => {
+    const candidate = map("Route101", "MAPSEC_OLDALE_TOWN");
+
+    expect(mapImageAssetKindForResolution(EXIT_DETAIL_RESOLUTION_PIXELS + 0.01)).toBe("overview");
+    expect(mapImageAssetKindForResolution(EXIT_DETAIL_RESOLUTION_PIXELS)).toBe("native");
+    expect(mapImageAssetPath(candidate, "overview")).toBe("overviews/Route101.png");
+    expect(mapImageAssetPath(candidate, "native")).toBe("Route101.png");
+    expect(nextMapImageAssetKind("overview", EXIT_DETAIL_RESOLUTION_PIXELS + 1)).toBeNull();
+    expect(nextMapImageAssetKind("overview", EXIT_DETAIL_RESOLUTION_PIXELS)).toBe("native");
+    expect(nextMapImageAssetKind("native", EXIT_DETAIL_RESOLUTION_PIXELS - 1)).toBeNull();
+    expect(nextMapImageAssetKind("native", EXIT_DETAIL_RESOLUTION_PIXELS + 1)).toBe("overview");
   });
 
   it("focuses the exact rendered map extent", () => {

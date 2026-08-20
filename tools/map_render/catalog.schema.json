@@ -14,7 +14,7 @@
   ],
   "properties": {
     "$schema": { "const": "catalog.schema.json" },
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "format": { "const": "pokemon-openworld-exterior-map-catalog" },
     "pixelsPerMetatile": { "type": "integer", "minimum": 1 },
     "source": {
@@ -88,6 +88,17 @@
       },
       "additionalProperties": false
     },
+    "imageAsset": {
+      "type": "object",
+      "required": ["path", "sha256", "widthPixels", "heightPixels"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "widthPixels": { "type": "integer", "minimum": 1 },
+        "heightPixels": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
     "map": {
       "type": "object",
       "required": [
@@ -117,12 +128,13 @@
         "mapSection": { "$ref": "#/$defs/nullableString" },
         "image": {
           "type": "object",
-          "required": ["path", "sha256", "widthPixels", "heightPixels"],
+          "required": ["path", "sha256", "widthPixels", "heightPixels", "overview"],
           "properties": {
             "path": { "type": "string" },
             "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
             "widthPixels": { "type": "integer", "minimum": 1 },
-            "heightPixels": { "type": "integer", "minimum": 1 }
+            "heightPixels": { "type": "integer", "minimum": 1 },
+            "overview": { "$ref": "#/$defs/imageAsset" }
           },
           "additionalProperties": false
         },

@@ -15,7 +15,17 @@ import Style from "ol/style/Style";
 import View from "ol/View";
 import "ol/ol.css";
 import type { CatalogMap, MapCatalog } from "./catalog";
-import { focusExtent, recordAtlasClickHit, shouldShowExitMarkers, type AtlasClickHit, type WarpSelection, warpCoordinate } from "./interactions";
+import {
+  focusExtent,
+  mapImageAssetPath,
+  nextMapImageAssetKind,
+  recordAtlasClickHit,
+  shouldShowExitMarkers,
+  type AtlasClickHit,
+  type MapImageAssetKind,
+  type WarpSelection,
+  warpCoordinate,
+} from "./interactions";
 import { atlasExtent, solveGeography, toOpenLayersExtent, visibleSurfaceMaps } from "./geography";
 import { mapImageUrl, type AtlasViewState } from "./urls";
 
@@ -151,17 +161,28 @@ export function MapViewport({
       units: "pixels",
       extent,
     });
-    const imageLayers = visibleMaps.map((catalogMap) => {
-      const placement = geography.placements[catalogMap.name];
-      return new ImageLayer({
-        source: new ImageStatic({
-          url: mapImageUrl(catalogMap.image.path),
-          imageExtent: toOpenLayersExtent(placement, catalog.pixelsPerMetatile),
-          projection,
-          interpolate: false,
-        }),
-      });
+    const createImageSource = (
+      catalogMap: CatalogMap,
+      imageExtent: ReturnType<typeof toOpenLayersExtent>,
+      kind: MapImageAssetKind,
+    ) => new ImageStatic({
+      url: mapImageUrl(mapImageAssetPath(catalogMap, kind)),
+      imageExtent,
+      projection,
+      interpolate: false,
     });
+    const imageLayerRecords = visibleMaps.map((catalogMap) => {
+      const placement = geography.placements[catalogMap.name];
+      const imageExtent = toOpenLayersExtent(placement, catalog.pixelsPerMetatile);
+      return {
+        catalogMap,
+        imageExtent,
+        layer: new ImageLayer({
+          source: createImageSource(catalogMap, imageExtent, "overview"),
+        }),
+      };
+    });
+    const imageLayers = imageLayerRecords.map((record) => record.layer);
     const mapInteractionSource = new VectorSource();
     const exitSource = new VectorSource();
     for (const catalogMap of visibleMaps) {
@@ -209,7 +230,24 @@ export function MapViewport({
       zoom: 0,
     });
     const map = new Map({ target: host.current, controls: [], layers: [...imageLayers, mapInteractionLayer, exitLayer], view });
+    let imageAssetKind: MapImageAssetKind = "overview";
     const updateExitVisibility = () => exitLayer.setVisible(shouldShowExitMarkers(showExitsRef.current, view.getResolution()));
+    const updateImageSources = () => {
+      const next = nextMapImageAssetKind(imageAssetKind, view.getResolution());
+      if (!next) {
+        return;
+      }
+      imageAssetKind = next;
+      for (const record of imageLayerRecords) {
+        record.layer.setSource(
+          createImageSource(record.catalogMap, record.imageExtent, imageAssetKind),
+        );
+      }
+    };
+    const handleResolutionChange = () => {
+      updateImageSources();
+      updateExitVisibility();
+    };
     const reportCamera = () => {
       updateExitVisibility();
       const center = view.getCenter();
@@ -268,13 +306,14 @@ export function MapViewport({
     };
 
     mapRef.current = { map, view, mapInteractionLayer, exitLayer, updateExitVisibility };
+    view.on("change:resolution", handleResolutionChange);
     view.fit(extent, { padding: [40, 40, 40, 40], maxZoom: 3 });
     if (initialViewRef.current) {
       view.setCenter([...initialViewRef.current.center]);
       view.setZoom(initialViewRef.current.zoom);
       initialViewAppliedRef.current?.();
     }
-    updateExitVisibility();
+    handleResolutionChange();
     map.on("moveend", reportCamera);
     map.on("pointermove", updateHover);
     map.on("singleclick", handleClick);
@@ -284,6 +323,7 @@ export function MapViewport({
       map.un("moveend", reportCamera);
       map.un("pointermove", updateHover);
       map.un("singleclick", handleClick);
+      view.un("change:resolution", handleResolutionChange);
       map.setTarget(undefined);
       mapRef.current = null;
     };

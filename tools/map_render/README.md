@@ -35,14 +35,19 @@ checked-out `HEAD`.
 
 ## Output
 
-The command writes individual images under `maps/<region>/<category>/`, plus
-`catalog.json` and its JSON Schema. The catalog is the public contract. Folder names
-alone do not define map identity or topology.
+The command writes native images under `maps/<region>/<category>/`, overview images
+under `overviews/<region>/<category>/`, plus `catalog.json` and its JSON Schema. The
+catalog is the public contract. Folder names alone do not define map identity or
+topology. Each completed render replaces the output directory as one managed product:
+it removes stale files on success, and a render failure leaves the previous completed
+directory untouched. Output targets must be real directories, not symlinks or files.
 
 Each map record contains:
 
 - Its source name, map ID, region, category, map type, map section, and map group
-- Its image path, SHA-256 digest, and pixel dimensions
+- Its native image path, SHA-256 digest, and pixel dimensions, plus a required
+  deterministic nearest-neighbor overview at one-quarter resolution in
+  `image.overview` (stored under the distinct `overviews/` namespace)
 - Its layout ID, format, metatile dimensions, and tilesets
 - Its surface, underwater, or generated layer, default visibility, and variant identity
 - Music, weather, map-name behavior, and Flash requirements

@@ -7,6 +7,9 @@ describe("atlasUrl", () => {
     expect(mapImageUrl("maps/hoenn/routes/Route101.png", "/tools/map-atlas/")).toBe(
       "/tools/map-atlas/map-catalog/maps/hoenn/routes/Route101.png",
     );
+    expect(mapImageUrl("overviews/hoenn/routes/Route101.png", "/tools/map-atlas/")).toBe(
+      "/tools/map-atlas/map-catalog/overviews/hoenn/routes/Route101.png",
+    );
   });
 
   it("also supports Vite's relative build base", () => {

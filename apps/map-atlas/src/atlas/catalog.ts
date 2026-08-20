@@ -129,6 +129,14 @@ export function semanticCatalogErrors(catalog: MapCatalog): readonly string[] {
     if (map.image.heightPixels !== expectedHeight) {
       errors.push(`maps[${mapIndex}].image.heightPixels is ${map.image.heightPixels}, expected ${expectedHeight} from layout and pixelsPerMetatile.`);
     }
+    const expectedOverviewWidth = map.image.widthPixels / 4;
+    const expectedOverviewHeight = map.image.heightPixels / 4;
+    if (map.image.overview.widthPixels !== expectedOverviewWidth) {
+      errors.push(`maps[${mapIndex}].image.overview.widthPixels is ${map.image.overview.widthPixels}, expected ${expectedOverviewWidth} as one-quarter of native image width.`);
+    }
+    if (map.image.overview.heightPixels !== expectedOverviewHeight) {
+      errors.push(`maps[${mapIndex}].image.overview.heightPixels is ${map.image.overview.heightPixels}, expected ${expectedOverviewHeight} as one-quarter of native image height.`);
+    }
   }
 
   for (const [regionIndex, region] of catalog.regions.entries()) {
