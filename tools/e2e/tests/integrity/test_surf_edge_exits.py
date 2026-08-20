@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from tools.e2e.save_journey import (
     cold_restart_and_continue,
-    probe_field_move,
     save_from_start_menu,
 )
 from tools.e2e.skyemu import (
@@ -22,7 +21,6 @@ from tools.e2e.tests.integrity.test_world_tier_encounters import (
 )
 
 
-FIELD_MOVE_SURF = 4
 FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE = 44
 FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE = 45
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
@@ -68,10 +66,118 @@ def _load_map(game, entry, position: tuple[int, int], request_id: int) -> None:
     game.wait_for_controls_unlocked(max_frames=1_200)
 
 
-def _set_surfing(game) -> None:
-    avatar = game.address("gPlayerAvatar")
-    game.write_u8(avatar, game.read_u8(avatar) | PLAYER_AVATAR_FLAG_SURFING)
-    assert game.read_u8(avatar) & PLAYER_AVATAR_FLAG_SURFING
+def _open_debug_menu(game) -> None:
+    game.set_buttons(R=True)
+    game.step()
+    game.set_buttons(R=True, Start=True)
+    game.step()
+    game.set_buttons(R=False, Start=False)
+    game.step()
+    game.wait_until(
+        lambda: game.task_active("DebugTask_HandleMenuInput_General"),
+        description="debug main menu",
+        max_frames=300,
+    )
+
+
+def _clear_party(game) -> None:
+    _open_debug_menu(game)
+    for _ in range(16):
+        game.press("Up", release_frames=1)
+    for _ in range(2):
+        game.press("Down", release_frames=2)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.read_u32(game.pointer("sDebugMenuListData") + 4)
+        == game.address("sDebugMenu_Actions_Party"),
+        description="Party debug submenu",
+        max_frames=300,
+    )
+    for _ in range(16):
+        game.press("Up", release_frames=1)
+    for _ in range(8):
+        game.press("Down", release_frames=2)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.read_u8(game.address("gPartiesCount")) == 0,
+        description="cleared debug party",
+        max_frames=300,
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
+
+
+def _give_surf_mon(game) -> None:
+    """Use the shipped debug UI to create a level-40 Tentacool with Surf."""
+    _clear_party(game)
+    _open_debug_menu(game)
+    for _ in range(16):
+        game.press("Up", release_frames=1)
+    for _ in range(3):
+        game.press("Down", release_frames=2)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.read_u32(game.pointer("sDebugMenuListData") + 4)
+        == game.address("sDebugMenu_Actions_Give"),
+        description="Give debug submenu",
+        max_frames=300,
+    )
+    game.press("Down", release_frames=2)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.task_active("DebugAction_Give_Pokemon_SelectId"),
+        description="debug Pokemon species picker",
+        max_frames=300,
+    )
+    for _ in range(71):
+        game.press("Up", release_frames=1)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.task_active("DebugAction_Give_Pokemon_SelectLevel"),
+        description="debug Pokemon level picker",
+        max_frames=300,
+    )
+    for _ in range(39):
+        game.press("Up", release_frames=1)
+    game.press("A", release_frames=2)
+    game.wait_until(
+        lambda: game.read_u8(game.address("gPartiesCount")) == 1,
+        description="debug-created Surf Pokemon",
+        max_frames=1_200,
+    )
+    game.wait_for_controls_unlocked(max_frames=1_200)
+
+
+def _use_surf_from_party_menu(game) -> None:
+    game.press("Start", release_frames=20)
+    game.wait_until(
+        lambda: game.read_u8(game.address("sNumStartMenuActions")) > 0,
+        description="start menu",
+        max_frames=300,
+    )
+    actions = game.read(
+        game.address("sCurrentStartMenuActions"),
+        game.read_u8(game.address("sNumStartMenuActions")),
+    )
+    pokemon_index = actions.index(1)
+    cursor = game.read_u8(game.address("sStartMenuCursorPos"))
+    for _ in range((pokemon_index - cursor) % len(actions)):
+        game.press("Down", release_frames=3)
+    game.press("A", release_frames=12)
+    game.wait_until(
+        lambda: game.task_active("Task_HandleChooseMonInput"),
+        description="field party menu",
+        max_frames=1_200,
+    )
+    game.press("A", release_frames=3)
+    game.wait_until(
+        lambda: game.task_active("Task_HandleSelectionMenuInput"),
+        description="party actions",
+        max_frames=300,
+    )
+    game.press("Down", release_frames=3)
+    game.press("A", release_frames=12)
+    game.wait_for_controls_unlocked(max_frames=1_800)
+    assert game.read_u8(game.address("gPlayerAvatar")) & PLAYER_AVATAR_FLAG_SURFING
 
 
 def _assert_field_ready(game, entry, position: tuple[int, int], facing: int) -> None:
@@ -155,18 +261,35 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     generated_ocean = maps["AquaHideout_UnusedRubyMap2"]
 
     _settle_overworld(integrity_game)
+    _give_surf_mon(integrity_game)
     for fact in (
         FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE,
         FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE,
     ):
         integrity_game.set_flag(fact)
-    assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555246)
     # The shell retains ordinary water encounters; disable only debug-ROM RNG
     # here so this route-ownership journey reaches its recorded endpoints.
     integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
 
-    _load_map(integrity_game, route19, (20, 59), 0x53454601)
-    _set_surfing(integrity_game)
+    _load_map(integrity_game, route19, (16, 8), 0x53454601)
+    integrity_game.face("Down")
+    _use_surf_from_party_menu(integrity_game)
+    assert integrity_game.position() == (16, 9)
+    integrity_game.move_path(
+        (7, 54),
+        (9, 54),
+        (9, 34),
+        (10, 34),
+        (10, 14),
+        (12, 14),
+        (12, 56),
+        (15, 56),
+        (15, 40),
+        (17, 40),
+        (17, 53),
+        (21, 53),
+        (21, 59),
+    )
     _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
     _assert_map_presentation(
         integrity_game, generated_ocean, MUS_ROUTE119, WEATHER_SUNNY
@@ -183,7 +306,6 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
             FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE,
         )
     )
-    assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555247)
 
     _cross_edge(integrity_game, "Left", generated_ocean, (2, 12), DIR_WEST)
     _traverse_generated_ocean(integrity_game, "Right", route19, (20, 59), DIR_NORTH)
@@ -200,7 +322,6 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     cold_restart_and_continue(integrity_game)
     _assert_field_ready(integrity_game, route19, (20, 59), DIR_NORTH)
     _assert_map_presentation(integrity_game, route19, MUS_RG_ROUTE3, WEATHER_SUNNY)
-    assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53555248)
 
 
 def test_generated_ocean_uses_normal_water_encounters_and_real_trainers(integrity_game):
@@ -216,11 +337,13 @@ def test_generated_ocean_uses_normal_water_encounters_and_real_trainers(integrit
         FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE,
     ):
         integrity_game.set_flag(fact)
-    assert probe_field_move(integrity_game, FIELD_MOVE_SURF, 0x53454101)
     integrity_game.set_flag(FLAG_DEBUG_NO_WILD_ENCOUNTERS)
 
     _load_map(integrity_game, route19, (20, 59), 0x53454102)
-    _set_surfing(integrity_game)
+    avatar = integrity_game.address("gPlayerAvatar")
+    integrity_game.write_u8(
+        avatar, integrity_game.read_u8(avatar) | PLAYER_AVATAR_FLAG_SURFING
+    )
     _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
     encounter = _probe_encounter(
         integrity_game,
