@@ -63,7 +63,7 @@ jobs:
   map-atlas:
     name: Map Atlas
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -88,10 +88,25 @@ jobs:
       - name: Test Map Atlas
         run: make map-atlas-test
 
-      - name: Build Map Atlas
-        run: make map-atlas-build
+      - name: Install Chromium for Map Atlas browser tests
+        working-directory: apps/map-atlas
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Build and browser-test Map Atlas
+        run: make map-atlas-browser-test
+
+      - name: Upload Map Atlas browser failure evidence
+        if: failure()
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: map-atlas-browser-failures
+          path: build/map-atlas/playwright
+          if-no-files-found: ignore
+          retention-days: 3
 
       - name: Upload Map Atlas site
+        if: always()
         # actions/upload-artifact v7
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
