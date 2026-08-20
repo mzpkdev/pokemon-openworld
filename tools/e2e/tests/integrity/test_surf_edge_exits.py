@@ -88,8 +88,10 @@ def _clear_party(game) -> None:
         game.press("Down", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
-        lambda: game.read_u32(game.pointer("sDebugMenuListData") + 4)
-        == game.address("sDebugMenu_Actions_Party"),
+        lambda: (
+            game.read_u32(game.pointer("sDebugMenuListData") + 4)
+            == game.address("sDebugMenu_Actions_Party")
+        ),
         description="Party debug submenu",
         max_frames=300,
     )
@@ -116,8 +118,10 @@ def _give_surf_mon(game) -> None:
         game.press("Down", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
-        lambda: game.read_u32(game.pointer("sDebugMenuListData") + 4)
-        == game.address("sDebugMenu_Actions_Give"),
+        lambda: (
+            game.read_u32(game.pointer("sDebugMenuListData") + 4)
+            == game.address("sDebugMenu_Actions_Give")
+        ),
         description="Give debug submenu",
         max_frames=300,
     )
@@ -181,8 +185,9 @@ def _use_surf_from_party_menu(game) -> None:
     game.press("Down", release_frames=3)
     game.press("A", release_frames=12)
     game.advance_until(
-        lambda: game.read_u8(game.address("gPlayerAvatar"))
-        & PLAYER_AVATAR_FLAG_SURFING,
+        lambda: (
+            game.read_u8(game.address("gPlayerAvatar")) & PLAYER_AVATAR_FLAG_SURFING
+        ),
         description="party-menu Surf confirmation",
         max_pulses=300,
     )
