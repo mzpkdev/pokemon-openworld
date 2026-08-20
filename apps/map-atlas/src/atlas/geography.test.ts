@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogMap } from "./catalog";
-import { placeConnection, solveGeography, toOpenLayersExtent, visibleSurfaceMaps } from "./geography";
+import { COMPONENT_GAP_METATILES, placeConnection, solveGeography, toOpenLayersExtent, visibleSurfaceMaps } from "./geography";
 
 function map(
   name: string,
@@ -31,6 +31,10 @@ function link(direction: CatalogMap["connections"][number]["direction"], destina
   return { direction, offsetMetatiles, destinationMapId: `MAP_${destinationMap.toUpperCase()}`, destinationMap };
 }
 
+function intervalGap(leftStart: number, leftSize: number, rightStart: number, rightSize: number): number {
+  return Math.max(leftStart - (rightStart + rightSize), rightStart - (leftStart + leftSize));
+}
+
 describe("placeConnection", () => {
   const source = { x: 10, y: 20, width: 7, height: 9 };
   const destination = { width: 5, height: 6 };
@@ -53,6 +57,9 @@ describe("solveGeography", () => {
       map("A", 4, 4, [link("right", "B")]),
       map("B", 5, 3, [link("down", "C", 1)]),
       map("C", 2, 6),
+      map("Z", 8, 4),
+      map("Y", 8, 4),
+      map("X", 8, 4),
     ];
     expect(solveGeography(maps)).toEqual(solveGeography([...maps].reverse()));
   });
@@ -62,7 +69,59 @@ describe("solveGeography", () => {
     expect(result.components).toHaveLength(2);
     expect(result.placements.A).toMatchObject({ x: 0, y: 0 });
     expect(result.placements.B).toMatchObject({ x: 4, y: 0 });
-    expect(result.placements.Z.x).toBeGreaterThan(result.placements.B.x + result.placements.B.width);
+    expect(result.placements.Z.y).toBeGreaterThan(result.placements.B.y + result.placements.B.height);
+  });
+
+  it("separates every disconnected component bounding box by the fixed gap", () => {
+    const result = solveGeography([
+      map("A", 8, 4),
+      map("B", 5, 7),
+      map("C", 6, 3),
+      map("D", 4, 9),
+      map("E", 7, 5),
+    ]);
+
+    for (const [index, component] of result.components.entries()) {
+      for (const other of result.components.slice(index + 1)) {
+        const horizontalGap = intervalGap(component.bounds.x, component.bounds.width, other.bounds.x, other.bounds.width);
+        const verticalGap = intervalGap(component.bounds.y, component.bounds.height, other.bounds.y, other.bounds.height);
+        expect(Math.max(horizontalGap, verticalGap)).toBeGreaterThanOrEqual(COMPONENT_GAP_METATILES);
+      }
+    }
+  });
+
+  it("uses multiple shelves to keep representative disconnected components compact", () => {
+    const result = solveGeography([
+      map("A", 75, 75),
+      map("B", 75, 75),
+      map("C", 75, 75),
+    ]);
+    const bounds = result.components.map((component) => component.bounds);
+    const packedWidth = Math.max(...bounds.map((component) => component.x + component.width));
+    const packedHeight = Math.max(...bounds.map((component) => component.y + component.height));
+    const oneDimensionalWidth = 3 * 75 + 2 * COMPONENT_GAP_METATILES;
+
+    expect(new Set(bounds.map((component) => component.y)).size).toBeGreaterThan(1);
+    expect(Math.max(packedWidth, packedHeight)).toBeLessThan(oneDimensionalWidth * 0.75);
+  });
+
+  it("translates connected placements and residual diagnostics together", () => {
+    const result = solveGeography([
+      map("A", 4, 4, [link("right", "B")]),
+      map("B", 4, 4, [link("right", "A")]),
+      map("Large", 50, 20),
+    ]);
+
+    expect(result.placements.A).toMatchObject({ x: 0, y: 28 });
+    expect(result.placements.B).toMatchObject({ x: 4, y: 28 });
+    expect(result.residuals).toEqual([{
+      source: "B",
+      destination: "A",
+      direction: "right",
+      offsetMetatiles: 0,
+      expected: { x: 8, y: 28, width: 4, height: 4 },
+      actual: { x: 0, y: 28, width: 4, height: 4 },
+    }]);
   });
 
   it("surfaces contradictory cycles and preserves a deterministic forest", () => {
