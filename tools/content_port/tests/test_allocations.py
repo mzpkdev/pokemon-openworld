@@ -101,6 +101,14 @@ class AllocationTests(unittest.TestCase):
                 ):
                     load_allocation_index(dead)
 
+    def test_group_content_region_must_be_a_product_region(self):
+        document = allocation_document()
+        document["groups"][0]["contentRegion"] = "REGION_KANTO"  # type: ignore[index]
+        load_allocation_index(document)
+        document["groups"][0]["contentRegion"] = "REGION_UNKNOWN"  # type: ignore[index]
+        with self.assertRaisesRegex(ContentPortError, "expected a product region"):
+            load_allocation_index(document)
+
     def test_mismatched_authority_value_fails(self):
         document = allocation_document()
         document["maps"][0]["targetLayoutIndex"] = 13  # type: ignore[index]

@@ -25,6 +25,13 @@ EXPECTED_ANIMATION_CALLBACKS = {
     f"gTileset_{item['tileset']}": item["callback"]
     for item in JOHTO_ANIMATIONS["schedules"]
 }
+JOHTO_GROUP_CONTENT_REGIONS = {
+    item["name"]: item.get("contentRegion", "REGION_JOHTO")
+    for item in JOHTO_LOCK["groups"]
+}
+EXPECTED_NON_JOHTO_GROUP_CONTENT_REGIONS = {
+    "gMapGroup_HnsPewterCity": "REGION_KANTO",
+}
 
 
 def group_content_region(group_name: Any) -> str | None:
@@ -33,8 +40,8 @@ def group_content_region(group_name: Any) -> str | None:
         return None
     if group_name.endswith("_Frlg"):
         return "REGION_KANTO"
-    if group_name in {item["name"] for item in JOHTO_LOCK["groups"]}:
-        return "REGION_JOHTO"
+    if group_name in JOHTO_GROUP_CONTENT_REGIONS:
+        return JOHTO_GROUP_CONTENT_REGIONS[group_name]
     return "REGION_HOENN"
 
 
@@ -89,6 +96,12 @@ def _validate_final_johto_source_contract() -> None:
         range(75, 75 + actual["groups"])
     ):
         raise RuntimeError("integrity Johto group allocation drift")
+    if {
+        name: region
+        for name, region in JOHTO_GROUP_CONTENT_REGIONS.items()
+        if region != "REGION_JOHTO"
+    } != EXPECTED_NON_JOHTO_GROUP_CONTENT_REGIONS:
+        raise RuntimeError("integrity group content-origin policy drift")
     if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(
         range(209, 209 + actual["sections"])
     ):
@@ -110,7 +123,7 @@ def _validate_final_johto_source_contract() -> None:
 _validate_final_johto_source_contract()
 JOHTO_FORMAT_CLOSURE_MAPS = list(JOHTO_LOCK["maps"])
 JOHTO_FORMAT_CLOSURE_LAYOUTS = list(JOHTO_LOCK["layouts"])
-ACTIVE_JOHTO_GROUPS = {item["name"] for item in JOHTO_LOCK["groups"]}
+ACTIVE_JOHTO_GROUPS = set(JOHTO_GROUP_CONTENT_REGIONS)
 REVIEWED_CROSS_GEOGRAPHY_MAPS = _reviewed_cross_geography_maps()
 
 

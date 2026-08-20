@@ -103,7 +103,8 @@
     },
     {
       "name": "gMapGroup_HnsPewterCity",
-      "targetId": 100
+      "targetId": 100,
+      "contentRegion": "REGION_KANTO"
     }
   ],
   "sections": [

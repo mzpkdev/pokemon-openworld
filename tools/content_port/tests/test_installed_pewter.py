@@ -77,7 +77,12 @@ class InstalledPewterTests(unittest.TestCase):
 
         lock = _json(PORT / "allocation_lock.json")
         self.assertEqual(
-            lock["groups"][-1], {"name": "gMapGroup_HnsPewterCity", "targetId": 100}
+            lock["groups"][-1],
+            {
+                "name": "gMapGroup_HnsPewterCity",
+                "targetId": 100,
+                "contentRegion": "REGION_KANTO",
+            },
         )
         self.assertEqual(lock["layouts"][-1]["targetIndex"], 1040)
         self.assertEqual(

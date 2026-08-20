@@ -107,9 +107,24 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
         for index, raw in enumerate(records):
             item_pointer = f"{pointer}.{label}[{index}]"
             item = _object(raw, item_pointer)
-            _exact_keys(item, {name_key, slot_key}, item_pointer)
+            expected_keys = {name_key, slot_key}
+            if label == "groups" and "contentRegion" in item:
+                expected_keys.add("contentRegion")
+            _exact_keys(item, expected_keys, item_pointer)
             name = _string(item[name_key], f"{item_pointer}.{name_key}")
             slot = _integer(item[slot_key], f"{item_pointer}.{slot_key}")
+            if label == "groups" and "contentRegion" in item:
+                content_region = _string(
+                    item["contentRegion"], f"{item_pointer}.contentRegion"
+                )
+                if content_region not in {
+                    "REGION_HOENN",
+                    "REGION_KANTO",
+                    "REGION_JOHTO",
+                }:
+                    raise ContentPortError(
+                        f"{item_pointer}.contentRegion: expected a product region"
+                    )
             if name in parsed:
                 raise ContentPortError(
                     f"{item_pointer}.{name_key}: duplicate allocation {name}"
