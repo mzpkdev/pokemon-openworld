@@ -328,8 +328,12 @@ def test_debug_named_warp_frlg_gym_exit_returns_to_hns(integrity_game):
     else:
         raise AssertionError("Pewter FRLG Gym entry was not selectable")
     integrity_game.press("A", release_frames=2)
-    integrity_game.wait_for_map(maps["PewterCity_Gym_Frlg"].map_id, max_frames=1_800)
-    _advance_to_field_controls(integrity_game, "settled Pewter Gym named-warp")
+    # Named-entry warps resolve to the selected map's entry coordinate. Walk
+    # through that real exterior door rather than treating the entry as a
+    # direct warp to its destination map.
+    integrity_game.wait_for_map(maps["PewterCity_Frlg"].map_id, max_frames=1_800)
+    _advance_to_field_controls(integrity_game, "settled Pewter Gym named entry")
+    _hold_until_map(integrity_game, "Up", maps["PewterCity_Gym_Frlg"])
     _hold_until_map(integrity_game, "Down", maps["PewterCity_Hns"])
 
 
