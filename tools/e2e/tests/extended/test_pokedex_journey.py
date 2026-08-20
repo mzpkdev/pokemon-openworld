@@ -1,3 +1,6 @@
+from tools.e2e.save_file import decode_box_pokemon
+
+
 TRUCK = (25, 40)
 LITTLEROOT = (0, 9)
 OLDALE = (0, 10)
@@ -27,6 +30,19 @@ FLAG_SYS_POKEMON_GET = 0x860
 FLAG_SYS_POKEDEX_GET = 0x861
 FLAG_RECEIVED_POKEDEX_FROM_BIRCH = 0x8E4
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
+
+SPECIES_MEW = 151
+HOENN_STARTERS = {252, 255, 258}
+PARTY_MON_SIZE = 100
+
+
+def player_party(game):
+    count = game.read_u8(game.address("gPartiesCount"))
+    mons = game.read(game.address("gParties"), count * PARTY_MON_SIZE)
+    return count, [
+        mons[offset : offset + PARTY_MON_SIZE]
+        for offset in range(0, len(mons), PARTY_MON_SIZE)
+    ]
 
 
 def dismiss_until_var(game, var_id, value, description, max_pulses=800):
@@ -158,6 +174,10 @@ def rescue_birch_and_receive_starter(game):
     game.face("Left")
     game.press("A")
     game.wait_for_callback("CB2_ChooseStarter", max_frames=600)
+    party_count, party = player_party(game)
+    assert party_count == 1
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
     assert game.read_flag(FLAG_SYS_POKEMON_GET)
     assert game.read_flag(FLAG_RESCUED_BIRCH)
 
@@ -172,7 +192,12 @@ def rescue_birch_and_receive_starter(game):
         description="first battle victory and lab return",
         max_pulses=2_000,
     )
-    assert game.read_u8(game.address("gPartiesCount")) == 1
+    party_count, party = player_party(game)
+    assert party_count == 2
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
+    assert party[1][84] == 5
+    assert decode_box_pokemon(party[1])["species"] in HOENN_STARTERS
 
     # Nickname defaults to Yes; stop on its menu and choose No.
     game.advance_until(
