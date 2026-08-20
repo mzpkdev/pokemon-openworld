@@ -107,7 +107,7 @@ def _clear_party(game) -> None:
 
 
 def _give_surf_mon(game) -> None:
-    """Use the shipped debug UI to create a level-40 Tentacool with Surf."""
+    """Use the shipped debug UI to create a level-40 Tentacool that learns Surf."""
     _clear_party(game)
     _open_debug_menu(game)
     for _ in range(16):
@@ -129,7 +129,7 @@ def _give_surf_mon(game) -> None:
         max_frames=300,
     )
     for _ in range(71):
-        game.press("Up", release_frames=1)
+        game.press("Up", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
         lambda: game.task_active("DebugAction_Give_Pokemon_SelectLevel"),
@@ -137,7 +137,7 @@ def _give_surf_mon(game) -> None:
         max_frames=300,
     )
     for _ in range(39):
-        game.press("Up", release_frames=1)
+        game.press("Up", release_frames=2)
     game.press("A", release_frames=2)
     game.wait_until(
         lambda: game.read_u8(game.address("gPartiesCount")) == 1,
@@ -168,14 +168,24 @@ def _use_surf_from_party_menu(game) -> None:
         description="field party menu",
         max_frames=1_200,
     )
+    # The party task is created before its entry fade completes and discards
+    # input until that fade is done.
+    game.step(60)
     game.press("A", release_frames=3)
     game.wait_until(
         lambda: game.task_active("Task_HandleSelectionMenuInput"),
         description="party actions",
         max_frames=300,
     )
+    game.step(4)
     game.press("Down", release_frames=3)
     game.press("A", release_frames=12)
+    game.advance_until(
+        lambda: game.read_u8(game.address("gPlayerAvatar"))
+        & PLAYER_AVATAR_FLAG_SURFING,
+        description="party-menu Surf confirmation",
+        max_pulses=300,
+    )
     game.wait_for_controls_unlocked(max_frames=1_800)
     assert game.read_u8(game.address("gPlayerAvatar")) & PLAYER_AVATAR_FLAG_SURFING
 
@@ -276,19 +286,25 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     _use_surf_from_party_menu(integrity_game)
     assert integrity_game.position() == (16, 9)
     integrity_game.move_path(
-        (7, 54),
-        (9, 54),
-        (9, 34),
-        (10, 34),
-        (10, 14),
-        (12, 14),
-        (12, 56),
-        (15, 56),
-        (15, 40),
+        (16, 14),
+        (7, 14),
+        (7, 20),
+        (5, 20),
+        (5, 22),
+        (3, 22),
+        (3, 25),
+        (4, 25),
+        (4, 31),
+        (11, 31),
+        (11, 38),
+        (16, 38),
+        (16, 40),
         (17, 40),
         (17, 53),
         (21, 53),
-        (21, 59),
+        (21, 56),
+        (20, 56),
+        (20, 59),
     )
     _cross_edge(integrity_game, "Down", generated_ocean, (2, 12), DIR_SOUTH)
     _assert_map_presentation(
