@@ -2434,7 +2434,7 @@ static void write_integrity_manifest(const std::filesystem::path &staging,
         require_product_registry(static_cast<int>(map_filepaths.size()) == grouped_map_count + 4,
                                  "reviewed map count disagrees with grouped maps plus exclusions");
         require_product_registry(region_counts["REGION_HOENN"] == 518, "expected 518 Hoenn maps");
-        require_product_registry(region_counts["REGION_KANTO"] == 422, "expected 422 Kanto/Sevii maps");
+        require_product_registry(region_counts["REGION_KANTO"] == 423, "expected 423 Kanto/Sevii maps");
         require_product_registry(region_counts["REGION_JOHTO"] == 253, "expected 253 Johto maps");
         require_product_registry(active_johto_map_count > 0 && active_johto_layout_count > 0,
                                  "expected an active Johto-format closure");

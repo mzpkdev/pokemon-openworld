@@ -54,24 +54,24 @@
   },
   "expectedInventory": {
     "maps": {
-      "count": 254,
-      "digest": "1d4252858eb630077d5c0508958ffb648d126d6169d3e1603635f16eeb5ceb23"
+      "count": 255,
+      "digest": "5e8e66e1b9f4f37f2f3a28f454f893354be7fb36858e086dfb22b874f817de7a"
     },
     "layouts": {
-      "count": 255,
-      "digest": "cadae21f87198262d0887f550e7955057e06d301bd333d9a00ebb34fe613e6ed"
+      "count": 256,
+      "digest": "892eca83dfee9fa0dc369e9c4ada0887206cd934b5321eece70b15f9bc515247"
     },
     "groups": {
-      "count": 25,
-      "digest": "8899638e82ba7b837ade8b697370092f3f936d8bb9b73ec957715fa919e5905d"
+      "count": 26,
+      "digest": "b19667ecced334dce69369997edc3efadd2f8d5d503c3c1673355f1eb2b3237c"
     },
     "sections": {
       "count": 58,
       "digest": "ff867c67dcc0d8c728147479dac1e6b936826bc1228e20a91127659bdc6f27b1"
     },
     "tilesets": {
-      "count": 71,
-      "digest": "885048bc80e44cacef73e9036f2bf0b1e43dd9ca64176435e92dff9bbf5cfbbc"
+      "count": 72,
+      "digest": "9a2bb658729dd859737a3eaea76889f8cbb192f55b8294dd98a35b6400d2b4ff"
     }
   },
   "expectedTrainerInventory": {
@@ -83,7 +83,7 @@
       "count": 236,
       "digest": "6448f7f5a67bb09715f87516a81dd1769607198037d8b228447cad6046e176fb"
     },
-    "documentDigest": "fcb1ecebcae4fd1b3c85bac13a1bca5ad297c754b23d302b9b371dd71555d792",
+    "documentDigest": "330c858affb4f5fdee7659ab660d3feba907a3b543e2e3fa4a1982bb836f9043",
     "identityClassifications": {
       "ordinary": 195,
       "story-controlled": 70,

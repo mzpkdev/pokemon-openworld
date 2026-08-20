@@ -1,3 +1,6 @@
+from tools.e2e.save_file import decode_box_pokemon
+
+
 TRUCK = (25, 40)
 LITTLEROOT = (0, 9)
 OLDALE = (0, 10)
@@ -28,12 +31,68 @@ FLAG_SYS_POKEDEX_GET = 0x861
 FLAG_RECEIVED_POKEDEX_FROM_BIRCH = 0x8E4
 FLAG_DEBUG_NO_WILD_ENCOUNTERS = 0x8FE
 
+SPECIES_MEW = 151
+HOENN_STARTERS = {252, 255, 258}
+PARTY_MON_SIZE = 100
+
+
+def player_party(game):
+    count = game.read_u8(game.address("gPartiesCount"))
+    mons = game.read(game.address("gParties"), count * PARTY_MON_SIZE)
+    return count, [
+        mons[offset : offset + PARTY_MON_SIZE]
+        for offset in range(0, len(mons), PARTY_MON_SIZE)
+    ]
+
 
 def dismiss_until_var(game, var_id, value, description, max_pulses=800):
     game.advance_until(
         lambda: game.read_var(var_id) == value,
         description=description,
         max_pulses=max_pulses,
+    )
+
+
+def finish_started_battle_with_debug_victory(game, victory_condition, description):
+    """Complete a proven live battle through its normal post-battle callback."""
+    game.wait_for_callback("BattleMainCB2", max_frames=1_500)
+    assert game.callback_is("BattleMainCB2")
+
+    player_controller = game.address("SetControllerToPlayer")
+    partner_controller = game.address("SetControllerToPlayerPartner")
+    action_handlers = [
+        address
+        for address in game.symbols.addresses("HandleInputChooseAction")
+        if player_controller < address < partner_controller
+    ]
+    assert len(action_handlers) == 1
+    game.advance_until(
+        lambda: game.battler_controller_is(action_handlers[0]),
+        description=f"{description} action menu",
+        max_pulses=1_500,
+        button="B",
+    )
+
+    # This is reached only after the live battle's action controller is active.
+    game.advance_until(
+        lambda: game.callback_is("CB2_BattleDebugMenu"),
+        description=f"{description} debug menu",
+        max_pulses=600,
+        button="Select",
+    )
+    game.wait_until(
+        lambda: game.task_active("Task_DebugMenuProcessInput"),
+        description=f"{description} debug menu input",
+        max_frames=600,
+        step_frames=2,
+    )
+    for _ in range(16):
+        game.press("Down")
+    game.press("A")
+    game.advance_until(
+        victory_condition,
+        description=description,
+        max_pulses=2_000,
     )
 
 
@@ -158,6 +217,10 @@ def rescue_birch_and_receive_starter(game):
     game.face("Left")
     game.press("A")
     game.wait_for_callback("CB2_ChooseStarter", max_frames=600)
+    party_count, party = player_party(game)
+    assert party_count == 1
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
     assert game.read_flag(FLAG_SYS_POKEMON_GET)
     assert game.read_flag(FLAG_RESCUED_BIRCH)
 
@@ -167,12 +230,17 @@ def rescue_birch_and_receive_starter(game):
         description="first battle",
         max_pulses=1_000,
     )
-    game.advance_until(
+    finish_started_battle_with_debug_victory(
+        game,
         lambda: game.map_id() == BIRCH_LAB and game.read_var(VAR_BIRCH_LAB_STATE) >= 2,
-        description="first battle victory and lab return",
-        max_pulses=2_000,
+        "first battle victory and lab return",
     )
-    assert game.read_u8(game.address("gPartiesCount")) == 1
+    party_count, party = player_party(game)
+    assert party_count == 2
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
+    assert party[1][84] == 5
+    assert decode_box_pokemon(party[1])["species"] in HOENN_STARTERS
 
     # Nickname defaults to Yes; stop on its menu and choose No.
     game.advance_until(
@@ -244,43 +312,10 @@ def defeat_route103_rival_and_receive_pokedex(game):
         max_pulses=1_500,
     )
     assert game.callback_is("BattleMainCB2")
-
-    player_controller = game.address("SetControllerToPlayer")
-    partner_controller = game.address("SetControllerToPlayerPartner")
-    action_handlers = [
-        address
-        for address in game.symbols.addresses("HandleInputChooseAction")
-        if player_controller < address < partner_controller
-    ]
-    assert len(action_handlers) == 1
-    player_action_handler = action_handlers[0]
-    game.advance_until(
-        lambda: game.battler_controller_is(player_action_handler),
-        description="Route 103 battle action menu",
-        max_pulses=1_500,
-        button="B",
-    )
-
-    # Open the battle debug menu only after proving the real rival battle began.
-    game.advance_until(
-        lambda: game.callback_is("CB2_BattleDebugMenu"),
-        description="battle debug menu",
-        max_pulses=600,
-        button="Select",
-    )
-    game.wait_until(
-        lambda: game.task_active("Task_DebugMenuProcessInput"),
-        description="battle debug menu input",
-        max_frames=600,
-        step_frames=2,
-    )
-    for _ in range(16):
-        game.press("Down")
-    game.press("A")
-    game.advance_until(
+    finish_started_battle_with_debug_victory(
+        game,
         lambda: game.read_flag(FLAG_DEFEATED_RIVAL_ROUTE103),
-        description="Route 103 rival victory",
-        max_pulses=1_500,
+        "Route 103 rival victory",
     )
     assert game.read_var(VAR_BIRCH_LAB_STATE) == 4
 
@@ -329,7 +364,12 @@ def defeat_route103_rival_and_receive_pokedex(game):
     assert game.read_var(VAR_LITTLEROOT_RIVAL_STATE) == 4
     assert game.read_var(VAR_CABLE_CLUB_TUTORIAL_STATE) == 1
     assert game.read_u32(game.save_block2() + 0xA8) == 0x803F
-    assert game.read_u8(game.address("gPartiesCount")) == 1
+    party_count, party = player_party(game)
+    assert party_count == 2
+    assert party[0][84] == 100
+    assert decode_box_pokemon(party[0])["species"] == SPECIES_MEW
+    assert party[1][84] == 5
+    assert decode_box_pokemon(party[1])["species"] in HOENN_STARTERS
 
 
 def test_quickstart_to_pokedex(game):

@@ -12,11 +12,13 @@ from pathlib import Path
 from tools.content_port.descriptor import (
     ADAPTATION_KEYS,
     GENERATED_AUTHORITY_CONTRACT,
+    _load_capabilities,
     load_port,
     read_json,
 )
 from tools.content_port.errors import ContentPortError
 from tools.content_port.update import (
+    DonorUpdateError,
     REQUIRED_REVIEW_COMMANDS,
     _derive_authored_policy_snapshot,
     _publication_policy_snapshot,
@@ -26,6 +28,7 @@ from tools.content_port.update import (
     identify_tree,
     migration_digest,
 )
+from tools.content_port.update import _validate_audio_closures
 
 from tools.content_port.tests.test_allocations import allocation_document
 
@@ -35,6 +38,65 @@ def dump(path: Path, value: object) -> None:
 
 
 class DescriptorTests(unittest.TestCase):
+    def test_map_source_aliases_default_and_reject_implicit_shared_donors(self) -> None:
+        policy = {
+            "schemaVersion": 1,
+            "capabilities": ["spatial"],
+            "maps": [
+                {
+                    "map": "Target",
+                    "sourceMap": "Donor",
+                    "ownership": "rendered",
+                    "capabilities": {"spatial": "enabled"},
+                }
+            ],
+        }
+        _, _, sources = _load_capabilities(policy, "$")
+        self.assertEqual(sources, {"Target": "Donor"})
+        policy["maps"].append(
+            {
+                "map": "OtherTarget",
+                "sourceMap": "Donor",
+                "ownership": "rendered",
+                "capabilities": {"spatial": "enabled"},
+            }
+        )
+        with self.assertRaisesRegex(ContentPortError, "allowSharedSource"):
+            _load_capabilities(policy, "$")
+        policy["maps"][-1]["allowSharedSource"] = True
+        _, _, sources = _load_capabilities(policy, "$")
+        self.assertEqual(sources["OtherTarget"], "Donor")
+
+    def test_typed_audio_closure_requires_exact_midi_aif_and_integration_coverage(
+        self,
+    ) -> None:
+        assets = (
+            {
+                "key": "midi",
+                "assetType": "audio",
+                "capability": "environment-assets",
+                "sourcePath": "sound/song.mid",
+            },
+            {
+                "key": "sample",
+                "assetType": "audio",
+                "capability": "environment-assets",
+                "sourcePath": "sound/sample.aif",
+            },
+        )
+        closure = (
+            {
+                "key": "song",
+                "capability": "environment-assets",
+                "midiAsset": "midi",
+                "aifAssets": ["sample"],
+                "integration": [{"path": "sound/songs/song.s", "sections": ["song"]}],
+            },
+        )
+        _validate_audio_closures(closure, assets)
+        with self.assertRaisesRegex(DonorUpdateError, "exactly cover"):
+            _validate_audio_closures((), assets)
+
     @staticmethod
     def adaptation_policy_cases():
         digest = "a" * 64
@@ -420,10 +482,10 @@ class DescriptorTests(unittest.TestCase):
     def test_checked_port_declares_every_map_and_capability(self):
         port_dir = Path(__file__).parents[1] / "ports" / "johto"
         descriptor = load_port(port_dir, port_dir / "unused-donor-root")
-        self.assertEqual(len(descriptor.allocation_index.maps), 254)
-        self.assertEqual(len(descriptor.map_ownership), 254)
-        self.assertEqual(len(descriptor.capabilities), 254 * 12)
-        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 20)
+        self.assertEqual(len(descriptor.allocation_index.maps), 255)
+        self.assertEqual(len(descriptor.map_ownership), 255)
+        self.assertEqual(len(descriptor.capabilities), 255 * 12)
+        self.assertEqual(list(descriptor.map_ownership.values()).count("preserve"), 21)
         self.assertEqual(
             descriptor.adaptations["surfEdgeExits"],
             (
@@ -445,14 +507,14 @@ class DescriptorTests(unittest.TestCase):
             )
         self.assertEqual(
             state_counts,
-            {"enabled": 561, "deferred": 2288, "story-owned": 199},
+            {"enabled": 563, "deferred": 2288, "story-owned": 209},
         )
         self.assertEqual(
             {
                 domain: item["count"]
                 for domain, item in descriptor.expected_inventory.items()
             },
-            {"maps": 254, "layouts": 255, "groups": 25, "sections": 58, "tilesets": 71},
+            {"maps": 255, "layouts": 256, "groups": 26, "sections": 58, "tilesets": 72},
         )
         self.assertEqual(
             descriptor.trainer_policy_path,
@@ -483,7 +545,7 @@ class DescriptorTests(unittest.TestCase):
         )
         self.assertEqual(
             descriptor.expected_trainer_inventory["documentDigest"],
-            "fcb1ecebcae4fd1b3c85bac13a1bca5ad297c754b23d302b9b371dd71555d792",
+            "330c858affb4f5fdee7659ab660d3feba907a3b543e2e3fa4a1982bb836f9043",
         )
         self.assertEqual(
             descriptor.expected_trainer_inventory["identityClassifications"],

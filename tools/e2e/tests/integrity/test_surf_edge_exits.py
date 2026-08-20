@@ -290,11 +290,15 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     integrity_game.face("Down")
     _use_surf_from_party_menu(integrity_game)
     assert integrity_game.position() == (16, 9)
+    # The shallow-looking Route 19 water at (11, 13) is actually a land
+    # metatile, so do not cross west there. Continue south before moving west:
+    # y=21 is four tiles south of Tony's position and remains above David's
+    # east-west sight line at y=22. The short turn through (3, 22) then joins
+    # the established open-water route without entering either trainer's line
+    # of sight.
     integrity_game.move_path(
-        (16, 14),
-        (7, 14),
-        (7, 20),
-        (5, 20),
+        (16, 21),
+        (5, 21),
         (5, 22),
         (3, 22),
         (3, 25),

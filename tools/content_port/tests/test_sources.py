@@ -25,6 +25,7 @@ from tools.content_port.sources import (
     _automatic_unreachable_shells,
     _authenticate_reviewed_fixed_placements,
     _authenticated_trainer_inventory,
+    _referenced_inputs,
     _semantic_record_digest,
     _require_trainer_geometry_adapter,
     _trainer_class_money,
@@ -47,6 +48,51 @@ from tools.content_port.world_graph import (
 
 
 class SourceGraphTests(unittest.TestCase):
+    def test_preserved_source_alias_uses_target_recursive_input_evidence(self) -> None:
+        root = Path(__file__).resolve().parents[3]
+        map_path = root / "data/maps/PewterCity_Hns/map.json"
+        if not map_path.is_file():
+            self.skipTest("HnS Pewter target map is not present")
+        _, inputs = _referenced_inputs(root, ("PewterCity_Hns",))
+        self.assertIn(
+            "data/maps/PewterCity_Hns/map.json",
+            {str(item["path"]) for item in inputs},
+        )
+
+    def test_expansion_context_resolves_target_map_and_layout_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            map_path = root / "data/maps/Donor/map.json"
+            map_path.parent.mkdir(parents=True)
+            map_path.write_text(
+                json.dumps(
+                    {"name": "Donor", "id": "MAP_DONOR", "layout": "LAYOUT_DONOR"}
+                ),
+                encoding="utf-8",
+            )
+            layouts = root / "data/layouts/layouts.json"
+            layouts.parent.mkdir(parents=True)
+            layouts.write_text(
+                json.dumps({"layouts": [{"id": "LAYOUT_DONOR", "width": 1}]}),
+                encoding="utf-8",
+            )
+            context = ExpansionSourceContext(
+                root,
+                resource_aliases={
+                    ResourceKey("map", "Target"): ResourceKey("map", "Donor"),
+                    ResourceKey("layout", "LAYOUT_TARGET"): ResourceKey(
+                        "layout", "LAYOUT_DONOR"
+                    ),
+                },
+            )
+            self.assertEqual(
+                context.load(ResourceKey("map", "Target")).value["id"], "MAP_DONOR"
+            )
+            self.assertEqual(
+                context.load(ResourceKey("layout", "LAYOUT_TARGET")).value["id"],
+                "LAYOUT_DONOR",
+            )
+
     @staticmethod
     def _mutable(value):
         if isinstance(value, dict) or hasattr(value, "items"):
@@ -882,8 +928,8 @@ class SourceGraphTests(unittest.TestCase):
             self.skipTest("donor checkouts are not present")
         descriptor = load_port(Path("tools/content_port/ports/johto"), donor_root)
         evidence, state = resolve_port_sources(descriptor, Path("."))
-        self.assertEqual(evidence.inventory["maps"], 254)
-        self.assertEqual(evidence.inventory["layouts"], 255)
+        self.assertEqual(evidence.inventory["maps"], 255)
+        self.assertEqual(evidence.inventory["layouts"], 256)
         expected_asset_policy = tuple(
             sorted(
                 f"{item['donor']}:{item['sourcePath']}"
@@ -1302,7 +1348,7 @@ class SourceGraphTests(unittest.TestCase):
             descriptor = load_port(port, donor_root)
             self.assertEqual(descriptor.event_policy_path, selected.resolve())
             evidence, _ = resolve_port_sources(descriptor, Path("."))
-            self.assertEqual(evidence.inventory["maps"], 254)
+            self.assertEqual(evidence.inventory["maps"], 255)
 
     def test_full_real_port_contract_rejects_cross_domain_mutations(self) -> None:
         donor_root = self._donor_root()
@@ -1315,7 +1361,7 @@ class SourceGraphTests(unittest.TestCase):
         without_legacy = validate_port_sources(
             replace(descriptor, legacy_report=None), Path(".")
         )
-        self.assertEqual(without_legacy.inventory["maps"], 254)
+        self.assertEqual(without_legacy.inventory["maps"], 255)
 
         _, resolved = resolve_port_sources(descriptor, Path("."))
         new_bark = resolved.layouts["LAYOUT_NEW_BARK_TOWN"]
@@ -1373,7 +1419,7 @@ class SourceGraphTests(unittest.TestCase):
         renamed = validate_port_sources(
             replace(descriptor, donors_by_role=renamed_donors), Path(".")
         )
-        self.assertEqual(renamed.inventory["maps"], 254)
+        self.assertEqual(renamed.inventory["maps"], 255)
 
         adaptations = self._mutable(descriptor.adaptations)
         adaptations["contentFallback"]["maps"].append("NewBarkTown")
@@ -1536,6 +1582,23 @@ class SourceGraphTests(unittest.TestCase):
                 target_map = target / source_map
                 target_map.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source_map, target_map)
+            for name in descriptor.adaptations.get("retainedExternalEndpoints", []):
+                source_map = Path("data/maps") / name / "map.json"
+                target_map = target / source_map
+                target_map.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_map, target_map)
+            # This temporary target deliberately contains only the target-side
+            # authorities that source validation reads.  Preserve the declared
+            # legacy recursive evidence too, so the later mutation exercises
+            # its world-edge assertion rather than failing at an unrelated
+            # partial-fixture baseline mismatch.
+            assert descriptor.legacy_report is not None
+            legacy_evidence = descriptor.legacy_report["evidence"]
+            for item in legacy_evidence["inputs"]:
+                source_input = Path(item["path"])
+                target_input = target / source_input
+                target_input.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source_input, target_input)
             for name in sorted(
                 {
                     warp["source"]
@@ -1549,7 +1612,7 @@ class SourceGraphTests(unittest.TestCase):
             overlay_target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(overlay_script, overlay_target)
             self.assertEqual(
-                validate_port_sources(descriptor, target).inventory["tilesets"], 71
+                validate_port_sources(descriptor, target).inventory["tilesets"], 72
             )
             new_bark = target / "data/maps/NewBarkTown/map.json"
             original_new_bark = new_bark.read_bytes()
@@ -1565,7 +1628,7 @@ class SourceGraphTests(unittest.TestCase):
             corrupt_header.parent.mkdir(parents=True)
             corrupt_header.write_text("corrupt generated output\n", encoding="utf-8")
             self.assertEqual(
-                validate_port_sources(descriptor, target).inventory["tilesets"], 71
+                validate_port_sources(descriptor, target).inventory["tilesets"], 72
             )
             first = ledger["entries"][0]
             duplicate = dict(first)

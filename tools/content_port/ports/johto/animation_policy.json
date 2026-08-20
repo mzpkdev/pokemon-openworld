@@ -328,6 +328,11 @@
       "tileset": "ssaqua",
       "disposition": "intentionally-unused",
       "reason": "No reviewed Johto animation binding."
+    },
+    {
+      "tileset": "PewterCity",
+      "disposition": "intentionally-unused",
+      "reason": "No reviewed HnS Pewter animation binding."
     }
   ],
   "callbacks": [

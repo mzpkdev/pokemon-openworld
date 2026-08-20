@@ -8,11 +8,15 @@ from pathlib import Path
 from unittest import mock
 
 from tools.integrity.manifest import (
+    ACTIVE_JOHTO_SECTIONS,
+    BASE_MAP_SECTIONS,
     EXPECTED_ABIS,
     EXPECTED_COUNTS,
+    EXPECTED_MAP_SECTIONS,
     JOHTO_FORMAT_CLOSURE_MAPS,
     ManifestError,
     REVIEWED_CROSS_GEOGRAPHY_MAPS,
+    group_content_region,
     validate_manifest,
 )
 from tools.integrity.validate_artifact import (
@@ -41,6 +45,16 @@ from tools.integrity.validate_artifact import (
 ROOT = Path(__file__).resolve().parents[3]
 CAPACITY = ROOT / "tools/integrity/capacity_policy.json"
 SAVE_CONTRACT = ROOT / "tools/integrity/save_contract.json"
+
+
+class GroupContentOriginTests(unittest.TestCase):
+    def test_hns_pewter_override_does_not_reclassify_johto_groups(self) -> None:
+        self.assertEqual(
+            group_content_region("gMapGroup_HnsPewterCity"), "REGION_KANTO"
+        )
+        self.assertEqual(
+            group_content_region("gMapGroup_JohtoTownsAndRoutes"), "REGION_JOHTO"
+        )
 
 
 class IntegrityToolTests(unittest.TestCase):
@@ -193,16 +207,21 @@ class IntegrityToolTests(unittest.TestCase):
             validate_manifest(count_mismatch)
 
     def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
-        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 254)
+        self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 255)
+        self.assertEqual(
+            ACTIVE_JOHTO_SECTIONS,
+            set(range(BASE_MAP_SECTIONS, BASE_MAP_SECTIONS + 58)),
+        )
+        self.assertEqual(EXPECTED_MAP_SECTIONS, 267)
         self.assertEqual(
             REVIEWED_CROSS_GEOGRAPHY_MAPS,
             {"VermilionCity_PortInside": "REGION_KANTO"},
         )
         self.assertEqual(
             EXPECTED_COUNTS["regions"],
-            {"REGION_HOENN": 518, "REGION_KANTO": 422, "REGION_JOHTO": 253},
+            {"REGION_HOENN": 518, "REGION_KANTO": 423, "REGION_JOHTO": 253},
         )
-        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1193)
+        self.assertEqual(sum(EXPECTED_COUNTS["regions"].values()), 1194)
 
     def test_manifest_rejects_missing_reviewed_animation_callback(self) -> None:
         manifest = json.loads((self.generated / "integrity-manifest.json").read_text())
@@ -340,6 +359,30 @@ class IntegrityToolTests(unittest.TestCase):
             "VermilionCity_PortInside.*disagrees.*REGION_KANTO",
         ):
             validate_manifest(vermilion_drift)
+        hns_pewter_drift = copy.deepcopy(original)
+        hns_pewter = next(
+            entry
+            for entry in hns_pewter_drift["maps"]
+            if entry["name"] == "PewterCity_Hns"
+        )
+        self.assertEqual(hns_pewter["region"], "REGION_KANTO")
+        hns_pewter["region"] = "REGION_JOHTO"
+        with self.assertRaisesRegex(
+            ManifestError,
+            "PewterCity_Hns.*disagrees.*REGION_KANTO",
+        ):
+            validate_manifest(hns_pewter_drift)
+        johto_drift = copy.deepcopy(original)
+        johto_map = next(
+            entry for entry in johto_drift["maps"] if entry["name"] == "NewBarkTown"
+        )
+        self.assertEqual(johto_map["region"], "REGION_JOHTO")
+        johto_map["region"] = "REGION_KANTO"
+        with self.assertRaisesRegex(
+            ManifestError,
+            "NewBarkTown.*disagrees.*REGION_JOHTO",
+        ):
+            validate_manifest(johto_drift)
         mutations = (
             (
                 "unknown name",

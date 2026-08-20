@@ -825,6 +825,7 @@ class ExpansionSourceContext(SourceContext):
         capabilities: Mapping[str, Mapping[str, Any]] | None = None,
         persistent_ledger: Path | str | None = None,
         active_capabilities: Iterable[str] = ("spatial",),
+        resource_aliases: Mapping[ResourceKey, ResourceKey] | None = None,
     ) -> None:
         root = Path(donor_root)
         self.donor_root = root
@@ -1302,6 +1303,7 @@ class ExpansionSourceContext(SourceContext):
                 capability, Provenance("<descriptor>", f"/capabilities/{name}")
             )
         self._trainer_events = MappingProxyType(dict(trainer_events))
+        aliases.update(resource_aliases or {})
         super().__init__(
             records=records, aliases=aliases, active_capabilities=active_capabilities
         )
@@ -1385,6 +1387,7 @@ def _authenticated_trainer_inventory(
     """Authenticate and load the authored inventory without enabling trainers."""
 
     content_maps: list[str] = []
+    script_source_maps: list[str] = []
     authenticated_events: dict[str, Mapping[str, tuple[str, ...]]] = {}
     authenticated_pairs: dict[str, list[str]] = {}
     resident_event_trainers: set[str] = set()
@@ -1392,8 +1395,14 @@ def _authenticated_trainer_inventory(
         if map_name in fallback_maps:
             authenticated_events[map_name] = MappingProxyType({})
             continue
+        # Target-preserved maps can deliberately retain their target identity
+        # while borrowing a donor map as their source evidence.  The source
+        # script scan must follow that donor identity, whereas the authored
+        # inventory remains keyed by the target map name.
         content_maps.append(map_name)
-        map_record = content.load(ResourceKey("map", map_name))
+        source_map = descriptor.map_source_identities.get(map_name, map_name)
+        script_source_maps.append(source_map)
+        map_record = content.load(ResourceKey("map", source_map))
         events: dict[str, tuple[str, ...]] = {}
         for identity in map_record.value.get("_trainer_event_roots", ()):
             event = content.trainer_event(ResourceKey("trainer-event", str(identity)))
@@ -1414,7 +1423,7 @@ def _authenticated_trainer_inventory(
 
     canonical_identities = _canonical_trainer_identities(
         descriptor.donor("content").root,
-        content_maps,
+        script_source_maps,
         resident_event_trainers,
     )
     expected = descriptor.expected_trainer_inventory
@@ -3328,10 +3337,50 @@ def resolve_port_sources(
     target_root = Path(repo)
     donor_pins = descriptor.donors_by_role
     donor_roots = {role: pin.root for role, pin in donor_pins.items()}
+    source_aliases: dict[ResourceKey, ResourceKey] = {
+        ResourceKey("map", target): ResourceKey("map", source)
+        for target, source in descriptor.map_source_identities.items()
+        if target != source
+    }
+    for authority in descriptor.layout_binary_authorities:
+        source_layout = authority.source_layout or authority.layout
+        if authority.layout != source_layout:
+            source_aliases[ResourceKey("layout", authority.layout)] = ResourceKey(
+                "layout", source_layout
+            )
     contexts = {
-        role: ExpansionSourceContext(pin.root, active_capabilities=("spatial",))
+        role: ExpansionSourceContext(
+            pin.root,
+            active_capabilities=("spatial",),
+            resource_aliases=source_aliases,
+        )
         for role, pin in donor_pins.items()
     }
+    for authority in descriptor.layout_binary_authorities:
+        source_layout = authority.source_layout or authority.layout
+        if source_layout == authority.layout:
+            continue
+        target_maps = [
+            allocation.name
+            for allocation in descriptor.allocation_index.maps.values()
+            if allocation.layout == authority.layout
+        ]
+        if len(target_maps) != 1:
+            raise ContentPortError(
+                f"{authority.layout}: aliased layout must belong to exactly one target map"
+            )
+        source_layout_record = contexts[authority.source_role].load(
+            ResourceKey("layout", source_layout)
+        )
+        source_prefix = f"data/layouts/{authority.source}/"
+        target_prefix = f"data/layouts/{target_maps[0]}/"
+        for field_name in ("border_filepath", "blockdata_filepath"):
+            source_path = source_layout_record.value.get(field_name)
+            if isinstance(source_path, str) and source_path.startswith(source_prefix):
+                target_path = target_prefix + source_path.removeprefix(source_prefix)
+                contexts[authority.source_role]._aliases[
+                    ResourceKey("asset", target_path)
+                ] = ResourceKey("asset", source_path)
     mechanical_pin = descriptor.donor("mechanical")
     content_pin = descriptor.donor("content")
     mechanical = contexts["mechanical"]
@@ -3398,6 +3447,25 @@ def resolve_port_sources(
                 ) from error
             selected_role = "target"
         document = _thaw(selected_record.value)
+        allocation = descriptor.allocation_index.map_allocation(name)
+        # A source-map alias intentionally borrows donor bytes under a new
+        # target identity.  Every non-aliased map, however, must already carry
+        # its allocation-locked ID and layout before downstream layout loading
+        # can mask a drift by reporting a less useful source-layout error.
+        if descriptor.map_source_identities[name] == name:
+            for field_name, expected in (
+                ("id", allocation.map_id),
+                ("layout", allocation.layout),
+            ):
+                if document.get(field_name) != expected:
+                    raise ContentPortError(
+                        f"{name}/{field_name}: resolved map binding differs from "
+                        "allocation authority"
+                    )
+        # Aliased donor maps retain donor bytes and provenance, while the
+        # allocation lock remains the sole authority for emitted identities.
+        document["id"] = allocation.map_id
+        document["layout"] = allocation.layout
         for semantic_root_field in ("_encounter_roots", "_trainer_event_roots"):
             roots = record.value.get(semantic_root_field)
             if roots:
@@ -3548,6 +3616,106 @@ def resolve_port_sources(
         raise ContentPortError(
             f"reviewed world edge drift: unexpected={unexpected[:1]} stale={stale[:1]}"
         )
+
+    # Retained edges may intentionally leave the port through resident target
+    # maps. These endpoints are proven against the target registry but are
+    # terminal in the donor closure: importing their layouts or semantics would
+    # silently claim target-owned content.
+    declared_external = tuple(adaptations.get("retainedExternalEndpoints", ()))
+    external_by_alias: dict[str, str] = {}
+    external_records: dict[ResourceKey, SourceRecord] = {}
+    external_graph_maps: dict[str, Mapping[str, Any]] = {}
+    selected_map_aliases = {
+        alias: name
+        for name, document in selected_maps.items()
+        for alias in (
+            name,
+            str(document.get("id", name)),
+            str(document.get("id", name)).removeprefix("MAP_"),
+        )
+    }
+    for name in declared_external:
+        if not isinstance(name, str) or Path(name).name != name:
+            raise ContentPortError(
+                "retainedExternalEndpoints: map identity must be one path component"
+            )
+        if name in selected_maps:
+            raise ContentPortError(
+                f"retainedExternalEndpoints: {name} is owned by this port"
+            )
+        target_path = target_root / "data" / "maps" / name / "map.json"
+        if target_path.is_symlink():
+            raise ContentPortError(
+                f"retainedExternalEndpoints: target map {name} must not be a symbolic link"
+            )
+        target_record = json_record(target_path)
+        target_id = target_record.value.get("id")
+        if not isinstance(target_id, str) or not target_id:
+            raise ContentPortError(
+                f"retainedExternalEndpoints: target map {name} has no map ID"
+            )
+        for alias in (name, target_id, target_id.removeprefix("MAP_")):
+            previous = external_by_alias.get(alias)
+            if previous is not None and previous != name:
+                raise ContentPortError(
+                    f"retainedExternalEndpoints: target registry alias {alias} is ambiguous"
+                )
+            external_by_alias[alias] = name
+        external_records[ResourceKey("map", name)] = SourceRecord(
+            {}, target_record.provenance
+        )
+        target_warps = target_record.value.get("warp_events", [])
+        target_warps = [] if target_warps in (None, 0) else target_warps
+        if not isinstance(target_warps, list):
+            raise ContentPortError(
+                f"retainedExternalEndpoints: target map {name} has malformed warps"
+            )
+        target_connections = target_record.value.get("connections", [])
+        target_connections = (
+            [] if target_connections in (None, 0) else target_connections
+        )
+        if not isinstance(target_connections, list):
+            raise ContentPortError(
+                f"retainedExternalEndpoints: target map {name} has malformed connections"
+            )
+        # Project only resident-to-port return routes into the world graph. The
+        # external map remains terminal to source closure and never imports its
+        # own resident neighborhood.
+        return_connections = [
+            dict(edge)
+            for edge in target_connections
+            if isinstance(edge, Mapping)
+            and str(edge.get("map", "")) in selected_map_aliases
+        ]
+        return_warps = [
+            dict(edge)
+            for edge in target_warps
+            if isinstance(edge, Mapping)
+            and str(edge.get("dest_map", "")) in selected_map_aliases
+        ]
+        external_graph_maps[name] = {
+            "id": target_id,
+            "region": target_record.value.get("region"),
+            "connections": return_connections,
+            "warp_events": return_warps,
+            "_terminal_warp_count": len(target_warps),
+        }
+
+    retained_external = {
+        external_by_alias[destination]
+        for _, _, _, destination in reviewed_retained
+        if destination in external_by_alias
+    }
+    if set(declared_external) != retained_external:
+        missing = sorted(retained_external - set(declared_external))
+        extra = sorted(set(declared_external) - retained_external)
+        raise ContentPortError(
+            "retainedExternalEndpoints must exactly match declared retained external "
+            f"destinations; missing={missing[:1]}, extra={extra[:1]}"
+        )
+    source_records.update(external_records)
+    for alias, name in external_by_alias.items():
+        aliases[ResourceKey("map", alias)] = ResourceKey("map", name)
 
     removal_identities = [
         (removal["source"], removal["path"]) for removal in adaptations["warpRemovals"]
@@ -3704,14 +3872,17 @@ def resolve_port_sources(
                     f"{authority.layout}: source map {authority.source} is absent from "
                     f"the {authority.source_role} donor"
                 ) from error
-            if source_map.value.get("layout") != authority.layout:
+            source_layout = authority.source_layout or authority.layout
+            if source_map.value.get("layout") != source_layout:
                 raise ContentPortError(
                     f"{authority.layout}: source map {authority.source} in the "
                     f"{authority.source_role} donor resolves layout "
-                    f"{source_map.value.get('layout')!r}"
+                    f"{source_map.value.get('layout')!r}, expected {source_layout!r}"
                 )
         try:
-            record = context.load(ResourceKey("layout", authority.layout))
+            record = context.load(
+                ResourceKey("layout", authority.source_layout or authority.layout)
+            )
         except ContentPortError as error:
             raise ContentPortError(
                 f"{authority.layout}: layout is absent from its reviewed "
@@ -3721,7 +3892,28 @@ def resolve_port_sources(
             raise ContentPortError(
                 f"{authority.layout}: overlapping layout binary authorities"
             )
-        selected_layouts[authority.layout] = record
+        value = _thaw(record.value)
+        value["id"] = authority.layout
+        source_layout = authority.source_layout or authority.layout
+        if source_layout != authority.layout:
+            target_maps = [
+                allocation.name
+                for allocation in descriptor.allocation_index.maps.values()
+                if allocation.layout == authority.layout
+            ]
+            if len(target_maps) != 1:
+                raise ContentPortError(
+                    f"{authority.layout}: aliased layout must belong to exactly one target map"
+                )
+            target_map = target_maps[0]
+            value["name"] = f"{target_map}_Layout"
+            source_prefix = f"data/layouts/{authority.source}/"
+            target_prefix = f"data/layouts/{target_map}/"
+            for field in ("border_filepath", "blockdata_filepath"):
+                path = value.get(field)
+                if isinstance(path, str) and path.startswith(source_prefix):
+                    value[field] = target_prefix + path.removeprefix(source_prefix)
+        selected_layouts[authority.layout] = SourceRecord(value, record.provenance)
         layout_authorities[authority.layout] = authority.source_role
 
     for layout_id, record in list(selected_layouts.items()):
@@ -4370,8 +4562,11 @@ def resolve_port_sources(
         for field_name in ("border_filepath", "blockdata_filepath"):
             role = layout_field_authorities[layout_id][field_name]
             relative = str(record.value[field_name])
-            safe_repo_path(donor_roots[role], relative, allow_missing=False)
-            qualified = f"{role}:{relative}"
+            source_relative = (
+                contexts[role].canonicalize(ResourceKey("asset", relative)).name
+            )
+            safe_repo_path(donor_roots[role], source_relative, allow_missing=False)
+            qualified = f"{role}:{source_relative}"
             required_assets.add(ResourceKey("asset", qualified))
             required_asset_targets[qualified] = relative
     authority_roles = {value: role for role, value in donor_fields.items()}
@@ -4437,17 +4632,31 @@ def resolve_port_sources(
         capability = asset.get("capability")
         role = asset.get("donor")
         source_path = asset.get("sourcePath")
+        asset_type = asset.get("assetType", "tileset")
         if capability not in enabled_capability_names:
             continue
         if not isinstance(role, str) or role not in donor_roots:
             raise ContentPortError(f"assets[{index}]: unknown donor role {role!r}")
         if not isinstance(source_path, str):
             raise ContentPortError(f"assets[{index}]: invalid sourcePath")
+        if asset_type not in {"tileset", "audio"}:
+            raise ContentPortError(
+                f"assets[{index}]: unknown asset type {asset_type!r}"
+            )
         path = safe_repo_path(donor_roots[role], source_path, allow_missing=False)
         qualified_name = f"{role}:{source_path}"
         semantic_target = asset.get("semanticTarget")
         if not isinstance(semantic_target, str):
             raise ContentPortError(f"assets[{index}]: invalid semanticTarget")
+        if asset_type == "audio":
+            if not source_path.startswith("sound/") or not semantic_target.startswith(
+                "sound/"
+            ):
+                raise ContentPortError(
+                    f"assets[{index}]: audio source and target must stay under sound/"
+                )
+            required_assets.add(ResourceKey("asset", qualified_name))
+            required_asset_targets[qualified_name] = semantic_target
         key = ResourceKey("asset", qualified_name)
         previous = source_records.get(key)
         record = SourceRecord({}, Provenance(path.as_posix(), f"/assets/{index}"))
@@ -4534,7 +4743,10 @@ def resolve_port_sources(
         decision.map_name for decision in enabled if decision.capability == "spatial"
     }
     allowed: set[ResourceKey] = (
-        set(capability_roots) | explicit_dependencies | asset_policy_keys
+        set(capability_roots)
+        | explicit_dependencies
+        | asset_policy_keys
+        | set(external_records)
     )
     pending_explicit = list(explicit_dependencies)
     while pending_explicit:
@@ -4611,7 +4823,7 @@ def resolve_port_sources(
         identity = f"{role}:{key.domain}:{key.name}"
         semantic_evidence[identity] = _semantic_record_digest(role, key, record.value)
 
-    rendered_graph = world_graph_from_maps(selected_maps)
+    rendered_graph = world_graph_from_maps({**selected_maps, **external_graph_maps})
     world_policy = adaptations.get("worldPolicy")
     if not isinstance(world_policy, dict) or set(world_policy) != {
         "roots",
@@ -4655,9 +4867,8 @@ def resolve_port_sources(
             edge.source,
             f"connections/{edge.index}",
             "connection",
-            f"MAP_{edge.target}",
         )
-        in reviewed_retained
+        in {(source, path, kind) for source, path, kind, _ in reviewed_retained}
     )
     dynamic_map_aliases = {
         str(document.get("id", name)).removeprefix("MAP_"): name
@@ -4803,7 +5014,10 @@ def resolve_port_sources(
         for name, ownership in descriptor.map_ownership.items()
         if ownership == "preserve"
     )
-    symbols, legacy_inputs = _referenced_inputs(content_pin.root, preserved_maps)
+    # Preserve-owned maps are target authority, including the scripts they
+    # recursively reference. Their donor aliases establish spatial provenance
+    # earlier; they must never redirect target evidence back to a donor path.
+    symbols, legacy_inputs = _referenced_inputs(target_root, preserved_maps)
     attribute_formats = _attribute_fixture_evidence(
         adaptations["attributeFixtures"], donor_fields, contexts, donor_roots
     )

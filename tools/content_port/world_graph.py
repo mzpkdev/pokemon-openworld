@@ -124,7 +124,16 @@ def world_graph_from_maps(
         connections = [] if connections in (None, 0) else connections
         if not isinstance(warps, list) or not isinstance(connections, list):
             raise ContentPortError(f"{name}: map connections and warps must be arrays")
-        nodes[name] = WorldMap(name, len(warps), document.get("region"))
+        terminal_warp_count = document.get("_terminal_warp_count")
+        if terminal_warp_count is not None and (
+            type(terminal_warp_count) is not int or terminal_warp_count < len(warps)
+        ):
+            raise ContentPortError(f"{name}: terminal warp count is invalid")
+        nodes[name] = WorldMap(
+            name,
+            terminal_warp_count if terminal_warp_count is not None else len(warps),
+            document.get("region"),
+        )
         for index, connection in enumerate(connections):
             try:
                 target_symbol = _map_name(str(connection["map"]))

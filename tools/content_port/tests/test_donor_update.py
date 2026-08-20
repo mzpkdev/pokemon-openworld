@@ -950,6 +950,96 @@ class DonorUpdateTests(unittest.TestCase):
             with self.assertRaisesRegex(DonorUpdateError, message):
                 validate_assets(policy, evidence_root=self.root)
 
+    def test_typed_audio_closure_authenticates_live_integration_references(
+        self,
+    ) -> None:
+        policy = self.asset_policy()
+        permission = next(iter(policy["permissionRecords"]))
+
+        def audio_asset(key: str, source_path: str) -> dict[str, object]:
+            return {
+                "key": key,
+                "assetType": "audio",
+                "donor": "fixture",
+                "sourcePath": source_path,
+                "semanticTarget": source_path,
+                "sourceSha256": "a" * 64,
+                "targetSha256": "a" * 64,
+                "conversionCommand": ["copy-bytes"],
+                "permission": "redistributable",
+                "permissionEvidence": permission,
+                "capability": "environment-assets",
+                "supportState": "enabled",
+            }
+
+        policy["assets"] = [
+            audio_asset("midi", "sound/songs/midi/fixture.mid"),
+            audio_asset("sample", "sound/direct_sound_samples/fixture.aif"),
+        ]
+        policy["audioClosures"] = [
+            {
+                "key": "fixture",
+                "capability": "environment-assets",
+                "midiAsset": "midi",
+                "aifAssets": ["sample"],
+                "integration": [
+                    {
+                        "path": "sound/songs/midi/midi.cfg",
+                        "sections": ["fixture.mid"],
+                    },
+                    {
+                        "path": "sound/song_table.inc",
+                        "sections": ["fixture"],
+                    },
+                    {
+                        "path": "sound/voicegroups/fixture.inc",
+                        "sections": ["voicegroup_fixture"],
+                    },
+                    {
+                        "path": "sound/direct_sound_data.inc",
+                        "sections": ["DirectSoundWaveData_fixture"],
+                    },
+                ],
+            }
+        ]
+
+        files = {
+            "sound/songs/midi/midi.cfg": "fixture.mid: -E -G_fixture -V080\n",
+            "sound/song_table.inc": "\tsong fixture, MUSIC_PLAYER_BGM, 0\n",
+            "sound/voicegroups/fixture.inc": (
+                "voice_group fixture\n"
+                "\tvoice_directsound 60, 0, DirectSoundWaveData_fixture, 255, 0, 0, 0\n"
+            ),
+            "sound/direct_sound_data.inc": (
+                "DirectSoundWaveData_fixture::\n"
+                '\t.incbin "sound/direct_sound_samples/fixture.bin"\n'
+            ),
+        }
+        for path, contents in files.items():
+            destination = self.root / path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(contents)
+
+        self.assertEqual(
+            validate_assets(policy, evidence_root=self.root), tuple(policy["assets"])
+        )
+
+        missing_section = copy.deepcopy(policy)
+        missing_section["audioClosures"][0]["integration"][1]["sections"] = [
+            "not_registered"
+        ]
+        with self.assertRaisesRegex(DonorUpdateError, "missing integration symbol"):
+            validate_assets(missing_section, evidence_root=self.root)
+
+        (self.root / "sound/voicegroups/fixture.inc").write_text(
+            files["sound/voicegroups/fixture.inc"]
+            + "\tvoice_directsound 60, 0, DirectSoundWaveData_unreviewed, 255, 0, 0, 0\n"
+        )
+        with self.assertRaisesRegex(
+            DonorUpdateError, "live voicegroup audio references differ"
+        ):
+            validate_assets(policy, evidence_root=self.root)
+
     def test_historical_migration_uses_immutable_embedded_policy(self) -> None:
         map_path = self.repo / "data/maps/TestMap/map.json"
         map_path.parent.mkdir(parents=True)

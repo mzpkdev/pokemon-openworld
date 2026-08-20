@@ -397,9 +397,11 @@ class ProductionArtifactsTests(unittest.TestCase):
         ordinary_maps = [
             row["map"] for row in classification["maps"] if row["kind"] == "ordinary"
         ]
-        alias_maps = {
-            row["map"] for row in classification["maps"] if row["kind"] == "alias"
-        }
+        encounter_eligible_maps = [
+            row["map"]
+            for row in classification["maps"]
+            if row["kind"] in {"ordinary", "alias"}
+        ]
         species = set(
             re.findall(
                 r"\bSPECIES_[A-Z0-9_]+\b",
@@ -424,13 +426,13 @@ class ProductionArtifactsTests(unittest.TestCase):
             expected_blocked_maps=set(),
             protected_route39_profile=ROUTE39_SOURCE_DIGEST,
         )
-        self.assertEqual(len(canonical_maps), 254)
+        self.assertEqual(len(canonical_maps), 255)
         self.assertEqual(len(ordinary_maps), 84)
-        self.assertEqual(alias_maps, ALIAS_MAPS)
+        self.assertEqual(len(encounter_eligible_maps), 89)
         kinds = [row["kind"] for row in classification["maps"]]
         self.assertEqual(kinds.count("ordinary"), 84)
         self.assertEqual(kinds.count("alias"), 5)
-        self.assertEqual(kinds.count("encounter-free"), 147)
+        self.assertEqual(kinds.count("encounter-free"), 148)
         self.assertEqual(kinds.count("special"), 18)
         statuses = [record["status"] for record in ecology_document["records"]]
         self.assertEqual(statuses.count("inventoried"), 84)

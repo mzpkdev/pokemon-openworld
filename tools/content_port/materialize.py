@@ -181,10 +181,21 @@ def _asset_units(
         role = item.get("donor")
         source = item.get("sourcePath")
         command = item.get("conversionCommand")
+        asset_type = item.get("assetType", "tileset")
         if not all(
             isinstance(value, str) and value for value in (target, role, source)
         ):
             raise ContentPortError(f"assets[{index}]: incomplete source binding")
+        if asset_type not in {"tileset", "audio"}:
+            raise ContentPortError(
+                f"assets[{index}]: unknown asset type {asset_type!r}"
+            )
+        if asset_type == "audio" and (
+            not source.startswith("sound/") or not target.startswith("sound/")
+        ):
+            raise ContentPortError(
+                f"assets[{index}]: audio source and target must stay under sound/"
+            )
         if role not in state.donor_roots:
             raise ContentPortError(f"assets[{index}]: unknown donor role {role!r}")
         source_key = ResourceKey("asset", f"{role}:{source}")
@@ -244,7 +255,12 @@ def _asset_units(
         if hashlib.sha256(converted).hexdigest() != item.get("targetSha256"):
             raise ContentPortError(f"assets[{index}]: target hash drift for {target}")
         units.append(
-            RenderUnit(f"asset:{target}", "tileset-assets", target, {target: converted})
+            RenderUnit(
+                f"asset:{target}",
+                "audio-assets" if asset_type == "audio" else "tileset-assets",
+                target,
+                {target: converted},
+            )
         )
     authorized_sources = set(state.inventory.get("asset-policy", ()))
     required_sources = set(state.inventory.get("asset-required", ()))
@@ -800,6 +816,7 @@ def _section_units(
         allocation.section
         for name, allocation in descriptor.allocation_index.maps.items()
         if descriptor.map_ownership.get(name) == "rendered"
+        and allocation.section_ownership == "allocated"
     }
     units: list[RenderUnit] = []
     for authority in descriptor.section_metadata_authorities:

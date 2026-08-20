@@ -54,7 +54,7 @@ CLASSIFICATION_COUNTS = {
     "ordinary": 84,
     "alias": 5,
     "special": 18,
-    "encounter-free": 147,
+    "encounter-free": 148,
 }
 JOHTO_PROFILE_COUNT = 147
 ROUTE39_LABELS = {"gRoute39", "gRoute39_Night"}

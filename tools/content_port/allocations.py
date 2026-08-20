@@ -107,9 +107,24 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
         for index, raw in enumerate(records):
             item_pointer = f"{pointer}.{label}[{index}]"
             item = _object(raw, item_pointer)
-            _exact_keys(item, {name_key, slot_key}, item_pointer)
+            expected_keys = {name_key, slot_key}
+            if label == "groups" and "contentRegion" in item:
+                expected_keys.add("contentRegion")
+            _exact_keys(item, expected_keys, item_pointer)
             name = _string(item[name_key], f"{item_pointer}.{name_key}")
             slot = _integer(item[slot_key], f"{item_pointer}.{slot_key}")
+            if label == "groups" and "contentRegion" in item:
+                content_region = _string(
+                    item["contentRegion"], f"{item_pointer}.contentRegion"
+                )
+                if content_region not in {
+                    "REGION_HOENN",
+                    "REGION_KANTO",
+                    "REGION_JOHTO",
+                }:
+                    raise ContentPortError(
+                        f"{item_pointer}.contentRegion: expected a product region"
+                    )
             if name in parsed:
                 raise ContentPortError(
                     f"{item_pointer}.{name_key}: duplicate allocation {name}"
@@ -129,6 +144,7 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
         "targetLayoutIndex",
         "section",
         "targetSection",
+        "sectionOwnership",
     }
     maps: dict[str, MapAllocation] = {}
     map_ids: list[str] = []
@@ -137,7 +153,12 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
     for index, raw in enumerate(records):
         item_pointer = f"{pointer}.maps[{index}]"
         item = _object(raw, item_pointer)
-        _exact_keys(item, map_keys, item_pointer)
+        unknown = sorted(set(item) - map_keys)
+        missing = sorted((map_keys - {"sectionOwnership"}) - set(item))
+        if unknown:
+            raise ContentPortError(f"{item_pointer}: unknown field {unknown[0]!r}")
+        if missing:
+            raise ContentPortError(f"{item_pointer}: missing field {missing[0]!r}")
         strings = {
             key: _string(item[key], f"{item_pointer}.{key}")
             for key in (
@@ -171,9 +192,24 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
             raise ContentPortError(
                 f"{item_pointer}.targetLayoutIndex: layout allocation mismatch"
             )
-        if registries["sections"].get(section) != numbers["targetSection"]:
+        section_ownership = _string(
+            item.get("sectionOwnership", "allocated"),
+            f"{item_pointer}.sectionOwnership",
+        )
+        if section_ownership not in {"allocated", "preserve", "reference"}:
+            raise ContentPortError(
+                f"{item_pointer}.sectionOwnership: expected allocated, preserve, or reference"
+            )
+        if (
+            section_ownership == "allocated"
+            and registries["sections"].get(section) != numbers["targetSection"]
+        ):
             raise ContentPortError(
                 f"{item_pointer}.targetSection: section allocation mismatch"
+            )
+        if section_ownership != "allocated" and section in registries["sections"]:
+            raise ContentPortError(
+                f"{item_pointer}.sectionOwnership: resident section must not be allocated"
             )
         maps[name] = MapAllocation(
             name=name,
@@ -185,6 +221,7 @@ def load_allocation_index(document: object, pointer: str = "$") -> AllocationInd
             target_layout_index=numbers["targetLayoutIndex"],
             section=section,
             target_section=numbers["targetSection"],
+            section_ownership=section_ownership,
         )
         map_ids.append(strings["id"])
         map_slots.append((group, numbers["targetMember"]))

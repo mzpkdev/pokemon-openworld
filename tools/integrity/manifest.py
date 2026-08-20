@@ -25,6 +25,13 @@ EXPECTED_ANIMATION_CALLBACKS = {
     f"gTileset_{item['tileset']}": item["callback"]
     for item in JOHTO_ANIMATIONS["schedules"]
 }
+JOHTO_GROUP_CONTENT_REGIONS = {
+    item["name"]: item.get("contentRegion", "REGION_JOHTO")
+    for item in JOHTO_LOCK["groups"]
+}
+EXPECTED_NON_JOHTO_GROUP_CONTENT_REGIONS = {
+    "gMapGroup_HnsPewterCity": "REGION_KANTO",
+}
 
 
 def group_content_region(group_name: Any) -> str | None:
@@ -33,8 +40,8 @@ def group_content_region(group_name: Any) -> str | None:
         return None
     if group_name.endswith("_Frlg"):
         return "REGION_KANTO"
-    if group_name in {item["name"] for item in JOHTO_LOCK["groups"]}:
-        return "REGION_JOHTO"
+    if group_name in JOHTO_GROUP_CONTENT_REGIONS:
+        return JOHTO_GROUP_CONTENT_REGIONS[group_name]
     return "REGION_HOENN"
 
 
@@ -89,10 +96,24 @@ def _validate_final_johto_source_contract() -> None:
         range(75, 75 + actual["groups"])
     ):
         raise RuntimeError("integrity Johto group allocation drift")
+    if {
+        name: region
+        for name, region in JOHTO_GROUP_CONTENT_REGIONS.items()
+        if region != "REGION_JOHTO"
+    } != EXPECTED_NON_JOHTO_GROUP_CONTENT_REGIONS:
+        raise RuntimeError("integrity group content-origin policy drift")
     if [item["targetId"] for item in JOHTO_LOCK["sections"]] != list(
         range(209, 209 + actual["sections"])
     ):
         raise RuntimeError("integrity Johto section allocation drift")
+    allocated_sections = {item["targetId"] for item in JOHTO_LOCK["sections"]}
+    map_sections = {item["targetSection"] for item in JOHTO_LOCK["maps"]}
+    if not allocated_sections <= map_sections or any(
+        item["targetSection"] not in allocated_sections
+        and item.get("sectionOwnership") != "reference"
+        for item in JOHTO_LOCK["maps"]
+    ):
+        raise RuntimeError("integrity Johto map-section ownership drift")
     if [item["targetIndex"] for item in JOHTO_LOCK["layouts"]] != list(
         range(785, 785 + actual["layouts"])
     ):
@@ -102,7 +123,7 @@ def _validate_final_johto_source_contract() -> None:
 _validate_final_johto_source_contract()
 JOHTO_FORMAT_CLOSURE_MAPS = list(JOHTO_LOCK["maps"])
 JOHTO_FORMAT_CLOSURE_LAYOUTS = list(JOHTO_LOCK["layouts"])
-ACTIVE_JOHTO_GROUPS = {item["name"] for item in JOHTO_LOCK["groups"]}
+ACTIVE_JOHTO_GROUPS = set(JOHTO_GROUP_CONTENT_REGIONS)
 REVIEWED_CROSS_GEOGRAPHY_MAPS = _reviewed_cross_geography_maps()
 
 
@@ -115,7 +136,10 @@ def expected_map_geography(map_name: Any, group_name: Any) -> str | None:
 
 
 INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
-ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS}
+# The allocation lock, rather than every map that uses a section, owns the physical
+# map-section registry extension.  Ports may deliberately reference an existing
+# product section (for example HnS Pewter uses Kanto's MAPSEC_PEWTER_CITY).
+ACTIVE_JOHTO_SECTIONS = {item["targetId"] for item in JOHTO_LOCK["sections"]}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935
 BASE_REVIEWED_MAPS = 939
@@ -133,7 +157,7 @@ EXPECTED_COUNTS = {
     "layouts": EXPECTED_LAYOUTS,
     "regions": {
         "REGION_HOENN": 518,
-        "REGION_KANTO": 422,
+        "REGION_KANTO": 423,
         "REGION_JOHTO": 253,
     },
 }

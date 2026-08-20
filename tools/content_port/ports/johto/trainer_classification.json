@@ -5853,6 +5853,11 @@
       "map": "MahoganyHideout_B3F",
       "events": [],
       "authority": "absent"
+    },
+    {
+      "map": "PewterCity_Hns",
+      "events": [],
+      "authority": "content"
     }
   ],
   "pairedDoubles": [

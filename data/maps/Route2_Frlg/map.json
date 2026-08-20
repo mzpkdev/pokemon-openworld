@@ -16,8 +16,8 @@
   "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
   "connections": [
     {
-      "map": "MAP_PEWTER_CITY",
-      "offset": -12,
+      "map": "MAP_PEWTER_CITY_HNS",
+      "offset": -14,
       "direction": "up"
     },
     {

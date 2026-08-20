@@ -2027,6 +2027,21 @@ OldaleTown_PokemonCenter_1F_Text_Test:
                 rf"FLAG_UNUSED_0x[0-9A-F]+\s+\(SYSTEM_FLAGS \+ 0x{offset:X}\)",
             )
 
+    def test_hns_pewter_fly_reuses_the_next_unclaimed_persistent_slot(self):
+        flags = FLAGS.read_text(encoding="utf-8")
+        self.assertRegex(
+            flags,
+            r"^#define FLAG_WORLD_MAP_PEWTER_CITY\s+FLAG_UNUSED_0x90B$",
+        )
+        self.assertRegex(
+            flags,
+            r"^#define FLAG_UNUSED_0x90B\s+\(SYSTEM_FLAGS \+ 0xAB\)",
+        )
+        self.assertIn(
+            "FlagGet(FLAG_WORLD_MAP_PEWTER_CITY)",
+            REGION_MAP.read_text(encoding="utf-8"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

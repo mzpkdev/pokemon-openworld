@@ -2386,7 +2386,11 @@
 // World Map Flags
 #define FLAG_WORLD_MAP_PALLET_TOWN                                  0
 #define FLAG_WORLD_MAP_VIRIDIAN_CITY                                0
-#define FLAG_WORLD_MAP_PEWTER_CITY                                  0
+// HnS Pewter is the one Kanto Fly destination materialized by this product.
+// Reuse the first unclaimed persistent slot after the two imported Kanto
+// Pokémon Center destinations; the historical FRLG raw id is not safe in the
+// Emerald save layout.
+#define FLAG_WORLD_MAP_PEWTER_CITY                                  FLAG_UNUSED_0x90B
 #define FLAG_WORLD_MAP_CERULEAN_CITY                                0
 #define FLAG_WORLD_MAP_LAVENDER_TOWN                                0
 #define FLAG_WORLD_MAP_VERMILION_CITY                               0
