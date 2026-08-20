@@ -8,8 +8,11 @@ from pathlib import Path
 from unittest import mock
 
 from tools.integrity.manifest import (
+    ACTIVE_JOHTO_SECTIONS,
+    BASE_MAP_SECTIONS,
     EXPECTED_ABIS,
     EXPECTED_COUNTS,
+    EXPECTED_MAP_SECTIONS,
     JOHTO_FORMAT_CLOSURE_MAPS,
     ManifestError,
     REVIEWED_CROSS_GEOGRAPHY_MAPS,
@@ -194,6 +197,11 @@ class IntegrityToolTests(unittest.TestCase):
 
     def test_manifest_keeps_format_closure_distinct_from_geography(self) -> None:
         self.assertEqual(len(JOHTO_FORMAT_CLOSURE_MAPS), 255)
+        self.assertEqual(
+            ACTIVE_JOHTO_SECTIONS,
+            set(range(BASE_MAP_SECTIONS, BASE_MAP_SECTIONS + 58)),
+        )
+        self.assertEqual(EXPECTED_MAP_SECTIONS, 267)
         self.assertEqual(
             REVIEWED_CROSS_GEOGRAPHY_MAPS,
             {"VermilionCity_PortInside": "REGION_KANTO"},

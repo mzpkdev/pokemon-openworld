@@ -93,6 +93,14 @@ def _validate_final_johto_source_contract() -> None:
         range(209, 209 + actual["sections"])
     ):
         raise RuntimeError("integrity Johto section allocation drift")
+    allocated_sections = {item["targetId"] for item in JOHTO_LOCK["sections"]}
+    map_sections = {item["targetSection"] for item in JOHTO_LOCK["maps"]}
+    if not allocated_sections <= map_sections or any(
+        item["targetSection"] not in allocated_sections
+        and item.get("sectionOwnership") != "reference"
+        for item in JOHTO_LOCK["maps"]
+    ):
+        raise RuntimeError("integrity Johto map-section ownership drift")
     if [item["targetIndex"] for item in JOHTO_LOCK["layouts"]] != list(
         range(785, 785 + actual["layouts"])
     ):
@@ -115,7 +123,10 @@ def expected_map_geography(map_name: Any, group_name: Any) -> str | None:
 
 
 INACTIVE_JOHTO_GROUPS: dict[int, str] = {}
-ACTIVE_JOHTO_SECTIONS = {item["targetSection"] for item in JOHTO_FORMAT_CLOSURE_MAPS}
+# The allocation lock, rather than every map that uses a section, owns the physical
+# map-section registry extension.  Ports may deliberately reference an existing
+# product section (for example HnS Pewter uses Kanto's MAPSEC_PEWTER_CITY).
+ACTIVE_JOHTO_SECTIONS = {item["targetId"] for item in JOHTO_LOCK["sections"]}
 BASE_GROUPS = 75
 BASE_GROUPED_MAPS = 935
 BASE_REVIEWED_MAPS = 939
