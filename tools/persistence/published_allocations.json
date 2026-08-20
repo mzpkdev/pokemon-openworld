@@ -903,7 +903,21 @@
     {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_HIKER_PARRY_JOHTO", "value": 1672, "physicalBinding": {"bitIndex": 814, "kind": "trainer-defeat-bitmap"}},
     {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_BIRD_KEEPER_PETER_JOHTO", "value": 1673, "physicalBinding": {"bitIndex": 815, "kind": "trainer-defeat-bitmap"}},
     {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_POKEMANIAC_RON_JOHTO", "value": 1674, "physicalBinding": {"bitIndex": 816, "kind": "trainer-defeat-bitmap"}},
-    {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_EXPERT_ROXANNE_JOHTO", "value": 1675, "physicalBinding": {"bitIndex": 817, "kind": "trainer-defeat-bitmap"}}
+    {"domain": "trainerIds", "source": "johto-trainer-identities", "storage": "u32-id", "symbol": "TRAINER_EXPERT_ROXANNE_JOHTO", "value": 1675, "physicalBinding": {"bitIndex": 817, "kind": "trainer-defeat-bitmap"}},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED", "value": 53},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED", "value": 54},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED", "value": 55},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_KANTO_CHAMPION_CROWNED", "value": 56},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED", "value": 57},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_SURF_RECEIVED", "value": 58},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED", "value": 59},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED", "value": 60},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_DIVE_RECEIVED", "value": 61},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED", "value": 62},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_HOENN_WATERFALL_RECEIVED", "value": 63},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED", "value": 64},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED", "value": 65},
+    {"domain": "flags", "source": "regional-facts", "storage": "flag-id", "symbol": "FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED", "value": 66}
   ],
   "schemaVersion": 1
 }

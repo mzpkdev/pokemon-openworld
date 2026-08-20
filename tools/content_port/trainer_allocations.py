@@ -176,17 +176,18 @@ def update_publication(
     expected_entries = [
         _published_entry(symbol, value) for symbol, value in allocations
     ]
-    existing_symbols = {
-        item["symbol"] for item in entries if item["domain"] == "trainerIds"
-    }
     expected = {symbol for symbol, _ in allocations}
-    stale = expected & existing_symbols
-    if stale:
-        published = {
-            item["symbol"]: item
-            for item in entries
-            if item["domain"] == "trainerIds" and item["symbol"] in expected
-        }
+    published_entries = [
+        item
+        for item in entries
+        if item["domain"] == "trainerIds" and item["symbol"] in expected
+    ]
+    if published_entries:
+        if len(published_entries) != EXPECTED_NEW:
+            raise AllocationError(
+                "published Johto allocations must appear exactly once"
+            )
+        published = {item["symbol"]: item for item in published_entries}
         if set(published) != expected:
             raise AllocationError(
                 "published Johto allocation is only partially present"
@@ -194,7 +195,17 @@ def update_publication(
         for symbol, value in allocations:
             if published[symbol] != _published_entry(symbol, value):
                 raise AllocationError(f"published allocation drifted: {symbol}")
-        if entries[-EXPECTED_NEW:] != expected_entries:
+        exact_blocks = [
+            index
+            for index in range(len(entries) - EXPECTED_NEW + 1)
+            if entries[index : index + EXPECTED_NEW] == expected_entries
+        ]
+        if len(exact_blocks) != 1:
+            raise AllocationError(
+                "published Johto allocations must be the exact append-only suffix"
+            )
+        trainer_entries = [item for item in entries if item["domain"] == "trainerIds"]
+        if trainer_entries[-EXPECTED_NEW:] != expected_entries:
             raise AllocationError(
                 "published Johto allocations must be the exact append-only suffix"
             )

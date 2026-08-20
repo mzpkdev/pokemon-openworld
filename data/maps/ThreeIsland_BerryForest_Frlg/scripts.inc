@@ -31,6 +31,7 @@ ThreeIsland_BerryForest_EventScript_Lostelle::
 	msgbox ThreeIsland_BerryForest_Text_LetsGoHome
 	closemessage
 	setflag FLAG_RESCUED_LOSTELLE
+	setflag FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED
 	setflag FLAG_HIDE_LOSTELLE_IN_BERRY_FOREST
 	setvar VAR_MAP_SCENE_TWO_ISLAND_JOYFUL_GAME_CORNER, 2
 	clearflag FLAG_HIDE_TWO_ISLAND_GAME_CORNER_LOSTELLE
@@ -101,4 +102,3 @@ ThreeIsland_BerryForest_Text_WelcomeToBerryForest::
 ThreeIsland_BerryForest_Text_BewareWildBerryLovingMons::
 	.string "Beware of wild, BERRY-loving\n"
 	.string "POKéMON!$"
-

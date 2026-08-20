@@ -11,6 +11,19 @@ struct RegionalStoryMigration
     bool32 (*apply)(void);
 };
 
+enum HistoricalRegionalStoryFlag
+{
+    // These FRLG flags retain their raw saved identifiers from
+    // constants/flags_frlg.h. The all-regions facade otherwise replaces their
+    // inactive-build symbols with zero.
+    HISTORICAL_FLAG_GOT_HM01 = 0x237,
+    HISTORICAL_FLAG_RESCUED_MR_FUJI = 0x23C,
+    HISTORICAL_FLAG_GOT_MASTER_BALL_FROM_SILPH = 0x250,
+    HISTORICAL_FLAG_RESCUED_LOSTELLE = 0x2A3,
+    HISTORICAL_FLAG_RECOVERED_SAPPHIRE = 0x2DC,
+    HISTORICAL_FLAG_GOT_RUBY = 0x2DD,
+};
+
 static bool32 MigrateUnversionedSave(void)
 {
     // The legacy mechanics grants are intentionally ambiguous. Regional facts
@@ -25,10 +38,53 @@ static bool32 MigrateFastShipTerminalDefault(void)
     return TRUE;
 }
 
+static bool32 MigrateExactRegionalStoryFacts(void)
+{
+    // Each source flag is set by the same event script immediately before its
+    // regional fact. Generic badge slots remain intentionally unmapped.
+    static const struct
+    {
+        u16 historicalFlag;
+        u16 regionalFactFlag;
+    } facts[] =
+    {
+        {HISTORICAL_FLAG_GOT_HM01,          FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED},
+        {HISTORICAL_FLAG_RESCUED_MR_FUJI,   FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED},
+        {HISTORICAL_FLAG_GOT_MASTER_BALL_FROM_SILPH, FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED},
+        {FLAG_DELIVERED_DEVON_GOODS,        FLAG_REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED},
+        {FLAG_RECEIVED_HM_SURF,             FLAG_REGIONAL_FACT_HOENN_SURF_RECEIVED},
+        {FLAG_RECEIVED_DEVON_SCOPE,         FLAG_REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED},
+        {FLAG_RECEIVED_HM_DIVE,             FLAG_REGIONAL_FACT_HOENN_DIVE_RECEIVED},
+        {FLAG_DEFEATED_WALLY_VICTORY_ROAD,  FLAG_REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED},
+        {FLAG_RECEIVED_HM_WATERFALL,        FLAG_REGIONAL_FACT_HOENN_WATERFALL_RECEIVED},
+        {HISTORICAL_FLAG_RESCUED_LOSTELLE,  FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED},
+        {HISTORICAL_FLAG_GOT_RUBY,          FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED},
+        {HISTORICAL_FLAG_RECOVERED_SAPPHIRE, FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED},
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(facts); i++)
+    {
+        if (FlagGet(facts[i].historicalFlag))
+            FlagSet(facts[i].regionalFactFlag);
+    }
+
+    // The Space Center's completion scene persistently commits both values
+    // before it sets its transient defeated flag, which is cleared later.
+    if (VarGet(VAR_MOSSDEEP_CITY_STATE) == 3
+     && VarGet(VAR_MOSSDEEP_SPACE_CENTER_STATE) == 3)
+        FlagSet(FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED);
+
+    // FLAG_DEFEATED_CHAMP is cleared after the Hall of Fame and
+    // FLAG_IS_CHAMPION does not distinguish the Kanto and Hoenn stories, so
+    // neither can truthfully backfill KANTO_CHAMPION_CROWNED.
+    return TRUE;
+}
+
 static const struct RegionalStoryMigration sRegionalStoryMigrations[] =
 {
     {0, 1, MigrateUnversionedSave},
     {1, 2, MigrateFastShipTerminalDefault},
+    {2, 3, MigrateExactRegionalStoryFacts},
 };
 
 static u8 *MigrationMarker(void)

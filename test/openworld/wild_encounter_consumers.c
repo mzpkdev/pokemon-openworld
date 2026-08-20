@@ -11,14 +11,39 @@
 #include "random.h"
 #include "script.h"
 #include "task.h"
+#include "trainer_rating.h"
 #include "tv.h"
 #include "wild_encounter.h"
 #include "wild_encounter_ow.h"
-#include "world_tier.h"
 #include "constants/game_stat.h"
 #include "constants/maps.h"
 #include "constants/metatile_behaviors.h"
 #include "test/test.h"
+
+static const u16 sTrainerRatingBadgeFacts[] =
+{
+    FLAG_REGIONAL_FACT_HOENN_STONE_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_KNUCKLE_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_BOULDER_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_ZEPHYR_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_DYNAMO_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_MARSH_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_HEAT_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_RAINBOW_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_PLAIN_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_BALANCE_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_SOUL_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_FOG_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_FEATHER_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_THUNDER_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_STORM_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_MIND_BADGE,
+    FLAG_REGIONAL_FACT_HOENN_RAIN_BADGE,
+    FLAG_REGIONAL_FACT_KANTO_VOLCANO_BADGE,
+    FLAG_REGIONAL_FACT_JOHTO_RISING_BADGE,
+};
 
 struct EncounterConsumerState
 {
@@ -35,9 +60,8 @@ struct EncounterConsumerState
     u16 dailyWilds;
     u16 repelSteps;
     u16 specialResult;
-    bool8 stoneBadge;
-    bool8 cascadeBadge;
-    bool8 hiveBadge;
+    bool8 ratingFacts[ARRAY_COUNT(sTrainerRatingBadgeFacts)];
+    bool8 storyFact;
     bool8 isFishingEncounter;
     bool8 isSurfingEncounter;
     bool8 fieldControlsLocked;
@@ -46,33 +70,10 @@ struct EncounterConsumerState
     u8 mapNum;
 };
 
-static const enum Species sRoute32LandSpecies[] =
-{
-    SPECIES_MAREEP,
-    SPECIES_WOOPER,
-    SPECIES_EKANS,
-    SPECIES_PIDGEY,
-    SPECIES_BELLSPROUT,
-    SPECIES_ZUBAT,
-    SPECIES_GASTLY,
-};
-
-static const enum Species sRoute32WaterSpecies[] =
-{
-    SPECIES_TENTACOOL,
-    SPECIES_QUAGSIRE,
-    SPECIES_TENTACRUEL,
-};
-
-static const enum Species sRoute32RockSpecies[] =
-{
-    SPECIES_PINECO,
-    SPECIES_EXEGGCUTE,
-    SPECIES_EKANS,
-};
-
 static void SaveEncounterConsumerState(struct EncounterConsumerState *state)
 {
+    u16 index;
+
     state->mapHeader = gMapHeader;
     memcpy(state->objectEvents, gObjectEvents, sizeof(state->objectEvents));
     state->playerAvatar = gPlayerAvatar;
@@ -86,25 +87,15 @@ static void SaveEncounterConsumerState(struct EncounterConsumerState *state)
     state->dailyWilds = VarGet(VAR_DAILY_WILDS);
     state->repelSteps = VarGet(VAR_REPEL_STEP_COUNT);
     state->specialResult = gSpecialVar_Result;
-    state->stoneBadge = FlagGet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
-    state->cascadeBadge = FlagGet(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
-    state->hiveBadge = FlagGet(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE);
+    for (index = 0; index < ARRAY_COUNT(sTrainerRatingBadgeFacts); index++)
+        state->ratingFacts[index] = FlagGet(sTrainerRatingBadgeFacts[index]);
+    state->storyFact = FlagGet(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
     state->isFishingEncounter = gIsFishingEncounter;
     state->isSurfingEncounter = gIsSurfingEncounter;
     state->fieldControlsLocked = ArePlayerFieldControlsLocked();
     state->chainFishingStreak = gChainFishingDexNavStreak;
     state->mapGroup = gSaveBlock1Ptr->location.mapGroup;
     state->mapNum = gSaveBlock1Ptr->location.mapNum;
-}
-
-static void EstablishEncounterConsumerFixture(void)
-{
-    UnfreezeObjectEvents();
-    ResetTasks();
-    UnlockPlayerFieldControls();
-    memset(gObjectEvents, 0, sizeof(gObjectEvents));
-    memset(&gPlayerAvatar, 0, sizeof(gPlayerAvatar));
-    SetPokemonAnglerSpecies(SPECIES_NONE);
 }
 
 static void RestoreFlag(u16 flag, bool8 value)
@@ -117,6 +108,8 @@ static void RestoreFlag(u16 flag, bool8 value)
 
 static void RestoreEncounterConsumerState(const struct EncounterConsumerState *state)
 {
+    u16 index;
+
     UnfreezeObjectEvents();
     ResetTasks();
     if (state->fieldControlsLocked)
@@ -136,16 +129,24 @@ static void RestoreEncounterConsumerState(const struct EncounterConsumerState *s
     VarSet(VAR_DAILY_WILDS, state->dailyWilds);
     VarSet(VAR_REPEL_STEP_COUNT, state->repelSteps);
     gSpecialVar_Result = state->specialResult;
-    RestoreFlag(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE, state->stoneBadge);
-    RestoreFlag(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE, state->cascadeBadge);
-    RestoreFlag(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE, state->hiveBadge);
+    for (index = 0; index < ARRAY_COUNT(sTrainerRatingBadgeFacts); index++)
+        RestoreFlag(sTrainerRatingBadgeFacts[index], state->ratingFacts[index]);
+    RestoreFlag(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED, state->storyFact);
     gIsFishingEncounter = state->isFishingEncounter;
     gIsSurfingEncounter = state->isSurfingEncounter;
     gChainFishingDexNavStreak = state->chainFishingStreak;
     gSaveBlock1Ptr->location.mapGroup = state->mapGroup;
     gSaveBlock1Ptr->location.mapNum = state->mapNum;
-    // FishingWildEncounter only writes the private angler species. Attempt
-    // counters are updated by RecordFishingAttemptForTV, which this route does not call.
+    SetPokemonAnglerSpecies(SPECIES_NONE);
+}
+
+static void EstablishEncounterConsumerFixture(void)
+{
+    UnfreezeObjectEvents();
+    ResetTasks();
+    UnlockPlayerFieldControls();
+    memset(gObjectEvents, 0, sizeof(gObjectEvents));
+    memset(&gPlayerAvatar, 0, sizeof(gPlayerAvatar));
     SetPokemonAnglerSpecies(SPECIES_NONE);
 }
 
@@ -156,28 +157,16 @@ static void LoadMap(u16 map)
     gMapHeader = *Overworld_GetMapHeaderByGroupAndId(MAP_GROUP(map), MAP_NUM(map));
 }
 
-static void SetWorldTierOne(bool8 enabled)
+static void SetTrainerRatingBadgeCount(u16 count)
 {
-    FlagClear(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
-    FlagClear(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
-    FlagClear(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE);
-    if (enabled)
-        FlagSet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
+    u16 index;
+
+    for (index = 0; index < ARRAY_COUNT(sTrainerRatingBadgeFacts); index++)
+        RestoreFlag(sTrainerRatingBadgeFacts[index], index < count);
+    FlagClear(FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED);
 }
 
-static bool32 SpeciesIsOneOf(enum Species species, const enum Species *expected, u16 count)
-{
-    u16 i;
-
-    for (i = 0; i < count; i++)
-    {
-        if (species == expected[i])
-            return TRUE;
-    }
-    return FALSE;
-}
-
-static void PrepareJohtoConsumerMap(u16 map)
+static void PrepareMap(u16 map)
 {
     EstablishEncounterConsumerFixture();
     LoadMap(map);
@@ -185,414 +174,507 @@ static void PrepareJohtoConsumerMap(u16 map)
     gIsFishingEncounter = FALSE;
     gIsSurfingEncounter = FALSE;
     gSpecialVar_Result = FALSE;
+    SetTrainerRatingBadgeCount(0);
 }
 
-TEST("Standard wild encounters consume Route 101's resolved world tier")
+static bool8 TrySelectExpectedMatchCallProfileSpecies(
+    const struct WildEncounterProfileView *profile,
+    u16 trainerRating,
+    bool8 rollVanillaLevel,
+    enum Species *species)
+{
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome outcome;
+    u16 eligibleWeight = GetWildEncounterProfileEligibleWeight(profile, trainerRating);
+    u8 vanillaLevel;
+
+    if (eligibleWeight == 0
+     || !TrySelectWildEncounterEligibleEntry(
+         profile, trainerRating, Random() % eligibleWeight, &entry))
+        return FALSE;
+    vanillaLevel = entry.minLevel;
+    if (rollVanillaLevel)
+        vanillaLevel += Random() % (entry.maxLevel - entry.minLevel + 1);
+    if (!ProjectWildSlotOutcome(
+        entry.species, vanillaLevel, trainerRating, &profile->context, &outcome))
+        return FALSE;
+    *species = outcome.species;
+    return TRUE;
+}
+
+static enum Species SelectExpectedMatchCallSpecies(u16 map, bool8 rollVanillaLevel)
+{
+    enum Species species[2];
+    struct WildEncounterProfileView profile;
+    enum Species selectedSpecies;
+    enum TimeOfDay timeOfDay;
+    u16 headerId;
+    u16 trainerRating;
+    u8 numSpecies = 0;
+
+    if (!TryFindWildEncounterHeader(MAP_GROUP(map), MAP_NUM(map), &headerId))
+        return SPECIES_NONE;
+
+    trainerRating = TrainerRating_Get();
+    timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
+    if (TryResolveWildEncounterProfile(
+        headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
+     && TrySelectExpectedMatchCallProfileSpecies(
+         &profile, trainerRating, rollVanillaLevel, &selectedSpecies))
+        species[numSpecies++] = selectedSpecies;
+
+    timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
+    if (TryResolveWildEncounterProfile(
+        headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
+     && TrySelectExpectedMatchCallProfileSpecies(
+         &profile, trainerRating, rollVanillaLevel, &selectedSpecies))
+        species[numSpecies++] = selectedSpecies;
+
+    if (numSpecies == 0)
+        return SPECIES_NONE;
+    return species[Random() % numSpecies];
+}
+
+TEST("Walking and fishing project the same source profile from Trainer Rating")
 {
     struct EncounterConsumerState saved;
-    enum Species tier0Species;
-    enum Species tier1Species;
-    enum WorldTier tier0;
-    enum WorldTier tier1;
-    bool8 tier0Generated;
-    bool8 tier1Generated;
-    u8 tier0Level;
-    u8 tier1Level;
+    u8 walkingLow;
+    u8 walkingHigh;
+    u8 fishingLow;
+    u8 fishingHigh;
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
-    LoadMap(MAP_ROUTE101);
 
-    SetWorldTierOne(FALSE);
-    tier0 = WorldTier_Get();
+    PrepareMap(MAP_ROUTE101);
+    EXPECT_EQ(TrainerRating_Get(), 0);
     SeedRng(1234);
-    tier0Generated = StandardWildEncounter_Debug();
-    tier0Species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    tier0Level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    RestoreEncounterConsumerState(&saved);
-    LoadMap(MAP_ROUTE101);
+    EXPECT(StandardWildEncounter_Debug());
+    walkingLow = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
 
-    SetWorldTierOne(TRUE);
-    tier1 = WorldTier_Get();
+    PrepareMap(MAP_ROUTE101);
+    SetTrainerRatingBadgeCount(8);
+    EXPECT_EQ(TrainerRating_Get(), 24);
     SeedRng(1234);
-    tier1Generated = StandardWildEncounter_Debug();
-    tier1Species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    tier1Level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
+    EXPECT(StandardWildEncounter_Debug());
+    walkingHigh = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
 
-    RestoreEncounterConsumerState(&saved);
-
-    EXPECT_EQ(tier0, WORLD_TIER_0);
-    EXPECT_EQ(tier1, WORLD_TIER_1);
-    EXPECT(tier0Generated);
-    EXPECT(tier1Generated);
-    EXPECT_EQ(tier0Species, SPECIES_WURMPLE);
-    EXPECT_EQ(tier1Species, SPECIES_WURMPLE);
-    EXPECT(tier0Level >= 2 && tier0Level <= 3);
-    EXPECT(tier1Level >= 10 && tier1Level <= 14);
-}
-
-TEST("Fishing encounters consume Vermilion's resolved old rod world tier")
-{
-    struct EncounterConsumerState saved;
-    enum WorldTier tier0;
-    enum WorldTier tier1;
-    enum Species tier0Species;
-    enum Species tier1Species;
-    u8 tier0Level;
-    u8 tier1Level;
-
-    EstablishEncounterConsumerFixture();
-    SaveEncounterConsumerState(&saved);
-    LoadMap(MAP_VERMILION_CITY);
-
-    SetWorldTierOne(FALSE);
-    tier0 = WorldTier_Get();
-    SeedRng(1234);
+    PrepareMap(MAP_VERMILION_CITY);
+    SeedRng(4321);
     FishingWildEncounter(OLD_ROD);
-    tier0Species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    tier0Level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    RestoreEncounterConsumerState(&saved);
-    LoadMap(MAP_VERMILION_CITY);
+    fishingLow = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
 
-    SetWorldTierOne(TRUE);
-    tier1 = WorldTier_Get();
-    SeedRng(1234);
+    PrepareMap(MAP_VERMILION_CITY);
+    SetTrainerRatingBadgeCount(8);
+    SeedRng(4321);
     FishingWildEncounter(OLD_ROD);
-    tier1Species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    tier1Level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
+    fishingHigh = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
 
-    RestoreEncounterConsumerState(&saved);
-
-    EXPECT_EQ(tier0, WORLD_TIER_0);
-    EXPECT_EQ(tier1, WORLD_TIER_1);
-    EXPECT_EQ(tier0Species, SPECIES_MAGIKARP);
-    EXPECT_EQ(tier1Species, SPECIES_MAGIKARP);
-    EXPECT(tier0Level >= 4 && tier0Level <= 8);
-    EXPECT(tier1Level >= 10 && tier1Level <= 14);
-}
-
-TEST("Fishing availability consumes Johto's resolved standard profile")
-{
-    struct EncounterConsumerState saved;
-
-    EstablishEncounterConsumerFixture();
-    SaveEncounterConsumerState(&saved);
-
-    LoadMap(MAP_ROUTE32);
-    EXPECT(DoesCurrentMapHaveFishingMons());
-
-    LoadMap(MAP_NATIONAL_PARK_BUG_CONTEST);
-    EXPECT(!DoesCurrentMapHaveFishingMons());
-
+    EXPECT(walkingLow >= 1 && walkingLow <= MAX_LEVEL);
+    EXPECT(walkingHigh >= walkingLow && walkingHigh <= MAX_LEVEL);
+    EXPECT(fishingLow >= 1 && fishingLow <= MAX_LEVEL);
+    EXPECT(fishingHigh >= fishingLow && fishingHigh <= MAX_LEVEL);
     RestoreEncounterConsumerState(&saved);
 }
 
-TEST("Johto walking Surf and Rock Smash consume their standard methods")
+TEST("Ordinary walking Surf Rock Smash Sweet Scent and rods use standard profiles")
 {
+    static const u8 sRods[] = {OLD_ROD, GOOD_ROD, SUPER_ROD};
     struct EncounterConsumerState saved;
-    enum Species species;
     bool8 generated = FALSE;
-    u16 i;
-    u8 level;
+    u16 index;
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
 
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
+    PrepareMap(MAP_ROUTE32);
     SeedRng(0x1234);
-    for (i = 0; i < 512 && !generated; i++)
+    for (index = 0; index < 512 && !generated; index++)
         generated = StandardWildEncounter(MB_TALL_GRASS, MB_TALL_GRASS);
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
     EXPECT(generated);
-    EXPECT(SpeciesIsOneOf(species, sRoute32LandSpecies, ARRAY_COUNT(sRoute32LandSpecies)));
-    EXPECT(level >= 5 && level <= 7);
     EXPECT(!gIsSurfingEncounter);
 
-    RestoreEncounterConsumerState(&saved);
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
-    SeedRng(0x2345);
+    PrepareMap(MAP_ROUTE32);
     generated = FALSE;
-    for (i = 0; i < 512 && !generated; i++)
+    SeedRng(0x2345);
+    for (index = 0; index < 512 && !generated; index++)
         generated = StandardWildEncounter(MB_POND_WATER, MB_POND_WATER);
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
     EXPECT(generated);
-    EXPECT(SpeciesIsOneOf(species, sRoute32WaterSpecies, ARRAY_COUNT(sRoute32WaterSpecies)));
-    EXPECT(level >= 15 && level <= 24);
     EXPECT(gIsSurfingEncounter);
 
-    RestoreEncounterConsumerState(&saved);
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
+    PrepareMap(MAP_ROUTE32);
     SeedRng(0x3456);
-    for (i = 0; i < 64 && !gSpecialVar_Result; i++)
+    for (index = 0; index < 64 && !gSpecialVar_Result; index++)
         RockSmashWildEncounter();
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
     EXPECT(gSpecialVar_Result);
-    EXPECT(SpeciesIsOneOf(species, sRoute32RockSpecies, ARRAY_COUNT(sRoute32RockSpecies)));
-    EXPECT_EQ(level, 10);
 
-    RestoreEncounterConsumerState(&saved);
-}
-
-TEST("Johto Sweet Scent consumes standard land and water methods")
-{
-    struct EncounterConsumerState saved;
-    enum Species species;
-    u8 level;
-
-    EstablishEncounterConsumerFixture();
-    SaveEncounterConsumerState(&saved);
-
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
+    PrepareMap(MAP_ROUTE32);
     SeedRng(0x4567);
     EXPECT(SweetScentWildEncounterForTesting(WILD_AREA_LAND));
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    EXPECT(SpeciesIsOneOf(species, sRoute32LandSpecies, ARRAY_COUNT(sRoute32LandSpecies)));
-    EXPECT(level >= 5 && level <= 7);
+    EXPECT(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL) <= MAX_LEVEL);
 
-    RestoreEncounterConsumerState(&saved);
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
-    SeedRng(0x5678);
-    EXPECT(SweetScentWildEncounterForTesting(WILD_AREA_WATER));
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    EXPECT(SpeciesIsOneOf(species, sRoute32WaterSpecies, ARRAY_COUNT(sRoute32WaterSpecies)));
-    EXPECT(level >= 15 && level <= 24);
-
-    RestoreEncounterConsumerState(&saved);
-}
-
-TEST("Johto fishing consumes each standard rod group")
-{
-    static const struct
+    for (index = 0; index < ARRAY_COUNT(sRods); index++)
     {
-        u8 rod;
-        enum Species species[3];
-        u8 speciesCount;
-        u8 levels[3];
-        u8 levelCount;
-    } sCases[] =
-    {
-        {OLD_ROD,   {SPECIES_MAGIKARP, SPECIES_TENTACOOL},                  2, {10},         1},
-        {GOOD_ROD,  {SPECIES_TENTACOOL, SPECIES_MAGIKARP, SPECIES_QWILFISH}, 3, {20},         1},
-        {SUPER_ROD, {SPECIES_MAGIKARP, SPECIES_QWILFISH, SPECIES_TENTACOOL}, 3, {10, 20, 40}, 3},
-    };
-    struct EncounterConsumerState saved;
-    u16 i;
-
-    EstablishEncounterConsumerFixture();
-    SaveEncounterConsumerState(&saved);
-
-    for (i = 0; i < ARRAY_COUNT(sCases); i++)
-    {
-        enum Species species;
-        bool32 levelMatches = FALSE;
-        u16 j;
-        u8 level;
-
-        RestoreEncounterConsumerState(&saved);
-        PrepareJohtoConsumerMap(MAP_ROUTE32);
-        SeedRng(0x6000 + i);
-        FishingWildEncounter(sCases[i].rod);
-        species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-        level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-        for (j = 0; j < sCases[i].levelCount; j++)
-        {
-            if (level == sCases[i].levels[j])
-                levelMatches = TRUE;
-        }
-
+        PrepareMap(MAP_ROUTE32);
+        SeedRng(0x6000 + index);
+        FishingWildEncounter(sRods[index]);
         EXPECT(gIsFishingEncounter);
-        EXPECT(SpeciesIsOneOf(species, sCases[i].species, sCases[i].speciesCount));
-        EXPECT(levelMatches);
+        EXPECT_NE(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES), SPECIES_NONE);
     }
 
+    PrepareMap(MAP_ROUTE32);
+    EXPECT(DoesCurrentMapHaveFishingMons());
+    LoadMap(MAP_NATIONAL_PARK_BUG_CONTEST);
+    EXPECT(!DoesCurrentMapHaveFishingMons());
     RestoreEncounterConsumerState(&saved);
 }
 
-TEST("Johto DexNav and local species queries retain vanilla standard rows")
+TEST("DexNav previews and overworld use the effective standard population")
 {
     struct EncounterConsumerState saved;
     enum Species species;
     bool8 isWater;
-    u8 tier0Level;
-    u8 tier3Level;
+    u8 dexNavLow;
+    u8 dexNavHigh;
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
 
-    SetWorldTierOne(FALSE);
+    PrepareMap(MAP_ROUTE32);
     SeedRng(0x6789);
-    tier0Level = DexNav_GetEncounterLevelFromMapDataForTesting(SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
-    FlagSet(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE);
-    FlagSet(FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE);
-    FlagSet(FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE);
+    dexNavLow = DexNav_GetEncounterLevelFromMapDataForTesting(
+        SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
+    SetTrainerRatingBadgeCount(8);
     SeedRng(0x6789);
-    tier3Level = DexNav_GetEncounterLevelFromMapDataForTesting(SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
-    EXPECT_EQ(tier3Level, tier0Level);
-    EXPECT(tier0Level >= 15 && tier0Level <= 19);
+    dexNavHigh = DexNav_GetEncounterLevelFromMapDataForTesting(
+        SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
+    EXPECT(dexNavLow >= 1 && dexNavLow <= MAX_LEVEL);
+    EXPECT(dexNavHigh >= dexNavLow && dexNavHigh <= MAX_LEVEL);
 
+    SetTrainerRatingBadgeCount(0);
     SeedRng(0x789A);
     species = GetLocalWildMon(&isWater);
-    EXPECT(SpeciesIsOneOf(species, isWater ? sRoute32WaterSpecies : sRoute32LandSpecies,
-        isWater ? ARRAY_COUNT(sRoute32WaterSpecies) : ARRAY_COUNT(sRoute32LandSpecies)));
+    EXPECT_NE(species, SPECIES_NONE);
     SeedRng(0x89AB);
-    species = GetLocalWaterMon();
-    EXPECT(SpeciesIsOneOf(species, sRoute32WaterSpecies, ARRAY_COUNT(sRoute32WaterSpecies)));
+    EXPECT_NE(GetLocalWaterMon(), SPECIES_NONE);
 
-    RestoreEncounterConsumerState(&saved);
-}
+    EXPECT(PokedexArea_MapHasSpeciesForTesting(
+        MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_MAREEP));
+    EXPECT(PokedexArea_MapHasSpeciesForTesting(
+        MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_QWILFISH));
+    EXPECT(PokedexArea_MapHasSpeciesForTesting(
+        MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_PINECO));
 
-TEST("Johto Pokedex Match Call and visible encounters consume standard profiles")
-{
-    static const enum Species sRoute29Species[] =
-    {
-        SPECIES_PIDGEY,
-        SPECIES_SENTRET,
-        SPECIES_HOPPIP,
-        SPECIES_RATTATA,
-        SPECIES_HOOTHOOT,
-        SPECIES_SPINARAK,
-        SPECIES_ZUBAT,
-    };
-    struct EncounterConsumerState saved;
-    enum Species species;
-    u8 level;
-
-    EstablishEncounterConsumerFixture();
-    SaveEncounterConsumerState(&saved);
-
-    EXPECT(PokedexArea_MapHasSpeciesForTesting(MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_MAREEP));
-    EXPECT(PokedexArea_MapHasSpeciesForTesting(MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_QWILFISH));
-    EXPECT(PokedexArea_MapHasSpeciesForTesting(MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_PINECO));
-    EXPECT(!PokedexArea_MapHasSpeciesForTesting(MAP_GROUP(MAP_ROUTE32), MAP_NUM(MAP_ROUTE32), TIME_DAY, SPECIES_MEWTWO));
-
-    SeedRng(0x9ABC);
-    species = MatchCall_SelectSpeciesFromLocationForTesting(MAP_GROUP(MAP_ROUTE29), MAP_NUM(MAP_ROUTE29));
-    EXPECT(SpeciesIsOneOf(species, sRoute29Species, ARRAY_COUNT(sRoute29Species)));
-
-    PrepareJohtoConsumerMap(MAP_ROUTE32);
+    PrepareMap(MAP_ROUTE32);
     EXPECT(OWE_CheckCurrentWildMonHeaderForTesting(FALSE));
     EXPECT(OWE_CheckCurrentWildMonHeaderForTesting(TRUE));
     SeedRng(0xABCD);
     EXPECT(OWE_GenerateCurrentWildMonForTesting(FALSE));
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    EXPECT(SpeciesIsOneOf(species, sRoute32LandSpecies, ARRAY_COUNT(sRoute32LandSpecies)));
-    EXPECT(level >= 5 && level <= 7);
+    EXPECT_NE(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES), SPECIES_NONE);
     SeedRng(0xBCDE);
     EXPECT(OWE_GenerateCurrentWildMonForTesting(TRUE));
-    species = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-    level = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-    EXPECT(SpeciesIsOneOf(species, sRoute32WaterSpecies, ARRAY_COUNT(sRoute32WaterSpecies)));
-    EXPECT(level >= 15 && level <= 24);
+    EXPECT_NE(GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES), SPECIES_NONE);
 
     LoadMap(MAP_NATIONAL_PARK_BUG_CONTEST);
     EXPECT(!OWE_CheckCurrentWildMonHeaderForTesting(FALSE));
     EXPECT(!OWE_CheckCurrentWildMonHeaderForTesting(TRUE));
+    RestoreEncounterConsumerState(&saved);
+}
+
+TEST("Match Call projects a selected slot's rolled vanilla level")
+{
+    struct EncounterConsumerState saved;
+    enum Species expectedSpecies;
+    enum Species minimumLevelSpecies;
+    enum Species species;
+    u32 seed;
+    bool8 foundDifferentOutcome = FALSE;
+
+    EstablishEncounterConsumerFixture();
+    SaveEncounterConsumerState(&saved);
+    PrepareMap(MAP_SAFARI_ZONE_NORTHWEST);
+
+    for (seed = 1; seed <= 512; seed++)
+    {
+        SeedRng(seed);
+        expectedSpecies = SelectExpectedMatchCallSpecies(
+            MAP_SAFARI_ZONE_NORTHWEST, TRUE);
+        SeedRng(seed);
+        minimumLevelSpecies = SelectExpectedMatchCallSpecies(
+            MAP_SAFARI_ZONE_NORTHWEST, FALSE);
+        if (expectedSpecies != minimumLevelSpecies)
+        {
+            foundDifferentOutcome = TRUE;
+            break;
+        }
+    }
+
+    EXPECT(foundDifferentOutcome);
+    if (foundDifferentOutcome)
+    {
+        SeedRng(seed);
+        species = MatchCall_SelectSpeciesFromLocationForTesting(
+            MAP_GROUP(MAP_SAFARI_ZONE_NORTHWEST), MAP_NUM(MAP_SAFARI_ZONE_NORTHWEST));
+        EXPECT_EQ(species, expectedSpecies);
+    }
 
     RestoreEncounterConsumerState(&saved);
 }
 
-static void ExpectResolvedLegacyGenerationParity(u16 map, u16 seed)
+static bool32 SelectExpectedDexNavNormalSearchOutcome(
+    const struct WildEncounterProfileView *profile,
+    enum Species species,
+    u16 trainerRating,
+    struct WildEncounterSlotOutcome *outcome)
+{
+    struct DexNavProfileSpeciesCandidate
+    {
+        struct WildEncounterSlot entry;
+        u8 fullRange;
+        u8 matchingLevelCount;
+    } candidates[NUM_LAND_MONS_ENCOUNTER_SLOTS];
+    struct WildEncounterSlotOutcome candidate;
+    u32 proposalWeight = 0;
+    u32 roll;
+    u16 candidateCount = 0;
+    u8 minimumRange = MAX_LEVEL;
+    u16 index;
+
+    if (profile->entryCount > ARRAY_COUNT(candidates))
+        return FALSE;
+    for (index = 0; index < profile->entryCount; index++)
+    {
+        struct DexNavProfileSpeciesCandidate *entryCandidate;
+        struct WildEncounterSlot entry;
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(profile, index, &entry)
+         || !IsWildEncounterProfileEntryEligible(profile, index, trainerRating))
+            continue;
+        entryCandidate = &candidates[candidateCount];
+        entryCandidate->entry = entry;
+        entryCandidate->fullRange = entry.maxLevel - entry.minLevel + 1;
+        entryCandidate->matchingLevelCount = 0;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            if (TryProjectWildEncounterProfileEntry(profile, index, vanillaLevel, trainerRating, &candidate)
+             && candidate.species == species)
+                entryCandidate->matchingLevelCount++;
+        }
+        if (entryCandidate->matchingLevelCount == 0)
+            continue;
+        proposalWeight += entry.weight * entryCandidate->matchingLevelCount;
+        minimumRange = min(minimumRange, entryCandidate->fullRange);
+        candidateCount++;
+    }
+
+    if (proposalWeight == 0)
+        return FALSE;
+    while (TRUE)
+    {
+        u16 candidateIndex;
+        u32 matchingLevelIndex;
+
+        roll = RandomUniform(RNG_DEXNAV_ENCOUNTER_LEVEL, 0, proposalWeight - 1);
+        for (candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
+        {
+            u32 candidateWeight = candidates[candidateIndex].entry.weight
+                * candidates[candidateIndex].matchingLevelCount;
+
+            if (roll < candidateWeight)
+            {
+                matchingLevelIndex = roll / candidates[candidateIndex].entry.weight;
+                break;
+            }
+            roll -= candidateWeight;
+        }
+        if (candidateIndex == candidateCount)
+            return FALSE;
+
+        for (u16 vanillaLevel = candidates[candidateIndex].entry.minLevel;
+             vanillaLevel <= candidates[candidateIndex].entry.maxLevel;
+             vanillaLevel++)
+        {
+            if (!ProjectWildSlotOutcome(
+                    candidates[candidateIndex].entry.species,
+                    vanillaLevel,
+                    trainerRating,
+                    &profile->context,
+                    &candidate)
+             || candidate.species != species)
+                continue;
+            if (matchingLevelIndex != 0)
+            {
+                matchingLevelIndex--;
+                continue;
+            }
+            if (RandomUniform(
+                    RNG_DEXNAV_ENCOUNTER_LEVEL,
+                    1,
+                    candidates[candidateIndex].fullRange) <= minimumRange)
+            {
+                *outcome = candidate;
+                return TRUE;
+            }
+            break;
+        }
+    }
+}
+
+TEST("Normal DexNav search conditions selected source levels by their full range")
 {
     struct EncounterConsumerState saved;
-    struct WildEncounterProfileView profile = {0};
-    const struct WildPokemonInfo *legacyInfo;
-    enum Species directSpecies = SPECIES_NONE;
-    enum Species routedSpecies = SPECIES_NONE;
-    u32 directPersonality = 0;
-    u32 routedPersonality = 0;
-    u16 directNextRandom = 0;
-    u16 routedNextRandom = 0;
-    u8 directLevel = 0;
-    u8 routedLevel = 0;
-    u16 headerId = HEADER_NONE;
-    enum TimeOfDay timeOfDay;
-    bool32 found;
-    bool32 resolved = FALSE;
-    bool8 directGenerated = FALSE;
-    bool8 routedGenerated = FALSE;
+    struct WildEncounterProfileView profile;
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome expected = {0};
+    enum Species selectedSpecies = SPECIES_NONE;
+    enum Species species;
+    u8 level;
+    u8 minimumMatchingRange = MAX_LEVEL;
+    u8 maximumMatchingRange = 0;
+    u8 savedFlashLevel;
+    u8 savedDexNavChain;
+    u16 headerId;
+    u16 trainerRating;
+    u16 index;
+    u32 seed;
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
-    LoadMap(map);
-    found = TryFindWildEncounterHeader(MAP_GROUP(map), MAP_NUM(map), &headerId);
-    if (found)
-    {
-        timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
-        legacyInfo = GetWildEncounterInfoAtTime(headerId, timeOfDay, WILD_AREA_LAND);
-        if (legacyInfo != NULL)
-        {
-            resolved = TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay,
-                WILD_ENCOUNTER_FISHING_ROD_NONE, WORLD_TIER_0, &profile);
-            if (resolved)
-            {
-                SeedRng(seed);
-                directGenerated = TryGenerateWildMon(legacyInfo, WILD_AREA_LAND, 0);
-                directSpecies = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-                directLevel = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-                directPersonality = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_PERSONALITY);
-                directNextRandom = Random();
+    PrepareMap(MAP_ROUTE102);
+    SetTrainerRatingBadgeCount(8);
 
-                SeedRng(seed);
-                routedGenerated = TryGenerateWildMonFromProfile(&profile, 0);
-                routedSpecies = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_SPECIES);
-                routedLevel = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_LEVEL);
-                routedPersonality = GetMonData(&gParties[B_TRAINER_OPPONENT_A][0], MON_DATA_PERSONALITY);
-                routedNextRandom = Random();
+    headerId = GetCurrentMapWildMonHeaderId();
+    EXPECT_NE(headerId, HEADER_NONE);
+    EXPECT(TryResolveWildEncounterProfile(
+        headerId,
+        WILD_AREA_WATER,
+        GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER),
+        WILD_ENCOUNTER_FISHING_ROD_NONE,
+        &profile));
+    trainerRating = TrainerRating_Get();
+    for (index = 0; index < profile.entryCount && selectedSpecies == SPECIES_NONE; index++)
+    {
+        u16 vanillaLevel;
+
+        if (!TryGetWildEncounterProfileEntry(&profile, index, &entry)
+         || !IsWildEncounterProfileEntryEligible(&profile, index, trainerRating))
+            continue;
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            struct WildEncounterSlotOutcome outcome;
+
+            if (TryProjectWildEncounterProfileEntry(
+                &profile, index, vanillaLevel, trainerRating, &outcome))
+            {
+                selectedSpecies = outcome.species;
+                break;
             }
         }
     }
+    EXPECT_NE(selectedSpecies, SPECIES_NONE);
+    for (index = 0; index < profile.entryCount; index++)
+    {
+        u16 vanillaLevel;
+
+        EXPECT(TryGetWildEncounterProfileEntry(&profile, index, &entry));
+        for (vanillaLevel = entry.minLevel; vanillaLevel <= entry.maxLevel; vanillaLevel++)
+        {
+            struct WildEncounterSlotOutcome outcome;
+
+            if (TryProjectWildEncounterProfileEntry(
+                &profile, index, vanillaLevel, trainerRating, &outcome)
+             && outcome.species == selectedSpecies)
+            {
+                u8 fullRange = entry.maxLevel - entry.minLevel + 1;
+
+                minimumMatchingRange = min(minimumMatchingRange, fullRange);
+                maximumMatchingRange = max(maximumMatchingRange, fullRange);
+                break;
+            }
+        }
+    }
+    EXPECT_LT(minimumMatchingRange, maximumMatchingRange);
+
+    savedFlashLevel = GetFlashLevel();
+    savedDexNavChain = gSaveBlock3Ptr->dexNavChain;
+    gSaveBlock3Ptr->dexNavChain = 0;
+    gSaveBlock1Ptr->flashLevel = 1; // Stop after normal initialization, before field-effect setup.
+
+    for (seed = 1; seed <= 32; seed++)
+    {
+        SeedRng(seed);
+        EXPECT(SelectExpectedDexNavNormalSearchOutcome(
+            &profile, selectedSpecies, trainerRating, &expected));
+        if (Random() % 100 < 4)
+            expected.level = min(MAX_LEVEL, expected.level + 10);
+
+        SeedRng(seed);
+        EXPECT(DexNav_TryStartNormalSearchForTesting(selectedSpecies, ENCOUNTER_TYPE_WATER));
+        EXPECT(DexNav_GetLastNormalSearchOutcomeForTesting(&species, &level));
+        EXPECT_EQ(species, expected.species);
+        EXPECT_EQ(level, expected.level);
+    }
+
+    gSaveBlock1Ptr->flashLevel = savedFlashLevel;
+    gSaveBlock3Ptr->dexNavChain = savedDexNavChain;
     RestoreEncounterConsumerState(&saved);
-
-    EXPECT(found);
-    EXPECT(resolved);
-    EXPECT_EQ(profile.source, WILD_ENCOUNTER_PROFILE_LEGACY);
-    EXPECT(directGenerated);
-    EXPECT(routedGenerated);
-    EXPECT_EQ(routedSpecies, directSpecies);
-    EXPECT_EQ(routedLevel, directLevel);
-    EXPECT_EQ(routedPersonality, directPersonality);
-    EXPECT_EQ(routedNextRandom, directNextRandom);
 }
 
-TEST("Resolved legacy generation preserves fixed-seed RNG parity in Johto and Hoenn")
-{
-    ExpectResolvedLegacyGenerationParity(MAP_ROUTE32, 5678);
-    ExpectResolvedLegacyGenerationParity(MAP_ROUTE102, 9012);
-}
-
-TEST("DexNav encounter levels consume Vermilion's resolved water world tier")
+TEST("Local water selection projects the rolled source level")
 {
     struct EncounterConsumerState saved;
-    enum WorldTier tier0;
-    enum WorldTier tier1;
-    u8 tier0Level;
-    u8 tier1Level;
+    struct WildEncounterProfileView profile;
+    struct WildEncounterSlot entry;
+    struct WildEncounterSlotOutcome atMinimum;
+    struct WildEncounterSlotOutcome atRolledLevel;
+    struct Pokemon playerParty[PARTY_SIZE];
+    enum Species species;
+    enum TimeOfDay timeOfDay;
+    u16 headerId;
+    u16 eligibleWeight;
+    u32 seed;
+    bool8 foundVaryingOutcome = FALSE;
 
     EstablishEncounterConsumerFixture();
     SaveEncounterConsumerState(&saved);
-    LoadMap(MAP_VERMILION_CITY);
+    memcpy(playerParty, gParties[B_TRAINER_PLAYER], sizeof(playerParty));
+    ZeroPartyMons(gParties[B_TRAINER_PLAYER]);
+    PrepareMap(MAP_SAFARI_ZONE_NORTHWEST);
 
-    SetWorldTierOne(FALSE);
-    tier0 = WorldTier_Get();
-    SeedRng(9012);
-    tier0Level = DexNav_GetEncounterLevelFromMapDataForTesting(SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
+    headerId = GetCurrentMapWildMonHeaderId();
+    timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
+    EXPECT(TryResolveWildEncounterProfile(
+        headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile));
+    eligibleWeight = GetWildEncounterProfileEligibleWeight(&profile, TrainerRating_Get());
+    EXPECT_NE(eligibleWeight, 0);
 
-    SetWorldTierOne(TRUE);
-    tier1 = WorldTier_Get();
-    SeedRng(9012);
-    tier1Level = DexNav_GetEncounterLevelFromMapDataForTesting(SPECIES_TENTACOOL, ENCOUNTER_TYPE_WATER);
+    for (seed = 1; seed <= 512 && !foundVaryingOutcome; seed++)
+    {
+        u8 vanillaLevel;
 
+        SeedRng(seed);
+        EXPECT(TrySelectWildEncounterEligibleEntry(
+            &profile, TrainerRating_Get(), Random() % eligibleWeight, &entry));
+        EXPECT(TrySelectWildEncounterLevel(
+            &profile, &entry,
+            Random() % (entry.maxLevel - entry.minLevel + 1),
+            FALSE, &vanillaLevel));
+        EXPECT(ProjectWildSlotOutcome(
+            entry.species, entry.minLevel, TrainerRating_Get(), &profile.context, &atMinimum));
+        EXPECT(ProjectWildSlotOutcome(
+            entry.species, vanillaLevel, TrainerRating_Get(), &profile.context, &atRolledLevel));
+
+        if (atMinimum.species != atRolledLevel.species)
+        {
+            SeedRng(seed);
+            species = GetLocalWaterMon();
+            EXPECT_EQ(species, atRolledLevel.species);
+            foundVaryingOutcome = TRUE;
+        }
+    }
+
+    EXPECT(foundVaryingOutcome);
+    memcpy(gParties[B_TRAINER_PLAYER], playerParty, sizeof(playerParty));
     RestoreEncounterConsumerState(&saved);
-
-    EXPECT_EQ(tier0, WORLD_TIER_0);
-    EXPECT_EQ(tier1, WORLD_TIER_1);
-    EXPECT(tier0Level >= 4 && tier0Level <= 8);
-    EXPECT(tier1Level >= 10 && tier1Level <= 14);
 }

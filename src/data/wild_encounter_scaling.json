@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "trainerRating": {
+    "projectionCap": 80,
+    "badgeSegments": [
+      {"firstBadgeOrdinal": 1, "badgeCount": 8, "value": 3},
+      {"firstBadgeOrdinal": 9, "badgeCount": 8, "value": 2},
+      {"firstBadgeOrdinal": 17, "badgeCount": 16, "value": 1}
+    ],
+    "sources": [
+      {"id": "REGIONAL_FACT_HOENN_STONE_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_CASCADE_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_HIVE_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_KNUCKLE_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_BOULDER_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_ZEPHYR_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_DYNAMO_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_MARSH_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_HEAT_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_RAINBOW_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_PLAIN_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_BALANCE_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_SOUL_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_FOG_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_FEATHER_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_THUNDER_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_STORM_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_MIND_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_HOENN_RAIN_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_VOLCANO_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_JOHTO_RISING_BADGE", "kind": "badge"},
+      {"id": "REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_KANTO_MR_FUJI_RESCUED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_KANTO_SILPH_SAVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_KANTO_CHAMPION_CROWNED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_SURF_RECEIVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_DIVE_RECEIVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_HOENN_WATERFALL_RECEIVED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_SEVII_LOSTELLE_RESCUED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_SEVII_RUBY_RECOVERED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED", "kind": "story", "value": 1},
+      {"id": "REGIONAL_FACT_SEVII_DETOUR_FINISHED", "kind": "story", "value": 1}
+    ]
+  },
+  "levelAnchors": [
+    {"rating": 0, "level": 5},
+    {"rating": 4, "level": 6},
+    {"rating": 8, "level": 8},
+    {"rating": 16, "level": 13},
+    {"rating": 30, "level": 20},
+    {"rating": 40, "level": 32},
+    {"rating": 55, "level": 50},
+    {"rating": 65, "level": 70},
+    {"rating": 80, "level": 90}
+  ],
+  "zoneIdentity": {
+    "opening": {
+      "startRating": 0,
+      "endRating": 30,
+      "startRetentionBasisPoints": 3500,
+      "endRetentionBasisPoints": 6000,
+      "shape": "quadraticEaseOut"
+    },
+    "convergence": {
+      "startRating": 30,
+      "endRating": 80,
+      "startRetentionBasisPoints": 6000,
+      "endRetentionBasisPoints": 1000,
+      "shape": "quadraticEaseIn"
+    }
+  },
+  "profileOffsets": []
+}

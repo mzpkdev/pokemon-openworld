@@ -41,8 +41,7 @@ struct DebugWildEncounterProbeResult
     u16 weight;
     u8 area;
     u8 fishingRod;
-    u8 tier;
-    u8 source;
+    u16 trainerRating;
     u8 minLevel;
     u8 maxLevel;
     u8 error;

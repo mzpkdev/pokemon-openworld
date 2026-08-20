@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import IntEnum
 import json
 from pathlib import Path
 import re
+import struct
 
 import pytest
 
@@ -17,13 +19,6 @@ from tools.e2e.tests.integrity.manifest import (
     integrity_manifest_path,
     load_manifest_maps,
 )
-from tools.e2e.tests.integrity.test_world_tier_encounters import (
-    WILD_ENCOUNTER_FISHING_ROD_NONE,
-    WORLD_TIER_0,
-    EncounterProbeResult,
-    _probe_encounter,
-)
-
 
 WILD_AREA_LAND = 0
 WILD_AREA_WATER = 1
@@ -32,8 +27,11 @@ WILD_AREA_FISHING = 3
 OLD_ROD = 0
 GOOD_ROD = 1
 SUPER_ROD = 2
-WILD_ENCOUNTER_PROFILE_LEGACY = 1
-WORLD_TIER_3 = 3
+WILD_ENCOUNTER_FISHING_ROD_NONE = 0xFF
+PROBE_REQUEST_SIZE = 12
+PROBE_REQUEST_STATUS_OFFSET = 11
+PROBE_RESULT_SIZE = 24
+PROBE_RESULT_FORMAT = "<I6H2BH4B"
 FLAG_REGIONAL_FACT_HOENN_STONE_BADGE = 32
 FLAG_REGIONAL_FACT_KANTO_CASCADE_BADGE = 33
 FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE = 34
@@ -57,6 +55,100 @@ FISHING_SLICES = {
     GOOD_ROD: (2, 5, (60, 20, 20)),
     SUPER_ROD: (5, 10, (40, 40, 15, 4, 1)),
 }
+
+
+class ProbeStatus(IntEnum):
+    IDLE = 0
+    PENDING = 1
+    SUCCESS = 2
+    ERROR = 3
+
+
+@dataclass(frozen=True)
+class EncounterProbeResult:
+    request_id: int
+    header_id: int
+    entry_index: int
+    entry_count: int
+    total_weight: int
+    species: int
+    weight: int
+    area: int
+    fishing_rod: int
+    trainer_rating: int
+    min_level: int
+    max_level: int
+    error: int
+    status: ProbeStatus
+
+
+def _probe_encounter(
+    game,
+    *,
+    request_id: int,
+    area: int,
+    fishing_rod: int,
+    entry_index: int,
+) -> EncounterProbeResult:
+    request = game.address("gWildEncounterProbeRequest")
+    result = game.address("gWildEncounterProbeResult")
+    game.pause()
+    game.write(
+        result,
+        struct.pack(
+            PROBE_RESULT_FORMAT,
+            request_id ^ 0xFFFFFFFF,
+            0,
+            entry_index,
+            0,
+            0,
+            0,
+            0,
+            area,
+            fishing_rod,
+            0,
+            0,
+            0,
+            0,
+            ProbeStatus.IDLE,
+        ),
+    )
+    game.write(
+        request,
+        struct.pack(
+            "<IH6B",
+            request_id,
+            entry_index,
+            area,
+            fishing_rod,
+            0,
+            0,
+            0,
+            ProbeStatus.IDLE,
+        ),
+    )
+    game.write_u8(request + PROBE_REQUEST_STATUS_OFFSET, ProbeStatus.PENDING)
+    game.resume()
+    game.step()
+
+    for _ in range(120):
+        payload = game.read(result, PROBE_RESULT_SIZE)
+        unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
+        status = ProbeStatus(unpacked[-1])
+        if unpacked[0] == request_id and status in (
+            ProbeStatus.SUCCESS,
+            ProbeStatus.ERROR,
+        ):
+            resolved = EncounterProbeResult(*unpacked[:-1], status)
+            assert resolved.status is ProbeStatus.SUCCESS, (
+                f"encounter probe {request_id:#x} failed with error {resolved.error}"
+            )
+            assert resolved.entry_index == entry_index
+            assert resolved.area == area
+            assert resolved.fishing_rod == fishing_rod
+            return resolved
+        game.step()
+    raise AssertionError(f"encounter probe {request_id:#x} timed out")
 
 
 @dataclass(frozen=True)
@@ -192,7 +284,7 @@ def _load_map(game, entry, request_id: int) -> None:
 
 
 def _probe_complete_profile(
-    game, case: EncounterCase, request_base: int, expected_tier: int = WORLD_TIER_0
+    game, case: EncounterCase, request_base: int
 ) -> tuple[EncounterProbeResult, ...]:
     first = _probe_encounter(
         game,
@@ -201,8 +293,7 @@ def _probe_complete_profile(
         fishing_rod=case.fishing_rod,
         entry_index=0,
     )
-    assert first.source == WILD_ENCOUNTER_PROFILE_LEGACY
-    assert first.tier == expected_tier
+    assert first.trainer_rating <= 46
     assert first.entry_count > 0
     assert first.total_weight > 0
 
@@ -221,8 +312,7 @@ def _probe_complete_profile(
     assert all(entry.header_id == first.header_id for entry in entries)
     assert all(entry.entry_count == first.entry_count for entry in entries)
     assert all(entry.total_weight == first.total_weight for entry in entries)
-    assert all(entry.source == WILD_ENCOUNTER_PROFILE_LEGACY for entry in entries)
-    assert all(entry.tier == expected_tier for entry in entries)
+    assert all(entry.trainer_rating == first.trainer_rating for entry in entries)
     assert all(entry.species > 0 and entry.weight > 0 for entry in entries)
     assert sum(entry.weight for entry in entries) == first.total_weight
     assert _runtime_profile_signature(tuple(entries)) in _expected_profile_signatures(
@@ -289,7 +379,7 @@ def test_route39_remains_an_exact_standard_runtime_profile(integrity_game):
 
 
 @pytest.mark.long_journey
-def test_johto_standard_profile_is_invariant_at_real_world_tier_extremes(
+def test_johto_raw_profile_is_invariant_across_trainer_rating_changes(
     integrity_game,
 ):
     _quickstart(integrity_game)
@@ -305,7 +395,8 @@ def test_johto_standard_profile_is_invariant_at_real_world_tier_extremes(
         FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE,
     ):
         integrity_game.set_flag(flag, False)
-    tier_zero = _probe_complete_profile(integrity_game, case, 0xE3790000)
+    rating_zero = _probe_complete_profile(integrity_game, case, 0xE3790000)
+    assert rating_zero[0].trainer_rating == 0
 
     for flag in (
         FLAG_REGIONAL_FACT_HOENN_STONE_BADGE,
@@ -313,12 +404,11 @@ def test_johto_standard_profile_is_invariant_at_real_world_tier_extremes(
         FLAG_REGIONAL_FACT_JOHTO_HIVE_BADGE,
     ):
         integrity_game.set_flag(flag)
-    tier_three = _probe_complete_profile(
-        integrity_game, case, 0xE37A0000, expected_tier=WORLD_TIER_3
-    )
+    rating_nine = _probe_complete_profile(integrity_game, case, 0xE37A0000)
+    assert rating_nine[0].trainer_rating == 9
 
-    assert _runtime_profile_signature(tier_three) == _runtime_profile_signature(
-        tier_zero
+    assert _runtime_profile_signature(rating_nine) == _runtime_profile_signature(
+        rating_zero
     )
 
 

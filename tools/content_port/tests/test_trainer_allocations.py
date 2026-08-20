@@ -12,6 +12,7 @@ from tools.content_port.trainer_allocations import (
     BITMAP_BYTES,
     BITMAP_FIRST,
     EXISTING,
+    EXPECTED_NEW,
     FIRST_NEW_ID,
     INVENTORY,
     PUBLICATION,
@@ -98,9 +99,65 @@ class JohtoTrainerAllocationTests(unittest.TestCase):
 
     def test_published_allocation_suffix_rejects_reordering(self) -> None:
         publication = copy.deepcopy(self.publication)
-        publication["entries"][-1], publication["entries"][-2] = (
-            publication["entries"][-2],
-            publication["entries"][-1],
+        johto_indices = [
+            index
+            for index, entry in enumerate(publication["entries"])
+            if entry["domain"] == "trainerIds"
+            and entry["source"] == "johto-trainer-identities"
+            and entry["symbol"] not in EXISTING
+        ]
+        self.assertEqual(len(johto_indices), EXPECTED_NEW)
+        (
+            publication["entries"][johto_indices[-1]],
+            publication["entries"][johto_indices[-2]],
+        ) = (
+            publication["entries"][johto_indices[-2]],
+            publication["entries"][johto_indices[-1]],
+        )
+
+        with self.assertRaisesRegex(AllocationError, "exact append-only suffix"):
+            update_publication(publication, new_allocations(self.inventory))
+
+    def test_published_allocation_rejects_duplicate_earlier_in_history(self) -> None:
+        publication = copy.deepcopy(self.publication)
+        allocation = next(
+            entry
+            for entry in publication["entries"]
+            if entry["domain"] == "trainerIds"
+            and entry["symbol"] == new_allocations(self.inventory)[0][0]
+        )
+        publication["entries"].insert(0, allocation)
+
+        with self.assertRaisesRegex(AllocationError, "appear exactly once"):
+            update_publication(publication, new_allocations(self.inventory))
+
+    def test_published_allocation_rejects_interloper_inside_johto_block(self) -> None:
+        publication = copy.deepcopy(self.publication)
+        johto_index = next(
+            index
+            for index, entry in enumerate(publication["entries"])
+            if entry["domain"] == "trainerIds"
+            and entry["symbol"] == new_allocations(self.inventory)[0][0]
+        )
+        publication["entries"].insert(johto_index + 1, publication["entries"][-1])
+
+        with self.assertRaisesRegex(AllocationError, "exact append-only suffix"):
+            update_publication(publication, new_allocations(self.inventory))
+
+    def test_published_allocation_rejects_later_trainer_id(self) -> None:
+        publication = copy.deepcopy(self.publication)
+        publication["entries"].append(
+            {
+                "domain": "trainerIds",
+                "source": "future-trainer",
+                "storage": "u32-id",
+                "symbol": "TRAINER_FUTURE_REVIEWED",
+                "value": TRAINER_COUNT,
+                "physicalBinding": {
+                    "bitIndex": TRAINER_COUNT - BITMAP_FIRST,
+                    "kind": "trainer-defeat-bitmap",
+                },
+            }
         )
 
         with self.assertRaisesRegex(AllocationError, "exact append-only suffix"):

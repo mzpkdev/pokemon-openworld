@@ -60,6 +60,7 @@ PokemonLeague_ChampionsRoom_EventScript_EnterRoom::
 	setflag FLAG_TEMP_4
 	clearflag FLAG_TEMP_5
 	setflag FLAG_DEFEATED_CHAMP
+	setflag FLAG_REGIONAL_FACT_KANTO_CHAMPION_CROWNED
 	setflag FLAG_TEMP_4
 	msgbox PokemonLeague_ChampionsRoom_Text_PostBattle
 	playbgm MUS_RG_SLOW_PALLET, 0
@@ -324,4 +325,3 @@ PokemonLeague_ChampionsRoom_Text_OakPlayerComeWithMe::
 	.string "POKéMON is marvelous.\p"
 	.string "{PLAYER}!\n"
 	.string "Come with me!$"
-

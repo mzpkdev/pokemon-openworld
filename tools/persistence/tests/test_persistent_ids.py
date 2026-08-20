@@ -349,6 +349,20 @@ class PersistentIdTests(unittest.TestCase):
                 "HOENN_RAIN_BADGE",
                 "KANTO_VOLCANO_BADGE",
                 "JOHTO_RISING_BADGE",
+                "KANTO_SS_ANNE_CUT_RECEIVED",
+                "KANTO_MR_FUJI_RESCUED",
+                "KANTO_SILPH_SAVED",
+                "KANTO_CHAMPION_CROWNED",
+                "HOENN_DEVON_GOODS_DELIVERED",
+                "HOENN_SURF_RECEIVED",
+                "HOENN_DEVON_SCOPE_RECEIVED",
+                "HOENN_SPACE_CENTER_SAVED",
+                "HOENN_DIVE_RECEIVED",
+                "HOENN_WALLY_VICTORY_ROAD_DEFEATED",
+                "HOENN_WATERFALL_RECEIVED",
+                "SEVII_LOSTELLE_RESCUED",
+                "SEVII_RUBY_RECOVERED",
+                "SEVII_SAPPHIRE_RECOVERED",
                 "SEVII_DETOUR_FINISHED",
             },
         )
@@ -370,7 +384,7 @@ class PersistentIdTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["value"] for item in self.regional_fact_policy["unused"]},
-            {*range(0x20, 0x35), 0x2A1},
+            {*range(0x20, 0x43), 0x2A1},
         )
         self.assertEqual(
             set(self.regional_fact_policy["unsupported"]), {"DEFOG", "ROCK_CLIMB"}
@@ -478,7 +492,7 @@ class PersistentIdTests(unittest.TestCase):
     def test_regional_fact_flags_are_distinct_generated_public_bindings(self):
         exact = self.regional_fact_policy["exact"]
         self.assertEqual(len({item["symbol"] for item in exact}), len(exact))
-        self.assertEqual({item["value"] for item in exact}, {*range(0x20, 0x35), 0x2A1})
+        self.assertEqual({item["value"] for item in exact}, {*range(0x20, 0x43), 0x2A1})
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp)
             render(self.ledger, self.sources, output)

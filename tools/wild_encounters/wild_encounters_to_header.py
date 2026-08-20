@@ -1,10 +1,12 @@
 import argparse
+from fractions import Fraction
 import hashlib
 import io
 import json
 import os
 import re
 import stat
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -12,14 +14,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 DEFAULT_REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
-DEFAULT_BANDS = ROOT / "src/data/wild_encounter_bands.json"
+DEFAULT_SCALING = ROOT / "src/data/wild_encounter_scaling.json"
+DEFAULT_WILD_ENCOUNTER_SPECIES = ROOT / "src/data/wild_encounter_species.json"
 DEFAULT_OUTPUT = ROOT / "src/data/wild_encounters.h"
+DEFAULT_BALANCE_AUDIT = ROOT / "build/wild-encounter-balance-audit.json"
 DEFAULT_CONFIG = ROOT / "include/config/overworld.h"
 DEFAULT_RTC_CONSTANTS = ROOT / "include/constants/rtc.h"
 DEFAULT_MAP_GROUPS = ROOT / "data/maps/map_groups.json"
 DEFAULT_MAPS_ROOT = ROOT / "data/maps"
 DEFAULT_MAP_SECTIONS = ROOT / "src/data/region_map/region_map_sections.json"
 DEFAULT_SPECIES = ROOT / "include/constants/species.h"
+DEFAULT_SPECIES_INFO = ROOT / "src/data/pokemon/species_info.h"
+DEFAULT_SPECIES_CONFIG = ROOT / "include/config/pokemon.h"
+DEFAULT_REGIONAL_FACTS = ROOT / "include/regional_fact.h"
 DEFAULT_TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 REVIEWED_METHOD_TIME_FALLBACKS = frozenset(
@@ -67,22 +74,6 @@ DEFAULT_OUTPUT_MODE = 0o644
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 MAP_IDENTIFIER = re.compile(r"^MAP_[A-Z0-9_]+$")
 SPECIES_IDENTIFIER = re.compile(r"^SPECIES_[A-Z0-9_]+$")
-MAX_WORLD_TIER = 3
-MAX_BAND_TOTAL_WEIGHT = 0xFFFF
-MAX_AUTHORED_TIER_DISTINCT_SPECIES = {
-    "land_mons": 12,
-    "water_mons": 5,
-}
-MAX_AUTHORED_TIER_ENTRIES = {
-    "land_mons": 12,
-    "water_mons": 5,
-    "rock_smash_mons": 5,
-}
-MAX_AUTHORED_FISHING_TIER_ENTRIES = {
-    "OLD_ROD": 2,
-    "GOOD_ROD": 3,
-    "SUPER_ROD": 5,
-}
 METHOD_AREAS = {
     "land_mons": "WILD_AREA_LAND",
     "water_mons": "WILD_AREA_WATER",
@@ -95,16 +86,23 @@ FISHING_RODS = {
     "GOOD_ROD": "GOOD_ROD",
     "SUPER_ROD": "SUPER_ROD",
 }
-MISSING_BAND_POLICIES = {
-    "complete": "WILD_ENCOUNTER_MISSING_BAND_COMPLETE",
-    "floor": "WILD_ENCOUNTER_MISSING_BAND_FLOOR",
-}
-NON_ENCOUNTER_SPECIES = {
-    "SPECIES_NONE",
-    "SPECIES_CUSTOM_START",
-    "SPECIES_CUSTOM_END",
-    "SPECIES_EGG",
-    "SPECIES_SHINY_TAG",
+MAX_TRAINER_RATING_PROJECTION_CAP = 0xFF
+MAX_TRAINER_RATING_SOURCE_VALUE = 0xFF
+MAX_TRAINER_RATING_MAXIMUM = 0xFFFF
+MAX_PROFILE_LEVEL_OFFSET = 5
+MAX_ORDINARY_WILD_LEVEL = 100
+MAX_WILD_ENCOUNTER_SPECIES_METADATA = 0xFFFF
+TRAINER_RATING_SOURCE_KINDS = {"badge", "story"}
+ZONE_IDENTITY_SHAPES = {"quadraticEaseOut", "quadraticEaseIn"}
+REQUIRED_AUDIT_RATINGS = (0, 4, 8, 16, 20, 29, 30, 39, 40, 55, 65, 71, 80)
+NON_LEVEL_EVOLUTION_METHODS = {
+    "EVO_TRADE",
+    "EVO_ITEM",
+    "EVO_SPLIT_FROM_EVO",
+    "EVO_SCRIPT_TRIGGER",
+    "EVO_LEVEL_BATTLE_ONLY",
+    "EVO_BATTLE_END",
+    "EVO_SPIN",
 }
 PRODUCT_GUARD = re.compile(
     r"^\s*#\s*(?:if|ifdef|ifndef)\b[^\n]*\b(?:EMERALD|FIRERED|LEAFGREEN)\b",
@@ -175,6 +173,320 @@ def _require_identifier(value, location, pattern=IDENTIFIER):
     if not isinstance(value, str) or pattern.fullmatch(value) is None:
         raise ValidationError(f"{location}: invalid identifier {value!r}")
     return value
+
+
+def _require_int(value, location, minimum, maximum):
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or not minimum <= value <= maximum
+    ):
+        raise ValidationError(
+            f"{location}: expected integer from {minimum} through {maximum}"
+        )
+    return value
+
+
+def _load_regional_facts(path):
+    try:
+        source = Path(path).read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValidationError(f"{path}: {error}") from error
+    match = re.search(r"enum\s+RegionalFact\s*\{(.*?)\};", source, re.DOTALL)
+    if match is None:
+        raise ValidationError(f"{path}: missing enum RegionalFact")
+    facts = set(re.findall(r"\bREGIONAL_FACT_[A-Z0-9_]+\b", match.group(1)))
+    facts.discard("REGIONAL_FACT_COUNT")
+    if not facts:
+        raise ValidationError(f"{path}: enum RegionalFact has no facts")
+    return facts
+
+
+def _interpolate_fraction(start, end, progress):
+    return start + (end - start) * progress
+
+
+def _round_half_up(value):
+    return (2 * value.numerator + value.denominator) // (2 * value.denominator)
+
+
+def _load_scaling(path, regional_facts_path):
+    document = _load_json(path)
+    _require_exact_keys(
+        document,
+        {
+            "schemaVersion",
+            "trainerRating",
+            "levelAnchors",
+            "zoneIdentity",
+            "profileOffsets",
+        },
+        path,
+    )
+    if document["schemaVersion"] != 1 or isinstance(document["schemaVersion"], bool):
+        raise ValidationError(f"{path}/schemaVersion: expected 1")
+
+    trainer_rating = document["trainerRating"]
+    _require_exact_keys(
+        trainer_rating,
+        {"projectionCap", "badgeSegments", "sources"},
+        f"{path}/trainerRating",
+    )
+    projection_cap = _require_int(
+        trainer_rating["projectionCap"],
+        f"{path}/trainerRating/projectionCap",
+        1,
+        MAX_TRAINER_RATING_PROJECTION_CAP,
+    )
+    regional_facts = _load_regional_facts(regional_facts_path)
+
+    segments = trainer_rating["badgeSegments"]
+    if not isinstance(segments, list) or not segments:
+        raise ValidationError(
+            f"{path}/trainerRating/badgeSegments: expected nonempty list"
+        )
+    badge_segments = []
+    expected_first_badge = 1
+    for index, row in enumerate(segments):
+        location = f"{path}/trainerRating/badgeSegments/{index}"
+        _require_exact_keys(row, {"firstBadgeOrdinal", "badgeCount", "value"}, location)
+        first_badge = _require_int(
+            row["firstBadgeOrdinal"], f"{location}/firstBadgeOrdinal", 1, 255
+        )
+        badge_count = _require_int(row["badgeCount"], f"{location}/badgeCount", 1, 255)
+        value = _require_int(
+            row["value"],
+            f"{location}/value",
+            1,
+            MAX_TRAINER_RATING_SOURCE_VALUE,
+        )
+        if first_badge != expected_first_badge:
+            raise ValidationError(
+                f"{location}/firstBadgeOrdinal: badge segments must be contiguous from 1"
+            )
+        if first_badge + badge_count - 1 > 255:
+            raise ValidationError(f"{location}: badge ordinal exceeds 255")
+        expected_first_badge += badge_count
+        badge_segments.append(
+            {
+                "first_badge_ordinal": first_badge,
+                "badge_count": badge_count,
+                "value": value,
+            }
+        )
+
+    sources = trainer_rating["sources"]
+    if not isinstance(sources, list) or not sources:
+        raise ValidationError(f"{path}/trainerRating/sources: expected nonempty list")
+    source_ids = set()
+    normalized_sources = []
+    badge_source_count = 0
+    story_rating = 0
+    for index, row in enumerate(sources):
+        location = f"{path}/trainerRating/sources/{index}"
+        if not isinstance(row, dict):
+            raise ValidationError(f"{location}: expected object")
+        kind = row.get("kind")
+        expected_keys = {"id", "kind"} if kind == "badge" else {"id", "kind", "value"}
+        _require_exact_keys(row, expected_keys, location)
+        source_id = _require_identifier(row["id"], f"{location}/id")
+        if source_id not in regional_facts:
+            raise ValidationError(f"{location}/id: unknown regional fact {source_id}")
+        if source_id in source_ids:
+            raise ValidationError(f"{location}/id: duplicate rating source")
+        source_ids.add(source_id)
+        if kind not in TRAINER_RATING_SOURCE_KINDS:
+            raise ValidationError(f"{location}/kind: expected badge or story")
+        if kind == "badge":
+            badge_source_count += 1
+            value = 0
+        else:
+            value = _require_int(
+                row["value"],
+                f"{location}/value",
+                1,
+                MAX_TRAINER_RATING_SOURCE_VALUE,
+            )
+            story_rating += value
+        normalized_sources.append(
+            {
+                "id": source_id,
+                "kind": kind,
+                "value": value,
+            }
+        )
+
+    configured_badges = sum(segment["badge_count"] for segment in badge_segments)
+    if badge_source_count > configured_badges:
+        raise ValidationError(
+            f"{path}/trainerRating/sources: {badge_source_count} badge sources exceed "
+            f"the {configured_badges} configured badge ordinals"
+        )
+    badge_rating = 0
+    remaining_badges = badge_source_count
+    for segment in badge_segments:
+        earned_badges = min(remaining_badges, segment["badge_count"])
+        badge_rating += earned_badges * segment["value"]
+        remaining_badges -= earned_badges
+    maximum_rating = badge_rating + story_rating
+    if maximum_rating > MAX_TRAINER_RATING_MAXIMUM:
+        raise ValidationError(
+            f"{path}/trainerRating: configured maximum rating {maximum_rating} "
+            f"does not fit u16"
+        )
+
+    anchors = document["levelAnchors"]
+    if not isinstance(anchors, list) or len(anchors) < 2:
+        raise ValidationError(f"{path}/levelAnchors: expected at least two anchors")
+    normalized_anchors = []
+    previous_rating = None
+    previous_level = None
+    for index, row in enumerate(anchors):
+        location = f"{path}/levelAnchors/{index}"
+        _require_exact_keys(row, {"rating", "level"}, location)
+        rating = _require_int(row["rating"], f"{location}/rating", 0, projection_cap)
+        level = _require_int(
+            row["level"], f"{location}/level", 1, MAX_ORDINARY_WILD_LEVEL
+        )
+        if previous_rating is not None and rating <= previous_rating:
+            raise ValidationError(
+                f"{location}/rating: anchors must be strictly ordered"
+            )
+        if previous_level is not None and level <= previous_level:
+            raise ValidationError(f"{location}/level: anchors must rise with rating")
+        previous_rating = rating
+        previous_level = level
+        normalized_anchors.append({"rating": rating, "level": level})
+    if normalized_anchors[0]["rating"] != 0:
+        raise ValidationError(f"{path}/levelAnchors: first anchor must be rating 0")
+    if normalized_anchors[-1]["rating"] != projection_cap:
+        raise ValidationError(
+            f"{path}/levelAnchors: final anchor must equal projection cap {projection_cap}"
+        )
+
+    zone_identity = document["zoneIdentity"]
+    _require_exact_keys(
+        zone_identity, {"opening", "convergence"}, f"{path}/zoneIdentity"
+    )
+    normalized_identity = []
+    for name in ("opening", "convergence"):
+        row = zone_identity[name]
+        location = f"{path}/zoneIdentity/{name}"
+        _require_exact_keys(
+            row,
+            {
+                "startRating",
+                "endRating",
+                "startRetentionBasisPoints",
+                "endRetentionBasisPoints",
+                "shape",
+            },
+            location,
+        )
+        start_rating = _require_int(
+            row["startRating"], f"{location}/startRating", 0, projection_cap
+        )
+        end_rating = _require_int(
+            row["endRating"], f"{location}/endRating", 0, projection_cap
+        )
+        if end_rating <= start_rating:
+            raise ValidationError(f"{location}: endRating must follow startRating")
+        start_retention = _require_int(
+            row["startRetentionBasisPoints"],
+            f"{location}/startRetentionBasisPoints",
+            0,
+            10000,
+        )
+        end_retention = _require_int(
+            row["endRetentionBasisPoints"],
+            f"{location}/endRetentionBasisPoints",
+            0,
+            10000,
+        )
+        shape = row["shape"]
+        if shape not in ZONE_IDENTITY_SHAPES:
+            raise ValidationError(
+                f"{location}/shape: expected one of {sorted(ZONE_IDENTITY_SHAPES)}"
+            )
+        normalized_identity.append(
+            {
+                "start_rating": start_rating,
+                "end_rating": end_rating,
+                "start_retention": start_retention,
+                "end_retention": end_retention,
+                "shape": shape,
+            }
+        )
+    if normalized_identity[0]["start_rating"] != 0:
+        raise ValidationError(f"{path}/zoneIdentity/opening: must begin at rating 0")
+    if normalized_identity[-1]["end_rating"] != projection_cap:
+        raise ValidationError(
+            f"{path}/zoneIdentity/convergence: must end at projection cap {projection_cap}"
+        )
+    if normalized_identity[0]["end_rating"] != normalized_identity[1]["start_rating"]:
+        raise ValidationError(f"{path}/zoneIdentity: segments must be contiguous")
+    if (
+        normalized_identity[0]["end_retention"]
+        != normalized_identity[1]["start_retention"]
+    ):
+        raise ValidationError(f"{path}/zoneIdentity: segment retentions must join")
+
+    points = []
+    anchor_index = 0
+    identity_index = 0
+    for rating in range(projection_cap + 1):
+        while rating > normalized_anchors[anchor_index + 1]["rating"]:
+            anchor_index += 1
+        anchor_start = normalized_anchors[anchor_index]
+        anchor_end = normalized_anchors[anchor_index + 1]
+        anchor_progress = Fraction(
+            rating - anchor_start["rating"],
+            anchor_end["rating"] - anchor_start["rating"],
+        )
+        anchor_level = _round_half_up(
+            _interpolate_fraction(
+                Fraction(anchor_start["level"]),
+                Fraction(anchor_end["level"]),
+                anchor_progress,
+            )
+        )
+        while rating > normalized_identity[identity_index]["end_rating"]:
+            identity_index += 1
+        identity = normalized_identity[identity_index]
+        progress = Fraction(
+            rating - identity["start_rating"],
+            identity["end_rating"] - identity["start_rating"],
+        )
+        if identity["shape"] == "quadraticEaseOut":
+            eased = 1 - (1 - progress) ** 2
+        else:
+            eased = progress**2
+        retention = _interpolate_fraction(
+            Fraction(identity["start_retention"], 10000),
+            Fraction(identity["end_retention"], 10000),
+            eased,
+        )
+        if retention.numerator > 0xFFFF or retention.denominator > 0xFFFF:
+            raise ValidationError(
+                f"{path}/zoneIdentity: retention for rating {rating} does not fit u16"
+            )
+        points.append(
+            {
+                "anchor_level": anchor_level,
+                "retention_numerator": retention.numerator,
+                "retention_denominator": retention.denominator,
+            }
+        )
+
+    return {
+        "projection_cap": projection_cap,
+        "maximum_rating": maximum_rating,
+        "badge_segments": badge_segments,
+        "sources": normalized_sources,
+        "anchors": normalized_anchors,
+        "points": points,
+        "profile_offsets": document["profileOffsets"],
+    }
 
 
 class Config:
@@ -382,6 +694,377 @@ def _load_species(path):
     if not species:
         raise ValidationError(f"{path}: no species identities found")
     return species
+
+
+def _find_matching_delimiter(source, start, opening, closing, location):
+    depth = 0
+    quote = None
+    escaped = False
+    for index in range(start, len(source)):
+        character = source[index]
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+        if character in {"'", '"'}:
+            quote = character
+        elif character == opening:
+            depth += 1
+        elif character == closing:
+            depth -= 1
+            if depth == 0:
+                return index
+    raise ValidationError(f"{location}: unbalanced {opening}{closing} delimiters")
+
+
+def _split_top_level(value):
+    parts = []
+    start = 0
+    parentheses = 0
+    braces = 0
+    brackets = 0
+    quote = None
+    escaped = False
+    for index, character in enumerate(value):
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+        if character in {"'", '"'}:
+            quote = character
+        elif character == "(":
+            parentheses += 1
+        elif character == ")":
+            parentheses -= 1
+        elif character == "{":
+            braces += 1
+        elif character == "}":
+            braces -= 1
+        elif character == "[":
+            brackets += 1
+        elif character == "]":
+            brackets -= 1
+        elif character == "," and not parentheses and not braces and not brackets:
+            parts.append(value[start:index].strip())
+            start = index + 1
+    parts.append(value[start:].strip())
+    return parts
+
+
+def _top_level_braced_items(source, location):
+    items = []
+    depth = 0
+    start = None
+    quote = None
+    escaped = False
+    for index, character in enumerate(source):
+        if quote is not None:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+        if character in {"'", '"'}:
+            quote = character
+        elif character == "{":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif character == "}":
+            depth -= 1
+            if depth < 0:
+                raise ValidationError(f"{location}: unbalanced braces")
+            if depth == 0:
+                items.append(source[start + 1 : index])
+    if depth != 0:
+        raise ValidationError(f"{location}: unbalanced braces")
+    return items
+
+
+def _preprocess_species_info(path):
+    command = [
+        os.environ.get("CPP", "cpp"),
+        "-P",
+        "-DTRUE=1",
+        "-DFALSE=0",
+        "-I",
+        str(ROOT / "include"),
+        "-I",
+        str(ROOT),
+        "-include",
+        str(DEFAULT_SPECIES_CONFIG),
+        str(path),
+    ]
+    try:
+        result = subprocess.run(command, text=True, capture_output=True, check=False)
+    except OSError as error:
+        raise ValidationError(
+            f"{path}: failed to run active-source preprocessor: {error}"
+        ) from error
+    if result.returncode != 0:
+        details = result.stderr.strip() or f"exit status {result.returncode}"
+        raise ValidationError(f"{path}: active-source preprocessing failed: {details}")
+    return result.stdout
+
+
+def _extract_active_evolution_entries(species_info_path):
+    source = _preprocess_species_info(species_info_path)
+    entries = {}
+    for match in re.finditer(r"\[\s*(SPECIES_[A-Z0-9_]+)\s*\]\s*=\s*\{", source):
+        species = match.group(1)
+        start = match.end() - 1
+        end = _find_matching_delimiter(source, start, "{", "}", species_info_path)
+        body = source[start : end + 1]
+        evolution_match = re.search(r"\.evolutions\s*=", body)
+        if evolution_match is None:
+            evolutions = []
+        else:
+            expression_start = evolution_match.end()
+            first_brace = body.find("{", expression_start)
+            if first_brace == -1:
+                raise ValidationError(
+                    f"{species_info_path}/{species}: malformed evolutions"
+                )
+            prefix = body[expression_start:first_brace]
+            if "EVOLUTION" in prefix:
+                opening = body.find("(", expression_start, first_brace)
+                if opening == -1:
+                    raise ValidationError(
+                        f"{species_info_path}/{species}: malformed EVOLUTION"
+                    )
+                closing = _find_matching_delimiter(
+                    body, opening, "(", ")", f"{species_info_path}/{species}"
+                )
+                rows = _top_level_braced_items(
+                    body[opening + 1 : closing], f"{species_info_path}/{species}"
+                )
+            else:
+                closing = _find_matching_delimiter(
+                    body, first_brace, "{", "}", f"{species_info_path}/{species}"
+                )
+                rows = _top_level_braced_items(
+                    body[first_brace + 1 : closing], f"{species_info_path}/{species}"
+                )
+            evolutions = []
+            for row in rows:
+                fields = _split_top_level(row)
+                if fields == ["EVOLUTIONS_END"]:
+                    continue
+                if len(fields) < 3:
+                    raise ValidationError(
+                        f"{species_info_path}/{species}: malformed evolution row"
+                    )
+                method, parameter, target = fields[:3]
+                if not IDENTIFIER.fullmatch(method):
+                    raise ValidationError(
+                        f"{species_info_path}/{species}: invalid evolution method {method!r}"
+                    )
+                if not SPECIES_IDENTIFIER.fullmatch(target):
+                    raise ValidationError(
+                        f"{species_info_path}/{species}: invalid evolution target {target!r}"
+                    )
+                evolutions.append(
+                    {"method": method, "parameter": parameter, "target": target}
+                )
+        if species in entries:
+            raise ValidationError(
+                f"{species_info_path}: duplicate active species {species}"
+            )
+        entries[species] = evolutions
+    if not entries:
+        raise ValidationError(
+            f"{species_info_path}: no active species evolution entries"
+        )
+    return entries
+
+
+def _ordinary_runtime_species(profiles, encounters, config, time_policy_labels):
+    encounter_by_label = {
+        encounter["base_label"]: encounter
+        for group in encounters["wild_encounter_groups"]
+        for encounter in group["encounters"]
+    }
+    species = set()
+    for profile in _select_runtime_profiles(profiles, config, time_policy_labels):
+        if profile["group"] != "gWildMonHeaders":
+            continue
+        encounter = encounter_by_label[profile["label"]]
+        for method in config.mon_types:
+            for mon in encounter.get(method, {}).get("mons", []):
+                species.add(mon["species"])
+    if not species:
+        raise ValidationError("standard encounter authority has no active species")
+    return species
+
+
+def _load_wild_encounter_species_metadata(
+    path, species_info_path, known_species, ordinary_species
+):
+    document = _load_json(path)
+    _require_exact_keys(
+        document,
+        {"schemaVersion", "minimumOrdinaryWildLevels", "predecessorResolutions"},
+        path,
+    )
+    if document["schemaVersion"] != 1 or isinstance(document["schemaVersion"], bool):
+        raise ValidationError(f"{path}/schemaVersion: expected 1")
+
+    minimum_rows = document["minimumOrdinaryWildLevels"]
+    if not isinstance(minimum_rows, list):
+        raise ValidationError(f"{path}/minimumOrdinaryWildLevels: expected list")
+    minimum_levels = {}
+    for index, row in enumerate(minimum_rows):
+        location = f"{path}/minimumOrdinaryWildLevels/{index}"
+        _require_exact_keys(row, {"species", "minimumOrdinaryWildLevel"}, location)
+        species = _require_identifier(
+            row["species"], f"{location}/species", SPECIES_IDENTIFIER
+        )
+        if species not in known_species:
+            raise ValidationError(f"{location}/species: unknown species {species}")
+        if species in minimum_levels:
+            raise ValidationError(f"{location}/species: duplicate minimum level")
+        minimum_levels[species] = _require_int(
+            row["minimumOrdinaryWildLevel"],
+            f"{location}/minimumOrdinaryWildLevel",
+            1,
+            MAX_ORDINARY_WILD_LEVEL,
+        )
+
+    active_evolutions = _extract_active_evolution_entries(species_info_path)
+    active_species = set(active_evolutions)
+    candidates = {}
+    for predecessor, evolutions in active_evolutions.items():
+        for evolution in evolutions:
+            if evolution["method"] != "EVO_LEVEL":
+                continue
+            parameter = evolution["parameter"]
+            if not parameter.isdecimal():
+                raise ValidationError(
+                    f"{species_info_path}/{predecessor}: EVO_LEVEL threshold must be numeric"
+                )
+            level = int(parameter)
+            if level == 0:
+                continue
+            if not 1 <= level <= MAX_ORDINARY_WILD_LEVEL:
+                raise ValidationError(
+                    f"{species_info_path}/{predecessor}: EVO_LEVEL threshold must be from 1 through {MAX_ORDINARY_WILD_LEVEL}"
+                )
+            target = evolution["target"]
+            if target not in known_species or target not in active_species:
+                raise ValidationError(
+                    f"{species_info_path}/{predecessor}: missing active predecessor target {target}"
+                )
+            candidates.setdefault(target, set()).add((predecessor, level))
+
+    resolution_rows = document["predecessorResolutions"]
+    if not isinstance(resolution_rows, list):
+        raise ValidationError(f"{path}/predecessorResolutions: expected list")
+    resolutions = {}
+    for index, row in enumerate(resolution_rows):
+        location = f"{path}/predecessorResolutions/{index}"
+        _require_exact_keys(
+            row, {"species", "predecessorSpecies", "predecessorLevel"}, location
+        )
+        species = _require_identifier(
+            row["species"], f"{location}/species", SPECIES_IDENTIFIER
+        )
+        predecessor = _require_identifier(
+            row["predecessorSpecies"],
+            f"{location}/predecessorSpecies",
+            SPECIES_IDENTIFIER,
+        )
+        level = _require_int(
+            row["predecessorLevel"],
+            f"{location}/predecessorLevel",
+            1,
+            MAX_ORDINARY_WILD_LEVEL,
+        )
+        if species in resolutions:
+            raise ValidationError(
+                f"{location}/species: duplicate predecessor resolution"
+            )
+        if species not in candidates or len(candidates[species]) < 2:
+            raise ValidationError(
+                f"{location}/species: predecessor resolution requires an ambiguous numeric predecessor"
+            )
+        if (predecessor, level) not in candidates[species]:
+            raise ValidationError(
+                f"{location}: predecessor resolution is not an active numeric evolution edge"
+            )
+        resolutions[species] = (predecessor, level)
+
+    predecessors = {}
+    for species, choices in candidates.items():
+        if len(choices) == 1:
+            predecessors[species] = next(iter(choices))
+        elif species in resolutions:
+            predecessors[species] = resolutions[species]
+        else:
+            rendered = ", ".join(
+                f"{predecessor}@{level}" for predecessor, level in sorted(choices)
+            )
+            raise ValidationError(
+                f"{species_info_path}/{species}: ambiguous numeric predecessors {rendered}; "
+                "add a narrow predecessor resolution"
+            )
+
+    for species in predecessors:
+        seen = set()
+        current = species
+        while current in predecessors:
+            if current in seen:
+                raise ValidationError(
+                    f"{species_info_path}/{species}: numeric predecessor cycle at {current}"
+                )
+            seen.add(current)
+            current = predecessors[current][0]
+
+    reachable_species = set()
+    for species in ordinary_species:
+        current = species
+        while True:
+            reachable_species.add(current)
+            predecessor = predecessors.get(current)
+            if predecessor is None:
+                break
+            current = predecessor[0]
+    for species in minimum_levels:
+        if species not in reachable_species:
+            raise ValidationError(
+                f"{path}: minimum level species {species} is not reachable from an "
+                "active ordinary encounter species"
+            )
+
+    metadata = []
+    for species in sorted(reachable_species):
+        predecessor, predecessor_level = predecessors.get(species, ("SPECIES_NONE", 0))
+        has_alternate_non_level_route = any(
+            evolution["method"] in NON_LEVEL_EVOLUTION_METHODS
+            and evolution["target"] == species
+            for evolution in active_evolutions.get(predecessor, [])
+        )
+        metadata.append(
+            {
+                "species": species,
+                "minimum_level": minimum_levels.get(species, 1),
+                "predecessor": predecessor,
+                "predecessor_level": predecessor_level,
+                "has_alternate_non_level_route": has_alternate_non_level_route,
+            }
+        )
+    if len(metadata) > MAX_WILD_ENCOUNTER_SPECIES_METADATA:
+        raise ValidationError(f"{path}: too many ordinary species metadata rows")
+    return metadata
 
 
 def _resolve_profile_time(profile, config, time_policy_labels=None):
@@ -1112,65 +1795,34 @@ def _load_time_policies(
     return labels, headers
 
 
-def _load_authored_bands(
-    path, profiles, encounters, config, species, time_policy_labels
+def _load_profile_offsets(
+    rows, scaling_path, profiles, encounters, config, time_policy_labels
 ):
-    document = _load_json(path)
-    _require_exact_keys(document, {"schema_version", "profiles"}, path)
-    if type(document["schema_version"]) is not int or document["schema_version"] != 1:
-        raise ValidationError(f"{path}/schema_version: expected 1")
-    rows = document["profiles"]
     if not isinstance(rows, list):
-        raise ValidationError(f"{path}/profiles: expected list")
-
+        raise ValidationError(f"{scaling_path}/profileOffsets: expected list")
     profile_by_label = {profile["label"]: profile for profile in profiles}
     encounter_by_label = {
         encounter["base_label"]: encounter
         for group in encounters["wild_encounter_groups"]
         for encounter in group["encounters"]
     }
-    header_indices = _runtime_header_indices(profiles, config, time_policy_labels)
-    runtime_labels = {
-        profile["label"]
+    runtime_profiles = {
+        profile["label"]: profile
         for profile in _select_runtime_profiles(profiles, config, time_policy_labels)
         if profile["group"] == "gWildMonHeaders"
     }
-    authored = []
+    header_indices = _runtime_header_indices(profiles, config, time_policy_labels)
+    offsets = []
     identities = set()
-    for profile_index, row in enumerate(rows):
-        location = f"{path}/profiles/{profile_index}"
+    for index, row in enumerate(rows):
+        location = f"{scaling_path}/profileOffsets/{index}"
         _require_exact_keys(
-            row,
-            {
-                "label",
-                "header",
-                "method",
-                "condition",
-                "fishing_rod",
-                "missing_band_policy",
-                "tiers",
-            },
-            location,
+            row, {"label", "method", "fishingRod", "levelOffset"}, location
         )
         label = _require_identifier(row["label"], f"{location}/label")
-        header = _require_identifier(row["header"], f"{location}/header")
         profile = profile_by_label.get(label)
-        if profile is None:
-            raise ValidationError(f"{location}/label: unknown canonical profile")
-        if profile["residency"] == "johto":
-            raise ValidationError(
-                f"{location}/label: Johto residency cannot author encounter bands"
-            )
-        emits_runtime = label in runtime_labels
-        if not emits_runtime and profile["alternate_of"] is not None:
-            raise ValidationError(f"{location}/label: unknown canonical profile")
-        if (
-            profile["header"] != header
-            or emits_runtime
-            and header not in header_indices
-        ):
-            raise ValidationError(f"{location}/header: unknown canonical header")
-
+        if profile is None or label not in runtime_profiles:
+            raise ValidationError(f"{location}/label: unknown active standard profile")
         method = row["method"]
         if method not in config.mon_types or method not in METHOD_AREAS:
             raise ValidationError(f"{location}/method: unknown encounter method")
@@ -1178,179 +1830,51 @@ def _load_authored_bands(
             raise ValidationError(
                 f"{location}/method: profile does not support {method!r}"
             )
-
-        authored_condition = row["condition"]
-        if (
-            authored_condition != FALLBACK_TIME_ROLE
-            and authored_condition not in config.times_of_day
-        ):
-            raise ValidationError(f"{location}/condition: unknown time condition")
-        if authored_condition != profile["time"]:
-            raise ValidationError(
-                f"{location}/condition: expected canonical condition {profile['time']}"
-            )
-        resolved_time = _resolve_profile_time(profile, config, time_policy_labels)
-
-        fishing_rod = row["fishing_rod"]
+        fishing_rod = row["fishingRod"]
         if fishing_rod not in FISHING_RODS:
-            raise ValidationError(f"{location}/fishing_rod: unknown rod condition")
+            raise ValidationError(f"{location}/fishingRod: unknown rod condition")
         if method == "fishing_mons":
             if fishing_rod == "NONE":
                 raise ValidationError(
-                    f"{location}/fishing_rod: fishing method requires a rod"
+                    f"{location}/fishingRod: fishing method requires a rod"
                 )
         elif fishing_rod != "NONE":
             raise ValidationError(
-                f"{location}/fishing_rod: non-fishing method requires NONE"
+                f"{location}/fishingRod: non-fishing method requires NONE"
             )
-
-        missing_policy = row["missing_band_policy"]
-        if missing_policy not in MISSING_BAND_POLICIES:
-            raise ValidationError(
-                f"{location}/missing_band_policy: expected complete or floor"
-            )
-        tier_rows = row["tiers"]
-        if not isinstance(tier_rows, list) or not tier_rows:
-            raise ValidationError(f"{location}/tiers: expected nonempty list")
-        tiers = []
-        tier_ids = set()
-        for tier_index, tier_row in enumerate(tier_rows):
-            tier_location = f"{location}/tiers/{tier_index}"
-            _require_exact_keys(tier_row, {"tier", "entries"}, tier_location)
-            tier = tier_row["tier"]
-            if (
-                isinstance(tier, bool)
-                or not isinstance(tier, int)
-                or not 0 <= tier <= MAX_WORLD_TIER
-            ):
-                raise ValidationError(
-                    f"{tier_location}/tier: expected integer from 0 through {MAX_WORLD_TIER}"
-                )
-            if tier in tier_ids:
-                raise ValidationError(f"{tier_location}: duplicate tier {tier}")
-            tier_ids.add(tier)
-            entry_rows = tier_row["entries"]
-            if not isinstance(entry_rows, list) or not entry_rows:
-                raise ValidationError(
-                    f"{tier_location}/entries: expected nonempty list"
-                )
-            entry_limit = (
-                MAX_AUTHORED_FISHING_TIER_ENTRIES[fishing_rod]
-                if method == "fishing_mons"
-                else MAX_AUTHORED_TIER_ENTRIES.get(method)
-            )
-            if entry_limit is not None and len(entry_rows) > entry_limit:
-                raise ValidationError(
-                    f"{tier_location}/entries: {method} has {len(entry_rows)} entries; "
-                    f"maximum is {entry_limit}"
-                )
-            entries = []
-            total_weight = 0
-            for entry_index, entry_row in enumerate(entry_rows):
-                entry_location = f"{tier_location}/entries/{entry_index}"
-                _require_exact_keys(
-                    entry_row,
-                    {"species", "weight", "min_level", "max_level"},
-                    entry_location,
-                )
-                species_id = _require_identifier(
-                    entry_row["species"],
-                    f"{entry_location}/species",
-                    SPECIES_IDENTIFIER,
-                )
-                if species_id not in species or species_id in NON_ENCOUNTER_SPECIES:
-                    raise ValidationError(
-                        f"{entry_location}/species: unsupported species {species_id}"
-                    )
-                weight = entry_row["weight"]
-                if (
-                    isinstance(weight, bool)
-                    or not isinstance(weight, int)
-                    or weight <= 0
-                ):
-                    raise ValidationError(
-                        f"{entry_location}/weight: expected positive integer"
-                    )
-                total_weight += weight
-                if total_weight > MAX_BAND_TOTAL_WEIGHT:
-                    raise ValidationError(
-                        f"{tier_location}: total weight exceeds {MAX_BAND_TOTAL_WEIGHT}"
-                    )
-                min_level = entry_row["min_level"]
-                max_level = entry_row["max_level"]
-                if (
-                    isinstance(min_level, bool)
-                    or not isinstance(min_level, int)
-                    or isinstance(max_level, bool)
-                    or not isinstance(max_level, int)
-                    or not 1 <= min_level <= max_level <= 100
-                ):
-                    raise ValidationError(
-                        f"{entry_location}: levels must satisfy 1 <= min_level <= max_level <= 100"
-                    )
-                entries.append(
-                    {
-                        "species": species_id,
-                        "weight": weight,
-                        "min_level": min_level,
-                        "max_level": max_level,
-                    }
-                )
-            distinct_species_limit = MAX_AUTHORED_TIER_DISTINCT_SPECIES.get(method)
-            distinct_species_count = len({entry["species"] for entry in entries})
-            if (
-                distinct_species_limit is not None
-                and distinct_species_count > distinct_species_limit
-            ):
-                raise ValidationError(
-                    f"{tier_location}: {method} has {distinct_species_count} distinct "
-                    f"species; maximum is {distinct_species_limit}"
-                )
-            tiers.append(
-                {"tier": tier, "entries": entries, "total_weight": total_weight}
-            )
-
-        if missing_policy == "complete" and tier_ids != set(range(MAX_WORLD_TIER + 1)):
-            raise ValidationError(
-                f"{location}/tiers: complete policy requires tiers 0 through {MAX_WORLD_TIER}"
-            )
-        if missing_policy == "floor" and 0 not in tier_ids:
-            raise ValidationError(f"{location}/tiers: floor policy requires tier 0")
-        tiers.sort(key=lambda tier: tier["tier"])
-        # Canonical day/night profiles can be inactive in supported builds where
-        # time encounters are disabled or the configured fallback collides with
-        # an explicit time slot. Validate their authored data above, but emit only
-        # identities selected by this build's runtime configuration.
-        if not emits_runtime:
-            continue
+        level_offset = _require_int(
+            row["levelOffset"],
+            f"{location}/levelOffset",
+            -MAX_PROFILE_LEVEL_OFFSET,
+            MAX_PROFILE_LEVEL_OFFSET,
+        )
         identity = (
-            header_indices[header],
+            header_indices[profile["header"]],
             METHOD_AREAS[method],
-            resolved_time,
-            fishing_rod,
+            _resolve_profile_time(profile, config, time_policy_labels),
+            FISHING_RODS[fishing_rod],
         )
         if identity in identities:
-            raise ValidationError(f"{location}: duplicate authored profile identity")
+            raise ValidationError(f"{location}: duplicate resolved profile offset")
         identities.add(identity)
-        authored.append(
+        offsets.append(
             {
-                "header_id": header_indices[header],
-                "area": METHOD_AREAS[method],
-                "condition": resolved_time,
-                "fishing_rod": FISHING_RODS[fishing_rod],
-                "missing_band_policy": MISSING_BAND_POLICIES[missing_policy],
-                "tiers": tiers,
+                "header_id": identity[0],
+                "area": identity[1],
+                "time_of_day": identity[2],
+                "fishing_rod": identity[3],
+                "level_offset": level_offset,
             }
         )
-    authored.sort(
-        key=lambda profile: (
-            profile["header_id"],
-            profile["area"],
-            profile["condition"],
-            profile["fishing_rod"],
+    offsets.sort(
+        key=lambda offset: (
+            offset["header_id"],
+            offset["area"],
+            offset["time_of_day"],
+            offset["fishing_rod"],
         )
     )
-    return authored
+    return offsets
 
 
 class WildEncounterAssembler:
@@ -1580,69 +2104,108 @@ class WildEncounterAssembler:
             self.write_pokemon_headers(headers)
 
 
-def _render_authored_bands(output, authored_profiles):
+def _render_scaling(output, scaling, profile_offsets, species_metadata):
     output.write("\n")
+    output.write("const struct TrainerRatingSource gTrainerRatingSources[] =\n")
+    output.write("{\n")
+    for source in scaling["sources"]:
+        kind = f"TRAINER_RATING_SOURCE_{source['kind'].upper()}"
+        output.write(f"    {{ {source['id']}, {source['value']}, {kind} }},\n")
+    output.write("};\n")
     output.write(
-        f"#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT {len(authored_profiles)}\n"
+        "const u16 gTrainerRatingSourceCount = ARRAY_COUNT(gTrainerRatingSources);\n\n"
     )
-    if not authored_profiles:
-        return
-    output.write("\n")
-    for profile_index, profile in enumerate(authored_profiles):
-        for band_index, band in enumerate(profile["tiers"]):
-            output.write(
-                "static const struct WildEncounterAuthoredEntry "
-                f"sWildEncounterAuthoredEntries_{profile_index}_{band_index}[] =\n"
-            )
-            output.write("{\n")
-            for entry in band["entries"]:
-                output.write(
-                    "    { "
-                    f"{entry['species']}, {entry['weight']}, "
-                    f"{entry['min_level']}, {entry['max_level']}"
-                    " },\n"
-                )
-            output.write("};\n\n")
-        output.write(
-            "static const struct WildEncounterAuthoredBand "
-            f"sWildEncounterAuthoredBands_{profile_index}[] =\n"
-        )
-        output.write("{\n")
-        for band_index, band in enumerate(profile["tiers"]):
-            output.write("    {\n")
-            output.write(f"        .tier = {band['tier']},\n")
-            output.write(
-                "        .entryCount = "
-                f"ARRAY_COUNT(sWildEncounterAuthoredEntries_{profile_index}_{band_index}),\n"
-            )
-            output.write(f"        .totalWeight = {band['total_weight']},\n")
-            output.write(
-                "        .entries = "
-                f"sWildEncounterAuthoredEntries_{profile_index}_{band_index},\n"
-            )
-            output.write("    },\n")
-        output.write("};\n\n")
     output.write(
-        "static const struct WildEncounterAuthoredProfile "
-        "sWildEncounterAuthoredProfiles[] =\n"
+        "const struct TrainerRatingBadgeSegment gTrainerRatingBadgeSegments[] =\n"
     )
     output.write("{\n")
-    for profile_index, profile in enumerate(authored_profiles):
-        output.write("    {\n")
-        output.write(f"        .headerId = {profile['header_id']},\n")
-        output.write(f"        .area = {profile['area']},\n")
-        output.write(f"        .timeOfDay = {profile['condition']},\n")
-        output.write(f"        .fishingRod = {profile['fishing_rod']},\n")
+    for segment in scaling["badge_segments"]:
         output.write(
-            f"        .missingBandPolicy = {profile['missing_band_policy']},\n"
+            "    { "
+            f"{segment['first_badge_ordinal']}, {segment['badge_count']}, "
+            f"{segment['value']}"
+            " },\n"
         )
-        output.write(
-            "        .bandCount = "
-            f"ARRAY_COUNT(sWildEncounterAuthoredBands_{profile_index}),\n"
-        )
-        output.write(f"        .bands = sWildEncounterAuthoredBands_{profile_index},\n")
-        output.write("    },\n")
     output.write("};\n")
+    output.write(
+        "const u16 gTrainerRatingBadgeSegmentCount = "
+        "ARRAY_COUNT(gTrainerRatingBadgeSegments);\n\n"
+    )
+    output.write(
+        "const struct WildEncounterScalingBalance gWildEncounterScalingBalance =\n"
+    )
+    output.write("{\n")
+    output.write(f"    .projectionCap = {scaling['projection_cap']},\n")
+    output.write(f"    .maximumRating = {scaling['maximum_rating']},\n")
+    output.write("};\n\n")
+    output.write(
+        "const struct WildEncounterScalingAnchor gWildEncounterScalingAnchors[] =\n"
+    )
+    output.write("{\n")
+    for anchor in scaling["anchors"]:
+        output.write(f"    {{ {anchor['rating']}, {anchor['level']} }},\n")
+    output.write("};\n")
+    output.write(
+        "const u16 gWildEncounterScalingAnchorCount = "
+        "ARRAY_COUNT(gWildEncounterScalingAnchors);\n\n"
+    )
+    output.write(
+        "const struct WildEncounterScalingPoint gWildEncounterScalingPoints[] =\n"
+    )
+    output.write("{\n")
+    for point in scaling["points"]:
+        output.write(
+            "    { "
+            f"{point['anchor_level']}, {point['retention_numerator']}, "
+            f"{point['retention_denominator']}"
+            " },\n"
+        )
+    output.write("};\n")
+    output.write(
+        "const u16 gWildEncounterScalingPointCount = "
+        "ARRAY_COUNT(gWildEncounterScalingPoints);\n\n"
+    )
+    output.write(
+        "const struct WildEncounterProfileOffset gWildEncounterProfileOffsets[] =\n"
+    )
+    output.write("{\n")
+    if profile_offsets:
+        for offset in profile_offsets:
+            output.write("    {\n")
+            output.write(f"        .headerId = {offset['header_id']},\n")
+            output.write(f"        .area = {offset['area']},\n")
+            output.write(f"        .timeOfDay = {offset['time_of_day']},\n")
+            output.write(f"        .fishingRod = {offset['fishing_rod']},\n")
+            output.write(f"        .levelOffset = {offset['level_offset']},\n")
+            output.write("    },\n")
+    else:
+        output.write("    { 0 }, // Typed sentinel; count remains zero.\n")
+    output.write("};\n")
+    if profile_offsets:
+        output.write(
+            "const u16 gWildEncounterProfileOffsetCount = "
+            "ARRAY_COUNT(gWildEncounterProfileOffsets);\n"
+        )
+    else:
+        output.write("const u16 gWildEncounterProfileOffsetCount = 0;\n")
+    output.write("\n")
+    output.write(
+        "const struct WildEncounterSpeciesMetadata gWildEncounterSpeciesMetadata[] =\n"
+    )
+    output.write("{\n")
+    for metadata in species_metadata:
+        alternate = "TRUE" if metadata["has_alternate_non_level_route"] else "FALSE"
+        output.write(
+            "    { "
+            f"{metadata['species']}, {metadata['minimum_level']}, "
+            f"{metadata['predecessor']}, {metadata['predecessor_level']}, {alternate}"
+            " },\n"
+        )
+    output.write("};\n")
+    output.write(
+        "const u16 gWildEncounterSpeciesMetadataCount = "
+        "ARRAY_COUNT(gWildEncounterSpeciesMetadata);\n"
+    )
 
 
 def render_header(
@@ -1651,7 +2214,9 @@ def render_header(
     profiles,
     time_policy_labels,
     time_policy_headers,
-    authored_profiles,
+    scaling,
+    profile_offsets,
+    species_metadata,
 ):
     output = io.StringIO()
     assembler = WildEncounterAssembler(
@@ -1660,11 +2225,540 @@ def render_header(
     assembler.write_header()
     assembler.write_macros()
     assembler.write_encounters()
-    _render_authored_bands(output, authored_profiles)
+    _render_scaling(output, scaling, profile_offsets, species_metadata)
     rendered = output.getvalue()
     if PRODUCT_GUARD.search(rendered):
         raise ValidationError("generated output contains a product residency guard")
     return rendered
+
+
+def _divide_round_signed(numerator, denominator):
+    if numerator >= 0:
+        return (numerator + denominator // 2) // denominator
+    return -((-numerator + denominator // 2) // denominator)
+
+
+def _profile_offset_map(profile_offsets):
+    return {
+        (
+            offset["header_id"],
+            offset["area"],
+            offset["time_of_day"],
+            offset["fishing_rod"],
+        ): offset["level_offset"]
+        for offset in profile_offsets
+    }
+
+
+def _project_levels(scaling, vanilla_level, rating_cap, level_offset):
+    base_level = scaling["points"][0]["anchor_level"]
+    high_water_level = 0
+    levels = []
+    for rating in range(rating_cap + 1):
+        point = scaling["points"][rating]
+        raw_level = point["anchor_level"] + _divide_round_signed(
+            (vanilla_level - base_level) * point["retention_numerator"],
+            point["retention_denominator"],
+        )
+        high_water_level = max(high_water_level, raw_level)
+        levels.append(
+            min(max(high_water_level + level_offset, 1), MAX_ORDINARY_WILD_LEVEL)
+        )
+    return levels
+
+
+def _effective_species(species, vanilla_level, level, metadata_by_species):
+    effective_species = species
+    stage_changes = []
+    while True:
+        metadata = metadata_by_species[effective_species]
+        predecessor = metadata["predecessor"]
+        if (
+            predecessor == "SPECIES_NONE"
+            or metadata["has_alternate_non_level_route"]
+            or vanilla_level < metadata["predecessor_level"]
+            or level >= metadata["predecessor_level"]
+        ):
+            return effective_species, stage_changes
+        stage_changes.append((effective_species, predecessor))
+        effective_species = predecessor
+
+
+def _summarize_slot_outcomes(slot, scaling, level_offset, metadata_by_species):
+    rating_cap = scaling["projection_cap"]
+    summaries = [
+        {
+            "locked": False,
+            "outcomes": {},
+            "stage_changes": set(),
+            "level_sum": 0,
+            "level_count": 0,
+        }
+        for _ in range(rating_cap + 1)
+    ]
+    previous_levels = {}
+    for vanilla_level in range(slot["min_level"], slot["max_level"] + 1):
+        projected_levels = _project_levels(
+            scaling, vanilla_level, rating_cap, level_offset
+        )
+        previous_level = None
+        for rating, level in enumerate(projected_levels):
+            effective_species, stage_changes = _effective_species(
+                slot["species"], vanilla_level, level, metadata_by_species
+            )
+            summary = summaries[rating]
+            outcome = summary["outcomes"].setdefault(
+                effective_species, {"min_level": level, "max_level": level}
+            )
+            outcome["min_level"] = min(outcome["min_level"], level)
+            outcome["max_level"] = max(outcome["max_level"], level)
+            summary["stage_changes"].update(stage_changes)
+            summary["level_sum"] += level
+            summary["level_count"] += 1
+            if level < metadata_by_species[effective_species]["minimum_level"]:
+                summary["locked"] = True
+            if previous_level is not None and level < previous_level:
+                previous_levels.setdefault(vanilla_level, []).append(
+                    (rating - 1, previous_level, rating, level)
+                )
+            previous_level = level
+    return summaries, previous_levels
+
+
+def _field_weights(group, method, fishing_rod, entry_count):
+    fields = {field["type"]: field for field in group.get("fields", [])}
+    field = fields.get(method)
+    if field is None:
+        raise ValidationError(
+            f"balance audit: {group['label']} has no {method} weights"
+        )
+    if method == "fishing_mons":
+        slot_indices = field["groups"][fishing_rod.lower()]
+    else:
+        slot_indices = range(len(field["encounter_rates"]))
+    weights = [field["encounter_rates"][index] for index in slot_indices]
+    if len(weights) != entry_count:
+        raise ValidationError(
+            f"balance audit: {group['label']}/{method} weight count does not match slots"
+        )
+    return weights
+
+
+def _audit_profile_slots(
+    label,
+    method,
+    fishing_rod,
+    encounter,
+    weights,
+    scaling,
+    level_offset,
+    metadata_by_species,
+):
+    rating_cap = scaling["projection_cap"]
+    required_ratings = [
+        rating for rating in REQUIRED_AUDIT_RATINGS if rating <= rating_cap
+    ]
+    slot_rows = []
+    failures = []
+    for index, (slot, weight) in enumerate(
+        zip(encounter[method]["mons"], weights, strict=True)
+    ):
+        normalized_slot = {
+            "species": slot["species"],
+            "min_level": slot.get("min_level", 2),
+            "max_level": slot.get("max_level", 100),
+        }
+        summaries, decreasing_levels = _summarize_slot_outcomes(
+            normalized_slot, scaling, level_offset, metadata_by_species
+        )
+        for vanilla_level, transitions in decreasing_levels.items():
+            for previous_rating, previous_level, rating, level in transitions:
+                failures.append(
+                    f"{label}/{method}/{fishing_rod}/slot {index}/"
+                    f"vanilla {vanilla_level}: level decreases from {previous_level} "
+                    f"at rating {previous_rating} to {level} at rating {rating}"
+                )
+        unlock_rating = None
+        unlocked = False
+        for rating, summary in enumerate(summaries):
+            eligible = not summary["locked"]
+            if eligible and unlock_rating is None:
+                unlock_rating = rating
+            if unlocked and not eligible:
+                failures.append(
+                    f"{label}/{method}/{fishing_rod}/slot {index}: relocks at rating {rating}"
+                )
+            unlocked |= eligible
+
+        slot_rows.append(
+            {
+                "slot": index,
+                "species": normalized_slot["species"],
+                "weight": weight,
+                "vanilla": {
+                    "minimumLevel": normalized_slot["min_level"],
+                    "maximumLevel": normalized_slot["max_level"],
+                },
+                "startsLocked": summaries[0]["locked"],
+                "unlockRating": unlock_rating,
+                "summaries": summaries,
+            }
+        )
+
+    original_minimum = min(row["vanilla"]["minimumLevel"] for row in slot_rows)
+    original_maximum = max(row["vanilla"]["maximumLevel"] for row in slot_rows)
+    original_average_numerator = sum(
+        row["weight"]
+        * sum(
+            range(
+                row["vanilla"]["minimumLevel"],
+                row["vanilla"]["maximumLevel"] + 1,
+            )
+        )
+        for row in slot_rows
+    )
+    original_average_denominator = sum(
+        row["weight"]
+        * (row["vanilla"]["maximumLevel"] - row["vanilla"]["minimumLevel"] + 1)
+        for row in slot_rows
+    )
+    matrix = []
+    for rating in required_ratings:
+        eligible_rows = [
+            row for row in slot_rows if not row["summaries"][rating]["locked"]
+        ]
+        locked_rows = [row for row in slot_rows if row["summaries"][rating]["locked"]]
+        eligible_weight = sum(row["weight"] for row in eligible_rows)
+        locked_weight = sum(row["weight"] for row in locked_rows)
+        if not eligible_rows:
+            failures.append(
+                f"{label}/{method}/{fishing_rod}: all slots are locked at rating {rating}"
+            )
+            effective_minimum = None
+            effective_maximum = None
+            effective_average_numerator = 0
+            effective_average_denominator = 0
+        else:
+            effective_minimum = min(
+                outcome["min_level"]
+                for row in eligible_rows
+                for outcome in row["summaries"][rating]["outcomes"].values()
+            )
+            effective_maximum = max(
+                outcome["max_level"]
+                for row in eligible_rows
+                for outcome in row["summaries"][rating]["outcomes"].values()
+            )
+            effective_average_numerator = sum(
+                row["weight"] * row["summaries"][rating]["level_sum"]
+                for row in eligible_rows
+            )
+            effective_average_denominator = sum(
+                row["weight"] * row["summaries"][rating]["level_count"]
+                for row in eligible_rows
+            )
+
+        slot_outcomes = []
+        effective_species = set()
+        stage_changes = []
+        for row in slot_rows:
+            summary = row["summaries"][rating]
+            outcomes = [
+                {
+                    "species": species,
+                    "minimumLevel": outcome["min_level"],
+                    "maximumLevel": outcome["max_level"],
+                }
+                for species, outcome in sorted(summary["outcomes"].items())
+            ]
+            changes = [
+                {"fromSpecies": source, "toSpecies": target}
+                for source, target in sorted(summary["stage_changes"])
+            ]
+            if not summary["locked"]:
+                effective_species.update(outcome["species"] for outcome in outcomes)
+                stage_changes.extend(
+                    {
+                        "slot": row["slot"],
+                        "fromSpecies": change["fromSpecies"],
+                        "toSpecies": change["toSpecies"],
+                    }
+                    for change in changes
+                )
+            slot_outcomes.append(
+                {
+                    "slot": row["slot"],
+                    "weight": row["weight"],
+                    "original": row["vanilla"],
+                    "effective": outcomes,
+                    "stageChanges": changes,
+                    "locked": summary["locked"],
+                    "unlockRating": row["unlockRating"],
+                }
+            )
+        matrix.append(
+            {
+                "rating": rating,
+                "original": {
+                    "minimumLevel": original_minimum,
+                    "weightedAverage": {
+                        "numerator": original_average_numerator,
+                        "denominator": original_average_denominator,
+                    },
+                    "maximumLevel": original_maximum,
+                },
+                "effective": {
+                    "minimumLevel": effective_minimum,
+                    "weightedAverage": {
+                        "numerator": effective_average_numerator,
+                        "denominator": effective_average_denominator,
+                    },
+                    "maximumLevel": effective_maximum,
+                    "species": sorted(effective_species),
+                },
+                "stageChanges": stage_changes,
+                "lockedSlots": [row["slot"] for row in locked_rows],
+                "eligibleSlotCount": len(eligible_rows),
+                "lockedSlotCount": len(locked_rows),
+                "unlockRatings": [
+                    {"slot": row["slot"], "rating": row["unlockRating"]}
+                    for row in slot_rows
+                ],
+                "totalWeight": sum(weights),
+                "eligibleWeight": eligible_weight,
+                "lockedWeight": locked_weight,
+                "renormalizedProbabilities": [
+                    {
+                        "slot": row["slot"],
+                        "weight": row["weight"],
+                        "numerator": row["weight"],
+                        "denominator": eligible_weight,
+                    }
+                    for row in eligible_rows
+                ],
+                "slotOutcomes": slot_outcomes,
+            }
+        )
+    for row in slot_rows:
+        row.pop("summaries")
+    return slot_rows, matrix, failures
+
+
+def _cross_profile_ordering_failures(profiles):
+    failures = []
+    profiles_by_method = {}
+    for profile in profiles:
+        profiles_by_method.setdefault(
+            (profile["method"], profile["fishingRod"]), []
+        ).append(profile)
+
+    for (method, fishing_rod), method_profiles in sorted(profiles_by_method.items()):
+        for index, weaker_profile in enumerate(method_profiles):
+            weaker_matrix = {row["rating"]: row for row in weaker_profile["matrix"]}
+            for stronger_profile in method_profiles[index + 1 :]:
+                stronger_matrix = {
+                    row["rating"]: row for row in stronger_profile["matrix"]
+                }
+                for rating in REQUIRED_AUDIT_RATINGS:
+                    first = weaker_matrix[rating]
+                    second = stronger_matrix[rating]
+                    if (
+                        first["original"]["maximumLevel"]
+                        < second["original"]["minimumLevel"]
+                    ):
+                        weaker, stronger = first, second
+                        weaker_label, stronger_label = (
+                            weaker_profile["label"],
+                            stronger_profile["label"],
+                        )
+                    elif (
+                        second["original"]["maximumLevel"]
+                        < first["original"]["minimumLevel"]
+                    ):
+                        weaker, stronger = second, first
+                        weaker_label, stronger_label = (
+                            stronger_profile["label"],
+                            weaker_profile["label"],
+                        )
+                    else:
+                        continue
+                    if (
+                        weaker["effective"]["maximumLevel"] is not None
+                        and stronger["effective"]["minimumLevel"] is not None
+                        and weaker["effective"]["maximumLevel"]
+                        > stronger["effective"]["minimumLevel"]
+                    ):
+                        failures.append(
+                            "cross-profile ordering: "
+                            f"{method}/{fishing_rod} rating {rating} projects "
+                            f"{weaker_label} above the strictly stronger vanilla "
+                            f"profile {stronger_label}"
+                        )
+    return failures
+
+
+def build_wild_encounter_balance_audit(
+    encounters_path=DEFAULT_ENCOUNTERS,
+    registry_path=DEFAULT_REGISTRY,
+    scaling_path=DEFAULT_SCALING,
+    config_path=DEFAULT_CONFIG,
+    rtc_constants_path=DEFAULT_RTC_CONSTANTS,
+    map_groups_path=DEFAULT_MAP_GROUPS,
+    maps_root=DEFAULT_MAPS_ROOT,
+    map_sections_path=DEFAULT_MAP_SECTIONS,
+    species_path=DEFAULT_SPECIES,
+    time_policies_path=DEFAULT_TIME_POLICIES,
+    enforce_reviewed_method_fallbacks=True,
+    wild_encounter_species_path=DEFAULT_WILD_ENCOUNTER_SPECIES,
+    species_info_path=DEFAULT_SPECIES_INFO,
+):
+    encounters = _load_json(encounters_path)
+    registry = _load_json(registry_path)
+    config = Config(config_path, rtc_constants_path, encounters)
+    maps = _load_map_authority(map_groups_path, maps_root, map_sections_path)
+    species = _load_species(species_path)
+    profiles = validate_inputs(encounters, registry, config, maps, species)
+    time_policy_labels, _ = _load_time_policies(
+        time_policies_path,
+        profiles,
+        encounters,
+        config,
+        maps,
+        (REVIEWED_METHOD_TIME_FALLBACKS if enforce_reviewed_method_fallbacks else None),
+    )
+    scaling = _load_scaling(scaling_path, DEFAULT_REGIONAL_FACTS)
+    if any(rating > scaling["projection_cap"] for rating in REQUIRED_AUDIT_RATINGS):
+        raise ValidationError(
+            f"{scaling_path}: projection cap must cover required balance audit ratings"
+        )
+    profile_offsets = _load_profile_offsets(
+        scaling["profile_offsets"],
+        scaling_path,
+        profiles,
+        encounters,
+        config,
+        time_policy_labels,
+    )
+    species_metadata = _load_wild_encounter_species_metadata(
+        wild_encounter_species_path,
+        species_info_path,
+        species,
+        _ordinary_runtime_species(profiles, encounters, config, time_policy_labels),
+    )
+    metadata_by_species = {
+        metadata["species"]: metadata for metadata in species_metadata
+    }
+    offsets = _profile_offset_map(profile_offsets)
+    header_indices = _runtime_header_indices(profiles, config, time_policy_labels)
+    encounter_by_label = {
+        encounter["base_label"]: (group, encounter)
+        for group in encounters["wild_encounter_groups"]
+        for encounter in group["encounters"]
+    }
+    failures = []
+    audit_profiles = []
+    for profile in _select_runtime_profiles(profiles, config, time_policy_labels):
+        if profile["group"] != "gWildMonHeaders":
+            continue
+        group, encounter = encounter_by_label[profile["label"]]
+        header_id = header_indices[profile["header"]]
+        time_of_day = _resolve_profile_time(profile, config, time_policy_labels)
+        for method in config.mon_types:
+            if method not in encounter:
+                continue
+            fishing_rods = (
+                ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
+                if method == "fishing_mons"
+                else ("NONE",)
+            )
+            for fishing_rod in fishing_rods:
+                if method == "fishing_mons":
+                    indices = next(
+                        field["groups"][fishing_rod.lower()]
+                        for field in group["fields"]
+                        if field["type"] == method
+                    )
+                    audit_encounter = {
+                        method: {
+                            "mons": [
+                                encounter[method]["mons"][index] for index in indices
+                            ]
+                        }
+                    }
+                else:
+                    audit_encounter = encounter
+                weights = _field_weights(
+                    group,
+                    method,
+                    fishing_rod,
+                    len(audit_encounter[method]["mons"]),
+                )
+                context = (
+                    header_id,
+                    METHOD_AREAS[method],
+                    time_of_day,
+                    FISHING_RODS[fishing_rod],
+                )
+                slot_rows, aggregates, profile_failures = _audit_profile_slots(
+                    profile["label"],
+                    method,
+                    fishing_rod,
+                    audit_encounter,
+                    weights,
+                    scaling,
+                    offsets.get(context, 0),
+                    metadata_by_species,
+                )
+                failures.extend(profile_failures)
+                audit_profiles.append(
+                    {
+                        "label": profile["label"],
+                        "header": profile["header"],
+                        "headerId": header_id,
+                        "residency": profile["residency"],
+                        "timeOfDay": time_of_day,
+                        "method": method,
+                        "fishingRod": fishing_rod,
+                        "encounterRate": encounter[method]["encounter_rate"],
+                        "levelOffset": offsets.get(context, 0),
+                        "matrix": aggregates,
+                        "slots": slot_rows,
+                    }
+                )
+    audit_profiles.sort(
+        key=lambda profile: (
+            profile["headerId"],
+            profile["timeOfDay"],
+            profile["method"],
+            profile["fishingRod"],
+            profile["label"],
+        )
+    )
+    failures.extend(_cross_profile_ordering_failures(audit_profiles))
+    return {
+        "schemaVersion": 1,
+        "ratings": list(REQUIRED_AUDIT_RATINGS),
+        "balance": {
+            "projectionCap": scaling["projection_cap"],
+            "maximumRating": scaling["maximum_rating"],
+        },
+        "profiles": audit_profiles,
+        "invariants": {"passed": not failures, "failures": failures},
+    }
+
+
+def generate_wild_encounter_balance_audit(output_path=DEFAULT_BALANCE_AUDIT, **kwargs):
+    audit = build_wild_encounter_balance_audit(**kwargs)
+    if audit["invariants"]["failures"]:
+        raise ValidationError(
+            "wild encounter balance audit invariant failures: "
+            + "; ".join(audit["invariants"]["failures"])
+        )
+    _atomic_write(
+        output_path,
+        json.dumps(audit, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+    )
+    return audit
 
 
 def _atomic_write(path, content):
@@ -1701,7 +2795,7 @@ def _atomic_write(path, content):
 def generate(
     encounters_path=DEFAULT_ENCOUNTERS,
     registry_path=DEFAULT_REGISTRY,
-    bands_path=DEFAULT_BANDS,
+    scaling_path=DEFAULT_SCALING,
     output_path=DEFAULT_OUTPUT,
     config_path=DEFAULT_CONFIG,
     rtc_constants_path=DEFAULT_RTC_CONSTANTS,
@@ -1711,6 +2805,8 @@ def generate(
     species_path=DEFAULT_SPECIES,
     time_policies_path=DEFAULT_TIME_POLICIES,
     enforce_reviewed_method_fallbacks=True,
+    wild_encounter_species_path=DEFAULT_WILD_ENCOUNTER_SPECIES,
+    species_info_path=DEFAULT_SPECIES_INFO,
 ):
     encounters = _load_json(encounters_path)
     registry = _load_json(registry_path)
@@ -1727,8 +2823,20 @@ def generate(
         (REVIEWED_METHOD_TIME_FALLBACKS if enforce_reviewed_method_fallbacks else None),
     )
     _select_runtime_profiles(profiles, config, time_policy_labels)
-    authored_profiles = _load_authored_bands(
-        bands_path, profiles, encounters, config, species, time_policy_labels
+    scaling = _load_scaling(scaling_path, DEFAULT_REGIONAL_FACTS)
+    profile_offsets = _load_profile_offsets(
+        scaling["profile_offsets"],
+        scaling_path,
+        profiles,
+        encounters,
+        config,
+        time_policy_labels,
+    )
+    species_metadata = _load_wild_encounter_species_metadata(
+        wild_encounter_species_path,
+        species_info_path,
+        species,
+        _ordinary_runtime_species(profiles, encounters, config, time_policy_labels),
     )
     rendered = render_header(
         encounters,
@@ -1736,7 +2844,9 @@ def generate(
         profiles,
         time_policy_labels,
         time_policy_headers,
-        authored_profiles,
+        scaling,
+        profile_offsets,
+        species_metadata,
     )
     _atomic_write(output_path, rendered)
 
@@ -1747,7 +2857,14 @@ def _arguments():
     )
     parser.add_argument("--encounters", type=Path, default=DEFAULT_ENCOUNTERS)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
-    parser.add_argument("--bands", type=Path, default=DEFAULT_BANDS)
+    parser.add_argument("--scaling", type=Path, default=DEFAULT_SCALING)
+    parser.add_argument(
+        "--balance-audit",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_BALANCE_AUDIT,
+        help="write a deterministic ordinary-encounter balance audit",
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--rtc-constants", type=Path, default=DEFAULT_RTC_CONSTANTS)
@@ -1755,26 +2872,41 @@ def _arguments():
     parser.add_argument("--maps-root", type=Path, default=DEFAULT_MAPS_ROOT)
     parser.add_argument("--map-sections", type=Path, default=DEFAULT_MAP_SECTIONS)
     parser.add_argument("--species", type=Path, default=DEFAULT_SPECIES)
+    parser.add_argument(
+        "--wild-encounter-species", type=Path, default=DEFAULT_WILD_ENCOUNTER_SPECIES
+    )
+    parser.add_argument("--species-info", type=Path, default=DEFAULT_SPECIES_INFO)
     parser.add_argument("--time-policies", type=Path, default=DEFAULT_TIME_POLICIES)
     return parser.parse_args()
 
 
 def main():
     arguments = _arguments()
+    common_arguments = {
+        "encounters_path": arguments.encounters,
+        "registry_path": arguments.registry,
+        "scaling_path": arguments.scaling,
+        "config_path": arguments.config,
+        "rtc_constants_path": arguments.rtc_constants,
+        "map_groups_path": arguments.map_groups,
+        "maps_root": arguments.maps_root,
+        "map_sections_path": arguments.map_sections,
+        "species_path": arguments.species,
+        "time_policies_path": arguments.time_policies,
+        "wild_encounter_species_path": arguments.wild_encounter_species,
+        "species_info_path": arguments.species_info,
+    }
     try:
-        generate(
-            arguments.encounters,
-            arguments.registry,
-            arguments.bands,
-            arguments.output,
-            arguments.config,
-            arguments.rtc_constants,
-            arguments.map_groups,
-            arguments.maps_root,
-            arguments.map_sections,
-            arguments.species,
-            arguments.time_policies,
-        )
+        if arguments.balance_audit is not None:
+            audit = generate_wild_encounter_balance_audit(
+                arguments.balance_audit, **common_arguments
+            )
+            print(
+                "wild encounter balance audit passed: "
+                f"{arguments.balance_audit} ({len(audit['profiles'])} profile rows)"
+            )
+        else:
+            generate(output_path=arguments.output, **common_arguments)
     except ValidationError as error:
         raise SystemExit(f"wild encounter generation failed: {error}") from error
 

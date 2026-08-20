@@ -12,7 +12,6 @@ from tools.wild_encounters import wild_encounters_to_header as generator
 ROOT = Path(__file__).resolve().parents[3]
 ENCOUNTERS = ROOT / "src/data/wild_encounters.json"
 REGISTRY = ROOT / "src/data/wild_encounter_registry.json"
-BANDS = ROOT / "src/data/wild_encounter_bands.json"
 TIME_POLICIES = ROOT / "src/data/wild_encounter_time_policies.json"
 
 
@@ -21,7 +20,6 @@ class WildEncounterGenerationTests(unittest.TestCase):
     def setUpClass(cls):
         cls.encounters = json.loads(ENCOUNTERS.read_text(encoding="utf-8"))
         cls.registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
-        cls.bands = json.loads(BANDS.read_text(encoding="utf-8"))
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -29,7 +27,6 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.encounters_path = self.root / "wild_encounters.json"
         self.registry_path = self.root / "wild_encounter_registry.json"
-        self.bands_path = self.root / "wild_encounter_bands.json"
         self.time_policies_path = self.root / "wild_encounter_time_policies.json"
         self.output_path = self.root / "wild_encounters.h"
         self.time_policies_path.write_text(
@@ -106,21 +103,17 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self,
         encounters=None,
         registry=None,
-        bands=None,
         config_path=None,
         rtc_constants_path=None,
         time_policies_path=None,
     ):
         encounters = self.encounters if encounters is None else encounters
         registry = self.registry if registry is None else registry
-        bands = self.bands if bands is None else bands
         self.encounters_path.write_text(json.dumps(encounters), encoding="utf-8")
         self.registry_path.write_text(json.dumps(registry), encoding="utf-8")
-        self.bands_path.write_text(json.dumps(bands), encoding="utf-8")
         generator.generate(
             encounters_path=self.encounters_path,
             registry_path=self.registry_path,
-            bands_path=self.bands_path,
             output_path=self.output_path,
             config_path=(
                 generator.DEFAULT_CONFIG if config_path is None else config_path
@@ -143,7 +136,6 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self,
         encounters=None,
         registry=None,
-        bands=None,
         config_path=None,
         rtc_constants_path=None,
         time_policies_path=None,
@@ -151,15 +143,12 @@ class WildEncounterGenerationTests(unittest.TestCase):
         self.output_path.write_bytes(b"reviewed output\n")
         encounters = self.encounters if encounters is None else encounters
         registry = self.registry if registry is None else registry
-        bands = self.bands if bands is None else bands
         self.encounters_path.write_text(json.dumps(encounters), encoding="utf-8")
         self.registry_path.write_text(json.dumps(registry), encoding="utf-8")
-        self.bands_path.write_text(json.dumps(bands), encoding="utf-8")
         with self.assertRaises(generator.ValidationError):
             generator.generate(
                 encounters_path=self.encounters_path,
                 registry_path=self.registry_path,
-                bands_path=self.bands_path,
                 output_path=self.output_path,
                 config_path=(
                     generator.DEFAULT_CONFIG if config_path is None else config_path
@@ -191,358 +180,6 @@ class WildEncounterGenerationTests(unittest.TestCase):
             if encounter["base_label"] == label
         )
 
-    @staticmethod
-    def route101_band_profile(policy="complete"):
-        tiers = [0, 1, 2, 3] if policy == "complete" else [0, 2]
-        return {
-            "label": "gRoute101",
-            "header": "gRoute101",
-            "method": "land_mons",
-            "condition": "TIME_FALLBACK",
-            "fishing_rod": "NONE",
-            "missing_band_policy": policy,
-            "tiers": [
-                {
-                    "tier": tier,
-                    "entries": [
-                        {
-                            "species": "SPECIES_WURMPLE",
-                            "weight": 1,
-                            "min_level": 2 + tier,
-                            "max_level": 3 + tier,
-                        }
-                    ],
-                }
-                for tier in tiers
-            ],
-        }
-
-    def authored_profile_with_entries(
-        self, method, count, fishing_rod="NONE", distinct_species=False
-    ):
-        if method == "rock_smash_mons":
-            profile = self.route101_band_profile()
-            profile.update(
-                label="gRoute111",
-                header="gRoute111",
-                method=method,
-            )
-        else:
-            profile = copy.deepcopy(
-                next(
-                    profile
-                    for profile in self.bands["profiles"]
-                    if profile["method"] == method
-                    and profile["fishing_rod"] == fishing_rod
-                )
-            )
-        available_species = list(
-            dict.fromkeys(
-                mon["species"]
-                for group in self.encounters["wild_encounter_groups"]
-                for encounter in group["encounters"]
-                for mon_type in ("land_mons", "water_mons", "fishing_mons")
-                for mon in encounter.get(mon_type, {}).get("mons", [])
-                if mon["species"] not in generator.NON_ENCOUNTER_SPECIES
-            )
-        )
-        species = (
-            available_species[:count]
-            if distinct_species
-            else [available_species[0]] * count
-        )
-        self.assertEqual(len(species), count)
-        for tier in profile["tiers"]:
-            min_level = tier["entries"][0]["min_level"]
-            max_level = tier["entries"][0]["max_level"]
-            tier["entries"] = [
-                {
-                    "species": species_id,
-                    "weight": 1,
-                    "min_level": min_level,
-                    "max_level": max_level,
-                }
-                for species_id in species
-            ]
-        return profile
-
-    def authored_profile_with_distinct_species(self, method, count):
-        return self.authored_profile_with_entries(method, count, distinct_species=True)
-
-    def test_authored_band_schema_rejects_invalid_values_atomically(self):
-        def document(profile):
-            return {"schema_version": 1, "profiles": [profile]}
-
-        cases = {}
-        profile = self.route101_band_profile()
-        cases["unknown label"] = copy.deepcopy(profile)
-        cases["unknown label"]["label"] = "gUnknownProfile"
-        cases["unknown header"] = copy.deepcopy(profile)
-        cases["unknown header"]["header"] = "gUnknownHeader"
-        cases["unknown method"] = copy.deepcopy(profile)
-        cases["unknown method"]["method"] = "cave_mons"
-        cases["unsupported method"] = copy.deepcopy(profile)
-        cases["unsupported method"]["method"] = "water_mons"
-        cases["unknown condition"] = copy.deepcopy(profile)
-        cases["unknown condition"]["condition"] = "TIME_DUSK"
-        cases["wrong canonical condition"] = copy.deepcopy(profile)
-        cases["wrong canonical condition"]["condition"] = "TIME_DAY"
-        cases["unknown rod"] = copy.deepcopy(profile)
-        cases["unknown rod"]["fishing_rod"] = "BASIC_ROD"
-        cases["rod on land"] = copy.deepcopy(profile)
-        cases["rod on land"]["fishing_rod"] = "OLD_ROD"
-        cases["unknown policy"] = copy.deepcopy(profile)
-        cases["unknown policy"]["missing_band_policy"] = "nearest"
-        cases["duplicate tier"] = copy.deepcopy(profile)
-        cases["duplicate tier"]["tiers"][1]["tier"] = 0
-        cases["complete gap"] = copy.deepcopy(profile)
-        cases["complete gap"]["tiers"].pop(1)
-        cases["floor without tier zero"] = self.route101_band_profile("floor")
-        cases["floor without tier zero"]["tiers"].pop(0)
-        cases["boolean tier"] = copy.deepcopy(profile)
-        cases["boolean tier"]["tiers"][0]["tier"] = True
-        cases["tier overflow"] = copy.deepcopy(profile)
-        cases["tier overflow"]["tiers"][3]["tier"] = 4
-        cases["zero weight"] = copy.deepcopy(profile)
-        cases["zero weight"]["tiers"][0]["entries"][0]["weight"] = 0
-        cases["negative weight"] = copy.deepcopy(profile)
-        cases["negative weight"]["tiers"][0]["entries"][0]["weight"] = -1
-        cases["boolean weight"] = copy.deepcopy(profile)
-        cases["boolean weight"]["tiers"][0]["entries"][0]["weight"] = True
-        cases["total weight overflow"] = copy.deepcopy(profile)
-        cases["total weight overflow"]["tiers"][0]["entries"][0]["weight"] = 65536
-        cases["bad level order"] = copy.deepcopy(profile)
-        cases["bad level order"]["tiers"][0]["entries"][0]["min_level"] = 4
-        cases["bad level order"]["tiers"][0]["entries"][0]["max_level"] = 3
-        cases["level below one"] = copy.deepcopy(profile)
-        cases["level below one"]["tiers"][0]["entries"][0]["min_level"] = 0
-        cases["level above 100"] = copy.deepcopy(profile)
-        cases["level above 100"]["tiers"][0]["entries"][0]["max_level"] = 101
-        cases["boolean level"] = copy.deepcopy(profile)
-        cases["boolean level"]["tiers"][0]["entries"][0]["min_level"] = True
-        cases["unsupported species"] = copy.deepcopy(profile)
-        cases["unsupported species"]["tiers"][0]["entries"][0]["species"] = (
-            "SPECIES_MISSINGNO"
-        )
-        cases["missing explicit key"] = copy.deepcopy(profile)
-        del cases["missing explicit key"]["fishing_rod"]
-
-        duplicate = copy.deepcopy(profile)
-        duplicate_document = {
-            "schema_version": 1,
-            "profiles": [profile, duplicate],
-        }
-        with self.subTest(name="duplicate identity"):
-            self.assert_rejected_without_replacement(bands=duplicate_document)
-        for schema_version in (True, 1.0):
-            with self.subTest(name=f"non-integer schema version {schema_version!r}"):
-                self.assert_rejected_without_replacement(
-                    bands={"schema_version": schema_version, "profiles": []}
-                )
-        for species in sorted(generator.NON_ENCOUNTER_SPECIES):
-            sentinel_profile = copy.deepcopy(profile)
-            sentinel_profile["tiers"][0]["entries"][0]["species"] = species
-            with self.subTest(name=f"non-encounter sentinel {species}"):
-                self.assert_rejected_without_replacement(
-                    bands=document(sentinel_profile)
-                )
-        for name, invalid_profile in cases.items():
-            with self.subTest(name=name):
-                self.assert_rejected_without_replacement(
-                    bands=document(invalid_profile)
-                )
-
-    def test_authored_land_and_water_tiers_enforce_dexnav_species_capacity(self):
-        for method, accepted_count, rejected_count in (
-            ("land_mons", 12, 13),
-            ("water_mons", 5, 6),
-        ):
-            with self.subTest(method=method, distinct_species=accepted_count):
-                profile = self.authored_profile_with_distinct_species(
-                    method, accepted_count
-                )
-                self.generate(bands={"schema_version": 1, "profiles": [profile]})
-
-            with self.subTest(method=method, distinct_species=rejected_count):
-                profile = self.authored_profile_with_distinct_species(
-                    method, rejected_count
-                )
-                self.assert_rejected_without_replacement(
-                    bands={"schema_version": 1, "profiles": [profile]}
-                )
-
-    def test_authored_tiers_enforce_method_entry_capacity_with_duplicates(self):
-        for method, fishing_rod, accepted_count in (
-            ("land_mons", "NONE", 12),
-            ("water_mons", "NONE", 5),
-            ("rock_smash_mons", "NONE", 5),
-            ("fishing_mons", "OLD_ROD", 2),
-            ("fishing_mons", "GOOD_ROD", 3),
-            ("fishing_mons", "SUPER_ROD", 5),
-        ):
-            with self.subTest(
-                method=method, fishing_rod=fishing_rod, entries=accepted_count
-            ):
-                profile = self.authored_profile_with_entries(
-                    method, accepted_count, fishing_rod
-                )
-                self.generate(bands={"schema_version": 1, "profiles": [profile]})
-
-            with self.subTest(
-                method=method, fishing_rod=fishing_rod, entries=accepted_count + 1
-            ):
-                profile = self.authored_profile_with_entries(
-                    method, accepted_count + 1, fishing_rod
-                )
-                self.assert_rejected_without_replacement(
-                    bands={"schema_version": 1, "profiles": [profile]}
-                )
-
-    def test_authored_hidden_profiles_are_unsupported_until_semantics_are_defined(self):
-        profile = self.route101_band_profile()
-        profile["method"] = "hidden_mons"
-
-        self.assertNotIn("hidden_mons", generator.METHOD_AREAS)
-        self.assert_rejected_without_replacement(
-            bands={"schema_version": 1, "profiles": [profile]}
-        )
-
-    def test_floor_bands_emit_ordered_tiers_for_greatest_lte_resolution(self):
-        output = self.generate(
-            bands={
-                "schema_version": 1,
-                "profiles": [self.route101_band_profile("floor")],
-            }
-        )
-        bands = output.split(
-            "static const struct WildEncounterAuthoredBand "
-            "sWildEncounterAuthoredBands_0[] =",
-            1,
-        )[1].split("};", 1)[0]
-        self.assertLess(bands.index(".tier = 0"), bands.index(".tier = 2"))
-        self.assertIn(".missingBandPolicy = WILD_ENCOUNTER_MISSING_BAND_FLOOR,", output)
-        self.assertIn(".bandCount = ARRAY_COUNT(sWildEncounterAuthoredBands_0)", output)
-
-    def test_proof_profiles_preserve_tier_zero_ecology_and_weights(self):
-        profiles = self.bands["profiles"]
-        self.assertEqual(len(profiles), 9)
-        self.assertTrue(
-            {
-                "gRoute101",
-                "sVermilionCity_FireRed",
-                "sOneIsland_FireRed",
-            }.issubset({profile["label"] for profile in profiles})
-        )
-        self.assertTrue(
-            {
-                ("gRoute101", "gRoute101", "land_mons", "TIME_FALLBACK", "NONE"),
-                (
-                    "sVermilionCity_FireRed",
-                    "sVermilionCity_FireRed",
-                    "water_mons",
-                    "TIME_FALLBACK",
-                    "NONE",
-                ),
-                *{
-                    (
-                        "sVermilionCity_FireRed",
-                        "sVermilionCity_FireRed",
-                        "fishing_mons",
-                        "TIME_FALLBACK",
-                        rod,
-                    )
-                    for rod in ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
-                },
-                (
-                    "sOneIsland_FireRed",
-                    "sOneIsland_FireRed",
-                    "water_mons",
-                    "TIME_FALLBACK",
-                    "NONE",
-                ),
-                *{
-                    (
-                        "sOneIsland_FireRed",
-                        "sOneIsland_FireRed",
-                        "fishing_mons",
-                        "TIME_FALLBACK",
-                        rod,
-                    )
-                    for rod in ("OLD_ROD", "GOOD_ROD", "SUPER_ROD")
-                },
-            }.issubset(
-                {
-                    (
-                        profile["label"],
-                        profile["header"],
-                        profile["method"],
-                        profile["condition"],
-                        profile["fishing_rod"],
-                    )
-                    for profile in profiles
-                }
-            )
-        )
-        self.assertTrue(
-            all(
-                profile["missing_band_policy"] == "complete"
-                and [tier["tier"] for tier in profile["tiers"]] == [0, 1, 2, 3]
-                for profile in profiles
-            )
-        )
-
-        fields = {
-            field["type"]: field
-            for group in self.encounters["wild_encounter_groups"]
-            for field in group.get("fields", [])
-        }
-        for profile in profiles:
-            encounter = self.find_encounter(self.encounters, profile["label"])
-            field = fields[profile["method"]]
-            if profile["method"] == "fishing_mons":
-                slots = field["groups"][profile["fishing_rod"].lower()]
-            else:
-                slots = range(len(field["encounter_rates"]))
-            expected = {}
-            for slot in slots:
-                species = encounter[profile["method"]]["mons"][slot]["species"]
-                expected[species] = (
-                    expected.get(species, 0) + field["encounter_rates"][slot]
-                )
-            tier_zero = profile["tiers"][0]["entries"]
-            actual = {entry["species"]: entry["weight"] for entry in tier_zero}
-            self.assertEqual(actual, expected, profile["label"])
-            self.assertEqual(sum(actual.values()), 100)
-            expected_levels = (2, 3) if profile["label"] == "gRoute101" else (4, 8)
-            self.assertTrue(
-                all(
-                    (entry["min_level"], entry["max_level"]) == expected_levels
-                    for entry in tier_zero
-                )
-            )
-            for tier, expected_levels in zip(
-                profile["tiers"][1:], ((10, 14), (15, 19), (20, 24)), strict=True
-            ):
-                self.assertTrue(
-                    all(
-                        (entry["min_level"], entry["max_level"]) == expected_levels
-                        for entry in tier["entries"]
-                    )
-                )
-
-        output = self.generate()
-        self.assertIn("#define WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT 9", output)
-        self.assertEqual(output.count(".missingBandPolicy ="), 9)
-        self.assertEqual(output.count(".totalWeight = 100,"), 36)
-
-    def test_johto_residency_cannot_author_encounter_bands(self):
-        profile = copy.deepcopy(self.route101_band_profile())
-        profile["label"] = "gRoute39"
-        profile["header"] = "gRoute39"
-        self.assert_rejected_without_replacement(
-            bands={"schema_version": 1, "profiles": [profile]}
-        )
-
     def test_complete_resident_inventory_generates_without_product_guards(self):
         output = self.generate()
         profiles = self.registry["profiles"]
@@ -562,6 +199,13 @@ class WildEncounterGenerationTests(unittest.TestCase):
         )
         self.assertIn(".count = ARRAY_COUNT(gWildMonHeaders),", output)
         self.assertIn("WildEncounterRegistryParallelArraysMustMatch", output)
+        self.assertNotIn("WildEncounterAuthored", output)
+        self.assertNotIn("WILD_ENCOUNTER_AUTHORED_PROFILE_COUNT", output)
+        self.assertIn(
+            "{ REGIONAL_FACT_HOENN_STONE_BADGE, 0, TRAINER_RATING_SOURCE_BADGE },",
+            output,
+        )
+        self.assertIn(".maximumRating = 60,", output)
         ordinary_headers = output.split(
             "static const struct WildEncounterTimePolicy", 1
         )[0].split("static const struct WildPokemonHeader gWildMonHeaders[]", 1)[1]
@@ -1458,6 +1102,372 @@ int main(void)
         self.generate()
         self.assertEqual(
             self.output_path.stat().st_mode & 0o777, generator.DEFAULT_OUTPUT_MODE
+        )
+
+
+class WildEncounterSpeciesMetadataTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.authority_path = self.root / "wild_encounter_species.json"
+        self.species_info_path = self.root / "species_info.h"
+        self.known_species = {
+            "SPECIES_ALPHA",
+            "SPECIES_BETA",
+            "SPECIES_GAMMA",
+            "SPECIES_DELTA",
+        }
+        self.ordinary_species = {"SPECIES_BETA"}
+
+    def write_authority(self, minimum_levels=None, resolutions=None):
+        self.authority_path.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "minimumOrdinaryWildLevels": (
+                        [] if minimum_levels is None else minimum_levels
+                    ),
+                    "predecessorResolutions": []
+                    if resolutions is None
+                    else resolutions,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def write_species_info(
+        self, alpha_evolutions, gamma_evolutions="", beta_evolutions=""
+    ):
+        self.species_info_path.write_text(
+            "\n".join(
+                (
+                    "#define EVOLUTION(...) (const struct Evolution[]) { __VA_ARGS__, { EVOLUTIONS_END }, }",
+                    "#define CONDITIONS(...) ((const struct EvolutionParam[]) { __VA_ARGS__, { CONDITIONS_END } })",
+                    "[SPECIES_ALPHA] = { .evolutions = EVOLUTION(",
+                    alpha_evolutions,
+                    "), };",
+                    "[SPECIES_GAMMA] = { .evolutions = EVOLUTION(",
+                    gamma_evolutions,
+                    "), };",
+                    "[SPECIES_BETA] = { .evolutions = EVOLUTION(",
+                    beta_evolutions,
+                    "), };",
+                    "[SPECIES_DELTA] = { };",
+                )
+            ),
+            encoding="utf-8",
+        )
+
+    def load_metadata(self):
+        return generator._load_wild_encounter_species_metadata(
+            self.authority_path,
+            self.species_info_path,
+            self.known_species,
+            self.ordinary_species,
+        )
+
+    def test_conditional_positive_level_edge_and_explicit_floor_are_generated(self):
+        self.write_authority(
+            minimum_levels=[{"species": "SPECIES_BETA", "minimumOrdinaryWildLevel": 12}]
+        )
+        self.write_species_info(
+            "{EVO_LEVEL, 20, SPECIES_BETA, CONDITIONS({IF_TIME, TIME_DAY})}"
+        )
+
+        self.assertEqual(
+            self.load_metadata(),
+            [
+                {
+                    "species": "SPECIES_ALPHA",
+                    "minimum_level": 1,
+                    "predecessor": "SPECIES_NONE",
+                    "predecessor_level": 0,
+                    "has_alternate_non_level_route": False,
+                },
+                {
+                    "species": "SPECIES_BETA",
+                    "minimum_level": 12,
+                    "predecessor": "SPECIES_ALPHA",
+                    "predecessor_level": 20,
+                    "has_alternate_non_level_route": False,
+                },
+            ],
+        )
+
+    def test_alternate_non_level_route_is_explicit(self):
+        self.write_authority()
+        self.write_species_info(
+            "{EVO_LEVEL, 20, SPECIES_BETA},{EVO_ITEM, ITEM_TEST, SPECIES_BETA}"
+        )
+
+        self.assertTrue(self.load_metadata()[1]["has_alternate_non_level_route"])
+
+    def test_numeric_predecessor_closure_emits_all_recursive_ancestors(self):
+        self.write_authority(
+            minimum_levels=[{"species": "SPECIES_GAMMA", "minimumOrdinaryWildLevel": 7}]
+        )
+        self.write_species_info(
+            "{EVO_LEVEL, 20, SPECIES_BETA}",
+            "{EVO_LEVEL, 10, SPECIES_ALPHA}",
+        )
+
+        metadata = {row["species"]: row for row in self.load_metadata()}
+        self.assertEqual(
+            set(metadata), {"SPECIES_ALPHA", "SPECIES_BETA", "SPECIES_GAMMA"}
+        )
+        self.assertEqual(metadata["SPECIES_BETA"]["predecessor"], "SPECIES_ALPHA")
+        self.assertEqual(metadata["SPECIES_ALPHA"]["predecessor"], "SPECIES_GAMMA")
+        self.assertEqual(metadata["SPECIES_GAMMA"]["minimum_level"], 7)
+
+    def test_ambiguous_predecessor_requires_and_accepts_narrow_resolution(self):
+        self.write_authority()
+        self.write_species_info(
+            "{EVO_LEVEL, 20, SPECIES_BETA}",
+            "{EVO_LEVEL, 30, SPECIES_BETA}",
+        )
+        with self.assertRaisesRegex(generator.ValidationError, "ambiguous numeric"):
+            self.load_metadata()
+
+        self.write_authority(
+            resolutions=[
+                {
+                    "species": "SPECIES_BETA",
+                    "predecessorSpecies": "SPECIES_GAMMA",
+                    "predecessorLevel": 30,
+                }
+            ]
+        )
+        metadata = next(
+            metadata
+            for metadata in self.load_metadata()
+            if metadata["species"] == "SPECIES_BETA"
+        )
+        self.assertEqual(metadata["predecessor"], "SPECIES_GAMMA")
+        self.assertEqual(metadata["predecessor_level"], 30)
+
+    def test_invalid_metadata_and_evolution_graph_fail_closed(self):
+        self.write_species_info("{EVO_LEVEL, 20, SPECIES_BETA}")
+        cases = (
+            (
+                {
+                    "schemaVersion": 1,
+                    "minimumOrdinaryWildLevels": [
+                        {
+                            "species": "SPECIES_BETA",
+                            "minimumOrdinaryWildLevel": 0,
+                        }
+                    ],
+                    "predecessorResolutions": [],
+                },
+                "expected integer",
+            ),
+            (
+                {
+                    "schemaVersion": 1,
+                    "minimumOrdinaryWildLevels": [
+                        {
+                            "species": "SPECIES_DELTA",
+                            "minimumOrdinaryWildLevel": 1,
+                        }
+                    ],
+                    "predecessorResolutions": [],
+                },
+                "not reachable",
+            ),
+            (
+                {
+                    "schemaVersion": 1,
+                    "minimumOrdinaryWildLevels": [],
+                    "predecessorResolutions": [
+                        {
+                            "species": "SPECIES_BETA",
+                            "predecessorSpecies": "SPECIES_ALPHA",
+                            "predecessorLevel": 20,
+                        }
+                    ],
+                },
+                "requires an ambiguous",
+            ),
+        )
+        for authority, message in cases:
+            with self.subTest(authority=authority):
+                self.authority_path.write_text(json.dumps(authority), encoding="utf-8")
+                with self.assertRaisesRegex(generator.ValidationError, message):
+                    self.load_metadata()
+
+        self.write_authority()
+        self.write_species_info(
+            "{EVO_LEVEL, 20, SPECIES_BETA}",
+            beta_evolutions="{EVO_LEVEL, 30, SPECIES_ALPHA}",
+        )
+        with self.assertRaisesRegex(generator.ValidationError, "cycle"):
+            self.load_metadata()
+
+
+class TrainerRatingScalingTests(unittest.TestCase):
+    def load_scaling(self, document):
+        with tempfile.TemporaryDirectory() as temporary:
+            scaling_path = Path(temporary) / "wild_encounter_scaling.json"
+            scaling_path.write_text(json.dumps(document), encoding="utf-8")
+            return generator._load_scaling(
+                scaling_path, generator.DEFAULT_REGIONAL_FACTS
+            )
+
+    def test_configured_rating_total_may_exceed_the_projection_cap(self):
+        document = json.loads(generator.DEFAULT_SCALING.read_text(encoding="utf-8"))
+        document["trainerRating"]["sources"][-1]["value"] = 255
+
+        scaling = self.load_scaling(document)
+
+        self.assertEqual(scaling["projection_cap"], 80)
+        self.assertEqual(scaling["maximum_rating"], 314)
+        self.assertEqual(len(scaling["points"]), 81)
+
+
+class WildEncounterBalanceAuditTests(unittest.TestCase):
+    def test_audit_reports_a_profile_that_loses_every_eligible_slot(self):
+        scaling = generator._load_scaling(
+            generator.DEFAULT_SCALING, generator.DEFAULT_REGIONAL_FACTS
+        )
+        _, _, failures = generator._audit_profile_slots(
+            "gTest",
+            "land_mons",
+            "NONE",
+            {
+                "land_mons": {
+                    "mons": [
+                        {
+                            "species": "SPECIES_TEST",
+                            "min_level": 2,
+                            "max_level": 2,
+                        }
+                    ]
+                }
+            },
+            [100],
+            scaling,
+            0,
+            {
+                "SPECIES_TEST": {
+                    "minimum_level": 100,
+                    "predecessor": "SPECIES_NONE",
+                    "predecessor_level": 0,
+                    "has_alternate_non_level_route": False,
+                }
+            },
+        )
+
+        self.assertIn(
+            "gTest/land_mons/NONE: all slots are locked at rating 0", failures
+        )
+
+    def test_audit_covers_required_ratings_and_is_deterministic(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output_path = Path(temporary) / "wild-encounter-balance-audit.json"
+            first = generator.generate_wild_encounter_balance_audit(output_path)
+            rendered = output_path.read_bytes()
+            second = generator.generate_wild_encounter_balance_audit(output_path)
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            rendered,
+            json.dumps(second, ensure_ascii=True, indent=2, sort_keys=True).encode()
+            + b"\n",
+        )
+        self.assertEqual(first["ratings"], list(generator.REQUIRED_AUDIT_RATINGS))
+        self.assertTrue(first["invariants"]["passed"])
+        self.assertEqual(first["invariants"]["failures"], [])
+        self.assertGreater(len(first["profiles"]), 0)
+
+        route101 = next(
+            profile
+            for profile in first["profiles"]
+            if profile["label"] == "gRoute101"
+            and profile["method"] == "land_mons"
+            and profile["fishingRod"] == "NONE"
+        )
+        matrix = route101["matrix"]
+        self.assertEqual(matrix[0]["totalWeight"], 100)
+        self.assertEqual(matrix[0]["eligibleWeight"], 100)
+        self.assertEqual(
+            set(matrix[0]),
+            {
+                "rating",
+                "original",
+                "effective",
+                "stageChanges",
+                "lockedSlots",
+                "eligibleSlotCount",
+                "lockedSlotCount",
+                "unlockRatings",
+                "totalWeight",
+                "eligibleWeight",
+                "lockedWeight",
+                "renormalizedProbabilities",
+                "slotOutcomes",
+            },
+        )
+        self.assertEqual(
+            sum(
+                probability["numerator"]
+                for probability in matrix[0]["renormalizedProbabilities"]
+            ),
+            matrix[0]["eligibleWeight"],
+        )
+        self.assertTrue(
+            all(
+                probability["denominator"] == matrix[0]["eligibleWeight"]
+                for probability in matrix[0]["renormalizedProbabilities"]
+            )
+        )
+        self.assertIn("weightedAverage", matrix[0]["original"])
+        self.assertIn("weightedAverage", matrix[0]["effective"])
+        self.assertTrue(
+            all(
+                "startsLocked" in slot and "unlockRating" in slot
+                for slot in route101["slots"]
+            )
+        )
+
+    def test_audit_fails_when_strict_profile_ordering_inverts(self):
+        def matrix(minimum, maximum):
+            return [
+                {
+                    "rating": rating,
+                    "original": {
+                        "minimumLevel": minimum,
+                        "maximumLevel": maximum,
+                    },
+                    "effective": {
+                        "minimumLevel": minimum,
+                        "maximumLevel": maximum,
+                    },
+                }
+                for rating in generator.REQUIRED_AUDIT_RATINGS
+            ]
+
+        weaker = {
+            "label": "gWeaker",
+            "headerId": 1,
+            "method": "land_mons",
+            "fishingRod": "NONE",
+            "matrix": matrix(2, 4),
+        }
+        stronger = {
+            "label": "gStronger",
+            "headerId": 2,
+            "method": "land_mons",
+            "fishingRod": "NONE",
+            "matrix": matrix(5, 7),
+        }
+        stronger["matrix"][0]["effective"]["minimumLevel"] = 3
+
+        failures = generator._cross_profile_ordering_failures([weaker, stronger])
+
+        self.assertEqual(len(failures), 1)
+        self.assertIn(
+            "gWeaker above the strictly stronger vanilla profile gStronger", failures[0]
         )
 
 

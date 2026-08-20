@@ -859,7 +859,7 @@ static bool32 CreateEnemyPartyOWEWithBehavior(struct InfoOWE *info, s32 x, s32 y
         timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
     }
 
-    if (!TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile))
+    if (!TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile))
         return FALSE;
 
     /*
@@ -993,7 +993,7 @@ static bool32 StartWildBattleWithOWE_CheckDoubleBattle(struct ObjectEvent *owe, 
             timeOfDay = GetTimeOfDayForEncounters(headerId, wildArea);
         }
 
-        if (TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile)
+        if (TryResolveWildEncounterProfile(headerId, wildArea, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile)
          && TryGenerateWildMonFromProfile(&profile, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
         {
             gParties[B_TRAINER_OPPONENT_A][1] = mon1;
@@ -1091,12 +1091,12 @@ static bool32 CheckCurrentWildMonHeaderForOWE(bool32 shouldSpawnWaterMons)
     {
         struct WildEncounterProfileView profile;
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_WATER);
-        return TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile);
+        return TryResolveWildEncounterProfile(headerId, WILD_AREA_WATER, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile);
     }
 
     struct WildEncounterProfileView profile;
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_LAND);
-    return TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, WorldTier_Get(), &profile);
+    return TryResolveWildEncounterProfile(headerId, WILD_AREA_LAND, timeOfDay, WILD_ENCOUNTER_FISHING_ROD_NONE, &profile);
 }
 
 #if TESTING

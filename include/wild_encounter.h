@@ -5,7 +5,7 @@
 #include "constants/wild_encounter.h"
 #include "wild_encounter_ow.h"
 #include "wild_encounter_time_policy.h"
-#include "world_tier.h"
+#include "trainer_rating.h"
 
 #define HEADER_NONE 0xFFFF
 
@@ -48,13 +48,9 @@ struct WildPokemonHeader
 
 #define WILD_ENCOUNTER_FISHING_ROD_NONE 0xFF
 
-enum WildEncounterMissingBandPolicy
-{
-    WILD_ENCOUNTER_MISSING_BAND_COMPLETE,
-    WILD_ENCOUNTER_MISSING_BAND_FLOOR,
-};
-
-struct WildEncounterAuthoredEntry
+// A standard encounter slot remains the source authority. Its species, weight,
+// and vanilla level range are never rewritten for Trainer Rating scaling.
+struct WildEncounterSlot
 {
     enum Species species;
     u16 weight;
@@ -62,42 +58,80 @@ struct WildEncounterAuthoredEntry
     u8 maxLevel;
 };
 
-struct WildEncounterAuthoredBand
-{
-    enum WorldTier tier;
-    u16 entryCount;
-    u16 totalWeight;
-    const struct WildEncounterAuthoredEntry *entries;
-};
-
-struct WildEncounterAuthoredProfile
+struct WildEncounterContext
 {
     u16 headerId;
     enum WildPokemonArea area;
     enum TimeOfDay timeOfDay;
     u8 fishingRod;
-    enum WildEncounterMissingBandPolicy missingBandPolicy;
-    u16 bandCount;
-    const struct WildEncounterAuthoredBand *bands;
 };
 
-enum WildEncounterProfileSource
+struct WildEncounterSlotOutcome
 {
-    WILD_ENCOUNTER_PROFILE_AUTHORED,
-    WILD_ENCOUNTER_PROFILE_LEGACY,
+    enum Species species;
+    u8 level;
 };
+
+// Generated from src/data/wild_encounter_scaling.json. Points are indexed by
+// clamped Trainer Rating and carry the already-derived anchor and retention
+// fraction so ROM code never has a second hand-maintained balance curve.
+struct WildEncounterScalingBalance
+{
+    u8 projectionCap;
+    u16 maximumRating;
+};
+
+struct WildEncounterScalingAnchor
+{
+    u8 rating;
+    u8 level;
+};
+
+struct WildEncounterScalingPoint
+{
+    u8 anchorLevel;
+    u16 retentionNumerator;
+    u16 retentionDenominator;
+};
+
+struct WildEncounterProfileOffset
+{
+    u16 headerId;
+    enum WildPokemonArea area;
+    enum TimeOfDay timeOfDay;
+    u8 fishingRod;
+    s8 levelOffset;
+};
+
+struct WildEncounterSpeciesMetadata
+{
+    enum Species species;
+    u8 minimumOrdinaryWildLevel;
+    enum Species predecessorSpecies;
+    u8 predecessorLevel;
+    bool8 hasAlternateNonLevelRoute;
+};
+
+extern const struct WildEncounterScalingBalance gWildEncounterScalingBalance;
+extern const struct WildEncounterScalingAnchor gWildEncounterScalingAnchors[];
+extern const u16 gWildEncounterScalingAnchorCount;
+extern const struct WildEncounterScalingPoint gWildEncounterScalingPoints[];
+extern const u16 gWildEncounterScalingPointCount;
+extern const struct WildEncounterProfileOffset gWildEncounterProfileOffsets[];
+extern const u16 gWildEncounterProfileOffsetCount;
+extern const struct WildEncounterSpeciesMetadata gWildEncounterSpeciesMetadata[];
+extern const u16 gWildEncounterSpeciesMetadataCount;
 
 struct WildEncounterProfileView
 {
-    enum WildEncounterProfileSource source;
+    struct WildEncounterContext context;
     enum WildPokemonArea area;
     u8 fishingRod;
     u8 encounterRate;
     u16 entryCount;
     u16 totalWeight;
     u16 legacyStartIndex;
-    const struct WildEncounterAuthoredEntry *authoredEntries;
-    const struct WildPokemon *legacyEntries;
+    const struct WildPokemon *entries;
 };
 
 // Parallel to gWildMonHeaders so WildPokemonHeader keeps its existing ABI.
@@ -108,7 +142,6 @@ struct WildEncounterTimePolicy
     u8 dayTime;
     u8 nightTime;
 };
-
 
 extern const struct WildPokemonHeader gBattlePikeWildMonHeaders[];
 extern const struct WildPokemonHeader gBattlePyramidWildMonHeaders[];
@@ -151,12 +184,16 @@ bool32 TryGetCurrentWildEncounterHeader(u16 *headerId);
 bool32 TryGetWildEncounterTypes(u16 headerId, enum TimeOfDay timeOfDay, const struct WildEncounterTypes **types);
 enum TimeOfDay ResolveWildEncounterDisplayTime(u16 headerId, enum TimeOfDay displayTime);
 bool32 TryGetWildEncounterInfo(u16 headerId, enum WildPokemonArea area, const struct WildPokemonInfo **info);
-bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, enum TimeOfDay timeOfDay, u8 fishingRod, enum WorldTier tier, struct WildEncounterProfileView *view);
-bool32 TryResolveWildEncounterAuthoredBand(const struct WildEncounterAuthoredProfile *profile, enum WorldTier tier, const struct WildEncounterAuthoredBand **band);
 bool32 IsWildEncounterProfileViewValid(const struct WildEncounterProfileView *view);
-bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterAuthoredEntry *entry);
-bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterAuthoredEntry *entry);
-bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterAuthoredEntry *entry, u16 rangeRoll, bool32 lureActive, u8 *level);
+bool32 TryResolveWildEncounterProfile(u16 headerId, enum WildPokemonArea area, enum TimeOfDay timeOfDay, u8 fishingRod, struct WildEncounterProfileView *view);
+bool32 TryGetWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, struct WildEncounterSlot *entry);
+bool32 TrySelectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 weightedRoll, struct WildEncounterSlot *entry);
+bool32 TrySelectWildEncounterLevel(const struct WildEncounterProfileView *view, const struct WildEncounterSlot *entry, u16 rangeRoll, bool32 lureActive, u8 *level);
+bool32 ProjectWildSlotOutcome(enum Species originalSpecies, u8 vanillaLevel, u16 trainerRating, const struct WildEncounterContext *context, struct WildEncounterSlotOutcome *outcome);
+bool32 TryProjectWildEncounterProfileEntry(const struct WildEncounterProfileView *view, u16 index, u8 vanillaLevel, u16 trainerRating, struct WildEncounterSlotOutcome *outcome);
+bool32 IsWildEncounterProfileEntryEligible(const struct WildEncounterProfileView *view, u16 index, u16 trainerRating);
+u16 GetWildEncounterProfileEligibleWeight(const struct WildEncounterProfileView *view, u16 trainerRating);
+bool32 TrySelectWildEncounterEligibleEntry(const struct WildEncounterProfileView *view, u16 trainerRating, u16 weightedRoll, struct WildEncounterSlot *entry);
 bool8 TryGenerateWildMonFromProfile(const struct WildEncounterProfileView *profile, u8 flags);
 bool8 CheckFeebasAtCoords(s16 x, s16 y);
 u32 ChooseWildMonIndex_Land(void);

@@ -81,6 +81,8 @@ bool32 OnStep_DexNavSearch(void);
 
 #if TESTING
 u8 DexNav_GetEncounterLevelFromMapDataForTesting(enum Species species, enum EncounterType environment);
+bool32 DexNav_TryStartNormalSearchForTesting(enum Species species, enum EncounterType environment);
+bool32 DexNav_GetLastNormalSearchOutcomeForTesting(enum Species *species, u8 *level);
 #endif
 
 extern enum Species gDexNavSpecies;

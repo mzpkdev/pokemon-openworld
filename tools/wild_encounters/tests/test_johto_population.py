@@ -18,7 +18,6 @@ class JohtoPopulationTests(unittest.TestCase):
         cls.fallbacks = cls.load(projection.DEFAULT_FALLBACKS)
         cls.encounters = cls.load(projection.DEFAULT_ENCOUNTERS)
         cls.registry = cls.load(projection.DEFAULT_REGISTRY)
-        cls.bands = cls.load(projection.DEFAULT_BANDS)
         cls.map_ids = projection._map_ids(
             cls.classification, projection.DEFAULT_MAPS_ROOT
         )
@@ -29,7 +28,6 @@ class JohtoPopulationTests(unittest.TestCase):
             cls.fallbacks,
             cls.encounters,
             cls.registry,
-            cls.bands,
             cls.map_ids,
             cls.ecology_source,
         )
@@ -124,7 +122,6 @@ class JohtoPopulationTests(unittest.TestCase):
                 changed,
                 self.encounters,
                 self.registry,
-                self.bands,
                 self.map_ids,
                 self.ecology_source,
             )
@@ -141,7 +138,6 @@ class JohtoPopulationTests(unittest.TestCase):
                 self.fallbacks,
                 self.encounters,
                 self.registry,
-                self.bands,
                 self.map_ids,
                 self.ecology_source,
             )
@@ -191,11 +187,6 @@ class JohtoPopulationTests(unittest.TestCase):
                 next(row for row in self.registry["profiles"] if row[1] == label),
                 next(row for row in self.outputs[1]["profiles"] if row[1] == label),
             )
-        self.assertTrue(
-            projection.ROUTE39_LABELS.isdisjoint(
-                {row["label"] for row in self.outputs[2]["profiles"]}
-            )
-        )
         original_non_johto = [
             row for row in self.registry["profiles"] if row[3] != "johto"
         ]
@@ -203,17 +194,9 @@ class JohtoPopulationTests(unittest.TestCase):
             row for row in self.outputs[1]["profiles"] if row[3] != "johto"
         ]
         self.assertEqual(original_non_johto, projected_non_johto)
-        registry_by_label = {row[1]: row for row in self.registry["profiles"]}
-        expected_bands = [
-            row
-            for row in self.bands["profiles"]
-            if registry_by_label[row["label"]][3] != "johto"
-        ]
-        self.assertEqual(self.outputs[2]["profiles"], expected_bands)
-        self.assertEqual(len(expected_bands), projection.NON_JOHTO_BAND_COUNT)
 
     def test_time_policies_cover_every_selected_pair(self):
-        time_document = self.outputs[3]
+        time_document = self.outputs[2]
         self.assertEqual(
             set(time_document),
             {
@@ -284,7 +267,6 @@ class JohtoPopulationTests(unittest.TestCase):
         paths = (
             projection.DEFAULT_ENCOUNTERS,
             projection.DEFAULT_REGISTRY,
-            projection.DEFAULT_BANDS,
             projection.DEFAULT_TIME_POLICIES,
         )
         self.assertEqual(
@@ -299,7 +281,6 @@ class JohtoPopulationTests(unittest.TestCase):
             self.fallbacks,
             self.encounters,
             self.registry,
-            self.bands,
         ]
         before = copy.deepcopy(inputs)
         again = projection.project_documents(

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "minimumOrdinaryWildLevels": [
+    {"species": "SPECIES_KECLEON", "minimumOrdinaryWildLevel": 20},
+    {"species": "SPECIES_SKARMORY", "minimumOrdinaryWildLevel": 18}
+  ],
+  "predecessorResolutions": []
+}

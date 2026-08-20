@@ -902,7 +902,7 @@ def validate_regional_fact_policy(
         for items in (exact, ambiguous, unused, fixtures)
     ):
         raise ContractError("regional facts: every classification needs evidence")
-    if len(exact) != 22 or len(ambiguous) != 8 or len(exact) != len(unused):
+    if len(exact) != 36 or len(ambiguous) != 8 or len(exact) != len(unused):
         raise ContractError("regional facts: expected representative reviewed facts")
 
     admitted_capabilities = {
@@ -999,8 +999,8 @@ def validate_regional_fact_policy(
             not isinstance(grants, list)
             or any(capability not in admitted_capabilities for capability in grants)
             or len(grants) != len(set(grants))
-            or (item["fact"] != "SEVII_DETOUR_FINISHED" and len(grants) != 1)
-            or (item["fact"] == "SEVII_DETOUR_FINISHED" and grants)
+            or (item["fact"].endswith("_BADGE") and len(grants) != 1)
+            or (not item["fact"].endswith("_BADGE") and grants)
         ):
             raise ContractError(
                 f"regional facts: invalid capabilities for exact binding {index}"
@@ -1138,7 +1138,7 @@ def validate_regional_fact_policy(
             )
         unused_by_symbol[item["symbol"]] = item
     expected_unused = {
-        *(f"FLAG_UNUSED_0x{value:03X}" for value in range(0x020, 0x035)),
+        *(f"FLAG_UNUSED_0x{value:03X}" for value in range(0x020, 0x043)),
         "FLAG_UNUSED_0x2A1",
     }
     if set(unused_by_symbol) != expected_unused:

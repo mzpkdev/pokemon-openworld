@@ -115,6 +115,84 @@ EXACT_STORY_PRODUCERS = (
     ),
 )
 
+EXACT_RATING_STORY_PRODUCERS = (
+    (
+        "data/maps/SSAnne_CaptainsOffice_Frlg/scripts.inc",
+        "SSAnne_CaptainsOffice_EventScript_Captain",
+        "FLAG_REGIONAL_FACT_KANTO_SS_ANNE_CUT_RECEIVED",
+    ),
+    (
+        "data/maps/PokemonTower_7F_Frlg/scripts.inc",
+        "PokemonTower_7F_EventScript_MrFuji",
+        "FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED",
+    ),
+    (
+        "data/maps/SilphCo_11F_Frlg/scripts.inc",
+        "SilphCo_11F_EventScript_President",
+        "FLAG_REGIONAL_FACT_KANTO_SILPH_SAVED",
+    ),
+    (
+        "data/maps/PokemonLeague_ChampionsRoom_Frlg/scripts.inc",
+        "PokemonLeague_ChampionsRoom_EventScript_EnterRoom",
+        "FLAG_REGIONAL_FACT_KANTO_CHAMPION_CROWNED",
+    ),
+    (
+        "data/maps/SlateportCity_OceanicMuseum_2F/scripts.inc",
+        "SlateportCity_OceanicMuseum_2F_EventScript_CaptStern",
+        "FLAG_REGIONAL_FACT_HOENN_DEVON_GOODS_DELIVERED",
+    ),
+    (
+        "data/maps/PetalburgCity_WallysHouse/scripts.inc",
+        "PetalburgCity_WallysHouse_EventScript_GiveHMSurf",
+        "FLAG_REGIONAL_FACT_HOENN_SURF_RECEIVED",
+    ),
+    (
+        "data/maps/Route120/scripts.inc",
+        "Route120_EventScript_StevenGiveDeconScope",
+        "FLAG_REGIONAL_FACT_HOENN_DEVON_SCOPE_RECEIVED",
+    ),
+    (
+        "data/maps/MossdeepCity_SpaceCenter_2F/scripts.inc",
+        "MossdeepCity_SpaceCenter_2F_EventScript_DefeatedMaxieTabitha",
+        "FLAG_REGIONAL_FACT_HOENN_SPACE_CENTER_SAVED",
+    ),
+    (
+        "data/maps/MossdeepCity_StevensHouse/scripts.inc",
+        "MossdeepCity_StevensHouse_EventScript_StevenGivesDive",
+        "FLAG_REGIONAL_FACT_HOENN_DIVE_RECEIVED",
+    ),
+    (
+        "data/maps/VictoryRoad_1F/scripts.inc",
+        "VictoryRoad_1F_EventScript_WallyEntranceBattle",
+        "FLAG_REGIONAL_FACT_HOENN_WALLY_VICTORY_ROAD_DEFEATED",
+    ),
+    (
+        "data/maps/SootopolisCity/scripts.inc",
+        "SootopolisCity_EventScript_GiveWaterfall",
+        "FLAG_REGIONAL_FACT_HOENN_WATERFALL_RECEIVED",
+    ),
+    (
+        "data/maps/ThreeIsland_BerryForest_Frlg/scripts.inc",
+        "ThreeIsland_BerryForest_EventScript_Lostelle",
+        "FLAG_REGIONAL_FACT_SEVII_LOSTELLE_RESCUED",
+    ),
+    (
+        "data/maps/MtEmber_RubyPath_B3F_Frlg/scripts.inc",
+        "MtEmber_RubyPath_B5F_EventScript_Ruby",
+        "FLAG_REGIONAL_FACT_SEVII_RUBY_RECOVERED",
+    ),
+    (
+        "data/maps/FiveIsland_RocketWarehouse_Frlg/scripts.inc",
+        "FiveIsland_RocketWarehouse_EventScript_DefeatedGideon",
+        "FLAG_REGIONAL_FACT_SEVII_SAPPHIRE_RECOVERED",
+    ),
+    (
+        "data/maps/ThreeIsland_Port_Frlg/scripts.inc",
+        "ThreeIsland_Port_OnTransition",
+        "FLAG_REGIONAL_FACT_SEVII_DETOUR_FINISHED",
+    ),
+)
+
 EXACT_STORY_READERS = (
     (
         "data/maps/RustboroCity_Gym/scripts.inc",
@@ -641,21 +719,21 @@ def _validate_regional_badge_story_compatibility(root: Path, bindings: dict) -> 
     admitted_facts = {
         entry["symbol"]
         for entry in bindings["exact"]
-        if entry["fact"].startswith(("HOENN_", "KANTO_"))
+        if entry["grants"] and entry["region"] in {"HOENN", "KANTO"}
     }
     inventoried_producers = {
         semantic_fact for _, _, semantic_fact, _ in EXACT_STORY_PRODUCERS
     }
     if inventoried_producers != admitted_facts:
         raise ContractError(
-            "regional facts: producer inventory differs from admitted Hoenn/Kanto facts"
+            "regional facts: capability producer inventory differs from admitted facts"
         )
     inventoried_readers = {
         semantic_fact for _, _, _, semantic_fact in EXACT_STORY_READERS
     }
     if inventoried_readers != admitted_facts:
         raise ContractError(
-            "regional facts: reader inventory differs from admitted Hoenn/Kanto facts"
+            "regional facts: capability reader inventory differs from admitted facts"
         )
     if len(EXACT_STORY_PRODUCERS) != len(
         {(path, label) for path, label, _, _ in EXACT_STORY_PRODUCERS}
@@ -683,6 +761,32 @@ def _validate_regional_badge_story_compatibility(root: Path, bindings: dict) -> 
         for flag in (semantic_fact, flat_badge):
             if block.count(f"setflag {flag}") != 1:
                 raise ContractError(f"regional facts: {label} omits dual-write {flag}")
+        if any(fact in block for fact in exact_facts - {semantic_fact}):
+            raise ContractError(f"regional facts: wrong exact fact in {label}")
+
+    rating_story_facts = {
+        entry["symbol"] for entry in bindings["exact"] if not entry["grants"]
+    }
+    inventoried_rating_story_facts = {
+        semantic_fact for _, _, semantic_fact in EXACT_RATING_STORY_PRODUCERS
+    }
+    if inventoried_rating_story_facts != rating_story_facts:
+        raise ContractError(
+            "regional facts: rating-story producer inventory differs from admitted facts"
+        )
+    if len(EXACT_RATING_STORY_PRODUCERS) != len(
+        {(path, label) for path, label, _ in EXACT_RATING_STORY_PRODUCERS}
+    ):
+        raise ContractError(
+            "regional facts: duplicate rating-story producer inventory entry"
+        )
+    for path, label, semantic_fact in EXACT_RATING_STORY_PRODUCERS:
+        block = _script_block(root / path, label, root)
+        _reject_selector(block)
+        if block.count(f"setflag {semantic_fact}") != 1:
+            raise ContractError(
+                f"regional facts: {label} omits durable story fact {semantic_fact}"
+            )
         if any(fact in block for fact in exact_facts - {semantic_fact}):
             raise ContractError(f"regional facts: wrong exact fact in {label}")
 

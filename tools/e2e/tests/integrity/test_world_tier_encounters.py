@@ -26,19 +26,16 @@ FIXTURE_MANIFEST = (
 )
 WILD_AREA_WATER = 1
 WILD_ENCOUNTER_FISHING_ROD_NONE = 0xFF
-WILD_ENCOUNTER_PROFILE_AUTHORED = 0
-WORLD_TIER_0 = 0
-WORLD_TIER_1 = 1
 SPECIES_TENTACOOL = 72
 TRAINER_ROXANNE_1 = 265
 
-# Persistent public binding; unlike the legacy badge slots, this is the exact
-# regional fact consumed by WorldTier_Get.
+# Persistent public binding consumed by TrainerRating_Get.
 FLAG_REGIONAL_FACT_HOENN_STONE_BADGE = 32
 
 PROBE_REQUEST_SIZE = 12
 PROBE_REQUEST_STATUS_OFFSET = 11
 PROBE_RESULT_SIZE = 24
+PROBE_RESULT_FORMAT = "<I6H2BH4B"
 VERMILION_COORDINATES = (24, 25)
 
 
@@ -60,8 +57,7 @@ class EncounterProbeResult:
     weight: int
     area: int
     fishing_rod: int
-    tier: int
-    source: int
+    trainer_rating: int
     min_level: int
     max_level: int
     error: int
@@ -111,7 +107,7 @@ def _probe_encounter(
     game.write(
         result,
         struct.pack(
-            "<I6H8B",
+            PROBE_RESULT_FORMAT,
             request_id ^ 0xFFFFFFFF,
             0,
             entry_index,
@@ -121,7 +117,6 @@ def _probe_encounter(
             0,
             area,
             fishing_rod,
-            0,
             0,
             0,
             0,
@@ -149,7 +144,7 @@ def _probe_encounter(
 
     for _ in range(120):
         payload = game.read(result, PROBE_RESULT_SIZE)
-        unpacked = struct.unpack("<I6H8B", payload)
+        unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
         status = ProbeStatus(unpacked[-1])
         if unpacked[0] == request_id and status in (
             ProbeStatus.SUCCESS,
@@ -165,6 +160,31 @@ def _probe_encounter(
             return resolved
         game.step()
     raise AssertionError(f"encounter probe {request_id:#x} timed out")
+
+
+def test_wild_encounter_probe_abi_preserves_u16_trainer_rating():
+    payload = struct.pack(
+        PROBE_RESULT_FORMAT,
+        0xE2900000,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        WILD_AREA_WATER,
+        WILD_ENCOUNTER_FISHING_ROD_NONE,
+        0x1FF,
+        4,
+        8,
+        0,
+        ProbeStatus.SUCCESS,
+    )
+    unpacked = struct.unpack(PROBE_RESULT_FORMAT, payload)
+    result = EncounterProbeResult(*unpacked[:-1], ProbeStatus(unpacked[-1]))
+
+    assert len(payload) == PROBE_RESULT_SIZE
+    assert result.trainer_rating == 0x1FF
 
 
 def _instant_win_real_roxanne_battle(game) -> None:
@@ -226,7 +246,9 @@ def _instant_win_real_roxanne_battle(game) -> None:
 
 
 @pytest.mark.long_journey
-def test_one_save_roxanne_advances_same_vermilion_water_profile(session_factory):
+def test_one_save_roxanne_updates_trainer_rating_without_rewriting_raw_profile(
+    session_factory,
+):
     document = json.loads(FIXTURE_MANIFEST.read_text())
     fixture = FIXTURE_MANIFEST.parent / document["fixture"]["file"]
     assert (
@@ -241,8 +263,8 @@ def test_one_save_roxanne_advances_same_vermilion_water_profile(session_factory)
     game = session_factory(battery_save=fixture)
     _continue(game)
 
-    # The reviewed Kanto cheat-start save carries all eight ambiguous legacy
-    # badge slots. None may masquerade as an exact regional progression fact.
+    # The reviewed Kanto cheat-start save carries legacy badge slots. They are
+    # not Trainer Rating sources.
     badge_flags = game.address("gBadgeFlags")
     legacy_badges = [game.read_u16(badge_flags + index * 2) for index in range(8)]
     assert all(game.read_flag(flag) for flag in legacy_badges)
@@ -250,20 +272,19 @@ def test_one_save_roxanne_advances_same_vermilion_water_profile(session_factory)
 
     vermilion = maps["VermilionCity_Frlg"]
     _controlled_position(game, vermilion, VERMILION_COORDINATES, 0xE2900001)
-    tier_zero = _probe_encounter(
+    before_roxanne = _probe_encounter(
         game,
         request_id=0xE2900010,
         area=WILD_AREA_WATER,
         fishing_rod=WILD_ENCOUNTER_FISHING_ROD_NONE,
         entry_index=0,
     )
-    assert tier_zero.tier == WORLD_TIER_0
-    assert tier_zero.source == WILD_ENCOUNTER_PROFILE_AUTHORED
-    assert tier_zero.entry_count == 1
-    assert tier_zero.total_weight == 100
-    assert tier_zero.species == SPECIES_TENTACOOL
-    assert tier_zero.weight == 100
-    assert (tier_zero.min_level, tier_zero.max_level) == (4, 8)
+    assert before_roxanne.trainer_rating == 0
+    assert before_roxanne.entry_count > 0
+    assert before_roxanne.total_weight > 0
+    assert before_roxanne.species == SPECIES_TENTACOOL
+    assert before_roxanne.weight > 0
+    assert (before_roxanne.min_level, before_roxanne.max_level) == (4, 8)
 
     rustboro_gym = maps["RustboroCity_Gym"]
     _controlled_position(game, rustboro_gym, (5, 3), 0xE2900002)
@@ -272,27 +293,25 @@ def test_one_save_roxanne_advances_same_vermilion_water_profile(session_factory)
     assert game.read_flag(FLAG_REGIONAL_FACT_HOENN_STONE_BADGE)
 
     _controlled_position(game, vermilion, VERMILION_COORDINATES, 0xE2900003)
-    tier_one = _probe_encounter(
+    after_roxanne = _probe_encounter(
         game,
         request_id=0xE2900011,
         area=WILD_AREA_WATER,
         fishing_rod=WILD_ENCOUNTER_FISHING_ROD_NONE,
         entry_index=0,
     )
-    assert tier_one.tier == WORLD_TIER_1
+    assert after_roxanne.trainer_rating == 3
     assert (
-        tier_one.header_id,
-        tier_one.source,
-        tier_one.entry_count,
-        tier_one.total_weight,
-        tier_one.species,
-        tier_one.weight,
+        after_roxanne.header_id,
+        after_roxanne.entry_count,
+        after_roxanne.total_weight,
+        after_roxanne.species,
+        after_roxanne.weight,
     ) == (
-        tier_zero.header_id,
-        tier_zero.source,
-        tier_zero.entry_count,
-        tier_zero.total_weight,
-        tier_zero.species,
-        tier_zero.weight,
+        before_roxanne.header_id,
+        before_roxanne.entry_count,
+        before_roxanne.total_weight,
+        before_roxanne.species,
+        before_roxanne.weight,
     )
-    assert (tier_one.min_level, tier_one.max_level) == (10, 14)
+    assert (after_roxanne.min_level, after_roxanne.max_level) == (4, 8)

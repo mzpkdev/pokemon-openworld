@@ -8,6 +8,7 @@ PokemonTower_7F_EventScript_MrFuji::
 	setflag FLAG_HIDE_TOWER_FUJI
 	clearflag FLAG_HIDE_POKEHOUSE_FUJI
 	setflag FLAG_RESCUED_MR_FUJI
+	setflag FLAG_REGIONAL_FACT_KANTO_MR_FUJI_RESCUED
 	msgbox PokemonTower_7F_Text_MrFujiThankYouFollowMe
 	closemessage
 	warp MAP_LAVENDER_TOWN_VOLUNTEER_POKEMON_HOUSE, 4, 7
@@ -279,4 +280,3 @@ PokemonTower_7F_Text_MrFujiThankYouFollowMe::
 	.string "concern.\p"
 	.string "Follow me to my home, POKéMON\n"
 	.string "HOUSE, at the foot of this tower.$"
-
