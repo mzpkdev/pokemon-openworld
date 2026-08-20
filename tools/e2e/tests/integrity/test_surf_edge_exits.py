@@ -290,9 +290,13 @@ def test_surf_edges_cross_kanto_and_johto_and_survive_cold_restart(integrity_gam
     integrity_game.face("Down")
     _use_surf_from_party_menu(integrity_game)
     assert integrity_game.position() == (16, 9)
+    # Keep four tiles north of Tony while crossing west: his fixed Route 19
+    # sight range is three, so the former y=14 segment deterministically
+    # entered his north-facing line of sight at (12, 14) and started a
+    # trainer battle instead of exercising the edge-exit journey.
     integrity_game.move_path(
-        (16, 14),
-        (7, 14),
+        (16, 13),
+        (7, 13),
         (7, 20),
         (5, 20),
         (5, 22),

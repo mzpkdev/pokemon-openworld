@@ -77,12 +77,40 @@ def _wait_for_integrity_load_ready(game, description: str) -> None:
     )
 
 
+def _field_controls_ready(game) -> bool:
+    """Return whether ordinary field input is safe after a map transition."""
+    return (
+        _integrity_load_ready(game)
+        and not game.controls_locked()
+        and game.script_status() == SCRIPT_IDLE
+        and game.movement_idle()
+    )
+
+
+def _advance_to_field_controls(game, description: str) -> None:
+    """Finish any real arrival script before sending the next test input.
+
+    The integrity request reports FIELD_READY once its host-side transaction is
+    complete.  Map and coordinate scripts begin afterwards, so that state is
+    deliberately not also treated as permission to move the player or open
+    the debug menu.
+    """
+    # Map and coordinate scripts are dispatched on the following field frame.
+    # Give them a chance to claim control before accepting an idle field.
+    game.step(2)
+    game.advance_until(
+        lambda: _field_controls_ready(game),
+        description=description,
+        max_pulses=1_800,
+    )
+
+
 def _settle_overworld(game) -> None:
     game.wait_for_callback("CB2_InitTitleScreen", max_frames=6_000)
     for _ in range(3_000):
         game.press("Select")
         if game.callback_is("CB2_Overworld"):
-            _wait_for_integrity_load_ready(game, "settled Quickstart overworld")
+            _advance_to_field_controls(game, "settled Quickstart overworld")
             return
     raise AssertionError("Quickstart did not reach an unlocked overworld")
 
@@ -103,7 +131,7 @@ def _load(game, entry, x: int, y: int, request_id: int) -> None:
     assert result.phase is IntegrityLoadPhase.FIELD_READY
     assert result.error is IntegrityLoadError.NONE
     assert game.map_id() == entry.map_id
-    _wait_for_integrity_load_ready(game, f"settled {entry.name} load")
+    _advance_to_field_controls(game, f"settled {entry.name} load")
 
 
 def _hold_until_map(game, direction: str, destination) -> None:
@@ -113,9 +141,7 @@ def _hold_until_map(game, direction: str, destination) -> None:
             game.step()
             if game.map_id() == destination.map_id:
                 game.set_buttons(**{direction: False})
-                _wait_for_integrity_load_ready(
-                    game, f"settled {destination.name} arrival"
-                )
+                _advance_to_field_controls(game, f"settled {destination.name} arrival")
                 return
     finally:
         game.set_buttons(**{direction: False})
@@ -125,6 +151,7 @@ def _hold_until_map(game, direction: str, destination) -> None:
 
 
 def _open_utilities(game) -> None:
+    assert _field_controls_ready(game), "debug utilities require field controls"
     game.set_buttons(R=True)
     game.step()
     game.set_buttons(R=True, Start=True)
@@ -231,24 +258,6 @@ def test_hns_museum_public_and_side_entries_stay_distinct(integrity_game):
         _load(integrity_game, hns, case.x, case.y, request_id)
         _hold_until_map(integrity_game, "Up", museum)
         entries.append(integrity_game.position())
-        # Entering the museum starts its ticket dialogue one field frame after
-        # the warp completes. Resolve that real admission flow before issuing
-        # the next host load, rather than racing its callback transition.
-        integrity_game.wait_until(
-            integrity_game.controls_locked,
-            description="museum admission dialogue",
-            max_frames=600,
-        )
-        integrity_game.advance_until(
-            lambda: (
-                not integrity_game.controls_locked()
-                and integrity_game.script_status() == SCRIPT_IDLE
-                and integrity_game.movement_idle()
-            ),
-            description="museum admission completion",
-            max_pulses=1_200,
-        )
-        _wait_for_integrity_load_ready(integrity_game, "settled museum admission")
     assert entries[0] != entries[1], "museum public and side doors collapsed"
 
 
@@ -276,19 +285,10 @@ def test_hns_running_shoes_progression_is_one_time(integrity_game):
     integrity_game.set_flag(FLAG_SYS_B_DASH, False)
     integrity_game.set_var(VAR_MAP_SCENE_PEWTER_CITY, 1)
     _load(integrity_game, hns, 49, 25, 0xF5820300)
-    integrity_game.wait_until(
-        lambda: (
-            integrity_game.read_flag(FLAG_SYS_B_DASH)
-            and integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 2
-        ),
-        description="completed Pewter Running Shoes delivery",
-        max_frames=3_600,
-        step_frames=2,
-    )
-    integrity_game.wait_for_controls_unlocked(max_frames=1_200)
+    assert integrity_game.read_flag(FLAG_SYS_B_DASH)
+    assert integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 2
     integrity_game.set_var(VAR_MAP_SCENE_PEWTER_CITY, 1)
     _load(integrity_game, hns, 49, 25, 0xF5820301)
-    _wait_for_integrity_load_ready(integrity_game, "post-delivery Pewter re-entry")
     assert integrity_game.read_flag(FLAG_SYS_B_DASH)
     assert integrity_game.read_var(VAR_MAP_SCENE_PEWTER_CITY) == 1
 
