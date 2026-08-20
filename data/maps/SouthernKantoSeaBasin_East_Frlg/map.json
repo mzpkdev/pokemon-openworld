@@ -1,0 +1,38 @@
+{
+  "id": "MAP_SOUTHERN_KANTO_SEA_BASIN_EAST",
+  "name": "SouthernKantoSeaBasin_East_Frlg",
+  "layout": "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_EAST",
+  "music": "MUS_RG_ROUTE3",
+  "region": "REGION_KANTO",
+  "region_map_section": "MAPSEC_ROUTE_19",
+  "requires_flash": false,
+  "weather": "WEATHER_SUNNY",
+  "map_type": "MAP_TYPE_ROUTE",
+  "allow_cycling": true,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": true,
+  "floor_number": 0,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": [
+    {
+      "map": "MAP_SOUTHERN_KANTO_SEA_BASIN_CENTRAL",
+      "offset": -69,
+      "direction": "left"
+    },
+    {
+      "map": "MAP_ROUTE19",
+      "offset": -9,
+      "direction": "right"
+    },
+    {
+      "map": "MAP_ROUTE20",
+      "offset": -108,
+      "direction": "down"
+    }
+  ],
+  "object_events": [],
+  "warp_events": [],
+  "coord_events": [],
+  "bg_events": []
+}

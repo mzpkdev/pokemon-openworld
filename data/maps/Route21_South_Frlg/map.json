@@ -24,6 +24,11 @@
       "map": "MAP_CINNABAR_ISLAND",
       "offset": 0,
       "direction": "down"
+    },
+    {
+      "map": "MAP_SOUTHERN_KANTO_SEA_BASIN_WEST",
+      "offset": -50,
+      "direction": "right"
     }
   ],
   "object_events": [

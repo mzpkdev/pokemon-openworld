@@ -12195,6 +12195,45 @@
       "primary_tileset": "gTileset_Johto_Building",
       "secondary_tileset": "gTileset_GoldenrodUndergroundRocket",
       "width": 36
+    },
+    {
+      "blockdata_filepath": "data/layouts/SouthernKantoSeaBasin_West_Frlg/map.bin",
+      "border_filepath": "data/layouts/SouthernKantoSeaBasin_West_Frlg/border.bin",
+      "border_height": 2,
+      "border_width": 2,
+      "format": "frlg",
+      "height": 100,
+      "id": "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_WEST",
+      "name": "SouthernKantoSeaBasin_West_Layout",
+      "primary_tileset": "gTileset_General_Frlg",
+      "secondary_tileset": "gTileset_CinnabarIsland",
+      "width": 48
+    },
+    {
+      "blockdata_filepath": "data/layouts/SouthernKantoSeaBasin_Central_Frlg/map.bin",
+      "border_filepath": "data/layouts/SouthernKantoSeaBasin_Central_Frlg/border.bin",
+      "border_height": 2,
+      "border_width": 2,
+      "format": "frlg",
+      "height": 100,
+      "id": "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_CENTRAL",
+      "name": "SouthernKantoSeaBasin_Central_Layout",
+      "primary_tileset": "gTileset_General_Frlg",
+      "secondary_tileset": "gTileset_CinnabarIsland",
+      "width": 60
+    },
+    {
+      "blockdata_filepath": "data/layouts/SouthernKantoSeaBasin_East_Frlg/map.bin",
+      "border_filepath": "data/layouts/SouthernKantoSeaBasin_East_Frlg/border.bin",
+      "border_height": 2,
+      "border_width": 2,
+      "format": "frlg",
+      "height": 31,
+      "id": "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_EAST",
+      "name": "SouthernKantoSeaBasin_East_Layout",
+      "primary_tileset": "gTileset_General_Frlg",
+      "secondary_tileset": "gTileset_CinnabarIsland",
+      "width": 12
     }
   ],
   "layouts_table_label": "gMapLayouts"
