@@ -23,3 +23,7 @@ The default build uses relative asset URLs, so the static site can be mounted be
 ```sh
 MAP_ATLAS_BASE=/atlas/ npm --prefix apps/map-atlas run build
 ```
+
+## GitHub Pages
+
+CI deploys the `main` build to GitHub Pages and keeps pull request builds as the downloadable `map-atlas-site` artifact. Before the first deployment, enable GitHub Pages for the repository and select GitHub Actions as its build source.

@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   GAME_REVISION: 0
@@ -92,7 +92,15 @@ jobs:
         working-directory: apps/map-atlas
         run: npm exec -- playwright install --with-deps chromium
 
+      - name: Configure GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: pages
+        # actions/configure-pages v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
+
       - name: Build and browser-test Map Atlas
+        env:
+          MAP_ATLAS_BASE: ${{ steps.pages.outputs.base_path }}
         run: make map-atlas-browser-test
 
       - name: Upload Map Atlas browser failure evidence
@@ -114,6 +122,31 @@ jobs:
           path: build/map-atlas/site
           if-no-files-found: error
           retention-days: 3
+
+      - name: Upload Map Atlas site for GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        # actions/upload-pages-artifact v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          path: build/map-atlas/site
+
+  deploy-map-atlas:
+    name: Deploy Map Atlas
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: map-atlas
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Map Atlas to GitHub Pages
+        id: deployment
+        # actions/deploy-pages v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128
 
   donor-contracts:
     name: Donor Contracts
