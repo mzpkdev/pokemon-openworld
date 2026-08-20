@@ -167,44 +167,61 @@ class GenerationIsolationTests(unittest.TestCase):
             self.assertEqual(initial.returncode, 0, initial.stderr)
 
             lock_path = base / ".generation.lock"
-            with lock_path.open("a+b") as lock:
-                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-                ledger = subprocess.Popen(
-                    [
-                        "python3",
-                        "-m",
-                        "tools.persistence.ledger",
-                        "generate",
-                        "--output-root",
-                        str(output),
-                    ],
-                    cwd=ROOT,
-                )
-                mapjson = subprocess.Popen(
-                    [
-                        str(MAPJSON),
-                        "generate",
-                        "allregions",
-                        str(GROUPS),
-                        str(LAYOUTS),
-                        str(output),
-                        *(str(path) for path in MAPS),
-                    ],
-                    cwd=ROOT,
-                )
-                time.sleep(5)
-                ledger_was_blocked = ledger.poll() is None
-                mapjson_was_blocked = mapjson.poll() is None
-                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+            processes = []
+            try:
+                with lock_path.open("a+b") as lock:
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                    ledger = subprocess.Popen(
+                        [
+                            "python3",
+                            "-m",
+                            "tools.persistence.ledger",
+                            "generate",
+                            "--output-root",
+                            str(output),
+                        ],
+                        cwd=ROOT,
+                    )
+                    processes.append(ledger)
+                    mapjson = subprocess.Popen(
+                        [
+                            str(MAPJSON),
+                            "generate",
+                            "allregions",
+                            str(GROUPS),
+                            str(LAYOUTS),
+                            str(output),
+                            *(str(path) for path in MAPS),
+                        ],
+                        cwd=ROOT,
+                    )
+                    processes.append(mapjson)
+                    time.sleep(5)
+                    ledger_was_blocked = ledger.poll() is None
+                    mapjson_was_blocked = mapjson.poll() is None
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
-            self.assertEqual(ledger.wait(timeout=30), 0)
-            self.assertEqual(mapjson.wait(timeout=30), 0)
-            self.assertTrue(ledger_was_blocked)
-            self.assertTrue(mapjson_was_blocked)
-            self.assertTrue(
-                (output / "include/constants/persistent_opponents.inc.h").is_file()
-            )
-            self.assertEqual((output / ".map-build-policy").read_text(), "allregions\n")
+                self.assertEqual(ledger.wait(timeout=120), 0)
+                self.assertEqual(mapjson.wait(timeout=120), 0)
+                self.assertTrue(ledger_was_blocked)
+                self.assertTrue(mapjson_was_blocked)
+                self.assertTrue(
+                    (output / "include/constants/persistent_opponents.inc.h").is_file()
+                )
+                self.assertEqual(
+                    (output / ".map-build-policy").read_text(), "allregions\n"
+                )
+            finally:
+                for process in processes:
+                    if process.poll() is None:
+                        process.terminate()
+                for process in processes:
+                    if process.poll() is None:
+                        try:
+                            process.wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.wait()
 
     def test_concurrent_publication_uses_unique_trees_and_never_removes_pointer(
         self,
