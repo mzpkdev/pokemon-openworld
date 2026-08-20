@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import secrets
 import shutil
 import stat
@@ -701,14 +702,21 @@ def validate_assets(
         raise DonorUpdateError(
             f"assets.json: unused permission record {unused_permissions[0]!r}"
         )
-    _validate_audio_closures(document.get("audioClosures", ()), result)
+    _validate_audio_closures(
+        document.get("audioClosures", ()),
+        result,
+        integration_root=evidence_root,
+    )
     return tuple(result)
 
 
 def _validate_audio_closures(
-    value: object, assets: Sequence[Mapping[str, object]]
+    value: object,
+    assets: Sequence[Mapping[str, object]],
+    *,
+    integration_root: Path | None = None,
 ) -> None:
-    """Bind each typed audio payload to one reviewed program closure."""
+    """Bind each typed audio payload to one reviewed, live program closure."""
 
     if not isinstance(value, (list, tuple)):
         raise DonorUpdateError("$.audioClosures: expected an array")
@@ -775,6 +783,7 @@ def _validate_audio_closures(
         if not isinstance(integration, (list, tuple)) or not integration:
             raise DonorUpdateError(f"{pointer}.integration: expected a non-empty array")
         paths: set[str] = set()
+        integration_entries: list[tuple[str, tuple[str, ...], str]] = []
         for integration_index, item in enumerate(integration):
             item_pointer = f"{pointer}.integration[{integration_index}]"
             if not isinstance(item, Mapping) or set(item) != {"path", "sections"}:
@@ -798,12 +807,199 @@ def _validate_audio_closures(
                 raise DonorUpdateError(
                     f"{item_pointer}.sections: expected unique symbols"
                 )
+            integration_entries.append((path, tuple(sections), item_pointer))
+        if integration_root is not None:
+            _validate_audio_integration(
+                integration_root,
+                pointer,
+                by_key[midi],
+                tuple(by_key[aif] for aif in aifs),
+                integration_entries,
+            )
     if claimed != audio_keys:
         missing = sorted(audio_keys - claimed)
         extra = sorted(claimed - audio_keys)
         raise DonorUpdateError(
             f"$.audioClosures: must exactly cover typed audio assets; "
             f"missing={missing[:1]}, extra={extra[:1]}"
+        )
+
+
+def _integration_text(root: Path, path: str, pointer: str) -> str:
+    """Read a declared integration source without following it outside the root."""
+
+    candidate = root / PurePosixPath(path)
+    try:
+        resolved = candidate.resolve(strict=True)
+        resolved.relative_to(root)
+    except (OSError, ValueError) as error:
+        raise DonorUpdateError(
+            f"{pointer}.path: integration source is missing"
+        ) from error
+    if resolved != candidate or not candidate.is_file():
+        raise DonorUpdateError(f"{pointer}.path: integration source is missing")
+    try:
+        return candidate.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as error:
+        raise DonorUpdateError(
+            f"{pointer}.path: integration source must be readable UTF-8 text"
+        ) from error
+
+
+def _require_integration_symbol(
+    text: str,
+    symbol: str,
+    pointer: str,
+    *,
+    alternatives: Sequence[str] = (),
+) -> None:
+    """Require a complete declared symbol, accepting typed macro spellings."""
+
+    candidates = (symbol, *alternatives)
+    for candidate in candidates:
+        if re.search(
+            rf"(?<![A-Za-z0-9_]){re.escape(candidate)}(?![A-Za-z0-9_])",
+            text,
+        ):
+            return
+    raise DonorUpdateError(f"{pointer}.sections: missing integration symbol {symbol!r}")
+
+
+def _validate_audio_integration(
+    root: Path,
+    pointer: str,
+    midi: Mapping[str, object],
+    aifs: Sequence[Mapping[str, object]],
+    entries: Sequence[tuple[str, tuple[str, ...], str]],
+) -> None:
+    """Validate the HnS MIDI, voicegroup, and direct-sound binding surfaces.
+
+    The policy has already named the exact integration symbols.  This parser keeps
+    those names meaningful while recognizing the repository's ``voice_group`` macro
+    spelling for generated ``voicegroup_*`` labels.
+    """
+
+    texts: dict[str, tuple[str, tuple[str, ...], str]] = {}
+    for path, sections, item_pointer in entries:
+        text = _integration_text(root, path, item_pointer)
+        for section in sections:
+            alternatives: tuple[str, ...] = ()
+            if section.startswith("voicegroup_"):
+                alternatives = (f"voice_group {section.removeprefix('voicegroup_')}",)
+            _require_integration_symbol(
+                text, section, item_pointer, alternatives=alternatives
+            )
+        texts[path] = (text, sections, item_pointer)
+
+    midi_path = str(midi["sourcePath"])
+    midi_name = PurePosixPath(midi_path).name
+    midi_stem = PurePosixPath(midi_name).stem
+    expected_waves = {
+        f"DirectSoundWaveData_{PurePosixPath(str(asset['sourcePath'])).stem}"
+        for asset in aifs
+    }
+
+    midi_configs = [
+        (text, sections, item_pointer)
+        for path, (text, sections, item_pointer) in texts.items()
+        if path.endswith("/midi.cfg")
+    ]
+    song_tables = [
+        (text, sections, item_pointer)
+        for path, (text, sections, item_pointer) in texts.items()
+        if path.endswith("/song_table.inc")
+    ]
+    voicegroups = [
+        (text, sections, item_pointer)
+        for path, (text, sections, item_pointer) in texts.items()
+        if "/voicegroups/" in path and path.endswith(".inc")
+    ]
+    direct_sound = [
+        (text, sections, item_pointer)
+        for path, (text, sections, item_pointer) in texts.items()
+        if path.endswith("/direct_sound_data.inc")
+    ]
+    if not (midi_configs and song_tables and voicegroups and direct_sound):
+        raise DonorUpdateError(
+            f"{pointer}.integration: expected MIDI config/table, voicegroup, and "
+            "direct-sound integration surfaces"
+        )
+
+    configured_groups: set[str] = set()
+    for text, sections, item_pointer in midi_configs:
+        if midi_name not in sections:
+            raise DonorUpdateError(
+                f"{item_pointer}.sections: MIDI config must declare {midi_name!r}"
+            )
+        match = re.search(
+            rf"(?m)^{re.escape(midi_name)}:\s*.*?\s-G([A-Za-z0-9_]+)(?:\s|$)",
+            text,
+        )
+        if match is None:
+            raise DonorUpdateError(
+                f"{item_pointer}.sections: MIDI config does not bind {midi_name!r} "
+                "to a voicegroup"
+            )
+        configured_groups.add(match.group(1).removeprefix("_"))
+
+    for text, sections, item_pointer in song_tables:
+        if midi_stem not in sections:
+            raise DonorUpdateError(
+                f"{item_pointer}.sections: song table must declare {midi_stem!r}"
+            )
+        if re.search(rf"(?m)^\s*song\s+{re.escape(midi_stem)}\s*,", text) is None:
+            raise DonorUpdateError(
+                f"{item_pointer}.sections: song table does not register {midi_stem!r}"
+            )
+
+    declared_groups = {
+        section.removeprefix("voicegroup_")
+        for _, sections, _ in voicegroups
+        for section in sections
+        if section.startswith("voicegroup_")
+    }
+    if configured_groups != declared_groups:
+        raise DonorUpdateError(
+            f"{pointer}.integration: MIDI voicegroup differs from declared closure; "
+            f"configured={sorted(configured_groups)}, declared={sorted(declared_groups)}"
+        )
+
+    voice_waves = {
+        match.group(0)
+        for text, _, _ in voicegroups
+        for match in re.finditer(r"\bDirectSoundWaveData_[A-Za-z0-9_]+\b", text)
+    }
+    if voice_waves != expected_waves:
+        raise DonorUpdateError(
+            f"{pointer}.integration: live voicegroup audio references differ from "
+            f"declared AIF closure; missing={sorted(expected_waves - voice_waves)[:1]}, "
+            f"extra={sorted(voice_waves - expected_waves)[:1]}"
+        )
+
+    direct_waves: set[str] = set()
+    for text, sections, item_pointer in direct_sound:
+        for section in sections:
+            match = re.search(
+                rf"(?ms)^{re.escape(section)}::\s*\n\s*\.incbin\s+\""
+                r"sound/direct_sound_samples/([A-Za-z0-9_]+)\.bin\"",
+                text,
+            )
+            if match is None:
+                raise DonorUpdateError(
+                    f"{item_pointer}.sections: direct-sound symbol {section!r} "
+                    "does not bind an AIF conversion target"
+                )
+            if section != f"DirectSoundWaveData_{match.group(1)}":
+                raise DonorUpdateError(
+                    f"{item_pointer}.sections: direct-sound symbol {section!r} "
+                    "does not match its conversion target"
+                )
+            direct_waves.add(section)
+    if direct_waves != expected_waves:
+        raise DonorUpdateError(
+            f"{pointer}.integration: direct-sound audio references differ from "
+            f"declared AIF closure; missing={sorted(expected_waves - direct_waves)[:1]}, "
+            f"extra={sorted(direct_waves - expected_waves)[:1]}"
         )
 
 
