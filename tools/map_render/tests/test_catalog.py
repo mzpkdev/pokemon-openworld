@@ -12,6 +12,7 @@ import struct
 import tempfile
 import unittest
 from unittest.mock import patch
+import zlib
 
 from tools.map_render.catalog import (
     MapRenderError,
@@ -36,6 +37,46 @@ def directory_contents(root: Path) -> dict[str, bytes]:
     }
 
 
+def decoded_rgb_payload(path: Path) -> bytes:
+    png = path.read_bytes()
+    if png[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"not a PNG: {path}")
+
+    position = 8
+    header = None
+    image_data = []
+    while position < len(png):
+        length = struct.unpack(">I", png[position : position + 4])[0]
+        kind = png[position + 4 : position + 8]
+        payload = png[position + 8 : position + 8 + length]
+        position += length + 12
+        if kind == b"IHDR":
+            header = payload
+        elif kind == b"IDAT":
+            image_data.append(payload)
+        elif kind == b"IEND":
+            break
+
+    if header is None:
+        raise ValueError(f"missing PNG header: {path}")
+    width, height, depth, color, compression, filtering, interlace = struct.unpack(
+        ">IIBBBBB", header
+    )
+    if (depth, color, compression, filtering, interlace) != (8, 2, 0, 0, 0):
+        raise ValueError(f"unsupported PNG format: {path}")
+
+    stride = width * 3
+    raw = zlib.decompress(b"".join(image_data))
+    if len(raw) != height * (stride + 1) or any(
+        raw[offset] for offset in range(0, len(raw), stride + 1)
+    ):
+        raise ValueError(f"expected unfiltered RGB scanlines: {path}")
+    return b"".join(
+        raw[offset + 1 : offset + stride + 1]
+        for offset in range(0, len(raw), stride + 1)
+    )
+
+
 class DiscoveryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -48,12 +89,12 @@ class DiscoveryTests(unittest.TestCase):
             counts,
             {
                 "hoenn": 83,
-                "kanto": 43,
+                "kanto": 46,
                 "johto": 60,
                 "sevii-islands": 29,
             },
         )
-        self.assertEqual(len(self.discovery.targets), 215)
+        self.assertEqual(len(self.discovery.targets), 218)
 
     def test_categories_preserve_nonstandard_exteriors(self) -> None:
         categories = {target.name: target.category for target in self.discovery.targets}
@@ -61,6 +102,9 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(categories["AquaHideout_UnusedRubyMap2"], "generated")
         self.assertEqual(categories["Route104_Prototype"], "prototypes")
         self.assertEqual(categories["SaffronCity_Connection_Frlg"], "technical")
+        self.assertEqual(categories["SouthernKantoSeaBasin_West_Frlg"], "routes")
+        self.assertEqual(categories["SouthernKantoSeaBasin_Central_Frlg"], "routes")
+        self.assertEqual(categories["SouthernKantoSeaBasin_East_Frlg"], "routes")
         self.assertEqual(
             categories["GoldenrodCity_DepartmentStore_7FNight"], "technical"
         )
@@ -161,7 +205,7 @@ class DiscoveryTests(unittest.TestCase):
                 f"overviews/{source.region_id}/{source.category}/Route.overview.png",
             ),
         )
-        self.assertEqual(len(asset_output_paths(self.discovery.targets)), 430)
+        self.assertEqual(len(asset_output_paths(self.discovery.targets)), 436)
         with self.assertRaisesRegex(MapRenderError, "duplicate catalog asset path"):
             asset_output_paths((plain, replace(plain)))
 
@@ -211,12 +255,12 @@ class RendererTests(unittest.TestCase):
             self.assertEqual(first_native.read_bytes(), second_native.read_bytes())
             self.assertEqual(first_overview.read_bytes(), second_overview.read_bytes())
             self.assertEqual(
-                hashlib.sha256(first_native.read_bytes()).hexdigest(),
-                "0942a3bc5e682d00af3444d2886f9947c8e0aa4bfb327fdc3e20decd6a8eacfc",
+                hashlib.sha256(decoded_rgb_payload(first_native)).hexdigest(),
+                "1f03658177b2a2269708e09d612ddab3afbe6467f13a9af35f4d336215d06308",
             )
             self.assertEqual(
-                hashlib.sha256(first_overview.read_bytes()).hexdigest(),
-                "a59fac3e7dd3f18f546b946aad154e03e42eaac99f2a7ad5d7b9be5d4c4cf572",
+                hashlib.sha256(decoded_rgb_payload(first_overview)).hexdigest(),
+                "890d732047876b416f2019783cb4ef1e63665ff6b538cfd11a7077e0418e9f42",
             )
             native_dimensions = struct.unpack(">II", first_native.read_bytes()[16:24])
             overview_dimensions = struct.unpack(
@@ -272,8 +316,8 @@ class CliTests(unittest.TestCase):
             self.assertEqual(schema["properties"]["schemaVersion"]["const"], 2)
             self.assertEqual(catalog["schemaVersion"], 2)
             self.assertEqual(catalog["source"]["revision"], "fixture-revision")
-            self.assertEqual(catalog["regions"][0]["mapCount"], 43)
-            self.assertEqual(len(catalog["maps"]), 43)
+            self.assertEqual(catalog["regions"][0]["mapCount"], 46)
+            self.assertEqual(len(catalog["maps"]), 46)
             self.assertFalse((output / "stale-file.txt").exists())
             self.assertTrue(
                 all(

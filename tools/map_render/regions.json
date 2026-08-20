@@ -76,6 +76,7 @@
       "label": "Kanto",
       "rules": [
         { "group": "gMapGroup_TownsAndRoutes_Frlg", "match": "Route*_Frlg", "category": "routes" },
+        { "group": "gMapGroup_TownsAndRoutes_Frlg", "match": "SouthernKantoSeaBasin_*_Frlg", "category": "routes" },
         {
           "group": "gMapGroup_TownsAndRoutes_Frlg",
           "match": [
