@@ -17,12 +17,12 @@
   "connections": [
     {
       "map": "MAP_SOUTHERN_KANTO_SEA_BASIN_WEST",
-      "offset": 0,
+      "offset": -50,
       "direction": "left"
     },
     {
       "map": "MAP_SOUTHERN_KANTO_SEA_BASIN_EAST",
-      "offset": 69,
+      "offset": 19,
       "direction": "right"
     },
     {

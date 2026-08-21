@@ -12215,7 +12215,7 @@
       "border_height": 2,
       "border_width": 2,
       "format": "frlg",
-      "height": 100,
+      "height": 50,
       "id": "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_CENTRAL",
       "name": "SouthernKantoSeaBasin_Central_Layout",
       "primary_tileset": "gTileset_General_Frlg",
