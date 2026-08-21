@@ -27,6 +27,12 @@ PRIMARY_FRLG_METATILES = 640
 MAPGRID_METATILE_ID_MASK = 0x03FF
 MAPGRID_COLLISION_MASK = 0x0C00
 MB_FRLG_OCEAN_WATER = 0x15
+# Ocean behavior alone is insufficient: 0x123 is a ledge-facing metatile that
+# shares that behavior.  Basin water must use one of the visually open General
+# FRLG ocean metatiles already present on its route-facing seams.
+VISUALLY_OPEN_FRLG_OCEAN_METATILES = frozenset(
+    (0x12B, 0x1D9, 0x1DA, 0x1E0, 0x1E1, 0x1E2)
+)
 
 
 @dataclass(frozen=True)
@@ -152,6 +158,7 @@ def _is_surfable_ocean(word: int, attributes: tuple[int, ...]) -> bool:
         _is_primary(word)
         and not (word & MAPGRID_COLLISION_MASK)
         and attributes[metatile] & 0x1FF == MB_FRLG_OCEAN_WATER
+        and metatile in VISUALLY_OPEN_FRLG_OCEAN_METATILES
     )
 
 
@@ -267,6 +274,14 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
                     f"{entry.name}_MapScripts::\n\t.byte 0",
                 )
                 self.assertNotIn(entry.map_id, encounter_ids)
+                layout = self.layouts[entry.layout_id]
+                for word in self.grids[entry.layout_id]:
+                    if not word & MAPGRID_COLLISION_MASK:
+                        self.assertTrue(
+                            _is_surfable_ocean(word, self.attributes),
+                            f"{layout['name']} has open non-water metatile "
+                            f"0x{word & MAPGRID_METATILE_ID_MASK:03X}",
+                        )
 
     def test_all_eight_seams_are_reciprocal_and_route19_remains_disjoint(self) -> None:
         for source_id, direction, destination_id, offset in SEAMS:
