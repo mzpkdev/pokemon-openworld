@@ -161,6 +161,16 @@ class FakeClient:
 
 
 class MapAtlasPreviewPublisherTests(unittest.TestCase):
+    def test_pages_workflow_places_global_cli_flags_before_compose(self) -> None:
+        workflow = Path(".github/workflows/map-atlas-pages.yml").read_text(
+            encoding="utf-8"
+        )
+        invocation = workflow.split(
+            'result="$(python3 -m tools.map_atlas_preview', maxsplit=1
+        )[1].split('--defer-current-main)"', maxsplit=1)[0]
+        self.assertLess(invocation.index("--repo"), invocation.index("compose"))
+        self.assertLess(invocation.index("--token"), invocation.index("compose"))
+
     def test_static_extraction_rejects_path_traversal(self) -> None:
         with temporary_build_directory() as temporary:
             root = Path(temporary)
