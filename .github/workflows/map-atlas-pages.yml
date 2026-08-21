@@ -12,9 +12,8 @@ permissions:
   actions: read
   contents: read
   id-token: write
-  issues: write
   pages: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: map-atlas-pages

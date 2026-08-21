@@ -161,10 +161,12 @@ class FakeClient:
 
 
 class MapAtlasPreviewPublisherTests(unittest.TestCase):
-    def test_pages_workflow_places_global_cli_flags_before_compose(self) -> None:
+    def test_pages_workflow_publisher_contract(self) -> None:
         workflow = Path(".github/workflows/map-atlas-pages.yml").read_text(
             encoding="utf-8"
         )
+        self.assertIn("  pull-requests: write\n", workflow)
+        self.assertNotIn("  issues: write\n", workflow)
         invocation = workflow.split(
             'result="$(python3 -m tools.map_atlas_preview', maxsplit=1
         )[1].split('--defer-current-main)"', maxsplit=1)[0]
