@@ -32,6 +32,7 @@ tools/compresSmol/
 !tools/e2e/fixtures/hoenn_populated.sav
 Thumbs.db
 build/
+apps/map-atlas/node_modules/
 .DS_Store
 *.ddump
 .idea/

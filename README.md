@@ -180,6 +180,8 @@ No residency claim promises inter-region travel or finished regional stories.
 
 - [Engine capabilities](FEATURES.md) — inherited capabilities available to the
   project; inclusion does not mean every capability is enabled or used in-game.
+- [Exterior map renderer](tools/map_render/README.md) generates regional PNGs and a
+  frontend-ready topology catalog without building the ROM.
 - [Credits](CREDITS.md) — upstream contributors, asset creators, and other source
   acknowledgements retained by this fork.
 - [Installation and maintenance](INSTALL.md) — toolchain setup, builds, and a
