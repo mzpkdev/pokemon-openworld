@@ -64,8 +64,8 @@ SEAMS = (
     ("Route20_Frlg", "Up", WEST, 0),
     ("Route20_Frlg", "Up", CENTRAL, 48),
     ("Route20_Frlg", "Up", EAST, 108),
-    (WEST, "Right", CENTRAL, 0),
-    (CENTRAL, "Right", EAST, 69),
+    (WEST, "Right", CENTRAL, 50),
+    (CENTRAL, "Right", EAST, 19),
     ("Route19_Frlg", "Left", EAST, 9),
 )
 OPPOSITE_BUTTON = {"Up": "Down", "Down": "Up", "Left": "Right", "Right": "Left"}
@@ -302,8 +302,10 @@ def test_southern_kanto_basin_has_no_encounters_or_fishing_and_persists(integrit
         WEST: _paired_seam_cells(
             documents["Route21_North_Frlg"], documents[WEST], "Right", 0
         )[1],
-        CENTRAL: _paired_seam_cells(documents[WEST], documents[CENTRAL], "Right", 0)[1],
-        EAST: _paired_seam_cells(documents[CENTRAL], documents[EAST], "Right", 69)[1],
+        CENTRAL: _paired_seam_cells(documents[WEST], documents[CENTRAL], "Right", 50)[
+            1
+        ],
+        EAST: _paired_seam_cells(documents[CENTRAL], documents[EAST], "Right", 19)[1],
     }
     for index, name in enumerate((WEST, CENTRAL, EAST)):
         entry = manifest[name]

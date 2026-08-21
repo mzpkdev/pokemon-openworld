@@ -27,6 +27,13 @@ PRIMARY_FRLG_METATILES = 640
 MAPGRID_METATILE_ID_MASK = 0x03FF
 MAPGRID_COLLISION_MASK = 0x0C00
 MB_FRLG_OCEAN_WATER = 0x15
+FRLG_OCEAN_ROCK_WORD = 0x05D9
+# Ocean behavior alone is insufficient: 0x123 is a ledge-facing metatile that
+# shares that behavior.  Basin water must use one of the visually open General
+# FRLG ocean metatiles already present on its route-facing seams.
+VISUALLY_OPEN_FRLG_OCEAN_METATILES = frozenset(
+    (0x12B, 0x1D9, 0x1DA, 0x1E0, 0x1E1, 0x1E2)
+)
 
 
 @dataclass(frozen=True)
@@ -51,8 +58,8 @@ CENTRAL = BasinMap(
     "SouthernKantoSeaBasin_Central_Frlg",
     "MAP_SOUTHERN_KANTO_SEA_BASIN_CENTRAL",
     "LAYOUT_SOUTHERN_KANTO_SEA_BASIN_CENTRAL",
-    (60, 100),
-    8_550,
+    (60, 50),
+    4_800,
     "MAPSEC_ROUTE_20",
 )
 EAST = BasinMap(
@@ -74,8 +81,8 @@ SEAMS = (
     ("MAP_ROUTE20", "up", WEST.map_id, 0),
     ("MAP_ROUTE20", "up", CENTRAL.map_id, 48),
     ("MAP_ROUTE20", "up", EAST.map_id, 108),
-    (WEST.map_id, "right", CENTRAL.map_id, 0),
-    (CENTRAL.map_id, "right", EAST.map_id, 69),
+    (WEST.map_id, "right", CENTRAL.map_id, 50),
+    (CENTRAL.map_id, "right", EAST.map_id, 19),
     ("MAP_ROUTE19", "left", EAST.map_id, 9),
 )
 REVERSE_DIRECTION = {"up": "down", "down": "up", "left": "right", "right": "left"}
@@ -152,6 +159,7 @@ def _is_surfable_ocean(word: int, attributes: tuple[int, ...]) -> bool:
         _is_primary(word)
         and not (word & MAPGRID_COLLISION_MASK)
         and attributes[metatile] & 0x1FF == MB_FRLG_OCEAN_WATER
+        and metatile in VISUALLY_OPEN_FRLG_OCEAN_METATILES
     )
 
 
@@ -186,6 +194,66 @@ def _seam_cells(
                 yield source_width - 1, source_y, 0, destination_y
     else:
         raise AssertionError(f"unknown cardinal direction {direction!r}")
+
+
+def _connected_kanto_origins(
+    maps: dict[str, dict], layouts: dict[str, dict]
+) -> dict[str, tuple[int, int]]:
+    """Place reciprocal Kanto connection layouts relative to Route 18."""
+    origins = {"MAP_ROUTE18": (0, 0)}
+    pending = ["MAP_ROUTE18"]
+    while pending:
+        source_id = pending.pop()
+        source = maps[source_id]
+        source_layout = layouts[source["layout"]]
+        source_x, source_y = origins[source_id]
+        for connection in _connections(source):
+            target_id = connection["map"]
+            target = maps.get(target_id)
+            if target is None or target.get("region") != "REGION_KANTO":
+                continue
+            direction = connection["direction"]
+            offset = connection["offset"]
+            if not any(
+                candidate["map"] == source_id
+                and candidate["direction"] == REVERSE_DIRECTION[direction]
+                and candidate["offset"] == -offset
+                for candidate in _connections(target)
+            ):
+                continue
+            target_layout = layouts[target["layout"]]
+            target_x, target_y = {
+                "up": (source_x + offset, source_y - target_layout["height"]),
+                "down": (source_x + offset, source_y + source_layout["height"]),
+                "left": (source_x - target_layout["width"], source_y + offset),
+                "right": (source_x + source_layout["width"], source_y + offset),
+            }[direction]
+            candidate_origin = (target_x, target_y)
+            known_origin = origins.get(target_id)
+            if known_origin is None:
+                origins[target_id] = candidate_origin
+                pending.append(target_id)
+            elif known_origin != candidate_origin:
+                raise AssertionError(
+                    f"{source_id} -> {target_id} conflicts with the Kanto topology: "
+                    f"{known_origin} versus {candidate_origin}"
+                )
+    return origins
+
+
+def _positive_rectangle_overlap(
+    first_origin: tuple[int, int],
+    first_layout: dict,
+    second_origin: tuple[int, int],
+    second_layout: dict,
+) -> bool:
+    first_x, first_y = first_origin
+    second_x, second_y = second_origin
+    return max(first_x, second_x) < min(
+        first_x + first_layout["width"], second_x + second_layout["width"]
+    ) and max(first_y, second_y) < min(
+        first_y + first_layout["height"], second_y + second_layout["height"]
+    )
 
 
 class SouthernKantoSeaBasinContractTests(unittest.TestCase):
@@ -267,6 +335,14 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
                     f"{entry.name}_MapScripts::\n\t.byte 0",
                 )
                 self.assertNotIn(entry.map_id, encounter_ids)
+                layout = self.layouts[entry.layout_id]
+                for word in self.grids[entry.layout_id]:
+                    if not word & MAPGRID_COLLISION_MASK:
+                        self.assertTrue(
+                            _is_surfable_ocean(word, self.attributes),
+                            f"{layout['name']} has open non-water metatile "
+                            f"0x{word & MAPGRID_METATILE_ID_MASK:03X}",
+                        )
 
     def test_all_eight_seams_are_reciprocal_and_route19_remains_disjoint(self) -> None:
         for source_id, direction, destination_id, offset in SEAMS:
@@ -304,6 +380,43 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
                 }
             ],
         )
+
+    def test_basin_rectangles_do_not_overlap_existing_kanto_layouts(self) -> None:
+        origins = _connected_kanto_origins(self.maps, self.layouts)
+        self.assertEqual(origins["MAP_ROUTE18"], (0, 0))
+        self.assertEqual(
+            origins[CENTRAL.map_id],
+            (0, self.layouts["LAYOUT_ROUTE18"]["height"]),
+        )
+        self.assertEqual(
+            origins[WEST.map_id],
+            (-WEST.size[0], origins[CENTRAL.map_id][1] - 50),
+        )
+        self.assertEqual(
+            origins[EAST.map_id],
+            (CENTRAL.size[0], origins[CENTRAL.map_id][1] + 19),
+        )
+
+        basin_ids = {entry.map_id for entry in BASIN}
+        for basin in BASIN:
+            with self.subTest(basin=basin.name):
+                basin_layout = self.layouts[basin.layout_id]
+                for existing_id, existing_origin in origins.items():
+                    if existing_id in basin_ids:
+                        continue
+                    existing = self.maps[existing_id]
+                    if existing.get("region") != "REGION_KANTO":
+                        continue
+                    existing_layout = self.layouts[existing["layout"]]
+                    self.assertFalse(
+                        _positive_rectangle_overlap(
+                            origins[basin.map_id],
+                            basin_layout,
+                            existing_origin,
+                            existing_layout,
+                        ),
+                        f"{basin.name} overlaps {existing['name']}",
+                    )
 
     def test_connection_margins_are_primary_and_open_water_is_surfable(self) -> None:
         for source_id, direction, destination_id, offset in SEAMS:
@@ -376,10 +489,13 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
         unfinished = {
             # Corner cells also participate in an adjacent cardinal connection,
             # so they are connection water rather than unfinished outer rim.
-            WEST.layout_id: (("up", range(1, WEST.size[0] - 1)),),
+            WEST.layout_id: (
+                ("up", range(1, WEST.size[0] - 1)),
+                ("right", range(50)),
+            ),
             CENTRAL.layout_id: (
                 ("up", range(1, CENTRAL.size[0])),
-                ("right", range(69)),
+                ("right", range(19)),
             ),
             EAST.layout_id: (("up", range(1, EAST.size[0] - 1)),),
         }
@@ -405,6 +521,35 @@ class SouthernKantoSeaBasinContractTests(unittest.TestCase):
                     self.attributes[word & MAPGRID_METATILE_ID_MASK] & 0x1FF,
                     MB_FRLG_OCEAN_WATER,
                 )
+
+        # These newly authored rims must present the FRLG ocean rock ledge,
+        # not a collision flag laid over visually open water.
+        ocean_rock_rims = {
+            WEST.layout_id: (
+                ("up", range(1, WEST.size[0] - 1)),
+                ("right", range(50)),
+            ),
+            CENTRAL.layout_id: (
+                ("up", range(1, CENTRAL.size[0])),
+                ("right", range(19)),
+            ),
+            EAST.layout_id: (("up", range(1, EAST.size[0] - 1)),),
+        }
+        for layout_id, edges in ocean_rock_rims.items():
+            layout = self.layouts[layout_id]
+            grid = self.grids[layout_id]
+            for direction, positions in edges:
+                for position in positions:
+                    x, y = {
+                        "up": (position, 0),
+                        "right": (layout["width"] - 1, position),
+                    }[direction]
+                    self.assertEqual(
+                        _cell(grid, layout, x, y),
+                        FRLG_OCEAN_ROCK_WORD,
+                        f"{layout['name']} {direction} outer edge at {position} "
+                        "must use FRLG ocean rock",
+                    )
 
 
 if __name__ == "__main__":
