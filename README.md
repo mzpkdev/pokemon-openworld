@@ -182,6 +182,8 @@ No residency claim promises inter-region travel or finished regional stories.
   project; inclusion does not mean every capability is enabled or used in-game.
 - [Exterior map renderer](tools/map_render/README.md) generates regional PNGs and a
   frontend-ready topology catalog without building the ROM.
+- [Map atlas](apps/map-atlas/README.md) provides the interactive catalog and its
+  GitHub Pages pull request preview policy.
 - [Credits](CREDITS.md) — upstream contributors, asset creators, and other source
   acknowledgements retained by this fork.
 - [Installation and maintenance](INSTALL.md) — toolchain setup, builds, and a

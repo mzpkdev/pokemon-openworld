@@ -1,0 +1,102 @@
+name: Map Atlas
+
+on:
+  schedule:
+    - cron: "17 3 * * 0"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: map-atlas-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  map-atlas:
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Build and test Map Atlas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event_name == 'pull_request_target' && github.event.repository.default_branch || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        # actions/setup-node v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22.12.0
+          cache: npm
+          cache-dependency-path: apps/map-atlas/package-lock.json
+
+      - name: Install Map Atlas dependencies
+        working-directory: apps/map-atlas
+        run: npm ci
+
+      - name: Test map catalog contract
+        run: make map-catalog-test
+
+      - name: Test Map Atlas
+        run: make map-atlas-test
+
+      - name: Install Chromium for Map Atlas browser tests
+        working-directory: apps/map-atlas
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Configure GitHub Pages for the production build
+        if: github.event_name != 'pull_request'
+        id: pages
+        # actions/configure-pages v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
+
+      - name: Build and browser-test Map Atlas
+        env:
+          MAP_ATLAS_BASE: ${{ github.event_name == 'pull_request' && format('/{0}/previews/pr-{1}/', github.event.repository.name, github.event.pull_request.number) || steps.pages.outputs.base_path }}
+        run: make map-atlas-browser-test
+
+      - name: Bind the artifact to its checked-out source revision
+        env:
+          SOURCE_EVENT: ${{ github.event_name }}
+          EXPECTED_SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          SKIP_SOURCE_SHA_CHECK: ${{ github.event_name == 'pull_request_target' }}
+        run: |
+          checked_out_sha="$(git rev-parse HEAD)"
+          if [[ "$SKIP_SOURCE_SHA_CHECK" != 'true' && "$checked_out_sha" != "$EXPECTED_SOURCE_SHA" ]]; then
+            echo "Map Atlas checkout did not resolve the expected source revision." >&2
+            exit 1
+          fi
+          python3 -c 'import json, pathlib, sys; pathlib.Path(sys.argv[3]).write_text(json.dumps({"event": sys.argv[2], "sourceSha": sys.argv[1]}) + "\n", encoding="utf-8")' "$checked_out_sha" "$SOURCE_EVENT" build/map-atlas/site/map-atlas-preview-source.json
+
+      - name: Upload Map Atlas browser failure evidence
+        if: failure()
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: map-atlas-browser-failures
+          path: build/map-atlas/playwright
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Upload eligible Map Atlas site
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        # Fork pull requests run all tests but never publish a preview artifact.
+        # actions/upload-artifact v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: map-atlas-site
+          path: build/map-atlas/site
+          if-no-files-found: error
+          retention-days: 90

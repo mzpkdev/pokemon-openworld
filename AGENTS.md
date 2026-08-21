@@ -60,6 +60,7 @@ The E2E targets build fresh debug artifacts locally. `E2E_PREBUILT_DEBUG=1` is r
 - `make wild-encounter-test` runs wild-encounter generator tests.
 - `make map-catalog-test` tests the isolated exterior-map renderer and catalog contract.
 - `make map-catalog` writes every regional exterior PNG and `catalog.json` under `build/map-catalog/`.
+- `make map-atlas-preview-test` tests the trusted static-artifact composer used by Pages previews.
 
 ## Product-owned C tests
 

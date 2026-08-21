@@ -1,0 +1,101 @@
+name: Publish Map Atlas previews
+
+on:
+  workflow_run:
+    workflows: [Map Atlas]
+    types: [completed]
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+  issues: write
+  pages: write
+  pull-requests: read
+
+concurrency:
+  group: map-atlas-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'schedule' || (github.event.workflow_run.event == 'pull_request_target' && github.event.workflow_run.conclusion == 'success'))) ||
+      (github.event_name == 'pull_request_target' &&
+       github.event.action == 'closed' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out trusted default branch
+        # actions/checkout v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Configure GitHub Pages
+        # actions/configure-pages v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
+
+      - name: Compose current static site and previews
+        id: compose
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          result="$(python3 -m tools.map_atlas_preview compose \
+            --repo "$GITHUB_REPOSITORY" \
+            --token "$GITHUB_TOKEN" \
+            --workflow map-atlas.yml \
+            --main-sha "$(git rev-parse HEAD)" \
+            --output build/map-atlas-pages \
+            --manifest build/map-atlas-pages-manifest.json \
+            --defer-current-main)"
+          if [[ "$result" != 'ready=true' && "$result" != 'ready=false' ]]; then
+            echo "Map Atlas publisher returned an invalid readiness result." >&2
+            exit 1
+          fi
+          printf '%s\n' "$result" >> "$GITHUB_OUTPUT"
+
+      - name: Upload composed Pages artifact
+        if: steps.compose.outputs.ready == 'true'
+        # actions/upload-pages-artifact v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+        with:
+          path: build/map-atlas-pages
+
+      - name: Deploy composed Map Atlas site
+        if: steps.compose.outputs.ready == 'true'
+        id: deployment
+        # actions/deploy-pages v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128
+
+      - name: Update Map Atlas preview comments
+        if: steps.compose.outputs.ready == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CLOSED_PULL_REQUEST: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || '' }}
+        run: |
+          arguments=(
+            --repo "$GITHUB_REPOSITORY"
+            --token "$GITHUB_TOKEN"
+            comment
+            --manifest build/map-atlas-pages-manifest.json
+            --page-url "$PAGE_URL"
+          )
+          if [[ -n "$CLOSED_PULL_REQUEST" ]]; then
+            arguments+=(--closed-pull-request "$CLOSED_PULL_REQUEST")
+          else
+            arguments+=(--mark-closed-pull-requests)
+          fi
+          python3 -m tools.map_atlas_preview "${arguments[@]}"
